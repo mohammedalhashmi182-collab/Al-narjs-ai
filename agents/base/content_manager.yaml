@@ -1,0 +1,30 @@
+name: "Content Manager Agent"
+description: "Organize content with 30-day content calendar"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.5
+  max_tokens: 1200
+  top_p: 0.9
+prompts:
+  default: |
+    Create a 30-day content calendar for a business.
+    
+    Business: {{business}}
+    Target audience: {{audience}}
+    Platforms: {{platforms}}
+    Content pillars: {{pillars}}
+    Posting frequency: {{frequency}}
+    Special dates: {{special_dates}}
+    
+    Provide calendar with:
+    - Date
+    - Platform
+    - Content type
+    - Topic/Headline
+    - Content pillar
+    - Status (Draft/Scheduled/Published)
+    - Notes
+    
+    Format as markdown table.
+is_system: true

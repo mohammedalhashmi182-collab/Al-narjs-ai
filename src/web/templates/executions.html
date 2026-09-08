@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Executions - AI Agent System{% endblock %}
+
+{% block page_title %}Executions{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Execution History</h2>
+    <div class="flex space-x-2">
+        <select id="status-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onchange="loadExecutions()">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="running">Running</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+        <input type="text" id="search-input" placeholder="Search..." 
+               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+               oninput="filterExecutions()">
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-sm text-gray-500">
+                    <th class="p-4">ID</th>
+                    <th class="p-4">Workflow</th>
+                    <th class="p-4">Trigger</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Started</th>
+                    <th class="p-4">Completed</th>
+                    <th class="p-4">Duration</th>
+                    <th class="p-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="executions-table" class="divide-y divide-gray-200">
+                <tr><td colspan="8" class="p-4 text-center text-gray-500">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="pagination" class="p-4 border-t border-gray-200 flex justify-center space-x-2">
+        <button id="prev-btn" onclick="changePage(-1)" class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>Previous</button>
+        <span id="page-info" class="px-4 py-2">Page 1</span>
+        <button id="next-btn" onclick="changePage(1)" class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>Next</button>
+    </div>
+</div>
+
+<!-- Execution Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 id="detail-title" class="text-lg font-semibold">Execution Details</h3>
+            <button onclick="closeDetailModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4" id="detail-content">
+            Loading...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let executions = [];
+    let currentPage = 1;
+    const pageSize = 20;
+
+    async function loadExecutions() {
+        const status = document.getElementById('status-filter').value;
+        try {
+            const response = await fetch(`/api/executions?limit=${pageSize}&offset=${(currentPage - 1) * pageSize}`);
+            const data = await response.json();
+            executions = data.executions || [];
+            renderExecutions(executions);
+            updatePagination(data.executions?.length === pageSize);
+        } catch (e) {
+            console.error('Failed to load executions:', e);
+        }
+    }
+
+    function renderExecutions(list) {
+        const tbody = document.getElementById('executions-table');
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-500">No executions found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = list.map(exec => {
+            const started = exec.started_at ? new Date(exec.started_at) : null;
+            const completed = exec.completed_at ? new Date(exec.completed_at) : null;
+            const duration = started && completed ? Math.round((completed - started) / 1000) + 's' : 
+                           started && !completed ? 'Running...' : 'N/A';
+            
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-4 font-mono text-sm">${exec.id?.substring(0, 12)}...</td>
+                    <td class="p-4 font-medium">${exec.workflow_id}</td>
+                    <td class="p-4 text-gray-600 text-sm">${exec.trigger_type}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(exec.status)}">
+                            ${exec.status}
+                        </span>
+                    </td>
+                    <td class="p-4 text-gray-600 text-sm">${started ? started.toLocaleString() : 'N/A'}</td>
+                    <td class="p-4 text-gray-600 text-sm">${completed ? completed.toLocaleString() : 'N/A'}</td>
+                    <td class="p-4 text-gray-600 text-sm">${duration}</td>
+                    <td class="p-4">
+                        <button onclick="viewExecution('${exec.id}')" class="p-2 text-gray-500 hover:text-blue-600" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${exec.status === 'failed' ? `
+                            <button onclick="retryExecution('${exec.id}')" class="p-2 text-gray-500 hover:text-green-600" title="Retry">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function getStatusClass(status) {
+        switch (status) {
+            case 'completed': return 'bg-green-100 text-green-800';
+            case 'failed': return 'bg-red-100 text-red-800';
+            case 'running': return 'bg-blue-100 text-blue-800';
+            case 'cancelled': return 'bg-gray-100 text-gray-800';
+            default: return 'bg-yellow-100 text-yellow-800';
+        }
+    }
+
+    function filterExecutions() {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const filtered = executions.filter(e => 
+            e.id?.toLowerCase().includes(search) || 
+            e.workflow_id?.toLowerCase().includes(search) ||
+            e.trigger_type?.toLowerCase().includes(search)
+        );
+        renderExecutions(filtered);
+    }
+
+    function updatePagination(hasMore) {
+        document.getElementById('prev-btn').disabled = currentPage <= 1;
+        document.getElementById('next-btn').disabled = !hasMore;
+        document.getElementById('page-info').textContent = `Page ${currentPage}`;
+    }
+
+    function changePage(delta) {
+        currentPage += delta;
+        if (currentPage < 1) currentPage = 1;
+        loadExecutions();
+    }
+
+    async function viewExecution(id) {
+        try {
+            const response = await fetch(`/api/executions/${id}`);
+            const data = await response.json();
+            const exec = data.execution;
+            const steps = data.steps || [];
+
+            document.getElementById('detail-title').textContent = `Execution ${id.substring(0, 12)}...`;
+            
+            const started = exec.started_at ? new Date(exec.started_at) : null;
+            const completed = exec.completed_at ? new Date(exec.completed_at) : null;
+            const duration = started && completed ? Math.round((completed - started) / 1000) + 's' : 
+                           started && !completed ? 'Running...' : 'N/A';
+
+            document.getElementById('detail-content').innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><span class="text-gray-500">ID:</span> <code class="ml-2">${exec.id}</code></div>
+                        <div><span class="text-gray-500">Workflow:</span> <span class="ml-2">${exec.workflow_id}</span></div>
+                        <div><span class="text-gray-500">Trigger:</span> <span class="ml-2">${exec.trigger_type}</span></div>
+                        <div><span class="text-gray-500">Status:</span> 
+                            <span class="ml-2 px-2 py-1 text-xs rounded-full ${getStatusClass(exec.status)}">${exec.status}</span>
+                        </div>
+                        <div><span class="text-gray-500">Started:</span> <span class="ml-2">${started ? started.toLocaleString() : 'N/A'}</span></div>
+                        <div><span class="text-gray-500">Completed:</span> <span class="ml-2">${completed ? completed.toLocaleString() : 'N/A'}</span></div>
+                        <div><span class="text-gray-500">Duration:</span> <span class="ml-2">${duration}</span></div>
+                        ${exec.error ? `<div class="col-span-2"><span class="text-gray-500">Error:</span> <span class="ml-2 text-red-600">${exec.error}</span></div>` : ''}
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Trigger Payload</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-48">${JSON.stringify(exec.trigger_payload, null, 2)}</pre>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Final Context</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-48">${JSON.stringify(exec.context, null, 2)}</pre>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Steps (${steps.length})</h4>
+                        <div class="space-y-2">
+                            ${steps.map(step => {
+                                const sStarted = step.started_at ? new Date(step.started_at) : null;
+                                const sCompleted = step.completed_at ? new Date(step.completed_at) : null;
+                                const sDuration = sStarted && sCompleted ? Math.round((sCompleted - sStarted) / 1000) + 's' : 'N/A';
+                                return `
+                                    <div class="border border-gray-200 rounded p-3">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-medium">${step.step_id}</span>
+                                            <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(step.status)}">${step.status}</span>
+                                        </div>
+                                        <div class="grid grid-cols-4 gap-2 text-sm text-gray-600">
+                                            <div><span class="text-gray-500">Agent:</span> ${step.agent_slug || 'N/A'}</div>
+                                            <div><span class="text-gray-500">Duration:</span> ${sDuration}</div>
+                                            <div><span class="text-gray-500">Tokens:</span> ${step.tokens_used || 0}</div>
+                                            <div><span class="text-gray-500">Latency:</span> ${step.latency_ms || 0}ms</div>
+                                        </div>
+                                        ${step.error ? `
+                                            <div class="mt-2 p-2 bg-red-50 text-red-700 rounded text-sm">${step.error}</div>
+                                        ` : ''}
+                                        <details class="mt-2">
+                                            <summary class="cursor-pointer text-sm font-medium">Input</summary>
+                                            <pre class="mt-1 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">${JSON.stringify(step.input_data, null, 2)}</pre>
+                                        </details>
+                                        <details class="mt-2">
+                                            <summary class="cursor-pointer text-sm font-medium">Output</summary>
+                                            <pre class="mt-1 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">${JSON.stringify(step.output_data, null, 2)}</pre>
+                                        </details>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    ${exec.status === 'failed' ? `
+                        <div class="flex space-x-3 pt-4 border-t">
+                            <button onclick="retryExecution('${exec.id}')" class="btn-primary">Retry</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            document.getElementById('detail-modal').classList.remove('hidden');
+            document.getElementById('detail-modal').classList.add('flex');
+        } catch (e) {
+            console.error('Failed to load execution:', e);
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+        document.getElementById('detail-modal').classList.remove('flex');
+    }
+
+    async function retryExecution(id) {
+        if (!confirm('Retry this execution?')) return;
+        try {
+            await fetch(`/api/executions/${id}/retry`, {method: 'POST'});
+            loadExecutions();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    loadExecutions();
+    setInterval(loadExecutions, 30000);
+</script>
+
+<style>
+    .btn-primary {
+        @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
+    }
+    .btn-secondary {
+        @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+    }
+</style>
+{% endblock %}

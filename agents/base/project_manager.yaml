@@ -1,0 +1,30 @@
+name: "Project Manager Agent"
+description: "Organize tasks into clear execution plans"
+category: "automation"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.3
+  max_tokens: 800
+  top_p: 0.9
+prompts:
+  default: |
+    You are a project manager. Organize the following tasks into a clear, actionable execution plan.
+    
+    Tasks:
+    {{tasks}}
+    
+    Constraints:
+    - Team size: {{team_size}}
+    - Timeline: {{timeline}}
+    - Dependencies: {{dependencies}}
+    - Priority: {{priority}}
+    
+    Provide:
+    1. Task breakdown with priorities
+    2. Suggested timeline/milestones
+    3. Resource allocation
+    4. Risk assessment
+    5. Success criteria
+    
+    Format as structured project plan.
+is_system: true

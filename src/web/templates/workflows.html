@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Workflows - AI Agent System{% endblock %}
+
+{% block page_title %}Workflows{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Workflows</h2>
+    <button onclick="openCreateModal()" class="btn-primary">
+        <i class="fas fa-plus mr-2"></i>Create Workflow
+    </button>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-gray-200">
+        <input type="text" id="search-input" placeholder="Search workflows..." 
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               oninput="filterWorkflows()">
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-sm text-gray-500">
+                    <th class="p-4">Name</th>
+                    <th class="p-4">Slug</th>
+                    <th class="p-4">Version</th>
+                    <th class="p-4">Steps</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="workflows-table" class="divide-y divide-gray-200">
+                <tr><td colspan="6" class="p-4 text-center text-gray-500">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="workflow-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 id="modal-title" class="text-lg font-semibold">Create Workflow</h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form id="workflow-form" class="p-4 space-y-4" onsubmit="saveWorkflow(event)">
+            <input type="hidden" id="workflow-id">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" id="workflow-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                <input type="text" id="workflow-slug" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea id="workflow-description" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Definition (JSON)</label>
+                <textarea id="workflow-definition" rows="10" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm" placeholder='{"version": 1, "steps": [], "global_config": {}}'></textarea>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Workflow Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 id="detail-title" class="text-lg font-semibold">Workflow Details</h3>
+            <button onclick="closeDetailModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4" id="detail-content">
+            Loading...
+        </div>
+    </div>
+</div>
+
+<!-- Run Workflow Modal -->
+<div id="run-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-semibold">Run Workflow</h3>
+            <button onclick="closeRunModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form id="run-form" class="p-4 space-y-4" onsubmit="runWorkflow(event)">
+            <input type="hidden" id="run-workflow-slug">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Input Data (JSON)</label>
+                <textarea id="run-input" rows="8" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm">{}</textarea>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeRunModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">Execute</button>
+            </div>
+        </form>
+        <div id="run-result" class="p-4 hidden"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let workflows = [];
+
+    async function loadWorkflows() {
+        try {
+            const response = await fetch('/api/workflows');
+            const data = await response.json();
+            workflows = data.workflows || [];
+            renderWorkflows(workflows);
+        } catch (e) {
+            console.error('Failed to load workflows:', e);
+        }
+    }
+
+    function renderWorkflows(list) {
+        const tbody = document.getElementById('workflows-table');
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No workflows found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = list.map(wf => `
+            <tr class="hover:bg-gray-50">
+                <td class="p-4 font-medium">${wf.name}</td>
+                <td class="p-4 text-gray-600 font-mono text-sm">${wf.slug}</td>
+                <td class="p-4 text-gray-600">v${wf.version}</td>
+                <td class="p-4 text-gray-600">${wf.definition?.steps?.length || 0}</td>
+                <td class="p-4">
+                    <span class="px-2 py-1 text-xs rounded-full ${wf.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                        ${wf.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td class="p-4">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="viewWorkflow('${wf.slug}')" class="p-2 text-gray-500 hover:text-blue-600" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="openRunModal('${wf.slug}')" class="p-2 text-gray-500 hover:text-green-600" title="Run">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button onclick="editWorkflow('${wf.slug}')" class="p-2 text-gray-500 hover:text-yellow-600" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteWorkflow('${wf.slug}')" class="p-2 text-gray-500 hover:text-red-600" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterWorkflows() {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const filtered = workflows.filter(w => 
+            w.name.toLowerCase().includes(search) || 
+            w.slug.toLowerCase().includes(search) ||
+            w.description?.toLowerCase().includes(search)
+        );
+        renderWorkflows(filtered);
+    }
+
+    function openCreateModal() {
+        document.getElementById('modal-title').textContent = 'Create Workflow';
+        document.getElementById('workflow-form').reset();
+        document.getElementById('workflow-id').value = '';
+        document.getElementById('workflow-definition').value = JSON.stringify({
+            version: 1,
+            steps: [],
+            global_config: {}
+        }, null, 2);
+        document.getElementById('workflow-modal').classList.remove('hidden');
+        document.getElementById('workflow-modal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('workflow-modal').classList.add('hidden');
+        document.getElementById('workflow-modal').classList.remove('flex');
+    }
+
+    async function saveWorkflow(e) {
+        e.preventDefault();
+        const id = document.getElementById('workflow-id').value;
+        let definition;
+        try {
+            definition = JSON.parse(document.getElementById('workflow-definition').value);
+        } catch (e) {
+            alert('Invalid JSON in definition');
+            return;
+        }
+
+        const workflowData = {
+            name: document.getElementById('workflow-name').value,
+            slug: document.getElementById('workflow-slug').value,
+            description: document.getElementById('workflow-description').value,
+            definition: definition,
+        };
+
+        try {
+            const url = id ? `/api/workflows/${id}` : '/api/workflows';
+            const method = id ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(workflowData),
+            });
+            if (!response.ok) throw new Error('Failed to save');
+            closeModal();
+            loadWorkflows();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    async function viewWorkflow(slug) {
+        try {
+            const response = await fetch(`/api/workflows/${slug}`);
+            const wf = await response.json();
+            
+            document.getElementById('detail-title').textContent = wf.name;
+            document.getElementById('detail-content').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Description</h4>
+                        <p class="text-gray-600">${wf.description || 'No description'}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><span class="text-gray-500">Slug:</span> <code class="ml-2">${wf.slug}</code></div>
+                        <div><span class="text-gray-500">Version:</span> <span class="ml-2">v${wf.version}</span></div>
+                        <div><span class="text-gray-500">Status:</span> <span class="ml-2">${wf.is_active ? 'Active' : 'Inactive'}</span></div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Definition</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-96">${JSON.stringify(wf.definition, null, 2)}</pre>
+                    </div>
+                    <div class="flex space-x-3 pt-4 border-t">
+                        <button onclick="openRunModal('${wf.slug}')" class="btn-primary">Run Workflow</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detail-modal').classList.remove('hidden');
+            document.getElementById('detail-modal').classList.add('flex');
+        } catch (e) {
+            console.error('Failed to load workflow:', e);
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+        document.getElementById('detail-modal').classList.remove('flex');
+    }
+
+    function editWorkflow(slug) {
+        const wf = workflows.find(w => w.slug === slug);
+        if (!wf) return;
+        
+        document.getElementById('modal-title').textContent = 'Edit Workflow';
+        document.getElementById('workflow-id').value = slug;
+        document.getElementById('workflow-name').value = wf.name;
+        document.getElementById('workflow-slug').value = wf.slug;
+        document.getElementById('workflow-description').value = wf.description || '';
+        document.getElementById('workflow-definition').value = JSON.stringify(wf.definition, null, 2);
+        
+        document.getElementById('workflow-modal').classList.remove('hidden');
+        document.getElementById('workflow-modal').classList.add('flex');
+    }
+
+    async function deleteWorkflow(slug) {
+        if (!confirm(`Delete workflow ${slug}?`)) return;
+        try {
+            await fetch(`/api/workflows/${slug}`, {method: 'DELETE'});
+            loadWorkflows();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    function openRunModal(slug) {
+        document.getElementById('run-workflow-slug').value = slug;
+        document.getElementById('run-input').value = '{}';
+        document.getElementById('run-result').classList.add('hidden');
+        document.getElementById('run-modal').classList.remove('hidden');
+        document.getElementById('run-modal').classList.add('flex');
+    }
+
+    function closeRunModal() {
+        document.getElementById('run-modal').classList.add('hidden');
+        document.getElementById('run-modal').classList.remove('flex');
+    }
+
+    async function runWorkflow(e) {
+        e.preventDefault();
+        const slug = document.getElementById('run-workflow-slug').value;
+        let inputData;
+        try {
+            inputData = JSON.parse(document.getElementById('run-input').value);
+        } catch (e) {
+            alert('Invalid JSON');
+            return;
+        }
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Running...';
+
+        try {
+            const response = await fetch(`/api/workflows/${slug}/run`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({input_data: inputData}),
+            });
+            const result = await response.json();
+            
+            const resultDiv = document.getElementById('run-result');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = `
+                <h4 class="font-medium mb-2">Result</h4>
+                <div class="p-3 rounded ${result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                    <p><strong>Status:</strong> ${result.success ? 'Success' : 'Failed'}</p>
+                    <p><strong>Workflow ID:</strong> ${result.workflow_id}</p>
+                    ${result.error ? `<p><strong>Error:</strong> ${result.error}</p>` : ''}
+                    <p><strong>Steps:</strong> ${result.steps_completed} completed, ${result.steps_failed} failed</p>
+                </div>
+                <details class="mt-2">
+                    <summary class="cursor-pointer text-sm font-medium">Final Context</summary>
+                    <pre class="mt-2 bg-gray-100 p-3 rounded text-xs overflow-auto max-h-64">${JSON.stringify(result.final_context, null, 2)}</pre>
+                </details>
+            `;
+        } catch (e) {
+            alert('Error: ' + e.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Execute';
+        }
+    }
+
+    loadWorkflows();
+</script>
+
+<style>
+    .btn-primary {
+        @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
+    }
+    .btn-secondary {
+        @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+    }
+</style>
+{% endblock %}

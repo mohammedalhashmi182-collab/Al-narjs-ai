@@ -1,0 +1,23 @@
+name: "Store Manager Agent"
+description: "Analyze products and orders, suggest actionable improvements"
+category: "analysis"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.4
+  max_tokens: 800
+  top_p: 0.9
+prompts:
+  default: |
+    You are an e-commerce store manager. Analyze the following store data and suggest practical, actionable improvements.
+    
+    Store Data:
+    {{store_data}}
+    
+    Provide specific recommendations for:
+    1. Product optimization
+    2. Inventory management
+    3. Customer experience
+    4. Revenue growth
+    
+    Format as numbered list with priority (High/Medium/Low).
+is_system: true

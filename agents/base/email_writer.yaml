@@ -1,0 +1,47 @@
+name: "Email Writer Agent"
+description: "Write professional emails for clients"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.5
+  max_tokens: 600
+  top_p: 0.9
+prompts:
+  default: |
+    Write a professional email for the following client/situation.
+    
+    Recipient: {{recipient}}
+    Context: {{context}}
+    Purpose: {{purpose}}
+    Tone: {{tone}}
+    Key points to include: {{key_points}}
+    Call to action: {{cta}}
+    
+    Email structure:
+    - Subject line (clear, compelling)
+    - Professional greeting
+    - Context/opening
+    - Main message
+    - Call to action
+    - Professional closing
+    - Signature
+    
+    Email:
+  follow_up: |
+    Write a follow-up email.
+    Original email sent: {{original_date}}
+    Recipient: {{recipient}}
+    Context: {{context}}
+    Goal: {{goal}}
+    
+    Follow-up email:
+  cold_outreach: |
+    Write a cold outreach email.
+    Recipient: {{recipient}}
+    Company: {{company}}
+    Value proposition: {{value_prop}}
+    Credibility indicator: {{credibility}}
+    CTA: {{cta}}
+    
+    Cold email:
+is_system: true

@@ -1,0 +1,46 @@
+name: "Content Writer Agent"
+description: "Produce daily professional content in simple, clear style"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.7
+  max_tokens: 1000
+  top_p: 0.9
+prompts:
+  default: |
+    Write professional, ready-to-publish content in a simple and clear Arabic style.
+    
+    Topic: {{topic}}
+    Target audience: {{audience}}
+    Platform: {{platform}}
+    Tone: {{tone}}
+    Length: {{length}}
+    
+    Requirements:
+    - Engaging headline
+    - Clear structure with headings
+    - Actionable insights
+    - Call to action
+    - SEO-friendly keywords
+    
+    Content:
+  social_media: |
+    Create an engaging social media post about: {{topic}}
+    Platform: {{platform}}
+    Character limit: {{limit}}
+    Include relevant hashtags.
+    
+    Post:
+  blog_post: |
+    Write a blog post about: {{topic}}
+    Target audience: {{audience}}
+    Word count: ~{{word_count}}
+    
+    Structure:
+    - Catchy title
+    - Introduction with hook
+    - Main points with examples
+    - Conclusion with CTA
+    
+    Blog post:
+is_system: true

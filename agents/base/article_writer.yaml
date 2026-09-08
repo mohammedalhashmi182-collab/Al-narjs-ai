@@ -1,0 +1,32 @@
+name: "Article Writer Agent"
+description: "Produce professional articles about AI"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.6
+  max_tokens: 1500
+  top_p: 0.9
+prompts:
+  default: |
+    Write a professional article about Artificial Intelligence.
+    
+    Topic: {{topic}}
+    Angle: {{angle}}
+    Target audience: {{audience}}
+    Word count: {{word_count}}
+    Tone: {{tone}}
+    Key points to cover: {{key_points}}
+    
+    Article structure:
+    - Engaging title
+    - Hook introduction (problem/opportunity)
+    - Background/context
+    - Main arguments with evidence
+    - Case studies/examples
+    - Counterarguments addressed
+    - Future outlook
+    - Conclusion with key takeaways
+    - Call to action
+    
+    Include relevant statistics, expert quotes placeholders.
+is_system: true

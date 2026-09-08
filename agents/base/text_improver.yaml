@@ -1,0 +1,28 @@
+name: "Text Improver Agent"
+description: "Improve text clarity and readability"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.3
+  max_tokens: 800
+  top_p: 0.9
+prompts:
+  default: |
+    Improve the following text to make it clearer, more concise, and more professional.
+    
+    Original text:
+    {{text}}
+    
+    Goals:
+    - Improve clarity
+    - Fix grammar/style
+    - Enhance flow
+    - Maintain original meaning
+    - Target reading level: {{reading_level}}
+    
+    Provide:
+    1. Improved version
+    2. Key changes made
+    3. Readability score comparison
+    4. Alternative versions (Formal/Casual/Concise)
+is_system: true

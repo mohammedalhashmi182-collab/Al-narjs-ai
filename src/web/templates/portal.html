@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة العميل | النرجس للذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+        .emp-card.dormant { filter: none; opacity: 0.92; }
+        .emp-card.dormant .emp-ava { background: repeating-linear-gradient(45deg, #cfd6cf 0 12px, #e6ece6 12px 24px); }
+        .emp-card .emp-ava { display: grid; place-items: center; }
+        .awake-pulse { animation: pulseGold 1.6s ease-in-out infinite; }
+        @keyframes pulseGold { 0%,100% { box-shadow: 0 0 0 0 rgba(230,198,101,0.5);} 50% { box-shadow: 0 0 0 14px rgba(230,198,101,0);} }
+        .chat-box { max-height: 55vh; overflow-y: auto; }
+        .msg { max-width: 82%; }
+        .msg-agent { align-self: flex-start; }
+        .msg-client { align-self: flex-end; }
+        .spin { display: inline-block; animation: rot 0.9s linear infinite; }
+        @keyframes rot { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body data-lang="ar" class="bg-sand min-h-screen">
+    <!-- Top nav -->
+    <nav class="n-nav px-6 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="/home" class="flex items-center gap-3">
+                <span class="text-3xl" style="color:var(--n-gold);">✺</span>
+                <div>
+                    <div class="n-title text-xl" style="font-size:1.25rem;">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
+                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">بوابة العميل · CLIENT PORTAL</div>
+                </div>
+            </a>
+            <div class="flex items-center gap-3">
+                <div class="lang-pill" id="langToggle">
+                    <button data-lang-btn="ar" class="arabic active">عربي</button>
+                    <button data-lang-btn="en" class="english">EN</button>
+                </div>
+                <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
+                    <span data-lang="ar">الرئيسية</span><span data-lang="en" data-inline>Home</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Step 1: register / choose package -->
+    <section id="step-register" class="py-12">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-10">
+                <div class="n-divider mb-4">✺</div>
+                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar">فعّل فريقك</span><span data-lang="en" data-inline>Wake Up Your Team</span> <span class="gold" data-lang="ar">الذكي</span><span class="gold" data-lang="en" data-inline>Smart</span></h1>
+                <p class="n-sub mt-3" data-lang="ar">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>
+                <p class="n-sub mt-3" data-lang="en" data-inline>Choose your plan and a crew of expert employees (currently asleep) wake up to serve you instantly.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10" id="pkg-grid"></div>
+
+            <form id="regForm" class="n-form max-w-2xl mx-auto gap-5 hidden">
+                <div class="grid sm:grid-cols-2 gap-5">
+                    <div>
+                        <label for="cname" data-lang="ar">الاسم الكامل</label><label for="cname" data-lang="en" data-inline>Full name</label>
+                        <input type="text" id="cname" required>
+                    </div>
+                    <div>
+                        <label for="cphone" data-lang="ar">رقم الجوال / واتساب</label><label for="cphone" data-lang="en" data-inline>Phone / WhatsApp</label>
+                        <input type="tel" id="cphone" required>
+                    </div>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-5 items-end">
+                    <div>
+                        <label for="cemail" data-lang="ar">البريد الإلكتروني</label><label for="cemail" data-lang="en" data-inline>Email</label>
+                        <input type="email" id="cemail">
+                    </div>
+                    <div>
+                        <div id="pkgSummary" class="text-sm font-bold" style="color:var(--n-gold-2);"></div>
+                    </div>
+                </div>
+                <div class="flex justify-center pt-2">
+                    <button type="submit" class="btn btn-gold w-full max-w-sm">
+                        <span data-lang="ar">استقبل فريقي الذكي</span><span data-lang="en" data-inline>Receive My Smart Team</span>
+                        <i class="fas fa-rocket"></i>
+                    </button>
+                </div>
+                <div id="regMsg" class="text-center font-bold py-2 rounded-lg" style="display:none;"></div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Step 2: team (dormant) -->
+    <section id="step-team" class="py-12 hidden">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-10">
+                <div class="n-divider mb-4">✺</div>
+                <h2 class="n-title text-3xl md:text-4xl">
+                    <span data-lang="ar">فريقك</span><span data-lang="en" data-inline>Your Team</span>
+                    <span class="gold" data-lang="ar">—</span><span class="gold" data-lang="en" data-inline">—</span>
+                    <span id="teamPkg" class="gold"></span>
+                </h2>
+                <p class="n-sub mt-3" data-lang="ar">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>
+                <p class="n-sub mt-3" data-lang="en" data-inline">Your employees await a wake touch. Click any one to start serving you.</p>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="team-grid"></div>
+            <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
+                <a href="/" class="btn btn-outline">
+                    <i class="fas fa-arrow-up-right-from-square"></i>
+                    <span data-lang="ar">لوحة التحكم (المالك)</span><span data-lang="en" data-inline>Owner Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 3: interview chat -->
+    <section id="step-chat" class="py-12 hidden">
+        <div class="max-w-3xl mx-auto px-6">
+            <div class="n-card p-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="emp-ava aw-preview" style="width:56px;height:56px;border-radius:50%;background:var(--n-green-3);color:#fff;font-weight:800;font-size:1.1rem;"></div>
+                    <div>
+                        <div class="n-title text-lg" id="chatEmpName"></div>
+                        <div class="text-xs" style="color:var(--n-gold);" id="chatEmpMeta"></div>
+                    </div>
+                    <button id="chatBack" class="btn btn-outline ms-auto" style="padding:8px 14px;font-size:0.8rem;">
+                        <i class="fas fa-arrow-left"></i> <span data-lang="ar">رجوع</span><span data-lang="en" data-inline>Back</span>
+                    </button>
+                </div>
+                <div class="chat-box flex flex-col gap-3 mb-4 p-4 rounded-xl" style="background:var(--n-cream);border:1px solid var(--n-line);min-height:300px;" id="chatBox"></div>
+                <div class="flex gap-3" id="chatInputRow">
+                    <input type="text" id="chatAnswer" class="flex-1" placeholder="..." autocomplete="off">
+                    <button id="chatSend" class="btn btn-gold" style="padding:12px 22px;">
+                        <i class="fas fa-paper-plane"></i> <span data-lang="ar">إرسال</span><span data-lang="en" data-inline>Send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="n-footer py-8">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);">✺ النرجس للذكاء الاصطناعي ✺</div>
+            <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('narjis-lang') || 'ar';
+            applyLang(saved);
+            function applyLang(lang) {
+                document.body.setAttribute('data-lang', lang);
+                document.documentElement.setAttribute('lang', lang);
+                document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+                localStorage.setItem('narjis-lang', lang);
+                document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === lang));
+            }
+            const lt = document.getElementById('langToggle');
+            if (lt) lt.addEventListener('click', e => { const b = e.target.closest('[data-lang-btn]'); if (b) applyLang(b.dataset.langBtn); });
+
+            const $ = id => document.getElementById(id);
+            const isAr = () => document.body.dataset.lang === 'ar';
+            const txt = (ar, en) => isAr() ? ar : en;
+
+            let state = { projectId: null, pkg: null, current: null, questions: [], qIndex: 0, answers: {} };
+
+            // ---- Load packages ----
+            fetch('/api/portal/packages').then(r => r.json()).then(data => {
+                $('pkg-grid').innerHTML = data.packages.map(p => `
+                    <div class="n-card pkg text-center cursor-pointer selectable" data-pkg="${p.key}" style="transition:0.2s">
+                        <div class="text-3xl mb-2" style="color:var(--n-gold);"><i class="${p.icon}"></i></div>
+                        <h3 class="n-title text-lg">
+                            <span data-lang="ar">${p.name}</span><span data-lang="en" data-inline>${p.name_en}</span>
+                        </h3>
+                        <div class="price mt-1">${p.price} <small data-lang="ar">ريال/شهر</small><small data-lang="en" data-inline>SAR/mo</small></div>
+                        <div class="text-xs mt-2" style="color:var(--n-brown-2);">
+                            <span data-lang="ar">${p.team_size} موظفين • ${p.tagline}</span>
+                            <span data-lang="en" data-inline>${p.team_size} employees • ${p.tagline_en}</span>
+                        </div>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.pkg').forEach(c => {
+                    c.addEventListener('click', () => {
+                        document.querySelectorAll('.pkg').forEach(x => x.classList.remove('selected'));
+                        c.classList.add('selected');
+                        state.pkg = c.dataset.pkg;
+                        const p = data.packages.find(x => x.key === state.pkg);
+                        $('pkgSummary').textContent = txt(
+                            'تم اختيار: ' + p.name + ' — ' + p.price + ' ر.س/شهر · ' + p.team_size + ' موظف',
+                            'Selected: ' + p.name_en + ' — ' + p.price + ' SAR/mo · ' + p.team_size + ' employees'
+                        );
+                        $('regForm').classList.remove('hidden');
+                    });
+                });
+
+                const qp = new URLSearchParams(window.location.search).get('pkg');
+                if (qp && data.packages.find(x => x.key === qp)) {
+                    const target = document.querySelector(`.pkg[data-pkg="${qp}"]`);
+                    if (target) target.click();
+                    $('regForm').scrollIntoView({ behavior: 'smooth' });
+                }
+            }).catch(() => {
+                $('pkg-grid').innerHTML = '<div class="col-span-full text-center">Failed to load packages</div>';
+            });
+
+            // ---- Register client ----
+            $('regForm').addEventListener('submit', async e => {
+                e.preventDefault();
+                if (!state.pkg) { alert('Choose a package first'); return; }
+                const msg = $('regMsg');
+                msg.style.display = 'block';
+                msg.textContent = txt('جارٍ تجهيز فريقك...', 'Preparing your team...');
+                try {
+                    const r = await fetch('/api/portal/projects', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            client_name: $('cname').value.trim(),
+                            phone: $('cphone').value.trim(),
+                            email: $('cemail').value.trim() || null,
+                            package: state.pkg
+                        })
+                    });
+                    const data = await r.json();
+                    if (!r.ok) throw new Error(data.detail || 'error');
+                    state.projectId = data.project_id;
+                    localStorage.setItem('narjis-project', state.projectId);
+                    renderTeam(data.team);
+                } catch (err) {
+                    msg.textContent = txt('حدث خطأ: ' + err.message, 'Error: ' + err.message);
+                }
+            });
+
+            function renderTeam(team) {
+                $('step-register').classList.add('hidden');
+                $('step-chat').classList.add('hidden');
+                $('step-team').classList.remove('hidden');
+                const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال' };
+                $('teamPkg').textContent = isAr() ? pkgNames[state.pkg] : (team[0]?.pkg_en || '');
+                $('team-grid').innerHTML = team.map(a => `
+                    <div class="n-card emp-card dormant" data-slug="${a.slug}" style="cursor:pointer">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="emp-ava" style="width:52px;height:52px;border-radius:50%;background:var(--n-green-3);color:#fff;font-weight:800;font-size:1rem;">
+                                <span>${a.no.replace('AG-','')}</span>
+                            </div>
+                            <div>
+                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · <span data-lang="ar">موظف نائم</span><span data-lang="en" data-inline>Asleep</span></div>
+                                <h3 class="n-title text-base">
+                                    <span data-lang="ar">${a.title_ar}</span><span data-lang="en" data-inline>${a.title_en}</span>
+                                </h3>
+                                <div class="text-xs" style="color:var(--n-brown-2);">
+                                    <span data-lang="ar">قسم ${a.dept}</span><span data-lang="en" data-inline>Dept: ${a.dept}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-neutral-600" style="color:var(--n-brown-2);">
+                            <span data-lang="ar">${a.intro_ar}</span><span data-lang="en" data-inline>${a.intro_en}</span>
+                        </p>
+                        <button class="btn btn-gold w-full mt-4 wake-btn" data-slug="${a.slug}">
+                            <i class="fas fa-bolt"></i>
+                            <span data-lang="ar">أيقظ الموظف</span><span data-lang="en" data-inline>Wake Up</span>
+                        </button>
+                    </div>
+                `).join('');
+
+                document.querySelectorAll('.wake-btn').forEach(b => {
+                    b.addEventListener('click', e => {
+                        e.stopPropagation();
+                        wakeAgent(b.dataset.slug);
+                    });
+                });
+                document.querySelectorAll('.emp-card').forEach(c => {
+                    c.addEventListener('click', () => wakeAgent(c.dataset.slug));
+                });
+            }
+
+            async function wakeAgent(slug) {
+                const btn = document.querySelector(`.wake-btn[data-slug="${slug}"]`);
+                if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin">⟳</span>'; }
+                try {
+                    const r = await fetch(`/api/portal/projects/${state.projectId}/agents/${slug}/wake`, { method: 'POST' });
+                    const data = await r.json();
+                    if (!r.ok) throw new Error(data.detail || 'error');
+                    startInterview(data.agent, data.questions);
+                } catch (err) {
+                    alert(txt('تعذر إيقاظ الموظف: ' + err.message, 'Failed to wake: ' + err.message));
+                    if (btn) { btn.disabled = false; btn.innerHTML = 'أيقظ الموظف'; }
+                }
+            }
+
+            function startInterview(agent, questions) {
+                if (!questions || !questions.length) { alert('No questions'); return; }
+                state.current = agent;
+                state.questions = questions;
+                state.qIndex = 0;
+                state.answers = {};
+                $('step-register').classList.add('hidden');
+                $('step-team').classList.add('hidden');
+                $('step-chat').classList.remove('hidden');
+                $('chatEmpName').textContent = isAr() ? agent.title_ar : agent.title_en;
+                $('chatEmpMeta').textContent = agent.no + ' · ' + (isAr() ? agent.dept : 'Dept ' + agent.dept);
+                const ava = $('chatEmpName').closest('.n-card').querySelector('.aw-preview');
+                if (ava) ava.textContent = agent.no.replace('AG-', '');
+
+                const box = $('chatBox');
+                box.innerHTML = '';
+                // skip questions already answered in db (resume)
+                const startIdx = 0;
+                state.qIndex = 0;
+                addMsg('agent', agent.intro_ar + (agent.recommendation ? '\n\n💡 ' + agent.recommendation : ''));
+                askNext();
+            }
+
+            function askNext() {
+                const q = state.questions[state.qIndex];
+                if (!q) { finishInterview(); return; }
+                addMsg('agent', isAr() ? q.q_ar : q.q_en);
+                $('chatAnswer').value = state.answers[q.key] || '';
+                $('chatAnswer').placeholder = txt('اكتب إجابتك ثم اضغط إرسال...', 'Type your answer then press Send...');
+                setTimeout(() => $('chatAnswer').focus(), 100);
+            }
+
+            $('chatSend').addEventListener('click', sendAnswer);
+            $('chatAnswer').addEventListener('keydown', e => { if (e.key === 'Enter') sendAnswer(); });
+            $('chatBack').addEventListener('click', () => {
+                if (state.projectId) fetch(`/api/portal/projects/${state.projectId}`).then(r => r.json()).then(d => renderTeam(d.team)).catch(() => {});
+            });
+
+            function sendAnswer() {
+                const val = $('chatAnswer').value.trim();
+                if (!val) return;
+                const q = state.questions[state.qIndex];
+                state.answers[q.key] = val;
+                addMsg('client', val);
+                $('chatAnswer').value = '';
+                state.qIndex++;
+                askNext();
+            }
+
+            function addMsg(who, text) {
+                const box = $('chatBox');
+                const d = document.createElement('div');
+                d.className = 'msg ' + (who === 'agent' ? 'msg-agent' : 'msg-client');
+                d.style.cssText = (who === 'agent'
+                    ? 'background:var(--n-sand-2);color:var(--n-brown);border:1px solid var(--n-line);'
+                    : 'background:linear-gradient(135deg,var(--n-gold-2),var(--n-gold));color:#0a0b0e;') + 'border-radius:16px;padding:10px 14px;white-space:pre-wrap;line-height:1.7;';
+                d.textContent = text;
+                box.appendChild(d);
+                box.scrollTop = box.scrollHeight;
+            }
+
+            async function finishInterview() {
+                addMsg('agent', txt('شكراً لك! الآن أبدأ العمل على النتيجة...', 'Thank you! Starting work on your result...'));
+                setTimeout(() => {
+                    const box = $('chatBox');
+                    const spin = document.createElement('div');
+                    spin.className = 'msg msg-agent';
+                    spin.style.cssText = 'background:var(--n-sand-2);border:1px solid var(--n-line);border-radius:16px;padding:12px 16px;color:var(--n-brown);';
+                    spin.innerHTML = '<span class="spin">⟳</span> ' + txt('يعمل الآن...', 'Working...');
+                    box.appendChild(spin);
+                    box.scrollTop = box.scrollHeight;
+
+                    fetch(`/api/portal/projects/${state.projectId}/agents/${state.current.slug}/run`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ answers: state.answers })
+                    }).then(r => r.json()).then(data => {
+                        spin.remove();
+                        if (data.result) {
+                            addMsg('agent', data.result);
+                            const finish = document.createElement('div');
+                            finish.className = 'msg msg-agent';
+                            finish.style.cssText = 'background:linear-gradient(135deg,var(--n-gold-2),var(--n-gold));border-radius:16px;padding:10px 14px;color:#0a0b0e;font-weight:700;';
+                            finish.textContent = txt(
+                                '✅ اكتمل العمل. عُد للفريق لإيقاظ موظف آخر، أو تواصل معنا لطلب هذا الموظف في باقتك رسمياً.',
+                                '✅ Done. Go back to wake another employee, or contact us to officially add this employee to your plan.'
+                            );
+                            box.appendChild(finish);
+                            box.scrollTop = box.scrollHeight;
+                        } else {
+                            addMsg('agent', txt('تعذر إنهاء المهمة. حاول مجدداً.', 'Failed to finish. Try again.'));
+                        }
+                    }).catch(() => {
+                        spin.remove();
+                        addMsg('agent', txt('حدث خطأ في الاتصال.', 'Connection error.'));
+                    });
+                }, 400);
+            }
+
+            // Resume existing project if present
+            const pid = localStorage.getItem('narjis-project');
+            if (pid) {
+                fetch('/api/portal/projects/' + pid).then(r => r.json()).then(d => {
+                    if (d.team) { state.projectId = d.project_id; state.pkg = d.package; renderTeam(d.team); }
+                }).catch(() => {});
+            }
+        })();
+    </script>
+</body>
+</html>

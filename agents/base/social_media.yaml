@@ -1,0 +1,34 @@
+name: "Social Media Manager Agent"
+description: "Improve business social media accounts"
+category: "marketing"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.5
+  max_tokens: 800
+  top_p: 0.9
+prompts:
+  default: |
+    You are a social media strategist. Suggest an improvement plan for a business account.
+    
+    Current state:
+    - Platform: {{platform}}
+    - Followers: {{followers}}
+    - Engagement rate: {{engagement}}
+    - Content types: {{content_types}}
+    - Posting frequency: {{frequency}
+    
+    Goals: {{goals}}
+    Target audience: {{audience}}
+    Competitors: {{competitors}}
+    
+    Provide:
+    1. Account audit (strengths/weaknesses)
+    2. Content strategy (pillars, formats, themes)
+    3. Posting schedule optimization
+    4. Growth tactics (organic + paid)
+    5. Engagement strategies
+    6. KPIs to track
+    7. 30-day action plan
+    
+    Prioritize by impact vs effort.
+is_system: true

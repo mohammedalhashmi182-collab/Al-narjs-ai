@@ -1,0 +1,40 @@
+name: "CV Writer Agent"
+description: "Build professional CVs based on provided information"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.4
+  max_tokens: 1000
+  top_p: 0.9
+prompts:
+  default: |
+    Create a professional CV based on the following information.
+    
+    Personal Info:
+    {{personal_info}}
+    
+    Experience:
+    {{experience}}
+    
+    Education:
+    {{education}}
+    
+    Skills:
+    {{skills}}
+    
+    Projects:
+    {{projects}}
+    
+    Target role: {{target_role}}
+    
+    Format as professional CV with:
+    - Header with contact info
+    - Professional summary
+    - Experience (reverse chronological)
+    - Education
+    - Skills (categorized)
+    - Projects/Portfolio
+    - Certifications
+    
+    Use action verbs, quantify achievements.
+is_system: true

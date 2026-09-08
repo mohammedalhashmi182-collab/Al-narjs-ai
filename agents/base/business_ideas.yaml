@@ -1,0 +1,32 @@
+name: "Business Ideas Agent"
+description: "Suggest 10 executable digital project ideas"
+category: "analysis"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.7
+  max_tokens: 1000
+  top_p: 0.9
+prompts:
+  default: |
+    Suggest 10 executable digital project ideas.
+    
+    Interests: {{interests}}
+    Skills: {{skills}}
+    Budget: {{budget}}
+    Time available: {{time}}
+    Target market: {{market}}
+    
+    For each idea, provide:
+    1. Project name
+    2. One-line description
+    3. Target audience
+    4. Monetization strategy
+    5. MVP scope (what to build first)
+    6. Estimated time to launch
+    7. Required skills/tools
+    8. Difficulty (1-5)
+    9. Potential revenue
+    10. First 3 steps to start
+    
+    Focus on practical, achievable ideas.
+is_system: true

@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Schedules - AI Agent System{% endblock %}
+
+{% block page_title %}Schedules{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Schedules</h2>
+    <button onclick="openCreateModal()" class="btn-primary">
+        <i class="fas fa-plus mr-2"></i>Create Schedule
+    </button>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-gray-200">
+        <input type="text" id="search-input" placeholder="Search schedules..." 
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               oninput="filterSchedules()">
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-sm text-gray-500">
+                    <th class="p-4">Name</th>
+                    <th class="p-4">Target</th>
+                    <th class="p-4">Trigger</th>
+                    <th class="p-4">Next Run</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Runs</th>
+                    <th class="p-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="schedules-table" class="divide-y divide-gray-200">
+                <tr><td colspan="7" class="p-4 text-center text-gray-500">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="schedule-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 id="modal-title" class="text-lg font-semibold">Create Schedule</h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form id="schedule-form" class="p-4 space-y-4" onsubmit="saveSchedule(event)">
+            <input type="hidden" id="schedule-id">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" id="schedule-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Target Type</label>
+                    <select id="schedule-target-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onchange="updateTargetHelp()">
+                        <option value="agent">Agent</option>
+                        <option value="workflow">Workflow</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Target ID</label>
+                    <input type="text" id="schedule-target-id" required placeholder="UUID" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div id="target-help" class="text-sm text-gray-500"></div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Payload (JSON)</label>
+                <textarea id="schedule-payload" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm">{}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cron Expression</label>
+                    <input type="text" id="schedule-cron" placeholder="0 9 * * *" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">e.g., "0 9 * * *" for daily at 9 AM</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Interval (seconds)</label>
+                    <input type="number" id="schedule-interval" min="60" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Run Once At (ISO)</label>
+                    <input type="datetime-local" id="schedule-once" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Max Runs</label>
+                    <input type="number" id="schedule-max-runs" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                <input type="text" id="schedule-timezone" value="UTC" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Schedule Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 id="detail-title" class="text-lg font-semibold">Schedule Details</h3>
+            <button onclick="closeDetailModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4" id="detail-content">
+            Loading...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let schedules = [];
+
+    async function loadSchedules() {
+        try {
+            const response = await fetch('/api/schedules');
+            const data = await response.json();
+            schedules = data.schedules || [];
+            renderSchedules(schedules);
+        } catch (e) {
+            console.error('Failed to load schedules:', e);
+        }
+    }
+
+    function renderSchedules(list) {
+        const tbody = document.getElementById('schedules-table');
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-500">No schedules found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = list.map(s => `
+            <tr class="hover:bg-gray-50">
+                <td class="p-4 font-medium">${s.name}</td>
+                <td class="p-4 text-gray-600 font-mono text-sm">${s.target_type}: ${s.target_id?.substring(0,8)}...</td>
+                <td class="p-4 text-gray-600 text-sm">${s.trigger || 'N/A'}</td>
+                <td class="p-4 text-gray-600 text-sm">${s.next_run_time ? new Date(s.next_run_time).toLocaleString() : 'N/A'}</td>
+                <td class="p-4">
+                    <span class="px-2 py-1 text-xs rounded-full ${s.next_run_time ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                        ${s.next_run_time ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td class="p-4 text-gray-600">${s.run_count || 0}</td>
+                <td class="p-4">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="viewSchedule('${s.id}')" class="p-2 text-gray-500 hover:text-blue-600" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="toggleSchedule('${s.id}', ${s.next_run_time ? 'true' : 'false'})" 
+                                class="p-2 text-gray-500 hover:text-yellow-600" title="${s.next_run_time ? 'Disable' : 'Enable'}">
+                            <i class="fas ${s.next_run_time ? 'fa-pause' : 'fa-play'}"></i>
+                        </button>
+                        <button onclick="deleteSchedule('${s.id}')" class="p-2 text-gray-500 hover:text-red-600" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterSchedules() {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const filtered = schedules.filter(s => 
+            s.name.toLowerCase().includes(search) || 
+            s.target_id?.toLowerCase().includes(search)
+        );
+        renderSchedules(filtered);
+    }
+
+    function updateTargetHelp() {
+        const type = document.getElementById('schedule-target-type').value;
+        const help = document.getElementById('target-help');
+        help.textContent = type === 'agent' ? 'Enter the agent slug (e.g., customer_service)' : 'Enter the workflow slug';
+    }
+
+    function openCreateModal() {
+        document.getElementById('modal-title').textContent = 'Create Schedule';
+        document.getElementById('schedule-form').reset();
+        document.getElementById('schedule-id').value = '';
+        document.getElementById('schedule-timezone').value = 'UTC';
+        updateTargetHelp();
+        document.getElementById('schedule-modal').classList.remove('hidden');
+        document.getElementById('schedule-modal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('schedule-modal').classList.add('hidden');
+        document.getElementById('schedule-modal').classList.remove('flex');
+    }
+
+    async function saveSchedule(e) {
+        e.preventDefault();
+        const id = document.getElementById('schedule-id').value;
+        
+        const scheduleData = {
+            name: document.getElementById('schedule-name').value,
+            target_type: document.getElementById('schedule-target-type').value,
+            target_id: document.getElementById('schedule-target-id').value,
+            payload: JSON.parse(document.getElementById('schedule-payload').value || '{}'),
+            cron_expression: document.getElementById('schedule-cron').value || null,
+            interval_seconds: document.getElementById('schedule-interval').value ? parseInt(document.getElementById('schedule-interval').value) : null,
+            run_once_at: document.getElementById('schedule-once').value || null,
+            timezone: document.getElementById('schedule-timezone').value,
+            max_runs: document.getElementById('schedule-max-runs').value ? parseInt(document.getElementById('schedule-max-runs').value) : null,
+        };
+
+        // Validate at least one trigger
+        if (!scheduleData.cron_expression && !scheduleData.interval_seconds && !scheduleData.run_once_at) {
+            alert('At least one trigger (cron, interval, or run_once) is required');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/schedules', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(scheduleData),
+            });
+            if (!response.ok) throw new Error('Failed to save');
+            closeModal();
+            loadSchedules();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    async function viewSchedule(id) {
+        try {
+            const response = await fetch(`/api/schedules/${id}`);
+            const s = await response.json();
+            
+            document.getElementById('detail-title').textContent = s.name;
+            document.getElementById('detail-content').innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><span class="text-gray-500">ID:</span> <code class="ml-2">${s.id}</code></div>
+                        <div><span class="text-gray-500">Name:</span> <span class="ml-2">${s.name}</span></div>
+                        <div><span class="text-gray-500">Target:</span> <span class="ml-2">${s.target_type}: ${s.target_id}</span></div>
+                        <div><span class="text-gray-500">Trigger:</span> <span class="ml-2">${s.trigger}</span></div>
+                        <div><span class="text-gray-500">Next Run:</span> <span class="ml-2">${s.next_run_time ? new Date(s.next_run_time).toLocaleString() : 'N/A'}</div>
+                        <div><span class="text-gray-500">Runs:</span> <span class="ml-2">${s.run_count}</div>
+                        <div><span class="text-gray-500">Status:</span> <span class="ml-2 ${s.next_run_time ? 'text-green-600' : 'text-gray-600'}">${s.next_run_time ? 'Active' : 'Inactive'}</span></div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Payload</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto">${JSON.stringify(s.payload, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detail-modal').classList.remove('hidden');
+            document.getElementById('detail-modal').classList.add('flex');
+        } catch (e) {
+            console.error('Failed to load schedule:', e);
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+        document.getElementById('detail-modal').classList.remove('flex');
+    }
+
+    async function toggleSchedule(id, currentlyActive) {
+        try {
+            const action = currentlyActive ? 'disable' : 'enable';
+            await fetch(`/api/schedules/${id}/${action}`, {method: 'POST'});
+            loadSchedules();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    async function deleteSchedule(id) {
+        if (!confirm('Delete this schedule?')) return;
+        try {
+            await fetch(`/api/schedules/${id}`, {method: 'DELETE'});
+            loadSchedules();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    loadSchedules();
+    setInterval(loadSchedules, 30000);
+</script>
+
+<style>
+    .btn-primary {
+        @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
+    }
+    .btn-secondary {
+        @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+    }
+</style>
+{% endblock %}

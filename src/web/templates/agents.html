@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Agents - AI Agent System{% endblock %}
+
+{% block page_title %}Agents{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Agents</h2>
+    <button onclick="openCreateModal()" class="btn-primary">
+        <i class="fas fa-plus mr-2"></i>Create Agent
+    </button>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-gray-200">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <input type="text" id="search-input" placeholder="Search agents..." 
+                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   oninput="filterAgents()">
+            <select id="category-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onchange="filterAgents()">
+                <option value="">All Categories</option>
+                <option value="support">Support</option>
+                <option value="marketing">Marketing</option>
+                <option value="content">Content</option>
+                <option value="analysis">Analysis</option>
+                <option value="automation">Automation</option>
+                <option value="general">General</option>
+            </select>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-sm text-gray-500">
+                    <th class="p-4">Name</th>
+                    <th class="p-4">Slug</th>
+                    <th class="p-4">Category</th>
+                    <th class="p-4">Model</th>
+                    <th class="p-4">Type</th>
+                    <th class="p-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="agents-table" class="divide-y divide-gray-200">
+                <tr><td colspan="6" class="p-4 text-center text-gray-500">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="agent-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 id="modal-title" class="text-lg font-semibold">Create Agent</h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form id="agent-form" class="p-4 space-y-4" onsubmit="saveAgent(event)">
+            <input type="hidden" id="agent-id">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" id="agent-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                <input type="text" id="agent-slug" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea id="agent-description" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select id="agent-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="general">General</option>
+                        <option value="support">Support</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="content">Content</option>
+                        <option value="analysis">Analysis</option>
+                        <option value="automation">Automation</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                    <input type="text" id="agent-model" required placeholder="ollama:deepseek-r1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Default Parameters (JSON)</label>
+                <textarea id="agent-params" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm">{}</textarea>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Agent Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 id="detail-title" class="text-lg font-semibold">Agent Details</h3>
+            <button onclick="closeDetailModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4" id="detail-content">
+            Loading...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let agents = [];
+
+    async function loadAgents() {
+        try {
+            const response = await fetch('/api/agents');
+            const data = await response.json();
+            agents = data.agents || [];
+            renderAgents(agents);
+        } catch (e) {
+            console.error('Failed to load agents:', e);
+        }
+    }
+
+    function renderAgents(list) {
+        const tbody = document.getElementById('agents-table');
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No agents found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = list.map(agent => `
+            <tr class="hover:bg-gray-50">
+                <td class="p-4 font-medium">${agent.name}</td>
+                <td class="p-4 text-gray-600 font-mono text-sm">${agent.slug}</td>
+                <td class="p-4">
+                    <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">${agent.category}</span>
+                </td>
+                <td class="p-4 text-gray-600 font-mono text-sm">${agent.default_model}</td>
+                <td class="p-4">
+                    <span class="px-2 py-1 text-xs rounded-full ${agent.is_system ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                        ${agent.is_system ? 'System' : 'Custom'}
+                    </span>
+                </td>
+                <td class="p-4">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="viewAgent('${agent.slug}')" class="p-2 text-gray-500 hover:text-blue-600" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="runAgent('${agent.slug}')" class="p-2 text-gray-500 hover:text-green-600" title="Run">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        ${!agent.is_system ? `
+                            <button onclick="editAgent('${agent.slug}')" class="p-2 text-gray-500 hover:text-yellow-600" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteAgent('${agent.slug}')" class="p-2 text-gray-500 hover:text-red-600" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterAgents() {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const category = document.getElementById('category-filter').value;
+        
+        const filtered = agents.filter(a => {
+            const matchesSearch = a.name.toLowerCase().includes(search) || 
+                                 a.slug.toLowerCase().includes(search) ||
+                                 a.description?.toLowerCase().includes(search);
+            const matchesCategory = !category || a.category === category;
+            return matchesSearch && matchesCategory;
+        });
+        
+        renderAgents(filtered);
+    }
+
+    function openCreateModal() {
+        document.getElementById('modal-title').textContent = 'Create Agent';
+        document.getElementById('agent-form').reset();
+        document.getElementById('agent-id').value = '';
+        document.getElementById('agent-modal').classList.remove('hidden');
+        document.getElementById('agent-modal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('agent-modal').classList.add('hidden');
+        document.getElementById('agent-modal').classList.remove('flex');
+    }
+
+    async function saveAgent(e) {
+        e.preventDefault();
+        const id = document.getElementById('agent-id').value;
+        const agentData = {
+            name: document.getElementById('agent-name').value,
+            slug: document.getElementById('agent-slug').value,
+            description: document.getElementById('agent-description').value,
+            category: document.getElementById('agent-category').value,
+            default_model: document.getElementById('agent-model').value,
+            default_parameters: JSON.parse(document.getElementById('agent-params').value || '{}'),
+        };
+
+        try {
+            const url = id ? `/api/agents/${id}` : '/api/agents';
+            const method = id ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(agentData),
+            });
+            if (!response.ok) throw new Error('Failed to save');
+            closeModal();
+            loadAgents();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    async function viewAgent(slug) {
+        try {
+            const response = await fetch(`/api/agents/${slug}`);
+            const agent = await response.json();
+            
+            document.getElementById('detail-title').textContent = agent.name;
+            document.getElementById('detail-content').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Description</h4>
+                        <p class="text-gray-600">${agent.description || 'No description'}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><span class="text-gray-500">Slug:</span> <code class="ml-2">${agent.slug}</code></div>
+                        <div><span class="text-gray-500">Category:</span> <span class="ml-2">${agent.category}</span></div>
+                        <div><span class="text-gray-500">Model:</span> <code class="ml-2">${agent.default_model}</code></div>
+                        <div><span class="text-gray-500">Type:</span> <span class="ml-2">${agent.is_system ? 'System' : 'Custom'}</span></div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Default Parameters</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto">${JSON.stringify(agent.default_parameters, null, 2)}</pre>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Prompt Templates</h4>
+                        <div class="space-y-2">
+                            ${Object.entries(agent.prompt_templates || {}).map(([name, tmpl]) => `
+                                <div class="border border-gray-200 rounded p-3">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-medium">${name}</span>
+                                        <span class="text-xs text-gray-500">v${tmpl.version}</span>
+                                    </div>
+                                    <pre class="bg-gray-50 p-2 rounded text-xs overflow-auto max-h-32">${tmpl.template_text.substring(0, 200)}${tmpl.template_text.length > 200 ? '...' : ''}</pre>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 pt-4 border-t">
+                        <button onclick="runAgent('${agent.slug}')" class="btn-primary">Run Agent</button>
+                        <button onclick="viewPrompts('${agent.slug}')" class="btn-secondary">Manage Prompts</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detail-modal').classList.remove('hidden');
+            document.getElementById('detail-modal').classList.add('flex');
+        } catch (e) {
+            console.error('Failed to load agent:', e);
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+        document.getElementById('detail-modal').classList.remove('flex');
+    }
+
+    function editAgent(slug) {
+        const agent = agents.find(a => a.slug === slug);
+        if (!agent) return;
+        
+        document.getElementById('modal-title').textContent = 'Edit Agent';
+        document.getElementById('agent-id').value = slug;
+        document.getElementById('agent-name').value = agent.name;
+        document.getElementById('agent-slug').value = agent.slug;
+        document.getElementById('agent-description').value = agent.description || '';
+        document.getElementById('agent-category').value = agent.category;
+        document.getElementById('agent-model').value = agent.default_model;
+        document.getElementById('agent-params').value = JSON.stringify(agent.default_parameters, null, 2);
+        
+        document.getElementById('agent-modal').classList.remove('hidden');
+        document.getElementById('agent-modal').classList.add('flex');
+    }
+
+    async function deleteAgent(slug) {
+        if (!confirm(`Delete agent ${slug}?`)) return;
+        try {
+            await fetch(`/api/agents/${slug}`, {method: 'DELETE'});
+            loadAgents();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    function runAgent(slug) {
+        window.location.href = `/agents/run/${slug}`;
+    }
+
+    function viewPrompts(slug) {
+        window.location.href = `/agents/${slug}/prompts`;
+    }
+
+    loadAgents();
+</script>
+
+<style>
+    .btn-primary {
+        @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
+    }
+    .btn-secondary {
+        @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+    }
+</style>
+{% endblock %}

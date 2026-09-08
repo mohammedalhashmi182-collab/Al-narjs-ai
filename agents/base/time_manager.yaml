@@ -1,0 +1,32 @@
+name: "Time Manager Agent"
+description: "Create daily schedule based on tasks"
+category: "automation"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.3
+  max_tokens: 600
+  top_p: 0.9
+prompts:
+  default: |
+    Create a daily schedule based on the following tasks and preferences.
+    
+    Tasks:
+    {{tasks}}
+    
+    Preferences:
+    - Work hours: {{work_hours}}
+    - Break preferences: {{breaks}}
+    - Peak productivity: {{peak_hours}}
+    - Meeting times: {{meetings}}
+    - Buffer time: {{buffer}}
+    
+    Provide:
+    1. Time-blocked schedule (hourly)
+    2. Task prioritization (Eisenhower matrix)
+    3. Focus blocks for deep work
+    4. Break schedule
+    5. Buffer for unexpected items
+    6. End-of-day wrap-up routine
+    
+    Format as visual timeline.
+is_system: true

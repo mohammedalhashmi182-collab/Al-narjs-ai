@@ -1,0 +1,238 @@
+Metadata-Version: 2.4
+Name: ai-agent-system
+Version: 0.1.0
+Summary: AI Agent Automation System
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.109.0
+Requires-Dist: uvicorn[standard]>=0.27.0
+Requires-Dist: pydantic>=2.6.0
+Requires-Dist: pydantic-settings>=2.2.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: alembic>=1.13.0
+Requires-Dist: asyncpg>=0.29.0
+Requires-Dist: redis>=5.0.0
+Requires-Dist: httpx>=0.26.0
+Requires-Dist: tenacity>=8.2.0
+Requires-Dist: structlog>=24.1.0
+Requires-Dist: python-jose[cryptography]>=3.3.0
+Requires-Dist: passlib[bcrypt]>=1.7.4
+Requires-Dist: python-multipart>=0.0.6
+Requires-Dist: jinja2>=3.1.0
+Requires-Dist: apscheduler>=3.10.0
+Requires-Dist: typer>=0.9.0
+Requires-Dist: rich>=13.7.0
+Requires-Dist: pyyaml>=6.0.0
+Requires-Dist: watchdog>=3.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: httpx>=0.26.0; extra == "dev"
+Requires-Dist: ruff>=0.3.0; extra == "dev"
+Requires-Dist: mypy>=1.8.0; extra == "dev"
+Requires-Dist: pre-commit>=3.6.0; extra == "dev"
+
+# AI Agent Automation System
+
+A comprehensive AI agent automation system with 20+ pre-built agents, workflow orchestration, scheduling, and web UI.
+
+## Features
+
+- **20 Pre-built Agents**: Customer service, content writing, marketing, analysis, automation, and more
+- **Multi-Model Support**: Ollama (local), OpenAI, Groq, Anthropic with automatic fallback
+- **Workflow Engine**: DAG-based workflow execution with context passing between steps
+- **Scheduler**: Cron-based and interval-based scheduling
+- **Trigger Engine**: Webhook, file watch, and database polling triggers
+- **Queue Worker**: Priority-based task queue with concurrency control
+- **Web UI**: HTMX-based dashboard for managing agents, workflows, schedules
+- **CLI**: Full command-line interface for automation
+- **Prompt Versioning**: Template management with version control
+- **PostgreSQL + pgvector**: Persistent storage with vector search ready
+
+## Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose
+- NVIDIA GPU (optional, for Ollama acceleration)
+
+### Development
+
+```bash
+# Clone and navigate
+cd ai-agent-system
+
+# Copy environment file
+cp .env.example .env
+
+# Edit .env with your settings
+# At minimum, set a secure SECRET_KEY
+
+# Start services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+```
+
+### Manual Setup (without Docker)
+
+```bash
+# Install dependencies
+pip install -e ".[dev]"
+
+# Start PostgreSQL and Redis locally
+# Update .env with local connection strings
+
+# Initialize database
+alembic upgrade head
+
+# Seed base agents
+python scripts/seed_agents.py
+
+# Start services
+python -m src.main
+```
+
+## Project Structure
+
+```
+ai-agent-system/
+├── agents/
+│   ├── base/           # 20 pre-built agents (YAML)
+│   └── custom/         # User-created agents
+├── src/
+│   ├── automation/     # Scheduler, triggers, workflows, queue
+│   ├── core/           # Model provider, agent registry, prompt engine
+│   ├── db/             # Database session & models
+│   ├── interfaces/     # CLI & Web UI
+│   ├── models/         # SQLAlchemy models
+│   ├── services/       # Business logic
+│   └── utils/          # Logging, helpers
+├── docker-compose.yml
+├── Dockerfile
+├── pyproject.toml
+└── .env.example
+```
+
+## Pre-built Agents
+
+| Agent | Category | Model | Purpose |
+|-------|----------|-------|---------|
+| customer_service | support | deepseek-r1 | 24/7 customer responses |
+| store_manager | analysis | llama3.1 | Product/order analysis |
+| content_writer | content | qwen2.5 | Daily content production |
+| marketing_agent | marketing | deepseek-r1 | Campaign optimization |
+| competitor_analyst | analysis | llama3.1 | Competitive intelligence |
+| ad_writer | marketing | mixtral | Ad copy generation |
+| project_manager | automation | deepseek-r1 | Task organization |
+| cv_writer | content | llama3.1 | Professional CVs |
+| data_analyst | analysis | deepseek-r1 | Data insights |
+| content_manager | content | qwen2.5 | Content calendar |
+| email_writer | content | mixtral | Professional emails |
+| customer_manager | support | deepseek-r1 | Message analysis |
+| business_ideas | analysis | llama3.1 | Project suggestions |
+| product_describer | content | qwen2.5 | E-commerce descriptions |
+| social_media | marketing | deepseek-r1 | Account optimization |
+| market_analyst | analysis | deepseek-r1 | Market opportunities |
+| article_writer | content | llama3.1 | Professional articles |
+| time_manager | automation | qwen2.5 | Daily scheduling |
+| text_improver | content | mixtral | Writing enhancement |
+| content_ideas | content | deepseek-r1 | Content ideation |
+
+## Usage
+
+### CLI
+
+```bash
+# List agents
+ai-agent agent list
+
+# Run an agent
+ai-agent agent run customer_service -i '{"customer_message": "Where is my order?"}'
+
+# Run workflow
+ai-agent workflow run daily_content -i '{"topic": "AI trends"}'
+
+# Create schedule
+ai-agent schedule add "Daily Report" --cron "0 9 * * *" --target workflow:daily_report
+
+# View queue stats
+ai-agent queue stats
+```
+
+### Web UI
+
+Access `http://localhost:8000` for the dashboard.
+
+### API
+
+```bash
+# Run agent via API
+curl -X POST http://localhost:8000/api/agents/customer_service/run \
+  -H "Content-Type: application/json" \
+  -d '{"input_data": {"customer_message": "Hello"}}'
+
+# Create schedule
+curl -X POST http://localhost:8000/api/schedules \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Daily", "target_type": "agent", "target_id": "...", "cron_expression": "0 9 * * *"}'
+```
+
+## Configuration
+
+Key environment variables in `.env`:
+
+```bash
+# Required
+SECRET_KEY=your-secret-key
+DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/db
+
+# Optional external models
+OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk_...
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_DEFAULT_MODEL=deepseek-r1
+```
+
+## Adding Custom Agents
+
+1. Create YAML in `agents/custom/`:
+
+```yaml
+name: "My Custom Agent"
+description: "Does something useful"
+category: "general"
+model: "ollama:llama3.1"
+parameters:
+  temperature: 0.7
+prompts:
+  default: |
+    Your prompt template with {{variables}}
+```
+
+2. Restart the app or use CLI: `ai-agent agent create --from-yaml agents/custom/my_agent.yaml`
+
+## Extending with Workflows
+
+Create workflow definitions in the database or via API:
+
+```json
+{
+  "version": 1,
+  "steps": [
+    {"id": "research", "agent_slug": "data_analyst", "prompt_template": "default"},
+    {"id": "write", "agent_slug": "content_writer", "depends_on": ["research"]},
+    {"id": "publish", "agent_slug": "email_writer", "depends_on": ["write"]}
+  ],
+  "global_config": {"slug": "research_to_publish"}
+}
+```
+
+## License
+
+MIT

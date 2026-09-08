@@ -1,0 +1,28 @@
+name: "Data Analyst Agent"
+description: "Analyze data and extract key insights"
+category: "analysis"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.3
+  max_tokens: 1000
+  top_p: 0.9
+prompts:
+  default: |
+    You are a data analyst. Analyze the following data and extract the most important insights.
+    
+    Data:
+    {{data}}
+    
+    Context: {{context}}
+    Questions to answer: {{questions}}
+    
+    Provide:
+    1. Key findings (top 5)
+    2. Trends and patterns
+    3. Anomalies or outliers
+    4. Statistical summary
+    5. Actionable recommendations
+    6. Suggested visualizations
+    
+    Be specific with numbers and percentages.
+is_system: true

@@ -1,0 +1,33 @@
+name: "Content Ideas Agent"
+description: "Generate 20 content ideas for business accounts"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.8
+  max_tokens: 1000
+  top_p: 0.95
+prompts:
+  default: |
+    Generate 20 content ideas for a business social media account.
+    
+    Business: {{business}}
+    Industry: {{industry}}
+    Target audience: {{audience}}
+    Platforms: {{platforms}}
+    Content pillars: {{pillars}}
+    Current trends: {{trends}}
+    
+    For each idea, provide:
+    1. Title/Headline
+    2. Content type (Post/Reel/Story/Carousel/Video/Blog)
+    3. Platform(s)
+    4. Content pillar
+    5. Hook/Opening
+    6. Key message
+    7. CTA
+    8. Hashtag suggestions
+    9. Visual concept
+    10. Estimated engagement potential
+    
+    Mix of educational, entertaining, promotional, and community content.
+is_system: true

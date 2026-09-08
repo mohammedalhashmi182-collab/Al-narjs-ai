@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المستشار الذكي | النرجس للذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+        .chat-wrap { max-height: 60vh; min-height: 55vh; overflow-y: auto; }
+        .cmsg { max-width: 85%; white-space: pre-wrap; line-height: 1.8; border-radius: 18px; padding: 12px 16px; }
+        .cmsg.ai { background: var(--n-sand-2); color: var(--n-brown); border: 1px solid var(--n-line); align-self: flex-start; border-start-start-radius: 6px; }
+        .cmsg.me { background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold)); color: #0a0b0e; align-self: flex-end; border-start-end-radius: 6px; }
+        .spin { display: inline-block; animation: rot 0.9s linear infinite; }
+        @keyframes rot { to { transform: rotate(360deg); } }
+        .chip { display:inline-block; background:var(--n-sand-2); border:1px solid var(--n-line); color:var(--n-brown-2); padding:7px 15px; border-radius:999px; cursor:pointer; font-size:0.85rem; font-weight:700; transition:0.15s; }
+        .chip:hover { background:var(--n-gold); color:#0a0b0e; border-color:var(--n-gold); }
+    </style>
+</head>
+<body data-lang="ar" class="bg-sand min-h-screen">
+    <nav class="n-nav px-6 py-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <a href="/home" class="flex items-center gap-3">
+                <span class="text-3xl" style="color:var(--n-gold);">✺</span>
+                <div>
+                    <div class="n-title text-xl" style="font-size:1.25rem;">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
+                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">المستشار الذكي · SMART CONSULTANT</div>
+                </div>
+            </a>
+            <div class="flex items-center gap-3">
+                <div class="lang-pill" id="langToggle">
+                    <button data-lang-btn="ar" class="arabic active">عربي</button>
+                    <button data-lang-btn="en" class="english">EN</button>
+                </div>
+                <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
+                    <span data-lang="ar">الرئيسية</span><span data-lang="en" data-inline>Home</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="py-10">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-8">
+                <div class="n-divider mb-4" style="font-size:1.6rem;">✺</div>
+                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar">خذ</span><span data-lang="en" data-inline>Get</span> <span class="gold" data-lang="ar">استشارتك</span><span class="gold" data-lang="en" data-inline>Your Consultation</span></h1>
+                <p class="n-sub mt-3" data-lang="ar">تحدث بحرية عن عملك وأسلوبك وبيئتك — سأقرأ وضعك وأرشدك لأفضل الحلول والوكلاء المناسبين.</p>
+                <p class="n-sub mt-3" data-lang="en" data-inline>Talk freely about your business, style and environment — I'll read your situation and guide you to the best solutions and agents.</p>
+            </div>
+
+            <div class="n-card p-5">
+                <div class="chat-wrap flex flex-col gap-3 mb-4" id="chatBox">
+                    <div class="cmsg ai">
+                        <span data-lang="ar">أهلاً بك! أنا المستشار الذكي للنرجس. احكِ لي عن عملك: ما الذي تقوم به، كيف تسير أعمالك، وأين ترى التحدي؟ سأستكشف وضعك وأقترح لك أفضل خطة ووكلاء.</span>
+                        <span data-lang="en" data-inline>Hello! I'm Al-Narjis Smart Consultant. Tell me about your business: what you do, how things go, and where you see the challenge? I'll explore your situation and suggest the best plan and agents.</span>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <input type="text" id="msg" class="flex-1" placeholder="..." autocomplete="off">
+                    <button id="send" class="btn btn-gold" style="padding:12px 22px;">
+                        <i class="fas fa-paper-plane"></i> <span data-lang="ar">إرسال</span><span data-lang="en" data-inline>Send</span>
+                    </button>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-2" id="suggestions">
+                    <button class="chip" data-q="أملك متجر ملابس أونلاين وأريد زيادة المبيعات"><span data-lang="ar">أملك متجراً أريد زيادة مبيعاته</span><span data-lang="en" data-inline>I run a store, want more sales</span></button>
+                    <button class="chip" data-q="أبدأ مشروعي الخاص من الصفر"><span data-lang="ar">أبدأ مشروعي من الصفر</span><span data-lang="en" data-inline>Starting my business from scratch</span></button>
+                    <button class="chip" data-q="اهتمامي ينصب على تواجدي في السوشيال ميديا"><span data-lang="ar">أريد الحضور في السوشيال ميديا</span><span data-lang="en" data-inline>Want a social media presence</span></button>
+                    <button class="chip" data-q="أريد تحسين محتوى موقعي ومقالاتي"><span data-lang="ar">أريد تحسين محتوى موقعي</span><span data-lang="en" data-inline>Improve my website content</span></button>
+                </div>
+            </div>
+
+            <div class="text-center mt-6 flex flex-wrap justify-center gap-4">
+                <a href="/portal" class="btn btn-green">
+                    <i class="fas fa-bolt"></i> <span data-lang="ar">فعّل فريقك الآن</span><span data-lang="en" data-inline>Wake Your Team Now</span>
+                </a>
+                <a href="/home#pricing" class="btn btn-outline">
+                    <span data-lang="ar">عرض الباقات</span><span data-lang="en" data-inline>View Plans</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="n-footer py-8">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);">✺ النرجس للذكاء الاصطناعي ✺</div>
+            <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('narjis-lang') || 'ar';
+            applyLang(saved);
+            function applyLang(lang) {
+                document.body.setAttribute('data-lang', lang);
+                document.documentElement.setAttribute('lang', lang);
+                document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+                localStorage.setItem('narjis-lang', lang);
+                document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === lang));
+            }
+            document.getElementById('langToggle').addEventListener('click', e => {
+                const b = e.target.closest('[data-lang-btn]'); if (b) applyLang(b.dataset.langBtn);
+            });
+
+            const $ = id => document.getElementById(id);
+            const isAr = () => document.body.dataset.lang === 'ar';
+            let history = [];
+
+            function append(who, text) {
+                const d = document.createElement('div');
+                d.className = 'cmsg ' + (who === 'me' ? 'me' : 'ai');
+                d.textContent = text;
+                $('chatBox').appendChild(d);
+                $('chatBox').scrollTop = $('chatBox').scrollHeight;
+            }
+
+            function addTyping() {
+                const d = document.createElement('div');
+                d.className = 'cmsg ai';
+                d.id = 'typing';
+                d.innerHTML = '<span class="spin">⟳</span> ' + (isAr() ? 'يفكر...' : 'Thinking...');
+                $('chatBox').appendChild(d);
+                $('chatBox').scrollTop = $('chatBox').scrollHeight;
+                return d;
+            }
+
+            async function send(text) {
+                text = (text || $('msg').value).trim();
+                if (!text) return;
+                $('msg').value = '';
+                append('me', text);
+                history.push({ role: 'user', content: text });
+                const typing = addTyping();
+                try {
+                    const r = await fetch('/api/consult', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ messages: history })
+                    });
+                    const data = await r.json();
+                    typing.remove();
+                    if (data.reply) {
+                        append('ai', data.reply);
+                        history.push({ role: 'assistant', content: data.reply });
+                    } else {
+                        append('ai', isAr() ? 'حدث خطأ، حاول مجدداً.' : 'Error, try again.');
+                    }
+                } catch (e) {
+                    typing.remove();
+                    append('ai', isAr() ? 'تعذر الاتصال بالمستشار.' : 'Cannot reach consultant.');
+                }
+            }
+
+            $('send').addEventListener('click', () => send());
+            $('msg').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+            document.querySelectorAll('.chip').forEach(ch => {
+                ch.addEventListener('click', () => send(ch.dataset.q));
+            });
+        })();
+    </script>
+</body>
+</html>

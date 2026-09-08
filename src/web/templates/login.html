@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول المالك | النرجس للذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+    </style>
+</head>
+<body data-lang="ar" class="min-h-screen flex items-center justify-center" style="background:var(--n-green-0);">
+    <div class="w-full max-w-md px-6">
+        <div class="n-card p-8 text-center">
+            <div class="text-4xl mb-4" style="color:var(--n-gold);">✺</div>
+            <h1 class="n-title text-2xl" data-lang="ar">لوحة تحكم المالك</h1>
+            <h1 class="n-title text-2xl" data-lang="en" data-inline>Owner Dashboard</h1>
+            <p class="text-sm my-4" style="color:var(--n-brown-2);" data-lang="ar">منطقة خاصة بمالك النظام فقط — أدخل كلمة المرور</p>
+            <p class="text-sm my-4" style="color:var(--n-brown-2);" data-lang="en" data-inline>Private owner area — enter password</p>
+            <form id="loginForm">
+                <input type="password" id="password" class="w-full text-center" placeholder="••••••••" style="font-size:1.2rem;letter-spacing:4px;" autocomplete="current-password" autofocus>
+                <button type="submit" class="btn btn-gold w-full mt-5" id="loginBtn">
+                    <i class="fas fa-key"></i> <span data-lang="ar">دخول</span><span data-lang="en" data-inline>Login</span>
+                </button>
+                <div id="err" class="mt-4 text-sm font-bold" style="color:#c0392b;display:none;"></div>
+            </form>
+        </div>
+        <div class="text-center mt-6">
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;"><i class="fas fa-arrow-right"></i> <span data-lang="ar">العودة للصفحة الرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('narjis-lang') || 'ar';
+            document.body.setAttribute('data-lang', saved);
+            document.documentElement.setAttribute('lang', saved);
+            document.documentElement.setAttribute('dir', saved === 'ar' ? 'rtl' : 'ltr');
+
+            const form = document.getElementById('loginForm');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const err = document.getElementById('err');
+                const btn = document.getElementById('loginBtn');
+                err.style.display = 'none';
+                btn.disabled = true;
+                try {
+                    const r = await fetch('/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: document.getElementById('password').value })
+                    });
+                    if (r.redirected) { window.location.href = r.url; return; }
+                    const data = await r.json().catch(() => ({}));
+                    if (data.error) {
+                        err.textContent = data.error;
+                        err.style.display = 'block';
+                    }
+                } catch (err2) {
+                    err.textContent = 'حدث خطأ';
+                    err.style.display = 'block';
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

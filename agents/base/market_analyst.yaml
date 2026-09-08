@@ -1,0 +1,30 @@
+name: "Market Analyst Agent"
+description: "Analyze digital product market and suggest opportunities"
+category: "analysis"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.4
+  max_tokens: 1000
+  top_p: 0.9
+prompts:
+  default: |
+    Analyze the digital products market and suggest opportunities.
+    
+    Market segment: {{segment}}
+    Current trends: {{trends}}
+    Competitors: {{competitors}}
+    Target geography: {{geography}
+    Budget range: {{budget}
+    
+    Provide analysis:
+    1. Market size and growth
+    2. Key trends and drivers
+    3. Competitive landscape
+    4. Underserved niches
+    5. Emerging opportunities
+    6. Barriers to entry
+    7. Recommended product ideas (3-5)
+    8. Go-to-market strategy for top pick
+    
+    Data-driven insights with sources noted.
+is_system: true

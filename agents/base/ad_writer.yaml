@@ -1,0 +1,48 @@
+name: "Ad Writer Agent"
+description: "Produce ready-to-use advertisements"
+category: "marketing"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.8
+  max_tokens: 600
+  top_p: 0.95
+prompts:
+  default: |
+    Write a compelling advertisement for a product targeting young adults.
+    
+    Product: {{product_name}}
+    Key features: {{features}}
+    Target audience: {{audience}}
+    Platform: {{platform}}
+    Tone: {{tone}}
+    Call to action: {{cta}}
+    
+    Requirements:
+    - Hook in first 3 seconds/words
+    - Clear value proposition
+    - Emotional appeal
+    - Strong CTA
+    - Platform-appropriate format
+    
+    Ad copy:
+  facebook: |
+    Facebook ad for: {{product_name}}
+    Primary text (125 chars): 
+    Headline (40 chars):
+    Description (30 chars):
+    CTA button: {{cta}}
+  google: |
+    Google Ads for: {{product_name}}
+    Headline 1 (30 chars):
+    Headline 2 (30 chars):
+    Headline 3 (30 chars):
+    Description 1 (90 chars):
+    Description 2 (90 chars):
+  tiktok: |
+    TikTok ad script for: {{product_name}}
+    Duration: {{duration}} seconds
+    Hook (0-3s):
+    Value prop (3-10s):
+    Social proof (10-20s):
+    CTA (20-{{duration}}s):
+is_system: true

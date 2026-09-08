@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حالة الدفع | النرجس للذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+</head>
+<body data-lang="ar" class="bg-sand min-h-screen flex items-center justify-center p-6 n-geo">
+    <div class="n-card w-full max-w-md text-center">
+        <div class="text-5xl mb-5">
+            {% if result == "success" %}
+            <i class="fas fa-check-circle" style="color:var(--n-green);"></i>
+            {% else %}
+            <i class="fas fa-times-circle" style="color:#b91c1c;"></i>
+            {% endif %}
+        </div>
+        {% if result == "success" %}
+        <h1 class="n-title text-2xl mb-2">
+            <span data-lang="ar">تم استلام الدفع بنجاح ✓</span>
+            <span data-lang="en" data-inline>Payment Received ✓</span>
+        </h1>
+        <p class="n-sub mb-4">
+            <span data-lang="ar">شكراً لثقتك بالنرجس للذكاء الاصطناعي. سيتواصل معك فريقنا قريباً.</span>
+            <span data-lang="en" data-inline>Thank you for trusting Al-Narjis AI. Our team will contact you soon.</span>
+        </p>
+        {% else %}
+        <h1 class="n-title text-2xl mb-2">
+            <span data-lang="ar">تعذر إتمام الدفع</span>
+            <span data-lang="en" data-inline">Payment Failed</span>
+        </h1>
+        <p class="n-sub mb-4">
+            <span data-lang="ar">حدث خطأ أثناء العملية. يمكنك المحاولة مرة أخرى أو التواصل معنا.</span>
+            <span data-lang="en" data-inline">Something went wrong. Please try again or contact us.</span>
+        </p>
+        {% endif %}
+        {% if payment_id %}
+        <p class="text-xs mb-4" style="color:var(--n-brown-2);">رقم العملية: {{ payment_id }}</p>
+        {% endif %}
+        <div class="flex flex-col gap-3 mt-2">
+            <a href="/home#pricing" class="btn btn-green w-full">
+                <span data-lang="ar">العودة إلى الأسعار</span>
+                <span data-lang="en" data-inline>Back to Pricing</span>
+            </a>
+            <a id="waFail" href="#" class="btn btn-outline w-full" target="_blank">
+                <i class="fab fa-whatsapp" style="color:#25d366;"></i>
+                <span data-lang="ar">تواصل معنا واتساب</span>
+                <span data-lang="en" data-inline>Contact us on WhatsApp</span>
+            </a>
+        </div>
+    </div>
+    <script>
+        document.getElementById('waFail').href = 'https://wa.me/9665529798753?text=' + encodeURIComponent('مرحباً، لدي استفسار عن الدفع في النرجس للذكاء الاصطناعي');
+    </script>
+</body>
+</html>

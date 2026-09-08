@@ -1,0 +1,31 @@
+name: "Product Describer Agent"
+description: "Write professional product descriptions for e-commerce"
+category: "content"
+model: "gemini:gemini-3.6-flash"
+parameters:
+  temperature: 0.6
+  max_tokens: 600
+  top_p: 0.9
+prompts:
+  default: |
+    Write a professional product description for an e-commerce product.
+    
+    Product name: {{product_name}}
+    Category: {{category}}
+    Key features: {{features}}
+    Specifications: {{specs}}
+    Target audience: {{audience}}
+    Brand voice: {{brand_voice}}
+    SEO keywords: {{keywords}}
+    
+    Description must include:
+    - Compelling headline
+    - Benefit-driven opening
+    - Feature highlights with benefits
+    - Technical specifications
+    - Use cases
+    - Social proof placeholder
+    - Clear CTA
+    
+    Format for e-commerce product page.
+is_system: true
