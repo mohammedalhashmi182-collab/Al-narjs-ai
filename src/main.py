@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.settings import get_settings, settings
 from src.utils.logger import configure_logging
+from src.utils.rate_limit import rate_limit_consult
 from src.db.session import init_db, get_session_factory, close_db
 
 configure_logging(settings.log_level, settings.log_json)
@@ -84,12 +85,142 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_LOCALE_COOKIE = "narjis_lang"
+_SUPPORTED_LOCALES = ("ar", "en")
+
+
+def _parse_request_cookies(scope: dict) -> dict:
+    cookies: dict[str, str] = {}
+    for name, value in scope.get("headers", []):
+        if name.lower() == b"cookie":
+            for part in value.decode("latin-1", "ignore").split(";"):
+                if "=" in part:
+                    k, v = part.strip().split("=", 1)
+                    cookies[k.strip()] = v.strip()
+    return cookies
+
+
+def _detect_accepted_language(scope: dict) -> str:
+    header = ""
+    for name, value in scope.get("headers", []):
+        if name.lower() == b"accept-language":
+            header = value.decode("latin-1", "ignore")
+            break
+    weights = {"ar": 0.0, "en": 0.0}
+    for part in header.split(","):
+        lang = part.strip()
+        weight = 1.0
+        if ";" in lang:
+            core, _, params = lang.partition(";")
+            lang = core.strip()
+            for param in params.split(";")[1:]:
+                if param.strip().lower().startswith("q="):
+                    try:
+                        weight = float(param.strip()[2:])
+                    except ValueError:
+                        weight = 0.0
+        base = lang.split("-")[0].lower()
+        if base in _SUPPORTED_LOCALES:
+            weights[base] = max(weights[base], weight)
+    best = max((w, lang) for lang, w in weights.items())
+    return best[1] if best[0] > 0 else "ar"
+
+
+def _inject_locale_cookie(scope: dict, locale: str) -> None:
+    cookies = _parse_request_cookies(scope)
+    if cookies.get(_LOCALE_COOKIE) == locale:
+        return
+    cookies[_LOCALE_COOKIE] = locale
+    header = "; ".join(f"{k}={v}" for k, v in cookies.items())
+    headers = [(n, v) for n, v in scope.get("headers", []) if n.lower() != b"cookie"]
+    headers.append((b"cookie", header.encode("latin-1")))
+    scope["headers"] = headers
+
+
+class LocaleMiddleware:
+    """Serves /ar/ and /en/ URL prefixes with a persistent language cookie.
+
+    /en/home serves the homepage rendered in English; /ar/home in Arabic.
+    Unprefixed paths keep working and fall back to the cookie, then to the
+    browser's Accept-Language header (English for anonymous international
+    visitors, Arabic for Arabic browsers).
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path") or ""
+        locale = None
+        rest = path
+        for lang in _SUPPORTED_LOCALES:
+            if path == f"/{lang}" or path.startswith(f"/{lang}/"):
+                locale = lang
+                rest = path[len(lang) + 1:] or "/"
+                break
+
+        cookies = _parse_request_cookies(scope)
+        if locale:
+            scope["path"] = rest
+            _inject_locale_cookie(scope, locale)
+        elif not cookies.get(_LOCALE_COOKIE) and not path.startswith("/static"):
+            _inject_locale_cookie(scope, _detect_accepted_language(scope))
+
+        is_html = not (
+            path.startswith("/static")
+            or path.startswith("/api")
+            or path in ("/robots.txt", "/sitemap.xml", "/favicon.ico")
+            or "/health" in path
+        )
+        effective = locale or cookies.get(_LOCALE_COOKIE) or _detect_accepted_language(scope)
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = [(n, v) for n, v in message.get("headers", [])]
+                if is_html:
+                    headers.append(
+                        (
+                            b"set-cookie",
+                            (
+                                f"{_LOCALE_COOKIE}={effective}; Max-Age=31536000; "
+                                "Path=/; SameSite=Lax"
+                            ).encode("latin-1"),
+                        )
+                    )
+                if locale and message.get("status", 0) in (301, 302, 303, 307, 308):
+                    for i, (n, v) in enumerate(headers):
+                        if n.lower() == b"location" and v:
+                            loc = v.decode("latin-1", "ignore")
+                            if loc.startswith("/") and not (
+                                loc.startswith(f"/{locale}/")
+                                or loc == f"/{locale}"
+                                or loc.startswith("/static")
+                            ):
+                                headers[i] = (n, f"/{locale}{loc}".encode("latin-1"))
+                message["headers"] = headers
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+app.add_middleware(LocaleMiddleware)
+
 try:
     app.mount("/static", StaticFiles(directory="src/web/static"), name="static")
 except Exception:
     pass
 
 templates = Jinja2Templates(directory="src/web/templates")
+
+
+def _page_lang(request: Request) -> str:
+    return request.cookies.get(_LOCALE_COOKIE, "ar")
+
+
+templates.env.globals["page_lang"] = _page_lang
 
 
 async def get_session() -> AsyncSession:
@@ -168,6 +299,28 @@ async def landing_page(request: Request):
     return templates.TemplateResponse(request, "landing.html")
 
 
+@app.get("/robots.txt", response_class=HTMLResponse)
+async def robots_txt():
+    from fastapi.responses import FileResponse
+    return FileResponse("src/web/static/robots.txt", media_type="text/plain")
+
+
+@app.get("/sitemap.xml", response_class=HTMLResponse)
+async def sitemap_xml():
+    from fastapi.responses import FileResponse
+    return FileResponse("src/web/static/sitemap.xml", media_type="application/xml")
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy_page(request: Request):
+    return templates.TemplateResponse(request, "privacy.html")
+
+
+@app.get("/terms", response_class=HTMLResponse)
+async def terms_page(request: Request):
+    return templates.TemplateResponse(request, "terms.html")
+
+
 @app.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
     from fastapi.responses import RedirectResponse
@@ -231,6 +384,8 @@ async def list_agents(category: Optional[str] = None):
         item["title_ar"] = emp.get("title_ar", a.name)
         item["title_en"] = emp.get("title_en", a.name)
         item["dept"] = emp.get("dept", "")
+        item["intro_ar"] = emp.get("intro_ar", a.description)
+        item["intro_en"] = emp.get("intro_en", a.description)
         result.append(item)
     return {"agents": result}
 
@@ -244,7 +399,7 @@ async def get_agent(slug: str):
 
 
 @app.post("/api/agents/{slug}/run")
-async def run_agent(slug: str, request: AgentRunRequest):
+async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
     agent = await app.state.agent_registry.get_agent(slug)
     if not agent:
         raise HTTPException(404, "Agent not found")
@@ -445,9 +600,13 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers):
         rendered = app.state.prompt_engine.render(tmpl.template_text, request.answers)
 
         from src.core.model_provider import ModelRequest
+        locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
         lang_instruction = (
             "Respond in Modern Standard Arabic (اللغة العربية الفصحى) unless the user"
             " explicitly asks otherwise. Structure your answer clearly with headings."
+            if locale == "ar" else
+            "Respond in clear, fluent business English. Use proper terminology and"
+            " structure your answer clearly with headings."
         )
         model_request = ModelRequest(
             prompt=rendered.user_prompt,
@@ -509,12 +668,14 @@ class ConsultRequest(BaseModel):
     messages: list[ConsultMessage]
 
 
-@app.post("/api/consult")
-async def consult_chat(request: ConsultRequest):
+@app.post("/api/consult", dependencies=[Depends(rate_limit_consult)])
+async def consult_chat(request: ConsultRequest, http_request: Request):
     from src.core.model_provider import ModelRequest
 
     if not request.messages:
         raise HTTPException(400, "No messages")
+
+    locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
 
     history = []
     for m in request.messages[-12:]:
@@ -532,8 +693,11 @@ async def consult_chat(request: ConsultRequest):
         "- Then propose a concrete plan, mention which named agents would help (job titles like "
         "'مدير حسابات السوشيال ميديا', 'كاتب وصف المنتجات', 'محلل السوق', 'مستشار أفكار المشاريع'), "
         "and suggest a package.\n"
-        "- Be warm, practical and specific. Use Arabic, with clear short sections and bullet points.\n"
-        "- Keep replies concise (under ~250 words) unless asked for depth."
+        "- Be warm, practical and specific.\n"
+        "- Respond in the language of the visitor"
+        + (": Modern Standard Arabic (اللغة العربية الفصحى), with clear short sections and bullet points." if locale == "ar" else
+           ": clear, fluent English, with clear short sections and bullet points.")
+        + "\n- Keep replies concise (under ~250 words) unless asked for depth."
     )
 
     model_request = ModelRequest(

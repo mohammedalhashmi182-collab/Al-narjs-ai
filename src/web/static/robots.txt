@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /agents
+Disallow: /workflows
+Disallow: /schedules
+Disallow: /executions
+Disallow: /static/
+
+Sitemap: https://www.karmaai.online/sitemap.xml

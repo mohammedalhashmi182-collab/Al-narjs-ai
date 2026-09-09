@@ -1,0 +1,57 @@
+{% set _lang = page_lang(request) %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index,follow">
+    <title>{% if _lang == 'ar' %}الشروط والأحكام | النرجس للذكاء الاصطناعي{% else %}Terms of Service | Al-Narjis AI{% endif %}</title>
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+    </style>
+</head>
+<body data-lang="{{ _lang }}" class="bg-sand min-h-screen">
+    <div class="n-hero" style="padding:56px 20px 40px;">
+        <div class="max-w-3xl mx-auto">
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; <span data-lang="ar">العودة للرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
+            <h1 class="n-title text-3xl mt-4"><span data-lang="ar">الشروط والأحكام</span><span data-lang="en" data-inline>Terms of Service</span></h1>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);"><span data-lang="ar">آخر تحديث: 9 سبتمبر 2026</span><span data-lang="en" data-inline>Last updated: 9 September 2026</span></p>
+
+            <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
+                <h2 class="n-title text-lg" data-lang="ar">1. الطرفان</h2>
+                <h2 class="n-title text-lg" data-lang="en" data-inline>1. The parties</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">هذه الشروط بينكما وبين مؤسسة ذا أريبيان كونفو (النرجس للذكاء الاصطناعي)، سجل تجاري 31332495263، الرياض، المملكة العربية السعودية.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>These terms are between you and the Arabian Convoy Establishment (Al-Narjis AI), CR 31332495263, Riyadh, Kingdom of Saudi Arabia (the "Company").</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">2. الخدمة</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>2. Service</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">النرجس للذكاء الاصطناعي تقدم فريقاً من الوكلاء الرقميين القائمين على الذكاء الاصطناعي، تُفعّل اشتراكه شهرياً ضمن إحدى الباقات المعروضة. الوكلاء أدوات آليّة مساعدة، والمخرجات لا تُعدّ نصيحة مهنية ملزمة.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>Al-Narjis AI provides a team of AI-powered digital agents, activated via a monthly subscription under one of the displayed plans. Agents are automated assistive tools; their output is not binding professional advice.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">3. الاشتراك والدفع</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>3. Subscription &amp; payment</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">الاشتراكات شهرية قابلة للإلغاء في أي وقت. تُضاف ضريبة القيمة المضافة (15%) على الفواتير المستحقة داخل المملكة. تفعيل الخدمة يبدأ بعد استلام الدفعة الأولى.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>Subscriptions are monthly and cancellable at any time. VAT (15%) is added to invoices due within the Kingdom. Service begins after first payment is received.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">4. الحدود</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>4. Limitations</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">لا يجوز استخدام الخدمة لأي غرض غير قانوني أو مضلل. المخرجات المولّدة آلياً قد تحتاج لمراجعة بشرية، والشركة غير مسؤولة عن أضرار ناتجة عن الاعتماد غير المبرر عليها.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>You may not use the service for any unlawful or misleading purpose. AI-generated output may require human review; the Company is not liable for damages from unreasonable reliance on it.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">5. الإلغاء والتجديد</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>5. Cancellation &amp; renewal</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">يمكنك إلغاء الخدمة في أي وقت قبل التجديد، ولا تُرد دفعات الفترة المنقضية، وتتحول الاشتراكات الملغاة إلى إغلاق الفريق.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>You may cancel at any time before renewal; payments for the elapsed period are non-refundable, and cancelled subscriptions close the team.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">6. القانون المطبق</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>6. Governing law</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">تخضع هذه الشروط لقوانين المملكة العربية السعودية، وتُحل المنازعات أمام محاكم الرياض المختصة.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>These terms are governed by the laws of the Kingdom of Saudi Arabia; disputes are subject to the jurisdiction of the courts of Riyadh.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

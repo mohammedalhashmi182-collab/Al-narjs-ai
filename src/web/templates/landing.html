@@ -1,11 +1,60 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+{% set _lang = page_lang(request) %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0a0b0e">
+    {% if _lang == 'ar' %}
     <title>النرجس للذكاء الاصطناعي | فريقك الرقمي في انتظار لمسة إيقاظ</title>
     <meta name="description" content="منصة النرجس للذكاء الاصطناعي من الرياض — 20 وكيلاً ذكياً يعملون على مدار الساعة: محتوى، تسويق، متاجر، وخدمة عملاء.">
+    {% else %}
+    <title>Al-Narjis AI | Your digital workforce, asleep and ready</title>
+    <meta name="description" content="Al-Narjis AI from Riyadh — 20 intelligent agents working around the clock: content, marketing, stores, and customer care.">
+    {% endif %}
+    <meta name="robots" content="index,follow">
+    {% set _path = request.url.path %}
+    {% set _canon_path = ('/' ~ _lang ~ _path) if (_lang == 'en' or _lang == 'ar') else _path %}
+    <link rel="canonical" href="https://www.karmaai.online{{ _canon_path }}">
+    <link rel="alternate" hreflang="ar" href="https://www.karmaai.online/ar{{ _path }}">
+    <link rel="alternate" hreflang="en" href="https://www.karmaai.online/en{{ _path }}">
+    <link rel="alternate" hreflang="x-default" href="https://www.karmaai.online{{ _path }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Al-Narjis AI">
+    <meta property="og:title" content="{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}">
+    <meta property="og:description" content="{% if _lang == 'ar' %}20 وكيلاً ذكياً نائمين جاهزين لخدمة عملك على مدار الساعة.{% else %}20 sleeping AI agents, ready to work for your business around the clock.{% endif %}">
+    <meta property="og:url" content="https://www.karmaai.online{{ _canon_path }}">
+    <meta property="og:locale" content="{{ 'ar_SA' if _lang == 'ar' else 'en_US' }}">
+    <meta property="og:locale:alternate" content="{{ 'en_US' if _lang == 'ar' else 'ar_SA' }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "النرجس للذكاء الاصطناعي | Al-Narjis AI",
+      "alternateName": "The Arabian Convoy Establishment",
+      "url": "https://www.karmaai.online",
+      "sameAs": ["https://wa.me/9665529798753"],
+      "legalName": "Arabian Convoy Establishment",
+      "foundingLocation": "Riyadh, Saudi Arabia",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District",
+        "postalCode": "13263",
+        "addressLocality": "Riyadh",
+        "addressCountry": "SA"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Al-Narjis AI",
+      "url": "https://www.karmaai.online",
+      "inLanguage": ["ar", "en"]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -486,7 +535,7 @@
         }
     </style>
 </head>
-<body data-lang="ar">
+<body data-lang="{{ _lang }}">
     <div id="progress"></div>
     <div class="mesh"></div>
     <div class="grid"></div>
@@ -535,7 +584,7 @@
                 <span class="badge"><span class="dot"></span><span data-lang="ar">من الرياض إلى العالم</span><span data-lang="en" data-inline>From Riyadh, for the world</span></span>
                 <h1>
                     <span data-lang="ar">فريقك الرقمي…<br>في انتظار لمسة <span class="grad">إيقاظ</span></span>
-                    <span data-lang="en" data-inline>Your digital workforce,<br>one touch away from <span class="grad">wake</span></span>
+                    <span data-lang="en" data-inline>Your digital workforce -<br>asleep, ready at the touch of a button</span>
                 </h1>
                 <p class="sub">
                     <span data-lang="ar">يتقن: </span><span data-lang="en" data-inline>Mastering: </span><span class="rotor" id="rotor"></span>
@@ -888,6 +937,14 @@
             <span>© 2026 <b>Al-Narjis AI</b> · النرجس للذكاء الاصطناعي</span>
             <span><span data-lang="ar">صُمّم بفخر في الرياض</span><span data-lang="en" data-inline>Proudly crafted in Riyadh</span></span>
         </div>
+        <div class="base" style="margin-top:14px;justify-content:center;text-align:center;">
+            <span style="font-size:.78rem;color:var(--faint);">
+                <span data-lang="ar">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 · الرياض، المملكة العربية السعودية ·</span>
+                <span data-lang="en" data-inline>The Arabian Convoy Establishment · Commercial Reg. 31332495263 · Riyadh, Kingdom of Saudi Arabia ·</span>
+                <a href="/privacy" style="display:inline;color:var(--muted);margin-inline:6px;"><span data-lang="ar">الخصوصية</span><span data-lang="en" data-inline>Privacy</span></a> ·
+                <a href="/terms" style="display:inline;color:var(--muted);margin-inline:6px;"><span data-lang="ar">الشروط</span><span data-lang="en" data-inline>Terms</span></a>
+            </span>
+        </div>
     </footer>
 
     <a id="waFloat" class="wa-float" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
@@ -896,7 +953,7 @@
     <script>
         (function () {
             "use strict";
-            var saved = localStorage.getItem('narjis-lang') || 'ar';
+            var saved = document.body.getAttribute('data-lang') || localStorage.getItem('narjis-lang') || 'ar';
             function applyLang(lang) {
                 document.body.setAttribute('data-lang', lang);
                 document.documentElement.setAttribute('lang', lang);
@@ -905,11 +962,16 @@
                 document.querySelectorAll('[data-lang-btn]').forEach(function (b) { b.classList.toggle('active', b.dataset.langBtn === lang); });
                 if (window.__rotorStart) window.__rotorStart();
             }
+            function goLang(lang) {
+                var p = location.pathname;
+                var base = (p.indexOf('/en/') === 0 || p.indexOf('/ar/') === 0) ? p.slice(3) : p;
+                location.href = '/' + lang + (base === '/' ? '/' : base) + location.search + location.hash;
+            }
             applyLang(saved);
             var t2 = document.getElementById('langToggle2');
             if (t2) t2.addEventListener('click', function (e) {
                 var b = e.target.closest('[data-lang-btn]');
-                if (b) applyLang(b.dataset.langBtn);
+                if (b) goLang(b.dataset.langBtn);
             });
 
             window.addEventListener('load', function () {
@@ -968,18 +1030,29 @@
             var allAgents = [], curDept = 'الكل';
             var grid = document.getElementById('agents-grid');
             var filters = document.getElementById('filters');
+            var DEPT_EN = {
+                'التسويق الرقمي': 'Digital Marketing',
+                'المحتوى': 'Content',
+                'التجارة الإلكترونية': 'E-commerce',
+                'خدمة العملاء': 'Customer Care',
+                'التحليلات': 'Analytics',
+                'نمو الأعمال': 'Business Growth'
+            };
+            function deptLabel(d, isAr) { return d === 'الكل' ? (isAr ? 'الكل' : 'All') : (isAr ? d : (DEPT_EN[d] || d)); }
             function renderAgents() {
                 var isAr = document.body.dataset.lang === 'ar';
                 var list = allAgents.filter(function (a) { return curDept === 'الكل' || (a.dept || a.category) === curDept; });
                 if (!list.length) { grid.innerHTML = '<div class="loading-msg">' + (isAr ? 'لا وكلاء' : 'No agents') + '</div>'; return; }
                 grid.innerHTML = list.map(function (a) {
                     var no = (a.employee_no || 'AG-00').replace('AG-', '');
+                    var name = isAr ? (a.title_ar || a.name) : (a.title_en || a.title_ar || a.name);
+                    var desc = isAr ? (a.intro_ar || a.description || '') : (a.intro_en || a.intro_ar || a.description || '');
                     return '<div class="ag-card">' +
                         '<div class="ag-head"><div class="ag-ava">' + no + '</div><div>' +
                         '<div class="ag-no">' + (a.employee_no || '') + '</div>' +
-                        '<div class="ag-name">' + (a.title_ar || a.name) + '</div></div></div>' +
-                        '<p class="desc">' + (a.description || '') + '</p>' +
-                        '<div class="ag-foot"><span>' + (a.dept || a.category || '') + '</span>' +
+                        '<div class="ag-name">' + name + '</div></div></div>' +
+                        '<p class="desc">' + desc + '</p>' +
+                        '<div class="ag-foot"><span>' + deptLabel(a.dept || a.category || '', isAr) + '</span>' +
                         '<span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>' +
                         '</div>';
                 }).join('');
@@ -991,8 +1064,9 @@
                     var data = await res.json();
                     if (data.agents && data.agents.length) {
                         allAgents = data.agents;
+                        var isArL = document.body.dataset.lang === 'ar';
                         var depts = ['الكل'].concat(data.agents.map(function (a) { return a.dept || a.category; }).filter(function (v, i, arr) { return v && arr.indexOf(v) === i; }));
-                        filters.innerHTML = depts.map(function (d) { return '<button class="fchip' + (d === 'الكل' ? ' on' : '') + '" data-d="' + d + '">' + d + '</button>'; }).join('');
+                        filters.innerHTML = depts.map(function (d) { return '<button class="fchip' + (d === 'الكل' ? ' on' : '') + '" data-d="' + d + '">' + deptLabel(d, isArL) + '</button>'; }).join('');
                         filters.querySelectorAll('.fchip').forEach(function (b) {
                             b.addEventListener('click', function () {
                                 filters.querySelectorAll('.fchip').forEach(function (x) { x.classList.remove('on'); });
@@ -1076,6 +1150,22 @@
                 obs.observe(stats);
             }
         })();
+    </script>
+
+    <div id="cookieBar" style="position:fixed;bottom:16px;inset-inline:16px;max-width:560px;margin-inline:auto;background:#12151c;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,.5);">
+        <p style="font-size:.85rem;color:#98a1b0;margin:0 0 10px;">
+            <span data-lang="ar">نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.</span>
+            <span data-lang="en" data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>
+        </p>
+        <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;"><span data-lang="ar">موافق</span><span data-lang="en" data-inline>Got it</span></button>
+        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:#c8a45e;"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
+    </div>
+    <script>
+        (function () {
+            var b = document.getElementById('cookieBar');
+            if (b && !localStorage.getItem('narjis-consent')) setTimeout(function () { b.style.display = 'block'; }, 1200);
+        })();
+        window.acceptCookies = function () { localStorage.setItem('narjis-consent', '1'); var b = document.getElementById('cookieBar'); if (b) b.style.display = 'none'; };
     </script>
 </body>
 </html>

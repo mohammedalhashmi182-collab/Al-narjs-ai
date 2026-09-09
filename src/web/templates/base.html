@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+{% set _lang = page_lang(request) %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
         [dir="ltr"] .sidebar.open { transform: translateX(0); }
     </style>
 </head>
-<body data-lang="ar" class="min-h-screen">
+<body data-lang="{{ _lang }}" class="min-h-screen">
     <div class="flex">
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar n-sidebar fixed inset-y-0 start-0 z-50 w-64 transform lg:relative lg:translate-x-0">
@@ -103,7 +104,7 @@
 
     <script>
         (function () {
-            const saved = localStorage.getItem('narjis-lang') || 'ar';
+            const saved = document.body.getAttribute('data-lang') || localStorage.getItem('narjis-lang') || 'ar';
             applyLang(saved);
 
             function applyLang(lang) {
@@ -116,11 +117,17 @@
                 });
             }
 
+            function goLang(lang) {
+                const p = location.pathname;
+                const base = (p.indexOf('/en/') === 0 || p.indexOf('/ar/') === 0) ? p.slice(3) : p;
+                location.href = '/' + lang + (base === '/' ? '/' : base) + location.search + location.hash;
+            }
+
             const toggle = document.getElementById('langToggle');
             if (toggle) {
                 toggle.addEventListener('click', (e) => {
                     const btn = e.target.closest('[data-lang-btn]');
-                    if (btn) applyLang(btn.dataset.langBtn);
+                    if (btn) goLang(btn.dataset.langBtn);
                 });
             }
 

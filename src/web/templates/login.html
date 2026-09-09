@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+{% set _lang = page_lang(request) %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +16,7 @@
         body[data-lang="en"] [data-lang="ar"] { display: none; }
     </style>
 </head>
-<body data-lang="ar" class="min-h-screen flex items-center justify-center" style="background:var(--n-green-0);">
+<body data-lang="{{ _lang }}" class="min-h-screen flex items-center justify-center" style="background:var(--n-green-0);">
     <div class="w-full max-w-md px-6">
         <div class="n-card p-8 text-center">
             <div class="text-4xl mb-4" style="color:var(--n-gold);">✺</div>
@@ -38,7 +39,7 @@
 
     <script>
         (function () {
-            const saved = localStorage.getItem('narjis-lang') || 'ar';
+            const saved = document.body.getAttribute('data-lang') || localStorage.getItem('narjis-lang') || 'ar';
             document.body.setAttribute('data-lang', saved);
             document.documentElement.setAttribute('lang', saved);
             document.documentElement.setAttribute('dir', saved === 'ar' ? 'rtl' : 'ltr');

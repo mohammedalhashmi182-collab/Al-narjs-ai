@@ -75,8 +75,8 @@ class Settings(BaseSettings):
     payment_success_url: str = Field(default="/payment/success", alias="PAYMENT_SUCCESS_URL")
     payment_failure_url: str = Field(default="/payment/failure", alias="PAYMENT_FAILURE_URL")
 
-    # Owner dashboard gate
-    owner_password: str = Field(default="narjis2026", alias="OWNER_PASSWORD")
+    # Owner dashboard gate — must be set via env, never a built-in default
+    owner_password: str = Field(alias="OWNER_PASSWORD")
 
     # Email (SMTP) — Gmail example
     smtp_host: str = Field(default="smtp.gmail.com", alias="SMTP_HOST")

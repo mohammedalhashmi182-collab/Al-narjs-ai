@@ -1,0 +1,57 @@
+{% set _lang = page_lang(request) %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index,follow">
+    <title>{% if _lang == 'ar' %}سياسة الخصوصية | النرجس للذكاء الاصطناعي{% else %}Privacy Policy | Al-Narjis AI{% endif %}</title>
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+    </style>
+</head>
+<body data-lang="{{ _lang }}" class="bg-sand min-h-screen">
+    <div class="n-hero" style="padding:56px 20px 40px;">
+        <div class="max-w-3xl mx-auto">
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; <span data-lang="ar">العودة للرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
+            <h1 class="n-title text-3xl mt-4"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></h1>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);"><span data-lang="ar">آخر تحديث: 9 سبتمبر 2026</span><span data-lang="en" data-inline>Last updated: 9 September 2026</span></p>
+
+            <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
+                <h2 class="n-title text-lg" data-lang="ar">1. من نحن</h2>
+                <h2 class="n-title text-lg" data-lang="en" data-inline>1. Who we are</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">«النرجس للذكاء الاصطناعي» هي منصة تجارية تقدمها مؤسسة ذا أريبيان كونفو (سجل تجاري 31332495263)، الرياض، المملكة العربية السعودية.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>Al-Narjis AI is a platform operated by the Arabian Convoy Establishment (Commercial Registration 31332495263), Riyadh, Kingdom of Saudi Arabia.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">2. البيانات التي نجمعها</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>2. Data we collect</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">عند استخدامك الموقع (نموذج الطلب، المستشار الذكي، أو بوابة العميل) نجمع: الاسم، رقم الجوال/واتساب، البريد الإلكتروني، ومحتوى استفساراتك، وأساس قانوني لذلك هو الموافقة وتنفيذ العقد.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>When you use this site (order form, Smart Consultant, or client portal) we collect: your name, phone/WhatsApp, email, and the content of your enquiries. The legal bases are consent and contract performance.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">3. كيف نستخدمها</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>3. How we use it</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">للتواصل معك، وإنشاء فريقك الرقمي، وتقديم الخدمات، وإرسال فواتيرك. قد تُعالج استفساراتك آلياً عبر موفري ذكاء اصطناعي خارجيين (مثل Google Gemini و Moonshot) لتوليد الإجابات؛ وهذه معاملة بيانات عابرة لا نبيعها ولا نشاركها لأغراض تسويقية.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>To contact you, create your digital team, provide our services, and send invoices. Your enquiries may be processed automatically through third-party AI providers (e.g. Google Gemini and Moonshot) to generate responses; this is transient processing — we never sell your data or use it for marketing.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">4. ملفات تعريف الارتباط</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>4. Cookies</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">نستخدم ملفات تعريف ارتباط ضرورية فقط: لحفظ اختيار اللغة ولجلسة مالك النظام. لا نستخدم تتبعاً إعلانياً.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>We use only essential cookies: to remember your language choice and the owner's session. No advertising tracking.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">5. حقوقك</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>5. Your rights</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">يحق لك طلب الوصول إلى بياناتك أو تصحيحها أو حذفها، أو سحب موافقتك، بالتواصل معنا عبر واتساب أو البريد الإلكتروني المبين أدناه. نلتزم في ذلك بأنظمة حماية البيانات السعودية، وباللائحة العامة لحماية البيانات (GDPR) للمستخدمين من الاتحاد الأوروبي.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>You may request access to, correction or deletion of your personal data, or withdraw consent, by contacting us via WhatsApp or email below. We comply with Saudi data protection regulations and the EU GDPR for users in the European Union.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">6. تواصل معنا</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>6. Contact</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">مؤسسة ذا أريبيان كونفو — الرياض، حي الرمال: واتساب <a href="https://wa.me/9665529798753" style="color:var(--n-gold);">+966 55 297 9875</a>.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>The Arabian Convoy Establishment — Riyadh, Al Rimal District: WhatsApp <a href="https://wa.me/9665529798753" style="color:var(--n-gold);">+966 55 297 9875</a>.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

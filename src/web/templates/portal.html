@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+{% set _lang = page_lang(request) %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +27,7 @@
         @keyframes rot { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body data-lang="ar" class="bg-sand min-h-screen">
+<body data-lang="{{ _lang }}" class="bg-sand min-h-screen">
     <!-- Top nav -->
     <nav class="n-nav px-6 py-4">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
@@ -82,10 +83,16 @@
                     </div>
                 </div>
                 <div class="flex justify-center pt-2">
-                    <button type="submit" class="btn btn-gold w-full max-w-sm">
-                        <span data-lang="ar">استقبل فريقي الذكي</span><span data-lang="en" data-inline>Receive My Smart Team</span>
-                        <i class="fas fa-rocket"></i>
-                    </button>
+                    <div class="w-full max-w-sm text-start">
+                        <label class="flex items-start gap-2" style="font-size:.8rem;color:var(--n-brown-2);cursor:pointer;">
+                            <input type="checkbox" id="consent" required class="mt-0.5">
+                            <span><span data-lang="ar">أوافق على معالجة بياناتي وفق <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span><span data-lang="en" data-inline>I agree to my data being processed per the <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span></span>
+                        </label>
+                        <button type="submit" class="btn btn-gold w-full mt-4">
+                            <span data-lang="ar">استقبل فريقي الذكي</span><span data-lang="en" data-inline>Receive My Smart Team</span>
+                            <i class="fas fa-rocket"></i>
+                        </button>
+                    </div>
                 </div>
                 <div id="regMsg" class="text-center font-bold py-2 rounded-lg" style="display:none;"></div>
             </form>
@@ -144,12 +151,21 @@
         <div class="max-w-6xl mx-auto px-6 text-center">
             <div class="text-lg mb-2" style="color:var(--n-gold-2);">✺ النرجس للذكاء الاصطناعي ✺</div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
+            <p class="text-xs mt-3" style="opacity:0.6;">
+                <span data-lang="ar">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
+                <span data-lang="en" data-inline>The Arabian Convoy Establishment · CR 31332495263 ·</span>
+                <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar">الخصوصية</span><span data-lang="en" data-inline>Privacy</span></a>
+                <span style="opacity:0.6;">·</span>
+                <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar">الشروط</span><span data-lang="en" data-inline>Terms</span></a>
+            </p>
+        </div>
+    </footer>
         </div>
     </footer>
 
     <script>
         (function () {
-            const saved = localStorage.getItem('narjis-lang') || 'ar';
+            const saved = document.body.getAttribute('data-lang') || localStorage.getItem('narjis-lang') || 'ar';
             applyLang(saved);
             function applyLang(lang) {
                 document.body.setAttribute('data-lang', lang);
@@ -158,8 +174,13 @@
                 localStorage.setItem('narjis-lang', lang);
                 document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === lang));
             }
+            function goLang(lang) {
+                const p = location.pathname;
+                const base = (p.indexOf('/en/') === 0 || p.indexOf('/ar/') === 0) ? p.slice(3) : p;
+                location.href = '/' + lang + (base === '/' ? '/' : base) + location.search + location.hash;
+            }
             const lt = document.getElementById('langToggle');
-            if (lt) lt.addEventListener('click', e => { const b = e.target.closest('[data-lang-btn]'); if (b) applyLang(b.dataset.langBtn); });
+            if (lt) lt.addEventListener('click', e => { const b = e.target.closest('[data-lang-btn]'); if (b) goLang(b.dataset.langBtn); });
 
             const $ = id => document.getElementById(id);
             const isAr = () => document.body.dataset.lang === 'ar';
@@ -398,6 +419,22 @@
                 }).catch(() => {});
             }
         })();
+    </script>
+
+    <div id="cookieBar" style="position:fixed;bottom:16px;inset-inline:16px;max-width:560px;margin-inline:auto;background:#12151c;border:1px solid var(--n-line);border-radius:14px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,.5);">
+        <p style="font-size:.85rem;color:var(--n-brown-2);margin:0 0 10px;">
+            <span data-lang="ar">نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.</span>
+            <span data-lang="en" data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>
+        </p>
+        <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;"><span data-lang="ar">موافق</span><span data-lang="en" data-inline>Got it</span></button>
+        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:var(--n-gold);"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
+    </div>
+    <script>
+        (function () {
+            var b = document.getElementById('cookieBar');
+            if (b && !localStorage.getItem('narjis-consent')) setTimeout(function () { b.style.display = 'block'; }, 1200);
+        })();
+        window.acceptCookies = function () { localStorage.setItem('narjis-consent', '1'); var b = document.getElementById('cookieBar'); if (b) b.style.display = 'none'; };
     </script>
 </body>
 </html>
