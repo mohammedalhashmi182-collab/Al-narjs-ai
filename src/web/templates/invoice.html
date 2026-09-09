@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+{% set _lang = 'ar' %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاتورة | النرجس للذكاء الاصطناعي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Almarai','Tajawal',sans-serif; background:#0a0b0e; color:#2b2620; padding:24px; }
+        .inv { max-width:640px; margin:0 auto; background:#fff; border-radius:16px; overflow:hidden; border:1px solid #3a3426; }
+        .inv-head { background:#0a0b0e; color:#e6c98a; text-align:center; padding:26px 20px; }
+        .inv-head .nm { font-size:22px; font-weight:800; color:#fff; }
+        .inv-head .sb { font-size:11px; letter-spacing:3px; color:#c8a45e; }
+        .inv-body { padding:26px; }
+        .row { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0a0b0e; padding-bottom:10px; font-weight:800; }
+        .row .no { color:#6b7280; font-size:12px; }
+        .org { margin-top:14px; line-height:2; font-size:13px; color:#4b5563; }
+        .org b { color:#0a0b0e; }
+        .meta { margin-top:14px; font-size:12px; color:#6b7280; }
+        table { width:100%; border-collapse:collapse; margin-top:16px; font-size:14px; }
+        th { background:#f4f1e8; color:#0a0b0e; padding:10px 12px; text-align:right; }
+        td { padding:10px 12px; border-bottom:1px solid #eee; }
+        .tot td { font-weight:800; border-bottom:none; font-size:15px; }
+        .tot { border-top:2px solid #0a0b0e; }
+        .foot { text-align:center; font-size:11px; color:#9ca3af; padding:16px; background:#faf9f5; }
+        @media print { body { background:#fff; padding:0; } .inv { border:none; } }
+    </style>
+</head>
+<body>
+    <div class="inv">
+        <div class="inv-head">
+            <div class="nm">النرجس للذكاء الاصطناعي</div>
+            <div class="sb">AL-NARJIS AI · RIYADH</div>
+        </div>
+        <div class="inv-body">
+            <div class="row">
+                <span>فاتورة</span>
+                <span class="no">رقم {{ payment.id|string|truncate(8, true, '')|upper }}</span>
+            </div>
+            <div class="org">
+                <b>مؤسسة ذا أريبيان كونفو</b><br>
+                سجل تجاري: 31332495263<br>
+                الرياض، المملكة العربية السعودية<br>
+                بناية 2371 محمد العمري، حي الرمال 7369، الرمز البريدي 13263
+            </div>
+            <div class="meta">
+                التاريخ: {{ payment.created_at.strftime('%Y-%m-%d') if payment.created_at else '-' }}
+                {% if payment.customer_name %} · العميل: {{ payment.customer_name }}{% endif %}
+                {% if payment.customer_email %} · {{ payment.customer_email }}{% endif %}
+            </div>
+            {% set names = {'social':'سوشيال ميديا','ecommerce':'متاجر إلكترونية','content':'تسويق محتوى','growth':'نمو الأعمال'} %}
+            <table>
+                <tr><th>الباقة</th><th>المبلغ (قبل الضريبة)</th></tr>
+                <tr><td>{{ names.get(payment.package, payment.package or '-') }}</td><td>{{ "%.2f"|format(base / 100) }} ر.س</td></tr>
+                <tr><td>ضريبة القيمة المضافة 15%</td><td>{{ "%.2f"|format(vat / 100) }} ر.س</td></tr>
+                <tr class="tot"><td>الإجمالي</td><td>{{ "%.2f"|format(total / 100) }} ر.س</td></tr>
+            </table>
+            <div class="meta" style="margin-top:16px;">الدفع عبر {{ 'PayPal' if payment.gateway == 'paypal' else ('مويصر' if payment.gateway == 'moyasar' else 'تحويل بنكي') }}</div>
+        </div>
+        <div class="foot">شكراً لثقتك بالنرجس للذكاء الاصطناعي ✺ · www.karmaai.online</div>
+    </div>
+</body>
+</html>

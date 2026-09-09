@@ -75,6 +75,16 @@ class Settings(BaseSettings):
     payment_success_url: str = Field(default="/payment/success", alias="PAYMENT_SUCCESS_URL")
     payment_failure_url: str = Field(default="/payment/failure", alias="PAYMENT_FAILURE_URL")
 
+    # PayPal (international checkout)
+    paypal_client_id: str | None = Field(default=None, alias="PAYPAL_CLIENT_ID")
+    paypal_client_secret: str | None = Field(default=None, alias="PAYPAL_CLIENT_SECRET")
+    paypal_mode: str = Field(default="sandbox", alias="PAYPAL_MODE")  # sandbox | live
+    paypal_currency: str = Field(default="SAR", alias="PAYPAL_CURRENCY")
+    paypal_webhook_id: str | None = Field(default=None, alias="PAYPAL_WEBHOOK_ID")
+
+    # VAT (KSA, applied to Saudi-facing invoices)
+    vat_rate: float = Field(default=0.15, alias="VAT_RATE")
+
     # Owner dashboard gate — must be set via env, never a built-in default
     owner_password: str = Field(alias="OWNER_PASSWORD")
 

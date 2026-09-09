@@ -21,6 +21,15 @@ PACKAGES = {
 }
 
 MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
+VAT_RATE = 0.15
+
+
+def vat_amount(halalas: int) -> int:
+    return round(halalas * VAT_RATE)
+
+
+def total_with_vat(halalas: int) -> int:
+    return halalas + vat_amount(halalas)
 
 
 class PaymentError(Exception):
@@ -56,7 +65,15 @@ async def create_payment(
         customer_phone=customer_phone,
         customer_email=customer_email,
         status="pending",
-        gateway="moyasar" if settings.moyasar_api_secret else "invoice",
+        gateway=(
+            "paypal"
+            if settings.paypal_client_id and settings.paypal_client_secret
+            else (
+                "moyasar"
+                if settings.moyasar_api_secret
+                else "invoice"
+            )
+        ),
         description=f"باقة {name} - النرجس للذكاء الاصطناعي",
     )
     session.add(payment)
@@ -155,3 +172,89 @@ def source_applepay() -> dict:
 
 def get_publishable_key() -> Optional[str]:
     return get_settings().moyasar_publishable_key
+
+
+# ---------------- PayPal ----------------
+
+def _paypal_base_url(settings) -> str:
+    return "https://api-m.paypal.com" if settings.paypal_mode == "live" else "https://api-m.sandbox.paypal.com"
+
+
+async def _paypal_token(settings) -> str:
+    if not (settings.paypal_client_id and settings.paypal_client_secret):
+        raise PaymentError("PayPal not configured")
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            f"{_paypal_base_url(settings)}/v1/oauth2/token",
+            data={"grant_type": "client_credentials"},
+            auth=(settings.paypal_client_id, settings.paypal_client_secret),
+        )
+    if resp.status_code != 200:
+        raise PaymentError(f"PayPal auth error {resp.status_code}: {resp.text}")
+    try:
+        return resp.json()["access_token"]
+    except (KeyError, ValueError):
+        raise PaymentError("PayPal token response malformed")
+
+
+async def create_paypal_order(
+    session: AsyncSession,
+    payment: Payment,
+    amount_halalas: int,
+    return_url: str,
+    cancel_url: str,
+) -> dict:
+    settings = get_settings()
+    token = await _paypal_token(settings)
+    value = f"{amount_halalas / 100:.2f}"
+    payload = {
+        "intent": "CAPTURE",
+        "purchase_units": [{
+            "reference_id": str(payment.id),
+            "custom_id": str(payment.id),
+            "description": (payment.description or "Al-Narjis AI")[:127],
+            "amount": {
+                "currency_code": settings.paypal_currency,
+                "value": value,
+            },
+        }],
+        "application_context": {
+            "return_url": return_url,
+            "cancel_url": cancel_url,
+            "brand_name": "Al-Narjis AI",
+            "user_action": "PAY_NOW",
+        },
+    }
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            f"{_paypal_base_url(settings)}/v2/checkout/orders",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+        )
+    if resp.status_code not in (200, 201):
+        raise PaymentError(f"PayPal create error {resp.status_code}: {resp.text}")
+
+    data = resp.json()
+    payment.gateway = "paypal"
+    payment.status = "pending"
+    payment.gateway_payment_id = data.get("id")
+    await session.commit()
+
+    approval = next((l for l in data.get("links", []) if l.get("rel") == "approve"), None)
+    return {
+        "order_id": data.get("id"),
+        "approval_url": approval.get("href") if approval else None,
+    }
+
+
+async def capture_paypal_order(order_id: str) -> dict:
+    settings = get_settings()
+    token = await _paypal_token(settings)
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            f"{_paypal_base_url(settings)}/v2/checkout/orders/{order_id}/capture",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+        )
+    if resp.status_code not in (200, 201):
+        raise PaymentError(f"PayPal capture error {resp.status_code}: {resp.text}")
+    return resp.json()

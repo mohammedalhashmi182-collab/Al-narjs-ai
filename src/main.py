@@ -955,21 +955,63 @@ class PaymentCreateRequest(BaseModel):
     customer_email: Optional[str] = None
 
 
+def _request_locale(request: Request) -> str:
+    return request.cookies.get("narjis_lang") or "ar"
+
+
 @app.post("/api/payments")
-async def create_payment(request: PaymentCreateRequest):
+async def create_payment(request: Request, body: PaymentCreateRequest):
     from src.services import payments as pm
 
+    locale = _request_locale(request)
+    include_vat = locale == "ar"
     async with app.state.session_factory() as session:
         payment = await pm.create_payment(
             session,
-            request.package,
-            request.customer_name,
-            request.customer_phone,
-            request.customer_email,
+            body.package,
+            body.customer_name,
+            body.customer_phone,
+            body.customer_email,
         )
 
-        # If Moyasar is configured and method != invoice, initiate a real payment
-        method = request.method.lower()
+        method = body.method.lower()
+
+        if method == "paypal":
+            charge = pm.total_with_vat(payment.amount) if include_vat else payment.amount
+            try:
+                base = str(request.base_url).rstrip("/")
+                order = await pm.create_paypal_order(
+                    session,
+                    payment,
+                    amount_halalas=charge,
+                    return_url=f"{base}/payment/success?id={payment.id}",
+                    cancel_url=f"{base}/payment/failure?id={payment.id}",
+                )
+                return {
+                    "payment_id": str(payment.id),
+                    "status": payment.status,
+                    "gateway": "paypal",
+                    "accepts_vat": include_vat,
+                    "order_id": order["order_id"],
+                    "redirect_url": order["approval_url"],
+                    "amount": payment.amount,
+                    "vat": pm.vat_amount(payment.amount) if include_vat else 0,
+                    "total": charge,
+                }
+            except pm.PaymentError as e:
+                payment.status = "invoice"
+                await session.commit()
+                return {
+                    "payment_id": str(payment.id),
+                    "status": "invoice",
+                    "gateway": "invoice",
+                    "message": str(e),
+                    "amount": payment.amount,
+                    "vat": 0,
+                    "total": payment.amount,
+                }
+
+        # Moyasar if configured and method is a local gateway
         gateway_enabled = bool(settings.moyasar_api_secret)
 
         if gateway_enabled and method != "invoice":
@@ -990,9 +1032,10 @@ async def create_payment(request: PaymentCreateRequest):
                     "redirect_url": data.get("source", {}).get("transaction_url") if isinstance(data.get("source"), dict) else None,
                     "publishable_key": pm.get_publishable_key(),
                     "amount": payment.amount,
+                    "vat": pm.vat_amount(payment.amount),
+                    "total": pm.total_with_vat(payment.amount),
                 }
             except pm.PaymentError as e:
-                # fall back to invoice/bank transfer
                 payment.status = "pending"
                 await session.commit()
                 return {
@@ -1011,7 +1054,93 @@ async def create_payment(request: PaymentCreateRequest):
             "status": "invoice",
             "gateway": "invoice",
             "amount": payment.amount,
+            "vat": 0,
+            "total": payment.amount,
         }
+
+
+@app.post("/api/payments/{payment_id}/capture")
+async def capture_payment(payment_id: str, request: Request):
+    from uuid import UUID
+    from sqlalchemy import select
+    from src.models import Payment
+    from src.services import payments as pm
+
+    body = await request.json()
+    order_id = body.get("order_id", "")
+    locale = _request_locale(request)
+
+    async with app.state.session_factory() as session:
+        result = await session.execute(select(Payment).where(Payment.id == UUID(payment_id)))
+        payment = result.scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+
+        if payment.gateway == "paypal" and payment.gateway_payment_id:
+            data = await pm.capture_paypal_order(payment.gateway_payment_id)
+            status = data.get("status")
+            if status == "COMPLETED":
+                payment.status = "paid"
+                payment.gateway_source = "paypal"
+                await session.commit()
+            elif status == "VOIDED":
+                payment.status = "failed"
+                await session.commit()
+            else:
+                payment.status = status.lower() if status else payment.status
+                await session.commit()
+        else:
+            payment = (await session.execute(select(Payment).where(Payment.id == UUID(payment_id)))).scalar_one()
+            if payment.status != "paid":
+                await pm.verify_payment(session, payment.id)
+
+    email_sent = False
+    if payment.status == "paid" and payment.customer_email:
+        from src.services import email_service
+        email_sent = await email_service.send_invoice(
+            payment,
+            base_halalas=payment.amount,
+            total_halalas=pm.total_with_vat(payment.amount),
+            locale=locale,
+        )
+
+    return {
+        "payment_id": str(payment.id),
+        "status": payment.status,
+        "gateway": payment.gateway,
+        "amount": payment.amount,
+        "vat": pm.vat_amount(payment.amount),
+        "total": pm.total_with_vat(payment.amount),
+        "invoice_url": f"/invoice/{payment.id}" if payment.status == "paid" else None,
+        "email_sent": email_sent,
+    }
+
+
+@app.get("/invoice/{payment_id}")
+async def invoice_page(request: Request, payment_id: str):
+    from uuid import UUID
+    from sqlalchemy import select
+    from src.models import Payment
+    from src.services import payments as pm
+
+    locale = _request_locale(request)
+    async with app.state.session_factory() as session:
+        result = await session.execute(select(Payment).where(Payment.id == UUID(payment_id)))
+        payment = result.scalar_one_or_none()
+    if not payment:
+        raise HTTPException(404, "Invoice not found")
+
+    template = "invoice.html" if locale == "ar" else "invoice_en.html"
+    return templates.TemplateResponse(
+        request,
+        template,
+        {
+            "payment": payment,
+            "base": payment.amount,
+            "vat": pm.vat_amount(payment.amount),
+            "total": pm.total_with_vat(payment.amount),
+        },
+    )
 
 
 @app.get("/api/payments/{payment_id}")
@@ -1031,6 +1160,8 @@ async def get_payment(payment_id: str):
         "description": payment.description,
         "gateway": payment.gateway,
         "gateway_payment_id": payment.gateway_payment_id,
+        "vat": pm.vat_amount(payment.amount),
+        "total": pm.total_with_vat(payment.amount),
     }
 
 
