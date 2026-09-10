@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
+    {% include "partials/_analytics.html" %}
 </head>
 <body data-lang="{{ _lang }}" class="bg-sand min-h-screen flex items-center justify-center p-6 n-geo">
     <div class="n-card w-full max-w-md text-center">
@@ -109,6 +110,10 @@
                     }
                 }
                 if (ok) {
+                    try {
+                        if (window.fbq) fbq('track', 'Purchase', { value: st.value || (st.total || st.amount || 0), currency: 'SAR', transaction_id: id });
+                        if (typeof gtag === 'function') gtag('event', 'purchase', { value: st.value || (st.total || st.amount || 0), currency: 'SAR', transaction_id: id });
+                    } catch (e) { }
                     window.history.replaceState(null, '', '/payment/success?id=' + id);
                     if (st.invoice_url) {
                         var card = document.querySelector('.n-card');

@@ -81,6 +81,17 @@ class Settings(BaseSettings):
     paypal_mode: str = Field(default="sandbox", alias="PAYPAL_MODE")  # sandbox | live
     paypal_currency: str = Field(default="SAR", alias="PAYPAL_CURRENCY")
     paypal_webhook_id: str | None = Field(default=None, alias="PAYPAL_WEBHOOK_ID")
+    # SAR -> USD rate used only for the PayPal (USD) charge; KSA pegs 3.75 SAR/USD
+    paypal_sar_usd_rate: float = Field(default=0.2667, alias="PAYPAL_SAR_USD_RATE")
+
+    # Launch promo (single code, percentage off first charge) — disabled when PROMO_CODE empty
+    promo_code: str | None = Field(default=None, alias="PROMO_CODE")
+    promo_percent: int = Field(default=50, alias="PROMO_PERCENT")
+    promo_expires: str | None = Field(default=None, alias="PROMO_EXPIRES")  # ISO date, e.g. 2026-09-10
+
+    # Privacy-friendly analytics: set IDs to inject tags, else nothing is loaded
+    meta_pixel_id: str | None = Field(default=None, alias="META_PIXEL_ID")
+    gtag_id: str | None = Field(default=None, alias="GTAG_ID")
 
     # VAT (KSA, applied to Saudi-facing invoices)
     vat_rate: float = Field(default=0.15, alias="VAT_RATE")

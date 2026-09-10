@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
+    {% include "partials/_analytics.html" %}
     <style>
         body[data-lang="ar"] [data-lang="en"] { display: none; }
         body[data-lang="en"] [data-lang="ar"] { display: none; }
@@ -123,6 +124,14 @@
                     <span data-lang="ar">لوحة التحكم (المالك)</span><span data-lang="en" data-inline>Owner Dashboard</span>
                 </a>
             </div>
+            {% set _promo = promo_info() %}
+            {% if _promo.active %}
+            <div id="portalPromoHint" class="text-center text-sm mt-4" style="color:var(--n-gold-2);">
+                <i class="fas fa-gift"></i> 
+                <span data-lang="ar">خصم الإطلاق <b>&nbsp;{{ _promo.percent }}٪&nbsp;</b> بالكود <b>{{ _promo.code }}</b></span>
+                <span data-lang="en" data-inline>Launch offer <b>{{ _promo.percent }}%</b> with code <b>{{ _promo.code }}</b></span>
+            </div>
+            {% endif %}
         </div>
     </section>
 
@@ -133,6 +142,12 @@
                 <div class="n-divider mb-4">✺</div>
                 <h2 class="n-title text-2xl mb-2"><span data-lang="ar">الاشتراك</span><span data-lang="en" data-inline>Subscription</span></h2>
                 <div id="coSummary" class="n-sub mb-6"></div>
+                <div class="flex items-center justify-center gap-2 mb-4" id="promoRow">
+                    <input type="text" id="promoInput" placeholder="كود الخصم / Promo code" autocomplete="off" style="max-width:200px;text-align:center;" class="co-input">
+                    <button id="promoApply" class="btn btn-outline" style="padding:10px 18px;font-size:.85rem;">
+                        <span data-lang="ar">تطبيق</span><span data-lang="en" data-inline>Apply</span>
+                    </button>
+                </div>
                 <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
                 <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
                 <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
@@ -444,20 +459,32 @@
             }
 
             // ---- Subscription / checkout ----
+            window.NARJIS_PROMO = { active: false };
+            fetch('/api/promo').then(r => r.json()).then(d => { window.NARJIS_PROMO = d.promo || { active: false }; }).catch(() => {});
+            let coPkg = null;
+            function showCoSummary() {
+                const p = coPkg; if (!p) return;
+                const ar = isAr();
+                const cur = ar ? 'ر.س' : 'SAR';
+                const pct = window.NARJIS_PROMO && window.NARJIS_PROMO.active && window.NARJIS_PROMO.code.toUpperCase() === ($('promoInput') ? $('promoInput').value.trim().toUpperCase() : '') ? window.NARJIS_PROMO.percent : 0;
+                const base = parseFloat(p.price);
+                const disc = pct ? Math.round(base * pct / 100) : 0;
+                const after = base - disc;
+                const vat = ar ? Math.round(after * 0.15) : 0;
+                const total = after + vat;
+                $('coSummary').innerHTML =
+                    '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
+                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:var(--n-green);">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + after.toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt('المبلغ قبل الضريبة: ', 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
+                    (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة 15%: ', 'VAT 15%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
+                    '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>';
+                window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
+            }
             $('subscribeBtn').addEventListener('click', () => {
                 fetch('/api/portal/packages').then(r => r.json()).then(d => {
-                    const p = d.packages.find(x => x.key === state.pkg);
-                    if (!p) return;
+                    coPkg = d.packages.find(x => x.key === state.pkg);
+                    if (!coPkg) return;
+                    showCoSummary();
                     const ar = isAr();
-                    const base = parseFloat(p.price);
-                    const vat = ar ? Math.round(base * 0.15) : 0;
-                    const total = base + vat;
-                    const cur = ar ? 'ر.س' : 'SAR';
-                    $('coSummary').innerHTML =
-                        '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
-                        '<div>' + txt('المبلغ قبل الضريبة: ', 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>' +
-                        (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة 15%: ', 'VAT 15%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
-                        '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>';
                     const methods = [
                         { m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' },
                         { m: 'mada', i: 'fas fa-credit-card', t: ar ? 'مدى / بطاقة مصرفية' : 'mada / Bank Card' },
@@ -473,6 +500,11 @@
                     $('step-checkout').classList.remove('hidden');
                 }).catch(() => alert(txt('تعذر تحميل بيانات الدفع', 'Failed to load payment data')));
             });
+
+            const promoInput = $('promoInput');
+            const promoApply = $('promoApply');
+            if (promoInput) promoInput.addEventListener('input', showCoSummary);
+            if (promoApply) promoApply.addEventListener('click', showCoSummary);
 
             $('coBack').addEventListener('click', () => {
                 $('step-checkout').classList.add('hidden');
@@ -494,6 +526,7 @@
                             customer_name: client.name,
                             customer_phone: client.phone,
                             customer_email: client.email,
+                            promo: promoInput ? promoInput.value.trim() : '',
                         })
                     });
                     const data = await r.json();
@@ -508,7 +541,7 @@
                     }
                     if (data.gateway === 'invoice') {
                         msg.innerHTML = '<div style="color:var(--n-green);">' + (isAr()
-                            ? 'تم إنشاء فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + data.total.toLocaleString() + ' ر.س. أرسل التحويل وأخبرنا واتساب لتفعيل باقتك فوراً.'
+                            ? 'فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + data.total.toLocaleString() + ' ر.س. أرسل التحويل وأخبرنا واتساب لتفعيل باقتك فوراً.'
                             : 'Invoice ' + data.payment_id.slice(0, 8).toUpperCase() + ' created — ' + data.total.toLocaleString() + ' SAR. Send the transfer and notify us on WhatsApp to activate instantly.') + '</div>';
                         return;
                     }

@@ -12,13 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.settings import get_settings
 from src.models import Payment
 
-# Packages in halalas (SAR * 100)
-PACKAGES = {
-    "social": {"name": "سوشيال ميديا", "amount": 150000},
-    "ecommerce": {"name": "متاجر إلكترونية", "amount": 100000},
-    "content": {"name": "تسويق محتوى", "amount": 120000},
-    "growth": {"name": "نمو الأعمال", "amount": 80000},
-}
+# Single source of truth for package pricing is src/services/catalog.py
+from src.services import catalog
+
+PACKAGES = catalog.PACKAGES  # compatible alias — amounts live in catalog only
 
 MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 VAT_RATE = 0.15
@@ -30,6 +27,39 @@ def vat_amount(halalas: int) -> int:
 
 def total_with_vat(halalas: int) -> int:
     return halalas + vat_amount(halalas)
+
+
+def package_amount(package: str) -> int:
+    pkg = catalog.PACKAGES.get(package)
+    if not pkg:
+        raise PaymentError(f"Unknown package: {package}")
+    return pkg["amount"]
+
+
+def promo_active() -> bool:
+    settings = get_settings()
+    return bool(settings.promo_code and settings.promo_percent > 0)
+
+
+def promo_info() -> dict:
+    settings = get_settings()
+    return {
+        "active": promo_active(),
+        "code": settings.promo_code or "",
+        "percent": settings.promo_percent if promo_active() else 0,
+        "expires": settings.promo_expires or "",
+    }
+
+
+def apply_promo(halalas: int, promo: Optional[str] = None) -> tuple[int, int]:
+    """Return (final_halalas, discount_percent). Promo applies to the base amount."""
+    if not promo or not promo_active():
+        return halalas, 0
+    settings = get_settings()
+    if promo.strip().upper() != settings.promo_code.strip().upper():
+        return halalas, 0
+    pct = settings.promo_percent
+    return round(halalas * (100 - pct) / 100), pct
 
 
 class PaymentError(Exception):
@@ -49,13 +79,19 @@ async def create_payment(
     customer_name: Optional[str] = None,
     customer_phone: Optional[str] = None,
     customer_email: Optional[str] = None,
+    promo: Optional[str] = None,
 ) -> Payment:
-    if package not in PACKAGES:
+    pkg = catalog.PACKAGES.get(package)
+    if not pkg:
         raise PaymentError(f"Unknown package: {package}")
 
     settings = get_settings()
-    amount = PACKAGES[package]["amount"]
-    name = PACKAGES[package]["name"]
+    amount, discount_pct = apply_promo(pkg["amount"], promo)
+    name = pkg["name"]
+
+    description = f"باقة {name} - النرجس للذكاء الاصطناعي"
+    if discount_pct:
+        description += f" (خصم الإطلاق {discount_pct}%)"
 
     payment = Payment(
         amount=amount,
@@ -66,7 +102,7 @@ async def create_payment(
         customer_email=customer_email,
         status="pending",
         gateway="invoice",
-        description=f"باقة {name} - النرجس للذكاء الاصطناعي",
+        description=description,
     )
     session.add(payment)
     await session.commit()
@@ -199,7 +235,12 @@ async def create_paypal_order(
 ) -> dict:
     settings = get_settings()
     token = await _paypal_token(settings)
-    value = f"{amount_halalas / 100:.2f}"
+    sar_total = amount_halalas  # halalas of SAR
+    usd_value = sar_total / 100 * settings.paypal_sar_usd_rate
+    if settings.paypal_currency.upper() == "USD":
+        value = f"{usd_value:.2f}"
+    else:
+        value = f"{sar_total / 100:.2f}"
     payload = {
         "intent": "CAPTURE",
         "purchase_units": [{

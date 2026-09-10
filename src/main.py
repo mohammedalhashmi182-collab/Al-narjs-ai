@@ -221,6 +221,15 @@ def _page_lang(request: Request) -> str:
 
 
 templates.env.globals["page_lang"] = _page_lang
+templates.env.globals["settings"] = get_settings()
+
+
+def _promo_info() -> dict:
+    from src.services.payments import promo_info
+    return promo_info()
+
+
+templates.env.globals["promo_info"] = _promo_info
 
 
 async def get_session() -> AsyncSession:
@@ -403,6 +412,93 @@ async def get_agent(slug: str):
     return agent.model_dump()
 
 
+class AgentUpsertRequest(BaseModel):
+    name: str
+    slug: Optional[str] = None
+    description: str = ""
+    category: str = "general"
+    default_model: Optional[str] = None
+    default_parameters: dict = {}
+
+
+@app.post("/api/agents", dependencies=[Depends(require_owner_api)])
+async def create_agent(request: AgentUpsertRequest):
+    from src.core.agent_registry import AgentCategory, AgentDefinition, PromptTemplate
+
+    slug = (request.slug or request.name.strip()).lower().replace(" ", "-")
+    if await app.state.agent_registry.get_agent(slug):
+        raise HTTPException(409, "Agent with this slug already exists")
+    cat = _agent_category(request.category)
+    templates = {
+        "default": PromptTemplate(
+            name="default",
+            version=1,
+            template_text=(
+                "You are {name}, part of the Al-Narjis AI team. "
+                "Concentrate on the single assignment below and deliver direct, practical value.\n\n"
+                "Business context:\n{{ context or 'No context provided.' }}\n\n"
+                "Assignment:\n{{ task or 'Help with your specialty.' }}"
+            ),
+            variables=["context", "task"],
+            is_default=True,
+        )
+    }
+    defn = AgentDefinition(
+        slug=slug,
+        name=request.name.strip() or slug,
+        description=request.description or "",
+        category=cat,
+        default_model=(request.default_model or get_settings().moonshot_default_model),
+        default_parameters=request.default_parameters or {},
+        prompt_templates=templates,
+    )
+    agent = await app.state.agent_registry.upsert_agent(defn)
+    return agent.model_dump()
+
+
+@app.put("/api/agents/{slug}", dependencies=[Depends(require_owner_api)])
+async def update_agent(slug: str, request: AgentUpsertRequest):
+    from src.core.agent_registry import AgentDefinition, AgentCategory
+
+    existing = await app.state.agent_registry.get_agent(slug)
+    if not existing:
+        raise HTTPException(404, "Agent not found")
+    new_slug = (request.slug or slug).strip() if request.slug else slug
+    if new_slug != slug and await app.state.agent_registry.get_agent(new_slug):
+        raise HTTPException(409, "Agent with this slug already exists")
+    defn = AgentDefinition(
+        slug=new_slug,
+        name=request.name.strip() or existing.name,
+        description=request.description if request.description is not None else existing.description,
+        category=_agent_category(request.category) if request.category else existing.category,
+        default_model=request.default_model or existing.default_model,
+        default_parameters=request.default_parameters or existing.default_parameters,
+        prompt_templates=existing.prompt_templates,
+        is_system=existing.is_system,
+        created_by=existing.created_by,
+    )
+    agent = await app.state.agent_registry.upsert_agent(defn)
+    if new_slug != slug:
+        await app.state.agent_registry.delete_agent(slug)
+    return agent.model_dump()
+
+
+@app.delete("/api/agents/{slug}", dependencies=[Depends(require_owner_api)])
+async def delete_agent(slug: str):
+    ok = await app.state.agent_registry.delete_agent(slug)
+    if not ok:
+        raise HTTPException(404, "Agent not found")
+    return {"success": True}
+
+
+def _agent_category(value: str):
+    from src.core.agent_registry import AgentCategory
+    try:
+        return AgentCategory(value.lower())
+    except ValueError:
+        raise HTTPException(400, f"Unknown category: {value}")
+
+
 @app.post("/api/agents/{slug}/run", dependencies=[Depends(require_owner_api)])
 async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
     agent = await app.state.agent_registry.get_agent(slug)
@@ -449,11 +545,100 @@ async def list_workflows(limit: int = 100, offset: int = 0):
                 "slug": w.slug,
                 "name": w.name,
                 "description": w.description,
+                "definition": w.definition,
                 "version": w.version,
                 "is_active": w.is_active,
                 "created_at": w.created_at.isoformat() if w.created_at else None,
             } for w in workflows
         ]}
+
+
+class WorkflowUpsertRequest(BaseModel):
+    name: str
+    slug: str
+    description: Optional[str] = None
+    definition: dict
+
+
+def _workflow_json(wf) -> dict:
+    return {
+        "id": str(wf.id),
+        "slug": wf.slug,
+        "name": wf.name,
+        "description": wf.description,
+        "definition": wf.definition,
+        "version": wf.version,
+        "is_active": wf.is_active,
+        "created_at": wf.created_at.isoformat() if wf.created_at else None,
+    }
+
+
+async def _get_workflow(session, slug):
+    from src.models import Workflow as DBWorkflow
+    from sqlalchemy import select
+    return (await session.execute(select(DBWorkflow).where(DBWorkflow.slug == slug))).scalar_one_or_none()
+
+
+@app.post("/api/workflows", dependencies=[Depends(require_owner_api)])
+async def create_workflow(request: WorkflowUpsertRequest):
+    from src.models import Workflow as DBWorkflow
+
+    slug = request.slug.strip()
+    async with app.state.session_factory() as session:
+        if await _get_workflow(session, slug):
+            raise HTTPException(409, "Workflow with this slug already exists")
+        wf = DBWorkflow(
+            slug=slug,
+            name=request.name.strip(),
+            description=request.description,
+            definition=request.definition,
+            version=1,
+            is_active=True,
+        )
+        session.add(wf)
+        await session.commit()
+        await session.refresh(wf)
+    return _workflow_json(wf)
+
+
+@app.get("/api/workflows/{slug}", dependencies=[Depends(require_owner_api)])
+async def get_workflow(slug: str):
+    async with app.state.session_factory() as session:
+        wf = await _get_workflow(session, slug)
+    if not wf:
+        raise HTTPException(404, "Workflow not found")
+    return _workflow_json(wf)
+
+
+@app.put("/api/workflows/{slug}", dependencies=[Depends(require_owner_api)])
+async def update_workflow(slug: str, request: WorkflowUpsertRequest):
+    new_slug = request.slug.strip()
+    async with app.state.session_factory() as session:
+        wf = await _get_workflow(session, slug)
+        if not wf:
+            raise HTTPException(404, "Workflow not found")
+        if new_slug != slug and await _get_workflow(session, new_slug):
+            raise HTTPException(409, "Workflow with this slug already exists")
+        if request.definition != wf.definition:
+            wf.version += 1
+        wf.slug = new_slug
+        wf.name = request.name.strip()
+        wf.description = request.description
+        wf.definition = request.definition
+        await session.commit()
+        await session.refresh(wf)
+    return _workflow_json(wf)
+
+
+@app.delete("/api/workflows/{slug}", dependencies=[Depends(require_owner_api)])
+async def delete_workflow(slug: str):
+    async with app.state.session_factory() as session:
+        wf = await _get_workflow(session, slug)
+        if not wf:
+            raise HTTPException(404, "Workflow not found")
+        await session.delete(wf)
+        await session.commit()
+    return {"success": True}
 
 
 # ---------------- Client Portal (System 1: package -> dormant team -> wake -> interview) ----------------
@@ -765,8 +950,26 @@ async def run_workflow(slug: str, request: WorkflowRunRequest):
 
 @app.get("/api/schedules", dependencies=[Depends(require_owner_api)])
 async def list_schedules():
-    jobs = app.state.scheduler.get_jobs()
-    return {"schedules": jobs}
+    from src.models import Schedule
+    from sqlalchemy import select, desc
+
+    next_map = {str(j["id"]): j.get("next_run_time") for j in app.state.scheduler.get_jobs()}
+    async with app.state.session_factory() as session:
+        rows = (await session.execute(select(Schedule).order_by(desc(Schedule.created_at)))).scalars().all()
+        return {"schedules": [
+            {
+                "id": str(s.id),
+                "name": s.name,
+                "target_type": s.target_type,
+                "target_id": str(s.target_id),
+                "trigger": s.cron_expression or (f"interval:{s.interval_seconds}s" if s.interval_seconds else ("once" if s.run_once_at else "manual")),
+                "is_active": s.is_active,
+                "next_run_time": next_map.get(str(s.id)),
+                "run_count": s.run_count,
+                "max_runs": s.max_runs,
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+            } for s in rows
+        ]}
 
 
 @app.post("/api/schedules", dependencies=[Depends(require_owner_api)])
@@ -796,6 +999,50 @@ async def delete_schedule(schedule_id: str):
     success = await app.state.scheduler.remove_schedule(UUID(schedule_id))
     if not success:
         raise HTTPException(404, "Schedule not found")
+    return {"success": True}
+
+
+@app.get("/api/schedules/{schedule_id}", dependencies=[Depends(require_owner_api)])
+async def get_schedule(schedule_id: str):
+    from uuid import UUID
+    from src.models import Schedule
+    from sqlalchemy import select
+
+    async with app.state.session_factory() as session:
+        sched = (await session.execute(select(Schedule).where(Schedule.id == UUID(schedule_id)))).scalar_one_or_none()
+    if not sched:
+        raise HTTPException(404, "Schedule not found")
+    next_run = None
+    for job in app.state.scheduler.get_jobs():
+        if job["id"] == str(sched.id):
+            next_run = job.get("next_run_time")
+            break
+    return {
+        "id": str(sched.id),
+        "name": sched.name,
+        "target_type": sched.target_type,
+        "target_id": str(sched.target_id),
+        "payload": sched.payload,
+        "trigger": sched.cron_expression or (f"interval:{sched.interval_seconds}s" if sched.interval_seconds else ("once" if sched.run_once_at else "manual")),
+        "is_active": sched.is_active,
+        "next_run_time": next_run,
+        "run_count": sched.run_count,
+        "max_runs": sched.max_runs,
+        "created_at": sched.created_at.isoformat() if sched.created_at else None,
+    }
+
+
+@app.post("/api/schedules/{schedule_id}/{action}", dependencies=[Depends(require_owner_api)])
+async def schedule_action(schedule_id: str, action: str):
+    from uuid import UUID
+    if action in ("enable", "resume"):
+        ok = await app.state.scheduler.enable_schedule(UUID(schedule_id))
+    elif action in ("disable", "pause"):
+        ok = await app.state.scheduler.disable_schedule(UUID(schedule_id))
+    else:
+        raise HTTPException(400, "Unknown schedule action")
+    if not ok:
+        raise HTTPException(404, "Schedule not found or inactive in registry")
     return {"success": True}
 
 
@@ -860,6 +1107,43 @@ async def get_execution(execution_id: str):
     }
 
 
+@app.post("/api/executions/{execution_id}/retry", dependencies=[Depends(require_owner_api)])
+async def retry_execution(execution_id: str):
+    from uuid import UUID
+    from src.models import WorkflowExecution
+    from src.automation.workflow_engine import WorkflowDefinition
+    from sqlalchemy import select
+
+    async with app.state.session_factory() as session:
+        exec_row = (await session.execute(
+            select(WorkflowExecution).where(WorkflowExecution.id == UUID(execution_id))
+        )).scalar_one_or_none()
+        if not exec_row:
+            raise HTTPException(404, "Execution not found")
+        if exec_row.status == "running":
+            raise HTTPException(409, "Execution is still running")
+        wf = await _get_workflow(session, exec_row.workflow_id)
+        if not wf:
+            raise HTTPException(404, "Workflow not found")
+        input_data = dict(exec_row.trigger_payload or {})
+        ctx = exec_row.context or {}
+        for key, value in ctx.items():
+            if isinstance(value, (str, int, float, bool)) and key not in input_data:
+                input_data[key] = value
+        exec_row.status = "retried"
+        await session.commit()
+
+    definition = WorkflowDefinition.model_validate(wf.definition)
+    result = await app.state.workflow_engine.execute(definition, input_data)
+    return {
+        "execution_id": str(result.workflow_id),
+        "status": "completed" if result.success else "failed",
+        "steps_completed": result.steps_completed,
+        "steps_failed": result.steps_failed,
+        "final_context": result.final_context,
+    }
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -869,6 +1153,12 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_text(f"Echo: {data}")
     except Exception:
         pass
+
+
+@app.get("/api/promo")
+async def promo_status():
+    from src.services import payments as pm
+    return {"promo": pm.promo_info()}
 
 
 @app.post("/api/leads")
@@ -969,6 +1259,7 @@ class PaymentCreateRequest(BaseModel):
     customer_name: Optional[str] = None
     customer_phone: Optional[str] = None
     customer_email: Optional[str] = None
+    promo: Optional[str] = None
 
 
 def _request_locale(request: Request) -> str:
@@ -982,6 +1273,9 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
     locale = _request_locale(request)
     include_vat = locale == "ar"
     base = str(request.base_url).rstrip("/")
+    base_amount = pm.package_amount(body.package)
+    final_amount, discount_pct = pm.apply_promo(base_amount, body.promo)
+    discount_halalas = base_amount - final_amount
     async with app.state.session_factory() as session:
         payment = await pm.create_payment(
             session,
@@ -989,6 +1283,7 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             body.customer_name,
             body.customer_phone,
             body.customer_email,
+            promo=body.promo,
         )
 
         method = body.method.lower()
@@ -1011,6 +1306,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "order_id": order["order_id"],
                     "redirect_url": order["approval_url"],
                     "amount": payment.amount,
+                    "discount": discount_halalas,
+                    "promo_applied": discount_pct > 0,
                     "vat": pm.vat_amount(payment.amount) if include_vat else 0,
                     "total": charge,
                 }
@@ -1023,6 +1320,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "gateway": "invoice",
                     "message": str(e),
                     "amount": payment.amount,
+                    "discount": discount_halalas,
+                    "promo_applied": discount_pct > 0,
                     "vat": 0,
                     "total": payment.amount,
                 }
@@ -1053,6 +1352,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "redirect_url": data.get("source", {}).get("transaction_url") if isinstance(data.get("source"), dict) else None,
                     "publishable_key": pm.get_publishable_key(),
                     "amount": payment.amount,
+                    "discount": discount_halalas,
+                    "promo_applied": discount_pct > 0,
                     "vat": pm.vat_amount(payment.amount),
                     "total": pm.total_with_vat(payment.amount),
                 }
@@ -1065,6 +1366,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "gateway": "invoice",
                     "message": str(e),
                     "amount": payment.amount,
+                    "discount": discount_halalas,
+                    "promo_applied": discount_pct > 0,
                 }
 
         # Invoice / bank-transfer fallback
@@ -1075,6 +1378,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             "status": "invoice",
             "gateway": "invoice",
             "amount": payment.amount,
+            "discount": discount_halalas,
+            "promo_applied": discount_pct > 0,
             "vat": 0,
             "total": payment.amount,
         }

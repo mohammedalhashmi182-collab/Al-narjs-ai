@@ -62,6 +62,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {% include "partials/_analytics.html" %}
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -538,10 +539,38 @@
             .lc-line, .sp-line { animation: none; stroke-dashoffset: 0; }
             .lc-area, .sp-area { opacity: 1; }
         }
+        .launch-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: linear-gradient(90deg, #1a1508, #2a2010 45%, #1a1508); border-bottom: 1px solid var(--gold-soft); }
+        .launch-bar .inner { max-width: 1200px; margin: 0 auto; padding: 8px 18px; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; font-size: .86rem; }
+        .launch-bar .inner code { background: var(--gold-soft); color: var(--gold-bright); padding: 2px 8px; border-radius: 6px; font-weight: 700; letter-spacing: .4px; font-family: var(--num); }
+        .launch-bar .launch-ico { color: var(--gold-bright); }
+        .launch-bar .launch-txt b { color: var(--gold-bright); }
+        .launch-bar .launch-cd { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+        .launch-bar .launch-cd .cd { display: inline-block; min-width: 34px; text-align: center; background: rgba(0,0,0,.35); border: 1px solid var(--gold-soft); color: var(--gold-bright); font-family: var(--num); font-weight: 800; padding: 3px 8px; border-radius: 8px; font-size: .82rem; }
+        .launch-bar .launch-x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: .9rem; padding: 4px; margin-inline-start: 4px; }
+        .launch-bar .launch-x:hover { color: var(--ink); }
+        body.launch-on { padding-top: 40px; }
+        @media (max-width: 640px) { .launch-bar .inner { font-size: .78rem; gap: 8px; padding: 8px 10px; } }
     </style>
 </head>
 <body data-lang="{{ _lang }}">
     <div id="progress"></div>
+    {% set _promo = promo_info() %}
+    {% if _promo.active %}
+    <div class="launch-bar" id="launchBar">
+        <div class="inner">
+            <span class="launch-ico"><i class="fas fa-gift"></i></span>
+            <span class="launch-txt">
+                <span data-lang="ar">خصم الإطلاق <b>&nbsp;{{ _promo.percent }}٪&nbsp;</b> بالكود <code>{{ _promo.code }}</code></span>
+                <span data-lang="en" data-inline>Launch offer <b>{{ _promo.percent }}%</b> off with code <code>{{ _promo.code }}</code></span>
+            </span>
+            <span class="launch-cd">
+                <span data-lang="ar">ينتهي خلال</span><span data-lang="en" data-inline>Ends in</span>
+                <span class="cd" id="launchCd" data-target="{{ _promo.expires }}">--</span>
+            </span>
+            <button class="launch-x" id="launchX" aria-label="close"><i class="fas fa-xmark"></i></button>
+        </div>
+    </div>
+    {% endif %}
     <div class="mesh"></div>
     <div class="grid"></div>
 
@@ -1178,6 +1207,30 @@
             if (b && !localStorage.getItem('narjis-consent')) setTimeout(function () { b.style.display = 'block'; }, 1200);
         })();
         window.acceptCookies = function () { localStorage.setItem('narjis-consent', '1'); var b = document.getElementById('cookieBar'); if (b) b.style.display = 'none'; };
+    </script>
+    <script>
+        (function () {
+            var bar = document.getElementById('launchBar');
+            var closeBtn = document.getElementById('launchX');
+            if (bar && !localStorage.getItem('narjis-promo-dismissed')) {
+                document.body.classList.add('launch-on');
+                var cd = document.getElementById('launchCd');
+                if (cd) {
+                    var target = cd.getAttribute('data-target');
+                    var end = target ? new Date(target.indexOf('T') > -1 ? target : target + 'T23:59:59') : null;
+                    function pad(n) { return (n < 10 ? '0' : '') + n; }
+                    function tick() {
+                        if (!end || isNaN(end.getTime())) { cd.textContent = cd.getAttribute('data-target') || '--'; return; }
+                        var diff = end.getTime() - Date.now();
+                        if (diff <= 0) { cd.textContent = '00:00'; setTimeout(function(){ if (bar) bar.style.display = 'none'; }, 1000); return; }
+                        var d = Math.floor(diff / 86400000), h = Math.floor(diff % 86400000 / 3600000), m = Math.floor(diff % 3600000 / 60000);
+                        cd.textContent = (d > 0 ? d + ' d ' : '') + pad(h) + ':' + pad(m);
+                    }
+                    tick(); setInterval(tick, 30000);
+                }
+                if (closeBtn) closeBtn.addEventListener('click', function () { localStorage.setItem('narjis-promo-dismissed', '1'); bar.style.display = 'none'; document.body.classList.remove('launch-on'); });
+            }
+        })();
     </script>
 </body>
 </html>
