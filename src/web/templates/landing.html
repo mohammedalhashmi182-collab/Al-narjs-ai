@@ -39,7 +39,7 @@
       "name": "النرجس للذكاء الاصطناعي | Al-Narjis AI",
       "alternateName": "The Arabian Convoy Establishment",
       "url": "https://www.karmaai.online",
-      "sameAs": ["https://wa.me/9665529798753"],
+      "sameAs": ["https://wa.me/message/PPIY6ZARA53GM1"],
       "legalName": "Arabian Convoy Establishment",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "address": {
@@ -936,7 +936,7 @@
             </div>
             <div>
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
-                <a href="https://wa.me/9665529798753" target="_blank"><i class="fab fa-whatsapp" style="margin-inline-end:8px;color:#3dbd7d;"></i>+966 55 297 9875</a>
+                <a href="https://wa.me/message/PPIY6ZARA53GM1" target="_blank"><i class="fab fa-whatsapp" style="margin-inline-end:8px;color:#3dbd7d;"></i>+966 55 297 9875</a>
                 <a href="mailto:aimerchantvault.77@gmail.com">aimerchantvault.77@gmail.com</a>
                 <a href="#"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
             </div>
@@ -1095,12 +1095,10 @@
                 }
             })();
 
-            var WA = '9665529798753';
-            var waLink = function (msg) { return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(msg); };
-            var arWa = document.body.dataset.lang === 'ar';
-            var wf = document.getElementById('waFloat'); if (wf) wf.href = waLink(arWa ? 'مرحباً، أود الاستفسار عن خدمات النرجس للذكاء الاصطناعي' : 'Hello, I would like to ask about Al-Narjis AI services');
-            var wd = document.getElementById('waDirect'); if (wd) wd.href = waLink(arWa ? 'مرحباً، أريد تواصلاً مباشراً' : 'Hello, I would like to talk directly');
-            document.querySelectorAll('.socials a').forEach(function (a) { a.href = waLink(arWa ? 'مرحباً، أود الاستفسار عن خدمات النرجس' : 'Hello, I would like to ask about Al-Narjis'); });
+            var WA_LINK = 'https://wa.me/message/PPIY6ZARA53GM1';
+            var wf = document.getElementById('waFloat'); if (wf) wf.href = WA_LINK;
+            var wd = document.getElementById('waDirect'); if (wd) wd.href = WA_LINK;
+            document.querySelectorAll('.socials a').forEach(function (a) { a.href = WA_LINK; });
 
             document.querySelectorAll('.js-order').forEach(function (btn) {
                 btn.addEventListener('click', function (e) {
