@@ -350,6 +350,19 @@ EMPLOYEES: dict[str, dict] = {
             _q("projects", "هل لديك مشاريع أو إنجازات بارزة؟", "Any notable projects or achievements?"),
         ],
     },
+    "software_engineer": {
+        "no": "AG-021",
+        "title_ar": "مهندس البرمجيات",
+        "title_en": "Software Engineer",
+        "dept": "المنتجات والهندسة",
+        "intro_ar": "أنا مهندس البرمجيات. أحوّل فكرتك إلى كود نظيف وعملي: أبني، أصلح، وأحسّن الأنظمة خطوة بخطوة بلغة تفهمها.",
+        "intro_en": "I'm a software engineer. I turn your idea into clean, working code — I build, fix and improve systems step by step in your language.",
+        "questions": [
+            _q("task", "ما الذي تريد بناءه أو إصلاحه؟", "What needs to be built or fixed?"),
+            _q("repo_or_code", "الصق رابط المستودع أو الكود الحالي", "Paste the repository link or the existing code"),
+            _q("stack", "ما لغة البرمجة والإطار وبيئة التشغيل؟", "Which language, framework, and runtime?"),
+        ],
+    },
 }
 
 
