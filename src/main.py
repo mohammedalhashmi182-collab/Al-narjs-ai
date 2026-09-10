@@ -270,7 +270,7 @@ class ScheduleCreateRequest(BaseModel):
 async def dashboard(request: Request):
     from src.core.owner_auth import check_owner
     if not check_owner(request):
-        return RedirectResponse("/login")
+        return RedirectResponse("/home")
     return templates.TemplateResponse(request, "dashboard.html")
 
 
