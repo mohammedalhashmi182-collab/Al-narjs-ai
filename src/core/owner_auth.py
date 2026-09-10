@@ -63,6 +63,7 @@ def set_owner_cookie(response: Response) -> Response:
         max_age=12 * 3600,
         httponly=True,
         samesite="lax",
+        secure=(settings.environment == "production"),
     )
     return response
 

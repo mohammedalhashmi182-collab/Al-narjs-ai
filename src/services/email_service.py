@@ -39,11 +39,16 @@ def _build_message(
 def _send_sync(msg: EmailMessage) -> None:
     host = settings.smtp_host or "smtp.gmail.com"
     port = settings.smtp_port or 587
-    with smtplib.SMTP(host, port, timeout=30) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(settings.smtp_username, settings.smtp_password)
-        server.send_message(msg)
+    if port == 465:
+        with smtplib.SMTP_SSL(host, port, timeout=30) as server:
+            server.login(settings.smtp_username, settings.smtp_password)
+            server.send_message(msg)
+    else:
+        with smtplib.SMTP(host, port, timeout=30) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(settings.smtp_username, settings.smtp_password)
+            server.send_message(msg)
 
 
 async def send_email(

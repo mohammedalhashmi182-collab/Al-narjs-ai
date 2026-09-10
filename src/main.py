@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.settings import get_settings, settings
 from src.utils.logger import configure_logging
-from src.utils.rate_limit import rate_limit_consult
+from src.utils.rate_limit import rate_limit_consult, rate_limit_login
 from src.db.session import init_db, get_session_factory, close_db
 
 configure_logging(settings.log_level, settings.log_json)
@@ -273,7 +273,7 @@ async def login_page(request: Request):
     return templates.TemplateResponse(request, "login.html")
 
 
-@app.post("/login")
+@app.post("/login", dependencies=[Depends(rate_limit_login)])
 async def login_submit(request: Request):
     from starlette.responses import RedirectResponse
     from src.core.owner_auth import set_owner_cookie
@@ -378,19 +378,25 @@ async def list_agents(category: Optional[str] = None):
     agents = await app.state.agent_registry.list_agents(cat)
     result = []
     for a in agents:
-        item = a.model_dump()
         emp = catalog.get_employee(a.slug) or {}
-        item["employee_no"] = emp.get("no", "")
-        item["title_ar"] = emp.get("title_ar", a.name)
-        item["title_en"] = emp.get("title_en", a.name)
-        item["dept"] = emp.get("dept", "")
-        item["intro_ar"] = emp.get("intro_ar", a.description)
-        item["intro_en"] = emp.get("intro_en", a.description)
+        item = {
+            "slug": a.slug,
+            "name": a.name,
+            "description": a.description,
+            "category": a.category,
+            "is_active": a.is_active,
+            "employee_no": emp.get("no", ""),
+            "title_ar": emp.get("title_ar", a.name),
+            "title_en": emp.get("title_en", a.name),
+            "dept": emp.get("dept", ""),
+            "intro_ar": emp.get("intro_ar", a.description),
+            "intro_en": emp.get("intro_en", a.description),
+        }
         result.append(item)
     return {"agents": result}
 
 
-@app.get("/api/agents/{slug}")
+@app.get("/api/agents/{slug}", dependencies=[Depends(require_owner_api)])
 async def get_agent(slug: str):
     agent = await app.state.agent_registry.get_agent(slug)
     if not agent:
@@ -398,7 +404,7 @@ async def get_agent(slug: str):
     return agent.model_dump()
 
 
-@app.post("/api/agents/{slug}/run")
+@app.post("/api/agents/{slug}/run", dependencies=[Depends(require_owner_api)])
 async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
     agent = await app.state.agent_registry.get_agent(slug)
     if not agent:
@@ -569,7 +575,7 @@ async def portal_wake_agent(project_id: str, slug: str):
 
 
 @app.post("/api/portal/projects/{project_id}/agents/{slug}/run")
-async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers):
+async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, http_request: Request):
     from src.models import ClientAgent, ClientProject
     from sqlalchemy import select
     from uuid import UUID
@@ -682,17 +688,24 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         role = "user" if m.role in ("user", "client") else "assistant"
         history.append({"role": role, "content": m.content})
 
+    from src.services import catalog as _catalog
+
+    _pkgs = ", ".join(
+        f"{p['name']} ({p['price']} SAR/mo)" for p in _catalog.PACKAGES.values()
+    )
+    _emps = ", ".join(
+        e["title_ar"] for e in _catalog.EMPLOYEES.values()
+    )
     system_prompt = (
         "You are the Smart Consultant (المستشار الذكي) of Al-Narjis AI (النرجس للذكاء الاصطناعي), "
-        "a Riyadh-based AI agency offering 20 specialist AI agents across 4 packages: "
-        "Social Media (1500 SAR/mo), E-commerce (1000), Content Marketing (1200), Business Growth (800).\n"
+        "a Riyadh-based AI agency offering a team of "
+        f"({len(_catalog.EMPLOYEES)}) specialist AI agents across these packages: {_pkgs}.\n"
         "Your job: read the client's working style, environment and challenges from the conversation, "
         "then guide them to the best solutions and the most relevant agents. "
         "Rules:\n"
         "- Ask a focused clarifying question first if their situation is unclear (one question max).\n"
         "- Then propose a concrete plan, mention which named agents would help (job titles like "
-        "'مدير حسابات السوشيال ميديا', 'كاتب وصف المنتجات', 'محلل السوق', 'مستشار أفكار المشاريع'), "
-        "and suggest a package.\n"
+        f"{_emps}), and suggest a package.\n"
         "- Be warm, practical and specific.\n"
         "- Respond in the language of the visitor"
         + (": Modern Standard Arabic (اللغة العربية الفصحى), with clear short sections and bullet points." if locale == "ar" else
@@ -725,7 +738,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         }
 
 
-@app.post("/api/workflows/{slug}/run")
+@app.post("/api/workflows/{slug}/run", dependencies=[Depends(require_owner_api)])
 async def run_workflow(slug: str, request: WorkflowRunRequest):
     from src.models import Workflow as DBWorkflow
     from sqlalchemy import select
@@ -757,7 +770,7 @@ async def list_schedules():
     return {"schedules": jobs}
 
 
-@app.post("/api/schedules")
+@app.post("/api/schedules", dependencies=[Depends(require_owner_api)])
 async def create_schedule(request: ScheduleCreateRequest):
     from uuid import UUID
     from src.automation.scheduler import ScheduleConfig
@@ -778,7 +791,7 @@ async def create_schedule(request: ScheduleCreateRequest):
     return {"schedule_id": str(schedule_id)}
 
 
-@app.delete("/api/schedules/{schedule_id}")
+@app.delete("/api/schedules/{schedule_id}", dependencies=[Depends(require_owner_api)])
 async def delete_schedule(schedule_id: str):
     from uuid import UUID
     success = await app.state.scheduler.remove_schedule(UUID(schedule_id))
@@ -787,12 +800,12 @@ async def delete_schedule(schedule_id: str):
     return {"success": True}
 
 
-@app.get("/api/queue/stats")
+@app.get("/api/queue/stats", dependencies=[Depends(require_owner_api)])
 async def queue_stats():
     return app.state.queue_worker.get_queue_stats()
 
 
-@app.post("/api/queue/enqueue")
+@app.post("/api/queue/enqueue", dependencies=[Depends(require_owner_api)])
 async def enqueue_task(
     agent_slug: str,
     input_data: dict,
@@ -825,7 +838,7 @@ async def list_executions(limit: int = 50, offset: int = 0):
         return {"executions": [e.to_dict() for e in executions]}
 
 
-@app.get("/api/executions/{execution_id}")
+@app.get("/api/executions/{execution_id}", dependencies=[Depends(require_owner_api)])
 async def get_execution(execution_id: str):
     from src.models import WorkflowExecution, StepExecution
     from sqlalchemy import select
@@ -927,7 +940,7 @@ async def list_leads(limit: int = 100, offset: int = 0):
         ]}
 
 
-@app.post("/api/leads/{lead_id}/status")
+@app.post("/api/leads/{lead_id}/status", dependencies=[Depends(require_owner_api)])
 async def update_lead_status(lead_id: str, request: Request):
     from src.models import Lead
     from sqlalchemy import select
@@ -1153,7 +1166,10 @@ async def get_payment(payment_id: str):
     from src.services import payments as pm
 
     async with app.state.session_factory() as session:
-        payment = await pm.verify_payment(session, UUID(payment_id))
+        try:
+            payment = await pm.verify_payment(session, UUID(payment_id))
+        except pm.PaymentError as e:
+            raise HTTPException(404, str(e))
 
     return {
         "payment_id": str(payment.id),

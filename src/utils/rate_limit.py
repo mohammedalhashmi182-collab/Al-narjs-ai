@@ -47,3 +47,16 @@ def rate_limit_consult(request: Request) -> None:
             detail={"error": "Too many requests", "retry_after_seconds": retry_after},
             headers={"Retry-After": str(retry_after)},
         )
+
+
+login_limiter = SlidingWindowLimiter(max_requests=10, window_seconds=300)
+
+
+def rate_limit_login(request: Request) -> None:
+    ok, retry_after = login_limiter.check(f"{client_ip(request)}:login")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many attempts", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
