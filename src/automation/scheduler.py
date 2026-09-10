@@ -17,6 +17,15 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+_running_scheduler: Optional["AgentScheduler"] = None
+
+
+async def run_scheduled_task(schedule_id: UUID):
+    if _running_scheduler is None:
+        logger.warning("Scheduler not available; cannot execute scheduled task")
+        return
+    await _running_scheduler._execute_scheduled_task(schedule_id)
+
 
 @dataclass
 class ScheduleConfig:
@@ -34,6 +43,8 @@ class ScheduleConfig:
 
 class AgentScheduler:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
+        global _running_scheduler
+        _running_scheduler = self
         self.session_factory = session_factory
         from src.db.session import sync_engine
         jobstores = {
@@ -85,7 +96,7 @@ class AgentScheduler:
 
         job_id = str(schedule.id)
         self.scheduler.add_job(
-            self._execute_scheduled_task,
+            run_scheduled_task,
             trigger=trigger,
             id=job_id,
             args=[schedule.id],
