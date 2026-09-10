@@ -114,10 +114,30 @@
             </div>
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="team-grid"></div>
             <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
+                <button id="subscribeBtn" class="btn btn-gold" style="padding:14px 28px;font-size:1rem;">
+                    <i class="fas fa-credit-card"></i>
+                    <span data-lang="ar">فعّل اشتراكك الآن</span><span data-lang="en" data-inline>Activate Subscription</span>
+                </button>
                 <a href="/" class="btn btn-outline">
                     <i class="fas fa-arrow-up-right-from-square"></i>
                     <span data-lang="ar">لوحة التحكم (المالك)</span><span data-lang="en" data-inline>Owner Dashboard</span>
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 2b: checkout -->
+    <section id="step-checkout" class="py-12 hidden">
+        <div class="max-w-3xl mx-auto px-6">
+            <div class="n-card p-8 text-center">
+                <div class="n-divider mb-4">✺</div>
+                <h2 class="n-title text-2xl mb-2"><span data-lang="ar">الاشتراك</span><span data-lang="en" data-inline>Subscription</span></h2>
+                <div id="coSummary" class="n-sub mb-6"></div>
+                <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
+                <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
+                <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
+                    <i class="fas fa-arrow-left"></i> <span data-lang="ar">رجوع للفريق</span><span data-lang="en" data-inline>Back to Team</span>
+                </button>
             </div>
         </div>
     </section>
@@ -232,14 +252,19 @@
                 const msg = $('regMsg');
                 msg.style.display = 'block';
                 msg.textContent = txt('جارٍ تجهيز فريقك...', 'Preparing your team...');
+                state.client = {
+                    name: $('cname').value.trim(),
+                    phone: $('cphone').value.trim(),
+                    email: $('cemail').value.trim() || null,
+                };
                 try {
                     const r = await fetch('/api/portal/projects', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            client_name: $('cname').value.trim(),
-                            phone: $('cphone').value.trim(),
-                            email: $('cemail').value.trim() || null,
+                            client_name: state.client.name,
+                            phone: state.client.phone,
+                            email: state.client.email,
                             package: state.pkg
                         })
                     });
@@ -416,6 +441,81 @@
                         addMsg('agent', txt('حدث خطأ في الاتصال.', 'Connection error.'));
                     });
                 }, 400);
+            }
+
+            // ---- Subscription / checkout ----
+            $('subscribeBtn').addEventListener('click', () => {
+                fetch('/api/portal/packages').then(r => r.json()).then(d => {
+                    const p = d.packages.find(x => x.key === state.pkg);
+                    if (!p) return;
+                    const ar = isAr();
+                    const base = parseFloat(p.price);
+                    const vat = ar ? Math.round(base * 0.15) : 0;
+                    const total = base + vat;
+                    const cur = ar ? 'ر.س' : 'SAR';
+                    $('coSummary').innerHTML =
+                        '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
+                        '<div>' + txt('المبلغ قبل الضريبة: ', 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>' +
+                        (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة 15%: ', 'VAT 15%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
+                        '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>';
+                    const methods = [
+                        { m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' },
+                        { m: 'mada', i: 'fas fa-credit-card', t: ar ? 'مدى / بطاقة مصرفية' : 'mada / Bank Card' },
+                        { m: 'applepay', i: 'fab fa-apple', t: 'Apple Pay' },
+                        { m: 'invoice', i: 'fas fa-landmark', t: ar ? 'تحويل بنكي' : 'Bank Transfer' },
+                    ];
+                    $('coMethods').innerHTML = methods.map(x => `
+                        <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
+                            <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
+                        </button>`).join('');
+                    document.querySelectorAll('.co-method').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.m)));
+                    $('step-team').classList.add('hidden');
+                    $('step-checkout').classList.remove('hidden');
+                }).catch(() => alert(txt('تعذر تحميل بيانات الدفع', 'Failed to load payment data')));
+            });
+
+            $('coBack').addEventListener('click', () => {
+                $('step-checkout').classList.add('hidden');
+                $('step-team').classList.remove('hidden');
+            });
+
+            async function startCheckout(method) {
+                const msg = $('coMsg');
+                msg.style.display = 'block';
+                msg.textContent = txt('جارٍ تجهيز الدفع...', 'Preparing payment...');
+                const client = state.client || { name: null, phone: null, email: null };
+                try {
+                    const r = await fetch('/api/payments', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            package: state.pkg,
+                            method: method,
+                            customer_name: client.name,
+                            customer_phone: client.phone,
+                            customer_email: client.email,
+                        })
+                    });
+                    const data = await r.json();
+                    if (!r.ok) throw new Error(data.detail || 'error');
+                    if (method === 'paypal' && data.order_id) {
+                        sessionStorage.setItem('narjis-order-' + data.payment_id, data.order_id);
+                    }
+                    if (data.redirect_url) {
+                        msg.textContent = txt('تحويلك إلى بوابة الدفع الآمنة...', 'Redirecting to secure payment...');
+                        window.location.href = data.redirect_url;
+                        return;
+                    }
+                    if (data.gateway === 'invoice') {
+                        msg.innerHTML = '<div style="color:var(--n-green);">' + (isAr()
+                            ? 'تم إنشاء فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + data.total.toLocaleString() + ' ر.س. أرسل التحويل وأخبرنا واتساب لتفعيل باقتك فوراً.'
+                            : 'Invoice ' + data.payment_id.slice(0, 8).toUpperCase() + ' created — ' + data.total.toLocaleString() + ' SAR. Send the transfer and notify us on WhatsApp to activate instantly.') + '</div>';
+                        return;
+                    }
+                    throw new Error(txt('تعذر إتمام الدفع', 'Payment failed'));
+                } catch (err) {
+                    msg.innerHTML = '<span style="color:#b91c1c;">' + txt('خطأ: ', 'Error: ') + err.message + '</span>';
+                }
             }
 
             // Resume existing project if present

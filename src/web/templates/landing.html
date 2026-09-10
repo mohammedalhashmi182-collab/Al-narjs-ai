@@ -7,10 +7,10 @@
     <meta name="theme-color" content="#0a0b0e">
     {% if _lang == 'ar' %}
     <title>النرجس للذكاء الاصطناعي | فريقك الرقمي في انتظار لمسة إيقاظ</title>
-    <meta name="description" content="منصة النرجس للذكاء الاصطناعي من الرياض — 20 وكيلاً ذكياً يعملون على مدار الساعة: محتوى، تسويق، متاجر، وخدمة عملاء.">
+    <meta name="description" content="منصة النرجس للذكاء الاصطناعي من الرياض — فريق من الوكلاء الأذكياء يعملون على مدار الساعة: محتوى، تسويق، متاجر، وخدمة عملاء.">
     {% else %}
     <title>Al-Narjis AI | Your digital workforce, asleep — ready at a touch</title>
-    <meta name="description" content="Al-Narjis AI from Riyadh — 20 intelligent agents working around the clock: content, marketing, stores, and customer care.">
+    <meta name="description" content="Al-Narjis AI from Riyadh — a team of intelligent agents working around the clock: content, marketing, stores, and customer care.">
     {% endif %}
     <meta name="robots" content="index,follow">
     {% set _path = request.url.path %}
@@ -27,7 +27,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Al-Narjis AI">
     <meta property="og:title" content="{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}">
-    <meta property="og:description" content="{% if _lang == 'ar' %}20 وكيلاً ذكياً نائمين جاهزين لخدمة عملك على مدار الساعة.{% else %}20 sleeping AI agents, ready to work for your business around the clock.{% endif %}">
+    <meta property="og:description" content="{% if _lang == 'ar' %}وكلاء أذكياء نائمون جاهزون لخدمة عملك على مدار الساعة.{% else %}Sleeping AI agents, ready to work for your business around the clock.{% endif %}">
     <meta property="og:url" content="https://www.karmaai.online{{ _canon_path }}">
     <meta property="og:locale" content="{{ 'ar_SA' if _lang == 'ar' else 'en_US' }}">
     <meta property="og:locale:alternate" content="{{ 'en_US' if _lang == 'ar' else 'ar_SA' }}">
@@ -651,7 +651,7 @@
                         </svg>
                     </div>
                     <div class="console-foot">
-                        <span><b>20</b> <span data-lang="ar">موظفاً رقمياً</span><span data-lang="en" data-inline>digital employees</span></span>
+                        <span><b id="heroCount">20</b> <span data-lang="ar">موظفاً رقمياً</span><span data-lang="en" data-inline>digital employees</span></span>
                         <span><b>24/7</b> <span data-lang="ar">فعالية</span><span data-lang="en" data-inline>uptime</span></span>
                         <span><b>4.9★</b> <span data-lang="ar">رضا العملاء</span><span data-lang="en" data-inline>client rating</span></span>
                     </div>
@@ -688,7 +688,7 @@
             <div class="bento">
                 <div class="bcard b-lg">
                     <div class="ic"><i class="fas fa-robot"></i></div>
-                    <h3><span data-lang="ar">20 وكيلاً — 20 وظيفة حقيقية</span><span data-lang="en" data-inline>20 agents — 20 real jobs</span></h3>
+                    <h3><span data-lang="ar"><b class="cnt20">20</b> وكيلاً — <b class="cnt20b">20</b> وظيفة حقيقية</span><span data-lang="en" data-inline><b class="cnt20b">20</b> agents — <b class="cnt20b">20</b> real jobs</span></h3>
                     <p><span data-lang="ar">كل وكيل موظف رقمي يحمل رقمه وتعريفه الوظيفي وقسمه. يستيقظ حين يلمسه العميل ويؤدي عمله كاملاً — من تقويم المحتوى إلى سياسة المتجر.</span><span data-lang="en" data-inline>Every agent is a digital employee with an ID, a job title, and a department. Woken by a single touch, they deliver end-to-end — from content calendars to store policy.</span></p>
                     <div class="flow" id="flow">
                         <svg viewBox="0 0 300 40" preserveAspectRatio="none">
@@ -1035,7 +1035,7 @@
                 });
             });
 
-            var allAgents = [], curDept = 'الكل';
+            var allAgents = [], curDept = 'الكل', agentCount = 0;
             var grid = document.getElementById('agents-grid');
             var filters = document.getElementById('filters');
             var DEPT_EN = {
@@ -1072,6 +1072,11 @@
                     var data = await res.json();
                     if (data.agents && data.agents.length) {
                         allAgents = data.agents;
+                        agentCount = data.agents.length;
+                        var heroCount = document.getElementById('heroCount');
+                        if (heroCount) heroCount.textContent = agentCount;
+                        document.querySelectorAll('.cnt20').forEach(function (el) { el.textContent = agentCount; });
+                        document.querySelectorAll('.cnt20b').forEach(function (el) { el.textContent = agentCount; });
                         var isArL = document.body.dataset.lang === 'ar';
                         var depts = ['الكل'].concat(data.agents.map(function (a) { return a.dept || a.category; }).filter(function (v, i, arr) { return v && arr.indexOf(v) === i; }));
                         filters.innerHTML = depts.map(function (d) { return '<button class="fchip' + (d === 'الكل' ? ' on' : '') + '" data-d="' + d + '">' + deptLabel(d, isArL) + '</button>'; }).join('');
@@ -1153,7 +1158,7 @@
             if (stats) {
                 var obs = new IntersectionObserver(function (entries) {
                     entries.forEach(function (en) {
-                        if (en.isIntersecting) { obs.unobserve(en.target); countUp(c0, 20, '+'); countUp(c1, 24, '/7'); countUp(c2, 5); countUp(c3, 100, '%'); }
+                        if (en.isIntersecting) { obs.unobserve(en.target); countUp(c0, agentCount || 20, '+'); countUp(c1, 24, '/7'); countUp(c2, 5); countUp(c3, 100, '%'); }
                     });
                 }, { threshold: .4 });
                 obs.observe(stats);

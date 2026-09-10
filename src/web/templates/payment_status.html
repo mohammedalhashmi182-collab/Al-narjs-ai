@@ -60,5 +60,68 @@
         ? 'مرحباً، لدي استفسار عن الدفع في النرجس للذكاء الاصطناعي'
         : 'Hello, I have a question about payment at Al-Narjis AI');
     </script>
+    <script>
+        (function () {
+            var qp = new URLSearchParams(window.location.search);
+            var id = qp.get('id');
+            var oid = qp.get('order_id');
+            var fallback = oid ? null : sessionStorage.getItem('narjis-order-' + id);
+            if (!id || (oid === null && !fallback)) return;
+            if (oid === null) oid = fallback;
+            var isAr = document.body.dataset.lang === 'ar';
+            var icon = document.querySelector('.text-5xl i');
+            var h1 = document.querySelector('h1');
+            var sub = document.querySelector('.n-sub');
+            (async function () {
+                var st = null;
+                try {
+                    if (oid) {
+                        var cap = await fetch('/api/payments/' + id + '/capture', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ order_id: oid })
+                        }).then(function (r) { return r.json(); });
+                        st = cap;
+                    } else {
+                        st = await fetch('/api/payments/' + id).then(function (r) { return r.json(); });
+                    }
+                } catch (e) { return; }
+                var ok = st && st.status === 'paid';
+                if (icon) {
+                    icon.className = ok ? 'fas fa-check-circle' : 'fas fa-times-circle';
+                    icon.style.color = ok ? 'var(--n-green)' : '#b91c1c';
+                }
+                if (h1) {
+                    if (ok) {
+                        h1.querySelector('[data-lang="ar"]').textContent = 'تم استلام الدفع بنجاح ✓';
+                        h1.querySelector('[data-lang="en"]').textContent = 'Payment Received ✓';
+                    } else {
+                        h1.querySelector('[data-lang="ar"]').textContent = 'لم يكتمل الدفع';
+                        h1.querySelector('[data-lang="en"]').textContent = 'Payment Not Completed';
+                    }
+                }
+                if (sub) {
+                    if (ok) {
+                        sub.querySelector('[data-lang="ar"]').textContent = 'شكراً لثقتك بالنرجس للذكاء الاصطناعي. سنفعّل باقتك خلال دقائق.';
+                        sub.querySelector('[data-lang="en"]').textContent = 'Thank you for trusting Al-Narjis AI. We will activate your plan within minutes.';
+                    } else {
+                        sub.querySelector('[data-lang="ar"]').textContent = 'حدث خطأ أثناء العملية. جرّب مجدداً أو تواصل معنا.';
+                        sub.querySelector('[data-lang="en"]').textContent = 'Something went wrong. Please try again or contact us.';
+                    }
+                }
+                if (ok) {
+                    window.history.replaceState(null, '', '/payment/success?id=' + id);
+                    if (st.invoice_url) {
+                        var card = document.querySelector('.n-card');
+                        var a = document.createElement('div');
+                        a.className = 'mt-4';
+                        a.innerHTML = '<a href="' + st.invoice_url + '" class="btn btn-gold w-full" target="_blank" rel="noopener">' +
+                            (isAr ? 'تحميل الفاتورة' : 'Download Invoice') + '</a>';
+                        card.appendChild(a);
+                    }
+                }
+            })();
+        })();
+    </script>
 </body>
 </html>

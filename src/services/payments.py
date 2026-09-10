@@ -82,7 +82,7 @@ async def create_payment(
     return payment
 
 
-async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict) -> dict:
+async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict, callback_url: Optional[str] = None) -> dict:
     settings = get_settings()
     if not settings.moyasar_api_secret:
         raise PaymentError("Moyasar API secret not configured")
@@ -91,7 +91,7 @@ async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict
         "amount": payment.amount,
         "currency": "SAR",
         "description": payment.description or "النرجس للذكاء الاصطناعي",
-        "callback_url": settings.payment_success_url,
+        "callback_url": callback_url or settings.payment_success_url,
         "source": source,
         "metadata": {
             "payment_id": str(payment.id),

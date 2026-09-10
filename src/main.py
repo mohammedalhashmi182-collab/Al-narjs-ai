@@ -982,6 +982,7 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
 
     locale = _request_locale(request)
     include_vat = locale == "ar"
+    base = str(request.base_url).rstrip("/")
     async with app.state.session_factory() as session:
         payment = await pm.create_payment(
             session,
@@ -996,7 +997,6 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
         if method == "paypal":
             charge = pm.total_with_vat(payment.amount) if include_vat else payment.amount
             try:
-                base = str(request.base_url).rstrip("/")
                 order = await pm.create_paypal_order(
                     session,
                     payment,
@@ -1040,7 +1040,12 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             }
             source = source_map.get(method, pm.source_credit_card())
             try:
-                data = await pm.initiate_moyasar(session, payment, source)
+                data = await pm.initiate_moyasar(
+                    session,
+                    payment,
+                    source,
+                    callback_url=f"{base}/payment/success?id={payment.id}",
+                )
                 return {
                     "payment_id": str(payment.id),
                     "status": payment.status,
