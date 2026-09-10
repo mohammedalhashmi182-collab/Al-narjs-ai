@@ -384,7 +384,6 @@ async def list_agents(category: Optional[str] = None):
             "name": a.name,
             "description": a.description,
             "category": a.category,
-            "is_active": a.is_active,
             "employee_no": emp.get("no", ""),
             "title_ar": emp.get("title_ar", a.name),
             "title_en": emp.get("title_en", a.name),

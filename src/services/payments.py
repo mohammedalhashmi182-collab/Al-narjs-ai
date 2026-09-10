@@ -65,15 +65,7 @@ async def create_payment(
         customer_phone=customer_phone,
         customer_email=customer_email,
         status="pending",
-        gateway=(
-            "paypal"
-            if settings.paypal_client_id and settings.paypal_client_secret
-            else (
-                "moyasar"
-                if settings.moyasar_api_secret
-                else "invoice"
-            )
-        ),
+        gateway="invoice",
         description=f"باقة {name} - النرجس للذكاء الاصطناعي",
     )
     session.add(payment)
@@ -110,6 +102,7 @@ async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict
         raise PaymentError(f"Moyasar error {resp.status_code}: {resp.text}")
 
     data = resp.json()
+    payment.gateway = "moyasar"
     payment.gateway_payment_id = data.get("id")
     payment.gateway_source = data.get("source", {}).get("type") if isinstance(data.get("source"), dict) else None
     await session.commit()
