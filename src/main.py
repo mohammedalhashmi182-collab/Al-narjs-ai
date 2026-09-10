@@ -956,20 +956,24 @@ async def list_schedules():
     next_map = {str(j["id"]): j.get("next_run_time") for j in app.state.scheduler.get_jobs()}
     async with app.state.session_factory() as session:
         rows = (await session.execute(select(Schedule).order_by(desc(Schedule.created_at)))).scalars().all()
-        return {"schedules": [
-            {
-                "id": str(s.id),
-                "name": s.name,
-                "target_type": s.target_type,
-                "target_id": str(s.target_id),
-                "trigger": s.cron_expression or (f"interval:{s.interval_seconds}s" if s.interval_seconds else ("once" if s.run_once_at else "manual")),
-                "is_active": s.is_active,
-                "next_run_time": next_map.get(str(s.id)),
-                "run_count": s.run_count,
-                "max_runs": s.max_runs,
-                "created_at": s.created_at.isoformat() if s.created_at else None,
-            } for s in rows
-        ]}
+        out = []
+        for s in rows:
+            try:
+                out.append({
+                    "id": str(s.id),
+                    "name": s.name,
+                    "target_type": s.target_type,
+                    "target_id": str(s.target_id),
+                    "trigger": s.cron_expression or (f"interval:{s.interval_seconds}s" if s.interval_seconds else ("once" if s.run_once_at else "manual")),
+                    "is_active": s.is_active,
+                    "next_run_time": next_map.get(str(s.id)),
+                    "run_count": s.run_count,
+                    "max_runs": s.max_runs,
+                    "created_at": s.created_at.isoformat() if s.created_at else None,
+                })
+            except Exception:
+                continue
+        return {"schedules": out}
 
 
 @app.post("/api/schedules", dependencies=[Depends(require_owner_api)])
@@ -1012,6 +1016,10 @@ async def get_schedule(schedule_id: str):
         sched = (await session.execute(select(Schedule).where(Schedule.id == UUID(schedule_id)))).scalar_one_or_none()
     if not sched:
         raise HTTPException(404, "Schedule not found")
+    try:
+        target_id = str(sched.target_id)
+    except Exception:
+        raise HTTPException(404, "Schedule not found")
     next_run = None
     for job in app.state.scheduler.get_jobs():
         if job["id"] == str(sched.id):
@@ -1021,7 +1029,7 @@ async def get_schedule(schedule_id: str):
         "id": str(sched.id),
         "name": sched.name,
         "target_type": sched.target_type,
-        "target_id": str(sched.target_id),
+        "target_id": target_id,
         "payload": sched.payload,
         "trigger": sched.cron_expression or (f"interval:{sched.interval_seconds}s" if sched.interval_seconds else ("once" if sched.run_once_at else "manual")),
         "is_active": sched.is_active,

@@ -59,23 +59,27 @@ class AgentScheduler:
         logger.info("Scheduler stopped")
 
     async def _load_schedules_from_db(self):
-        async with self.session_factory() as session:
-            from src.models import Schedule
+        try:
+            async with self.session_factory() as session:
+                from src.models import Schedule
 
-            from sqlalchemy import select
-            result = await session.execute(select(Schedule).where(Schedule.is_active == True))
-            schedules = result.scalars().all()
-            for schedule in schedules:
-                self._add_schedule_job(schedule)
+                from sqlalchemy import select
+                result = await session.execute(select(Schedule).where(Schedule.is_active == True))
+                for schedule in result.scalars():
+                    try:
+                        self._add_schedule_job(schedule)
+                    except Exception as e:
+                        logger.warning(f"Skipping malformed schedule {getattr(schedule, 'id', '?')}: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to load schedules from DB: {e}")
 
     def _add_schedule_job(self, schedule):
-        if schedule.cron_expression:
-            trigger = CronTrigger.from_crontab(schedule.cron_expression, timezone=schedule.timezone)
-        elif schedule.interval_seconds:
-            trigger = IntervalTrigger(seconds=schedule.interval_seconds, timezone=schedule.timezone)
-        elif schedule.run_once_at:
-            trigger = DateTrigger(run_date=schedule.run_once_at, timezone=schedule.timezone)
-        else:
+        try:
+            trigger = self._build_trigger(schedule)
+        except Exception as e:
+            logger.warning(f"Could not build trigger for schedule {schedule.id}: {e}")
+            return
+        if trigger is None:
             logger.warning(f"Schedule {schedule.id} has no valid trigger")
             return
 
@@ -89,6 +93,24 @@ class AgentScheduler:
             max_instances=1,
             coalesce=True,
         )
+
+    def _build_trigger(self, schedule):
+        if schedule.cron_expression:
+            try:
+                return CronTrigger.from_crontab(schedule.cron_expression, timezone=schedule.timezone)
+            except Exception:
+                return CronTrigger.from_crontab(schedule.cron_expression, timezone="UTC")
+        elif schedule.interval_seconds:
+            try:
+                return IntervalTrigger(seconds=schedule.interval_seconds, timezone=schedule.timezone)
+            except Exception:
+                return IntervalTrigger(seconds=schedule.interval_seconds, timezone="UTC")
+        elif schedule.run_once_at:
+            try:
+                return DateTrigger(run_date=schedule.run_once_at, timezone=schedule.timezone)
+            except Exception:
+                return DateTrigger(run_date=schedule.run_once_at, timezone="UTC")
+        return None
 
     async def _execute_scheduled_task(self, schedule_id: UUID):
         async with self.session_factory() as session:
