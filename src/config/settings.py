@@ -91,6 +91,7 @@ class Settings(BaseSettings):
 
     # Privacy-friendly analytics: set IDs to inject tags, else nothing is loaded
     meta_pixel_id: str | None = Field(default=None, alias="META_PIXEL_ID")
+    meta_ad_account_id: str | None = Field(default=None, alias="META_AD_ACCOUNT_ID")
     gtag_id: str | None = Field(default=None, alias="GTAG_ID")
 
     # VAT (KSA, applied to Saudi-facing invoices)
