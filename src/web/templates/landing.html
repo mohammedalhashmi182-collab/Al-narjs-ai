@@ -9,16 +9,21 @@
     <title>النرجس للذكاء الاصطناعي | فريقك الرقمي في انتظار لمسة إيقاظ</title>
     <meta name="description" content="منصة النرجس للذكاء الاصطناعي من الرياض — 20 وكيلاً ذكياً يعملون على مدار الساعة: محتوى، تسويق، متاجر، وخدمة عملاء.">
     {% else %}
-    <title>Al-Narjis AI | Your digital workforce, asleep and ready</title>
+    <title>Al-Narjis AI | Your digital workforce, asleep — ready at a touch</title>
     <meta name="description" content="Al-Narjis AI from Riyadh — 20 intelligent agents working around the clock: content, marketing, stores, and customer care.">
     {% endif %}
     <meta name="robots" content="index,follow">
     {% set _path = request.url.path %}
-    {% set _canon_path = ('/' ~ _lang ~ _path) if (_lang == 'en' or _lang == 'ar') else _path %}
+    {% if _path.startswith('/ar/') or _path.startswith('/en/') %}
+        {% set _base_path = _path[3:] %}
+    {% else %}
+        {% set _base_path = _path %}
+    {% endif %}
+    {% set _canon_path = '/' ~ _lang ~ _base_path %}
     <link rel="canonical" href="https://www.karmaai.online{{ _canon_path }}">
-    <link rel="alternate" hreflang="ar" href="https://www.karmaai.online/ar{{ _path }}">
-    <link rel="alternate" hreflang="en" href="https://www.karmaai.online/en{{ _path }}">
-    <link rel="alternate" hreflang="x-default" href="https://www.karmaai.online{{ _path }}">
+    <link rel="alternate" hreflang="ar" href="https://www.karmaai.online/ar{{ _base_path }}">
+    <link rel="alternate" hreflang="en" href="https://www.karmaai.online/en{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://www.karmaai.online{{ _base_path }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Al-Narjis AI">
     <meta property="og:title" content="{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}">
@@ -584,7 +589,7 @@
                 <span class="badge"><span class="dot"></span><span data-lang="ar">من الرياض إلى العالم</span><span data-lang="en" data-inline>From Riyadh, for the world</span></span>
                 <h1>
                     <span data-lang="ar">فريقك الرقمي…<br>في انتظار لمسة <span class="grad">إيقاظ</span></span>
-                    <span data-lang="en" data-inline>Your digital workforce -<br>asleep, ready at the touch of a button</span>
+                    <span data-lang="en" data-inline>Your digital workforce,<br>asleep — one touch away</span>
                 </h1>
                 <p class="sub">
                     <span data-lang="ar">يتقن: </span><span data-lang="en" data-inline>Mastering: </span><span class="rotor" id="rotor"></span>
@@ -614,19 +619,19 @@
                         <div class="emp dormant" data-emp>
                             <span class="emp-ava">001</span>
                             <span class="en"><b data-w-name>مديرة السوشيال ميديا</b><small data-w-role>Social Media Lead · AG-001</small></span>
-                            <span class="sit"><i class="fas fa-circle"></i><span data-w-st>نائمة</span></span>
+                            <span class="sit"><i class="fas fa-circle"></i><span data-w-st><span data-lang="ar">نائمة</span><span data-lang="en" data-inline>Asleep</span></span></span>
                             <button class="wk" data-wake><span data-w-b>أيقظ</span></button>
                         </div>
                         <div class="emp dormant" data-emp>
                             <span class="emp-ava">011</span>
                             <span class="en"><b data-w-name>كاتب المحتوى</b><small data-w-role>Content Writer · AG-011</small></span>
-                            <span class="sit"><i class="fas fa-circle"></i><span data-w-st>نائم</span></span>
+                            <span class="sit"><i class="fas fa-circle"></i><span data-w-st><span data-lang="ar">نائم</span><span data-lang="en" data-inline>Asleep</span></span></span>
                             <button class="wk" data-wake><span data-w-b>أيقظ</span></button>
                         </div>
                         <div class="emp dormant" data-emp>
                             <span class="emp-ava">006</span>
                             <span class="en"><b data-w-name>خدمة العملاء</b><small data-w-role>Customer Service · AG-006</small></span>
-                            <span class="sit"><i class="fas fa-circle"></i><span data-w-st>نائمة</span></span>
+                            <span class="sit"><i class="fas fa-circle"></i><span data-w-st><span data-lang="ar">نائمة</span><span data-lang="en" data-inline>Asleep</span></span></span>
                             <button class="wk" data-wake><span data-w-b>أيقظ</span></button>
                         </div>
                     </div>
@@ -652,8 +657,11 @@
                     </div>
                 </div>
                 <div class="chips-float">
-                    <span>AG-001 · سوشيال</span><span>AG-007 · متجرك</span><span>AG-011 · المحتوى</span><span>AG-016 · النمو</span>
-                </div>
+    <span>AG-001 · <span data-lang="ar">سوشيال</span><span data-lang="en" data-inline>Social</span></span>
+    <span>AG-007 · <span data-lang="ar">متجرك</span><span data-lang="en" data-inline>Store</span></span>
+    <span>AG-011 · <span data-lang="ar">المحتوى</span><span data-lang="en" data-inline>Content</span></span>
+    <span>AG-016 · <span data-lang="ar">النمو</span><span data-lang="en" data-inline>Growth</span></span>
+</div>
             </div>
         </div>
     </header>
@@ -661,12 +669,12 @@
     <!-- ==================== TRUST ==================== -->
     <div class="trust">
         <div class="row">
-            <span><i class="fas fa-diamond"></i>تسويق</span>
-            <span><i class="fas fa-diamond"></i>محتوى</span>
-            <span><i class="fas fa-diamond"></i>متاجر إلكترونية</span>
-            <span><i class="fas fa-diamond"></i>خدمة عملاء</span>
-            <span><i class="fas fa-diamond"></i>تحليل سوق</span>
-            <span><i class="fas fa-diamond"></i>نمو أعمال</span>
+            <span><i class="fas fa-diamond"></i><span data-lang="ar">تسويق</span><span data-lang="en" data-inline>Marketing</span></span>
+            <span><i class="fas fa-diamond"></i><span data-lang="ar">محتوى</span><span data-lang="en" data-inline>Content</span></span>
+            <span><i class="fas fa-diamond"></i><span data-lang="ar">متاجر إلكترونية</span><span data-lang="en" data-inline>E-commerce</span></span>
+            <span><i class="fas fa-diamond"></i><span data-lang="ar">خدمة عملاء</span><span data-lang="en" data-inline>Customer care</span></span>
+            <span><i class="fas fa-diamond"></i><span data-lang="ar">تحليل سوق</span><span data-lang="en" data-inline>Market analysis</span></span>
+            <span><i class="fas fa-diamond"></i><span data-lang="ar">نمو أعمال</span><span data-lang="en" data-inline>Business growth</span></span>
         </div>
     </div>
 
@@ -715,7 +723,7 @@
                 </div>
                 <div class="bcard">
                     <div class="ic"><i class="fas fa-chart-line"></i></div>
-                    <h3><span data-lang="ar">رؤى تقود القرار</span><span data-lang="en" data-inline>Insight that decides</span></h3>
+                    <h3><span data-lang="ar">رؤى تقود القرار</span><span data-lang="en" data-inline>Insight that drives decisions</span></h3>
                     <p><span data-lang="ar">تقارير أداء وتحليلات سوق تبني خطوتك التالية.</span><span data-lang="en" data-inline>Performance and market reports for your next move.</span></p>
                     <div class="spark">
                         <svg viewBox="0 0 560 74" preserveAspectRatio="none">
@@ -850,8 +858,8 @@
                     </div>
                 </div>
                 <div class="t-side">
-                    <div class="q"><div class="star">★★★★★</div><p><span data-lang="ar">صفحاتي تنشر وتجيب مبيعات وأنا نائم. هذا أول مزوّد يفهمني بالعامية السعودية.</span><span data-lang="en" data-inline>My pages publish and sell while I sleep. First provider that gets Saudi colloquial.</span></p><div class="who">صاحبة متجر أزياء</div><div class="where">جدة</div></div>
-                    <div class="q"><div class="star">★★★★★</div><p><span data-lang="ar">المستشار الذكي قرأ متجرنا بجلسة واحدة ورشّح الباقة الصحيحة — خدمة عملاء أسرع وأصدق.</span><span data-lang="en" data-inline>The consultant read our store in one session — faster, honest support since.</span></p><div class="who">مؤسس مشروع</div><div class="where">الدمام</div></div>
+                    <div class="q"><div class="star">★★★★★</div><p><span data-lang="ar">صفحاتي تنشر وتجيب مبيعات وأنا نائم. هذا أول مزوّد يفهمني بالعامية السعودية.</span><span data-lang="en" data-inline>My pages publish and sell while I sleep. First provider that gets Saudi colloquial.</span></p><div class="who"><span data-lang="ar">صاحبة متجر أزياء</span><span data-lang="en" data-inline>Fashion store owner</span></div><div class="where">جدة</div></div>
+                    <div class="q"><div class="star">★★★★★</div><p><span data-lang="ar">المستشار الذكي قرأ متجرنا بجلسة واحدة ورشّح الباقة الصحيحة — خدمة عملاء أسرع وأصدق.</span><span data-lang="en" data-inline>The consultant read our store in one session and recommended the right plan — support that&rsquo;s faster and more honest.</span></p><div class="who"><span data-lang="ar">مؤسس مشروع</span><span data-lang="en" data-inline>Startup founder</span></div><div class="where">الدمام</div></div>
                 </div>
             </div>
         </div>
@@ -862,7 +870,7 @@
         <div class="sec-inner" style="text-align:center;">
             <div class="reveal">
                 <span class="eyebrow"><span data-lang="ar">ابدأ الآن</span><span data-lang="en" data-inline>Get started</span></span>
-                <h2 class="sec-title"><span data-lang="ar">ابدأ رحلتك مع</span><span data-lang="en" data-inline>Start your journey with</span> <span class="c">النرجس</span></h2>
+                <h2 class="sec-title"><span data-lang="ar">ابدأ رحلتك مع</span><span data-lang="en" data-inline>Start your journey with</span> <span class="c" data-lang="ar">النرجس</span><span class="c" data-lang="en" data-inline>Al-Narjis</span></h2>
                 <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">اترك بياناتك وسيتواصل معك فريقنا خلال ٢٤ ساعة — أو تحدث مع المستشار الذكي مباشرة.</span><span data-lang="en" data-inline">Leave your details, we'll reach out in 24h — or talk to the Smart Consultant now.</span></p>
             </div>
             <form id="leadForm" class="glass-panel reveal">
@@ -884,7 +892,7 @@
                         <select id="package" name="package">
                             <option value="social" data-lang="ar">سوشيال ميديا — 1,500 ر.س</option>
                             <option value="social" data-lang="en">Social Media — 1,500 SAR</option>
-                            <option value="ecommerce" data-lang="ar">متاجر — 1,000 ر.س</option>
+                            <option value="ecommerce" data-lang="ar">متاجر إلكترونية — 1,000 ر.س</option>
                             <option value="ecommerce" data-lang="en">E-commerce — 1,000 SAR</option>
                             <option value="content" data-lang="ar">تسويق محتوى — 1,200 ر.س</option>
                             <option value="content" data-lang="en">Content — 1,200 SAR</option>
@@ -929,7 +937,7 @@
             <div>
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
                 <a href="https://wa.me/9665529798753" target="_blank"><i class="fab fa-whatsapp" style="margin-inline-end:8px;color:#3dbd7d;"></i>+966 55 297 9875</a>
-                <a href="#">aimerchantvault.77@gmail.com</a>
+                <a href="mailto:aimerchantvault.77@gmail.com">aimerchantvault.77@gmail.com</a>
                 <a href="#"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
             </div>
         </div>
@@ -1022,8 +1030,8 @@
                     var woke = emp.classList.toggle('woke');
                     emp.classList.toggle('dormant', !woke);
                     var ar = document.body.dataset.lang === 'ar';
-                    btn.querySelector('[data-w-b]').textContent = woke ? (ar ? 'ايقظ الآن' : 'Wake again') : (ar ? 'أيقظ' : 'Wake');
-                    emp.querySelector('[data-w-st]').innerHTML = '<i class="fas fa-circle"></i><span>' + (woke ? (ar ? 'يعمل' : 'Active') : (ar ? 'نائم' : 'Asleep')) + '</span>';
+                    btn.querySelector('[data-w-b]').innerHTML = '<span data-lang="ar">' + (woke ? 'أيقظ الآن' : 'أيقظ') + '</span><span data-lang="en" data-inline>' + (woke ? 'Wake again' : 'Wake') + '</span>';
+                    emp.querySelector('[data-w-st]').innerHTML = '<i class="fas fa-circle"></i><span data-lang="ar">' + (woke ? 'يعمل' : 'نائم') + '</span><span data-lang="en" data-inline>' + (woke ? 'Active' : 'Asleep') + '</span>';
                 });
             });
 
@@ -1078,15 +1086,16 @@
                         renderAgents();
                     }
                 } catch (e) {
-                    grid.innerHTML = '<div class="loading-msg">Failed to load</div>';
+                    grid.innerHTML = '<div class="loading-msg">' + (document.body.dataset.lang === 'ar' ? 'تعذر التحميل' : 'Failed to load') + '</div>';
                 }
             })();
 
             var WA = '9665529798753';
             var waLink = function (msg) { return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(msg); };
-            var wf = document.getElementById('waFloat'); if (wf) wf.href = waLink('مرحباً، أود الاستفسار عن خدمات النرجس للذكاء الاصطناعي');
-            var wd = document.getElementById('waDirect'); if (wd) wd.href = waLink('مرحباً، أريد تواصلاً مباشراً');
-            document.querySelectorAll('.socials a').forEach(function (a) { a.href = waLink('مرحباً، أود الاستفسار عن خدمات النرجس'); });
+            var arWa = document.body.dataset.lang === 'ar';
+            var wf = document.getElementById('waFloat'); if (wf) wf.href = waLink(arWa ? 'مرحباً، أود الاستفسار عن خدمات النرجس للذكاء الاصطناعي' : 'Hello, I would like to ask about Al-Narjis AI services');
+            var wd = document.getElementById('waDirect'); if (wd) wd.href = waLink(arWa ? 'مرحباً، أريد تواصلاً مباشراً' : 'Hello, I would like to talk directly');
+            document.querySelectorAll('.socials a').forEach(function (a) { a.href = waLink(arWa ? 'مرحباً، أود الاستفسار عن خدمات النرجس' : 'Hello, I would like to ask about Al-Narjis'); });
 
             document.querySelectorAll('.js-order').forEach(function (btn) {
                 btn.addEventListener('click', function (e) {

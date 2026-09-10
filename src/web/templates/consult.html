@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المستشار الذكي | النرجس للذكاء الاصطناعي</title>
+    <title>{% if _lang == 'ar' %}المستشار الذكي | النرجس للذكاء الاصطناعي{% else %}Smart Consultant | Al-Narjis AI{% endif %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,10 +69,10 @@
                     </button>
                 </div>
                 <div class="mt-4 flex flex-wrap gap-2" id="suggestions">
-                    <button class="chip" data-q="أملك متجر ملابس أونلاين وأريد زيادة المبيعات"><span data-lang="ar">أملك متجراً أريد زيادة مبيعاته</span><span data-lang="en" data-inline>I run a store, want more sales</span></button>
-                    <button class="chip" data-q="أبدأ مشروعي الخاص من الصفر"><span data-lang="ar">أبدأ مشروعي من الصفر</span><span data-lang="en" data-inline>Starting my business from scratch</span></button>
-                    <button class="chip" data-q="اهتمامي ينصب على تواجدي في السوشيال ميديا"><span data-lang="ar">أريد الحضور في السوشيال ميديا</span><span data-lang="en" data-inline>Want a social media presence</span></button>
-                    <button class="chip" data-q="أريد تحسين محتوى موقعي ومقالاتي"><span data-lang="ar">أريد تحسين محتوى موقعي</span><span data-lang="en" data-inline>Improve my website content</span></button>
+                    <button class="chip" data-q="أملك متجر ملابس أونلاين وأريد زيادة المبيعات" data-q-en="I run an online clothing store and want to increase sales"><span data-lang="ar">أملك متجراً أريد زيادة مبيعاته</span><span data-lang="en" data-inline>I run a store, want more sales</span></button>
+                    <button class="chip" data-q="أبدأ مشروعي الخاص من الصفر" data-q-en="I am starting my own business from scratch"><span data-lang="ar">أبدأ مشروعي من الصفر</span><span data-lang="en" data-inline>Starting my business from scratch</span></button>
+                    <button class="chip" data-q="اهتمامي ينصب على تواجدي في السوشيال ميديا" data-q-en="I want a social media presence"><span data-lang="ar">أريد الحضور في السوشيال ميديا</span><span data-lang="en" data-inline>Want a social media presence</span></button>
+                    <button class="chip" data-q="أريد تحسين محتوى موقعي ومقالاتي" data-q-en="I want to improve my website content and articles"><span data-lang="ar">أريد تحسين محتوى موقعي</span><span data-lang="en" data-inline>Improve my website content</span></button>
                 </div>
             </div>
 
@@ -89,7 +89,7 @@
 
     <footer class="n-footer py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);">✺ النرجس للذكاء الاصطناعي ✺</div>
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" data-inline>✺ Al-Narjis AI ✺</span></div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
                 <span data-lang="ar">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
@@ -162,18 +162,18 @@
                         append('ai', data.reply);
                         history.push({ role: 'assistant', content: data.reply });
                     } else {
-                        append('ai', isAr() ? 'حدث خطأ، حاول مجدداً.' : 'Error, try again.');
+                        append('ai', isAr() ? 'حدث خطأ، حاول مجدداً.' : 'Something went wrong. Please try again.');
                     }
                 } catch (e) {
                     typing.remove();
-                    append('ai', isAr() ? 'تعذر الاتصال بالمستشار.' : 'Cannot reach consultant.');
+                    append('ai', isAr() ? 'تعذر الاتصال بالمستشار.' : 'Lost connection to the consultant.');
                 }
             }
 
             $('send').addEventListener('click', () => send());
             $('msg').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
             document.querySelectorAll('.chip').forEach(ch => {
-                ch.addEventListener('click', () => send(ch.dataset.q));
+                ch.addEventListener('click', () => send(isAr() ? ch.dataset.q : ch.dataset.qEn));
             });
         })();
     </script>

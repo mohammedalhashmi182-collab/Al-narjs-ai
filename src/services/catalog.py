@@ -63,7 +63,7 @@ EMPLOYEES: dict[str, dict] = {
         "title_ar": "مدير حسابات السوشيال ميديا",
         "title_en": "Social Media Manager",
         "dept": "التسويق الرقمي",
-        "intro_ar": "أنا مدير حسابات التواصل الاجتماعي. أساعدك على بناء حضور قوي: أُقيّم حسابك الحالي وأبني لك خطة محتوى ونمو واضحة خلال ٣٠ يوماً.",
+        "intro_ar": "أنا مدير حسابات التواصل الاجتماعي. أساعدك على بناء حضور قوي: أقيّم حسابك الحالي وأبني لك خطة محتوى ونمو واضحة خلال ٣٠ يوماً.",
         "intro_en": "I manage your social accounts. I audit your current presence and build a clear 30-day content and growth plan.",
         "questions": [
             _q("platform", "ما المنصة التي تركز عليها حالياً؟ (مثلاً: إنستغرام، تيك توك، X)", "Which platform do you focus on? (e.g. Instagram, TikTok, X)"),

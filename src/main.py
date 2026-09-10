@@ -283,7 +283,7 @@ async def login_submit(request: Request):
     if password == settings.owner_password:
         resp = RedirectResponse("/", status_code=303)
         return set_owner_cookie(resp)
-    return {"error": "كلمة المرور غير صحيحة"}
+    return {"error": "wrong_password"}
 
 
 @app.get("/logout")
@@ -717,7 +717,11 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         from src.utils.logger import get_logger
         get_logger(__name__).error(f"Consult failed: {e}")
         return {
-            "reply": "عذراً، تعذر الاتصال بالمستشار حالياً. تفضل بزيارة /portal لتفعيل فريقك مباشرة."
+            "reply": (
+                "عذراً، تعذر الاتصال بالمستشار حالياً. تفضل بزيارة /portal لتفعيل فريقك مباشرة."
+                if locale == "ar" else
+                "Sorry, we can't reach the consultant right now. Visit /portal to activate your team directly."
+            )
         }
 
 

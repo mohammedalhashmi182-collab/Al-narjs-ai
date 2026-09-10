@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول المالك | النرجس للذكاء الاصطناعي</title>
+    <title>{% if _lang == 'ar' %}دخول المالك | النرجس للذكاء الاصطناعي{% else %}Owner Login | Al-Narjis AI{% endif %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +33,7 @@
             </form>
         </div>
         <div class="text-center mt-6">
-            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;"><i class="fas fa-arrow-right"></i> <span data-lang="ar">العودة للصفحة الرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;"><i class="fas fa-arrow-right" data-lang="ar"></i><i class="fas fa-arrow-left" data-lang="en" data-inline></i> <span data-lang="ar">العودة للصفحة الرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
         </div>
     </div>
 
@@ -60,11 +60,13 @@
                     if (r.redirected) { window.location.href = r.url; return; }
                     const data = await r.json().catch(() => ({}));
                     if (data.error) {
-                        err.textContent = data.error;
+                        err.textContent = data.error === 'wrong_password'
+                            ? (saved === 'ar' ? 'كلمة المرور غير صحيحة' : 'Incorrect password')
+                            : (saved === 'ar' ? 'حدث خطأ' : 'An error occurred');
                         err.style.display = 'block';
                     }
                 } catch (err2) {
-                    err.textContent = 'حدث خطأ';
+                    err.textContent = saved === 'ar' ? 'حدث خطأ' : 'An error occurred';
                     err.style.display = 'block';
                 } finally {
                     btn.disabled = false;

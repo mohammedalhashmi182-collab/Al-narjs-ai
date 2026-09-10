@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حالة الدفع | النرجس للذكاء الاصطناعي</title>
+    <title>{% if _lang == 'ar' %}حالة الدفع | النرجس للذكاء الاصطناعي{% else %}Payment Status | Al-Narjis AI{% endif %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +41,7 @@
         </p>
         {% endif %}
         {% if payment_id %}
-        <p class="text-xs mb-4" style="color:var(--n-brown-2);">رقم العملية: {{ payment_id }}</p>
+        <p class="text-xs mb-4" style="color:var(--n-brown-2);"><span data-lang="ar">رقم العملية: {{ payment_id }}</span><span data-lang="en" data-inline>Payment ID: {{ payment_id }}</span></p>
         {% endif %}
         <div class="flex flex-col gap-3 mt-2">
             <a href="/home#pricing" class="btn btn-green w-full">
@@ -56,7 +56,9 @@
         </div>
     </div>
     <script>
-        document.getElementById('waFail').href = 'https://wa.me/9665529798753?text=' + encodeURIComponent('مرحباً، لدي استفسار عن الدفع في النرجس للذكاء الاصطناعي');
+        document.getElementById('waFail').href = 'https://wa.me/9665529798753?text=' + encodeURIComponent(document.body.dataset.lang === 'ar'
+        ? 'مرحباً، لدي استفسار عن الدفع في النرجس للذكاء الاصطناعي'
+        : 'Hello, I have a question about payment at Al-Narjis AI');
     </script>
 </body>
 </html>

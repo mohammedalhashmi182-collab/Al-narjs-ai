@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة العميل | النرجس للذكاء الاصطناعي</title>
+    <title>{% if _lang == 'ar' %}بوابة العميل | النرجس للذكاء الاصطناعي{% else %}Client Portal | Al-Narjis AI{% endif %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,9 +55,9 @@
         <div class="max-w-5xl mx-auto px-6">
             <div class="text-center mb-10">
                 <div class="n-divider mb-4">✺</div>
-                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar">فعّل فريقك</span><span data-lang="en" data-inline>Wake Up Your Team</span> <span class="gold" data-lang="ar">الذكي</span><span class="gold" data-lang="en" data-inline>Smart</span></h1>
+                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar">فعّل فريقك <span class="gold">الذكي</span></span><span data-lang="en" data-inline>Wake Up Your <span class="gold">Smart</span> Team</span></h1>
                 <p class="n-sub mt-3" data-lang="ar">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>
-                <p class="n-sub mt-3" data-lang="en" data-inline>Choose your plan and a crew of expert employees (currently asleep) wake up to serve you instantly.</p>
+                <p class="n-sub mt-3" data-lang="en" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>
             </div>
 
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10" id="pkg-grid"></div>
@@ -110,7 +110,7 @@
                     <span id="teamPkg" class="gold"></span>
                 </h2>
                 <p class="n-sub mt-3" data-lang="ar">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>
-                <p class="n-sub mt-3" data-lang="en" data-inline">Your employees await a wake touch. Click any one to start serving you.</p>
+                <p class="n-sub mt-3" data-lang="en" data-inline">Your employees await a wake touch — click anyone to start serving you.</p>
             </div>
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="team-grid"></div>
             <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
@@ -149,7 +149,7 @@
 
     <footer class="n-footer py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);">✺ النرجس للذكاء الاصطناعي ✺</div>
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" data-inline>✺ Al-Narjis AI ✺</span></div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
                 <span data-lang="ar">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
@@ -158,8 +158,6 @@
                 <span style="opacity:0.6;">·</span>
                 <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar">الشروط</span><span data-lang="en" data-inline>Terms</span></a>
             </p>
-        </div>
-    </footer>
         </div>
     </footer>
 
@@ -224,13 +222,13 @@
                     $('regForm').scrollIntoView({ behavior: 'smooth' });
                 }
             }).catch(() => {
-                $('pkg-grid').innerHTML = '<div class="col-span-full text-center">Failed to load packages</div>';
+                $('pkg-grid').innerHTML = '<div class="col-span-full text-center">' + txt('تعذر تحميل الباقات', 'Failed to load packages') + '</div>';
             });
 
             // ---- Register client ----
             $('regForm').addEventListener('submit', async e => {
                 e.preventDefault();
-                if (!state.pkg) { alert('Choose a package first'); return; }
+                if (!state.pkg) { alert(txt('اختر باقتك أولاً', 'Choose a package first')); return; }
                 const msg = $('regMsg');
                 msg.style.display = 'block';
                 msg.textContent = txt('جارٍ تجهيز فريقك...', 'Preparing your team...');
@@ -260,6 +258,15 @@
                 $('step-chat').classList.add('hidden');
                 $('step-team').classList.remove('hidden');
                 const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال' };
+            const DEPT_EN = {
+                'التسويق الرقمي': 'Digital Marketing',
+                'المحتوى': 'Content',
+                'التجارة الإلكترونية': 'E-commerce',
+                'خدمة العملاء': 'Customer Care',
+                'التحليلات': 'Analytics',
+                'نمو الأعمال': 'Business Growth'
+            };
+            const deptEn = d => DEPT_EN[d] || d;
                 $('teamPkg').textContent = isAr() ? pkgNames[state.pkg] : (team[0]?.pkg_en || '');
                 $('team-grid').innerHTML = team.map(a => `
                     <div class="n-card emp-card dormant" data-slug="${a.slug}" style="cursor:pointer">
@@ -273,7 +280,7 @@
                                     <span data-lang="ar">${a.title_ar}</span><span data-lang="en" data-inline>${a.title_en}</span>
                                 </h3>
                                 <div class="text-xs" style="color:var(--n-brown-2);">
-                                    <span data-lang="ar">قسم ${a.dept}</span><span data-lang="en" data-inline>Dept: ${a.dept}</span>
+                                    <span data-lang="ar">قسم ${a.dept}</span><span data-lang="en" data-inline>Dept: ${deptEn(a.dept)}</span>
                                 </div>
                             </div>
                         </div>
@@ -308,12 +315,12 @@
                     startInterview(data.agent, data.questions);
                 } catch (err) {
                     alert(txt('تعذر إيقاظ الموظف: ' + err.message, 'Failed to wake: ' + err.message));
-                    if (btn) { btn.disabled = false; btn.innerHTML = 'أيقظ الموظف'; }
+                    if (btn) { btn.disabled = false; btn.innerHTML = txt('أيقظ الموظف', 'Wake Up'); }
                 }
             }
 
             function startInterview(agent, questions) {
-                if (!questions || !questions.length) { alert('No questions'); return; }
+                if (!questions || !questions.length) { alert(txt('لا توجد أسئلة', 'No questions')); return; }
                 state.current = agent;
                 state.questions = questions;
                 state.qIndex = 0;
@@ -322,7 +329,7 @@
                 $('step-team').classList.add('hidden');
                 $('step-chat').classList.remove('hidden');
                 $('chatEmpName').textContent = isAr() ? agent.title_ar : agent.title_en;
-                $('chatEmpMeta').textContent = agent.no + ' · ' + (isAr() ? agent.dept : 'Dept ' + agent.dept);
+                $('chatEmpMeta').textContent = agent.no + ' · ' + (isAr() ? agent.dept : deptEn(agent.dept));
                 const ava = $('chatEmpName').closest('.n-card').querySelector('.aw-preview');
                 if (ava) ava.textContent = agent.no.replace('AG-', '');
 
@@ -331,7 +338,7 @@
                 // skip questions already answered in db (resume)
                 const startIdx = 0;
                 state.qIndex = 0;
-                addMsg('agent', agent.intro_ar + (agent.recommendation ? '\n\n💡 ' + agent.recommendation : ''));
+                addMsg('agent', txt(agent.intro_ar || '', agent.intro_en || '') + (agent.recommendation && !isAr() ? '\n\n💡 ' + agent.recommendation : ''));
                 askNext();
             }
 
