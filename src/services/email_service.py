@@ -102,6 +102,71 @@ Al-Narjis AI · Riyadh""",
     )
 
 
+_FOLLOWUP_COPY = {
+    1: {
+        "subject": "عرض الإطلاق الخاص بك ينتهي 31 أكتوبر ✺",
+        "title": "وصلنا طلبك ولم نكمل اختيارك بعد",
+        "cta": "اختر باقتك الآن",
+    },
+    2: {
+        "subject": "فريق النرجس بانتظارك 👋",
+        "title": "لسه تفوضي؟",
+        "cta": "اكمل باقتك بخصم 50%",
+    },
+    3: {
+        "subject": "آخر فرصة: خصم الإطلاق 50%",
+        "title": "عرض الإطلاق يخلص نهاية أكتوبر",
+        "cta": "ابدأ اليوم مع واتساب",
+    },
+}
+
+
+def _followup_html(step: int, name: str) -> str:
+    copy = _FOLLOWUP_COPY.get(step, _FOLLOWUP_COPY[1])
+    cta = copy["cta"]
+    link = (
+        "https://wa.me/message/PPIY6ZARA53GM1"
+        if step >= 3
+        else "https://karmaai.online/home#pricing"
+    )
+    return f"""
+    <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e3dcc8;border-radius:14px;overflow:hidden;">
+      <div style="background:#0b3d2e;color:#e6c665;text-align:center;padding:22px;">
+        <div style="font-size:26px;">✺</div>
+        <div style="font-size:20px;font-weight:bold;color:#fff;">النرجس للذكاء الاصطناعي</div>
+        <div style="font-size:12px;letter-spacing:2px;color:#e6c665;">AL-NARJIS AI · RIYADH</div>
+      </div>
+      <div style="padding:26px;color:#3f3526;font-size:15px;line-height:1.9;">
+        <p>أهلاً <b>{name}</b>،</p>
+        <p>{copy['title']}.</p>
+        <p>عرض الإطلاق يمنحك خصم <b>50%</b> على جميع الباقات حتى 31 أكتوبر — ويشمل فريقك الرقمي الجاهز للعمل فور الدفع.</p>
+        <div style="text-align:center;margin:26px 0;">
+          <a href="{link}" style="background:#c8a45e;color:#0a0b0e;text-decoration:none;padding:14px 34px;border-radius:10px;font-weight:bold;font-size:16px;">{cta}</a>
+        </div>
+        <p style="color:#0b3d2e;font-weight:bold;">— فريق النرجس</p>
+      </div>
+    </div>
+    """
+
+
+async def send_followup(step: int, to: str, name: str) -> bool:
+    copy = _FOLLOWUP_COPY.get(step, _FOLLOWUP_COPY[1])
+    return await send_email(
+        to=to,
+        subject=copy["subject"],
+        body=f"""أهلاً {name}،
+
+{copy['title']}.
+
+عرض الإطلاق يمنحك خصم 50% على جميع الباقات حتى 31 أكتوبر.
+انهِ اختيارك الآن: https://karmaai.online/home#pricing
+
+— فريق النرجس
+Al-Narjis AI · Riyadh""",
+        html=_followup_html(step, name),
+    )
+
+
 def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: int, locale: str) -> str:
     package_name = {
         "social": "سوشيال ميديا / Social Media",

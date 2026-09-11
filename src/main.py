@@ -12,11 +12,13 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.settings import get_settings, settings
-from src.utils.logger import configure_logging
+from src.utils.logger import configure_logging, get_logger
 from src.utils.rate_limit import rate_limit_consult, rate_limit_login
 from src.db.session import init_db, get_session_factory, close_db
 
 configure_logging(settings.log_level, settings.log_json)
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -1190,8 +1192,43 @@ async def create_lead(request: Request):
     if lead.email:
         from src.services import email_service
         email_sent = await email_service.send_welcome(lead.email, lead.name or "عميلنا العزيز")
+        await _schedule_lead_followups(lead)
 
     return {"success": True, "lead_id": str(lead.id), "email_sent": email_sent}
+
+
+async def _schedule_lead_followups(lead):
+    from datetime import datetime, timedelta, timezone as _dt_tz
+    from zoneinfo import ZoneInfo
+    from src.automation.scheduler import ScheduleConfig
+
+    try:
+        scheduler = app.state.scheduler
+    except Exception:
+        scheduler = None
+    if scheduler is None or not lead.email:
+        return
+
+    now_ry = datetime.now(_dt_tz.utc).astimezone(ZoneInfo("Asia/Riyadh")).replace(tzinfo=None)
+    steps = [1, 2, 3]
+    hours = {1: 1, 2: 24, 3: 72}
+    for step in steps:
+        try:
+            await scheduler.add_schedule(ScheduleConfig(
+                name=f"Lead follow-up {str(lead.id)[:8]} step {step}",
+                target_type="lead_email",
+                target_id=lead.id,
+                payload={
+                    "step": step,
+                    "email": lead.email,
+                    "name": lead.name or "عميلنا العزيز",
+                    "lead_id": str(lead.id),
+                },
+                run_once_at=now_ry + timedelta(hours=hours[step]),
+                timezone="Asia/Riyadh",
+            ))
+        except Exception as e:
+            logger.warning("Could not schedule lead follow-up step %s: %s", step, e)
 
 
 @app.post("/api/email/test", dependencies=[Depends(require_owner_api)])
