@@ -12,7 +12,9 @@ logger = get_logger(__name__)
 async def execute_schedule(session, schedule_id) -> dict:
     from src.models import Schedule
 
-    result = await session.execute(select(Schedule).where(Schedule.id == UUID(schedule_id)))
+    if not isinstance(schedule_id, UUID):
+        schedule_id = UUID(str(schedule_id))
+    result = await session.execute(select(Schedule).where(Schedule.id == schedule_id))
     sched = result.scalar_one_or_none()
     if not sched:
         return {"status": "not_found", "schedule_id": str(schedule_id)}
