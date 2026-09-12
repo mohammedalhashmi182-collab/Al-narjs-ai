@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
     smtp_from: str = Field(default="", alias="SMTP_FROM")
     mail_reply_to: str = Field(default="", alias="MAIL_REPLY_TO")
+    brevo_api_key: str = Field(default="", alias="BREVO_API_KEY")
 
 
 @lru_cache

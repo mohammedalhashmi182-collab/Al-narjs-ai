@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import smtplib
+import urllib.request
 from email.message import EmailMessage
 from email.utils import formataddr
 from typing import Optional
@@ -11,9 +13,15 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+_BREVO_SEND_URL = "https://api.brevo.com/v3/smtp/email"
+
 
 def is_configured() -> bool:
-    return bool(settings.smtp_username and settings.smtp_password)
+    return bool(settings.smtp_username and (settings.smtp_password or settings.brevo_api_key))
+
+
+def _uses_http() -> bool:
+    return bool(settings.brevo_api_key)
 
 
 def _build_message(
@@ -36,7 +44,37 @@ def _build_message(
     return msg
 
 
-def _send_sync(msg: EmailMessage) -> None:
+def _send_http_sync(to: str, subject: str, body: str, html: Optional[str]) -> None:
+    from_name = "النرجس للذكاء الاصطناعي | Al-Narjis AI"
+    payload = {
+        "sender": {"email": settings.smtp_from or settings.smtp_username, "name": from_name},
+        "to": [{"email": to}],
+        "subject": subject,
+        "textContent": body,
+    }
+    if html:
+        payload["htmlContent"] = html
+    if settings.mail_reply_to:
+        payload["replyTo"] = {"email": settings.mail_reply_to}
+    req = urllib.request.Request(
+        _BREVO_SEND_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "api-key": settings.brevo_api_key,
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        if resp.status != 201:
+            raise RuntimeError(f"Brevo HTTP {resp.status}")
+
+
+def _send_sync(msg: EmailMessage, to: str, subject: str, body: str, html: Optional[str]) -> None:
+    if _uses_http():
+        _send_http_sync(to, subject, body, html)
+        return
     host = settings.smtp_host or "smtp.gmail.com"
     port = settings.smtp_port or 587
     if port == 465:
@@ -63,7 +101,7 @@ async def send_email(
 
     try:
         msg = _build_message(to, subject, body, html)
-        await asyncio.to_thread(_send_sync, msg)
+        await asyncio.to_thread(_send_sync, msg, to, subject, body, html)
         logger.info("Email sent to %s | subject=%s", to, subject)
         return True
     except Exception as e:
