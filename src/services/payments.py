@@ -18,6 +18,7 @@ from src.services import catalog
 PACKAGES = catalog.PACKAGES  # compatible alias — amounts live in catalog only
 
 MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
+MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
 VAT_RATE = 0.15
 
 
@@ -115,21 +116,18 @@ async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict
     if not settings.moyasar_api_secret:
         raise PaymentError("Moyasar API secret not configured")
 
+    # Use the hosted-invoice flow so the customer pays on Moyasar's checkout
+    # page without requiring client-side card tokenization.
     payload = {
         "amount": payment.amount,
         "currency": "SAR",
         "description": payment.description or "النرجس للذكاء الاصطناعي",
         "callback_url": callback_url or settings.payment_success_url,
-        "source": source,
-        "metadata": {
-            "payment_id": str(payment.id),
-            "package": payment.package or "",
-        },
     }
 
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
-            MOYASAR_API_URL,
+            MOYASAR_INVOICES_URL,
             json=payload,
             headers={"Authorization": _auth_header(settings)},
         )
@@ -138,11 +136,18 @@ async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict
         raise PaymentError(f"Moyasar error {resp.status_code}: {resp.text}")
 
     data = resp.json()
+    invoice_id = data.get("id")
+    if not invoice_id:
+        raise PaymentError(f"Moyasar invoice missing id: {resp.text[:200]}")
+
     payment.gateway = "moyasar"
-    payment.gateway_payment_id = data.get("id")
-    payment.gateway_source = data.get("source", {}).get("type") if isinstance(data.get("source"), dict) else None
+    payment.gateway_payment_id = invoice_id
+    payment.gateway_source = (source or {}).get("type", "invoice")
     await session.commit()
-    return data
+    return {
+        "id": invoice_id,
+        "checkout_url": f"https://api.moyasar.com/v1/invoices/{invoice_id}/pay",
+    }
 
 
 async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
@@ -155,9 +160,12 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
     if not settings.moyasar_api_secret or not payment.gateway_payment_id:
         return payment
 
+    invoice_mode = payment.gateway_source == "invoice" or str(payment.gateway_payment_id).startswith("inv_")
+    endpoint = MOYASAR_INVOICES_URL if invoice_mode else MOYASAR_API_URL
+
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.get(
-            f"{MOYASAR_API_URL}/{payment.gateway_payment_id}",
+            f"{endpoint}/{payment.gateway_payment_id}",
             headers={"Authorization": _auth_header(settings)},
         )
 
@@ -172,6 +180,8 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
         payment.status = "failed"
     elif status == "authorized":
         payment.status = "authorized"
+    elif status == "expired":
+        payment.status = "failed"
     else:
         payment.status = status or payment.status
 

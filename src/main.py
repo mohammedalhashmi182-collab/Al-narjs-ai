@@ -1394,7 +1394,7 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "status": payment.status,
                     "gateway": "moyasar",
                     "gateway_payment_id": payment.gateway_payment_id,
-                    "redirect_url": data.get("source", {}).get("transaction_url") if isinstance(data.get("source"), dict) else None,
+                    "redirect_url": data.get("checkout_url") or (data.get("source", {}).get("transaction_url") if isinstance(data.get("source"), dict) else None),
                     "publishable_key": pm.get_publishable_key(),
                     "amount": payment.amount,
                     "discount": discount_halalas,
