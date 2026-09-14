@@ -144,9 +144,14 @@ async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict
     payment.gateway_payment_id = invoice_id
     payment.gateway_source = (source or {}).get("type", "invoice")
     await session.commit()
+    checkout = data.get("url") or f"https://checkout.moyasar.com/invoices/{invoice_id}"
+    if "lang=" not in checkout:
+        checkout += ("&" if "?" in checkout else "?") + "lang=ar"
+    else:
+        checkout = checkout.replace("lang=en", "lang=ar")
     return {
         "id": invoice_id,
-        "checkout_url": f"https://api.moyasar.com/v1/invoices/{invoice_id}/pay",
+        "checkout_url": checkout,
     }
 
 

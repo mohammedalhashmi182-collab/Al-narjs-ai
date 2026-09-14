@@ -12,6 +12,7 @@
 import json
 import re
 import sys
+import time
 from pathlib import Path
 
 import httpx
@@ -79,20 +80,44 @@ def ask(system: str, user: str, temperature: float = 0.7, max_tokens: int = 1800
     if not GEMINI_KEY:
         raise RuntimeError("GEMINI_API_KEY غير موجود في .env")
     user = user + "\n\nبشكل قاطع: أرسل النص النهائي كاملاً فقط — بدون مقدمة، بدون ملاحظات، بدون خطط، بدون عناوين شرح."
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": f"{system}\n\n{user}"}]}],
-        "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens},
-    }
+    quota_waits = 0
+    max_attempts = 5
     with httpx.Client(timeout=240) as client:
-        resp = client.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_KEY}",
-            json=payload,
-        )
-    data = resp.json()
-    if resp.status_code != 200 or not data.get("candidates"):
-        raise RuntimeError(f"Gemini {resp.status_code}: {json.dumps(data, ensure_ascii=False)[:400]}")
-    parts = [p.get("text", "") for p in data["candidates"][0].get("content", {}).get("parts", []) if p.get("text")]
-    return "\n".join(parts).strip()
+        for attempt in range(max_attempts):
+            payload = {
+                "contents": [{"role": "user", "parts": [{"text": f"{system}\n\n{user}"}]}],
+                "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens},
+            }
+            try:
+                resp = client.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_KEY}",
+                    json=payload,
+                )
+            except httpx.TransportError as exc:
+                print(f"  ... خطأ شبكة ({exc.__class__.__name__}) → ننتظر 20 ثانية ثم نعيد")
+                time.sleep(20)
+                continue
+            data = resp.json()
+            if resp.status_code == 429:
+                if quota_waits > 8:
+                    raise RuntimeError("قيمة الحصة المجانية مستنزفة — جرب مرة أخرى لاحقاً أو استخدم مفتاحاً مدفوعاً")
+                quota_waits += 1
+                wait = 60
+                print(f"  ... 429 (حد الطلبات المجانية) → ننتظر {wait} ثانية ثم نعيد")
+                time.sleep(wait)
+                continue
+            if resp.status_code != 200 or not data.get("candidates"):
+                raise RuntimeError(f"Gemini {resp.status_code}: {json.dumps(data, ensure_ascii=False)[:400]}")
+            cand = data["candidates"][0]
+            finish = cand.get("finishReason", "")
+            parts = [p.get("text", "") for p in cand.get("content", {}).get("parts", []) if p.get("text")]
+            text = "\n".join(parts).strip()
+            if finish == "MAX_TOKENS" and attempt < max_attempts - 1:
+                max_tokens = int(max_tokens * 1.8)
+                print("  ... الناتج قُصّ → نعيد بميزانية رموز أكبر")
+                continue
+            return text
+    raise RuntimeError("لم نتمكن من إكمال التوليد بعد عدة محاولات")
 
 
 def generate_linkedin(theme, goal, model):
@@ -147,7 +172,15 @@ def generate_carousel(theme, model):
 
 def main():
     week_arg = sys.argv[1] if len(sys.argv) > 1 else "1"
-    model = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MODEL
+    model = DEFAULT_MODEL
+    only = []
+    for arg in sys.argv[2:]:
+        if arg.count(":") == 1 and not arg.startswith("gemini") and arg.split(":")[0].isalpha():
+            continue
+        if arg in ("gemini-3.6-flash",):
+            model = arg
+        else:
+            only.append(arg)
     try:
         week_num = int(re.search(r"\d+", week_arg).group())
     except Exception:
@@ -172,6 +205,8 @@ def main():
 
     print(f"توليد باقة الأسبوع {week_num}: {theme}")
     for name, (fn, args) in tasks.items():
+        if only and name not in only:
+            continue
         print(f"  ... {name}")
         text = fn(*args)
         (out / name).write_text(text, encoding="utf-8")
