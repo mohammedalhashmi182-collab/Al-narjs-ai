@@ -305,6 +305,14 @@ async def logout(request: Request):
     return clear_owner_cookie(resp)
 
 
+@app.get("/owner", response_class=HTMLResponse)
+async def owner_entry(request: Request):
+    from src.core.owner_auth import check_owner
+    if not check_owner(request):
+        return RedirectResponse("/login")
+    return RedirectResponse("/")
+
+
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
     return templates.TemplateResponse(request, "landing.html")
@@ -1272,6 +1280,72 @@ async def list_leads(limit: int = 100, offset: int = 0):
                 "created_at": l.created_at.isoformat() if l.created_at else None,
             } for l in leads
         ]}
+
+
+@app.get("/api/owner/overview", dependencies=[Depends(require_owner_api)])
+async def owner_overview():
+    from src.models import Lead, Payment, ClientProject
+    from sqlalchemy import select, func, desc
+
+    async with app.state.session_factory() as session:
+        lead_counts = dict((await session.execute(
+            select(Lead.status, func.count()).group_by(Lead.status)
+        )).all())
+        payment_by_status = dict((await session.execute(
+            select(Payment.status, func.count()).group_by(Payment.status)
+        )).all())
+        paid_total = (await session.execute(
+            select(func.coalesce(func.sum(Payment.amount), 0)).where(Payment.status == "paid")
+        )).scalar_one()
+
+        projects = (await session.execute(
+            select(func.count()).select_from(ClientProject)
+        )).scalar_one()
+        active_projects = (await session.execute(
+            select(func.count()).select_from(ClientProject).where(ClientProject.status == "active")
+        )).scalar_one()
+
+        recent_payments_rows = (await session.execute(
+            select(Payment).order_by(desc(Payment.created_at)).limit(10)
+        )).scalars().all()
+        recent_leads_rows = (await session.execute(
+            select(Lead).order_by(desc(Lead.created_at)).limit(10)
+        )).scalars().all()
+
+    return {
+        "leads": {
+            "total": sum(lead_counts.values()),
+            "by_status": {k: v for k, v in sorted(lead_counts.items())},
+        },
+        "payments": {
+            "total": sum(payment_by_status.values()),
+            "by_status": {k: v for k, v in sorted(payment_by_status.items())},
+            "revenue_halalas": paid_total,
+            "revenue_sar": round(paid_total / 100, 2),
+        },
+        "projects": {"total": projects, "active": active_projects},
+        "recent_payments": [
+            {
+                "id": str(p.id),
+                "package": p.package,
+                "amount_sar": p.amount / 100,
+                "currency": p.currency,
+                "status": p.status,
+                "customer": p.customer_name or p.customer_email or "-",
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+            } for p in recent_payments_rows
+        ],
+        "recent_leads": [
+            {
+                "id": str(l.id),
+                "name": l.name,
+                "phone": l.phone,
+                "package": l.package,
+                "status": l.status,
+                "created_at": l.created_at.isoformat() if l.created_at else None,
+            } for l in recent_leads_rows
+        ],
+    }
 
 
 @app.post("/api/leads/{lead_id}/status", dependencies=[Depends(require_owner_api)])
