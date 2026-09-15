@@ -1,0 +1,45 @@
+{
+  "week": 8,
+  "theme": "ملخص الحملة + دعوة التجربة الكاملة قبل الإطلاق",
+  "goal": "التحويل والتحصيل",
+  "provider": "manual",
+  "region": {
+    "scope": "الخليج العربي عاماً",
+    "country_focus": "السعودية تحديداً",
+    "city_focus": "الرياض خصوصاً",
+    "examples_to_use": [
+      "الرياض (الدرعية، موسم الرياض، جادة الملك سلمان)",
+      "القهوة السعودية وسلاسل الكافيهات",
+      "متاجر التمور والهدايا والعربية",
+      "وكالات السفر والعقار الصغيرة في الرياض"
+    ]
+  },
+  "brand": {
+    "founder": "محمد الهاشمي",
+    "founder_handle": "@MohammedAlhashmi182",
+    "platform_name": "النرجس للذكاء الاصطناعي",
+    "platform_url": "https://karmaai.online",
+    "signature": "محمد الهاشمي — مؤسس النرجس (karmaai.online)"
+  },
+  "offer": {
+    "launch_discount": "خصم 50% على رسوم الإطلاق",
+    "code": "NARJIS50",
+    "valid_until": "14 أكتوبر"
+  },
+  "hashtags": [
+    "#الذكاء_الاصطناعي",
+    "#السعودية",
+    "#الرياض",
+    "#رؤية_2030",
+    "#ريادة_الأعمال",
+    "#karmaai",
+    "#نرجس_جربها_فري"
+  ],
+  "files": [
+    "linkedin_post.md",
+    "twitter_posts.md",
+    "email_newsletter.md",
+    "video_script_60s.md",
+    "carousel_outline.md"
+  ]
+}

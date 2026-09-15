@@ -356,6 +356,11 @@ async def consult_page(request: Request):
     return templates.TemplateResponse(request, "consult.html")
 
 
+@app.get("/guide", response_class=HTMLResponse)
+async def guide_page(request: Request):
+    return templates.TemplateResponse(request, "guide.html")
+
+
 @app.get("/agents", response_class=HTMLResponse)
 async def agents_page(request: Request):
     from src.core.owner_auth import check_owner

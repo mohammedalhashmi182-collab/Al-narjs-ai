@@ -35,6 +35,9 @@ def env_key(key: str) -> str:
 
 
 GEMINI_KEY = env_key("GEMINI_API_KEY")
+MOONSHOT_KEY = env_key("MOONSHOT_API_KEY")
+MOONSHOT_BASE = env_key("MOONSHOT_BASE_URL") or "https://api.moonshot.ai/v1"
+MOONSHOT_MODEL = env_key("MOONSHOT_DEFAULT_MODEL") or "kimi-k2.7-code"
 
 
 def load_agent(slug: str) -> dict:
@@ -76,7 +79,62 @@ def agent_system(slug: str, extra: str = "") -> str:
     return f"{agent['name']}\n\n{prompt}\n\n{extra}"
 
 
+PROVIDER = "gemini"  # toggled via CLI arg "moonshot"
+
+
 def ask(system: str, user: str, temperature: float = 0.7, max_tokens: int = 1800, model: str = DEFAULT_MODEL) -> str:
+    if PROVIDER == "moonshot":
+        return ask_moonshot(system, user, temperature, max_tokens, model)
+    return ask_gemini(system, user, temperature, max_tokens, model)
+
+
+def ask_moonshot(system: str, user: str, temperature: float, max_tokens: int, model: str) -> str:
+    if not MOONSHOT_KEY:
+        raise RuntimeError("MOONSHOT_API_KEY غير موجود في .env")
+    user = user + "\n\nبشكل قاطع: أرسل النص النهائي كاملاً فقط — بدون مقدمة، بدون ملاحظات، بدون خطط، بدون عناوين شرح."
+    waits = 0
+    with httpx.Client(timeout=240) as client:
+        for attempt in range(6):
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            try:
+                resp = client.post(
+                    f"{MOONSHOT_BASE.rstrip('/')}/chat/completions",
+                    json=payload,
+                    headers={"Authorization": f"Bearer {MOONSHOT_KEY}"},
+                )
+            except httpx.TransportError as exc:
+                print(f"  ... خطأ شبكة ({exc.__class__.__name__}) → ننتظر 20 ثانية ثم نعيد")
+                time.sleep(20)
+                continue
+            data = resp.json()
+            if resp.status_code == 429:
+                if waits > 8:
+                    raise RuntimeError("حصة Moonshot مستنزفة — جرب لاحقاً")
+                waits += 1
+                print("  ... 429 → ننتظر 45 ثانية ثم نعيد")
+                time.sleep(45)
+                continue
+            if resp.status_code != 200 or not data.get("choices"):
+                raise RuntimeError(f"Moonshot {resp.status_code}: {json.dumps(data, ensure_ascii=False)[:400]}")
+            text = (data["choices"][0].get("message", {}).get("content", "") or "").strip()
+            finish = data["choices"][0].get("finish_reason", "")
+            if finish == "length" and attempt < 5:
+                max_tokens = int(max_tokens * 1.8)
+                print("  ... الناتج قُصّ → نعيد بميزانية رموز أكبر")
+                continue
+            return text
+    raise RuntimeError("لم نتمكن من إكمال التوليد بعد عدة محاولات (Moonshot)")
+
+
+def ask_gemini(system: str, user: str, temperature: float, max_tokens: int, model: str) -> str:
     if not GEMINI_KEY:
         raise RuntimeError("GEMINI_API_KEY غير موجود في .env")
     user = user + "\n\nبشكل قاطع: أرسل النص النهائي كاملاً فقط — بدون مقدمة، بدون ملاحظات، بدون خطط، بدون عناوين شرح."
@@ -175,6 +233,10 @@ def main():
     model = DEFAULT_MODEL
     only = []
     for arg in sys.argv[2:]:
+        if arg == "moonshot":
+            global PROVIDER
+            PROVIDER = "moonshot"
+            continue
         if arg.count(":") == 1 and not arg.startswith("gemini") and arg.split(":")[0].isalpha():
             continue
         if arg in ("gemini-3.6-flash",):

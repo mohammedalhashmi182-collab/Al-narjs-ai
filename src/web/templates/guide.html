@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خطة 30 يوماً — دليل مجاني | النرجس للذكاء الاصطناعي</title>
+<meta name="description" content="دليل مجاني بالعربي لمدة 30 يوماً: كيف تحوّل منشأتك بالذكاء الاصطناعي خطوة بخطوة — محتوى، ردود، متجر، وتسويق.">
+<meta property="og:title" content="خطة 30 يوماً للذكاء الاصطناعي — دليل مجاني">
+<meta property="og:description" content="أربعة إيجنتس = فريق رقمي كامل. ابدأ خطوتك الأولى خلال دقائق.">
+<meta property="og:image" content="/static/guide/page_01.png">
+<meta property="og:type" content="article">
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+    --bg:#0a0b0e; --bg2:#0e1015; --gold:#c8a45e; --gold-b:#e6c98a;
+    --line:rgba(255,255,255,.08); --ink:#eef1f6; --muted:#98a1b0; --green:#0b3d2e;
+    --font:"Tajawal",sans-serif; --head:"Manrope","Almarai","Tajawal",sans-serif;
+    --r:18px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:var(--font); background:var(--bg); color:var(--ink); line-height:1.9; -webkit-font-smoothing:antialiased; }
+a { text-decoration:none; color:inherit; }
+.mesh { position:fixed; inset:0; z-index:-1; background:radial-gradient(1000px 620px at 78% -14%, rgba(200,164,94,.08), transparent 60%), linear-gradient(172deg,#0b0c10,#0a0b0e 52%,#0e1015); }
+.wrap { max-width:1100px; margin-inline:auto; padding-inline:24px; }
+.nav { display:flex; align-items:center; justify-content:space-between; padding:20px 0; }
+.brand { display:flex; align-items:center; gap:13px; }
+.brand .mark { width:44px; height:44px; display:grid; place-items:center; border-radius:12px; color:#0a0b0e; font-weight:800; background:linear-gradient(135deg,var(--gold-b),var(--gold) 65%,#a5803c); }
+.brand .name { font-weight:800; font-family:var(--head); }
+.brand .name b { color:var(--gold-b); }
+.nav a.ghost { font-weight:700; color:var(--muted); }
+.nav a.btn { padding:10px 20px; border-radius:12px; background:linear-gradient(135deg,var(--gold-b),var(--gold)); color:#0a0b0e; font-weight:800; margin-inline-start:14px; }
+
+.hero { position:relative; padding:60px 0 40px; border-bottom:1px solid var(--line); }
+.hero .tag { display:inline-block; color:var(--gold-b); border:1px solid var(--gold); border-radius:999px; padding:6px 16px; font-size:.85rem; margin-bottom:20px; }
+.hero h1 { font-family:var(--head); font-size:clamp(2rem,5vw,3.4rem); line-height:1.3; font-weight:800; }
+.hero h1 .grad { background:linear-gradient(90deg,var(--gold-b),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero .sub { color:var(--muted); font-size:1.1rem; max-width:720px; margin-top:16px; }
+.hero .featured { display:flex; gap:46px; margin-top:42px; flex-wrap:wrap; }
+.hero .plus { display:flex; gap:14px; align-items:flex-start; max-width:300px; }
+.hero .plus i { color:var(--gold-b); margin-top:8px; }
+.hero .plus b { display:block; }
+.hero .plus span { color:var(--muted); font-size:.92rem; }
+
+.cover { display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:center; padding:50px 0; }
+@media (max-width:900px){ .cover { grid-template-columns:1fr; } }
+.cover .mock { border-radius:20px; overflow:hidden; border:1px solid var(--line); box-shadow:0 30px 70px rgba(0,0,0,.45); }
+.cover .mock img { display:block; width:100%; }
+.cta-card { background:var(--bg2); border:1px solid var(--line); border-radius:22px; padding:30px; }
+.cta-card h2 { font-family:var(--head); font-size:1.4rem; margin-bottom:8px; }
+.cta-card p { color:var(--muted); font-size:.95rem; }
+.cta-card .code { display:inline-block; margin:14px 0 18px; border:1px dashed var(--gold); color:var(--gold-b); padding:8px 18px; border-radius:10px; font-weight:800; letter-spacing:1px; }
+.form { display:flex; flex-direction:column; gap:12px; margin-top:18px; }
+.field { display:flex; flex-direction:column; gap:6px; }
+.field label { font-size:.85rem; color:var(--muted); }
+.field input { background:#12151c; border:1px solid var(--line); border-radius:12px; color:var(--ink); padding:13px 16px; font-family:inherit; font-size:1rem; }
+.field input:focus { outline:none; border-color:var(--gold); }
+.form button { background:linear-gradient(135deg,var(--gold-b),var(--gold)); color:#0a0b0e; font-weight:800; font-size:1.05rem; padding:15px; border:0; border-radius:12px; cursor:pointer; }
+.form button:hover { filter:brightness(1.07); }
+.msg { display:none; font-size:.95rem; border-radius:10px; padding:12px 14px; margin-top:10px; }
+.msg.ok { display:block; background:rgba(61,189,125,.12); border:1px solid rgba(61,189,125,.4); color:#3dbd7d; }
+.msg.err { display:block; background:rgba(220,80,80,.12); border:1px solid rgba(220,80,80,.4); color:#f29999; }
+.dl-wrap { display:none; margin-top:16px; text-align:center; }
+.dl-wrap.show { display:block; }
+.dl-wrap .big { display:block; background:linear-gradient(135deg,var(--green),#136b4b); border:1px solid var(--gold); color:#fff; font-weight:800; padding:16px; border-radius:12px; margin-bottom:10px; }
+.dl-wrap .alt { color:var(--muted); font-size:.9rem; }
+.dl-wrap .alt a { color:var(--gold-b); text-decoration:underline; }
+
+.timeline { padding:40px 0 20px; }
+.timeline h2, .agents-sec h2 { font-family:var(--head); font-size:1.8rem; text-align:center; margin-bottom:30px; }
+.timeline h2 span { color:var(--gold-b); }
+.steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; }
+.step { background:var(--bg2); border:1px solid var(--line); border-radius:var(--r); padding:20px; position:relative; }
+.step .n { position:absolute; top:14px; inset-inline-end:16px; font-family:var(--head); font-weight:800; color:rgba(230,201,138,.35); font-size:1.6rem; }
+.step b { display:block; margin-bottom:6px; color:var(--gold-b); }
+.step p { color:var(--muted); font-size:.9rem; }
+.agents-sec { padding:30px 0; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+.card { background:var(--bg2); border:1px solid var(--line); border-radius:var(--r); padding:20px; }
+.card i { color:var(--gold-b); font-size:1.3rem; }
+.card b { display:block; margin:12px 0 6px; }
+.card p { color:var(--muted); font-size:.88rem; }
+.banner { margin:40px 0; background:linear-gradient(120deg,var(--green),#0f5c40); border:1px solid var(--gold); border-radius:20px; padding:28px 30px; display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; }
+.banner b { font-size:1.15rem; display:block; }
+.banner span { color:rgba(238,241,246,.85); font-size:.92rem; }
+.banner .code { color:var(--gold-b); font-weight:800; letter-spacing:2px; }
+.banner a { background:linear-gradient(135deg,var(--gold-b),var(--gold)); color:#0a0b0e; font-weight:800; padding:13px 26px; border-radius:12px; }
+footer { border-top:1px solid var(--line); padding:26px 0 60px; text-align:center; color:var(--muted); font-size:.9rem; }
+footer b { color:var(--gold-b); }
+</style>
+{% include "partials/_analytics.html" %}
+</head>
+<body>
+<div class="mesh"></div>
+<div class="wrap">
+    <nav class="nav">
+        <a href="/home" class="brand">
+            <span class="mark">النرجس</span>
+            <span><span class="name">النرجس <b>AI</b></span></span>
+        </a>
+        <div>
+            <a href="/home" class="ghost">الرئيسية</a>
+            <a href="/portal" class="btn"><i class="fas fa-bolt"></i> أيقظ فريقك</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <span class="tag">دليل مجاني — برعاية النرجس للذكاء الاصطناعي</span>
+        <h1>خطة <span class="grad">30 يوماً</span><br>للذكاء الاصطناعي</h1>
+        <p class="sub">لأصحاب المشاريع الصغيرة في السعودية: كيف تحوّل أعمالك بالذكاء الاصطناعي خطوة بخطوة — بدون برمجة و بدون ميزانية ضخمة. ابدأ اليوم وطبّق من الأسبوع الأول.</p>
+        <div class="featured">
+            <div class="plus"><i class="fas fa-check-circle"></i><span><b>4 إيجنتس = فريق كامل</b>محتوى، ردود عملاء، متجر، وتسويق.</span></div>
+            <div class="plus"><i class="fas fa-check-circle"></i><span><b>20 دقيقة يومياً</b>لا أكثر — الباقي أتمتة.</span></div>
+            <div class="plus"><i class="fas fa-check-circle"></i><span><b>بالعربي 100%</b>وبصوت علامتك التجارية.</span></div>
+        </div>
+    </section>
+
+    <section class="cover">
+        <div class="mock"><img src="/static/guide/page_01.png" alt="خطة 30 يوماً — غلاف الدليل"></div>
+        <div class="cta-card">
+            <h2>حمّل الدليل مجاناً</h2>
+            <p>أدخل بياناتك ونرسل لك ملف PDF + كود خصم الإطلاق مباشرة. بدون رسائل مزعجة.</p>
+            <span class="code">NARJIS50 • خصم 50%</span>
+            <form class="form" id="guideForm">
+                <div class="field"><label>الاسم</label><input name="name" type="text" required placeholder="مثال: محمد الهاشمي"></div>
+                <div class="field"><label>رقم الجوال (اختياري)</label><input name="phone" type="tel" placeholder="05xxxxxxxx"></div>
+                <div class="field"><label>البريد الإلكتروني</label><input name="email" type="email" required placeholder="you@example.com"></div>
+                <button type="submit">احصل على الدليل + الخصم الآن</button>
+            </form>
+            <div class="msg" id="guideMsg"></div>
+            <div class="dl-wrap" id="dlWrap">
+                <a class="big" href="/static/guide/narjis-30day-ai-guide.pdf" download onclick="this.style.opacity=.8"><i class="fas fa-download"></i> تحميل الدليل PDF</a>
+                <span class="alt">أو تصفح <a href="/static/guide/page_01.png" target="_blank">صفحة الغلاف</a> · العرض سارٍ حتى 14 أكتوبر</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="timeline">
+        <h2>الخارطة: <span>4 أسابيع</span></h2>
+        <div class="steps">
+            <div class="step"><span class="n">1</span><b>الأسبوع الأول — الفريق يستفيق</b><p>أنشئ حسابك، فعّل إيجنت المحتوى، واجعل أول أسبوع منشورات آلي. وفّرت عليك ساعات.</p></div>
+            <div class="step"><span class="n">2</span><b>الأسبوع الثاني — ردود وخدمة عملاء</b><p>دع الإيجنت يرد على الرسائل الشائعة بأسلوبك، ولا عميل ينتظر.</p></div>
+            <div class="step"><span class="n">3</span><b>الأسبوع الثالث — متجر وأسعار</b><p>ارفع منتجاتك دفعة واحدة، حدّث الأسعار، وطبّق كوبون الشكر التلقائي.</p></div>
+            <div class="step"><span class="n">4</span><b>الأسبوع الرابع — قياس وتحسين</b><p>قرّرات بيانات لا تخمين، ثم أضف إيجنت حملات التسويق.</p></div>
+        </div>
+    </section>
+
+    <section class="agents-sec">
+        <h2>فريقك <span>الرقمي</span></h2>
+        <div class="cards">
+            <div class="card"><i class="fas fa-share-alt"></i><b>إيجنت سوشيال</b><p>ينشر محتواك على المواعيد بخطة أسبوعية.</p></div>
+            <div class="card"><i class="fas fa-cart-arrow-down"></i><b>إيجنت متاجر</b><p>يرفع المنتجات ويحدّث الأسعار والكوبونات.</p></div>
+            <div class="card"><i class="fas fa-bullhorn"></i><b>إيجنت تسويق</b><p>يدير الحملات والخصومات.</p></div>
+            <div class="card"><i class="fas fa-comments"></i><b>إيجنت محتوى</b><p>صناعة نصوص وردود بعلامتك التجارية.</p></div>
+        </div>
+    </section>
+
+    <section class="banner">
+        <div><b>جاهز تبدأ خطوتك الأولى اليوم؟</b><span>فعّل كود <span class="code">NARJIS50</span> وخصمك 50% ينتهي عند 14 أكتوبر.</span></div>
+        <a href="/portal">أيقظ فريقك الآن</a>
+    </section>
+
+    <footer>النرجس للذكاء الاصطناعي · <b>Al-Narjis AI</b> · الرياض — karmaai.online</footer>
+</div>
+<script>
+var form = document.getElementById('guideForm');
+var msg = document.getElementById('guideMsg');
+var dl = document.getElementById('dlWrap');
+form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    msg.className = 'msg';
+    msg.textContent = 'جارٍ إرسال طلبك…';
+    msg.style.display = 'block';
+    var data = Object.fromEntries(new FormData(form).entries());
+    data.package = 'guide';
+    fetch('/api/leads', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    }).then(function (r) {
+        if (r.ok) {
+            msg.className = 'msg ok';
+            msg.textContent = '✓ تم! حمّل دليلك الآن من الأسفل.';
+            dl.classList.add('show');
+        } else {
+            msg.className = 'msg err';
+            msg.textContent = 'حدث خطأ، حاول مرة أخرى.';
+        }
+    }).catch(function () {
+        msg.className = 'msg err';
+        msg.textContent = 'تعذر الاتصال، تحقق من الإنترنت.';
+    });
+});
+</script>
+</body>
+</html>
