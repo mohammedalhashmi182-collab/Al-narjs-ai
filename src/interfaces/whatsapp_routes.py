@@ -15,11 +15,14 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse
+from sqlalchemy import func as sa_func, select as sa_select
 
 from src.config.settings import settings
+from src.models import InboundMessage
 from src.services.whatsapp_webhook import process_inbound_payload, verify_webhook_signature, webhook_disabled_reason
 
 log = logging.getLogger(__name__)
@@ -85,9 +88,40 @@ async def whatsapp_webhook(request: Request):
 
 
 @router.get("/whatsapp/health")
-async def whatsapp_webhook_health():
+async def whatsapp_webhook_health(request: Request):
     """Secret-free health/configuration probe used by the War Room."""
-    return {
+    result = {
         "configured": webhook_disabled_reason() is None,
         "disabled_reason": webhook_disabled_reason(),
     }
+    try:
+        since = datetime.now(timezone.utc) - timedelta(hours=24)
+        session_factory = request.app.state.session_factory
+        async with session_factory() as session:
+            total = (
+                await session.execute(sa_select(sa_func.count()).select_from(InboundMessage))
+            ).scalar_one()
+            recent = (
+                await session.execute(
+                    sa_select(sa_func.count())
+                    .select_from(InboundMessage)
+                    .where(InboundMessage.created_at >= since)
+                )
+            ).scalar_one()
+            last = (
+                await session.execute(
+                    sa_select(InboundMessage)
+                    .order_by(InboundMessage.created_at.desc())
+                    .limit(1)
+                )
+            ).scalar_one_or_none()
+        result["inbound"] = {
+            "total": total,
+            "recent_24h": recent,
+            "last_received_at": last.created_at.isoformat() if last and last.created_at else None,
+            "last_processing_status": last.processing_status if last else None,
+        }
+    except Exception:
+        log.exception("WhatsApp webhook health stats unavailable")
+        result["inbound"] = {"error": "unavailable"}
+    return result

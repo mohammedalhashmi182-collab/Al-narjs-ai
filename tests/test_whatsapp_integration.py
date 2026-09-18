@@ -526,6 +526,26 @@ class TestSecrets:
             assert TOKEN not in json.dumps(st)
             assert PHONE_ID not in json.dumps(st)
 
+    async def test_health_reports_inbound_stats(self, maker, api):
+        with _creds():
+            r0 = await api.get("/webhooks/whatsapp/health")
+            assert r0.status_code == 200
+            before = (r0.json()["inbound"])["total"]
+
+            r = await _webhook_post(api, _inbound_payload("wamid.HSTAT1", "كم السعر؟"))
+            assert r.status_code == 200
+
+            r2 = await api.get("/webhooks/whatsapp/health")
+            assert r2.status_code == 200
+            body = r2.json()
+            assert body["inbound"]["total"] == before + 1
+            assert body["inbound"]["recent_24h"] >= 1
+            assert body["inbound"]["last_received_at"] is not None
+            assert body["inbound"]["last_processing_status"]
+            assert TOKEN not in r2.text
+            assert PHONE_ID not in r2.text
+            assert "sender_number" not in r2.text
+
     async def test_outbound_record_never_stores_secrets(self, maker):
         with _creds():
             lead = await _insert_lead(maker)
