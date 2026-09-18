@@ -1,0 +1,88 @@
+{
+  "demo": true,
+  "package": "growth",
+  "label_ar": "نموذج توضيحي — بيانات تجريبية لأغراض العرض فقط",
+  "label_en": "Illustrative sample — demo data for display purposes only",
+  "employees": {
+    "business_ideas": {
+      "steps_ar": [
+        "قراءة المهارات والاهتمامات",
+        "مطابقة الأفكار مع رأس المال",
+        "فرز الأفكار بحسب سرعة البداية",
+        "اختيار أفضل فكرة وخطة أول ١٤ يوماً"
+      ],
+      "steps_en": [
+        "Reading skills and interests",
+        "Matching ideas to available capital",
+        "Sorting ideas by speed to start",
+        "Choosing the best idea and a first-14-day plan"
+      ],
+      "sample_ar": "الأفكار المطابقة\n\n١. خدمة تجهيز المتاجر الإلكترونية الصغيرة\n- رأس المال: منخفض.\n- البداية: أسبوع.\n- الميزة: مهارة قابلة للبيع مباشرة.\n\n٢. حزمة محتوى شهري للمطاعم\n- رأس المال: متوسط.\n- البداية: أسبوعان.\n- الميزة: طلب متكرر شهرياً.\n\n٣. أداة رقمية بسيطة بالاشتراك\n- رأس المال: متوسط إلى مرتفع.\n- البداية: ٦ أسابيع.\n- الميزة: دخل متكرر.\n\nخطة أول ١٤ يوماً (للفكرة الأولى)\n- الأيام ١-٣: تحديد العرض والسعر.\n- الأيام ٤-٧: تجهيز نموذج أعمال.\n- الأيام ٨-١٤: التواصل مع ٢٠ عميلاً محتملاً.",
+      "sample_en": "Matching ideas\n\n1. Store setup service for small merchants\n- Capital: low.\n- Time to start: one week.\n- Advantage: a directly sellable skill.\n\n2. Monthly content bundle for restaurants\n- Capital: medium.\n- Time to start: two weeks.\n- Advantage: recurring monthly demand.\n\n3. A simple subscription digital tool\n- Capital: medium to high.\n- Time to start: six weeks.\n- Advantage: recurring revenue.\n\nFirst-14-day plan (idea 1)\n- Days 1-3: define offer and price.\n- Days 4-7: build a work sample.\n- Days 8-14: reach 20 potential clients."
+    },
+    "project_manager": {
+      "steps_ar": [
+        "قراءة المهام والجدول",
+        "ترتيب الأولويات والتبعيات",
+        "بناء خطة تنفيذ مرحلية",
+        "تحديد نقاط المراجعة"
+      ],
+      "steps_en": [
+        "Reading tasks and timeline",
+        "Ordering priorities and dependencies",
+        "Building a phased execution plan",
+        "Defining review checkpoints"
+      ],
+      "sample_ar": "خطة التنفيذ\n\nالمرحلة ١ (أسبوع ١)\n- تحديد النطاق النهائي.\n- تجهيز المسار الحرج للمهام.\n\nالمرحلة ٢ (أسبوعان)\n- تنفيذ المهام بلا تبعيات.\n- مراجعة أسبوعية الخميس.\n\nالمرحلة ٣ (أسبوع)\n- إغلاق المهام المرتبطة بالتبعيات.\n- مراجعة نهائية قبل التسليم.\n\nالتبعيات الحرجة\n- اعتماد المحتوى قبل التنفيذ.\n- اعتماد الميزانية قبل التشغيل.\n\nنقاط المراجعة\n- نهاية كل أسبوع: ما أُنجز، ما تعطّل، القرار التالي.",
+      "sample_en": "Execution plan\n\nPhase 1 (week 1)\n- Lock the final scope.\n- Set up the critical path.\n\nPhase 2 (two weeks)\n- Execute tasks with no dependencies.\n- Weekly review on Thursday.\n\nPhase 3 (one week)\n- Close dependency-linked tasks.\n- Final review before delivery.\n\nCritical dependencies\n- Content sign-off before execution.\n- Budget approval before running.\n\nReview checkpoints\n- End of each week: done, blocked, next decision."
+    },
+    "time_manager": {
+      "steps_ar": [
+        "قراءة ساعات العمل والمهام",
+        "تحديد ساعات الذروة",
+        "إعادة ترتيب اليوم حول الطاقة",
+        "بناء خطة أسبوعية واقعية"
+      ],
+      "steps_en": [
+        "Reading work hours and tasks",
+        "Identifying peak hours",
+        "Rearranging the day around energy",
+        "Building a realistic weekly plan"
+      ],
+      "sample_ar": "قراءة الوضع\n- ٨ ساعات عمل، ٥ منها فعّالة.\n- ذروة الإنتاجية: أول ٣ ساعات بعد الاستيقاظ.\n- ٦ اجتماعات أسبوعية غير مرتبة.\n\nالخطة اليومية\n- أول ٣ ساعات: العمل العميق (بلا اجتماعات).\n- الساعتان التاليتان: اجتماعات مجمعة.\n- الساعة الأخيرة: مراجعة وتخطيط الغد.\n\nالخطة الأسبوعية\n- صباح الأحد والاثنين: مهام تحتاج تركيزاً.\n- توحيد الاجتماعات في الثلاثاء والأربعاء.\n- الخميس: مراجعة وإغلاق.\n\nملاحظة\n- التجمع في العمل يُقلّل تكلفة تبديل السياق، والباقي تقديرات لا نتائج مضمونة.",
+      "sample_en": "Situation read\n- 8 working hours, 5 of them productive.\n- Peak performance: first 3 hours after waking.\n- 6 unsorted weekly meetings.\n\nDaily plan\n- First 3 hours: deep work (no meetings).\n- Next 2 hours: batched meetings.\n- Final hour: review and plan tomorrow.\n\nWeekly plan\n- Sunday and Monday mornings: focus-heavy tasks.\n- Consolidate meetings on Tuesday and Wednesday.\n- Thursday: review and close.\n\nNote\n- Batching reduces context-switching cost; the rest are estimates, not guaranteed results."
+    },
+    "data_analyst": {
+      "steps_ar": [
+        "قراءة البيانات المُدخلة",
+        "تنظيف الأرقام وترتيبها",
+        "استخراج الأنماط الواضحة",
+        "الإجابة عن الأسئلة المطروحة"
+      ],
+      "steps_en": [
+        "Reading the submitted data",
+        "Cleaning and ordering the numbers",
+        "Extracting clear patterns",
+        "Answering the posed questions"
+      ],
+      "sample_ar": "ملخص البيانات\n- إجمالي الأسبوع: ٤٢ طلباً.\n- أعلى يوم: الخميس (٩ طلبات).\n- أدنى يوم: السبت (٣ طلبات).\n\nالأنماط\n- الطلبات ترتفع نهاية الأسبوع.\n- متوسط قيمة الطلب ثابت تقريباً.\n\nالإجابات\nس: أي يوم يستحق تركيز الإعلان؟\nج: الأربعاء والخميس، بحسب الارتفاع قبل نهاية الأسبوع.\n\nس: هل هناك انخفاض مقلق؟\nج: لا يوجد انخفاض حاد، لكن السبت يحتاج عرضاً أو تذكيراً.\n\nملاحظة\n- الأرقام أعلاه تجريبية للتوضيح، والتحليل الفعلي يعتمد على بياناتك الحقيقية.",
+      "sample_en": "Data summary\n- Weekly total: 42 orders.\n- Best day: Thursday (9 orders).\n- Worst day: Saturday (3 orders).\n\nPatterns\n- Orders rise toward the weekend.\n- Average order value is roughly stable.\n\nAnswers\nQ: Which day deserves ad focus?\nA: Wednesday and Thursday, based on the run-up to the weekend.\n\nQ: Any concerning drop?\nA: No sharp decline, but Saturday needs an offer or a reminder.\n\nNote\n- The numbers above are demo-only for illustration; real analysis uses your actual data."
+    },
+    "cv_writer": {
+      "steps_ar": [
+        "قراءة الخبرات والمهارات",
+        "ترتيب الإنجازات بصيغة قابلة للقياس",
+        "بناء الهيكل (ملخص، خبرات، مهارات)",
+        "ضبط الصياغة للوظيفة المستهدفة"
+      ],
+      "steps_en": [
+        "Reading experience and skills",
+        "Framing achievements in measurable form",
+        "Building the structure (summary, experience, skills)",
+        "Tailoring the wording to the target role"
+      ],
+      "sample_ar": "الملخص المهني\nمتخصص في إدارة الحسابات الرقمية بخبرة عملية في بناء المحتوى وتحسين الوصول، يركز على النتائج القابلة للقياس.\n\nالخبرات\n- إدارة محتوى: بناء تقويم أسبوعي وتوحيد نبرة العلامة.\n- تحسين الوصول: إعادة تنظيم المحاور وزيادة انتظام النشر.\n- خدمة العملاء: توحيد الردود وتقليل زمن الاستجابة.\n\nالمهارات\n- إدارة المنصات، كتابة المحتوى، تحليل الأرقام، أدوات التسويق.\n\nمؤهل\n- شهادة ذات صلة + مشاريع عملية موثقة.\n\nملاحظة\n- أضف أرقامك الفعلية بدل الصياغات العامة.",
+      "sample_en": "Professional summary\nDigital account specialist with hands-on experience in content building and reach optimization, focused on measurable outcomes.\n\nExperience\n- Content management: built a weekly calendar and unified brand tone.\n- Reach optimization: restructured pillars and increased posting consistency.\n- Customer service: standardized replies and reduced response time.\n\nSkills\n- Platform management, content writing, data analysis, marketing tools.\n\nEducation\n- Relevant certification plus documented practical projects.\n\nNote\n- Insert your actual numbers instead of generic phrasing."
+    }
+  }
+}

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 from functools import lru_cache
+from typing import Annotated, Any
 
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -57,7 +59,21 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
 
-    cors_origins: list[str] = Field(default=["https://karmaai.online", "https://www.karmaai.online", "http://localhost:3000", "http://localhost:8000"], alias="CORS_ORIGINS")
+    cors_origins: Annotated[list[str], NoDecode] = Field(default=["https://karmaai.online", "https://www.karmaai.online", "http://localhost:3000", "http://localhost:8000"], alias="CORS_ORIGINS")
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, value: Any) -> Any:
+        """Accept a JSON array or a comma-separated string (as in .env.example)."""
+        if isinstance(value, str):
+            text = value.strip()
+            if text.startswith("["):
+                try:
+                    return json.loads(text)
+                except json.JSONDecodeError:
+                    pass
+            return [part.strip() for part in text.split(",") if part.strip()]
+        return value
 
     domain: str = Field(default="karmaai.online", alias="DOMAIN")
     www_domain: str = Field(default="www.karmaai.online", alias="WWW_DOMAIN")
@@ -100,6 +116,11 @@ class Settings(BaseSettings):
     # Owner dashboard gate — must be set via env, never a built-in default
     owner_password: str = Field(alias="OWNER_PASSWORD")
 
+    # Customer acquisition (Karma AI lead system)
+    whatsapp_business_number: str = Field(default="0552978753", alias="WHATSAPP_BUSINESS_NUMBER")
+    leads_excel_path: str | None = Field(default=None, alias="LEADS_EXCEL_PATH")
+    sales_campaign_size: int = Field(default=200, alias="SALES_CAMPAIGN_SIZE")
+
     # Email (SMTP) — Gmail example
     smtp_host: str = Field(default="smtp.gmail.com", alias="SMTP_HOST")
     smtp_port: int = Field(default=587, alias="SMTP_PORT")
@@ -108,6 +129,26 @@ class Settings(BaseSettings):
     smtp_from: str = Field(default="", alias="SMTP_FROM")
     mail_reply_to: str = Field(default="", alias="MAIL_REPLY_TO")
     brevo_api_key: str = Field(default="", alias="BREVO_API_KEY")
+
+    # Revenue execution (maximum-revenue mode): daily operational target in SAR.
+    revenue_target_sar: int = Field(default=10000, alias="REVENUE_TARGET")
+
+    # WhatsApp Business Cloud API — empty leaves auto-send disabled (wa.me fallback).
+    # Auto-send is enabled only when WHATSAPP_TOKEN AND WHATSAPP_PHONE_ID are set.
+    whatsapp_token: str | None = Field(default=None, alias="WHATSAPP_TOKEN")
+    whatsapp_phone_number_id: str | None = Field(default=None, alias="WHATSAPP_PHONE_ID")
+
+    # WhatsApp inbound webhook — optional; required to verify Meta signatures.
+    # Meta signs POST bodies with the app secret (X-Hub-Signature-256) and asks
+    # for a GET challenge only when the verify token matches.
+    whatsapp_app_secret: str | None = Field(default=None, alias="WHATSAPP_APP_SECRET")
+    whatsapp_webhook_verify_token: str | None = Field(default=None, alias="WHATSAPP_WEBHOOK_VERIFY_TOKEN")
+
+    # Anti-spam governance (WhatsApp platform rules): maximum auto-sent messages
+    # per day across all leads, and the minimum hours between two outbound
+    # messages to the same lead. Opt-outs are always honored regardless.
+    whatsapp_daily_auto_limit: int = Field(default=200, alias="WHATSAPP_DAILY_AUTO_LIMIT")
+    whatsapp_lead_cooldown_hours: int = Field(default=12, alias="WHATSAPP_LEAD_COOLDOWN_HOURS")
 
 
 @lru_cache

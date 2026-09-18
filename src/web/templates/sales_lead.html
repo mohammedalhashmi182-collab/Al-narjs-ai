@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}بطاقة عميل - Karma AI{% endblock %}
+{% block page_title %}<span data-lang="ar">بطاقة العميل المحتمل</span><span data-lang="en" data-inline>Lead record</span>{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto" id="app" data-lead-id="{{ lead_id }}">
+    <a href="/acquisition" class="text-sm text-gray-500 hover:text-gray-800">&larr; <span data-lang="ar">عودة للوحة البيع</span><span data-lang="en" data-inline>Back to pipeline</span></a>
+
+    <div class="grid lg:grid-cols-3 gap-6 mt-4">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-start justify-between flex-wrap gap-3">
+                    <div>
+                        <h2 id="company" class="text-2xl font-bold text-gray-900">...</h2>
+                        <div id="meta" class="text-sm text-gray-500 mt-1"></div>
+                    </div>
+                    <div id="badges" class="flex flex-col items-end gap-1"></div>
+                </div>
+                <div class="mt-4 grid sm:grid-cols-2 gap-3 text-sm" id="facts"></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6" id="next-action-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-forward text-blue-600 me-2"></i><span data-lang="ar">الإجراء التالي</span><span data-lang="en" data-inline>Next action</span></h3>
+                <div class="grid sm:grid-cols-2 gap-3 text-sm" id="next-action-facts"></div>
+                <div id="next-action-missing" class="text-xs text-amber-700 mt-3"></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-lightbulb text-amber-500 me-2"></i><span data-lang="ar">لماذا نستهدف هذه الشركة؟</span><span data-lang="en" data-inline>Why this lead</span></h3>
+                <ul id="reasons" class="list-disc ps-5 text-sm text-gray-700 space-y-1"></ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+                    <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-comment-dots text-emerald-600 me-2"></i><span data-lang="ar">رسالة تواصل مخصصة</span><span data-lang="en" data-inline>Outreach draft</span></h3>
+                    <div class="flex gap-2 text-sm">
+                        <select id="variant" class="border rounded px-2 py-1"></select>
+                        <button id="btn-generate" class="px-3 py-1 rounded bg-emerald-600 text-white">توليد</button>
+                    </div>
+                </div>
+                <textarea id="message" rows="8" class="w-full border rounded p-3 text-sm leading-7" style="direction:rtl;"></textarea>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <button id="btn-copy" class="px-3 py-1.5 rounded border text-sm">نسخ الرسالة</button>
+                    <a id="btn-wa" class="px-3 py-1.5 rounded bg-green-600 text-white text-sm" target="_blank" href="#"><i class="fab fa-whatsapp"></i> فتح واتساب</a>
+                    <a id="btn-demo" class="px-3 py-1.5 rounded bg-gray-800 text-white text-sm" target="_blank" href="#"><i class="fas fa-laptop-code"></i> فتح Demo</a>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">الإرسال يدوي. افتح واتساب ← الصق الرسالة ← أرسل. لا يوجد إرسال آلي.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-history text-gray-500 me-2"></i><span data-lang="ar">سجل النشاط</span><span data-lang="en" data-inline>Activity log</span></h3>
+                <div id="events" class="text-sm space-y-3"></div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-3">تحديث المرحلة</h3>
+                <select id="status" class="w-full border rounded px-2 py-2 mb-2"></select>
+                <button id="btn-status" class="w-full px-3 py-2 rounded bg-blue-600 text-white text-sm">حفظ المرحلة</button>
+                <div class="mt-3">
+                    <label class="text-xs text-gray-500">متابعة بعد (أيام)</label>
+                    <div class="flex gap-2 mt-1">
+                        <input id="followup-days" type="number" value="3" min="1" class="w-full border rounded px-2 py-1.5">
+                        <button id="btn-followup" class="px-3 py-1.5 rounded bg-amber-500 text-white text-sm whitespace-nowrap">جدولة</button>
+                    </div>
+                </div>
+                <button id="btn-dnc" class="w-full mt-3 px-3 py-2 rounded border border-red-300 text-red-700 text-sm">عدم التواصل (DO_NOT_CONTACT)</button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-2">ملاحظة</h3>
+                <textarea id="note" rows="3" class="w-full border rounded p-2 text-sm mb-2" placeholder="ملخص المكالمة..."></textarea>
+                <button id="btn-note" class="w-full px-3 py-2 rounded bg-gray-800 text-white text-sm">إضافة ملاحظة</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const LEAD_ID = document.getElementById('app').dataset.leadId;
+const STATUSES = ["NEW","READY","CONTACTED","REPLIED","INTERESTED","DEMO","PROPOSAL","WON","LOST","FOLLOW_UP","DO_NOT_CONTACT"];
+let current = null;
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function prBadge(p){const c=p==='HIGH'?'bg-red-100 text-red-700':p==='MEDIUM'?'bg-amber-100 text-amber-700':'bg-gray-100 text-gray-600';return `<span class="px-2 py-1 rounded-full text-xs font-bold ${c}">${p} · ${current.priority_score}</span>`;}
+
+async function api(path,opts){const r=await fetch(path,opts);return r.json();}
+
+async function load(){
+    const d=await api(`/api/acquisition/leads/${LEAD_ID}`);
+    current=d.lead;
+    document.getElementById('company').textContent=current.company_name;
+    document.getElementById('meta').innerHTML=`${esc(current.phone||'-')} · ${esc(current.email||'-')} · ${esc(current.segment_label||current.segment)}`;
+    document.getElementById('badges').innerHTML=prBadge(current.priority)+`<span class="text-xs text-gray-500">${current.lead_status}</span>`;
+
+    const facts=[
+        ['القطاع', current.segment_label||current.segment],
+        ['آخر نشاط', current.last_activity?current.last_activity.slice(0,10):'-'],
+        ['عميل سابق', current.historical_customer?'نعم':'لا'],
+        ['عرض سعر بدون شراء', current.quotation_without_purchase?'نعم':'لا'],
+        ['عدد الفواتير', current.invoice_count||0],
+        ['الباقة المقترحة', current.suggested_package||'-'],
+        ['المتابعات', current.followup_count||0],
+        ['تكرارات في الملف', current.record_count||1],
+    ];
+    document.getElementById('facts').innerHTML=facts.map(([k,v])=>`<div class="flex justify-between border-b py-1"><span class="text-gray-500">${esc(k)}</span><span class="font-medium">${esc(v)}</span></div>`).join('');
+    const naFacts=[
+        ['المرحلة الحالية', current.lead_status],
+        ['الإجراء التالي', current.next_action||'-'],
+        ['الاستحقاق', current.next_action_due_label||current.next_action_due||'-'],
+        ['السبب', current.next_action_reason||'-'],
+    ];
+    document.getElementById('next-action-facts').innerHTML=naFacts.map(([k,v])=>`<div class="flex justify-between border-b py-1"><span class="text-gray-500">${esc(k)}</span><span class="font-medium" style="direction:rtl;">${esc(v)}</span></div>`).join('');
+    const missing=(current.next_action_missing||[]);
+    document.getElementById('next-action-missing').innerHTML=missing.length?`معلومات ناقصة: ${missing.map(esc).join('، ')}`:'';
+    document.getElementById('reasons').innerHTML=(current.priority_reason||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li class="text-gray-400">لا توجد بيانات كافية لترتيب هذه الشركة عالياً</li>';
+
+    document.getElementById('variant').innerHTML=Object.entries(d.variants).map(([k,v])=>`<option value="${k}" ${k===d.suggested_variant?'selected':''}>${esc(v)}</option>`).join('');
+    setMessage(d.draft);
+    const notes=(current.notes||'').trim();
+    document.getElementById('status').innerHTML=STATUSES.map(s=>`<option ${s===current.lead_status?'selected':''}>${s}</option>`).join('');
+    renderEvents(d.events);
+}
+
+function setMessage(draft){
+    document.getElementById('message').value=draft.message;
+    const wa=document.getElementById('btn-wa');
+    if(draft.wa_link){wa.href=draft.wa_link;wa.classList.remove('opacity-40');wa.style.pointerEvents='auto';}
+    else{wa.removeAttribute('href');wa.style.pointerEvents='none';wa.classList.add('opacity-40');}
+    document.getElementById('btn-demo').href=`/acquisition/leads/${LEAD_ID}/demo`;
+}
+
+function renderEvents(events){
+    const el=document.getElementById('events');
+    if(!events||!events.length){el.innerHTML='<p class="text-gray-400">لا يوجد نشاط بعد</p>';return;}
+    el.innerHTML=events.map(e=>`<div class="border-s-2 ps-3" style="border-color:#e2c98a;">
+        <div class="text-xs text-gray-400">${e.created_at?new Date(e.created_at).toLocaleString():''} · ${esc(e.event_type)}</div>
+        <div>${e.status_before?`<span class="text-gray-400">${esc(e.status_before)} →</span> `:''}${e.status_after?`<b>${esc(e.status_after)}</b>`:''}${e.note?` <span class="text-gray-600">${esc(e.note)}</span>`:''}</div>
+        ${e.message?`<pre class="text-xs whitespace-pre-wrap bg-gray-50 border rounded p-2 mt-1" style="direction:rtl;">${esc(e.message)}</pre>`:''}
+    </div>`).join('');
+}
+
+document.getElementById('btn-generate').addEventListener('click',async()=>{
+    const variant=document.getElementById('variant').value;
+    const d=await api(`/api/acquisition/leads/${LEAD_ID}/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({variant})});
+    if(d.success){setMessage(d.draft);load();}
+});
+document.getElementById('btn-copy').addEventListener('click',()=>{navigator.clipboard.writeText(document.getElementById('message').value);document.getElementById('btn-copy').textContent='تم النسخ ✓';setTimeout(()=>document.getElementById('btn-copy').textContent='نسخ الرسالة',1500);});
+document.getElementById('btn-status').addEventListener('click',async()=>{
+    const status=document.getElementById('status').value;
+    await api(`/api/acquisition/leads/${LEAD_ID}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    load();
+});
+document.getElementById('btn-followup').addEventListener('click',async()=>{
+    const days=parseInt(document.getElementById('followup-days').value||'3',10);
+    await api(`/api/acquisition/leads/${LEAD_ID}/followup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({days})});
+    load();
+});
+document.getElementById('btn-dnc').addEventListener('click',async()=>{
+    if(!confirm('تأكيد: عدم التواصل مع هذه الشركة نهائياً؟'))return;
+    await api(`/api/acquisition/leads/${LEAD_ID}/do-not-contact`,{method:'POST'});
+    load();
+});
+document.getElementById('btn-note').addEventListener('click',async()=>{
+    const note=document.getElementById('note').value.trim(); if(!note)return;
+    await api(`/api/acquisition/leads/${LEAD_ID}/note`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note})});
+    document.getElementById('note').value='';load();
+});
+
+load();
+</script>
+{% endblock %}

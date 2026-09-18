@@ -1,0 +1,88 @@
+{
+  "demo": true,
+  "package": "content",
+  "label_ar": "نموذج توضيحي — بيانات تجريبية لأغراض العرض فقط",
+  "label_en": "Illustrative sample — demo data for display purposes only",
+  "employees": {
+    "content_writer": {
+      "steps_ar": [
+        "قراءة الموضوع والمنصة",
+        "تحديد الزاوية والرسالة الأساسية",
+        "كتابة المسودة وفق نبرة العلامة",
+        "تنقيح الطول والوضوح"
+      ],
+      "steps_en": [
+        "Reading topic and platform",
+        "Defining the angle and core message",
+        "Drafting in the brand tone",
+        "Editing for length and clarity"
+      ],
+      "sample_ar": "المنصة: إنستغرام | النبرة: واثقة وودّية | الطول: قصير\n\nالعنوان\nثلاث علامات تخبرك أن وقت التغيير اقترب\n\nالنص\n① تلاحظ أن طريقتك الحالية لم تعد تعطيك النتيجة نفسها.\n② تكرر نفس الحل وتتوقع نتيجة مختلفة.\n③ تستشير أكثر مما تجرّب.\n\nإن انطبقت عليك واحدة منها، فالتغيير ليس خياراً — بل خطوة عملية.\n\nدعوة الإجراء\nاكتب لنا كلمة «خطة» وسنرسل لك نقطة البداية.",
+      "sample_en": "Platform: Instagram | Tone: confident and friendly | Length: short\n\nHeadline\nThree signs it's time for a change\n\nBody\n1. Your current approach no longer delivers the same result.\n2. You repeat the same fix and expect a different outcome.\n3. You consult more than you experiment.\n\nIf any of these fit, change isn't optional — it's the practical next step.\n\nCTA\nSend us the word \"plan\" and we'll share the starting point."
+    },
+    "article_writer": {
+      "steps_ar": [
+        "قراءة موضوع المقال والزاوية",
+        "بناء هيكل بعناوين واضحة",
+        "كتابة المحتوى مع أمثلة عملية",
+        "إضافة ملخص قابل للاقتباس"
+      ],
+      "steps_en": [
+        "Reading topic and angle",
+        "Building a structure with clear headings",
+        "Writing with practical examples",
+        "Adding a quotable summary"
+      ],
+      "sample_ar": "العنوان\nكيف تختار قناة تسويق واحدة وتبدأ منها\n\nالهيكل\n1. المقدمة: خطأ توزيع الجهد على كل القنوات.\n2. لماذا قناة واحدة أولاً.\n3. كيف تختار القناة: ٣ أسئلة.\n4. خطة تنفيذ لـ٤ أسابيع.\n5. أخطاء شائعة.\n\nمقتطف\n«لا تفشل لأنك اخترت القناة الخطأ، بل لأنك اخترت كل القنوات في وقت واحد. القناة الواحدة تُعلّمك أسرع مما تعلّمك العشر.»\n\nخلاصة\nاختر قناة واحدة، ثبّت جهدك ٣٠ يوماً، ثم قِس قبل أن تضيف الثانية.",
+      "sample_en": "Title\nHow to pick one marketing channel and start there\n\nStructure\n1. Intro: the mistake of spreading across every channel.\n2. Why one channel first.\n3. How to choose: 3 questions.\n4. A 4-week execution plan.\n5. Common mistakes.\n\nPull quote\n\"You don't fail because you picked the wrong channel — you fail because you picked every channel at once. One channel teaches you faster than ten.\"\n\nSummary\nPick one channel, hold your effort for 30 days, then measure before adding the second."
+    },
+    "content_manager": {
+      "steps_ar": [
+        "قراءة المنصات والمحاور",
+        "بناء التقويم الأسبوعي",
+        "توزيع الصيغ على الأيام",
+        "إدراج المناسبات والمواعيد"
+      ],
+      "steps_en": [
+        "Reading platforms and pillars",
+        "Building the weekly calendar",
+        "Distributing formats across days",
+        "Inserting occasions and dates"
+      ],
+      "sample_ar": "التقويم الأسبوعي\n\nالأحد — محور تعليمي — صورة + نص (إنستغرام، X)\nالاثنين — خلف الكواليس — ريلز (إنستغرام)\nالثلاثاء — محور إقناع — كاروسيل (إنستغرام، لينكدإن)\nالأربعاء — سؤال وجواب — حكاية (إنستغرام)\nالخميس — شهادة عميل — صورة (إنستغرام، X)\n\nالمناسبات\n- اليوم الوطني: محتوى مناسب مخصص.\n- إطلاق منتج: حملة أسبوع كامل.\n\nملاحظة\n- ٥ منشورات أسبوعياً كبداية، مع إمكانية التوسع بعد مراجعة الأرقام.",
+      "sample_en": "Weekly calendar\n\nSun — educational pillar — image + copy (Instagram, X)\nMon — behind the scenes — reel (Instagram)\nTue — persuasion pillar — carousel (Instagram, LinkedIn)\nWed — Q&A — story (Instagram)\nThu — customer testimonial — image (Instagram, X)\n\nOccasions\n- National Day: dedicated relevant content.\n- Product launch: a full-week campaign.\n\nNote\n- 5 posts per week to start, expandable after reviewing numbers."
+    },
+    "market_analyst": {
+      "steps_ar": [
+        "قراءة القطاع والمنافسين",
+        "رصد الاتجاهات الحالية",
+        "تلخيص الفرص والمخاطر",
+        "ترجمة الرؤى إلى قرارات"
+      ],
+      "steps_en": [
+        "Reading the sector and competitors",
+        "Tracking current trends",
+        "Summarizing opportunities and risks",
+        "Translating insights into decisions"
+      ],
+      "sample_ar": "ملخص السوق\n- الطلب ينمو على الحلول الجاهزة قصيرة التنفيذ.\n- حساسية السعر مرتفعة في الشريحة المبتدئة.\n- الثقة تُبنى بالمحتوى التعليمي أكثر من الإعلان.\n\nالفرص\n1. حزمة دخول منخفضة التكلفة بأثر سريع.\n2. محتوى تعليمي يُبنى عليه لاحقاً عرض بيع.\n\nالمخاطر\n- تقليد العرض سريعاً من المنافسين.\n- اعتماد مفرط على قناة واحدة.\n\nالتوصية\nابدأ بحزمة دخول واضحة، وثبّت محتوى تعليمي ٦ أسابيع قبل التوسع الإعلاني.",
+      "sample_en": "Market summary\n- Demand is growing for ready-made, fast-to-deploy solutions.\n- Price sensitivity is high in the entry segment.\n- Trust is built through educational content more than advertising.\n\nOpportunities\n1. A low-cost entry bundle with fast impact.\n2. Educational content that later carries a sales offer.\n\nRisks\n- Competitors copying the offer quickly.\n- Over-reliance on a single channel.\n\nRecommendation\nLaunch a clear entry bundle, and hold educational content for 6 weeks before scaling ads."
+    },
+    "competitor_analyst": {
+      "steps_ar": [
+        "قراءة بيانات المنافسين",
+        "تحليل العرض والسعر والرسالة",
+        "تحديد نقاط القوة والضعف",
+        "اقتراح زوايا تفوق"
+      ],
+      "steps_en": [
+        "Reading competitor data",
+        "Analyzing offer, price, and messaging",
+        "Identifying strengths and weaknesses",
+        "Proposing angles to outperform"
+      ],
+      "sample_ar": "مصفوفة مقارنة (وصفية)\n\nالمنافس أ\n- قوة: حضور اجتماعي قوي.\n- ضعف: رسالة عامة وغير واضحة.\n\nالمنافس ب\n- قوة: سعر منخفض.\n- ضعف: غياب خدمة ما بعد البيع.\n\nأين تتفوق\n1. رسالة محددة تحل مشكلة واحدة بوضوح.\n2. توضيح ما بعد البيع منذ البداية.\n3. إثبات عملي بدل وعود عامة.\n\nملاحظة\n- لا يمكن الجزم بأرقام المنافسين من دون بياناتهم الرسمية.",
+      "sample_en": "Comparison matrix (qualitative)\n\nCompetitor A\n- Strength: strong social presence.\n- Weakness: generic, unclear message.\n\nCompetitor B\n- Strength: low price.\n- Weakness: no after-sales service.\n\nWhere you win\n1. A specific message that clearly solves one problem.\n2. Making after-sales clear from the start.\n3. Practical proof instead of generic promises.\n\nNote\n- Competitor numbers can't be asserted without their official data."
+    }
+  }
+}

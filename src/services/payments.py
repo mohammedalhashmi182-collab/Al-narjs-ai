@@ -81,6 +81,7 @@ async def create_payment(
     customer_phone: Optional[str] = None,
     customer_email: Optional[str] = None,
     promo: Optional[str] = None,
+    lead_id: Optional[UUID] = None,
 ) -> Payment:
     pkg = catalog.PACKAGES.get(package)
     if not pkg:
@@ -101,6 +102,7 @@ async def create_payment(
         customer_name=customer_name,
         customer_phone=customer_phone,
         customer_email=customer_email,
+        lead_id=lead_id,
         status="pending",
         gateway="invoice",
         description=description,

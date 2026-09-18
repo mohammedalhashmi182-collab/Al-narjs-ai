@@ -50,7 +50,7 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         # Self-heal schema drift on tables created by older model versions.
-        # Postgres supports ADD COLUMN IF NOT EXISTS; statements are best-effort.
+        # Statements are best-effort idempotent.
         if engine.dialect.name == "postgresql":
             placeholders = [
                 ("schedules", "interval_seconds", "INTEGER"),
@@ -71,6 +71,33 @@ async def init_db():
                     await conn.execute(text(
                         f'ALTER TABLE "{table}" ADD COLUMN IF NOT EXISTS "{column}" {ddl}'
                     ))
+                except Exception:
+                    pass
+            await conn.commit()
+        elif engine.dialect.name == "sqlite":
+            # create_all cannot add columns to an existing SQLite table, so the
+            # revenue-execution and WhatsApp-integration additions are applied
+            # as best-effort ALTERs. New tables (e.g. inbound_messages) are
+            # created by create_all above.
+            sqlite_placeholders = [
+                ("payments", "lead_id", "CHAR(36)"),
+                # WhatsApp outbound lifecycle (ack tracking, errors)
+                ("outbound_messages", "provider_status", "VARCHAR(30)"),
+                ("outbound_messages", "message_type", "VARCHAR(20) DEFAULT 'text'"),
+                ("outbound_messages", "acknowledged", "INTEGER DEFAULT 0"),
+                ("outbound_messages", "acknowledged_at", "TIMESTAMP"),
+                ("outbound_messages", "error_code", "VARCHAR(50)"),
+                ("outbound_messages", "retry_count", "INTEGER DEFAULT 0"),
+                ("outbound_messages", "updated_at", "TIMESTAMP"),
+                # WhatsApp conversation state on the canonical lead record
+                ("acquisition_leads", "opt_out", "INTEGER DEFAULT 0"),
+                ("acquisition_leads", "buying_signal", "INTEGER DEFAULT 0"),
+                ("acquisition_leads", "last_reply_at", "TIMESTAMP"),
+                ("acquisition_leads", "intent", "VARCHAR(30)"),
+            ]
+            for table, column, ddl in sqlite_placeholders:
+                try:
+                    await conn.execute(text(f'ALTER TABLE "{table}" ADD COLUMN "{column}" {ddl}'))
                 except Exception:
                     pass
             await conn.commit()

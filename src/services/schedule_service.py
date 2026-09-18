@@ -28,10 +28,27 @@ async def execute_schedule(session, schedule_id) -> dict:
             return await _run_workflow(session, sched)
         if target_type == "agent":
             return await _run_agent(sched)
+        if target_type == "ceo_loop":
+            return await _run_ceo_loop(sched)
         return {"status": "unsupported", "target_type": target_type}
     except Exception as e:
         logger.exception("Schedule %s failed: %s", sched.id, e)
         return {"status": "error", "message": str(e)[:300]}
+
+
+async def _run_ceo_loop(sched) -> dict:
+    """One CompanyBrain operating cycle, triggered by the scheduler."""
+    from src.main import app
+
+    brain = getattr(app.state, "company_brain", None)
+    if brain is None:
+        return {"status": "brain_unavailable"}
+    result = await brain.run_once()
+    return {
+        "status": "executed",
+        "priorities": len(result.get("priorities", [])),
+        "promoted": [p["task_key"] for p in result.get("promoted", [])],
+    }
 
 
 async def _send_lead_followup(sched) -> dict:

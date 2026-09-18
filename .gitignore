@@ -7,6 +7,8 @@ venv/
 *.db
 *.sqlite3
 logs/
+# Imported lead data + campaign exports contain customer PII — never commit.
+data/
 .Python
 .DS_Store
 Thumbs.db

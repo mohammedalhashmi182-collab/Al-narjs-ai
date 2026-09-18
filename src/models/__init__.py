@@ -207,19 +207,6 @@ class Trigger(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class Lead(Base):
-    __tablename__ = "leads"
-
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[str] = mapped_column(String(50), nullable=False)
-    email: Mapped[Optional[str]] = mapped_column(String(255))
-    package: Mapped[Optional[str]] = mapped_column(String(50))
-    message: Mapped[Optional[str]] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(String(50), default="new", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
 class Payment(Base):
     __tablename__ = "payments"
 
@@ -230,6 +217,9 @@ class Payment(Base):
     customer_name: Mapped[Optional[str]] = mapped_column(String(255))
     customer_phone: Mapped[Optional[str]] = mapped_column(String(50))
     customer_email: Mapped[Optional[str]] = mapped_column(String(255))
+    lead_id: Mapped[Optional[UUID]] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("acquisition_leads.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     status: Mapped[str] = mapped_column(String(50), default="pending", index=True)
     gateway: Mapped[str] = mapped_column(String(50), default="moyasar")
     gateway_payment_id: Mapped[Optional[str]] = mapped_column(String(100))
@@ -283,3 +273,27 @@ class AuditLog(Base):
     __table_args__ = (
         Index("ix_audit_log_user_created", "user_id", "created_at"),
     )
+
+
+# Customer-acquisition CRM models (imported last so they register on Base.metadata).
+from src.models.crm import (  # noqa: E402,F401
+    ACTIVE_STATUSES,
+    LEAD_STATUSES,
+    AcquisitionLead,
+    Campaign,
+    CampaignLead,
+    LeadEvent,
+)
+
+# Autonomous-company operating models (Phase C) — strictly additive.
+from src.models.company import (  # noqa: E402,F401
+    AUTONOMY_LEVELS,
+    TASK_STATUSES,
+    AgentPolicy,
+    Decision,
+    Experiment,
+    InboundMessage,
+    Opportunity,
+    OutboundMessage,
+    Task,
+)

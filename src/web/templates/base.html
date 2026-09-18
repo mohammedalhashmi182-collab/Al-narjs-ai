@@ -39,7 +39,7 @@
                     <a href="/" class="flex items-center px-3 py-2.5">
                         <i class="fas fa-tachometer-alt w-5 me-3 ms-0"></i> <span data-lang="ar">لوحة التحكم</span><span data-lang="en" data-inline>Dashboard</span>
                     </a>
-                    <a href="/agents" class="flex items-center px-3 py-2.5">
+                    <a href="/agents" class="flex items-center px-3 py-2.5{% if active == 'agents' %} active{% endif %}">
                         <i class="fas fa-robot w-5 me-3 ms-0"></i> <span data-lang="ar">الوكلاء</span><span data-lang="en" data-inline>Agents</span>
                     </a>
                     <a href="/workflows" class="flex items-center px-3 py-2.5">
@@ -50,6 +50,12 @@
                     </a>
                     <a href="/executions" class="flex items-center px-3 py-2.5">
                         <i class="fas fa-history w-5 me-3 ms-0"></i> <span data-lang="ar">التنفيذ</span><span data-lang="en" data-inline>Executions</span>
+                    </a>
+                    <a href="/acquisition" class="flex items-center px-3 py-2.5" style="color:var(--n-gold-2);">
+                        <i class="fas fa-bullseye w-5 me-3 ms-0"></i> <span data-lang="ar">اكتساب العملاء (Excel)</span><span data-lang="en" data-inline>Acquisition</span>
+                    </a>
+                    <a href="/company" class="flex items-center px-3 py-2.5{% if active == 'company' %} active{% endif %}" style="color:var(--n-gold-2);">
+                        <i class="fas fa-chess-king w-5 me-3 ms-0"></i> <span data-lang="ar">قيادة الشركة (OS)</span><span data-lang="en" data-inline>Company OS</span>
                     </a>
                     <div class="pt-4 pb-2 text-xs tracking-widest" style="color:rgba(251,248,241,0.5);">— <span data-lang="ar">بوابة الواجهة</span><span data-lang="en" data-inline>Public Pages</span> —</div>
                     <a href="/portal" class="flex items-center px-3 py-2.5">

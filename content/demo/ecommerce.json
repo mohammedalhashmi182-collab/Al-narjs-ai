@@ -1,0 +1,88 @@
+{
+  "demo": true,
+  "package": "ecommerce",
+  "label_ar": "نموذج توضيحي — بيانات تجريبية لأغراض العرض فقط",
+  "label_en": "Illustrative sample — demo data for display purposes only",
+  "employees": {
+    "product_describer": {
+      "steps_ar": [
+        "قراءة مواصفات المنتج",
+        "تحديد الجمهور والكلمات المفتاحية",
+        "كتابة وصف يجمع الفائدة بمحرك البحث",
+        "إضافة مواصفات مختصرة قابلة للقراءة السريعة"
+      ],
+      "steps_en": [
+        "Reading the product specs",
+        "Identifying audience and keywords",
+        "Writing copy that serves both reader and search engine",
+        "Adding scannable short specifications"
+      ],
+      "sample_ar": "العنوان\nمحضّر القهوة المقطّرة — نكهة صافية بخطوات أقل\n\nالوصف\nاستمتع بقهوة أوضح طعماً في كل صباح. المصمم ليمنحك استخلاصاً متوازناً بمجهود أقل، فتبدأ يومك بفنجان تعرفه مسبقاً.\n\nأبرز المزايا\n- استخلاص متوازن للنكهة.\n- تنظيف سريع لأجزاء قابلة للفصل.\n- حجم مناسب للمطبخ الصغير.\n\nالمواصفات\n- السعة: ٤ أكواب.\n- المادة: زجاج مقاوم للحرارة.\n- مناسب لمختلف أنواع البن.\n\nالكلمات المفتاحية المستهدفة\nمحضّر قهوة مقطّرة، أداة قهوة، قهوة مختصة.",
+      "sample_en": "Title\nPour-over coffee maker — clean flavor with fewer steps\n\nDescription\nEnjoy a clearer-tasting cup every morning. Designed to give you balanced extraction with less effort, so you start the day with a cup you can rely on.\n\nHighlights\n- Balanced flavor extraction.\n- Fast cleaning with removable parts.\n- Compact footprint for small kitchens.\n\nSpecifications\n- Capacity: 4 cups.\n- Material: heat-resistant glass.\n- Compatible with all bean types.\n\nTarget keywords\npour-over maker, coffee tool, specialty coffee."
+    },
+    "store_manager": {
+      "steps_ar": [
+        "قراءة بيانات المتجر والمنتجات",
+        "تدقيق صفحة المنتج ومسار الشراء",
+        "رصد نقاط التسرب في السلة",
+        "بناء قائمة تحسينات مرتبة بحسب الأثر"
+      ],
+      "steps_en": [
+        "Reading store and product data",
+        "Auditing the product page and buying path",
+        "Spotting drop-off points in the cart",
+        "Building a list of fixes ordered by impact"
+      ],
+      "sample_ar": "تدقيق المتجر\n- الصفحة الرئيسية: يحتاج التصنيف إلى إعادة ترتيب حسب الأكثر مبيعاً.\n- صفحة المنتج: صور بمقاسات غير موحدة، وغياب معلومات الشحن.\n- السلة: خطوة إضافية غير ضرورية قبل الدفع.\n\nأثر متوقع (وصف نوعي، وليس نتائج فعلية)\n- تقليل خطوات الدفع يرفع إتمام الطلب.\n- إظهار تكلفة الشحن مبكراً يقلل التخلي عن السلة.\n\nخطة التنفيذ\n1. توحيد مقاسات الصور.\n2. إضافة تكلفة الشحن في صفحة المنتج.\n3. تقليل خطوات الدفع إلى خطوتين.\n4. ترتيب التصنيفات حسب الأكثر مبيعاً.",
+      "sample_en": "Store audit\n- Homepage: categories need reordering by best-sellers.\n- Product page: inconsistent image sizes, no shipping info.\n- Cart: one unnecessary step before checkout.\n\nExpected impact (qualitative, not actual results)\n- Fewer checkout steps improve completion.\n- Showing shipping cost early reduces cart abandonment.\n\nAction plan\n1. Standardize image sizes.\n2. Add shipping cost to the product page.\n3. Reduce checkout to two steps.\n4. Order categories by best-sellers."
+    },
+    "customer_service": {
+      "steps_ar": [
+        "قراءة رسالة العميل",
+        "تحديد نوع الطلب والحالة",
+        "صياغة رد يحلّ المشكلة من أول مرة",
+        "اقتراح خطوة متابعة"
+      ],
+      "steps_en": [
+        "Reading the customer message",
+        "Classifying the request and status",
+        "Drafting a first-contact resolution",
+        "Suggesting a follow-up step"
+      ],
+      "sample_ar": "ملخص الطلب\n- النوع: استفسار عن موعد التوصيل.\n- الأولوية: عادية.\n- الحالة: لم يُحدد الموعد بعد.\n\nالرد المقترح\n«أهلاً بك، وشكراً لتواصلك. طلبك قيد التجهيز، وسيصل خلال ٢ إلى ٤ أيام عمل. سأرسل لك رقم التتبع فور خروجه من المستودع.»\n\nخطوة المتابعة\n- إشعار آلي برقم التتبع عند الشحن.\n- سؤال بعد التسليم عن رضا العميل.",
+      "sample_en": "Request summary\n- Type: delivery date enquiry.\n- Priority: normal.\n- Status: date not yet confirmed.\n\nSuggested reply\n\"Hello, and thanks for reaching out. Your order is being prepared and will arrive within 2-4 business days. I'll send the tracking number as soon as it leaves the warehouse.\"\n\nFollow-up step\n- Automated tracking number notification at dispatch.\n- A satisfaction check after delivery."
+    },
+    "customer_manager": {
+      "steps_ar": [
+        "قراءة تاريخ التعاملات",
+        "تصنيف العميل ومرحلة العلاقة",
+        "بناء جدول تفاعل مناسب",
+        "تحديد لحظة العرض المناسبة"
+      ],
+      "steps_en": [
+        "Reading interaction history",
+        "Classifying the customer and relationship stage",
+        "Building a suitable engagement schedule",
+        "Identifying the right moment for an offer"
+      ],
+      "sample_ar": "تصنيف العميل\n- عميل متكرر، متوسط قيمة الطلب.\n- أخر تواصل قبل ٤٥ يوماً (مرشح لإعادة تنشيط).\n\nجدول التفاعل\n- اليوم ٣: رسالة قيمة بلا بيع (دليل استخدام).\n- اليوم ١٠: عرض محدود مناسب لسلوكه السابق.\n- اليوم ٢١: سؤال عن الرضا وتجربة المنتج.\n\nالرسالة المقترحة (اليوم ٣)\n«لاحظنا أنك تستخدم المنتج بانتظام — أعددنا لك دليلاً مختصراً يوفّر وقتك.»\n\nملاحظة\n- العرض في اليوم ١٠ يبدأ برسالة توضيح بعد «التقدير» وبعد موافقة المالك.",
+      "sample_en": "Customer class\n- Repeat customer, mid average order value.\n- Last contact 45 days ago (reactivation candidate).\n\nEngagement schedule\n- Day 3: value message, no selling (usage guide).\n- Day 10: limited offer matching past behavior.\n- Day 21: satisfaction and product-experience check.\n\nSuggested message (Day 3)\n\"We noticed you use the product regularly — we prepared a short guide to save you time.\"\n\nNote\n- The Day 10 offer is positioned as an acknowledgement and requires owner approval."
+    },
+    "email_writer": {
+      "steps_ar": [
+        "تحديد الغرض والمستلم",
+        "ترتيب الرسالة حول فكرة واحدة",
+        "كتابة العنوان والنص والدعوة",
+        "إضافة نسخة متابعة"
+      ],
+      "steps_en": [
+        "Defining purpose and recipient",
+        "Structuring the email around one idea",
+        "Writing subject, body, and call to action",
+        "Adding a follow-up variant"
+      ],
+      "sample_ar": "الرسالة الأساسية\nالموضوع: تحسين بسيط يوفر وقتك هذا الشهر\n\nمرحباً {{الاسم}}،\n\nلاحظنا أنك تستخدم خدمتنا أسبوعياً. أعددنا لك خطوة واحدة مختصرة توفّر عليك وقت المتابعة اليدوية.\n\nإن رغبت، أرسل لك الشرح في ٣ أسطر.\n\nتحية طيبة،\nالفريق\n\nنسخة المتابعة (بعد ٣ أيام)\nالموضوع: تذكير سريع بشأن الحفظ الآلي\n\nمرحباً {{الاسم}}، مجرد تذكير قصير — الشرح جاهز إن أردته.",
+      "sample_en": "Primary email\nSubject: One simple tweak that saves you time this month\n\nHi {{name}},\n\nWe noticed you use our service weekly. We put together one short step that removes manual follow-up.\n\nIf useful, I can send the explanation in 3 lines.\n\nBest,\nThe team\n\nFollow-up variant (after 3 days)\nSubject: Quick reminder about automated saving\n\nHi {{name}}, just a short reminder — the explanation is ready whenever you want it."
+    }
+  }
+}

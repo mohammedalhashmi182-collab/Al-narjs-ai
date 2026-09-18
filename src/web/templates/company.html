@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Company OS - Al-Narjis AI{% endblock %}
+
+{% block page_title %}<span data-lang="ar">قيادة الشركة</span><span data-lang="en" data-inline>Company OS</span>{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div>
+        <h3 class="text-lg font-bold" style="color:var(--n-brown);">Autonomous Company Operating System</h3>
+        <p class="text-sm" style="color:var(--n-brown-2);">
+            <span data-lang="ar">يدير دورة عمل الرئيس التنفيذي: رصد ← تحديد أولويات ← فرص ← مهام ← قرارات تُسجّل آلياً</span>
+            <span data-lang="en" data-inline>The CEO brain runs a full cycle: observe → prioritize → opportunities → tasks → auditable decisions.</span>
+        </p>
+    </div>
+    <div class="flex items-center gap-3">
+        <button id="runCEO" class="btn inline-flex items-center gap-2 font-bold" style="background:var(--n-gold);color:#111;">
+            <i class="fas fa-chess-king"></i>
+            <span data-lang="ar">تشغيل دورة الرئيس التنفيذي</span>
+            <span data-lang="en" data-inline>Run CEO cycle</span>
+        </button>
+        <span id="ceoStatus" class="text-xs font-bold hidden lg:inline" style="color:var(--n-brown-2);"></span>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-cyan-500">
+        <div class="flex items-center">
+            <div class="p-3 bg-cyan-100 rounded-full"><i class="fas fa-robot text-cyan-600 text-2xl"></i></div>
+            <div class="mx-3">
+                <p class="text-sm text-gray-500"><span data-lang="ar">الوكلاء النشطون</span><span data-lang="en" data-inline>Active Agents</span></p>
+                <p id="kpi-agents" class="text-2xl font-bold text-gray-900">-</p>
+            </div>
+        </div>
+        <p class="text-xs mt-2 text-gray-400"><span id="kpi-agents-sub"></span></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-blue-500">
+        <div class="flex items-center">
+            <div class="p-3 bg-blue-100 rounded-full"><i class="fas fa-users text-blue-600 text-2xl"></i></div>
+            <div class="mx-3">
+                <p class="text-sm text-gray-500"><span data-lang="ar">العملاء المحتملون</span><span data-lang="en" data-inline>Leads</span></p>
+                <p id="kpi-leads" class="text-2xl font-bold text-gray-900">-</p>
+            </div>
+        </div>
+        <p class="text-xs mt-2 text-rose-500"><span id="kpi-leads-sub"></span></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-emerald-500">
+        <div class="flex items-center">
+            <div class="p-3 bg-emerald-100 rounded-full"><i class="fas fa-coins text-emerald-600 text-2xl"></i></div>
+            <div class="mx-3">
+                <p class="text-sm text-gray-500"><span data-lang="ar">الإيرادات المدفوعة</span><span data-lang="en" data-inline>Paid Revenue</span></p>
+                <p id="kpi-revenue" class="text-2xl font-bold text-gray-900">-</p>
+            </div>
+        </div>
+        <p class="text-xs mt-2 text-gray-400"><span id="kpi-revenue-sub"></span></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-amber-500">
+        <div class="flex items-center">
+            <div class="p-3 bg-amber-100 rounded-full"><i class="fas fa-tasks text-amber-600 text-2xl"></i></div>
+            <div class="mx-3">
+                <p class="text-sm text-gray-500"><span data-lang="ar">مهام مفتوحة</span><span data-lang="en" data-inline>Open Work</span></p>
+                <p id="kpi-tasks" class="text-2xl font-bold text-gray-900">-</p>
+            </div>
+        </div>
+        <p class="text-xs mt-2 text-gray-400"><span id="kpi-tasks-sub"></span></p>
+    </div>
+</div>
+
+<div class="bg-gradient-to-r from-emerald-50 to-amber-50 rounded-lg shadow border-t-4 border-amber-500 mb-8 p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+            <h3 class="text-lg font-bold text-gray-900">
+                <span data-lang="ar">غرفة عمليات الإيرادات</span><span data-lang="en" data-inline>Revenue War Room</span>
+            </h3>
+            <p class="text-xs text-gray-500">
+                <span data-lang="ar">الهدف 10,000 ر.س اليوم — المصدق فقط يزداد، والإمكاني يُعرض منفصلاً دون أي تزوير</span>
+                <span data-lang="en" data-inline>Target 10,000 SAR today — only verified revenue counts; potential is shown separately.</span>
+            </p>
+        </div>
+        <span id="rev-wave" class="px-2 py-1 text-xs font-bold rounded-full bg-white border border-gray-200 text-gray-700"></span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-amber-500">
+            <p class="text-xs text-gray-500">Target</p>
+            <p id="rev-target" class="text-2xl font-bold text-gray-900">—</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-emerald-500">
+            <p class="text-xs text-gray-500">Verified (actual only)</p>
+            <p id="rev-verified" class="text-2xl font-bold text-emerald-600">—</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-rose-500">
+            <p class="text-xs text-gray-500">Gap</p>
+            <p id="rev-gap" class="text-2xl font-bold text-rose-600">—</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-blue-500">
+            <p class="text-xs text-gray-500">Potential (separate)</p>
+            <p id="rev-potential" class="text-2xl font-bold text-blue-600">—</p>
+        </div>
+    </div>
+    <p class="text-xs text-gray-500 mb-3">
+        <span data-lang="ar">عدد التواصل المطلوب لتغطية الفجوة حسب افتراضات تحويل صريحة:</span>
+        <span data-lang="en" data-inline>Required conversations to close the gap (explicit conversion assumptions):</span>
+        <span id="rev-contacts" class="font-bold text-gray-700">—</span>
+        · <span id="rev-tiers" class="font-bold text-gray-700">—</span>
+    </p>
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-3 border-b border-gray-200 flex items-center justify-between">
+            <h4 class="font-semibold text-gray-900">Top 10 Actions Now</h4>
+            <button onclick="loadRevenue()" class="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">↻ refresh</button>
+        </div>
+        <div class="overflow-x-auto" style="max-height:520px;overflow-y:auto;">
+            <table class="w-full text-sm">
+                <thead class="text-right text-gray-500 border-b border-gray-100">
+                    <tr>
+                        <th class="p-2">#</th><th class="p-2">Company</th><th class="p-2">Tier</th><th class="p-2">Offer</th><th class="p-2">SAR</th><th class="p-2">Channel</th><th class="p-2">Why now</th><th class="p-2">Next action</th><th class="p-2">Message preview</th><th class="p-2"></th>
+                    </tr>
+                </thead>
+                <tbody id="rev-top-body"><tr><td colspan="10" class="p-4 text-center text-gray-500">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow border-t-4 border-green-600 mb-8 p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+            <h3 class="text-lg font-bold text-gray-900">
+                <span data-lang="ar">حالة واتساب ومحادثات اليوم</span><span data-lang="en" data-inline>WhatsApp Status &amp; Today's Conversation</span>
+            </h3>
+            <p class="text-xs text-gray-500">
+                <span data-lang="ar">المصدّق فقط حتى الوصول إلى WON — لا يُحتسب أي إرسال دون تأكيد حقيقي من المنصة</span>
+                <span data-lang="en" data-inline>Only verified grows — nothing counts as sent without a real provider ack.</span>
+            </p>
+        </div>
+        <span id="wa-badge" class="px-2 py-1 text-xs font-bold rounded-full bg-gray-200 text-gray-700">…</span>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 lg:col-span-1">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-2">WhatsApp Sender</p>
+            <p class="text-sm text-gray-800">
+                <span class="text-gray-500">Status:</span>
+                <span id="wa-enabled" class="font-bold">—</span>
+            </p>
+            <p id="wa-reason" class="text-xs text-gray-500 mt-1 leading-relaxed" title="">—</p>
+            <p class="text-xs text-gray-500 mt-2">Env required: <code class="text-gray-700">WHATSAPP_TOKEN</code> + <code class="text-gray-700">WHATSAPP_PHONE_ID</code></p>
+            <p class="text-xs text-gray-500 mt-1">Fallback: <code class="text-gray-700">wa.me</code> one-tap link until enabled</p>
+            <hr class="my-3 border-gray-200">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-1">Webhook</p>
+            <p class="text-sm text-gray-800">
+                <span class="text-gray-500">Configured:</span>
+                <span id="wa-webhook" class="font-bold">—</span>
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Env optional: <code class="text-gray-700">WHATSAPP_APP_SECRET</code> + <code class="text-gray-700">WHATSAPP_WEBHOOK_VERIFY_TOKEN</code></p>
+        </div>
+        <div class="lg:col-span-2">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-2">TODAY (verified, never fabricated)</p>
+            <div class="grid grid-cols-4 gap-3">
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Queued</p><p id="wa-today-queued" class="text-xl font-bold text-gray-900">—</p></div>
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Sent (acked)</p><p id="wa-today-sent" class="text-xl font-bold text-green-600">—</p></div>
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Delivered</p><p id="wa-today-delivered" class="text-xl font-bold text-blue-600">—</p></div>
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Replies</p><p id="wa-today-replies" class="text-xl font-bold text-cyan-600">—</p></div>
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Qualified</p><p id="wa-today-qualified" class="text-xl font-bold text-indigo-600">—</p></div>
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Proposals</p><p id="wa-today-proposals" class="text-xl font-bold text-purple-600">—</p></div>
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Won</p><p id="wa-today-won" class="text-xl font-bold text-emerald-600">—</p></div>
+                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Verified SAR</p><p id="wa-today-sar" class="text-xl font-bold text-amber-600">—</p></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">Total sent: <span id="wa-total-sent" class="font-bold text-gray-700">—</span> · Failed: <span id="wa-total-failed" class="font-bold text-gray-700">—</span> · Replies: <span id="wa-total-replies" class="font-bold text-gray-700">—</span> · Response rate: <span id="wa-response-rate" class="font-bold text-gray-700">—</span> · Buying signals: <span id="wa-buying-signals" class="font-bold text-gray-700">—</span> · Objections today: <span id="wa-objections" class="font-bold text-gray-700">—</span></p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Opportunities</p><p id="kpi-opportunities" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Follow-ups Due</p><p id="kpi-followups" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Active Schedules</p><p id="kpi-schedules" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Decisions Logged</p><p id="kpi-decisions" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Experiments</p><p id="kpi-experiments" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Executions / Failed</p><p id="kpi-executions" class="text-xl font-bold text-gray-900">-</p></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar">الفرص المكتشفة</span><span data-lang="en" data-inline>Opportunities</span></h3>
+            <span class="text-xs text-gray-500">/api/opportunities</span>
+        </div>
+        <div class="p-4" style="max-height:420px;overflow-y:auto;">
+            <table class="w-full">
+                <thead class="text-right text-sm text-gray-500"><tr><th class="pb-2">Title</th><th class="pb-2">Owner</th><th class="pb-2">Status</th><th class="pb-2"></th></tr></thead>
+                <tbody id="opportunities-body" class="text-sm"><tr><td colspan="5" class="py-4 text-center text-gray-500">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar">المهام الموكلة</span><span data-lang="en" data-inline>Tasks</span></h3>
+            <span class="text-xs text-gray-500">/api/tasks</span>
+        </div>
+        <div class="p-4" style="max-height:420px;overflow-y:auto;">
+            <table class="w-full">
+                <thead class="text-right text-sm text-gray-500"><tr><th class="pb-2">Title</th><th class="pb-2">Owner</th><th class="pb-2">P</th><th class="pb-2">Status</th><th class="pb-2"></th></tr></thead>
+                <tbody id="tasks-body" class="text-sm"><tr><td colspan="5" class="py-4 text-center text-gray-500">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow mb-8">
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar">سجل القرارات (لا يحذف أبداً)</span><span data-lang="en" data-inline>Decision Log (append-only)</span></h3>
+        <span class="text-xs text-gray-500">/api/decisions</span>
+    </div>
+    <div class="p-4" style="max-height:360px;overflow-y:auto;">
+        <table class="w-full">
+            <thead class="text-right text-sm text-gray-500"><tr><th class="pb-2">Actor</th><th class="pb-2">Decision</th><th class="pb-2">Status</th><th class="pb-2">Learning</th><th class="pb-2">When</th></tr></thead>
+            <tbody id="decisions-body" class="text-sm"><tr><td colspan="5" class="py-4 text-center text-gray-500">Loading...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const fmtDate = s => s ? new Date(s).toLocaleString() : '—';
+    const UNKNOWN = 'UNKNOWN';
+    const statusBadge = (s, opts = {}) => {
+        const cls = opts[s] || 'bg-gray-100 text-gray-800';
+        return `<span class="px-2 py-1 text-xs rounded-full ${cls}">${esc(s)}</span>`;
+    };
+    const TASK_CLS = { queued:'bg-gray-100 text-gray-800', running:'bg-blue-100 text-blue-800', completed:'bg-green-100 text-green-800', failed:'bg-red-100 text-red-800', cancelled:'bg-gray-200 text-gray-600', escalated:'bg-orange-100 text-orange-800' };
+    const OPP_CLS = { open:'bg-blue-100 text-blue-800', assigned:'bg-yellow-100 text-yellow-800', won:'bg-green-100 text-green-800', dismissed:'bg-gray-200 text-gray-600' };
+    const DEC_CLS = { pending:'bg-yellow-100 text-yellow-800', resolved:'bg-green-100 text-green-800', failed:'bg-red-100 text-red-800' };
+    const TIER_CLS = { A:'bg-emerald-100 text-emerald-800', B:'bg-blue-100 text-blue-800', C:'bg-amber-100 text-amber-800', D:'bg-gray-100 text-gray-600' };
+
+    async function loadRevenue() {
+        try {
+            const r = await fetch('/api/company/radar?top=10&size=150').then(r => r.json());
+            const m = r.metrics || {};
+            document.getElementById('rev-target').textContent = Number(m.target_sar ?? 0).toLocaleString() + ' SAR';
+            document.getElementById('rev-verified').textContent = Number(m.verified_sar ?? 0).toLocaleString() + ' SAR';
+            document.getElementById('rev-gap').textContent = Number(m.gap_sar ?? 0).toLocaleString() + ' SAR';
+            document.getElementById('rev-potential').textContent = Number(m.potential_sar ?? 0).toLocaleString() + ' SAR';
+            document.getElementById('rev-contacts').textContent = (m.required_contacts ?? 0) + ' conversations';
+            document.getElementById('rev-wave').textContent = 'Wave size: ' + (r.wave_size ?? (r.top_10 || []).length);
+            const tc = r.tier_counts || {};
+            document.getElementById('rev-tiers').textContent = `Tiers A:${tc.A ?? 0} · B:${tc.B ?? 0} · C:${tc.C ?? 0} · D:${tc.D ?? 0}`;
+
+            const wa = r.whatsapp || {}, cv = r.conversation || {}, cvt = cv.today || {}, cvx = cv.totals || {};
+            const s = wa.status || cv.status || {};
+            const enabled = !!wa.enabled;
+            document.getElementById('wa-badge').textContent = enabled ? 'CONNECTED' : 'DISABLED';
+            document.getElementById('wa-badge').className = 'px-2 py-1 text-xs font-bold rounded-full ' + (enabled ? 'bg-green-100 text-green-800' : 'bg-rose-100 text-rose-700');
+            document.getElementById('wa-enabled').textContent = enabled ? 'Connected ✓' : 'Disabled ✗';
+            document.getElementById('wa-reason').textContent = s.disabled_reason || '';
+            document.getElementById('wa-webhook').textContent = (s.webhook_configured ? 'Configured ✓' : 'Not configured — optional');
+            document.getElementById('wa-today-queued').textContent = cvt.queued ?? '—';
+            document.getElementById('wa-today-sent').textContent = cvt.sent ?? '—';
+            document.getElementById('wa-today-delivered').textContent = cvt.delivered ?? '—';
+            document.getElementById('wa-today-replies').textContent = cvt.replies ?? '—';
+            document.getElementById('wa-today-qualified').textContent = cvt.qualified ?? '—';
+            document.getElementById('wa-today-proposals').textContent = cvt.proposals ?? '—';
+            document.getElementById('wa-today-won').textContent = cvt.won ?? '—';
+            document.getElementById('wa-today-sar').textContent = Number(cvt.verified_sar ?? 0).toLocaleString();
+            document.getElementById('wa-total-sent').textContent = cvx.sent ?? '—';
+            document.getElementById('wa-total-failed').textContent = cvx.failed ?? '—';
+            document.getElementById('wa-total-replies').textContent = cvx.replies ?? '—';
+            document.getElementById('wa-response-rate').textContent = cvx.response_rate != null ? (Number(cvx.response_rate) * 100).toFixed(1) + '%' : '—';
+            document.getElementById('wa-buying-signals').textContent = cvx.buying_signals ?? '—';
+            document.getElementById('wa-objections').textContent = cvx.objections_today ?? '—';
+
+            const rows = (r.top_10 || []).map((x, i) => {
+                const msg = esc(x.message_draft || '') || '—';
+                const short = msg.length > 90 ? msg.slice(0, 90) + '…' : msg;
+                const leadUrl = '/acquisition/leads/' + esc(x.lead_id);
+                const sendBtn = x.wa_link
+                    ? `<a href="${esc(x.wa_link)}" target="_blank" class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-800 hover:bg-green-200">SA</a>`
+                    : '<span class="text-xs text-gray-300" title="no WA number">—</span>';
+                const proposalBtn = x.lead_id
+                    ? `<button data-proposal="${esc(x.lead_id)}" class="text-xs font-bold px-2 py-1 rounded bg-purple-100 text-purple-800 hover:bg-purple-200">Prop</button>`
+                    : '—';
+                const invoiceBtn = x.lead_id
+                    ? `<button data-invoice-package="${esc(x.offer)}" data-invoice-lead="${esc(x.lead_id)}" class="text-xs font-bold px-2 py-1 rounded bg-amber-100 text-amber-800 hover:bg-amber-200">Invoice</button>`
+                    : '—';
+                return `<tr class="border-t border-gray-100">
+                    <td class="p-2 text-gray-400">${i + 1}</td>
+                    <td class="p-2"><a href="${leadUrl}" class="font-medium text-gray-900 hover:underline">${esc(x.company)}</a><div class="text-[10px] text-gray-400">${esc(x.reference_id || '')}</div></td>
+                    <td class="p-2">${statusBadge(x.tier, TIER_CLS)}<div class="text-[10px] text-gray-400">${x.tier_score ?? ''}</div></td>
+                    <td class="p-2 text-gray-700">${esc(x.offer || '')}</td>
+                    <td class="p-2 font-bold text-gray-900">${Number(x.total_sar ?? 0).toLocaleString()}</td>
+                    <td class="p-2 text-gray-700">${esc(x.channel || '—')}</td>
+                    <td class="p-2 text-gray-600 max-w-[180px] text-xs">${esc((x.insight || '').slice(0, 80))}</td>
+                    <td class="p-2 text-gray-600 max-w-[150px] text-xs">${esc((x.next_action || '') + ' · ' + (x.next_reason || ''))}</td>
+                    <td class="p-2 text-gray-500 max-w-[220px] text-xs" title="${msg}">${short}</td>
+                    <td class="p-2 whitespace-nowrap">${sendBtn} ${proposalBtn} ${invoiceBtn}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('rev-top-body').innerHTML = rows || '<tr><td colspan="10" class="p-4 text-center text-gray-500">No actionable leads right now.</td></tr>';
+        } catch (e) { console.error('revenue', e); }
+    }
+
+    async function createInvoice(packageKey, leadId) {
+        try {
+            const r = await fetch('/api/payments', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ package: packageKey, method: 'invoice', lead_id: leadId }),
+            }).then(r => r.json());
+            if (r.payment_id) { window.open('/invoice/' + r.payment_id, '_blank'); loadRevenue(); }
+            else alert('invoice failed: ' + JSON.stringify(r));
+        } catch (e) { alert('invoice error: ' + e); }
+    }
+
+    async function loadState() {
+        try {
+            const st = await fetch('/api/company/state').then(r => r.json());
+            const c = st.company || {}, a = st.acquisition || {}, rv = st.revenue || {},
+                  en = st.engineering || {}, op = st.operations || {};
+            document.getElementById('kpi-agents').textContent = c.agents_active ?? '—';
+            document.getElementById('kpi-agents-sub').textContent = (c.agents_total ?? '—') + ' total' + (c.agents_available ? ' · ' + c.agents_available + ' available' : '');
+            document.getElementById('kpi-leads').textContent = a.total_leads ?? (a.total ?? '—');
+            document.getElementById('kpi-leads-sub').textContent = (a.high_priority_active ?? 0) + ' high priority';
+            document.getElementById('kpi-revenue').textContent = (rv.paid_total_sar === UNKNOWN || rv.paid_total_sar == null) ? '—' : Number(rv.paid_total_sar).toLocaleString() + ' SAR';
+            document.getElementById('kpi-revenue-sub').textContent = (rv.payments_total ?? 0) + ' payments';
+            const openTasks = (op.tasks_total ?? 0) - (op.tasks?.completed ?? 0) - (op.tasks?.failed ?? 0) - (op.tasks?.cancelled ?? 0);
+            document.getElementById('kpi-tasks').textContent = Math.max(openTasks, 0);
+            document.getElementById('kpi-tasks-sub').textContent = (op.decisions_total ?? 0) + ' decisions';
+            document.getElementById('kpi-opportunities').textContent = op.opportunities_open ?? '—';
+            document.getElementById('kpi-followups').textContent = a.followups_due ?? '—';
+            document.getElementById('kpi-schedules').textContent = en.active_schedules ?? '—';
+            document.getElementById('kpi-decisions').textContent = op.decisions_total ?? '—';
+            document.getElementById('kpi-experiments').textContent = op.experiments_total ?? '—';
+            document.getElementById('kpi-executions').textContent = (en.workflow_executions ?? '—') + ' / ' + (en.failed_executions ?? '—');
+        } catch (e) { console.error('state', e); }
+    }
+
+    async function loadLists() {
+        try {
+            const [opps, tasks, decs] = await Promise.all([
+                fetch('/api/opportunities?limit=80').then(r => r.json()),
+                fetch('/api/tasks?limit=80').then(r => r.json()),
+                fetch('/api/decisions?limit=40').then(r => r.json()),
+            ]);
+
+            const ob = document.getElementById('opportunities-body');
+            const ops = opps.opportunities || [];
+            ob.innerHTML = ops.length ? ops.map(o => `
+                <tr class="border-t border-gray-100">
+                    <td class="py-2 pr-2"><div class="font-medium text-gray-900">${esc(o.title)}</div><div class="text-xs text-gray-400">${esc(o.area || '')} · conf ${o.confidence != null ? (o.confidence * 100).toFixed(0) + '%' : '—'}</div></td>
+                    <td class="py-2 text-gray-600">${esc(o.owner_agent || '—')}</td>
+                    <td class="py-2">${statusBadge(o.status, OPP_CLS)}</td>
+                    <td class="py-2">
+                        ${o.status === 'open' ? `<button data-opp="${esc(o.key)}" data-act="won" class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-800 hover:bg-green-200">Won</button> <button data-opp="${esc(o.key)}" data-act="dismissed" class="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">✕</button>` : '<span class="text-gray-300">—</span>'}
+                    </td>
+                </tr>`).join('') : '<tr><td colspan="4" class="py-4 text-center text-gray-500">No opportunities yet</td></tr>';
+
+            const tb = document.getElementById('tasks-body');
+            const ts = tasks.tasks || [];
+            tb.innerHTML = ts.length ? ts.map(t => `
+                <tr class="border-t border-gray-100">
+                    <td class="py-2 pr-2"><div class="font-medium text-gray-900">${esc(t.title)}</div><div class="text-xs text-gray-400">${esc(t.department || '')} · src ${esc(t.source || '')}</div></td>
+                    <td class="py-2 text-gray-600">${esc(t.owner_agent || '—')}</td>
+                    <td class="py-2 text-gray-500">${t.priority ?? '—'}</td>
+                    <td class="py-2">${statusBadge(t.status, TASK_CLS)}</td>
+                    <td class="py-2">
+                        ${['queued','running'].includes(t.status) ? `<button data-task="${esc(t.key)}" data-act="completed" class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-800 hover:bg-green-200">Done</button> <button data-task="${esc(t.key)}" data-act="failed" class="text-xs font-bold px-2 py-1 rounded bg-red-100 text-red-600 hover:bg-red-200">✕</button>` : '<span class="text-gray-300">—</span>'}
+                    </td>
+                </tr>`).join('') : '<tr><td colspan="5" class="py-4 text-center text-gray-500">No tasks yet</td></tr>';
+
+            const db = document.getElementById('decisions-body');
+            const ds = decs.decisions || [];
+            db.innerHTML = ds.length ? ds.map(d => `
+                <tr class="border-t border-gray-100">
+                    <td class="py-2 font-bold text-gray-700">${esc(d.actor || '—')}</td>
+                    <td class="py-2 text-gray-900">${esc(d.decision)}</td>
+                    <td class="py-2">${statusBadge(d.status, DEC_CLS)}</td>
+                    <td class="py-2 text-gray-600">${esc(d.learning || '—')}</td>
+                    <td class="py-2 text-gray-500 whitespace-nowrap">${fmtDate(d.created_at)}</td>
+                </tr>`).join('') : '<tr><td colspan="5" class="py-4 text-center text-gray-500">No decisions yet</td></tr>';
+        } catch (e) { console.error('lists', e); }
+    }
+
+    async function runCEO() {
+        const btn = document.getElementById('runCEO');
+        const st = document.getElementById('ceoStatus');
+        btn.disabled = true;
+        st.textContent = '⌛ running...';
+        try {
+            const r = await fetch('/api/ceo/run', { method: 'POST' }).then(r => r.json());
+            const n = (r.promoted || []).length;
+            st.textContent = `✓ ${(r.priorities || []).length} opportunities · ${n} task(s) promoted · run ${String(r.run_id || r.run_at || '').slice(11, 19)}`;
+            loadState(); loadLists();
+        } catch (e) {
+            st.textContent = '✗ failed — ' + e;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    document.addEventListener('click', async (e) => {
+        const opp = e.target.closest('[data-opp]');
+        if (opp) {
+            e.target.disabled = true;
+            await fetch('/api/opportunities/' + encodeURIComponent(opp.dataset.opp) + '/status', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: opp.dataset.act, learning: 'settled by owner from Company OS dashboard' }),
+            });
+            loadLists(); return;
+        }
+        const task = e.target.closest('[data-task]');
+        if (task) {
+            e.target.disabled = true;
+            await fetch('/api/tasks/' + encodeURIComponent(task.dataset.task), {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: task.dataset.act }),
+            });
+            loadLists();
+        }
+        const prop = e.target.closest('[data-proposal]');
+        if (prop) { window.open('/acquisition/leads/' + prop.dataset.proposal + '/proposal', '_blank'); }
+        const inv = e.target.closest('[data-invoice-lead]');
+        if (inv) { createInvoice(inv.dataset.invoicePackage, inv.dataset.invoiceLead); }
+    });
+
+    document.getElementById('runCEO').addEventListener('click', runCEO);
+
+    loadState();
+    loadLists();
+    loadRevenue();
+    setInterval(() => { loadState(); loadLists(); loadRevenue(); }, 30000);
+</script>
+{% endblock %}

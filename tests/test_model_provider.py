@@ -135,6 +135,12 @@ class TestModelProviderIntegration:
             groq_default_model = "llama-3.1-70b-versatile"
             anthropic_api_key = None
             anthropic_default_model = "claude-3-5-sonnet-20241022"
+            gemini_api_key = None
+            gemini_base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+            gemini_default_model = "gemini-3.6-flash"
+            moonshot_api_key = None
+            moonshot_base_url = "https://api.moonshot.ai/v1"
+            moonshot_default_model = "kimi-k2.7-code"
             code_executor_timeout = 30
 
         return MockSettings()

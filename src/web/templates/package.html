@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+{% set _lang = page_lang(request) %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if _lang == 'ar' %}{{ detail.name }} | النرجس للذكاء الاصطناعي{% else %}{{ detail.name_en }} | Al-Narjis AI{% endif %}</title>
+    <meta name="description" content="{% if _lang == 'ar' %}{{ detail.tagline }}{% else %}{{ detail.tagline_en }}{% endif %}">
+    <link rel="canonical" href="https://www.karmaai.online{% if _lang == 'en' %}/en{% endif %}/packages/{{ detail.key }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    {% include "partials/_analytics.html" %}
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+    </style>
+</head>
+<body data-lang="{{ _lang }}" class="bg-sand min-h-screen">
+    <nav class="n-nav px-6 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="/home" class="flex items-center gap-3">
+                <span class="text-3xl" style="color:var(--n-gold);">✺</span>
+                <div>
+                    <div class="n-title text-xl" style="font-size:1.25rem;">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
+                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">الباقة · PACKAGE</div>
+                </div>
+            </a>
+            <div class="flex items-center gap-3">
+                <div class="lang-pill" id="langToggle">
+                    <button data-lang-btn="ar" class="arabic {{ 'active' if _lang == 'ar' }}">عربي</button>
+                    <button data-lang-btn="en" class="english {{ 'active' if _lang == 'en' }}">EN</button>
+                </div>
+                <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
+                    <span data-lang="ar">الرئيسية</span><span data-lang="en" data-inline>Home</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="py-12">
+        {% include "partials/_package_detail.html" %}
+    </section>
+
+    <footer class="n-footer py-8">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" data-inline>✺ Al-Narjis AI ✺</span></div>
+            <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
+            <p class="text-xs mt-3" style="opacity:0.6;">
+                <span data-lang="ar">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
+                <span data-lang="en" data-inline>The Arabian Convoy Establishment · CR 31332495263 ·</span>
+                <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar">الخصوصية</span><span data-lang="en" data-inline>Privacy</span></a>
+                <span style="opacity:0.6;">·</span>
+                <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar">الشروط</span><span data-lang="en" data-inline>Terms</span></a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            function goLang(lang) {
+                const p = location.pathname;
+                const base = (p.indexOf('/en/') === 0 || p.indexOf('/ar/') === 0) ? p.slice(3) : p;
+                location.href = '/' + lang + (base === '/' ? '/' : base) + location.search + location.hash;
+            }
+            const lt = document.getElementById('langToggle');
+            if (lt) lt.addEventListener('click', e => {
+                const b = e.target.closest('[data-lang-btn]');
+                if (b) goLang(b.dataset.langBtn);
+            });
+
+            const ref = new URLSearchParams(location.search).get('ref');
+            if (ref) {
+                fetch('/api/leads/' + encodeURIComponent(ref) + '/demo-viewed', { method: 'POST' }).catch(() => {});
+            }
+        })();
+    </script>
+</body>
+</html>

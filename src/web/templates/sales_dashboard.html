@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}اكتساب العملاء - Karma AI{% endblock %}
+{% block page_title %}اكتساب العملاء · Sales Pipeline{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div class="bg-white rounded-lg shadow p-5 border-t-4 border-amber-500">
+            <p class="text-xs text-gray-500" data-lang="ar">متابعات اليوم</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Follow-ups due</p>
+            <p id="today-followups" class="text-3xl font-bold text-amber-600">-</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-5 border-t-4 border-blue-500">
+            <p class="text-xs text-gray-500" data-lang="ar">عملاء جدد</p><p class="text-xs text-gray-500" data-lang="en" data-inline>New leads</p>
+            <p id="today-new" class="text-3xl font-bold text-blue-600">-</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-5 border-t-4 border-purple-500">
+            <p class="text-xs text-gray-500" data-lang="ar">ردود تنتظر الإجابة</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Replies</p>
+            <p id="today-replies" class="text-3xl font-bold text-purple-600">-</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-5 border-t-4 border-emerald-500">
+            <p class="text-xs text-gray-500" data-lang="ar">عروض تجريبية</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Demos</p>
+            <p id="today-demos" class="text-3xl font-bold text-emerald-600">-</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-5 border-t-4 border-indigo-500">
+            <p class="text-xs text-gray-500" data-lang="ar">عروض أسعار</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Proposals</p>
+            <p id="today-proposals" class="text-3xl font-bold text-indigo-600">-</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-5 border-t-4 border-green-600">
+            <p class="text-xs text-gray-500" data-lang="ar">تم الفوز</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Won</p>
+            <p id="today-won" class="text-3xl font-bold text-green-700">-</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-5 mb-8">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-stream text-amber-600 me-2"></i><span data-lang="ar">مسار البيع</span><span data-lang="en" data-inline>Pipeline</span></h3>
+            <div id="conversion" class="text-xs text-gray-500"></div>
+        </div>
+        <div id="pipeline" class="flex flex-wrap gap-3 text-sm"></div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-users text-blue-600 me-2"></i><span data-lang="ar">أولويات التواصل</span><span data-lang="en" data-inline>Contact priorities</span></h3>
+            <div class="flex flex-wrap gap-2 text-sm">
+                <select id="filter-priority" class="border rounded px-2 py-1"><option value="">كل الأولويات</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select>
+                <select id="filter-status" class="border rounded px-2 py-1">
+                    <option value="">كل المراحل</option>
+                    <option>NEW</option><option>READY</option><option>CONTACTED</option><option>REPLIED</option><option>INTERESTED</option><option>DEMO</option><option>PROPOSAL</option><option>FOLLOW_UP</option><option>WON</option><option>LOST</option><option>DO_NOT_CONTACT</option>
+                </select>
+                <input id="filter-q" class="border rounded px-2 py-1" placeholder="بحث بالاسم/الجوال/البريد">
+                <button id="btn-filter" class="px-3 py-1 rounded bg-blue-600 text-white">تصفية</button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500 text-xs">
+                    <tr>
+                        <th class="text-start p-3">الشركة</th>
+                        <th class="text-start p-3">القطاع</th>
+                        <th class="text-start p-3">الأولوية</th>
+                        <th class="text-start p-3">لماذا؟</th>
+                        <th class="text-start p-3">المرحلة</th>
+                        <th class="text-start p-3">الإجراء التالي</th>
+                        <th class="text-start p-3">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="leads-body">
+                    <tr><td colspan="7" class="p-6 text-center text-gray-500">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-paper-plane text-emerald-600 me-2"></i><span data-lang="ar">حملات التواصل</span><span data-lang="en" data-inline>Campaign batches</span></h3>
+            <div class="flex items-center gap-2 text-sm">
+                <input id="campaign-size" type="number" value="200" min="20" max="500" class="border rounded px-2 py-1 w-24">
+                <button id="btn-campaign" class="px-3 py-1 rounded bg-emerald-600 text-white">تجهيز دفعة</button>
+            </div>
+        </div>
+        <div class="p-4" id="campaigns"></div>
+    </div>
+
+    <p class="text-xs text-gray-400 mt-6">
+        WhatsApp Business: <span id="wa-number"></span> · التواصل يدوي ومُراجَع من الإنسان — لا إرسال آلي.
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const STAGE_ORDER = ["NEW","READY","CONTACTED","REPLIED","INTERESTED","DEMO","PROPOSAL","FOLLOW_UP","WON","LOST","DO_NOT_CONTACT"];
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function prBadge(p){const c=p==='HIGH'?'bg-red-100 text-red-700':p==='MEDIUM'?'bg-amber-100 text-amber-700':'bg-gray-100 text-gray-600';return `<span class="px-2 py-0.5 rounded-full text-xs font-bold ${c}">${p}</span>`;}
+function stBadge(s){const map={NEW:'bg-blue-100 text-blue-700',READY:'bg-cyan-100 text-cyan-700',CONTACTED:'bg-yellow-100 text-yellow-700',REPLIED:'bg-purple-100 text-purple-700',INTERESTED:'bg-fuchsia-100 text-fuchsia-700',DEMO:'bg-emerald-100 text-emerald-700',PROPOSAL:'bg-indigo-100 text-indigo-700',FOLLOW_UP:'bg-orange-100 text-orange-700',WON:'bg-green-100 text-green-700',LOST:'bg-gray-200 text-gray-600',DO_NOT_CONTACT:'bg-red-200 text-red-800'};return `<span class="px-2 py-0.5 rounded-full text-xs ${map[s]||'bg-gray-100 text-gray-600'}">${escapeHtml(s)}</span>`;}
+
+async function loadOverview(){
+    try{
+        const d=await fetch('/api/acquisition/overview').then(r=>r.json());
+        const by=d.totals.by_status||{};
+        document.getElementById('today-followups').textContent=d.today.followups_due;
+        document.getElementById('today-new').textContent=d.today.new_leads;
+        document.getElementById('today-replies').textContent=(d.today.replies||[]).length||by.REPLIED||0;
+        document.getElementById('today-demos').textContent=d.today.demos;
+        document.getElementById('today-proposals').textContent=d.today.proposals;
+        document.getElementById('today-won').textContent=by.WON||0;
+        document.getElementById('pipeline').innerHTML=STAGE_ORDER.map(s=>`<div class="px-3 py-2 rounded-lg bg-gray-50 border text-center min-w-[92px]"><div class="font-bold text-lg">${by[s]||0}</div><div class="text-xs text-gray-500">${s}</div></div>`).join('');
+        const c=d.conversion;
+        document.getElementById('conversion').textContent=`رد %${c.reply_rate} · Demo %${c.demo_rate} · عرض سعر %${c.proposal_rate} · فوز %${c.won_rate}`;
+        document.getElementById('wa-number').textContent=d.whatsapp_business_number||'06552978753';
+    }catch(e){console.error(e);}
+}
+
+async function loadLeads(){
+    const p=document.getElementById('filter-priority').value;
+    const s=document.getElementById('filter-status').value;
+    const q=document.getElementById('filter-q').value.trim();
+    const params=new URLSearchParams({limit:'100'});
+    if(p)params.set('priority',p); if(s)params.set('status',s); if(q)params.set('q',q);
+    const d=await fetch('/api/acquisition/leads?'+params).then(r=>r.json());
+    const body=document.getElementById('leads-body');
+    if(!d.leads.length){body.innerHTML='<tr><td colspan="7" class="p-6 text-center text-gray-500">لا توجد نتائج</td></tr>';return;}
+    body.innerHTML=d.leads.map(l=>{
+        const reasons=(l.priority_reason||[]).slice(0,3).map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+        return `<tr class="border-t border-gray-100 hover:bg-gray-50">
+            <td class="p-3"><div class="font-semibold">${escapeHtml(l.company_name)}</div><div class="text-xs text-gray-400">${escapeHtml(l.phone||l.email||'-')}</div></td>
+            <td class="p-3 text-gray-600">${escapeHtml(l.segment_label||l.segment)}</td>
+            <td class="p-3">${prBadge(l.priority)}<div class="text-xs text-gray-400 mt-1">${l.priority_score}</div></td>
+            <td class="p-3 text-xs text-gray-600"><ul class="list-disc ps-4 m-0">${reasons}</ul></td>
+            <td class="p-3">${stBadge(l.lead_status)}</td>
+            <td class="p-3 text-xs"><span class="font-medium">${escapeHtml(l.next_action||'-')}</span><div class="text-gray-400">${escapeHtml(l.next_action_due_label||l.next_action_due||'')}</div></td>
+            <td class="p-3"><div class="flex flex-wrap gap-1">
+                <a class="px-2 py-1 rounded bg-gray-800 text-white text-xs" href="/acquisition/leads/${l.id}">فتح</a>
+                <a class="px-2 py-1 rounded bg-emerald-600 text-white text-xs" href="/acquisition/leads/${l.id}/demo" target="_blank">Demo</a>
+            </div></td>
+        </tr>`;
+    }).join('');
+}
+
+async function loadCampaigns(){
+    const d=await fetch('/api/acquisition/campaigns').then(r=>r.json());
+    const el=document.getElementById('campaigns');
+    if(!d.campaigns.length){el.innerHTML='<p class="text-sm text-gray-500">لا توجد حملات بعد. جهّز أول دفعة (100–300 عميل).</p>';return;}
+    el.innerHTML=d.campaigns.map(c=>`<div class="flex items-center justify-between border-b py-2">
+        <div><span class="font-semibold">${escapeHtml(c.name)}</span> <span class="text-xs text-gray-400">· #{c.batch_no} · ${c.count} عميل · ${c.status}</span></div>
+        <div class="flex gap-2"><a class="text-xs px-2 py-1 rounded border" href="/api/acquisition/campaigns/${c.id}" target="_blank">JSON</a>
+        <a class="text-xs px-2 py-1 rounded bg-gray-800 text-white" href="/api/acquisition/campaigns/${c.id}/export.csv">CSV</a></div>
+    </div>`).join('');
+}
+
+document.getElementById('btn-filter').addEventListener('click',loadLeads);
+document.getElementById('filter-q').addEventListener('keydown',e=>{if(e.key==='Enter')loadLeads();});
+document.getElementById('btn-campaign').addEventListener('click',async()=>{
+    const size=parseInt(document.getElementById('campaign-size').value||'200',10);
+    const d=await fetch('/api/acquisition/campaigns',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({size})}).then(r=>r.json());
+    if(d.success){alert(`تم تجهيز دفعة #${d.campaign.batch_no} بعدد ${d.campaign.count} عميل`);loadCampaigns();loadLeads();loadOverview();}
+    else{alert('تعذر تجهيز الدفعة');}
+});
+
+loadOverview();
+loadLeads();
+loadCampaigns();
+</script>
+{% endblock %}

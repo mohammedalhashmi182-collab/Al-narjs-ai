@@ -35,6 +35,7 @@ async def lifespan(app: FastAPI):
     from src.automation.queue_worker import QueueWorker
     from src.automation.scheduler import AgentScheduler
     from src.automation.trigger_engine import TriggerEngine
+    from src.automation.ceo_engine import CompanyBrain
 
     agent_registry = AgentRegistry(session_factory)
     await agent_registry.sync_base_agents()
@@ -47,10 +48,14 @@ async def lifespan(app: FastAPI):
     queue_worker = QueueWorker(agent_registry, model_provider, state_manager, concurrency=settings.queue_worker_concurrency)
     scheduler = AgentScheduler(session_factory)
     trigger_engine = TriggerEngine(session_factory)
+    company_brain = CompanyBrain(session_factory)
 
     await scheduler.start()
     await trigger_engine.start()
     await queue_worker.start()
+
+    from src.automation.ceo_engine import ensure_company_loops
+    await ensure_company_loops(scheduler)
 
     app.state.agent_registry = agent_registry
     app.state.model_provider = model_provider
@@ -61,6 +66,7 @@ async def lifespan(app: FastAPI):
     app.state.queue_worker = queue_worker
     app.state.scheduler = scheduler
     app.state.trigger_engine = trigger_engine
+    app.state.company_brain = company_brain
     app.state.session_factory = session_factory
 
     yield
@@ -175,6 +181,7 @@ class LocaleMiddleware:
         is_html = not (
             path.startswith("/static")
             or path.startswith("/api")
+            or path.startswith("/webhooks")
             or path in ("/robots.txt", "/sitemap.xml", "/favicon.ico")
             or "/health" in path
         )
@@ -232,6 +239,18 @@ def _promo_info() -> dict:
 
 
 templates.env.globals["promo_info"] = _promo_info
+
+from src.interfaces.sales_routes import router as sales_router  # noqa: E402
+
+app.include_router(sales_router)
+
+from src.interfaces.company_routes import router as company_router  # noqa: E402
+
+app.include_router(company_router)
+
+from src.interfaces.whatsapp_routes import router as whatsapp_router  # noqa: E402
+
+app.include_router(whatsapp_router)
 
 
 async def get_session() -> AsyncSession:
@@ -346,6 +365,16 @@ async def pricing_page(request: Request):
     return RedirectResponse("/home#pricing")
 
 
+@app.get("/packages/{package_key}", response_class=HTMLResponse)
+async def package_detail_page(package_key: str, request: Request):
+    from src.services.demo_content import get_package_detail
+
+    detail = get_package_detail(package_key)
+    if not detail:
+        raise HTTPException(404, "Package not found")
+    return templates.TemplateResponse(request, "package.html", {"detail": detail})
+
+
 @app.get("/portal", response_class=HTMLResponse)
 async def client_portal_page(request: Request):
     return templates.TemplateResponse(request, "portal.html")
@@ -366,7 +395,7 @@ async def agents_page(request: Request):
     from src.core.owner_auth import check_owner
     if not check_owner(request):
         return RedirectResponse("/login")
-    return templates.TemplateResponse(request, "agents.html")
+    return templates.TemplateResponse(request, "agents.html", {"active": "agents"})
 
 
 @app.get("/workflows", response_class=HTMLResponse)
@@ -393,6 +422,14 @@ async def executions_page(request: Request):
     return templates.TemplateResponse(request, "executions.html")
 
 
+@app.get("/company", response_class=HTMLResponse)
+async def company_page(request: Request):
+    from src.core.owner_auth import check_owner
+    if not check_owner(request):
+        return RedirectResponse("/login")
+    return templates.TemplateResponse(request, "company.html", {"active": "company"})
+
+
 @app.get("/api/agents")
 async def list_agents(category: Optional[str] = None):
     from src.core.agent_registry import AgentCategory
@@ -408,12 +445,15 @@ async def list_agents(category: Optional[str] = None):
             "name": a.name,
             "description": a.description,
             "category": a.category,
+            "default_model": a.default_model,
+            "is_system": a.is_system,
             "employee_no": emp.get("no", ""),
             "title_ar": emp.get("title_ar", a.name),
             "title_en": emp.get("title_en", a.name),
             "dept": emp.get("dept", ""),
             "intro_ar": emp.get("intro_ar", a.description),
             "intro_en": emp.get("intro_en", a.description),
+            "questions": emp.get("questions", []),
         }
         result.append(item)
     return {"agents": result}
@@ -677,6 +717,16 @@ async def portal_packages():
             "icon": icons.get(key, "fa-robot"),
         })
     return {"packages": result}
+
+
+@app.get("/api/portal/packages/{package_key}/demo")
+async def portal_package_demo(package_key: str):
+    from src.services.demo_content import get_package_detail
+
+    detail = get_package_detail(package_key)
+    if not detail:
+        raise HTTPException(404, "Package not found")
+    return detail
 
 
 class PortalProjectCreate(BaseModel):
@@ -1186,31 +1236,88 @@ async def promo_status():
 
 @app.post("/api/leads")
 async def create_lead(request: Request):
+    """Public website capture — writes one canonical CRM record."""
     body = await request.json()
-    from src.models import Lead
+    from src.models import AcquisitionLead, LeadEvent
+    from src.services.lead_normalize import normalize_email, normalize_phone
+    from src.services.lead_priority import score_lead
+    from src.services.lead_segmentation import classify, suggest_package
+
+    name = (body.get("name") or "").strip()
+    phone = normalize_phone(body.get("phone"))
+    email = normalize_email(body.get("email"))
+    message = (body.get("message") or "").strip() or None
+    package = (body.get("package") or "").strip() or None
+
+    segment, _reason = classify(name)
+    priority = score_lead(company_name=name, phone=phone, email=email, segment=segment)
 
     async with app.state.session_factory() as session:
-        lead = Lead(
-            name=body.get("name", ""),
-            phone=body.get("phone", ""),
-            email=body.get("email"),
-            package=body.get("package"),
-            message=body.get("message"),
+        lead = AcquisitionLead(
+            company_name=name or "عميل محتمل",
+            contact_name=name or None,
+            phone=phone,
+            phone_raw=(body.get("phone") or None),
+            email=email,
+            source="website",
+            segment=segment,
+            suggested_package=package or suggest_package(segment),
+            lead_status="NEW",
+            priority=priority.priority,
+            priority_score=priority.score,
+            priority_reason=priority.reasons,
+            notes=message,
         )
         session.add(lead)
+        await session.flush()
+        session.add(LeadEvent(
+            lead_id=lead.id,
+            event_type="captured",
+            status_after="NEW",
+            channel="website",
+            message=message,
+        ))
         await session.commit()
         await session.refresh(lead)
+        lead_id = lead.id
+        lead_email = lead.email
+        lead_name = lead.contact_name or lead.company_name
 
     email_sent = False
-    if lead.email:
+    if lead_email:
         from src.services import email_service
-        email_sent = await email_service.send_welcome(lead.email, lead.name or "عميلنا العزيز")
-        await _schedule_lead_followups(lead)
+        email_sent = await email_service.send_welcome(lead_email, lead_name or "عميلنا العزيز")
+        await _schedule_lead_followups(lead_id, lead_email, lead_name)
 
-    return {"success": True, "lead_id": str(lead.id), "email_sent": email_sent}
+    return {"success": True, "lead_id": str(lead_id), "email_sent": email_sent}
 
 
-async def _schedule_lead_followups(lead):
+@app.post("/api/leads/{lead_id}/demo-viewed")
+async def mark_demo_viewed(lead_id: str):
+    """Public package page records that a captured lead opened its demo."""
+    from uuid import UUID
+
+    from sqlalchemy import select
+
+    from src.models import AcquisitionLead, LeadEvent
+
+    try:
+        uid = UUID(lead_id)
+    except ValueError:
+        raise HTTPException(400, "Invalid id") from None
+
+    async with app.state.session_factory() as session:
+        lead = (
+            await session.execute(select(AcquisitionLead).where(AcquisitionLead.id == uid))
+        ).scalar_one_or_none()
+        if lead is None:
+            raise HTTPException(404, "Lead not found")
+        session.add(LeadEvent(lead_id=lead.id, event_type="demo_viewed", channel="website"))
+        await session.commit()
+    return {"success": True}
+
+
+async def _schedule_lead_followups(lead_id, email: str, name: str):
     from datetime import datetime, timedelta, timezone as _dt_tz
     from zoneinfo import ZoneInfo
     from src.automation.scheduler import ScheduleConfig
@@ -1219,7 +1326,7 @@ async def _schedule_lead_followups(lead):
         scheduler = app.state.scheduler
     except Exception:
         scheduler = None
-    if scheduler is None or not lead.email:
+    if scheduler is None or not email:
         return
 
     now_ry = datetime.now(_dt_tz.utc).astimezone(ZoneInfo("Asia/Riyadh")).replace(tzinfo=None)
@@ -1228,14 +1335,14 @@ async def _schedule_lead_followups(lead):
     for step in steps:
         try:
             await scheduler.add_schedule(ScheduleConfig(
-                name=f"Lead follow-up {str(lead.id)[:8]} step {step}",
+                name=f"Lead follow-up {str(lead_id)[:8]} step {step}",
                 target_type="lead_email",
-                target_id=lead.id,
+                target_id=lead_id,
                 payload={
                     "step": step,
-                    "email": lead.email,
-                    "name": lead.name or "عميلنا العزيز",
-                    "lead_id": str(lead.id),
+                    "email": email,
+                    "name": name or "عميلنا العزيز",
+                    "lead_id": str(lead_id),
                 },
                 run_once_at=now_ry + timedelta(hours=hours[step]),
                 timezone="Asia/Riyadh",
@@ -1265,23 +1372,24 @@ async def email_test(request: Request):
 
 @app.get("/api/leads", dependencies=[Depends(require_owner_api)])
 async def list_leads(limit: int = 100, offset: int = 0):
-    from src.models import Lead
+    from src.models import AcquisitionLead
     from sqlalchemy import select, desc
 
     async with app.state.session_factory() as session:
         result = await session.execute(
-            select(Lead).order_by(desc(Lead.created_at)).limit(limit).offset(offset)
+            select(AcquisitionLead).order_by(desc(AcquisitionLead.created_at)).limit(limit).offset(offset)
         )
         leads = result.scalars().all()
         return {"leads": [
             {
                 "id": str(l.id),
-                "name": l.name,
+                "name": l.company_name,
+                "company": l.company_name,
                 "phone": l.phone,
                 "email": l.email,
-                "package": l.package,
-                "message": l.message,
-                "status": l.status,
+                "package": l.suggested_package,
+                "message": l.notes,
+                "status": l.lead_status,
                 "created_at": l.created_at.isoformat() if l.created_at else None,
             } for l in leads
         ]}
@@ -1289,12 +1397,12 @@ async def list_leads(limit: int = 100, offset: int = 0):
 
 @app.get("/api/owner/overview", dependencies=[Depends(require_owner_api)])
 async def owner_overview():
-    from src.models import Lead, Payment, ClientProject
+    from src.models import AcquisitionLead, Payment, ClientProject
     from sqlalchemy import select, func, desc
 
     async with app.state.session_factory() as session:
         lead_counts = dict((await session.execute(
-            select(Lead.status, func.count()).group_by(Lead.status)
+            select(AcquisitionLead.lead_status, func.count()).group_by(AcquisitionLead.lead_status)
         )).all())
         payment_by_status = dict((await session.execute(
             select(Payment.status, func.count()).group_by(Payment.status)
@@ -1314,7 +1422,7 @@ async def owner_overview():
             select(Payment).order_by(desc(Payment.created_at)).limit(10)
         )).scalars().all()
         recent_leads_rows = (await session.execute(
-            select(Lead).order_by(desc(Lead.created_at)).limit(10)
+            select(AcquisitionLead).order_by(desc(AcquisitionLead.created_at)).limit(10)
         )).scalars().all()
 
     return {
@@ -1343,10 +1451,10 @@ async def owner_overview():
         "recent_leads": [
             {
                 "id": str(l.id),
-                "name": l.name,
+                "name": l.company_name,
                 "phone": l.phone,
-                "package": l.package,
-                "status": l.status,
+                "package": l.suggested_package,
+                "status": l.lead_status,
                 "created_at": l.created_at.isoformat() if l.created_at else None,
             } for l in recent_leads_rows
         ],
@@ -1355,17 +1463,25 @@ async def owner_overview():
 
 @app.post("/api/leads/{lead_id}/status", dependencies=[Depends(require_owner_api)])
 async def update_lead_status(lead_id: str, request: Request):
-    from src.models import Lead
+    from src.models import LEAD_STATUSES, AcquisitionLead, LeadEvent
     from sqlalchemy import select
     from uuid import UUID
 
     body = await request.json()
+    new_status = body.get("status")
+    if new_status not in LEAD_STATUSES:
+        raise HTTPException(400, f"Unknown status: {new_status}")
     async with app.state.session_factory() as session:
-        result = await session.execute(select(Lead).where(Lead.id == UUID(lead_id)))
+        result = await session.execute(select(AcquisitionLead).where(AcquisitionLead.id == UUID(lead_id)))
         lead = result.scalar_one_or_none()
         if not lead:
             raise HTTPException(404, "Lead not found")
-        lead.status = body.get("status", lead.status)
+        before = lead.lead_status
+        lead.lead_status = new_status
+        session.add(LeadEvent(
+            lead_id=lead.id, event_type="status_change",
+            status_before=before, status_after=new_status,
+        ))
         await session.commit()
     return {"success": True}
 
@@ -1384,6 +1500,7 @@ class PaymentCreateRequest(BaseModel):
     customer_phone: Optional[str] = None
     customer_email: Optional[str] = None
     promo: Optional[str] = None
+    lead_id: Optional[str] = None
 
 
 def _request_locale(request: Request) -> str:
@@ -1401,6 +1518,15 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
     final_amount, discount_pct = pm.apply_promo(base_amount, body.promo)
     discount_halalas = base_amount - final_amount
     async with app.state.session_factory() as session:
+        from uuid import UUID as _UUID
+
+        lead_uuid = None
+        if body.lead_id:
+            try:
+                lead_uuid = _UUID(body.lead_id)
+            except ValueError:
+                raise HTTPException(422, "lead_id must be a valid UUID")
+
         payment = await pm.create_payment(
             session,
             body.package,
@@ -1408,6 +1534,7 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             body.customer_phone,
             body.customer_email,
             promo=body.promo,
+            lead_id=lead_uuid,
         )
 
         method = body.method.lower()
@@ -1544,6 +1671,10 @@ async def capture_payment(payment_id: str, request: Request):
             if payment.status != "paid":
                 await pm.verify_payment(session, payment.id)
 
+    if payment.status == "paid":
+        async with app.state.session_factory() as session:
+            await _apply_paid_outcome(session, payment.id, note="مؤكد عبر بوابة الدفع")
+
     email_sent = False
     if payment.status == "paid" and payment.customer_email:
         from src.services import email_service
@@ -1564,6 +1695,126 @@ async def capture_payment(payment_id: str, request: Request):
         "invoice_url": f"/invoice/{payment.id}" if payment.status == "paid" else None,
         "email_sent": email_sent,
     }
+
+
+async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> dict:
+    """Attach the verified-payment outcome: Decision Log, LeadEvent, lead WON.
+
+    A lead is only moved to WON after a payment is actually ``paid`` (gateway
+    capture or owner-confirmed receipt). Never before.
+    """
+    from collections import OrderedDict
+    from sqlalchemy import select as _sel
+    from src.models import AcquisitionLead, Decision, LeadEvent, Payment as _Payment
+    from src.services import payments as _pm
+
+    payment = (
+        await session.execute(_sel(_Payment).where(_Payment.id == payment_id))
+    ).scalar_one_or_none()
+    if not payment or payment.status != "paid":
+        return {"applied": False, "reason": "payment not paid"}
+
+    marker = f"payment_ref:{payment.id}"
+    existing = (
+        await session.execute(_sel(Decision).where(Decision.reason == marker))
+    ).scalar_one_or_none()
+    if existing:
+        return {"applied": True, "deduplicated": True}
+
+    package = payment.package or "social"
+    total_halalas = _pm.total_with_vat(payment.amount)
+
+    session.add(
+        Decision(
+            decision=f"تم استلام دفعة ({package}) بقيمة {total_halalas // 100} ر.س",
+            reason=marker,
+            actor="owner",
+            evidence=OrderedDict(
+                payment_id=str(payment.id), package=package, amount=payment.amount, note=note
+            ),
+            expected="paid",
+            actual="paid",
+            status="resolved",
+            learning=note or "تحقق يدوي من استلام الدفعة",
+        )
+    )
+
+    if payment.lead_id:
+        lead = (
+            await session.execute(
+                _sel(AcquisitionLead).where(AcquisitionLead.id == payment.lead_id)
+            )
+        ).scalar_one_or_none()
+        if lead and (lead.lead_status or "NEW") != "WON":
+            before = lead.lead_status or "NEW"
+            from datetime import datetime, timezone
+            lead.lead_status = "WON"
+            lead.outreach_status = "WON"
+            lead.last_contacted_at = datetime.now(timezone.utc)
+            session.add(
+                LeadEvent(
+                    lead_id=lead.id,
+                    event_type="status_change",
+                    status_before=before,
+                    status_after="WON",
+                    channel="payment",
+                    message=f"دفعة باكية {package} مؤكدة — تحويل العميل إلى WON",
+                    note=note or "تم تأكيد استلام الدفعة",
+                    created_at=datetime.now(timezone.utc),
+                )
+            )
+
+    await session.commit()
+    return {"applied": True}
+
+
+class ConfirmReceivedRequest(BaseModel):
+    confirmed_by: str = "owner"
+    note: Optional[str] = None
+
+
+@app.post("/api/payments/{payment_id}/confirm-received", dependencies=[Depends(require_owner_api)])
+async def confirm_payment_received(payment_id: str, body: ConfirmReceivedRequest, request: Request):
+    """Owner-only: mark a manual (bank-transfer/invoice) payment as actually received."""
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _select
+    from src.models import Payment as _Payment
+    from src.services import payments as _pm
+
+    try:
+        payment_uuid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+        ).scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+
+        if payment.status == "paid":
+            return {"payment_id": str(payment.id), "status": "paid", "already_paid": True}
+
+        if payment.gateway in ("moyasar", "paypal") and payment.gateway_payment_id:
+            raise HTTPException(409, "Gateway payment must be captured through its gateway")
+
+        payment.status = "paid"
+        await session.commit()
+
+        note = (body.note or "التحقق يدوي من استلام التحويل البنكي/فاتورة").strip()
+        outcome = await _apply_paid_outcome(session, payment.id, note=note)
+
+        return {
+            "payment_id": str(payment.id),
+            "status": "paid",
+            "amount": payment.amount,
+            "vat": _pm.vat_amount(payment.amount),
+            "total": _pm.total_with_vat(payment.amount),
+            "invoice_url": f"/invoice/{payment.id}",
+            "outcome": outcome,
+        }
 
 
 @app.get("/invoice/{payment_id}")
