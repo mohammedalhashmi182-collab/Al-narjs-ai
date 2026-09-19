@@ -7,11 +7,14 @@ what do I say". No automatic sending happens anywhere in this module.
 
 from __future__ import annotations
 
+import os
+import tempfile
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -27,7 +30,7 @@ from src.models import (
     CampaignLead,
     LeadEvent,
 )
-from src.services import demo_content
+from src.services import demo_content, lead_importer
 from src.services.lead_campaigns import (
     DEFAULT_BATCH_SIZE,
     build_campaign,
@@ -602,3 +605,58 @@ async def sales_campaign_csv(request: Request, campaign_id: str):
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="campaign_{campaign.batch_no:03d}.csv"'},
     )
+
+
+@router.post("/api/acquisition/import", dependencies=[Depends(require_owner)])
+async def sales_import_lead_source(
+    request: Request,
+    file: UploadFile = File(...),
+    campaign: int = Form(0),
+):
+    """Owner-gated, idempotent lead-source import (same pipeline as import_leads.py).
+
+    Accepts the historical invoices/quotations .xlsx (or .csv) and persists the
+    normalized leads into the production database, optionally building the next
+    campaign batch of `campaign` leads. No messages are sent here.
+    """
+    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xlsm", ".csv", ".txt")):
+        raise HTTPException(415, "يُقبل فقط ملفات .xlsx أو .csv")
+    data = await file.read()
+    if len(data) > 25 * 1024 * 1024:
+        raise HTTPException(413, "الملف كبير جداً (الحد الأقصى 25MB)")
+
+    suffix = Path(file.filename).suffix or ".xlsx"
+    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    try:
+        tmp.write(data)
+        tmp.close()
+        raw = lead_importer.extract_records(tmp.name)
+        leads = lead_importer.build_leads(raw)
+        stats = lead_importer.compute_stats(raw, leads)
+        if not leads:
+            return {"imported": 0, "created": 0, "updated": 0, "stats": stats}
+        async with _session_factory(request)() as session:
+            created, updated = await lead_importer.persist_leads(session, leads)
+        result = {
+            "imported": len(leads),
+            "created": created,
+            "updated": updated,
+            "stats": stats,
+        }
+        if campaign:
+            from src.services.lead_campaigns import build_campaign
+
+            size = max(1, min(campaign, 500))
+            async with _session_factory(request)() as session:
+                batch = await build_campaign(session, size=size)
+            result["campaign"] = {
+                "id": str(batch.id),
+                "batch_no": batch.batch_no,
+                "target": size,
+            }
+        return result
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass

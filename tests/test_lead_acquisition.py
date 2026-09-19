@@ -572,3 +572,56 @@ async def test_acquisition_pages_require_owner() -> None:
         listing = await client.get("/api/acquisition/leads")
         assert listing.status_code == 401
     await engine.dispose()
+
+
+async def test_import_endpoint_persists_uploaded_sheet(api, tmp_path) -> None:
+    client, _maker = api
+    workbook = write_xlsx(tmp_path / "leads.xlsx", {
+        "2025": [
+            INVOICE_HEADER,
+            ["", "مطعم الأصالة", "2025-01-02", "Cl", "0500000001", ""],
+            ["", "متجر الأناقة", "2025-02-03", "Op", "0500000002", ""],
+            ["", "مؤسسة البناء", "2025-03-04", "Cl", "0500000003", ""],
+        ]
+    })
+    raw = workbook.read_bytes()
+    resp = await client.post(
+        "/api/acquisition/import",
+        files={"file": ("last invoices in 5 Years.xlsx", raw, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+        data={"campaign": "3"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["imported"] == 3
+    assert body["created"] == 3
+    assert body["updated"] == 0
+    assert body["stats"]["unique_companies"] >= 3
+    assert body["campaign"]["target"] == 3
+    assert body["campaign"]["batch_no"] >= 1
+
+    # Second identical upload must be idempotent (0 new, all updated).
+    again = await client.post(
+        "/api/acquisition/import",
+        files={"file": ("last invoices in 5 Years.xlsx", raw, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+        data={"campaign": "0"},
+    )
+    assert again.status_code == 200
+    body2 = again.json()
+    assert body2["imported"] == 3
+    assert body2["updated"] == 3
+
+
+async def test_import_endpoint_requires_owner() -> None:
+    from src.main import app
+
+    engine, maker = await _make_engine()
+    app.state.session_factory = maker
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/acquisition/import",
+            files={"file": ("x.xlsx", b"not-an-xlsx", "application/octet-stream")},
+            data={"campaign": "0"},
+        )
+        assert resp.status_code == 401
+    await engine.dispose()
