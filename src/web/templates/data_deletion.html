@@ -1,0 +1,55 @@
+{% set _lang = page_lang(request) %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index,follow">
+    <title>{% if _lang == 'ar' %}حذف البيانات | النرجس للذكاء الاصطناعي{% else %}Data Deletion | Al-Narjis AI{% endif %}</title>
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+    </style>
+</head>
+<body data-lang="{{ _lang }}" class="bg-sand min-h-screen">
+    <div class="n-hero" style="padding:56px 20px 40px;">
+        <div class="max-w-3xl mx-auto">
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; <span data-lang="ar">العودة للرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
+            <h1 class="n-title text-3xl mt-4"><span data-lang="ar">تعليمات حذف البيانات</span><span data-lang="en" data-inline>Data Deletion Instructions</span></h1>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);"><span data-lang="ar">آخر تحديث: 19 سبتمبر 2026</span><span data-lang="en" data-inline>Last updated: 19 September 2026</span></p>
+
+            <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
+                <h2 class="n-title text-lg" data-lang="ar">كيف تطلب حذف بياناتك</h2>
+                <h2 class="n-title text-lg" data-lang="en" data-inline>How to request deletion of your data</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">إذا أردت حذف بياناتك الشخصية المخزنة في منصتنا، تواصل معنا مباشرة عبر أي من القنوات أدناه واذكر صراحةً «أطلب حذف بياناتي». سنتحقق من هويتك عبر الرقم أو البريد المسجل لدينا.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>If you wish to delete your personal data stored on our platform, contact us directly through any channel below and state clearly: "I request deletion of my data." We verify your identity via the registered number or email.</p>
+
+                <ul class="n-sub" style="font-size:0.95rem;list-style:none;padding:0;">
+                    <li style="margin-block:10px;"><a href="https://wa.me/message/PPIY6ZARA53GM1" style="color:var(--n-gold);">واتساب: +966 55 297 9875</a><span data-lang="ar"> — الأسرع والأفضل</span><span data-lang="en" data-inline> — fastest option</span></li>
+                    <li style="margin-block:10px;">البريد: <a href="mailto:aimerchantvault.77@gmail.com" style="color:var(--n-gold);">aimerchantvault.77@gmail.com</a></li>
+                </ul>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">ماذا يُحذف؟</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>What gets deleted?</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">بعد تأكيد الهوية، نحذف خلال 30 يوماً: الاسم، رقم الجوال/واتساب، البريد الإلكتروني، محتوى الاستفسارات، ملفات التعريف، والمحادثات غير المتعلقة بالفواتير. كحد أدنى سنوقف جميع الاستخدامات التسويقية والتواصلية فوراً حتى اكتمال الحذف.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>After identity verification, we delete within 30 days: name, phone/WhatsApp number, email, enquiry content, profiles, and non-invoice conversations. At a minimum, we stop all marketing and communication use immediately until deletion is complete.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">استثناء قانوني (الاحتفاظ الإلزامي)</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>Legal exception (mandatory retention)</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">السجلات المالية والفواتير تُحتفظ بها للمدة التي تقتضيها الأنظمة الضريبية في المملكة (هيئة الزكاة والضريبة والجمارك) — دون استخدام تجاري، ولا تُمسّ إلا بحكم النظام.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>Financial records and invoices are retained for the period required by Saudi tax regulations (ZATCA) — for regulatory compliance only, never for commercial use.</p>
+
+                <h2 class="n-title text-lg mt-5" data-lang="ar">ملاحظة بشأن طرف ثالث</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>Note on third parties</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">لا نبيع بياناتك ولا نشاركها لأغراض تسويقية، ولا نحتفظ لدينا بمواد تُعالَج آلياً لدى موفري الذكاء الاصطناعي بعد اكتمال الاستجابة.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>We never sell your data or use it for marketing, and we do not retain content processed automatically by AI providers once the response is complete.</p>
+
+                <p class="n-sub mt-5" style="font-size:0.9rem;color:var(--n-brown-2);" data-lang="ar">لمزيد من التفاصيل راجع <a href="/privacy" style="color:var(--n-gold);">سياسة الخصوصية</a>.</p>
+                <p class="n-sub mt-5" style="font-size:0.9rem;color:var(--n-brown-2);" data-lang="en" data-inline>See our <a href="/privacy" style="color:var(--n-gold);">Privacy Policy</a> for more details.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

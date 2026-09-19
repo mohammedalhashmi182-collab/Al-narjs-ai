@@ -354,6 +354,11 @@ async def privacy_page(request: Request):
     return templates.TemplateResponse(request, "privacy.html")
 
 
+@app.get("/data-deletion", response_class=HTMLResponse)
+async def data_deletion_page(request: Request):
+    return templates.TemplateResponse(request, "data_deletion.html")
+
+
 @app.get("/terms", response_class=HTMLResponse)
 async def terms_page(request: Request):
     return templates.TemplateResponse(request, "terms.html")
