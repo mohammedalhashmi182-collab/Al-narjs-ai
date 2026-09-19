@@ -327,6 +327,18 @@ class TestWebhookVerification:
             r = await api.post("/webhooks/whatsapp", content=raw)
             assert r.status_code == 403
 
+    async def test_debug_log_flag_does_not_break_rejection(self, api, monkeypatch):
+        monkeypatch.setenv("WHATSAPP_WEBHOOK_DEBUG", "true")
+        with _creds():
+            raw = json.dumps(_inbound_payload("m1", "كم السعر؟")).encode("utf-8")
+            r = await api.post(
+                "/webhooks/whatsapp",
+                content=raw,
+                headers={"X-Hub-Signature-256": "sha256=" + "0" * 64},
+            )
+            assert r.status_code == 403
+            assert r.json()["status"] == "invalid_signature"
+
     async def test_health_reports_signature_rejections(self, api):
         with _creds():
             raw = json.dumps(_inbound_payload("m1", "كم السعر؟")).encode("utf-8")

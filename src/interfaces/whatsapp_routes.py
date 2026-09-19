@@ -17,6 +17,7 @@ import hashlib
 import hmac
 import json
 import logging
+import os
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request, Response
@@ -94,6 +95,8 @@ async def whatsapp_webhook(request: Request):
         secret = settings.whatsapp_app_secret or ""
         expected_hex = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
         _record_reject("signature_mismatch", signature, expected_hex[:28], len(raw))
+        if os.environ.get("WHATSAPP_WEBHOOK_DEBUG", "").lower() == "true":
+            log.info("RX_DEBUG sig=%s body=%r", signature, raw)
         return JSONResponse({"status": "invalid_signature"}, status_code=403)
 
     try:
