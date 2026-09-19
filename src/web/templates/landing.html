@@ -524,6 +524,23 @@
         .form-msg { text-align: center; font-weight: 800; padding: 13px; border-radius: 12px; margin-top: 18px; display: none; background: rgba(200, 164, 94, .1); color: var(--gold-bright); border: 1px solid var(--gold-soft); }
         .form-msg.ok { background: rgba(61, 189, 125, .1); color: var(--online); border-color: rgba(61, 189, 125, .3); }
         .form-msg.err { background: rgba(248, 113, 113, .1); color: #f0a0a0; border-color: rgba(248, 113, 113, .3); }
+        .mob-cta { display: none; }
+        @media (max-width: 640px) {
+            .mob-cta {
+                display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+                position: fixed; inset-inline: 12px; bottom: 12px; z-index: 160;
+                padding: 10px; border-radius: 18px;
+                background: rgba(12, 13, 17, .92); border: 1px solid var(--line-2);
+                backdrop-filter: blur(12px); box-shadow: 0 14px 44px rgba(0, 0, 0, .55);
+            }
+            .mob-cta a { display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center; font-weight: 800; font-size: .93rem; padding: 13px 6px; border-radius: 12px; text-decoration: none; }
+            .mob-cta .m-consult { color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .1); }
+            .mob-cta .m-consult:active { transform: scale(.98); }
+            .mob-cta .m-wa { color: #0b0c10; background: linear-gradient(135deg, #3dbd7d, #2fae6c); }
+            .mob-cta .m-wa:active { transform: scale(.98); }
+            .wa-float { bottom: 86px; }
+            .contact-pad { padding-bottom: 120px; }
+        }
 
         .footer { border-top: 1px solid var(--line); padding: 64px 28px 34px; background: var(--bg-2); }
         .footer .grid-x { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 44px; max-width: 1240px; margin-inline: auto; }
@@ -1001,6 +1018,11 @@
         </div>
     </section>
 
+    <div class="mob-cta">
+        <a href="/consult" class="m-consult"><i class="fas fa-comments"></i><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
+        <a id="mWaCta" href="#" target="_blank" class="m-wa"><i class="fab fa-whatsapp"></i><span data-lang="ar">واتساب</span><span data-lang="en" data-inline>WhatsApp</span></a>
+    </div>
+
     <!-- ==================== FOOTER ==================== -->
     <footer class="footer">
         <div class="grid-x">
@@ -1186,6 +1208,7 @@
             var WA_LINK = 'https://wa.me/message/PPIY6ZARA53GM1';
             var wf = document.getElementById('waFloat'); if (wf) wf.href = WA_LINK;
             var wd = document.getElementById('waDirect'); if (wd) wd.href = WA_LINK;
+            var mc = document.getElementById('mWaCta'); if (mc) mc.href = WA_LINK;
             document.querySelectorAll('.socials a').forEach(function (a) { a.href = WA_LINK; });
 
             document.querySelectorAll('.js-order').forEach(function (btn) {
