@@ -20,15 +20,15 @@
         {% set _base_path = _path %}
     {% endif %}
     {% set _canon_path = '/' ~ _lang ~ _base_path %}
-    <link rel="canonical" href="https://www.karmaai.online{{ _canon_path }}">
-    <link rel="alternate" hreflang="ar" href="https://www.karmaai.online/ar{{ _base_path }}">
-    <link rel="alternate" hreflang="en" href="https://www.karmaai.online/en{{ _base_path }}">
-    <link rel="alternate" hreflang="x-default" href="https://www.karmaai.online{{ _base_path }}">
+    <link rel="canonical" href="https://karmaai.online{{ _canon_path }}">
+    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
+    <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online{{ _base_path }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Al-Narjis AI">
     <meta property="og:title" content="{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}">
     <meta property="og:description" content="{% if _lang == 'ar' %}وكلاء أذكياء نائمون جاهزون لخدمة عملك على مدار الساعة.{% else %}Sleeping AI agents, ready to work for your business around the clock.{% endif %}">
-    <meta property="og:url" content="https://www.karmaai.online{{ _canon_path }}">
+    <meta property="og:url" content="https://karmaai.online{{ _canon_path }}">
     <meta property="og:locale" content="{{ 'ar_SA' if _lang == 'ar' else 'en_US' }}">
     <meta property="og:locale:alternate" content="{{ 'en_US' if _lang == 'ar' else 'ar_SA' }}">
     <meta name="twitter:card" content="summary_large_image">
@@ -38,7 +38,7 @@
       "@type": "Organization",
       "name": "النرجس للذكاء الاصطناعي | Al-Narjis AI",
       "alternateName": "The Arabian Convoy Establishment",
-      "url": "https://www.karmaai.online",
+      "url": "https://karmaai.online",
       "sameAs": ["https://wa.me/message/PPIY6ZARA53GM1"],
       "legalName": "Arabian Convoy Establishment",
       "foundingLocation": "Riyadh, Saudi Arabia",
@@ -56,7 +56,7 @@
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "Al-Narjis AI",
-      "url": "https://www.karmaai.online",
+      "url": "https://karmaai.online",
       "inLanguage": ["ar", "en"]
     }
     </script>
@@ -435,6 +435,9 @@
         .t-feature p.qt { font-size: 1.2rem; line-height: 2.05; font-weight: 600; }
         .t-feature .who { margin-top: 24px; font-weight: 800; color: var(--gold-bright); }
         .t-feature .where { font-size: .8rem; color: var(--faint); margin-top: 2px; }
+        .t-feature .steps-mini { margin-top: 22px; display: flex; flex-direction: column; gap: 13px; }
+        .t-feature .steps-mini > div { display: flex; gap: 14px; align-items: flex-start; font-size: .95rem; color: var(--muted); line-height: 1.8; }
+        .t-feature .n-mini { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; font-family: var(--num); font-weight: 800; font-size: .82rem; color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .06); }
         .t-side { display: flex; flex-direction: column; gap: 14px; }
         .q { border: 1px solid var(--line); border-radius: var(--r); padding: 24px; background: var(--panel); transition: all .3s var(--ease); }
         .q:hover { border-color: var(--line-2); transform: translateY(-3px); }
@@ -627,7 +630,7 @@
                     <a href="/guide" class="btn btn-ghost"><i class="fas fa-book-open"></i><span data-lang="ar">دليل مجاني</span><span data-lang="en" data-inline>Free guide</span></a>
                     <a href="/consult" class="btn btn-online"><i class="fas fa-comments"></i><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
                 </div>
-                <div class="hint"><i class="fas fa-shield-halved"></i><span data-lang="ar">دفع إلكتروني آمن · بدون عقود طويلة · إلغاء في أي وقت</span><span data-lang="en" data-inline>Secure payments · No long contracts · Cancel anytime</span></div>
+                <div class="hint"><i class="fas fa-shield-halved"></i><span data-lang="ar">فاتورة رسمية موثقة · بدون عقود طويلة · إلغاء في أي وقت</span><span data-lang="en" data-inline>Official invoiced billing · No long contracts · Cancel anytime</span></div>
 
                 <div class="stats">
                     <div class="stat"><div class="num" id="c0">0</div><div class="lbl"><span data-lang="ar">وكيلاً ذكياً متخصصاً</span><span data-lang="en" data-inline>Specialized agents</span></div></div>
@@ -679,9 +682,9 @@
                         </svg>
                     </div>
                     <div class="console-foot">
-                        <span><b id="heroCount">20</b> <span data-lang="ar">موظفاً رقمياً</span><span data-lang="en" data-inline>digital employees</span></span>
+                        <span><b id="heroCount">30</b> <span data-lang="ar">موظفاً رقمياً</span><span data-lang="en" data-inline>digital employees</span></span>
                         <span><b>24/7</b> <span data-lang="ar">فعالية</span><span data-lang="en" data-inline>uptime</span></span>
-                        <span><b>4.9★</b> <span data-lang="ar">رضا العملاء</span><span data-lang="en" data-inline>client rating</span></span>
+                        <span><b>AR · EN</b> <span data-lang="ar">لغة العمل</span><span data-lang="en" data-inline>work language</span></span>
                     </div>
                 </div>
                 <div class="chips-float">
@@ -716,7 +719,7 @@
             <div class="bento">
                 <div class="bcard b-lg">
                     <div class="ic"><i class="fas fa-robot"></i></div>
-                    <h3><span data-lang="ar"><b class="cnt20">20</b> وكيلاً — <b class="cnt20b">20</b> وظيفة حقيقية</span><span data-lang="en" data-inline><b class="cnt20b">20</b> agents — <b class="cnt20b">20</b> real jobs</span></h3>
+                    <h3><span data-lang="ar"><b class="cnt20">30</b> وكيلاً — <b class="cnt20b">30</b> وظيفة حقيقية</span><span data-lang="en" data-inline><b class="cnt20b">30</b> agents — <b class="cnt20b">30</b> real jobs</span></h3>
                     <p><span data-lang="ar">كل وكيل موظف رقمي يحمل رقمه وتعريفه الوظيفي وقسمه. يستيقظ حين يلمسه العميل ويؤدي عمله كاملاً — من تقويم المحتوى إلى سياسة المتجر.</span><span data-lang="en" data-inline>Every agent is a digital employee with an ID, a job title, and a department. Woken by a single touch, they deliver end-to-end — from content calendars to store policy.</span></p>
                     <div class="flow" id="flow">
                         <svg viewBox="0 0 300 40" preserveAspectRatio="none">
@@ -872,22 +875,26 @@
     <section class="section" id="testimonials">
         <div class="sec-inner">
             <div class="reveal" style="text-align:center;">
-                <span class="eyebrow"><span data-lang="ar">كلمات عملاء</span><span data-lang="en" data-inline>Client voices</span></span>
-                <h2 class="sec-title"><span data-lang="ar">أثرٌ يُلمس</span><span data-lang="en" data-inline>Measurable impact</span> <span class="c" data-lang="ar">على أرض السعودية</span><span class="c" data-lang="en" data-inline>across Saudi Arabia</span></h2>
+                <span class="eyebrow"><span data-lang="ar">مسار العمل</span><span data-lang="en" data-inline>Your first week</span></span>
+                <h2 class="sec-title"><span data-lang="ar">أسبوعك الأول</span><span data-lang="en" data-inline>Your first week</span> <span class="c" data-lang="ar">مع فريقك الجديد</span><span class="c" data-lang="en" data-inline>with a new team</span></h2>
             </div>
             <div class="t-home reveal">
                 <div class="t-feature">
                     <div>
-                        <div class="who-mark">ن</div>
-                        <div class="star">★★★★★</div>
-                        <p class="qt"><span data-lang="ar">أيقظتُ موظف المحتوى في باقة النمو، وفي أول أسبوع استلمتُ خطة محتوى عربية كاملة تليق بعلامتنا — والمفاجأة أن باقي الموظفين بدأوا يخدموني بأنفسهم.</span><span data-lang="en" data-inline>I woke the content employee in the Growth plan — a full Arabic content plan arrived in week one, and the rest of the team started serving me on their own.</span></p>
-                        <div class="who"><span data-lang="ar">مدير تسويق</span><span data-lang="en" data-inline>Marketing lead</span></div>
-                        <div class="where">الرياض · KSA</div>
+                        <div class="who-mark">أ</div>
+                        <p class="qt"><span data-lang="ar">من اختيار الباقة إلى أول تسليم — ثلاثة خطوات واضحة.</span><span data-lang="en" data-inline>From plan choice to first delivery — three clear steps.</span></p>
+                        <div class="steps-mini">
+                            <div><span class="n-mini">01</span><span data-lang="ar">تستلم فريقك الرقمي (٥ موظفين) فور اختيار الباقة.</span><span data-lang="en" data-inline>Receive your 5-employee digital team as soon as you subscribe.</span></div>
+                            <div><span class="n-mini">02</span><span data-lang="ar">توقظهم وتعرّفهم على عملك في جلسة قصيرة مريحة.</span><span data-lang="en" data-inline>Wake them and brief them about your business in one short session.</span></div>
+                            <div><span class="n-mini">03</span><span data-lang="ar">يبدأ التسليم: تقويم محتوى، نصوص، ردود، وتقارير.</span><span data-lang="en" data-inline>Delivery begins: content calendar, copies, replies, and reports.</span></div>
+                        </div>
+                        <div class="who"><span data-lang="ar">بدون عقود طويلة</span><span data-lang="en" data-inline>No long contracts</span></div>
+                        <div class="where"><span data-lang="ar">اشتراك شهري · إلغاء متى شئت</span><span data-lang="en" data-inline>Monthly · Cancel anytime</span></div>
                     </div>
                 </div>
                 <div class="t-side">
-                    <div class="q"><div class="star">★★★★★</div><p><span data-lang="ar">صفحاتي تنشر وتجيب مبيعات وأنا نائم. هذا أول مزوّد يفهمني بالعامية السعودية.</span><span data-lang="en" data-inline>My pages publish and sell while I sleep. First provider that gets Saudi colloquial.</span></p><div class="who"><span data-lang="ar">صاحبة متجر أزياء</span><span data-lang="en" data-inline>Fashion store owner</span></div><div class="where">جدة</div></div>
-                    <div class="q"><div class="star">★★★★★</div><p><span data-lang="ar">المستشار الذكي قرأ متجرنا بجلسة واحدة ورشّح الباقة الصحيحة — خدمة عملاء أسرع وأصدق.</span><span data-lang="en" data-inline>The consultant read our store in one session and recommended the right plan — support that&rsquo;s faster and more honest.</span></p><div class="who"><span data-lang="ar">مؤسس مشروع</span><span data-lang="en" data-inline>Startup founder</span></div><div class="where">الدمام</div></div>
+                    <div class="q"><p><span data-lang="ar">المخرجات بالعربية جاهزة للاستخدام — نصوص، تقويمات، تقارير، وسياسات المتجر.</span><span data-lang="en" data-inline>Arabic-ready outputs — copies, calendars, reports, and store policies.</span></p><div class="who"><span data-lang="ar">ماذا تستلم؟</span><span data-lang="en" data-inline>What you get</span></div><div class="where"><span data-lang="ar">موجودة في الباقة نفسها</span><span data-lang="en" data-inline>Included in your plan</span></div></div>
+                    <div class="q"><p><span data-lang="ar">يعمل بالعربية الفصيحة ويفهم لهجات المملكة، مع نسخة إنجليزية عند الحاجة.</span><span data-lang="en" data-inline>Works in modern Arabic, understands Saudi dialects, English on demand.</span></p><div class="who"><span data-lang="ar">لغة العمل</span><span data-lang="en" data-inline">Work language</span></div><div class="where"><span data-lang="ar">عربي أولاً · EN عند الحاجة</span><span data-lang="en" data-inline">Arabic first · EN on demand</span></div></div>
                 </div>
             </div>
         </div>
@@ -1184,7 +1191,7 @@
             if (stats) {
                 var obs = new IntersectionObserver(function (entries) {
                     entries.forEach(function (en) {
-                        if (en.isIntersecting) { obs.unobserve(en.target); countUp(c0, agentCount || 20, '+'); countUp(c1, 24, '/7'); countUp(c2, 5); countUp(c3, 100, '%'); }
+                        if (en.isIntersecting) { obs.unobserve(en.target); countUp(c0, agentCount || 30, '+'); countUp(c1, 24, '/7'); countUp(c2, 5); countUp(c3, 100, '%'); }
                     });
                 }, { threshold: .4 });
                 obs.observe(stats);
