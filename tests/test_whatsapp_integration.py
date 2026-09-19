@@ -321,6 +321,31 @@ class TestWebhookVerification:
             )
             assert r.status_code == 403
 
+    async def test_post_without_signature_header_rejected(self, api):
+        with _creds():
+            raw = json.dumps(_inbound_payload("m1", "كم السعر؟")).encode("utf-8")
+            r = await api.post("/webhooks/whatsapp", content=raw)
+            assert r.status_code == 403
+
+    async def test_health_reports_signature_rejections(self, api):
+        with _creds():
+            raw = json.dumps(_inbound_payload("m1", "كم السعر؟")).encode("utf-8")
+            r = await api.post(
+                "/webhooks/whatsapp",
+                content=raw,
+                headers={"X-Hub-Signature-256": "sha256=" + "0" * 64},
+            )
+            assert r.status_code == 403
+            health = (await api.get("/webhooks/whatsapp/health")).json()
+            rx = health["webhook_rx"]
+            assert rx["rejected_total"] >= 1
+            reject = rx["last_reject"]
+            assert reject["reason"] == "signature_mismatch"
+            assert reject["received_prefix"].startswith("sha256=000")
+            assert reject["expected_prefix"]
+            assert reject["body_len"] > 0
+            assert TOKEN not in json.dumps(health)
+
     async def test_post_without_app_secret_is_gated(self, api):
         with _creds(secret=None, verify=None):
             raw = json.dumps(_inbound_payload("m1", "مرحباً")).encode("utf-8")
