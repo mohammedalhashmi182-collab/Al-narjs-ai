@@ -1,21 +1,21 @@
 :root {
-  --n-sand: #0a0b0e;
-  --n-sand-2: #12151c;
-  --n-cream: #14171f;
-  --n-cream-2: #191d26;
-  --n-green: #c8a45e;
-  --n-green-2: #b9954a;
-  --n-green-3: #0d0f14;
-  --n-gold: #c8a45e;
-  --n-gold-2: #e6c98a;
-  --n-gold-soft: rgba(200, 164, 94, 0.32);
-  --n-brown: #eef1f6;
-  --n-brown-2: #98a1b0;
-  --n-earth: #6d7685;
-  --n-line: rgba(255, 255, 255, 0.08);
-  --n-line-2: rgba(255, 255, 255, 0.15);
-  --n-green-0: #0a0b0e;
-  --n-online: #3dbd7d;
+  --n-sand: #1a1d25;
+  --n-sand-2: #1f2630;
+  --n-cream: #242c37;
+  --n-cream-2: #2a323f;
+  --n-green: #d4a85e;
+  --n-green-2: #c59f55;
+  --n-green-3: #0d0f1a;
+  --n-gold: #d4a85e;
+  --n-gold-2: #e8d0a6;
+  --n-gold-soft: rgba(212, 168, 94, 0.32);
+  --n-brown: #f5f0e8;
+  --n-brown-2: #7a8095;
+  --n-earth: #5b657e;
+  --n-line: rgba(255, 255, 255, 0.07);
+  --n-line-2: rgba(255, 255, 255, 0.13);
+  --n-green-0: #1a1d25;
+  --n-online: #48d;
 
   --font-ar: "Tajawal", "Segoe UI", sans-serif;
   --font-head: "Manrope", "Almarai", "Tajawal", sans-serif;
