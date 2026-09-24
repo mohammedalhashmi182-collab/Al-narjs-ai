@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import time
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, Numeric, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -101,6 +102,7 @@ class WorkflowExecution(Base):
 
     id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     workflow_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), default="system", server_default="system", nullable=False, index=True)
     trigger_type: Mapped[str] = mapped_column(String(50), default="manual")
     trigger_payload: Mapped[dict] = mapped_column(JSON, default=dict)
     status: Mapped[str] = mapped_column(String(50), default="pending", index=True)
@@ -109,6 +111,7 @@ class WorkflowExecution(Base):
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     error: Mapped[Optional[str]] = mapped_column(Text)
+    cost: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("0.0"), server_default="0", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     steps: Mapped[list["StepExecution"]] = relationship("StepExecution", back_populates="execution", cascade="all, delete-orphan")
@@ -134,6 +137,7 @@ class StepExecution(Base):
 
     id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     workflow_execution_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("workflow_executions.id", ondelete="CASCADE"), nullable=False)
+    tenant_id: Mapped[str] = mapped_column(String(64), default="system", server_default="system", nullable=False, index=True)
     step_id: Mapped[str] = mapped_column(String(100), nullable=False)
     agent_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("agents.id"))
     prompt_template_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("prompt_templates.id"))
@@ -145,6 +149,7 @@ class StepExecution(Base):
     status: Mapped[str] = mapped_column(String(50), default="pending")
     error: Mapped[Optional[str]] = mapped_column(Text)
     retry_count: Mapped[int] = mapped_column(default=0)
+    cost: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("0.0"), server_default="0", nullable=False)
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 

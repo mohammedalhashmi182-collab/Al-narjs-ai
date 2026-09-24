@@ -65,6 +65,11 @@ async def init_db():
                 ("schedules", "created_by", "UUID"),
                 ("schedules", "created_at", "TIMESTAMPTZ DEFAULT now()"),
                 ("schedules", "updated_at", "TIMESTAMPTZ DEFAULT now()"),
+                # Multi-tenancy + cost tracking (architectural middleware layer)
+                ("workflow_executions", "tenant_id", "VARCHAR(64) NOT NULL DEFAULT 'system'"),
+                ("workflow_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
+                ("step_executions", "tenant_id", "VARCHAR(64) NOT NULL DEFAULT 'system'"),
+                ("step_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
             ]
             for table, column, ddl in placeholders:
                 try:
@@ -94,6 +99,11 @@ async def init_db():
                 ("acquisition_leads", "buying_signal", "INTEGER DEFAULT 0"),
                 ("acquisition_leads", "last_reply_at", "TIMESTAMP"),
                 ("acquisition_leads", "intent", "VARCHAR(30)"),
+                # Multi-tenancy + cost tracking (architectural middleware layer)
+                ("workflow_executions", "tenant_id", "VARCHAR(64) NOT NULL DEFAULT 'system'"),
+                ("workflow_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
+                ("step_executions", "tenant_id", "VARCHAR(64) NOT NULL DEFAULT 'system'"),
+                ("step_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
             ]
             for table, column, ddl in sqlite_placeholders:
                 try:
