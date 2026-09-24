@@ -50,6 +50,18 @@ async def lifespan(app: FastAPI):
     trigger_engine = TriggerEngine(session_factory)
     company_brain = CompanyBrain(session_factory)
 
+    from src.core.architecture.registry.agent_catalog import AgentCatalog
+    from src.core.architecture.router.dynamic_router import DynamicRouter
+    from src.core.architecture.validation.self_correction import OutputValidator, SelfCorrectionLoop
+
+    agent_catalog = AgentCatalog()
+    agent_catalog.load_dir()
+    await agent_catalog.sync_from_registry(agent_registry)
+    dynamic_router = DynamicRouter(agent_catalog, model_provider)
+    self_correction_loop = SelfCorrectionLoop(
+        dynamic_router, OutputValidator(), max_corrections=2
+    )
+
     await scheduler.start()
     await trigger_engine.start()
     await queue_worker.start()
@@ -68,6 +80,9 @@ async def lifespan(app: FastAPI):
     app.state.trigger_engine = trigger_engine
     app.state.company_brain = company_brain
     app.state.session_factory = session_factory
+    app.state.agent_catalog = agent_catalog
+    app.state.dynamic_router = dynamic_router
+    app.state.self_correction = self_correction_loop
 
     yield
 
@@ -216,6 +231,13 @@ class LocaleMiddleware:
         await self.app(scope, receive, send_wrapper)
 
 app.add_middleware(LocaleMiddleware)
+
+try:
+    from src.core.architecture.middleware import TenantMiddleware
+
+    app.add_middleware(TenantMiddleware)
+except Exception:  # pragma: no cover - defensive; must never block startup
+    pass
 
 try:
     app.mount("/static", StaticFiles(directory="src/web/static"), name="static")
