@@ -1,0 +1,50 @@
+{
+  "note": "قوالب جاهزة لإنشائها في Meta WhatsApp (قوالب-رسائل) — صلاحية الاستخدام بعد موافقة Meta. Category: MARKETING يعرض فقط بعد تحقق Business Manager.",
+  "created_for_phone_number": "0552978753",
+  "templates": [
+    {
+      "name": "al_narjis_first_touch_ar",
+      "language": "ar",
+      "category": "MARKETING",
+      "body": "مرحباً {{1}} 👋، أنا من فريق النرجس للذكاء الاصطناعي. فريقك الرقمي جاهز: 30 وكيل ذكاء اصطناعي للمحتوى والتسويق والمتاجر وخدمة العملاء، باقات من 800 ريال/شهر بفاتورة رسمية. ابدأ مجاناً: {{2}}",
+      "example_body": {
+        "name": "متجركم",
+        "url": "https://karmaai.online/consult"
+      }
+    },
+    {
+      "name": "al_narjis_call_to_consult_ar",
+      "language": "ar",
+      "category": "MARKETING",
+      "body": "أهلاً {{1}}، استشارتنا الذكية مجانية وبدون تسجيل — خطط جاهزة خلال دقائق. ابدأ الآن: {{2}}",
+      "example_body": {
+        "name": "نشاطكم",
+        "url": "https://karmaai.online/consult"
+      }
+    },
+    {
+      "name": "al_narjis_invoice_notice_ar",
+      "language": "ar",
+      "category": "UTILITY",
+      "body": "فاتورتك الرسمية الشهرية جاهزة لـ {{1}}. مبلغ الفاتورة: {{2}} ريال (شامل الضريبة). رقم الفاتورة: {{3}}. للاستفسار: {{4}}",
+      "example_body": {
+        "org": "شركتكم",
+        "amount": "920",
+        "invoice_no": "AN-0001",
+        "phone": "055 297 8753"
+      }
+    },
+    {
+      "name": "al_narjis_renewal_reminder_ar",
+      "language": "ar",
+      "category": "UTILITY",
+      "body": "تذكير: تجدد باقة {{1}} خلال {{2}} يوم. تواصل معنا لتجديد الاشتراك دون انقطاع: {{3}}",
+      "example_body": {
+        "pkg": "الاجتماعي",
+        "days": "3",
+        "phone": "055 297 8753"
+      }
+    }
+  ],
+  "how_to_apply_on_meta": "قم بإنشاء القوالب من لوحة WhatsApp Manager > قوالب الرسائل > إنشاء. اختر اللغة العربية ثم الصق النص. أرسل التوكن/الرقم عند الحاجة فقط."
+}
