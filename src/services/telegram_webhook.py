@@ -52,11 +52,31 @@ _NON_CONTENT_KEYS = frozenset({
 _PHONE_RE = re.compile(r"(?<!\d)(\+?(?:966|965|971|974)5\d{8}|05\d{8}|5\d{8})(?!\d)")
 _DIGITS_RE = re.compile(r"\D")
 
+# Label for the derived webhook secret; changing it invalidates registrations.
+_DERIVED_LABEL = b"narjis-telegram-webhook-secret-v1"
+
 
 def webhook_disabled_reason() -> str | None:
-    if not settings.telegram_webhook_secret:
-        return "TELEGRAM_WEBHOOK_SECRET not configured"
+    """The receiver stays armed: the secret is explicit or derived from SECRET_KEY."""
     return None
+
+
+def derived_secret() -> str:
+    """Deterministic fallback secret (HMAC-SHA256 of SECRET_KEY + label).
+
+    Used when TELEGRAM_WEBHOOK_SECRET has not been synced into the runtime
+    environment, so the channel never depends on a manual env round-trip.
+    """
+    return hmac.new(
+        settings.secret_key.encode(),
+        _DERIVED_LABEL,
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def secret_source() -> str:
+    """Which secret the receiver expects first — surfaced by the health probe."""
+    return "explicit" if settings.telegram_webhook_secret else "derived"
 
 
 def verify_ok() -> bool:
@@ -64,11 +84,13 @@ def verify_ok() -> bool:
 
 
 def verify_secret(header_value: str | None) -> bool:
-    """Constant-time comparison of Telegram's ``secret_token`` header."""
-    secret = settings.telegram_webhook_secret
-    if not secret or not header_value:
+    """Constant-time comparison against the derived and (if set) explicit secret."""
+    if not header_value:
         return False
-    return hmac.compare_digest(secret, header_value)
+    ok = hmac.compare_digest(derived_secret(), header_value)
+    if settings.telegram_webhook_secret:
+        ok = hmac.compare_digest(settings.telegram_webhook_secret, header_value) or ok
+    return ok
 
 
 # --- Sender / lead mapping ----------------------------------------------------

@@ -27,6 +27,7 @@ from src.services.telegram_sender import inbound_summary
 from src.services.telegram_webhook import (
     SIGNATURE_HEADER,
     process_inbound_update,
+    secret_source,
     verify_secret,
     webhook_disabled_reason,
 )
@@ -93,6 +94,7 @@ async def telegram_webhook_health(request: Request):
     result: dict = {
         "configured": webhook_disabled_reason() is None,
         "disabled_reason": webhook_disabled_reason(),
+        "secret_source": secret_source(),
     }
     try:
         since = datetime.now(UTC) - timedelta(hours=24)

@@ -62,6 +62,12 @@ def main() -> int:
     parser.add_argument("--url", default=None, help="Override the webhook target URL")
     parser.add_argument("--info", action="store_true", help="Only show getWebhookInfo")
     parser.add_argument("--delete", action="store_true", help="Remove the webhook")
+    parser.add_argument(
+        "--secret-source",
+        choices=("env", "derived"),
+        default="env",
+        help="Register TELEGRAM_WEBHOOK_SECRET (env) or the SECRET_KEY-derived one",
+    )
     args = parser.parse_args()
 
     token = settings.telegram_token
@@ -69,6 +75,11 @@ def main() -> int:
     if not token:
         print("[x] TELEGRAM_TOKEN is not set in .env")
         return 2
+    if args.secret_source == "derived":
+        from src.services.telegram_webhook import derived_secret
+
+        secret = derived_secret()
+        print(f"[*] secret source=derived <len={len(secret)}> (value unseen)")
     print(f"[*] token <set len={len(token)}>, secret <set len={len(secret or 0)}> (values unseen)")
 
     if args.delete:

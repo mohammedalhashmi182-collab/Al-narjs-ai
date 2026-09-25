@@ -21,6 +21,7 @@ from src.db.session import Base
 from src.models import AcquisitionLead, InboundMessage, OutboundMessage
 from src.services import telegram_sender as ts
 from src.services.lead_normalize import normalize_phone
+from src.services.telegram_webhook import derived_secret
 
 
 async def _make_engine():
@@ -154,11 +155,15 @@ class TestWebhookSecurity:
             assert r.status_code == 403
             assert r.json()["status"] == "invalid_secret"
 
-    async def test_without_webhook_secret_is_disabled(self, api):
+    async def test_without_env_secret_uses_derived_secret(self, api):
         with _creds(secret=None):
-            r = await _post(api, _update(1, "مرحباً"))
+            r = await _post(api, _update(1, "مرحباً"), secret=derived_secret())
             assert r.status_code == 200
-            assert r.json()["status"] == "disabled"
+            assert r.json()["status"] == "ok"
+
+            bad = await _post(api, _update(2, "مرحباً"), secret="wrong")
+            assert bad.status_code == 403
+            assert bad.json()["status"] == "invalid_secret"
 
     async def test_rejections_visible_in_health_without_secrets(self, api):
         with _creds():
@@ -337,6 +342,7 @@ class TestHealth:
             r0 = await api.get("/webhooks/telegram/health")
             assert r0.status_code == 200
             assert r0.json()["configured"] is True
+            assert r0.json()["secret_source"] == "explicit"
 
             await _post(api, _update(50, "كم السعر؟ 0555555555"))
 
@@ -345,11 +351,13 @@ class TestHealth:
             assert health["telegram"]["mapped"] >= 1
             assert health["inbound"]["last_processing_status"] == "processed"
 
-    async def test_health_reports_unconfigured_when_secret_missing(self, api):
+    async def test_health_reports_derived_secret_when_env_missing(self, api):
         with _creds(secret=None):
             health = (await api.get("/webhooks/telegram/health")).json()
-            assert health["configured"] is False
-            assert "TELEGRAM_WEBHOOK_SECRET" in health["disabled_reason"]
+            assert health["configured"] is True
+            assert health["disabled_reason"] is None
+            assert health["secret_source"] == "derived"
+            assert derived_secret() not in json.dumps(health)
 
 
 # ---------------------------------------------------------------------------
