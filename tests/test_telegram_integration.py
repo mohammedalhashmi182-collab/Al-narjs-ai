@@ -20,6 +20,7 @@ from src.core.owner_auth import make_session_token
 from src.db.session import Base
 from src.models import AcquisitionLead, InboundMessage, OutboundMessage
 from src.services import telegram_sender as ts
+from src.interfaces.telegram_routes import WELCOME_TEXT
 from src.services.lead_normalize import normalize_phone
 from src.services.telegram_webhook import derived_secrets
 
@@ -113,6 +114,12 @@ async def _post(client, update: dict, secret: str = SECRET):
         content=raw,
         headers={"X-Telegram-Bot-Api-Secret-Token": secret},
     )
+
+
+@pytest.fixture(autouse=True)
+def _no_real_telegram_http(monkeypatch):
+    """Webhook side effects (welcome/alert) must never reach the network in tests."""
+    monkeypatch.setattr(ts, "_post", _ok_post)
 
 
 # ---------------------------------------------------------------------------
@@ -395,6 +402,74 @@ class TestSecrets:
                 assert TOKEN not in dumped
                 assert SECRET not in dumped
             ts._post = original  # type: ignore[assignment]
+
+
+# ---------------------------------------------------------------------------
+# 10) Side effects: first-contact welcome + owner alert
+# ---------------------------------------------------------------------------
+
+class TestSideEffects:
+    @staticmethod
+    def _capture(monkeypatch):
+        alerts: list[str] = []
+
+        async def _rec(text: str) -> dict:
+            alerts.append(text)
+            return {"ok": True}
+
+        monkeypatch.setattr(ts, "send_owner_alert", _rec)
+        return alerts
+
+    async def test_welcome_sent_once_and_owner_alerted_per_message(self, maker, api, monkeypatch):
+        alerts = self._capture(monkeypatch)
+        with _creds():
+            first = await _post(api, _update(60, "مرحبا، كم الأسعار؟"))
+            second = await _post(api, _update(61, "طيب"))
+            assert first.status_code == 200
+            assert second.status_code == 200
+
+        async with maker() as s:
+            rows = (await s.execute(
+                select(OutboundMessage).where(OutboundMessage.channel == "telegram")
+            )).scalars().all()
+            assert len(rows) == 1
+            assert rows[0].status == "sent"
+            assert rows[0].phone == CHAT
+            assert rows[0].text == WELCOME_TEXT
+
+        assert len(alerts) == 2
+        assert "كم الأسعار؟" in alerts[0]
+        assert str(int(CHAT)) in alerts[0]
+
+    async def test_owner_own_chat_gets_welcome_but_no_self_alert(self, maker, api, monkeypatch):
+        alerts = self._capture(monkeypatch)
+        with _creds(owner=CHAT):
+            r = await _post(api, _update(70, "تجربة من المالك"))
+            assert r.status_code == 200
+
+        assert alerts == []
+        async with maker() as s:
+            rows = (await s.execute(
+                select(OutboundMessage).where(OutboundMessage.channel == "telegram")
+            )).scalars().all()
+            assert len(rows) == 1
+            assert rows[0].status == "sent"
+
+    async def test_duplicate_update_triggers_no_side_effects(self, maker, api, monkeypatch):
+        alerts = self._capture(monkeypatch)
+        payload = _update(80, "أهلاً")
+        with _creds():
+            await _post(api, payload)
+            alerts.clear()
+            dup = await _post(api, payload)
+            assert dup.json()["summary"]["duplicates_skipped"] == 1
+
+        assert alerts == []
+        async with maker() as s:
+            rows = (await s.execute(
+                select(OutboundMessage).where(OutboundMessage.channel == "telegram")
+            )).scalars().all()
+            assert len(rows) == 1
 
 
 # ---------------------------------------------------------------------------

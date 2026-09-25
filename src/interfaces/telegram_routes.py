@@ -22,7 +22,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import func as sa_func
 from sqlalchemy import select as sa_select
 
-from src.models import InboundMessage
+from src.config.settings import settings
+from src.models import InboundMessage, OutboundMessage
 from src.services.telegram_sender import inbound_summary
 from src.services import telegram_sender
 from src.services.telegram_webhook import (
@@ -37,6 +38,10 @@ log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/webhooks", tags=["telegram-webhook"])
 
+WELCOME_TEXT = (
+    "شكراً لتواصلك مع شركة النارجس. استلمنا رسالتك وسيتواصل معك فريقنا في أقرب وقت."
+)
+
 # Process-local (scraped, no secrets) diagnostics for rejected calls.
 _rx: dict = {"rejected_total": 0, "last_reject": None}
 
@@ -48,6 +53,48 @@ def _record_reject(reason: str, body_len: int) -> None:
         "reason": reason,
         "body_len": body_len,
     }
+
+
+async def _side_effects(session, payload: dict, summary: dict) -> None:
+    """First-contact welcome to the sender + owner push for every new message.
+
+    Failures are logged and swallowed: the inbound record is already committed
+    and the webhook must still answer 200 so Telegram does not retry.
+    """
+    if not summary.get("messages_processed"):
+        return
+    message = payload.get("message") or payload.get("edited_message") or {}
+    chat_id = (message.get("chat") or {}).get("id")
+    if chat_id is None:
+        return
+
+    already_welcomed = (
+        await session.execute(
+            sa_select(OutboundMessage)
+            .where(
+                OutboundMessage.channel == telegram_sender.CHANNEL,
+                OutboundMessage.phone == str(chat_id)[:32],
+            )
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if already_welcomed is None:
+        try:
+            await telegram_sender.send_now(session, lead_id=None, chat_id=chat_id, text=WELCOME_TEXT)
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            log.exception("telegram welcome send failed")
+
+    if str(chat_id) == str(settings.telegram_owner_chat_id or ""):
+        return
+    text = str(message.get("text") or message.get("caption") or "")[:200]
+    try:
+        await telegram_sender.send_owner_alert(
+            f"رسالة Telegram جديدة (chat {chat_id}): {text or '[non-text]'}"
+        )
+    except Exception:
+        log.exception("telegram owner alert failed")
 
 
 @router.post("/telegram")
@@ -85,6 +132,13 @@ async def telegram_webhook(request: Request):
             await session.rollback()
             log.exception("Telegram webhook processing failed")
             return JSONResponse({"status": "error"}, status_code=200)
+
+    async with session_factory() as session:
+        try:
+            await _side_effects(session, payload, summary)
+        except Exception:
+            await session.rollback()
+            log.exception("telegram side effects failed")
 
     return JSONResponse({"status": "ok", "summary": summary})
 
