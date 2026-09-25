@@ -24,6 +24,7 @@ from sqlalchemy import select as sa_select
 
 from src.models import InboundMessage
 from src.services.telegram_sender import inbound_summary
+from src.services import telegram_sender
 from src.services.telegram_webhook import (
     SIGNATURE_HEADER,
     process_inbound_update,
@@ -95,6 +96,7 @@ async def telegram_webhook_health(request: Request):
         "configured": webhook_disabled_reason() is None,
         "disabled_reason": webhook_disabled_reason(),
         "secret_source": secret_source(),
+        "sender_enabled": telegram_sender.is_enabled(),
     }
     try:
         since = datetime.now(UTC) - timedelta(hours=24)

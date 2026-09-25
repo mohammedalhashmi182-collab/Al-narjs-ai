@@ -57,21 +57,25 @@ _DERIVED_LABEL = b"narjis-telegram-webhook-secret-v1"
 
 
 def webhook_disabled_reason() -> str | None:
-    """The receiver stays armed: the secret is explicit or derived from SECRET_KEY."""
+    """The receiver stays armed: the secret is explicit or derived from server keys."""
     return None
 
 
-def derived_secret() -> str:
-    """Deterministic fallback secret (HMAC-SHA256 of SECRET_KEY + label).
+def derived_secrets() -> list[str]:
+    """Deterministic fallback candidates (HMAC of a server key + label).
 
     Used when TELEGRAM_WEBHOOK_SECRET has not been synced into the runtime
-    environment, so the channel never depends on a manual env round-trip.
+    environment, so the channel never depends on a manual env round-trip. Every
+    key already present in the environment contributes one candidate.
     """
-    return hmac.new(
-        settings.secret_key.encode(),
-        _DERIVED_LABEL,
-        hashlib.sha256,
-    ).hexdigest()
+    keys = [settings.secret_key]
+    if settings.whatsapp_webhook_verify_token:
+        keys.append(settings.whatsapp_webhook_verify_token)
+    return [
+        hmac.new(key.encode(), _DERIVED_LABEL, hashlib.sha256).hexdigest()
+        for key in keys
+        if key
+    ]
 
 
 def secret_source() -> str:
@@ -84,13 +88,15 @@ def verify_ok() -> bool:
 
 
 def verify_secret(header_value: str | None) -> bool:
-    """Constant-time comparison against the derived and (if set) explicit secret."""
+    """Constant-time check against every derived candidate and the explicit secret."""
     if not header_value:
         return False
-    ok = hmac.compare_digest(derived_secret(), header_value)
+    for candidate in derived_secrets():
+        if hmac.compare_digest(candidate, header_value):
+            return True
     if settings.telegram_webhook_secret:
-        ok = hmac.compare_digest(settings.telegram_webhook_secret, header_value) or ok
-    return ok
+        return hmac.compare_digest(settings.telegram_webhook_secret, header_value)
+    return False
 
 
 # --- Sender / lead mapping ----------------------------------------------------

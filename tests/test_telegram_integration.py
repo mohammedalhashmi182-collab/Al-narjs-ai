@@ -21,7 +21,7 @@ from src.db.session import Base
 from src.models import AcquisitionLead, InboundMessage, OutboundMessage
 from src.services import telegram_sender as ts
 from src.services.lead_normalize import normalize_phone
-from src.services.telegram_webhook import derived_secret
+from src.services.telegram_webhook import derived_secrets
 
 
 async def _make_engine():
@@ -157,11 +157,12 @@ class TestWebhookSecurity:
 
     async def test_without_env_secret_uses_derived_secret(self, api):
         with _creds(secret=None):
-            r = await _post(api, _update(1, "مرحباً"), secret=derived_secret())
-            assert r.status_code == 200
-            assert r.json()["status"] == "ok"
+            for i, candidate in enumerate(derived_secrets(), start=1):
+                r = await _post(api, _update(i, "مرحباً"), secret=candidate)
+                assert r.status_code == 200
+                assert r.json()["status"] == "ok"
 
-            bad = await _post(api, _update(2, "مرحباً"), secret="wrong")
+            bad = await _post(api, _update(99, "مرحباً"), secret="wrong")
             assert bad.status_code == 403
             assert bad.json()["status"] == "invalid_secret"
 
@@ -343,6 +344,7 @@ class TestHealth:
             assert r0.status_code == 200
             assert r0.json()["configured"] is True
             assert r0.json()["secret_source"] == "explicit"
+            assert r0.json()["sender_enabled"] is True
 
             await _post(api, _update(50, "كم السعر؟ 0555555555"))
 
@@ -357,7 +359,9 @@ class TestHealth:
             assert health["configured"] is True
             assert health["disabled_reason"] is None
             assert health["secret_source"] == "derived"
-            assert derived_secret() not in json.dumps(health)
+            body = json.dumps(health)
+            for candidate in derived_secrets():
+                assert candidate not in body
 
 
 # ---------------------------------------------------------------------------
