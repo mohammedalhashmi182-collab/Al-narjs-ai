@@ -41,6 +41,16 @@ services:
         sync: false
       - key: WHATSAPP_BUSINESS_NUMBER
         value: '0552978753'
+      - key: DIALOG_API_KEY
+        sync: false
+      - key: DIALOG_PHONE_ID
+        sync: false
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: TELEGRAM_OWNER_CHAT_ID
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
       - key: CORS_ORIGINS
         value: '["https://karmaai.online","https://www.karmaai.online"]'
       - key: DOMAIN
