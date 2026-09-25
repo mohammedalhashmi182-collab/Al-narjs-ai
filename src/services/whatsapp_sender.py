@@ -19,8 +19,8 @@ Rules:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy import select as sa_select
@@ -41,7 +41,23 @@ CHANNEL = "whatsapp"
 _FIRST_OUTREACH = ("NEW", "READY")
 
 
+def dialog_enabled() -> bool:
+    """True when the 360dialog gateway credential is present."""
+    return bool(settings.dialog_api_key)
+
+
+def _use_dialog() -> bool:
+    """Route outbound through 360dialog whenever its key is configured."""
+    return dialog_enabled()
+
+
+def _gateway() -> str:
+    return "dialog360" if _use_dialog() else "meta_cloud"
+
+
 def is_enabled() -> bool:
+    if _use_dialog():
+        return True
     return bool(settings.whatsapp_token and settings.whatsapp_phone_number_id)
 
 
@@ -56,23 +72,27 @@ def send_status() -> dict:
     """
     token = bool(settings.whatsapp_token)
     phone_id = bool(settings.whatsapp_phone_number_id)
-    connected = token and phone_id
+    dialog = dialog_enabled()
+    meta_connected = token and phone_id
+    connected = dialog or meta_connected
     webhook = settings.whatsapp_app_secret and settings.whatsapp_webhook_verify_token
     return {
         "enabled": is_enabled(),
         "connected": connected,
+        "gateway": _gateway(),
+        "dialog_configured": dialog,
         "token_configured": token,
         "phone_id_configured": phone_id,
         "disabled_reason": None if connected else DISABLED_REASON,
         "fallback": "wa.me",
         "webhook_configured": bool(webhook),
         "webhook_healthy": bool(webhook),
-        "env_required": ["WHATSAPP_TOKEN", "WHATSAPP_PHONE_ID"],
-        "env_optional": ["WHATSAPP_APP_SECRET", "WHATSAPP_WEBHOOK_VERIFY_TOKEN"],
+        "env_required": ["DIALOG_API_KEY or (WHATSAPP_TOKEN + WHATSAPP_PHONE_ID)"],
+        "env_optional": ["WHATSAPP_APP_SECRET", "WHATSAPP_WEBHOOK_VERIFY_TOKEN", "DIALOG_PHONE_ID"],
     }
 
 
-def _wa_me_link(phone: Any, message: str) -> Optional[str]:
+def _wa_me_link(phone: Any, message: str) -> str | None:
     return wa_me_number(phone)
 
 
@@ -92,15 +112,40 @@ def _build_payload(record: OutboundMessage, message_type: str = "text") -> dict:
     return payload
 
 
+def _gateway_endpoint() -> tuple[str, dict[str, str]]:
+    """Resolve (url, headers) for the active gateway.
+
+    - 360dialog: ``{DIALOG_BASE_URL}/v1/messages`` authenticated with the
+      ``D360-API-KEY`` header (Cloud-API-compatible payload, no Meta app needed).
+    - Meta Cloud API: ``graph.facebook.com/v20.0/{phone_id}/messages`` with a
+      Bearer token.
+
+    Credentials are never returned here beyond their intended header, and the
+    returned dict is never logged.
+    """
+    if _use_dialog():
+        base = (settings.dialog_base_url or "https://waba.360dialog.io").rstrip("/")
+        return (
+            f"{base}/v1/messages",
+            {
+                "D360-API-KEY": settings.dialog_api_key or "",
+                "Content-Type": "application/json",
+            },
+        )
+    return (
+        f"{API_URL}/{settings.whatsapp_phone_number_id}/messages",
+        {
+            "Authorization": f"Bearer {settings.whatsapp_token or ''}",
+            "Content-Type": "application/json",
+        },
+    )
+
+
 async def _post_message(record: OutboundMessage) -> dict:
-    """POST a message to the Cloud API (overridable seam for tests/offline runs)."""
+    """POST a message through the active gateway (overridable seam for tests/offline runs)."""
     import httpx
 
-    url = f"{API_URL}/{settings.whatsapp_phone_number_id}/messages"
-    headers = {
-        "Authorization": f"Bearer {settings.whatsapp_token or ''}",
-        "Content-Type": "application/json",
-    }
+    url, headers = _gateway_endpoint()
     body = _build_payload(record, message_type=record.message_type or "text")
     timeout = httpx.Timeout(30.0)
     try:
@@ -117,6 +162,7 @@ async def _post_message(record: OutboundMessage) -> dict:
                     "status_code": resp.status_code,
                     "error": (resp.text or "")[:500],
                     "error_code": str(code) if code is not None else None,
+                    "gateway": _gateway(),
                 }
             data = resp.json()
             mid = ((data.get("messages") or [{}])[0].get("id")) or None
@@ -124,12 +170,14 @@ async def _post_message(record: OutboundMessage) -> dict:
                 "ok": True,
                 "status_code": resp.status_code,
                 "provider_message_id": mid,
+                "gateway": _gateway(),
             }
     except Exception as exc:  # network/timeout — record the failure, never a send
-        return {"ok": False, "status_code": None, "error": str(exc)[:500], "error_code": "network"}
+        return {"ok": False, "status_code": None, "error": str(exc)[:500], "error_code": "network",
+                "gateway": _gateway()}
 
 
-async def _lead_for(session: AsyncSession, record: OutboundMessage) -> Optional[AcquisitionLead]:
+async def _lead_for(session: AsyncSession, record: OutboundMessage) -> AcquisitionLead | None:
     if not record.lead_id:
         return None
     return (
@@ -139,7 +187,7 @@ async def _lead_for(session: AsyncSession, record: OutboundMessage) -> Optional[
     ).scalar_one_or_none()
 
 
-async def _outreach_block_reason(session: AsyncSession, record: OutboundMessage) -> Optional[str]:
+async def _outreach_block_reason(session: AsyncSession, record: OutboundMessage) -> str | None:
     """Governance gate. Return a reason to block/hold, or None to allow sending."""
     lead = await _lead_for(session, record)
     if lead is not None and (lead.opt_out or (lead.lead_status or "") == "DO_NOT_CONTACT"):
@@ -160,7 +208,7 @@ async def _outreach_block_reason(session: AsyncSession, record: OutboundMessage)
         ).scalar_one_or_none()
         if last_sent is not None:
             cooldown = timedelta(hours=settings.whatsapp_lead_cooldown_hours)
-            if datetime.now(timezone.utc) - last_sent < cooldown:
+            if datetime.now(UTC) - last_sent < cooldown:
                 return "cooldown"
 
     sent_today = (
@@ -175,7 +223,7 @@ async def _outreach_block_reason(session: AsyncSession, record: OutboundMessage)
 
 
 def _start_of_today_utc() -> datetime:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return now.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
@@ -198,8 +246,8 @@ async def enqueue(
         status="queued" if is_enabled() else "awaiting_credential",
         message_type=message_type or "text",
         wa_me_link=_wa_me_link(phone, message),
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     session.add(record)
     await session.flush()
@@ -213,7 +261,7 @@ async def _record_lead_event(session: AsyncSession, record: OutboundMessage, *, 
     if lead is None:
         return
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if sent:
         before = getattr(lead, "lead_status", "NEW") or "NEW"
         if before in _FIRST_OUTREACH:
@@ -248,7 +296,7 @@ async def _record_lead_event(session: AsyncSession, record: OutboundMessage, *, 
 
 async def _send_with_ack(session: AsyncSession, record: OutboundMessage) -> dict:
     """Send one queued message. Never marks sent without a real ack."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if not is_enabled():
         record.status = "awaiting_credential"
         record.error = None
@@ -287,7 +335,7 @@ async def _send_with_ack(session: AsyncSession, record: OutboundMessage) -> dict
     result = await _post_message(record)
     if result.get("ok"):
         record.status = "sent"
-        record.provider = "meta_whatsapp_cloud"
+        record.provider = "dialog360" if _use_dialog() else "meta_whatsapp_cloud"
         record.provider_message_id = result.get("provider_message_id")
         record.provider_status = "pending"
         record.acknowledged = True
@@ -302,7 +350,7 @@ async def _send_with_ack(session: AsyncSession, record: OutboundMessage) -> dict
     else:
         # Capture a bounded, secret-free error summary.
         record.status = "failed"
-        record.provider = "meta_whatsapp_cloud"
+        record.provider = "dialog360" if _use_dialog() else "meta_whatsapp_cloud"
         record.provider_status = "failed"
         record.error = (result.get("error") or "")[:500]
         record.error_code = result.get("error_code")
@@ -357,7 +405,7 @@ async def send_now(
     return await _send_with_ack(session, record)
 
 
-async def acknowledge_status(session: AsyncSession, provider_message_id: str, status: str, *, error_code: Optional[str] = None) -> Optional[OutboundMessage]:
+async def acknowledge_status(session: AsyncSession, provider_message_id: str, status: str, *, error_code: str | None = None) -> OutboundMessage | None:
     """Apply a provider delivery/read/failed update delivered via the webhook.
 
     Only ever moves an already-``sent`` (acknowledged) message to a richer
@@ -374,7 +422,7 @@ async def acknowledge_status(session: AsyncSession, provider_message_id: str, st
         return None
     if status in ("delivered", "read", "sent", "failed") and status != record.provider_status:
         record.provider_status = status
-        record.updated_at = datetime.now(timezone.utc)
+        record.updated_at = datetime.now(UTC)
         if status == "failed":
             record.status = "failed"
             record.error_code = error_code
@@ -387,7 +435,7 @@ async def conversation_summary(session: AsyncSession) -> dict:
     from sqlalchemy import func as sa_func
 
     today = _start_of_today_utc()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     sent_total = (
         await session.execute(sa_select(sa_func.count()).select_from(OutboundMessage).where(OutboundMessage.status == "sent"))

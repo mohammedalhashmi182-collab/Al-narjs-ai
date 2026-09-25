@@ -274,6 +274,10 @@ from src.interfaces.whatsapp_routes import router as whatsapp_router  # noqa: E4
 
 app.include_router(whatsapp_router)
 
+from src.interfaces.telegram_routes import router as telegram_router  # noqa: E402
+
+app.include_router(telegram_router)
+
 
 async def get_session() -> AsyncSession:
     async with app.state.session_factory() as session:

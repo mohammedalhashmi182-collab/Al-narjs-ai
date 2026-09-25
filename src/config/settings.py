@@ -150,6 +150,22 @@ class Settings(BaseSettings):
     whatsapp_daily_auto_limit: int = Field(default=200, alias="WHATSAPP_DAILY_AUTO_LIMIT")
     whatsapp_lead_cooldown_hours: int = Field(default=12, alias="WHATSAPP_LEAD_COOLDOWN_HOURS")
 
+    # 360dialog gateway — a Cloud-API-compatible BSP that does not require the
+    # owner to create a Meta app. When DIALOG_API_KEY is set, outbound WhatsApp
+    # traffic routes to the 360dialog base URL with a D360-API-KEY header
+    # instead of graph.facebook.com; governance, queueing and records are shared.
+    dialog_api_key: str | None = Field(default=None, alias="DIALOG_API_KEY")
+    dialog_base_url: str = Field(default="https://waba.360dialog.io", alias="DIALOG_BASE_URL")
+    dialog_phone_id: str | None = Field(default=None, alias="DIALOG_PHONE_ID")
+
+    # Telegram Bot API — parallel inbound/outbound channel (no approval queue).
+    # Sending needs TELEGRAM_TOKEN; the webhook stays disabled until
+    # TELEGRAM_WEBHOOK_SECRET is set (it is sent as the X-Telegram-Bot-Api-Secret-Token
+    # header Telegram requires when calling setWebhook).
+    telegram_token: str | None = Field(default=None, alias="TELEGRAM_TOKEN")
+    telegram_webhook_secret: str | None = Field(default=None, alias="TELEGRAM_WEBHOOK_SECRET")
+    telegram_owner_chat_id: str | None = Field(default=None, alias="TELEGRAM_OWNER_CHAT_ID")
+
 
 @lru_cache
 def get_settings() -> Settings:
