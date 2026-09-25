@@ -116,6 +116,9 @@ async def _post(client, update: dict, secret: str = SECRET):
     )
 
 
+_real_post = ts._post  # captured before the autouse fixture swaps the seam
+
+
 @pytest.fixture(autouse=True)
 def _no_real_telegram_http(monkeypatch):
     """Webhook side effects (welcome/alert) must never reach the network in tests."""
@@ -470,6 +473,65 @@ class TestSideEffects:
                 select(OutboundMessage).where(OutboundMessage.channel == "telegram")
             )).scalars().all()
             assert len(rows) == 1
+
+
+# ---------------------------------------------------------------------------
+# 11) Regression: sendMessage `result` is the whole Message object
+#     (str(dict) overflowed varchar(255) and rolled back a delivered send)
+# ---------------------------------------------------------------------------
+
+class TestMessageIdExtraction:
+    def test_message_id_extracted_from_message_object(self):
+        message = {"message_id": 6, "date": 1790355300, "chat": {"id": 527628036}}
+        assert ts._message_id_from(message) == 6
+        assert ts._message_id_from(998877) == 998877
+        assert ts._message_id_from("wamid.X") == "wamid.X"
+        assert ts._message_id_from(None) is None
+
+    async def test_real_post_keeps_only_the_message_id(self, monkeypatch):
+        class _Resp:
+            status_code = 200
+            text = "{}"
+
+            def json(self):
+                return {"ok": True, "result": {"message_id": 6, "chat": {"id": 1}}}
+
+        class _Client:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def post(self, url, json=None):
+                return _Resp()
+
+        monkeypatch.setattr(httpx, "AsyncClient", _Client)
+        monkeypatch.setattr(ts, "_post", _real_post)
+        with _creds():
+            result = await ts._post("sendMessage", {"chat_id": "1", "text": "hi"})
+        assert result["ok"] is True
+        assert result["provider_message_id"] == 6
+
+    async def test_oversized_provider_id_is_truncated_not_crashed(self, maker):
+        async def _huge(method, payload):
+            return {"ok": True, "status_code": 200, "provider_message_id": "x" * 400}
+
+        with _creds():
+            lead = await _insert_lead(maker)
+            original = ts._post
+            ts._post = _huge  # type: ignore[assignment]
+            async with maker() as s:
+                result = await ts.send_now(s, lead_id=lead.id, chat_id=CHAT, text="مرحباً")
+                assert result["status"] == "sent"
+                record = (await s.execute(
+                    select(OutboundMessage).order_by(OutboundMessage.created_at.desc()).limit(1)
+                )).scalar_one()
+                assert len(record.provider_message_id or "") <= 255
+            ts._post = original  # type: ignore[assignment]
 
 
 # ---------------------------------------------------------------------------

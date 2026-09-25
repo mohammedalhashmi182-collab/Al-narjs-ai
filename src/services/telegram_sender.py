@@ -36,6 +36,13 @@ def is_enabled() -> bool:
     return bool(settings.telegram_token)
 
 
+def _message_id_from(result: Any) -> Any:
+    """Bot API returns the full Message object; keep only its id (fits varchar 255)."""
+    if isinstance(result, dict):
+        return result.get("message_id")
+    return result
+
+
 def send_status() -> dict:
     """Secret-free connection status for the CEO / War Room."""
     token = bool(settings.telegram_token)
@@ -79,7 +86,11 @@ async def _post(method: str, payload: dict) -> dict:
                     "error": str(data.get("description") or "")[:500],
                     "error_code": str(data.get("error_code") or "api"),
                 }
-            return {"ok": True, "status_code": resp.status_code, "provider_message_id": data.get("result")}
+            return {
+                "ok": True,
+                "status_code": resp.status_code,
+                "provider_message_id": _message_id_from(data.get("result")),
+            }
     except Exception as exc:  # network/timeout — record the failure, never a send
         return {"ok": False, "status_code": None, "error": str(exc)[:500], "error_code": "network"}
 
@@ -208,7 +219,7 @@ async def _send_with_ack(session: AsyncSession, record: OutboundMessage) -> dict
     if result.get("ok"):
         record.status = "sent"
         record.provider = "telegram_bot"
-        record.provider_message_id = str(result.get("provider_message_id") or "") or None
+        record.provider_message_id = str(result.get("provider_message_id") or "")[:255] or None
         record.provider_status = "sent"
         record.acknowledged = True
         record.acknowledged_at = now
