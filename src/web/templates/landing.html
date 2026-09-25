@@ -43,7 +43,7 @@
       "name": "النرجس للذكاء الاصطناعي | Al-Narjis AI",
       "alternateName": "The Arabian Convoy Establishment",
       "url": "https://karmaai.online",
-      "sameAs": ["https://wa.me/message/PPIY6ZARA53GM1"],
+      "sameAs": ["https://t.me/AlNarjs7BOT"],
       "legalName": "Arabian Convoy Establishment",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "address": {
@@ -256,6 +256,8 @@
         .btn-ghost:hover { border-color: var(--gold); color: var(--gold-bright); }
         .btn-online { background: var(--online); color: #04130d; box-shadow: 0 14px 34px rgba(0, 0, 0, .4); }
         .btn-online:hover { filter: brightness(1.06); transform: translateY(-2px); }
+        .btn-tg { background: linear-gradient(135deg, #0088cc, #00a8ff); color: #fff; box-shadow: 0 14px 34px rgba(0, 136, 204, .35); }
+        .btn-tg:hover { filter: brightness(1.07); transform: translateY(-2px); box-shadow: 0 20px 44px rgba(0, 136, 204, .45); }
 
         .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 140px 28px 70px; }
         .hero .inner { max-width: 1240px; margin-inline: auto; width: 100%; display: grid; grid-template-columns: 1.04fr .96fr; gap: 64px; align-items: center; position: relative; }
@@ -524,6 +526,28 @@
         .form-msg { text-align: center; font-weight: 800; padding: 13px; border-radius: 12px; margin-top: 18px; display: none; background: rgba(200, 164, 94, .1); color: var(--gold-bright); border: 1px solid var(--gold-soft); }
         .form-msg.ok { background: rgba(61, 189, 125, .1); color: var(--online); border-color: rgba(61, 189, 125, .3); }
         .form-msg.err { background: rgba(248, 113, 113, .1); color: #f0a0a0; border-color: rgba(248, 113, 113, .3); }
+
+        /* Telegram quick-connect panel: AI agent + human support */
+        .tg-panel {
+            max-width: 780px; margin: 26px auto 0; padding: 1.5rem;
+            display: flex; flex-direction: column; gap: 1rem;
+            border: 1px solid var(--line-2); border-radius: var(--r-lg);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .012));
+            box-shadow: var(--shadow); text-align: center;
+        }
+        .tg-panel .tg-lbl { font-size: .82rem; font-weight: 800; letter-spacing: .4px; color: var(--faint); }
+        .tg-panel .tg-lbl i { color: #2aabee; margin-inline-end: 6px; }
+        .tg-actions { display: flex; flex-direction: column; gap: .85rem; }
+        .tg-btn {
+            display: flex; align-items: center; justify-content: center; gap: .75rem;
+            padding: 1rem 1.5rem; border-radius: 12px; font-weight: 800; font-size: .95rem;
+            text-decoration: none; transition: all .25s var(--ease); border: 2px solid transparent;
+        }
+        .tg-agent { background: linear-gradient(135deg, #0088cc, #00a8ff); color: #fff; }
+        .tg-agent:hover { box-shadow: 0 6px 20px rgba(0, 136, 204, .45); transform: translateY(-2px); }
+        .tg-support { background: transparent; color: #2aabee; border-color: rgba(42, 171, 238, .5); }
+        .tg-support:hover { background: rgba(42, 171, 238, .1); border-color: #2aabee; transform: translateY(-2px); }
+        .tg-panel .tg-note { font-size: .78rem; color: var(--faint); }
         .mob-cta { display: none; }
         @media (max-width: 640px) {
             .mob-cta {
@@ -536,9 +560,9 @@
             .mob-cta a { display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center; font-weight: 800; font-size: .93rem; padding: 13px 6px; border-radius: 12px; text-decoration: none; }
             .mob-cta .m-consult { color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .1); }
             .mob-cta .m-consult:active { transform: scale(.98); }
-            .mob-cta .m-wa { color: #0b0c10; background: linear-gradient(135deg, #3dbd7d, #2fae6c); }
-            .mob-cta .m-wa:active { transform: scale(.98); }
-            .wa-float { bottom: 86px; }
+            .mob-cta .m-tg { color: #fff; background: linear-gradient(135deg, #0088cc, #00a8ff); }
+            .mob-cta .m-tg:active { transform: scale(.98); }
+            .tg-float { bottom: 86px; }
             .contact-pad { padding-bottom: 120px; }
         }
 
@@ -557,13 +581,13 @@
         .footer .base { max-width: 1240px; margin: 46px auto 0; padding-block-start: 24px; border-block-start: 1px solid var(--line); display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: .78rem; color: var(--faint); }
         .footer .base b { color: var(--gold-bright); }
 
-        .wa-float {
+        .tg-float {
             position: fixed; bottom: 26px; inset-inline-end: 26px; z-index: 150;
             width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; cursor: pointer;
-            background: var(--online); color: #04130d; font-size: 1.5rem;
+            background: linear-gradient(135deg, #0088cc, #00a8ff); color: #fff; font-size: 1.5rem;
             box-shadow: 0 18px 44px rgba(0, 0, 0, .5); transition: all .25s var(--ease);
         }
-        .wa-float:hover { transform: translateY(-3px); filter: brightness(1.06); }
+        .tg-float:hover { transform: translateY(-3px); filter: brightness(1.06); }
         .to-top {
             position: fixed; bottom: 26px; inset-inline-start: 26px; z-index: 150;
             width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
@@ -975,7 +999,7 @@
             <div class="reveal">
                 <span class="eyebrow"><span data-lang="ar">ابدأ الآن</span><span data-lang="en" data-inline>Get started</span></span>
                 <h2 class="sec-title"><span data-lang="ar">ابدأ رحلتك مع</span><span data-lang="en" data-inline>Start your journey with</span> <span class="c" data-lang="ar">النرجس</span><span class="c" data-lang="en" data-inline>Al-Narjis</span></h2>
-                <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">اترك بياناتك وسيتواصل معك فريقنا خلال ٢٤ ساعة — أو تحدث مع المستشار الذكي مباشرة.</span><span data-lang="en" data-inline">Leave your details, we'll reach out in 24h — or talk to the Smart Consultant now.</span></p>
+                <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">اترك بياناتك وسيتواصل معك فريقنا خلال ٢٤ ساعة — أو تحدث مع المستشار الذكي مباشرة.</span><span data-lang="en" data-inline>Leave your details, we'll reach out in 24h — or talk to the Smart Consultant now.</span></p>
             </div>
             <form id="leadForm" class="glass-panel reveal">
                 <div class="f-grid">
@@ -984,7 +1008,7 @@
                         <input type="text" id="name" name="name" required>
                     </div>
                     <div class="field">
-                        <label for="phone"><span data-lang="ar">الجوال / واتساب</span><span data-lang="en" data-inline>Phone / WhatsApp</span></label>
+                        <label for="phone"><span data-lang="ar">رقم الجوال</span><span data-lang="en" data-inline>Phone number</span></label>
                         <input type="tel" id="phone" name="phone" required>
                     </div>
                     <div class="field">
@@ -1011,16 +1035,25 @@
                 </div>
                 <div class="actions">
                     <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i><span data-lang="ar">أرسل الطلب</span><span data-lang="en" data-inline>Send request</span></button>
-                    <a id="waDirect" href="#" target="_blank" class="btn btn-ghost"><i class="fab fa-whatsapp" style="color:#3dbd7d;"></i><span data-lang="ar">واتساب مباشر</span><span data-lang="en" data-inline>Chat on WhatsApp</span></a>
+                    <a id="tgDirect" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="btn btn-tg"><i class="fab fa-telegram"></i><span data-lang="ar">إطلاق الوكيل عبر Telegram</span><span data-lang="en" data-inline>Launch agent on Telegram</span></a>
                 </div>
                 <div id="formMsg" class="form-msg"></div>
             </form>
+
+            <div class="tg-panel reveal">
+                <span class="tg-lbl"><i class="fab fa-telegram"></i><span data-lang="ar">ربط مباشر عبر تيليجرام</span><span data-lang="en" data-inline>Direct link on Telegram</span></span>
+                <div class="tg-actions">
+                    <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="tg-btn tg-agent"><i class="fab fa-telegram"></i><span data-lang="ar">إطلاق الوكيل الذكي عبر Telegram</span><span data-lang="en" data-inline>Launch the AI agent on Telegram</span></a>
+                    <a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener" class="tg-btn tg-support"><i class="fas fa-headset"></i><span data-lang="ar">تحدث مع الدعم الفني</span><span data-lang="en" data-inline>Talk to human support</span></a>
+                </div>
+                <span class="tg-note"><span data-lang="ar">رد فوري · محادثتك تصل مباشرة لفريقنا</span><span data-lang="en" data-inline>Instant reply · your chat reaches our team directly</span></span>
+            </div>
         </div>
     </section>
 
     <div class="mob-cta">
         <a href="/consult" class="m-consult"><i class="fas fa-comments"></i><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
-        <a id="mWaCta" href="#" target="_blank" class="m-wa"><i class="fab fa-whatsapp"></i><span data-lang="ar">واتساب</span><span data-lang="en" data-inline>WhatsApp</span></a>
+        <a id="mTgCta" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="m-tg"><i class="fab fa-telegram"></i><span data-lang="ar">تيليجرام</span><span data-lang="en" data-inline>Telegram</span></a>
     </div>
 
     <!-- ==================== FOOTER ==================== -->
@@ -1033,7 +1066,7 @@
                     <a href="#" aria-label="X"><i class="fab fa-x-twitter"></i></a>
                     <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                     <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="WhatsApp" class="wa-link"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
                 </div>
             </div>
             <div>
@@ -1045,7 +1078,8 @@
             </div>
             <div>
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
-                <a href="https://wa.me/message/PPIY6ZARA53GM1" target="_blank"><i class="fab fa-whatsapp" style="margin-inline-end:8px;color:#3dbd7d;"></i>+966 55 297 8753</a>
+                <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener"><i class="fab fa-telegram" style="margin-inline-end:8px;color:#2aabee;"></i>@AlNarjs7BOT · Telegram</a>
+                <span style="display:block;padding-block:5px;font-size:.86rem;color:var(--muted);"><i class="fas fa-phone" style="margin-inline-end:8px;color:var(--gold);"></i>+966 55 297 8753</span>
                 <a href="mailto:aimerchantvault.77@gmail.com">aimerchantvault.77@gmail.com</a>
                 <a href="#"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
             </div>
@@ -1065,7 +1099,7 @@
         </div>
     </footer>
 
-    <a id="waFloat" class="wa-float" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    <a id="tgFloat" class="tg-float" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
     <button class="to-top" id="toTop" aria-label="Top"><i class="fas fa-arrow-up"></i></button>
 
     <script>
@@ -1205,11 +1239,10 @@
                 }
             })();
 
-            var WA_LINK = 'https://wa.me/message/PPIY6ZARA53GM1';
-            var wf = document.getElementById('waFloat'); if (wf) wf.href = WA_LINK;
-            var wd = document.getElementById('waDirect'); if (wd) wd.href = WA_LINK;
-            var mc = document.getElementById('mWaCta'); if (mc) mc.href = WA_LINK;
-            document.querySelectorAll('.socials a').forEach(function (a) { a.href = WA_LINK; });
+            var TG_LINK = 'https://t.me/AlNarjs7BOT';
+            var TG_SUPPORT = 'https://t.me/AlNarjs7BOT?start=support';
+            var tds = document.querySelectorAll('.tg-btn');
+            tds.forEach(function (a, i) { a.href = i === 1 ? TG_SUPPORT : TG_LINK; });
 
             document.querySelectorAll('.js-order').forEach(function (btn) {
                 btn.addEventListener('click', function (e) {
@@ -1236,11 +1269,11 @@
                         msg.classList.add('ok');
                         form.reset();
                     } else {
-                        msg.textContent = isAr ? 'حدث خطأ — جرّب واتساب المباشر.' : 'Something went wrong — try direct WhatsApp.';
+                        msg.textContent = isAr ? 'حدث خطأ — جرّب تيليجرام المباشر.' : 'Something went wrong — try Telegram.';
                         msg.classList.add('err');
                     }
                 }).catch(function () {
-                    msg.textContent = isAr ? 'حدث خطأ — جرّب واتساب المباشر.' : 'Something went wrong.';
+                    msg.textContent = isAr ? 'حدث خطأ — جرّب تيليجرام المباشر.' : 'Something went wrong.';
                     msg.classList.add('err');
                 });
             });

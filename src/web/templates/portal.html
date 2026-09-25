@@ -71,7 +71,7 @@
                         <input type="text" id="cname" required>
                     </div>
                     <div>
-                        <label for="cphone" data-lang="ar">رقم الجوال / واتساب</label><label for="cphone" data-lang="en" data-inline>Phone / WhatsApp</label>
+                        <label for="cphone" data-lang="ar">رقم الجوال</label><label for="cphone" data-lang="en" data-inline>Phone number</label>
                         <input type="tel" id="cphone" required>
                     </div>
                 </div>
@@ -538,8 +538,8 @@
                     }
                     if (data.gateway === 'invoice') {
                         msg.innerHTML = '<div style="color:var(--n-green);">' + (isAr()
-                            ? 'فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + data.total.toLocaleString() + ' ر.س. أرسل التحويل وأخبرنا واتساب لتفعيل باقتك فوراً.'
-                            : 'Invoice ' + data.payment_id.slice(0, 8).toUpperCase() + ' created — ' + data.total.toLocaleString() + ' SAR. Send the transfer and notify us on WhatsApp to activate instantly.') + '</div>';
+                            ? 'فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + data.total.toLocaleString() + ' ر.س. أرسل التحويل وأخبرنا عبر تيليجرام لتفعيل باقتك فوراً.'
+                            : 'Invoice ' + data.payment_id.slice(0, 8).toUpperCase() + ' created — ' + data.total.toLocaleString() + ' SAR. Send the transfer and notify us on Telegram to activate instantly.') + '</div>';
                         return;
                     }
                     throw new Error(txt('تعذر إتمام الدفع', 'Payment failed'));
