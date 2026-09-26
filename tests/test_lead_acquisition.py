@@ -116,14 +116,14 @@ def test_normalize_phone_rejects_ambiguous_or_junk(raw) -> None:
     assert lead_normalize.normalize_phone(raw) is None
 
 
-def test_whatsapp_capability_is_mobile_only() -> None:
-    assert lead_normalize.is_whatsapp_capable("0553078789")
-    assert not lead_normalize.is_whatsapp_capable("0112345678")
-    assert not lead_normalize.is_whatsapp_capable("447911123456")
+def test_reachability_is_mobile_only() -> None:
+    assert lead_normalize.is_reachable_mobile("0553078789")
+    assert not lead_normalize.is_reachable_mobile("0112345678")
+    assert not lead_normalize.is_reachable_mobile("447911123456")
 
 
-def test_wa_me_number_has_no_plus_or_leading_zero() -> None:
-    assert lead_normalize.wa_me_number("0553078789") == "966553078789"
+def test_normalize_mobile_drops_plus_and_leading_zero() -> None:
+    assert lead_normalize.normalize_mobile_e164("0553078789") == "966553078789"
 
 
 def test_company_name_key_unifies_arabic_and_legal_words() -> None:
@@ -182,7 +182,7 @@ def test_suggest_package_is_always_a_known_package() -> None:
         assert lead_segmentation.suggest_package(seg) in catalog.PACKAGES
 
 
-def test_priority_rewards_whatsapp_quote_and_recency() -> None:
+def test_priority_rewards_reachable_mobile_quote_and_recency() -> None:
     hot = lead_priority.score_lead(
         historical_customer=True,
         quotation_without_purchase=True,
@@ -216,7 +216,7 @@ def test_priority_never_exceeds_bounds() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_generate_message_builds_arabic_draft_and_wa_link() -> None:
+def test_generate_message_builds_arabic_draft_and_tg_link() -> None:
     draft = lead_outreach.generate_message(
         {
             "company_name": "مطعم الأصالة",
@@ -228,15 +228,16 @@ def test_generate_message_builds_arabic_draft_and_wa_link() -> None:
         }
     )
     assert "مطعم الأصالة" in draft["message"]
-    assert draft["wa_link"].startswith("https://wa.me/966553078789")
+    assert draft["tg_link"].startswith("https://t.me/share/url?url=")
+    assert draft["lead_mobile"] == "966553078789"
     assert draft["variant"] in lead_outreach.VARIANT_LABELS_AR
 
 
-def test_generate_message_without_phone_has_no_wa_link() -> None:
+def test_generate_message_without_phone_has_no_tg_link() -> None:
     draft = lead_outreach.generate_message(
         {"company_name": "شركة بلا رقم", "phone": None, "segment": "unknown"}
     )
-    assert draft["wa_link"] is None
+    assert draft["tg_link"] is None
     assert draft["message"]
 
 
@@ -528,7 +529,7 @@ async def test_acquisition_workflow_message_demo_and_followup(api) -> None:
     detail = await client.get(f"/api/acquisition/leads/{lead_id}")
     assert detail.status_code == 200
     assert detail.json()["draft"]["message"]
-    assert detail.json()["draft"]["wa_link"].startswith("https://wa.me/966553078789")
+    assert detail.json()["draft"]["tg_link"].startswith("https://t.me/share/url?url=")
 
     message = await client.post(f"/api/acquisition/leads/{lead_id}/message", json={"variant": "cold_intro"})
     assert message.status_code == 200

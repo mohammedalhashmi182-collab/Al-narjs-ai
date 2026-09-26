@@ -31,7 +31,7 @@ from src.config.settings import settings
 from src.models import AcquisitionLead, InboundMessage, LeadEvent
 
 from .lead_normalize import normalize_phone
-from .whatsapp_webhook import _BUYING_INTENTS, _promote_lead, classify_intent
+from .intent_classify import BUYING_INTENTS, classify_intent, promote_lead
 
 log = logging.getLogger(__name__)
 
@@ -69,8 +69,8 @@ def derived_secrets() -> list[str]:
     key already present in the environment contributes one candidate.
     """
     keys = [settings.secret_key]
-    if settings.whatsapp_webhook_verify_token:
-        keys.append(settings.whatsapp_webhook_verify_token)
+    if settings.telegram_webhook_secret:
+        keys.append(settings.telegram_webhook_secret)
     return [
         hmac.new(key.encode(), _DERIVED_LABEL, hashlib.sha256).hexdigest()
         for key in keys
@@ -218,7 +218,7 @@ async def process_inbound_update(session: AsyncSession, update: Any) -> dict:
     text = _extract_text(message)
     msg_type = _message_type(message)
     intent, objection = classify_intent(text)
-    buying = intent in _BUYING_INTENTS
+    buying = intent in BUYING_INTENTS
     now_utc = datetime.now(UTC)
 
     rec = InboundMessage(
@@ -248,7 +248,7 @@ async def process_inbound_update(session: AsyncSession, update: Any) -> dict:
 
     rec.lead_id = lead.id
     rec.processing_status = "processed"
-    before_status, after_status = _promote_lead(lead, rec.intent or "UNKNOWN", rec.buying_signal, rec.objection)
+    before_status, after_status = promote_lead(lead, rec.intent or "UNKNOWN", rec.buying_signal, rec.objection)
     session.add(LeadEvent(
         lead_id=lead.id,
         event_type="message_received",

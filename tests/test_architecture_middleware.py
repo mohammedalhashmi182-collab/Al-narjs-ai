@@ -2,7 +2,7 @@
 
 Covers: ContextVar tenant isolation, thread-safe session filtration, the
 centralized agent catalog, dynamic routing with safe fallbacks, the bounded
-self-correction loop, and the wrapped WhatsApp controller (parity with the
+self-correction loop, and the wrapped inbound controller (parity with the
 production inbound pipeline).
 """
 
@@ -246,7 +246,7 @@ async def test_self_correction_bounded():
 
 
 # ---------------------------------------------------------------------------
-# Wrapped WhatsApp controller (parity with the production pipeline)
+# Wrapped inbound controller (parity with the production Telegram pipeline)
 # ---------------------------------------------------------------------------
 
 async def _make_engine():
@@ -278,28 +278,17 @@ async def _insert_lead(maker, *, company="AcmeCo", phone="0555112233", status="N
         return lead
 
 
-def _inbound_payload(msg_id: str, text: str, sender: str = "966555112233") -> dict:
+def _inbound_payload(msg_id: int, text: str, sender: int = 966555112233) -> dict:
+    """One Telegram ``update`` body carrying a text message."""
     return {
-        "entry": [
-            {
-                "changes": [
-                    {
-                        "value": {
-                            "messages": [
-                                {
-                                    "from": sender,
-                                    "id": msg_id,
-                                    "timestamp": "1730000000",
-                                    "type": "text",
-                                    "text": {"body": text},
-                                }
-                            ],
-                            "contacts": [{"wa_id": sender}],
-                        }
-                    }
-                ]
-            }
-        ]
+        "update_id": 1000 + msg_id,
+        "message": {
+            "message_id": msg_id,
+            "from": {"id": sender, "is_bot": False},
+            "chat": {"id": sender, "type": "private"},
+            "date": 1730000000,
+            "text": text,
+        },
     }
 
 
@@ -310,7 +299,7 @@ async def test_wrapped_webhook_parity_and_dedup():
     engine, maker = await _make_engine()
     try:
         lead = await _insert_lead(maker, phone="0555112233")
-        payload = _inbound_payload("msg-arch-1", "بكم السعر؟", sender="966555112233")
+        payload = _inbound_payload(4242, "بكم السعر؟ 0555112233", sender=966555112233)
 
         summary = await process_webhook(maker, payload, tenant_id="acme")
         assert summary["messages_processed"] == 1

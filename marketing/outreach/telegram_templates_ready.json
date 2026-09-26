@@ -1,0 +1,54 @@
+{
+  "note": "Telegram is the only support and outreach channel. Each template is a ready-to-paste Arabic message; the deep link opens the chat picker with the text already filled in, so a human reviews and sends. Copy is truthful and never claims existing customers or unverifiable results.",
+  "channel": "telegram",
+  "bot_link": "https://t.me/AlNarjs7BOT",
+  "support_link": "https://t.me/AlNarjs7BOT?start=support",
+  "deep_link_format": "https://t.me/share/url?url=<landing_url>&text=<url-encoded message>",
+  "agent_count_note": "Do not hard-code an agent count in copy. The live number is served from src/services/catalog.py and rendered on the landing page.",
+  "templates": [
+    {
+      "name": "al_narjis_first_touch_ar",
+      "language": "ar",
+      "category": "MARKETING",
+      "body": "مرحباً {{1}} 👋، أنا من فريق النرجس للذكاء الاصطناعي. فريقك الرقمي جاهز: وكلاء ذكاء اصطناعي للمحتوى والتسويق والمتاجر وخدمة العملاء، وباقات تبدأ من 800 ريال/شهر بفاتورة رسمية. ابدأ مجاناً: {{2}}",
+      "example_body": {
+        "name": "متجركم",
+        "url": "https://karmaai.online/consult"
+      }
+    },
+    {
+      "name": "al_narjis_call_to_consult_ar",
+      "language": "ar",
+      "category": "MARKETING",
+      "body": "أهلاً {{1}}، استشارتنا الذكية مجانية وبدون تسجيل — خطط جاهزة خلال دقائق. ابدأ الآن: {{2}}",
+      "example_body": {
+        "name": "نشاطكم",
+        "url": "https://karmaai.online/consult"
+      }
+    },
+    {
+      "name": "al_narjis_invoice_notice_ar",
+      "language": "ar",
+      "category": "UTILITY",
+      "body": "فاتورتك الرسمية الشهرية جاهزة لـ {{1}}. مبلغ الفاتورة: {{2}} ريال (شامل الضريبة). رقم الفاتورة: {{3}}. للاستفسار: {{4}}",
+      "example_body": {
+        "org": "شركتكم",
+        "amount": "920",
+        "invoice_no": "AN-0001",
+        "support": "https://t.me/AlNarjs7BOT?start=support"
+      }
+    },
+    {
+      "name": "al_narjis_renewal_reminder_ar",
+      "language": "ar",
+      "category": "UTILITY",
+      "body": "تذكير: تجدد باقة {{1}} خلال {{2}} يوم. تواصل معنا لتجديد الاشتراك دون انقطاع: {{3}}",
+      "example_body": {
+        "pkg": "الاجتماعي",
+        "days": "3",
+        "support": "https://t.me/AlNarjs7BOT?start=support"
+      }
+    }
+  ],
+  "how_to_use": "افتح رابط المشاركة، الصق النص بعد فك ترميزه، ثم اختر جهة الاتصال من قائمة تيليجرام وأرسل بعد المراجعة. لا يوجد إرسال آلي — كل رسالة يقرؤها إنسان قبل إرساله."
+}

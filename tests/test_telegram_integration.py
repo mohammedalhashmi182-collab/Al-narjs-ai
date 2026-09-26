@@ -381,7 +381,7 @@ class TestHealth:
 class TestSecrets:
     async def test_endpoints_never_contain_credentials(self, api):
         with _creds():
-            for ep in ("/webhooks/telegram/health", "/webhooks/whatsapp/health"):
+            for ep in ("/webhooks/telegram/health",):
                 r = await api.get(ep)
                 assert r.status_code == 200, ep
                 assert TOKEN not in r.text, ep

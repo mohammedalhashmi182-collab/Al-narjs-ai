@@ -39,6 +39,7 @@ from src.services.lead_campaigns import (
     export_campaign_json,
 )
 from src.services.lead_next_action import compute_next_action, prepare_follow_up
+from src.services import lead_outreach
 from src.services.lead_outreach import VARIANT_LABELS_AR, determine_variant, generate_message
 from src.services.lead_segmentation import SEGMENT_LABELS_AR
 
@@ -330,7 +331,8 @@ async def sales_overview(request: Request):
             "proposal_rate": rate("PROPOSAL"),
             "won_rate": rate("WON"),
         },
-        "whatsapp_business_number": get_settings().whatsapp_business_number,
+        "telegram_bot": lead_outreach.TELEGRAM_BOT,
+        "telegram_support": lead_outreach.TELEGRAM_SUPPORT,
         "top_leads": [_lead_dict(l) for l in priority_leads],
     }
 
@@ -453,7 +455,7 @@ async def sales_generate_message(request: Request, lead_id: str, body: MessageRe
         lead.outreach_status = "READY"
         await _log_event(
             session, lead, "message_generated",
-            channel="whatsapp", message=draft["message"], note=draft["variant_label"],
+            channel="telegram", message=draft["message"], note=draft["variant_label"],
         )
         await session.commit()
     return {"success": True, "draft": draft}

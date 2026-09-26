@@ -115,13 +115,13 @@ def test_status_transition_updates_next_action():
     assert compute_next_action(data, now=NOW)["next_action"] == engine.REVIEW_RESPONSE
 
 
-def test_prepare_follow_up_builds_draft_and_preserves_wa_link():
+def test_prepare_follow_up_builds_draft_and_preserves_tg_link():
     data = lead(lead_status="CONTACTED", next_followup_at=NOW - timedelta(hours=2))
     prepared = prepare_follow_up(data, events=[], now=NOW)
     draft = prepared["draft"]
     assert draft["message"]
-    assert draft["wa_link"] is not None
-    assert "wa.me/966553078789" in draft["wa_link"]
+    assert draft["tg_link"] is not None
+    assert "t.me/share/url?url=" in draft["tg_link"]
     assert prepared["next_action"]["due"] == engine.DUE
     assert prepared["suggested_timing"] is not None
 

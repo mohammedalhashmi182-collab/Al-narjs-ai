@@ -1,0 +1,56 @@
+# Runs the real test suite. Every commit to main auto-deploys to production
+# within a minute (Render), so this gate is the last thing standing between a
+# broken change and a broken live site.
+#
+# The suite is self-contained: tests/conftest.py sets SECRET_KEY, OWNER_PASSWORD
+# and a SQLite DATABASE_URL, so no secrets and no external services are needed.
+#
+# Dependencies are read straight out of pyproject.toml rather than via
+# `pip install -e .`: the project is not packaged (no [tool.setuptools] section)
+# and the tests import `src.*` from the repo root, which is why the documented
+# command is `python -m pytest` and not bare `pytest`.
+name: tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install runtime and dev dependencies from pyproject.toml
+        run: |
+          python -m pip install --upgrade pip
+          python - <<'PY'
+          import subprocess, sys, tomllib
+          with open("pyproject.toml", "rb") as fh:
+              project = tomllib.load(fh)["project"]
+          deps = list(project["dependencies"])
+          deps += list(project.get("optional-dependencies", {}).get("dev", []))
+          print(f"installing {len(deps)} dependencies")
+          subprocess.check_call([sys.executable, "-m", "pip", "install", *deps])
+          PY
+
+      - name: Show the resolved environment
+        run: |
+          python -c "import sys, fastapi, sqlalchemy; print(sys.version); print('fastapi', fastapi.__version__); print('sqlalchemy', sqlalchemy.__version__)"
+
+      - name: Run the test suite
+        run: python -m pytest -q

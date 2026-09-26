@@ -24,38 +24,38 @@
 <head>
     <link rel="icon" href="/static/favicon.png" type="image/png">
     {{ _head | safe }}
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <style>
-        body { font-family: "'IBM Plex Sans Arabic'", sans-serif; background: #F4F4F5; color: #0F0F0F; line-height: 1.9; }
+        body { font-family: "Cairo", sans-serif; background: #FAFAF9; color: #292524; line-height: 1.9; }
         .wrap { max-width: 900px; margin-inline: auto; padding-inline: 22px; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,.08); }
-        .brand { font-weight: 800; font-family: "Inter", sans-serif; color: #1B6FB3; text-decoration: none; }
-        .back { color: #707579; text-decoration: none; font-size: .92rem; }
-        .card { background: #FFFFFF; border: 1px solid rgba(0,0,0,.08); border-radius: 22px; padding: 28px; margin: 28px 0; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(41,37,36,.09); }
+        .brand { font-weight: 800; font-family: "Inter", sans-serif; color: #3D5F33; text-decoration: none; }
+        .back { color: #57534E; text-decoration: none; font-size: .92rem; }
+        .card { background: #FFFFFF; border: 1px solid rgba(41,37,36,.09); border-radius: 22px; padding: 28px; margin: 28px 0; }
         h1 { font-family: "Inter", sans-serif; font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.32; margin: 26px 0 10px; }
-        h2 { font-family: "Inter", sans-serif; font-size: 1.25rem; color: #1B6FB3; margin: 30px 0 12px; }
-        .no { display: inline-block; border: 1px solid rgba(36,129,204,.5); color: #1B6FB3; border-radius: 999px; padding: 4px 14px; font-size: .82rem; }
-        .dept { color: #707579; font-size: .9rem; }
-        .muted { color: #707579; }
+        h2 { font-family: "Inter", sans-serif; font-size: 1.25rem; color: #3D5F33; margin: 30px 0 12px; }
+        .no { display: inline-block; border: 1px solid rgba(79,121,66,.5); color: #3D5F33; border-radius: 999px; padding: 4px 14px; font-size: .82rem; }
+        .dept { color: #57534E; font-size: .9rem; }
+        .muted { color: #57534E; }
         ul { padding-inline-start: 20px; }
         li { margin-bottom: 8px; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 8px; }
         .btn { display: inline-block; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, #1B6FB3, #2481CC); color: #F4F4F5; }
-        .btn-ghost { border: 1px solid rgba(0,0,0,.14); color: #0F0F0F; }
+        .btn-gold { background: linear-gradient(135deg, #3D5F33, #4F7942); color: #FAFAF9; }
+        .btn-ghost { border: 1px solid rgba(0,0,0,.14); color: #292524; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        .grid a { display: block; background: #FFFFFF; border: 1px solid rgba(0,0,0,.08); border-radius: 18px; padding: 14px 16px; text-decoration: none; color: #0F0F0F; font-size: .9rem; }
-        .grid a:hover { border-color: #2481CC; }
-        .grid small { display: block; color: #707579; }
-        footer { border-top: 1px solid rgba(0,0,0,.08); margin-top: 40px; padding: 22px 0 40px; color: #707579; font-size: .86rem; }
-        footer a { color: #707579; }
+        .grid a { display: block; background: #FFFFFF; border: 1px solid rgba(41,37,36,.09); border-radius: 18px; padding: 14px 16px; text-decoration: none; color: #292524; font-size: .9rem; }
+        .grid a:hover { border-color: #4F7942; }
+        .grid small { display: block; color: #57534E; }
+        footer { border-top: 1px solid rgba(41,37,36,.09); margin-top: 40px; padding: 22px 0 40px; color: #57534E; font-size: .86rem; }
+        footer a { color: #57534E; }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#0F0F0F">AI</span></a>
+        <a class="brand" href="/home">النرجس <span style="color:#292524">AI</span></a>
         <a class="back" href="/home#agents">&larr; {% if _lang == 'ar' %}كل الوكلاء{% else %}All agents{% endif %}</a>
     </div>
 

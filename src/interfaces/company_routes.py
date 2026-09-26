@@ -320,11 +320,11 @@ async def company_revenue(request: Request):
 @router.get("/api/company/radar", dependencies=[Depends(require_owner)])
 async def company_radar(request: Request, top: int = 10, size: int = 0, verified_sar: int | None = None):
     from src.services.revenue_radar import build_wave
-    from src.services.whatsapp_sender import conversation_summary
+    from src.services.telegram_sender import inbound_summary
 
     async with request.app.state.session_factory() as session:
         wave = await build_wave(session, target_sar=None, verified_sar=verified_sar, size=size or None)
-        conversation = await conversation_summary(session)
+        conversation = await inbound_summary(session)
     return {
         "metrics": wave["metrics"],
         "wave_size": wave["wave_size"],
@@ -367,7 +367,7 @@ async def company_send(request: Request, body: QueueSendRequest):
     from sqlalchemy import select as _sel
 
     from src.models import AcquisitionLead
-    from src.services.whatsapp_sender import enqueue, flush_queue
+    from src.services.telegram_sender import enqueue, flush_queue
 
     try:
         lead_uuid = _UUID(body.lead_id)
@@ -391,8 +391,8 @@ async def company_send(request: Request, body: QueueSendRequest):
             drafted = generate_message(lead, lang="ar")
             message = drafted["message"]
 
-        phone = getattr(lead, "phone_number", None) or lead.phone or lead.phone_raw
-        record = await enqueue(session, lead_id=lead.id, message=message, phone=phone)
+        chat_id = getattr(lead, "phone_number", None) or lead.phone or lead.phone_raw
+        record = await enqueue(session, lead_id=lead.id, message=message, chat_id=chat_id)
         await session.commit()
 
         flushed = await flush_queue(session)
@@ -411,7 +411,7 @@ async def company_send(request: Request, body: QueueSendRequest):
 
 
 def _whatsapp_status() -> dict:
-    from src.services.whatsapp_sender import send_status
+    from src.services.telegram_sender import send_status
 
     return send_status()
 

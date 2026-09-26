@@ -1,0 +1,54 @@
+{#
+  Role icons: one line icon per department, drawn inline so it inherits
+  currentColor and needs no icon font.
+
+  The keys are the exact `dept` values in src/services/catalog.py. The same
+  nine keys are mirrored in the ROLE_ICONS map inside landing.html for the
+  client-rendered grid; tests/test_design_system.py keeps the two in sync.
+
+  Every path carries pathLength="1" so one draw-on animation works for any
+  geometry: stroke-dasharray/offset are then expressed in path units.
+#}
+{% set ROLE_ICONS = {
+    'التسويق الرقمي': 'megaphone',
+    'المحتوى': 'doc',
+    'التجارة الإلكترونية': 'cart',
+    'خدمة العملاء': 'headset',
+    'التحليلات': 'chart',
+    'نمو الأعمال': 'growth',
+    'المنتجات والهندسة': 'gear',
+    'الإدارة التنفيذية': 'compass',
+    'الشؤون المؤسسية': 'building'
+} %}
+
+{% macro role_svg(key) -%}
+{%- if key == 'megaphone' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="g" pathLength="1" d="M3.5 9.5v5a1 1 0 0 0 1 1H7l7 4.2V5.3L7 9.5H4.5a1 1 0 0 0-1 1Z"/><path class="g" pathLength="1" d="M17 8.6a4.6 4.6 0 0 1 0 6.8"/><path class="g" pathLength="1" d="M19.6 6.2a8 8 0 0 1 0 11.6"/></svg>
+{%- elif key == 'doc' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="g" pathLength="1" d="M6 3.5h7.5L18 8v12.5H6z"/><path class="g" pathLength="1" d="M13.5 3.5V8H18"/><path class="g" pathLength="1" d="M8.8 12h6.4"/><path class="g" pathLength="1" d="M8.8 15.2h4.6"/></svg>
+{%- elif key == 'cart' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="g" pathLength="1" d="M2.8 4h2.4l2.3 10.4a1.4 1.4 0 0 0 1.4 1.1h7.8a1.4 1.4 0 0 0 1.4-1.1L20 7.2H6.2"/><path class="g" pathLength="1" d="M9.6 19.4a1.1 1.1 0 1 0 0-2.2 1.1 1.1 0 0 0 0 2.2Z"/><path class="g" pathLength="1" d="M17 19.4a1.1 1.1 0 1 0 0-2.2 1.1 1.1 0 0 0 0 2.2Z"/></svg>
+{%- elif key == 'headset' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="g" pathLength="1" d="M4.2 14.5v-2.3a7.8 7.8 0 0 1 15.6 0v2.3"/><path class="g" pathLength="1" d="M4.2 13.2h1.7a1 1 0 0 1 1 1v3.4a1 1 0 0 1-1 1H4.6a.4.4 0 0 1-.4-.4Z"/><path class="g" pathLength="1" d="M19.8 13.2h-1.7a1 1 0 0 0-1 1v3.4a1 1 0 0 0 1 1h1.3a.4.4 0 0 0 .4-.4Z"/><path class="g" pathLength="1" d="M18.1 18.7v.6a2.2 2.2 0 0 1-2.2 2.2H13"/></svg>
+{%- elif key == 'chart' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="g" pathLength="1" d="M3.6 20.4h16.8"/><path class="g" pathLength="1" d="M6.4 20.4v-5.2"/><path class="g" pathLength="1" d="M11 20.4V9.6"/><path class="g" pathLength="1" d="M15.6 20.4v-8"/><path class="g" pathLength="1" d="M20.2 20.4V4.6"/></svg>
+{%- elif key == 'growth' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="g" pathLength="1" d="M3.4 16.6l4.8-4.9 3.4 2.9 5-5.6 3.9 2.2"/><path class="g" pathLength="1" d="M17.2 11.2h3.3v-3.3"/><path class="g" pathLength="1" d="M3.4 20.4h17.2"/></svg>
+{%- elif key == 'gear' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle class="g" pathLength="1" cx="12" cy="12" r="3.1"/><path class="g" pathLength="1" d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2 5.5 5.5"/></svg>
+{%- elif key == 'compass' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle class="g" pathLength="1" cx="12" cy="12" r="8.4"/><path class="g" pathLength="1" d="m15.4 8.6-2 4.8-4.8 2 2-4.8z"/></svg>
+{%- elif key == 'building' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="g" pathLength="1" d="M3.6 20.4h16.8"/><path class="g" pathLength="1" d="M5.6 20.4V5.2a1.4 1.4 0 0 1 1.4-1.4h5.6a1.4 1.4 0 0 1 1.4 1.4v15.2"/><path class="g" pathLength="1" d="M14 9.6h3a1.4 1.4 0 0 1 1.4 1.4v9.4"/><path class="g" pathLength="1" d="M8.4 7.6h2.6M8.4 11h2.6M8.4 14.4h2.6"/></svg>
+{%- elif key == 'clock' -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle class="g" pathLength="1" cx="12" cy="12" r="8.4"/><path class="g" pathLength="1" d="M12 7.6v4.6l3 1.8"/></svg>
+{%- else -%}
+<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle class="g" pathLength="1" cx="12" cy="12" r="8.4"/><path class="g" pathLength="1" d="M12 7.6v4.6l3 1.8"/></svg>
+{%- endif -%}
+{%- endmacro %}
+
+{# Unknown departments fall back to the same clock glyph the client script
+   renders, so the server-rendered and client-rendered cards never disagree. #}
+{% macro role_icon(dept) -%}
+{{- role_svg(ROLE_ICONS.get(dept, 'clock')) -}}
+{%- endmacro %}

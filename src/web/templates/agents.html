@@ -16,28 +16,28 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
     <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex items-center gap-3">
-            <div class="p-3 rounded-full" style="background:rgba(36,129,204,.14);"><i class="fas fa-robot" style="color:var(--n-gold-2);"></i></div>
+            <div class="p-3 rounded-full" style="background:rgba(79,121,66,.14);"><i class="fas fa-robot" style="color:var(--n-gold-2);"></i></div>
             <div>
                 <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar">إجمالي الوكلاء</span><span data-lang="en" data-inline>Total agents</span></p>
-                <p id="stat-total" class="text-2xl font-bold" style="color:var(--n-text,#0F0F0F);">–</p>
+                <p id="stat-total" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
     </div>
     <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex items-center gap-3">
-            <div class="p-3 rounded-full" style="background:rgba(77,205,94,.14);"><i class="fas fa-heartbeat" style="color:#4DCD5E;"></i></div>
+            <div class="p-3 rounded-full" style="background:rgba(77,205,94,.14);"><i class="fas fa-heartbeat" style="color:#3F7D3A;"></i></div>
             <div>
                 <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar">يعمل الآن</span><span data-lang="en" data-inline>Active now</span></p>
-                <p id="stat-live" class="text-2xl font-bold" style="color:var(--n-text,#0F0F0F);">–</p>
+                <p id="stat-live" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
     </div>
     <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex items-center gap-3">
-            <div class="p-3 rounded-full" style="background:rgba(36,129,204,.14);"><i class="fas fa-tasks" style="color:var(--n-gold-2);"></i></div>
+            <div class="p-3 rounded-full" style="background:rgba(79,121,66,.14);"><i class="fas fa-tasks" style="color:var(--n-gold-2);"></i></div>
             <div>
                 <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar">الإنجازات اليوم</span><span data-lang="en" data-inline>Done today</span></p>
-                <p id="stat-done" class="text-2xl font-bold" style="color:var(--n-text,#0F0F0F);">–</p>
+                <p id="stat-done" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
             <div class="p-3 rounded-full" style="background:rgba(255,143,143,.12);"><i class="fas fa-exclamation-triangle" style="color:#ff8f8f;"></i></div>
             <div>
                 <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar">تنبيهات</span><span data-lang="en" data-inline>Alerts</span></p>
-                <p id="stat-alerts" class="text-2xl font-bold" style="color:var(--n-text,#0F0F0F);">–</p>
+                <p id="stat-alerts" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
     </div>
@@ -237,23 +237,23 @@
     .agent-card { padding: 20px; display: flex; flex-direction: column; gap: 13px; }
     .emp-ava {
         width: 52px; height: 52px; border-radius: 20px; flex: 0 0 auto;
-        background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold) 60%, #175E97);
+        background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold) 60%, #334E2B);
         color: #0a0b0e; font-weight: 800; font-size: 1.2rem;
         display: grid; place-items: center;
     }
     .emp-ava.muted { background: var(--n-sand-2); color: var(--n-brown-2); border: 1px solid var(--n-line); }
     .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
-    .status-dot.busy { background: #4DCD5E; animation: pulseDot 1.6s ease-in-out infinite; }
+    .status-dot.busy { background: #3F7D3A; animation: pulseDot 1.6s ease-in-out infinite; }
     .status-dot.idle { background: var(--n-gold); }
-    .status-dot.done { background: #4DCD5E; }
-    .status-dot.off { background: #707579; }
+    .status-dot.done { background: #3F7D3A; }
+    .status-dot.off { background: #57534E; }
     @keyframes pulseDot {
         0%, 100% { box-shadow: 0 0 0 0 rgba(77,205,94,.45); }
         50% { box-shadow: 0 0 0 8px rgba(77,205,94,0); }
     }
     .tool-chip {
         display: inline-block; padding: 4px 10px; border-radius: 999px;
-        background: rgba(36,129,204,.1); border: 1px solid var(--n-line);
+        background: rgba(79,121,66,.1); border: 1px solid var(--n-line);
         color: var(--n-brown-2); font-size: .72rem; font-weight: 700; margin: 2px 2px 2px 0;
     }
     .agent-card.disabled { opacity: .5; filter: grayscale(.5); }
@@ -275,7 +275,7 @@
     .rev-ava {
         width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto;
         display: grid; place-items: center; font-weight: 800; color: #0a0b0e;
-        background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold) 60%, #175E97);
+        background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold) 60%, #334E2B);
     }
     .toggle-switch { position: relative; display: inline-block; width: 38px; height: 21px; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -316,7 +316,7 @@
         marketing: ['يستعرض خطة حملة إعلانية جديدة…', 'يحلل جمهوراً مستهدفاً آخر عينة…', 'يصوغ نص إعلان A/B…', 'يحدّث تقرير المنافسين…'],
         content: ['يكتب مقالاً ضمن التقويم الشهري…', 'يولّد بنك أفكار للأسبوع…', 'يراجع نصوص المنتجات…', 'يجهّز مسودة حملة محتوى…'],
         analysis: ['يذلل بيانات المبيعات اليوم…', 'يبني تقرير أداء القنوات…', 'يجري دراسة سوق صغيرة…', 'يحدّث لوحة المؤشرات…'],
-        support: ['يرد على استفسار واتساب…', 'يجهّز عرض سعر لعميل جديد…', 'يتابع طلباً قيد الإنجاز…', 'يصنّف تساؤل عميل…'],
+        support: ['يرد على استفسار تيليجرام…', 'يجهّز عرض سعر لعميل جديد…', 'يتابع طلباً قيد الإنجاز…', 'يصنّف تساؤل عميل…'],
         automation: ['يربط تكاملاً جديداً…', 'يضبط جدولة المراجعات…', 'يفحص سير عمل جاهزاً…', 'يبني خطوة أتمتة…'],
         general: ['ينظّم مهمة قادمة…', 'يعدّ خطة العمل المقبل…', 'يراجع أهداف الشهر…', 'يجهّز ملخص تسليم…'],
     };
@@ -416,11 +416,11 @@
                 <div class="flex items-center justify-between mt-auto pt-2" style="border-top:1px dashed rgba(255,255,255,.08);">
                     <div class="flex items-center gap-3" style="font-size:.78rem;color:var(--n-brown-2);">
                         <span><i class="fas fa-tasks" style="color:var(--n-gold-2);"></i> ${baseDone(a) + ((i + Math.floor(tick / 15)) % 3)}</span>
-                        <span>${errors(a) ? `<i class="fas fa-exclamation-triangle" style="color:#ff8f8f;"></i> ${errors(a)}` : '<i class="fas fa-check-circle" style="color:#4DCD5E;"></i>'}</span>
+                        <span>${errors(a) ? `<i class="fas fa-exclamation-triangle" style="color:#ff8f8f;"></i> ${errors(a)}` : '<i class="fas fa-check-circle" style="color:#3F7D3A;"></i>'}</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="viewAgent('${escapeHtml(a.slug)}')" class="p-2 rounded-2xl hover:bg-black/10" style="color:var(--n-brown);" title="Inspect"><i class="fas fa-eye"></i></button>
-                        <button onclick="runAgent('${escapeHtml(a.slug)}')" class="p-2 rounded-2xl hover:bg-black/10" style="color:#4DCD5E;" title="Run"><i class="fas fa-play"></i></button>
+                        <button onclick="runAgent('${escapeHtml(a.slug)}')" class="p-2 rounded-2xl hover:bg-black/10" style="color:#3F7D3A;" title="Run"><i class="fas fa-play"></i></button>
                         ${!a.is_system ? `<button onclick="editAgent('${escapeHtml(a.slug)}')" class="p-2 rounded-2xl hover:bg-black/10" style="color:var(--n-gold-2);" title="Edit"><i class="fas fa-edit"></i></button>` : ''}
                         ${!a.is_system ? `<button onclick="deleteAgent('${escapeHtml(a.slug)}')" class="p-2 rounded-2xl hover:bg-black/10" style="color:#ff8f8f;" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
                     </div>
@@ -452,7 +452,7 @@
                 <td class="p-4 font-mono text-sm" style="color:var(--n-brown-2);">${escapeHtml(a.default_model || '')}</td>
                 <td class="p-4">
                     <button onclick="viewAgent('${escapeHtml(a.slug)}')" class="p-2" title="View"><i class="fas fa-eye" style="color:var(--n-brown-2);"></i></button>
-                    <button onclick="runAgent('${escapeHtml(a.slug)}')" class="p-2" title="Run"><i class="fas fa-play" style="color:#4DCD5E;"></i></button>
+                    <button onclick="runAgent('${escapeHtml(a.slug)}')" class="p-2" title="Run"><i class="fas fa-play" style="color:#3F7D3A;"></i></button>
                 </td>
             </tr>`;
         }).join('');
@@ -521,7 +521,7 @@
             if (disabled.has(a.slug)) return;
             const st = agentState(idx);
             const who = `${a.employee_no || a.slug} · ${a.title_ar || a.name}`;
-            if (st === 'busy') addFeed('<i class="fas fa-robot"></i>', 'rgba(36,129,204,.3)', who, currentTask(a, idx), 'start');
+            if (st === 'busy') addFeed('<i class="fas fa-robot"></i>', 'rgba(79,121,66,.3)', who, currentTask(a, idx), 'start');
             if (st === 'done') addFeed('<i class="fas fa-circle-check"></i>', 'rgba(77,205,94,.3)', who, 'سلّم المهمة بنجاح', 'done');
         });
     }
@@ -537,7 +537,7 @@
         if (roll < 0.12 && errors(a) > 0) {
             addFeed('<i class="fas fa-bolt"></i>', 'rgba(255,90,90,.3)', who, 'طلب إعادة محاولة على خطوة صغيرة', 'err');
         } else if (roll < 0.6) {
-            addFeed('<i class="fas fa-circle-notch fa-spin"></i>', 'rgba(36,129,204,.3)', who, currentTask(a, idx), 'work');
+            addFeed('<i class="fas fa-circle-notch fa-spin"></i>', 'rgba(79,121,66,.3)', who, currentTask(a, idx), 'work');
         } else {
             addFeed('<i class="fas fa-circle-check"></i>', 'rgba(77,205,94,.3)', who, 'سلّم جزءاً من المهمة وجاهز للتالي', 'done');
         }

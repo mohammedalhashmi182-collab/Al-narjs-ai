@@ -66,7 +66,7 @@
         "Setting KPIs per channel"
       ],
       "sample_ar": "الهدف: عملاء جدد خلال ٦٠ يوماً.\n\nتوزيع الميزانية\n- إعلانات مباشرة: ٥٠٪.\n- محتوى عضوي: ٢٥٪.\n- تحسين الظهور في البحث: ١٥٪.\n- احتياطي للاختبار: ١٠٪.\n\nمسار التحويل\nإعلان ← صفحة هبوط ← محادثة واتساب ← طلب.\n\nمؤشرات القياس\n- تكلفة الاستفسار، نسبة التحويل، وقيمة العميل المتوسطة.\n\nأول أسبوعين\n- تشغيل اختبارين إعلانيين بجمهورين مختلفين، وقياس الأفضل قبل التوسع.",
-      "sample_en": "Goal: new customers within 60 days.\n\nBudget allocation\n- Direct ads: 50%.\n- Organic content: 25%.\n- Search visibility: 15%.\n- Testing reserve: 10%.\n\nConversion path\nAd → landing page → WhatsApp chat → order.\n\nKPIs\n- Cost per enquiry, conversion rate, average customer value.\n\nFirst two weeks\n- Run two ad tests against different audiences, measure the winner, then scale."
+      "sample_en": "Goal: new customers within 60 days.\n\nBudget allocation\n- Direct ads: 50%.\n- Organic content: 25%.\n- Search visibility: 15%.\n- Testing reserve: 10%.\n\nConversion path\nAd → landing page → Telegram chat → order.\n\nKPIs\n- Cost per enquiry, conversion rate, average customer value.\n\nFirst two weeks\n- Run two ad tests against different audiences, measure the winner, then scale."
     },
     "text_improver": {
       "steps_ar": [

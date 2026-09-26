@@ -1,59 +1,67 @@
 /* ==========================================================================
    Al-Narjis AI — design system
-   Visual identity: Telegram (blue + white), not WhatsApp green.
+   Visual identity: ODSF v0.2 (see docs/design-system.md).
+   Premium SaaS restraint: gold = the action colour, green = structure and
+   Telegram, ivory = space. Cairo throughout, 8pt grid, soft radii, hairline
+   first with one quiet shadow step.
 
-   Token values verified against the Gemini reference (gemini-3.1-flash-lite) and
-   Telegram's own light theme: accent #2481CC, page #F4F4F5, surface #FFFFFF,
-   secondary text #707579, separator #E0E0E0, online #4DCD5E.
+   Token values verified against docs/design-system.md:
+   gold #F4C430, green #4F7942, page #FAFAF9, surface #FFFFFF,
+   text #292524, secondary #57534E, separator #E7E5E4.
 
    Rules for this file:
    - every colour, radius and font comes from a token; templates must not hard-code
      hex values (tests/test_design_system.py enforces it)
-   - conversation surfaces are rounder than a typical web UI on purpose: Telegram
+   - conversation surfaces stay rounder than a typical web UI on purpose: Telegram
      bubbles use a 16-20px radius with one tight corner
-   - shadows stay almost flat; Telegram separates surfaces with hairlines, not depth
+   - shadows stay almost flat; surfaces separate with hairlines, not depth
    ========================================================================== */
 
 :root {
-  /* --- brand ------------------------------------------------------------ */
-  --tg-blue: #2481cc;
-  --tg-blue-press: #1b6fb3;
-  --tg-blue-deep: #175e97;
-  --tg-blue-tint: #ddeefb;
-  --tg-blue-tint-2: #eef6fd;
-  --tg-blue-soft: rgba(36, 129, 204, 0.1);
+  /* --- brand: gold is the action colour, never a background ------------- */
+  --tg-blue: #4f7942;              /* structural accent: nav, Telegram, active */
+  --tg-blue-press: #3d5f33;
+  --tg-blue-deep: #334e2b;
+  --tg-blue-tint: #eef3ea;         /* green wash */
+  --tg-blue-tint-2: #f5f8f3;
+  --tg-blue-soft: rgba(79, 121, 66, 0.1);
 
-  /* --- surfaces (light) ------------------------------------------------ */
-  --n-sand: #f4f4f5;   /* page background */
+  /* --- surfaces (light, ivory) ------------------------------------------ */
+  --n-sand: #fafaf9;   /* page background */
   --n-sand-2: #ffffff; /* raised surface */
   --n-cream: #ffffff;  /* card */
-  --n-cream-2: #f9f9f9;/* nested card */
+  --n-cream-2: #fbfaf8;/* nested card */
   --n-green-3: #ffffff; /* sidebar / footer base */
 
   /* --- ink ------------------------------------------------------------- */
-  --n-brown: #0f0f0f;   /* primary text */
-  --n-brown-2: #707579; /* secondary text */
-  --n-earth: #8a8a8a;   /* placeholder / tertiary */
+  --n-brown: #292524;   /* primary text */
+  --n-brown-2: #57534e; /* secondary text */
+  --n-earth: #8a8580;   /* placeholder / tertiary */
 
   /* --- lines ----------------------------------------------------------- */
-  --n-line: rgba(0, 0, 0, 0.08);
-  --n-line-2: rgba(0, 0, 0, 0.14);
+  --n-line: rgba(41, 37, 36, 0.09);
+  --n-line-2: rgba(41, 37, 36, 0.16);
 
   /* --- status ---------------------------------------------------------- */
-  --n-online: #4dcd5e;   /* Telegram online green: a status dot, not a brand colour */
-  --n-danger: #e5484d;
-  --n-warn: #f5a524;
+  --n-online: #3f7d3a;   /* online dot: a status, not a brand colour */
+  --n-danger: #9b2c2c;
+  --n-warn: #c9a227;
+
+  /* --- gold: the single primary action ---------------------------------- */
+  --odsf-gold: #f4c430;
+  --odsf-gold-deep: #c9a227;
+  --odsf-gold-wash: #fef6dc;
 
   /* --- legacy aliases kept so existing class names keep working --------- */
-  --n-gold: var(--tg-blue);
-  --n-gold-2: var(--tg-blue-press);
-  --n-green: var(--tg-blue);
-  --n-green-2: var(--tg-blue-press);
-  --n-gold-soft: rgba(36, 129, 204, 0.32);
+  --n-gold: var(--odsf-gold);
+  --n-gold-2: var(--odsf-gold-deep);
+  --n-green: #4f7942;
+  --n-green-2: #3d5f33;
+  --n-gold-soft: rgba(244, 196, 48, 0.32);
 
-  /* --- type ------------------------------------------------------------ */
-  --font-ar: "IBM Plex Sans Arabic", "Inter", "Segoe UI", sans-serif;
-  --font-head: "Inter", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+  /* --- type: Cairo is the only approved family (see docs/design-system) */
+  --font-ar: "Cairo", "Segoe UI", system-ui, sans-serif;
+  --font-head: "Cairo", "Segoe UI", system-ui, sans-serif;
   --fs-xs: 0.8125rem;
   --fs-sm: 0.875rem;
   --fs-base: 1rem;
@@ -91,22 +99,22 @@ body {
   visibility: visible;
 }
 
-[dir="ltr"] body { font-family: "Inter", "IBM Plex Sans Arabic", "Segoe UI", sans-serif; }
+[dir="ltr"] body { font-family: "Cairo", "Segoe UI", system-ui, sans-serif; }
 
-::selection { background: var(--tg-blue-tint); color: #0f0f0f; }
+::selection { background: var(--odsf-gold-wash); color: var(--n-brown); }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--n-sand); }
-::-webkit-scrollbar-thumb { background: #d6d6da; border-radius: var(--r-pill); border: 2px solid var(--n-sand); }
-::-webkit-scrollbar-thumb:hover { background: #b9b9bf; }
+::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: var(--r-pill); border: 2px solid var(--n-sand); }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
 
 a { text-decoration: none; color: inherit; }
 
 .n-geo {
   background-image:
-    linear-gradient(45deg, rgba(36, 129, 204, 0.05) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(36, 129, 204, 0.05) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(36, 129, 204, 0.05) 75%),
+    linear-gradient(45deg, rgba(79, 121, 66, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(79, 121, 66, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(79, 121, 66, 0.05) 75%),
     linear-gradient(-45deg, transparent 75%, rgba(36, 129, 204, 0.05) 75%);
   background-size: 48px 48px;
   background-position: 0 0, 0 24px, 24px -24px, -24px 0;
@@ -270,7 +278,7 @@ body[data-lang="ar"] [data-lang="ar"][data-inline] { display: inline; }
   background:
     radial-gradient(circle at 85% 15%, rgba(36, 129, 204, 0.12), transparent 40%),
     radial-gradient(circle at 10% 80%, rgba(36, 129, 204, 0.07), transparent 45%),
-    linear-gradient(170deg, #ffffff, #f4f4f5 75%);
+    linear-gradient(170deg, #ffffff, #fafaf9 75%);
   color: var(--n-brown);
   position: relative;
   overflow: hidden;
@@ -514,6 +522,7 @@ select option { background: #ffffff; color: var(--n-brown); }
   margin-inline-end: -6px;
 }
 
-@media (max-width: 768px) {
-  .n-hero .edge { height: 34px; }
-}
+  @media (max-width: 768px) {
+    .n-hero .edge { height: 34px; }
+  }
+  

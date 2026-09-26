@@ -1,4 +1,4 @@
-"""Revenue engine, payment lock and WhatsApp sender behavior (in-memory DB)."""
+"""Revenue engine, payment lock and Telegram sender behavior (in-memory DB)."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from src.services.revenue_tiers import (
     score_lead,
 )
 from src.services.revenue_radar import _interleave, build_wave
-from src.services.whatsapp_sender import is_enabled, send_status
+from src.services.telegram_sender import is_enabled, send_status
 
 
 # ---------------------------------------------------------------------------
@@ -154,6 +154,37 @@ class TestReferenceId:
         assert p["duplicate_protected"] is True
         assert p["source"] == "owner_workbook"
 
+    def test_provenance_survives_an_unconfigured_workbook_path(self):
+        """LEADS_EXCEL_PATH is optional, so provenance must not assume a path.
+
+        It used to call PurePath(settings.leads_excel_path) unguarded, which
+        raised TypeError on any host that did not set the variable. The revenue
+        radar builds provenance for every lead in a wave, so a single missing
+        optional env var turned the whole radar into a 500.
+        """
+        from src.config import settings as _settings
+
+        was = _settings.leads_excel_path
+        try:
+            object.__setattr__(_settings, "leads_excel_path", None)
+            p = provenance(_FakeLead(source_sheet="2024", dedup_key="abc-123"))
+            assert p["source_file_basename"] is None
+            assert p["source"] == "owner_workbook"
+        finally:
+            object.__setattr__(_settings, "leads_excel_path", was)
+
+    def test_provenance_reports_only_the_basename_when_configured(self):
+        from src.config import settings as _settings
+
+        was = _settings.leads_excel_path
+        try:
+            object.__setattr__(_settings, "leads_excel_path", "/srv/owner/secrets/leads.xlsx")
+            p = provenance(_FakeLead(dedup_key="abc-123"))
+            assert p["source_file_basename"] == "leads.xlsx"
+            assert "/srv/owner" not in str(p.values())
+        finally:
+            object.__setattr__(_settings, "leads_excel_path", was)
+
 
 # ---------------------------------------------------------------------------
 # Flags
@@ -186,26 +217,34 @@ class TestInterleave:
 
 
 # ---------------------------------------------------------------------------
-# WhatsApp sender safety
+# Telegram sender safety
 # ---------------------------------------------------------------------------
 
-class TestWhatsApp:
+class TestTelegramSender:
     def test_sender_disabled_without_credentials(self):
         from src.config import settings as _settings
 
-        was_token = _settings.whatsapp_token
-        was_phone = _settings.whatsapp_phone_number_id
+        was_token = _settings.telegram_token
+        was_owner = _settings.telegram_owner_chat_id
         try:
-            # Force both credentials off for the assertion.
-            object.__setattr__(_settings, "whatsapp_token", None)
-            object.__setattr__(_settings, "whatsapp_phone_number_id", None)
+            # Force the credentials off for the assertion.
+            object.__setattr__(_settings, "telegram_token", None)
+            object.__setattr__(_settings, "telegram_owner_chat_id", None)
             assert is_enabled() is False
             status = send_status()
             assert status["enabled"] is False
-            assert "wa.me" in status["fallback"]
+            assert status["connected"] is False
+            assert status["disabled_reason"]
+            # The status payload must never leak a credential value.
+            assert "t.me" in status["fallback"]
         finally:
-            object.__setattr__(_settings, "whatsapp_token", was_token)
-            object.__setattr__(_settings, "whatsapp_phone_number_id", was_phone)
+            object.__setattr__(_settings, "telegram_token", was_token)
+            object.__setattr__(_settings, "telegram_owner_chat_id", was_owner)
+
+    def test_status_never_exposes_the_token(self):
+        status = send_status()
+        assert "telegram_token" not in status
+        assert set(status) >= {"enabled", "connected", "env_required"}
 
 
 # ---------------------------------------------------------------------------
