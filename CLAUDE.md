@@ -30,6 +30,8 @@ Any commit that lands on `main` **deploys to production within a minute** (Rende
 
 Fallback chain: **Gemini (default) → Moonshot/Kimi** when their keys are set. Optional: OpenAI, Groq, Anthropic, local Ollama. Each provider is registered in `ModelProvider._init_clients()` only if its API key exists.
 
+For local coding agents only, `opencode.json` exposes the optional **Genspark LLM proxy** (`genspark-llm-proxy/*`). It reads `GENSPARK_API_KEY` from the environment — never write the key into any file. Genspark tool reference docs live in `.gsk/skills/`.
+
 ## Telegram specifics that already caused an outage
 
 - Webhook endpoints: `POST /telegram`, `GET /telegram/health` (WhatsApp equivalents live under `/whatsapp`).
