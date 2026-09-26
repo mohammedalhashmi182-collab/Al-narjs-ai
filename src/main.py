@@ -360,7 +360,27 @@ async def owner_entry(request: Request):
 
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
-    return templates.TemplateResponse(request, "landing.html")
+    from src.services import catalog
+
+    employees = list(catalog.EMPLOYEES.values())
+    agent_count = len(employees)
+    registry = getattr(app.state, "agent_registry", None)
+    if registry is not None:
+        try:
+            registered = await registry.list_agents()
+            if registered:
+                agent_count = len(registered)
+        except Exception:  # DB unavailable -> catalog stays the source of truth
+            pass
+    return templates.TemplateResponse(
+        request,
+        "landing.html",
+        {
+            "agent_count": agent_count,
+            "agents_preview": employees[:3],
+            "packages": catalog.PACKAGES,
+        },
+    )
 
 
 @app.get("/robots.txt", response_class=HTMLResponse)

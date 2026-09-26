@@ -1,6 +1,6 @@
 name: "Lead Acquisition Agent"
 description: "Qualify inbound leads and draft personalized first-contact outreach"
-category: "sales"
+category: "marketing"
 model: "gemini:gemini-3.6-flash"
 parameters:
   temperature: 0.6

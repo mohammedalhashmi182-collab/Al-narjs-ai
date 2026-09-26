@@ -531,6 +531,19 @@ EMPLOYEES: dict[str, dict] = {
             _q("type", "ما نوع المحتوى؟ (تسويق، منتج، واجهة، قانوني، بريد)", "What type? (marketing, product, UI, legal, email)"),
         ],
     },
+    "lead_acquisition": {
+        "no": "AG-035",
+        "title_ar": "وكيل اكتساب العملاء المحتملين",
+        "title_en": "Lead Acquisition Agent",
+        "dept": "نمو الأعمال",
+        "intro_ar": "أنا وكيل اكتساب العملاء المحتملين. أفلتر الفرع الواردة وأحدّد الأكثر استعداداً للشراء، وأصيغ رسالة تواصل أولى شخصية لكل عميل محتمل — بلهجة سعودية مهنية، بلا مبالغة ولا وعود غير مثبتة.",
+        "intro_en": "I'm the Lead Acquisition Agent. I filter inbound leads, rank the ones most ready to buy, and draft a personalized first-contact message for each — professional Saudi tone, no hype and no unproven promises.",
+        "questions": [
+            _q("source", "من أين تأتي الفرص؟ (موقع، تيليجرام، إحالة، اتصال)", "Where do your leads come from? (site, Telegram, referral, calls)"),
+            _q("niche", "ما مجال عملك والجمهور المستهدف؟", "What is your field and target audience?"),
+            _q("offer", "ما العرض الذي تقدّمه وسعره؟", "Which offer and price do you present?"),
+        ],
+    },
 }
 
 
