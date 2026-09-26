@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
     {% include "partials/_analytics.html" %}
@@ -160,7 +160,7 @@
         <div class="max-w-3xl mx-auto px-6">
             <div class="n-card p-6">
                 <div class="flex items-center gap-4 mb-4">
-                    <div class="emp-ava aw-preview" style="width:56px;height:56px;border-radius:50%;background:#DDEEFB;color:#1B6FB3;font-weight:800;font-size:1.1rem;"></div>
+                    <div class="emp-ava aw-preview" style="width:56px;height:56px;border-radius:50%;background:#EEF3EA;color:#3D5F33;font-weight:800;font-size:1.1rem;"></div>
                     <div>
                         <div class="n-title text-lg" id="chatEmpName"></div>
                         <div class="text-xs" style="color:var(--n-gold);" id="chatEmpMeta"></div>
@@ -309,7 +309,7 @@
                 $('team-grid').innerHTML = team.map(a => `
                     <div class="n-card emp-card dormant" data-slug="${a.slug}" style="cursor:pointer">
                         <div class="flex items-center gap-3 mb-3">
-                            <div class="emp-ava" style="width:52px;height:52px;border-radius:50%;background:#DDEEFB;color:#1B6FB3;font-weight:800;font-size:1rem;">
+                            <div class="emp-ava" style="width:52px;height:52px;border-radius:50%;background:#EEF3EA;color:#3D5F33;font-weight:800;font-size:1rem;">
                                 <span>${a.no.replace('AG-','')}</span>
                             </div>
                             <div>

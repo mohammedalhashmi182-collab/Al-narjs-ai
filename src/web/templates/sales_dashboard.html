@@ -98,7 +98,7 @@
     </div>
 
     <p class="text-xs text-gray-400 mt-6">
-        WhatsApp Business: <span id="wa-number"></span> · التواصل يدوي ومُراجَع من الإنسان — لا إرسال آلي.
+        Telegram: <span id="tg-bot">—</span> · التواصل يدوي ومُراجَع من الإنسان — لا إرسال آلي.
     </p>
 </div>
 {% endblock %}
@@ -124,7 +124,7 @@ async function loadOverview(){
         document.getElementById('pipeline').innerHTML=STAGE_ORDER.map(s=>`<div class="px-3 py-2 rounded-2xl bg-gray-50 border text-center min-w-[92px]"><div class="font-bold text-lg">${by[s]||0}</div><div class="text-xs text-gray-500">${s}</div></div>`).join('');
         const c=d.conversion;
         document.getElementById('conversion').textContent=`رد %${c.reply_rate} · Demo %${c.demo_rate} · عرض سعر %${c.proposal_rate} · فوز %${c.won_rate}`;
-        document.getElementById('wa-number').textContent=d.whatsapp_business_number||'0552978753';
+        document.getElementById('tg-bot').textContent=d.telegram_bot||'https://t.me/AlNarjs7BOT';
     }catch(e){console.error(e);}
 }
 
