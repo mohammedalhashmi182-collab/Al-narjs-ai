@@ -1,16 +1,20 @@
-# AI Agent Automation System
+# Al-Narjis AI / النرجس
 
-A comprehensive AI agent automation system with 20+ pre-built agents, workflow orchestration, scheduling, and web UI.
+منصة وكلاء ذكاء اصطناعي عربية أولاً — تعمل على الإنترنت فعلياً على [karmaai.online](https://karmaai.online).
+مبنية على هذا المستودع: FastAPI + PostgreSQL على Render، بوت تيليجرام، محرك workflows، مدفوعات، وواجهة عامة.
+
+**Production:** https://karmaai.online · **Tests:** 194 passing · **Stack:** FastAPI, SQLAlchemy (asyncpg), Alembic, Telegram Bot API, Meta WhatsApp Cloud API.
 
 ## Features
 
 - **20 Pre-built Agents**: Customer service, content writing, marketing, analysis, automation, and more
-- **Multi-Model Support**: Ollama (local), OpenAI, Groq, Anthropic with automatic fallback
+- **Multi-Model Support**: Gemini (production default) with automatic fallback to Moonshot/Kimi, plus optional OpenAI, Groq, Anthropic and local Ollama
+- **Telegram + WhatsApp**: Inbound/outbound messaging, webhooks, owner alerts, welcome flows (`POST /telegram`, `POST /whatsapp`)
 - **Workflow Engine**: DAG-based workflow execution with context passing between steps
 - **Scheduler**: Cron-based and interval-based scheduling
 - **Trigger Engine**: Webhook, file watch, and database polling triggers
 - **Queue Worker**: Priority-based task queue with concurrency control
-- **Web UI**: HTMX-based dashboard for managing agents, workflows, schedules
+- **Web UI**: Public landing + packages + consult, owner portal, company/sales tooling
 - **CLI**: Full command-line interface for automation
 - **Prompt Versioning**: Template management with version control
 - **PostgreSQL + pgvector**: Persistent storage with vector search ready
@@ -19,7 +23,7 @@ A comprehensive AI agent automation system with 20+ pre-built agents, workflow o
 
 ### Prerequisites
 
-- Docker & Docker Compose
+- Docker & Docker Compose (or Python 3.12 + PostgreSQL locally)
 - NVIDIA GPU (optional, for Ollama acceleration)
 
 ### Development
@@ -63,7 +67,7 @@ python -m src.main
 ## Project Structure
 
 ```
-ai-agent-system/
+Al-narjs-ai/
 ├── agents/
 │   ├── base/           # 20 pre-built agents (YAML)
 │   └── custom/         # User-created agents
@@ -71,12 +75,14 @@ ai-agent-system/
 │   ├── automation/     # Scheduler, triggers, workflows, queue
 │   ├── core/           # Model provider, agent registry, prompt engine
 │   ├── db/             # Database session & models
-│   ├── interfaces/     # CLI & Web UI
+│   ├── interfaces/     # API routers, CLI & Web UI
 │   ├── models/         # SQLAlchemy models
 │   ├── services/       # Business logic
 │   └── utils/          # Logging, helpers
+├── tests/              # 194 tests (pytest)
 ├── docker-compose.yml
 ├── Dockerfile
+├── render.yaml
 ├── pyproject.toml
 └── .env.example
 ```
@@ -129,12 +135,12 @@ ai-agent queue stats
 
 ### Web UI
 
-Access `http://localhost:8000` for the dashboard.
+Production: https://karmaai.online · Local: `http://localhost:8000`
 
 ### API
 
 ```bash
-# Run agent via API
+# Run agent via API (owner token required)
 curl -X POST http://localhost:8000/api/agents/customer_service/run \
   -H "Content-Type: application/json" \
   -d '{"input_data": {"customer_message": "Hello"}}'
@@ -143,6 +149,23 @@ curl -X POST http://localhost:8000/api/agents/customer_service/run \
 curl -X POST http://localhost:8000/api/schedules \
   -H "Content-Type: application/json" \
   -d '{"name": "Daily", "target_type": "agent", "target_id": "...", "cron_expression": "0 9 * * *"}'
+```
+
+### Messaging webhooks
+
+```bash
+# Health probes
+curl https://karmaai.online/telegram/health
+curl https://karmaai.online/whatsapp/health
+
+# Register the Telegram webhook (uses the bot token from the environment)
+python scripts/setup_telegram_webhook.py
+```
+
+### Tests
+
+```bash
+python -m pytest          # 194 tests
 ```
 
 ## Configuration
@@ -154,10 +177,19 @@ Key environment variables in `.env`:
 SECRET_KEY=your-secret-key
 DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/db
 
+# Production models (fallback chain: Gemini -> Moonshot)
+GEMINI_API_KEY=...
+MOONSHOT_API_KEY=...
+
 # Optional external models
 OPENAI_API_KEY=sk-...
 GROQ_API_KEY=gsk_...
 ANTHROPIC_API_KEY=sk-ant-...
+
+# Telegram (bot + owner alerts)
+TELEGRAM_TOKEN=...
+TELEGRAM_OWNER_CHAT_ID=...
+TELEGRAM_WEBHOOK_SECRET=...
 
 # Ollama
 OLLAMA_BASE_URL=http://localhost:11434
