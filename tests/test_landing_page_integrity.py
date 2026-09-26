@@ -8,6 +8,7 @@ Rules enforced (Issue #1):
 """
 
 from pathlib import Path
+import re
 
 import pytest
 
@@ -82,3 +83,55 @@ def test_agents_count_matches_catalog() -> None:
         assert len(team) == 5, f"plan {key} must open exactly 5 agents"
         for slug in team:
             assert slug in catalog.EMPLOYEES, slug
+
+
+# ---------------------------------------------------------------------------
+# The language switch must never hide the page itself
+# ---------------------------------------------------------------------------
+
+# Every template ships a rule that hides the inactive language. Written as a
+# bare `[data-lang]` it also matches <body data-lang="ar">, and since the body
+# is not a descendant of itself the usual `body[data-lang=...]` reset cannot
+# bring it back. The result is a 200 response with a completely blank page.
+# It shipped once and 404 tests did not catch it, because the HTML and the
+# status code were both perfectly correct.
+UNSCOPED_LANG_HIDE = re.compile(
+    r"(?m)^\s*\[data-lang\]\s*(,[^{]*)?\{\s*display\s*:\s*none",
+)
+
+
+@pytest.mark.parametrize(
+    "name",
+    sorted(
+        p.name
+        for p in TEMPLATES.glob("*.html")
+        if UNSCOPED_LANG_HIDE.search(p.read_text(encoding="utf-8"))
+    ),
+)
+def test_no_unscoped_data_lang_display_none(name: str) -> None:
+    """Fail loudly on any template that can hide <body> itself."""
+    pytest.fail(
+        f"{name} hides [data-lang] without a `body ` ancestor prefix, so it also "
+        "matches <body data-lang=...> and renders a blank page. Scope it as "
+        "`body [data-lang] { display: none }`."
+    )
+
+
+def test_landing_language_hide_rule_is_scoped() -> None:
+    body = _read("landing.html")
+    assert "body [data-lang]" in body, (
+        "landing.html must scope the language hide rule to a descendant"
+    )
+    assert not UNSCOPED_LANG_HIDE.search(body), (
+        "landing.html must scope the language hide rule to a descendant, "
+        "otherwise <body data-lang=...> is hidden and the page renders blank"
+    )
+
+
+def test_body_tag_carries_data_lang_and_must_survive_it() -> None:
+    """The body is the element that carries data-lang, so it is the at-risk one."""
+    body = _read("landing.html")
+    assert re.search(r"<body[^>]*\bdata-lang=", body), (
+        "the landing body carries data-lang; the language hide rule must "
+        "therefore be descendant-scoped or the whole page disappears"
+    )
