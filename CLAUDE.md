@@ -9,7 +9,7 @@ Any commit that lands on `main` **deploys to production within a minute** (Rende
 
 1. **Never write, print, log, or commit secrets.** `.env` is gitignored. Secrets live only in `.env` (local, gitignored) and in Render env vars. Never paste keys into code, comments, commit messages, or chat output.
 2. **Never push directly to `main`.** Work on a feature branch and open a pull request. `main` = production.
-3. **Run the tests before requesting a merge:** `python -m pytest` from the repo root (bare `pytest` fails with `No module named 'src'`). Baseline is **334 passing**.
+3. **Run the tests before requesting a merge:** `python -m pytest` from the repo root (bare `pytest` fails with `No module named 'src'`). Baseline is **401 passing** (`python -m pytest`).
 4. **Never invent business data.** No fake leads, sales, revenue, testimonials, or metrics. Report real numbers only.
 5. **Do not change pricing, payment capture/refund, or lead-status logic** without explicit owner approval.
 6. Ask before touching: `alembic/versions/*` (schema), `render.yaml`, `Procfile`, `nginx.conf`, anything in `src/config/settings.py` env-var names.
@@ -39,6 +39,14 @@ For local coding agents only, `opencode.json` exposes the optional **Genspark LL
 - Side effects (welcome message, owner alert) run inside a `try` that swallows exceptions; a failure there silently rolls back send rows. Keep that block minimal and exception-free.
 - Agent YAML files must use a valid `AgentCategory` (`support`, `marketing`, `content`, `analysis`, `automation`, `general`). An invalid value makes the agent fail to register silently in the logs.
 
+## Visual identity: Telegram, not WhatsApp
+
+- The public site is a **light blue/white Telegram** design. Tokens live in `src/web/static/css/narjis.css`: accent `#2481CC`, page `#F4F4F5`, surface `#FFFFFF`, secondary text `#707579`, online `#4DCD5E`.
+- Fonts are **IBM Plex Sans Arabic** (Arabic) + **Inter** (Latin). `Tajawal`, `Almarai` and `Manrope` are retired.
+- Conversation surfaces use `--r-bubble: 20px` with one `8px` corner, on purpose. Do not flatten them.
+- The owner console stays dark (`src/web/static/css/narjis-dark-admin.css`) using Telegram's dark surfaces plus the same blue.
+- The paper plane and the blue disc come from `src/web/templates/partials/_telegram_mark.html` (`tg_plane`, `tg_plane_cls`, `tg_badge`). Never reintroduce an icon-font glyph for Telegram, and never hard-code a colour in a template.
+- `tests/test_design_system.py` enforces all of the above. If it fails, fix the CSS, not the test.
 ## Front-end rules
 
 - Arabic-first, RTL. All public copy is Arabic; keep it professional and consistent.

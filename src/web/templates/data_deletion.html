@@ -1,5 +1,6 @@
 {% set _lang = page_lang(request) %}
 <!DOCTYPE html>
+{% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +9,7 @@
     <meta name="robots" content="index,follow">
     <title>{% if _lang == 'ar' %}حذف البيانات | النرجس للذكاء الاصطناعي{% else %}Data Deletion | Al-Narjis AI{% endif %}</title>
     <link rel="stylesheet" href="/static/css/narjis.css">
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body[data-lang="ar"] [data-lang="en"] { display: none; }
         body[data-lang="en"] [data-lang="ar"] { display: none; }
@@ -28,7 +29,7 @@
                 <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>If you wish to delete your personal data stored on our platform, contact us directly through any channel below and state clearly: "I request deletion of my data." We verify your identity via the registered number or email.</p>
 
                 <ul class="n-sub" style="font-size:0.95rem;list-style:none;padding:0;">
-                    <li style="margin-block:10px;"><a href="https://t.me/AlNarjs7BOT" style="color:var(--n-gold);">تيليجرام: @AlNarjs7BOT</a><span data-lang="ar"> — الأسرع والأفضل</span><span data-lang="en" data-inline> — fastest option</span></li>
+                    <li style="margin-block:10px;"><a href="https://t.me/AlNarjs7BOT" style="color:var(--n-gold);">{{ tg_plane_cls("width:1em;height:1em;vertical-align:-.15em") }} تيليجرام: @AlNarjs7BOT</a><span data-lang="ar"> — الأسرع والأفضل</span><span data-lang="en" data-inline> — fastest option</span></li>
                     <li style="margin-block:10px;">البريد: <a href="mailto:aimerchantvault.77@gmail.com" style="color:var(--n-gold);">aimerchantvault.77@gmail.com</a></li>
                 </ul>
 

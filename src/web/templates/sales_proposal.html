@@ -10,7 +10,7 @@
         <a href="/acquisition/leads/{{ lead.id }}" class="btn ml-2" style="background:#eee;color:#333;">&larr; Customer</a>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-8 border-t-4 border-amber-500 print:shadow-none print:border-0">
+    <div class="bg-white rounded-2xl shadow p-8 border-t-4 border-amber-500 print:shadow-none print:border-0">
         <div class="flex items-start justify-between flex-wrap gap-3 border-b border-gray-200 pb-4">
             <div>
                 <div class="text-xs tracking-widest text-amber-700 mb-1">PROPOSAL · عرض سعر</div>
@@ -24,7 +24,7 @@
             </div>
             <div class="text-end">
                 <div class="text-xs text-gray-500">من / From Al-Narjis AI · Riyadh</div>
-                <div class="text-2xl font-bold" style="color:#0b3d2e;">{{ detail.name }}</div>
+                <div class="text-2xl font-bold" style="color:#2481CC;">{{ detail.name }}</div>
                 <div class="text-xs text-gray-500">{{ price }} SAR / شهر + VAT</div>
             </div>
         </div>
@@ -69,10 +69,10 @@
         <p class="text-sm text-gray-500 mb-4">—</p>
         {% endif %}
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 border rounded-lg bg-gray-50 p-4 my-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 border rounded-2xl bg-gray-50 p-4 my-6">
             <div><div class="text-xs text-gray-500">Budget / month</div><div class="text-lg font-bold text-gray-900">{{ price }} SAR</div></div>
             <div><div class="text-xs text-gray-500">VAT 15%</div><div class="text-lg font-bold text-gray-900">{{ vat }} SAR</div></div>
-            <div><div class="text-xs text-gray-500">Total / month</div><div class="text-lg font-bold" style="color:#0b3d2e;">{{ total }} SAR</div></div>
+            <div><div class="text-xs text-gray-500">Total / month</div><div class="text-lg font-bold" style="color:#2481CC;">{{ total }} SAR</div></div>
             <div><div class="text-xs text-gray-500">Timeline</div><div class="text-lg font-bold text-gray-900">7 days</div></div>
         </div>
 

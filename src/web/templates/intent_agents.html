@@ -1,4 +1,5 @@
 {% set _lang = page_lang(request) %}
+{% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% import "partials/_seo.html" as seo with context %}
 {% set _items = [] %}
 {% for t in teams %}
@@ -27,39 +28,39 @@
 <head>
     <link rel="icon" href="/static/favicon.png" type="image/png">
     {{ _head | safe }}
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <style>
-        body { font-family: "Tajawal", sans-serif; background: #0a0b0e; color: #eef1f6; line-height: 1.95; }
+        body { font-family: "'IBM Plex Sans Arabic'", sans-serif; background: #F4F4F5; color: #0F0F0F; line-height: 1.95; }
         .wrap { max-width: 980px; margin-inline: auto; padding-inline: 22px; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
-        .brand { font-weight: 800; font-family: "Manrope", sans-serif; color: #e6c98a; text-decoration: none; }
-        .back { color: #98a1b0; text-decoration: none; font-size: .92rem; }
-        h1 { font-family: "Manrope", sans-serif; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.28; margin: 34px 0 14px; }
-        h2 { font-family: "Manrope", sans-serif; font-size: 1.4rem; color: #e6c98a; margin: 40px 0 12px; }
-        .lead { color: #b9c1cd; font-size: 1.06rem; max-width: 760px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,.08); }
+        .brand { font-weight: 800; font-family: "Inter", sans-serif; color: #1B6FB3; text-decoration: none; }
+        .back { color: #707579; text-decoration: none; font-size: .92rem; }
+        h1 { font-family: "Inter", sans-serif; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.28; margin: 34px 0 14px; }
+        h2 { font-family: "Inter", sans-serif; font-size: 1.4rem; color: #1B6FB3; margin: 40px 0 12px; }
+        .lead { color: #3C3C3C; font-size: 1.06rem; max-width: 760px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; }
-        .team { background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 22px; }
-        .team h3 { font-family: "Manrope", sans-serif; margin: 4px 0 6px; font-size: 1.1rem; }
-        .price { color: #e6c98a; font-weight: 800; }
+        .team { background: #FFFFFF; border: 1px solid rgba(0,0,0,.08); border-radius: 22px; padding: 22px; }
+        .team h3 { font-family: "Inter", sans-serif; margin: 4px 0 6px; font-size: 1.1rem; }
+        .price { color: #1B6FB3; font-weight: 800; }
         .team ul { padding-inline-start: 20px; margin: 12px 0 16px; }
-        .team li { color: #b9c1cd; font-size: .92rem; }
-        .muted { color: #98a1b0; }
+        .team li { color: #3C3C3C; font-size: .92rem; }
+        .muted { color: #707579; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0 8px; }
-        .btn { display: inline-block; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, #e6c98a, #c8a45e); color: #0a0b0e; }
-        .btn-ghost { border: 1px solid rgba(255,255,255,.16); color: #eef1f6; }
+        .btn { display: inline-block; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #1B6FB3, #2481CC); color: #F4F4F5; }
+        .btn-ghost { border: 1px solid rgba(0,0,0,.14); color: #0F0F0F; }
         .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-        .links a { font-size: .88rem; color: #98a1b0; text-decoration: none; border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 6px 14px; }
-        .links a:hover { border-color: #c8a45e; color: #e6c98a; }
-        footer { border-top: 1px solid rgba(255,255,255,.08); margin-top: 46px; padding: 22px 0 40px; color: #98a1b0; font-size: .86rem; }
-        footer a { color: #98a1b0; }
+        .links a { font-size: .88rem; color: #707579; text-decoration: none; border: 1px solid rgba(36,129,204,.1); border-radius: 999px; padding: 6px 14px; }
+        .links a:hover { border-color: #2481CC; color: #1B6FB3; }
+        footer { border-top: 1px solid rgba(0,0,0,.08); margin-top: 46px; padding: 22px 0 40px; color: #707579; font-size: .86rem; }
+        footer a { color: #707579; }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#eef1f6">AI</span></a>
+        <a class="brand" href="/home">النرجس <span style="color:#0F0F0F">AI</span></a>
         <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
     </div>
 
@@ -75,7 +76,7 @@
     <div class="cta">
         <a class="btn btn-gold" href="/home#pricing">{% if _lang == 'ar' %}شاهد الباقات{% else %}See the plans{% endif %}</a>
         <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}اسأل المستشار الذكي{% else %}Ask the Smart Consultant{% endif %}</a>
-        <a class="btn btn-ghost" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">Telegram</a>
+        <a class="btn btn-ghost" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">{{ tg_plane() }} Telegram</a>
     </div>
 
     <h2>{% if _lang == 'ar' %}الفرق حسب مجالك{% else %}Teams by field{% endif %}</h2>
@@ -86,7 +87,7 @@
             <div class="price">{{ t.price }} {% if _lang == 'ar' %}ريال/شهر{% else %}SAR / month{% endif %}</div>
             <p class="muted" style="font-size:.9rem">{{ t.tagline if _lang == 'ar' else t.tagline_en }}</p>
             <ul>
-                {% for m in t.members %}<li><a href="/ai-agent/{{ m.slug }}" style="color:#e6c98a">{{ m.no }}</a> · {{ m.title_ar if _lang == 'ar' else m.title_en }}</li>{% endfor %}
+                {% for m in t.members %}<li><a href="/ai-agent/{{ m.slug }}" style="color:#1B6FB3">{{ m.no }}</a> · {{ m.title_ar if _lang == 'ar' else m.title_en }}</li>{% endfor %}
             </ul>
             <a class="btn btn-ghost" href="/portal?pkg={{ t.key }}">{% if _lang == 'ar' %}اطلب الباقة{% else %}Request plan{% endif %}</a>
         </div>

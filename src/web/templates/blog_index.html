@@ -12,39 +12,39 @@
 <head>
     <link rel="icon" href="/static/favicon.png" type="image/png">
     {{ _head | safe }}
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <style>
-        body { font-family: "Tajawal", sans-serif; background: #0a0b0e; color: #eef1f6; line-height: 1.9; }
+        body { font-family: "'IBM Plex Sans Arabic'", sans-serif; background: #F4F4F5; color: #0F0F0F; line-height: 1.9; }
         .wrap { max-width: 900px; margin-inline: auto; padding-inline: 22px; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
-        .brand { font-weight: 800; font-family: "Manrope", sans-serif; color: #e6c98a; text-decoration: none; }
-        .back { color: #98a1b0; text-decoration: none; font-size: .92rem; }
-        h1 { font-family: "Manrope", sans-serif; font-size: clamp(1.8rem, 4.6vw, 2.6rem); line-height: 1.32; margin: 30px 0 12px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,.08); }
+        .brand { font-weight: 800; font-family: "Inter", sans-serif; color: #1B6FB3; text-decoration: none; }
+        .back { color: #707579; text-decoration: none; font-size: .92rem; }
+        h1 { font-family: "Inter", sans-serif; font-size: clamp(1.8rem, 4.6vw, 2.6rem); line-height: 1.32; margin: 30px 0 12px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 30px 0; }
-        .post { display: block; text-decoration: none; color: #eef1f6; background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 20px; }
-        .post:hover { border-color: #c8a45e; }
-        .post .cat { color: #e6c98a; font-size: .82rem; }
-        .post h2 { font-family: "Manrope", sans-serif; font-size: 1.08rem; margin: 8px 0; line-height: 1.45; }
-        .post p { color: #98a1b0; font-size: .9rem; margin: 0; }
+        .post { display: block; text-decoration: none; color: #0F0F0F; background: #FFFFFF; border: 1px solid rgba(0,0,0,.08); border-radius: 20px; padding: 20px; }
+        .post:hover { border-color: #2481CC; }
+        .post .cat { color: #1B6FB3; font-size: .82rem; }
+        .post h2 { font-family: "Inter", sans-serif; font-size: 1.08rem; margin: 8px 0; line-height: 1.45; }
+        .post p { color: #707579; font-size: .9rem; margin: 0; }
         .post .meta { color: #6f7887; font-size: .8rem; margin-top: 10px; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 10px; }
-        .btn { display: inline-block; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, #e6c98a, #c8a45e); color: #0a0b0e; }
-        .btn-ghost { border: 1px solid rgba(255,255,255,.16); color: #eef1f6; }
-        footer { border-top: 1px solid rgba(255,255,255,.08); margin-top: 40px; padding: 22px 0 40px; color: #98a1b0; font-size: .86rem; }
-        footer a { color: #98a1b0; }
+        .btn { display: inline-block; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #1B6FB3, #2481CC); color: #F4F4F5; }
+        .btn-ghost { border: 1px solid rgba(0,0,0,.14); color: #0F0F0F; }
+        footer { border-top: 1px solid rgba(0,0,0,.08); margin-top: 40px; padding: 22px 0 40px; color: #707579; font-size: .86rem; }
+        footer a { color: #707579; }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#eef1f6">AI</span></a>
+        <a class="brand" href="/home">النرجس <span style="color:#0F0F0F">AI</span></a>
         <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
     </div>
 
     <h1>{% if _lang == 'ar' %}مدوّبة الذكاء الاصطناعي بالعربي{% else %}The AI blog, in Arabic first{% endif %}</h1>
-    <p style="color:#98a1b0;max-width:640px">
+    <p style="color:#707579;max-width:640px">
         {% if _lang == 'ar' %}
         مقالات عملية عن وكلاء الذكاء الاصطناعي في السعودية: متى تستخدمهم، وما الذي يخرجونه، وأين تتوقف الأتمتة.
         {% else %}

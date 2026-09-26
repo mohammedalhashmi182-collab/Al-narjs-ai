@@ -1,5 +1,6 @@
 {% set _lang = page_lang(request) %}
 <!DOCTYPE html>
+{% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +9,7 @@
     <meta name="robots" content="index,follow">
     <title>{% if _lang == 'ar' %}سياسة الخصوصية | النرجس للذكاء الاصطناعي{% else %}Privacy Policy | Al-Narjis AI{% endif %}</title>
     <link rel="stylesheet" href="/static/css/narjis.css">
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body[data-lang="ar"] [data-lang="en"] { display: none; }
         body[data-lang="en"] [data-lang="ar"] { display: none; }
@@ -49,8 +50,8 @@
 
                 <h2 class="n-title text-lg mt-5" data-lang="ar">6. تواصل معنا</h2>
                 <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>6. Contact</h2>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">مؤسسة ذا أريبيان كونفو — الرياض، حي الرمال: تيليجرام <a href="https://t.me/AlNarjs7BOT" style="color:var(--n-gold);">@AlNarjs7BOT</a> · الجوال <a href="tel:+966552978753" style="color:var(--n-gold);">+966 55 297 8753</a>.</p>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>The Arabian Convoy Establishment — Riyadh, Al Rimal District: Telegram <a href="https://t.me/AlNarjs7BOT" style="color:var(--n-gold);">@AlNarjs7BOT</a> · Phone <a href="tel:+966552978753" style="color:var(--n-gold);">+966 55 297 8753</a>.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">مؤسسة ذا أريبيان كونفو — الرياض، حي الرمال: تيليجرام <a href="https://t.me/AlNarjs7BOT" style="color:var(--n-gold);">{{ tg_plane_cls("width:1em;height:1em;vertical-align:-.15em") }} @AlNarjs7BOT</a> · الجوال <a href="tel:+966552978753" style="color:var(--n-gold);">+966 55 297 8753</a>.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>The Arabian Convoy Establishment — Riyadh, Al Rimal District: Telegram <a href="https://t.me/AlNarjs7BOT" style="color:var(--n-gold);">{{ tg_plane_cls("width:1em;height:1em;vertical-align:-.15em") }} @AlNarjs7BOT</a> · Phone <a href="tel:+966552978753" style="color:var(--n-gold);">+966 55 297 8753</a>.</p>
             </div>
         </div>
     </div>
