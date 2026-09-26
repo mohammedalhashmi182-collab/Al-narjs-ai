@@ -1,30 +1,80 @@
+/* ==========================================================================
+   Al-Narjis AI — design system
+   Visual identity: Telegram (blue + white), not WhatsApp green.
+
+   Token values verified against the Gemini reference (gemini-3.1-flash-lite) and
+   Telegram's own light theme: accent #2481CC, page #F4F4F5, surface #FFFFFF,
+   secondary text #707579, separator #E0E0E0, online #4DCD5E.
+
+   Rules for this file:
+   - every colour, radius and font comes from a token; templates must not hard-code
+     hex values (tests/test_design_system.py enforces it)
+   - conversation surfaces are rounder than a typical web UI on purpose: Telegram
+     bubbles use a 16-20px radius with one tight corner
+   - shadows stay almost flat; Telegram separates surfaces with hairlines, not depth
+   ========================================================================== */
+
 :root {
-  --n-sand: #1a1d25;
-  --n-sand-2: #1f2630;
-  --n-cream: #242c37;
-  --n-cream-2: #2a323f;
-  --n-green: #d4a85e;
-  --n-green-2: #c59f55;
-  --n-green-3: #0d0f1a;
-  --n-gold: #d4a85e;
-  --n-gold-2: #e8d0a6;
-  --n-gold-soft: rgba(212, 168, 94, 0.32);
-  --n-brown: #f5f0e8;
-  --n-brown-2: #7a8095;
-  --n-earth: #5b657e;
-  --n-line: rgba(255, 255, 255, 0.07);
-  --n-line-2: rgba(255, 255, 255, 0.13);
-  --n-green-0: #1a1d25;
-  --n-online: #48d;
+  /* --- brand ------------------------------------------------------------ */
+  --tg-blue: #2481cc;
+  --tg-blue-press: #1b6fb3;
+  --tg-blue-deep: #175e97;
+  --tg-blue-tint: #ddeefb;
+  --tg-blue-tint-2: #eef6fd;
+  --tg-blue-soft: rgba(36, 129, 204, 0.1);
 
-  --font-ar: "Tajawal", "Segoe UI", sans-serif;
-  --font-head: "Manrope", "Almarai", "Tajawal", sans-serif;
+  /* --- surfaces (light) ------------------------------------------------ */
+  --n-sand: #f4f4f5;   /* page background */
+  --n-sand-2: #ffffff; /* raised surface */
+  --n-cream: #ffffff;  /* card */
+  --n-cream-2: #f9f9f9;/* nested card */
+  --n-green-3: #ffffff; /* sidebar / footer base */
 
-  --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.5);
-  --r-sm: 10px;
-  --r-md: 18px;
-  --r-lg: 26px;
+  /* --- ink ------------------------------------------------------------- */
+  --n-brown: #0f0f0f;   /* primary text */
+  --n-brown-2: #707579; /* secondary text */
+  --n-earth: #8a8a8a;   /* placeholder / tertiary */
+
+  /* --- lines ----------------------------------------------------------- */
+  --n-line: rgba(0, 0, 0, 0.08);
+  --n-line-2: rgba(0, 0, 0, 0.14);
+
+  /* --- status ---------------------------------------------------------- */
+  --n-online: #4dcd5e;   /* Telegram online green: a status dot, not a brand colour */
+  --n-danger: #e5484d;
+  --n-warn: #f5a524;
+
+  /* --- legacy aliases kept so existing class names keep working --------- */
+  --n-gold: var(--tg-blue);
+  --n-gold-2: var(--tg-blue-press);
+  --n-green: var(--tg-blue);
+  --n-green-2: var(--tg-blue-press);
+  --n-gold-soft: rgba(36, 129, 204, 0.32);
+
+  /* --- type ------------------------------------------------------------ */
+  --font-ar: "IBM Plex Sans Arabic", "Inter", "Segoe UI", sans-serif;
+  --font-head: "Inter", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.625rem;
+  --fs-2xl: clamp(1.9rem, 3.6vw, 2.9rem);
+
+  /* --- radii: deliberately rounder, Telegram-style --------------------- */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-bubble: 20px;   /* conversation cards */
+  --r-pill: 999px;
+
+  /* --- elevation: hairline-first ---------------------------------------- */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,61 +85,52 @@ body {
   background: var(--n-sand);
   color: var(--n-brown);
   min-height: 100vh;
-  line-height: 1.8;
+  line-height: 1.75;
   -webkit-font-smoothing: antialiased;
   display: block;
   visibility: visible;
 }
 
-[dir="ltr"] body { font-family: "Tajawal", "Segoe UI", sans-serif; }
+[dir="ltr"] body { font-family: "Inter", "IBM Plex Sans Arabic", "Segoe UI", sans-serif; }
 
-::selection { background: rgba(200, 164, 94, 0.3); color: #fff; }
+::selection { background: var(--tg-blue-tint); color: #0f0f0f; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--n-sand); }
-::-webkit-scrollbar-thumb { background: var(--n-sand-2); border-radius: 6px; border: 2px solid var(--n-sand); }
-::-webkit-scrollbar-thumb:hover { background: rgba(200, 164, 94, 0.4); }
+::-webkit-scrollbar-thumb { background: #d6d6da; border-radius: var(--r-pill); border: 2px solid var(--n-sand); }
+::-webkit-scrollbar-thumb:hover { background: #b9b9bf; }
 
 a { text-decoration: none; color: inherit; }
 
 .n-geo {
   background-image:
-    linear-gradient(45deg, rgba(200, 164, 94, 0.035) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(200, 164, 94, 0.035) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(200, 164, 94, 0.035) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(200, 164, 94, 0.035) 75%);
+    linear-gradient(45deg, rgba(36, 129, 204, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(36, 129, 204, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(36, 129, 204, 0.05) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(36, 129, 204, 0.05) 75%);
   background-size: 48px 48px;
-  background-position: 0 0, 0 24px, 24px -24px, -24px 0px;
-}
-
-.n-geo-dark {
-  background-image:
-    linear-gradient(45deg, rgba(200, 164, 94, 0.03) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(200, 164, 94, 0.03) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(200, 164, 94, 0.03) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(200, 164, 94, 0.03) 75%);
-  background-size: 48px 48px;
-  background-position: 0 0, 0 24px, 24px -24px, -24px 0px;
+  background-position: 0 0, 0 24px, 24px -24px, -24px 0;
 }
 
 .arch {
-  border-radius: 46% 46% var(--r-lg) var(--r-lg);
-  border: 1.5px solid var(--n-gold);
+  border-radius: 46% 46% var(--r-xl) var(--r-xl);
+  border: 1.5px solid var(--tg-blue-tint);
   border-bottom-color: transparent;
   overflow: hidden;
+  background: var(--n-cream);
 }
 .arch-inner {
-  border-radius: 44% 44% var(--r-md) var(--r-md);
-  border: 1px solid var(--n-gold-soft);
+  border-radius: 44% 44% var(--r-lg) var(--r-lg);
+  border: 1px solid var(--tg-blue-soft);
 }
 
 .n-divider {
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   letter-spacing: 3px;
-  color: var(--n-gold);
+  color: var(--tg-blue);
   font-weight: 700;
 }
 .n-divider::before,
@@ -97,113 +138,97 @@ a { text-decoration: none; color: inherit; }
   content: "";
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--n-gold-soft));
+  background: linear-gradient(90deg, transparent, var(--tg-blue-soft));
 }
-.n-divider::after { background: linear-gradient(90deg, var(--n-gold-soft), transparent); }
+.n-divider::after { background: linear-gradient(90deg, var(--tg-blue-soft), transparent); }
 
 .n-title {
   font-family: var(--font-head);
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.25;
   color: var(--n-brown);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
 }
-.n-title .gold { color: var(--n-gold-2); }
-.n-sub { color: var(--n-brown-2); font-size: 1.05rem; }
+.n-title .gold { color: var(--tg-blue); }
+.n-sub { color: var(--n-brown-2); font-size: var(--fs-md); }
 
+/* --- buttons: flat Telegram blue, rounder, no heavy lift ---------------- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 13px 26px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 0.95rem;
+  padding: 12px 24px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: var(--fs-base);
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   color: var(--n-brown);
 }
-.btn-gold {
-  background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold) 60%, #a5803c);
-  color: #0a0b0e;
-  box-shadow: var(--shadow);
-  border-color: transparent;
-}
+.btn-gold,
 .btn-green {
-  background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold) 60%, #a5803c);
-  color: #0a0b0e;
+  background: var(--tg-blue);
+  color: #ffffff;
   box-shadow: var(--shadow);
   border-color: transparent;
 }
 .btn-outline {
   background: var(--n-sand-2);
-  color: var(--n-brown);
+  color: var(--tg-blue-press);
   border: 1px solid var(--n-line-2);
 }
-.btn-outline:hover { border-color: var(--n-gold); color: var(--n-gold-2); }
-.btn-gold:hover, .btn-green:hover { filter: brightness(1.06); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.btn-outline:hover { border-color: var(--tg-blue); color: var(--tg-blue); }
+.btn-gold:hover,
+.btn-green:hover { background: var(--tg-blue-press); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn:active { background: var(--tg-blue-deep); transform: translateY(0); }
 
+/* --- cards: hairline + barely-there shadow, rounder corners ------------ */
 .n-card {
   background: var(--n-cream);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   padding: 30px;
   box-shadow: var(--shadow);
   border: 1px solid var(--n-line);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
 }
-.n-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 64px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--n-gold), var(--n-gold-2));
-  border-radius: 0 0 4px 4px;
-}
+.n-card::before { content: none; }
 .n-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--n-line-2);
+  box-shadow: var(--shadow-md);
+  border-color: var(--tg-blue-soft);
 }
 
 .n-sidebar {
-  background: linear-gradient(180deg, var(--n-green-3), #12151c 130%);
+  background: var(--n-cream);
   color: var(--n-brown);
   border-inline-end: 1px solid var(--n-line);
 }
 .n-sidebar .brand {
   font-family: var(--font-head);
   font-weight: 800;
-  font-size: 1.3rem;
-  color: var(--n-gold-2);
+  font-size: 1.25rem;
+  color: var(--tg-blue);
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.n-sidebar .brand::before {
-  content: "✺";
-  color: var(--n-gold);
-}
 .n-sidebar nav a {
-  color: rgba(238, 241, 246, 0.8);
-  border-radius: 12px;
-  transition: background 0.2s ease, color 0.2s ease;
+  color: var(--n-brown-2);
+  border-radius: var(--r-md);
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.n-sidebar nav a:hover { background: rgba(200, 164, 94, 0.12); color: var(--n-gold-2); }
+.n-sidebar nav a:hover { background: var(--tg-blue-soft); color: var(--tg-blue-press); }
 .n-sidebar nav a.active {
-  background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold));
-  color: #0a0b0e;
-  font-weight: 700;
+  background: var(--tg-blue);
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .n-nav {
-  background: rgba(10, 11, 14, 0.82);
+  background: rgba(255, 255, 255, 0.86);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--n-line);
@@ -214,23 +239,23 @@ a { text-decoration: none; color: inherit; }
 
 .lang-pill {
   display: flex;
-  background: var(--n-sand-2);
-  border-radius: 50px;
-  padding: 4px;
+  background: var(--n-sand);
+  border-radius: var(--r-pill);
+  padding: 3px;
   border: 1px solid var(--n-line);
 }
 .lang-pill button {
   border: none;
   background: transparent;
   padding: 7px 16px;
-  border-radius: 50px;
-  font-weight: 800;
-  font-size: 0.85rem;
+  border-radius: var(--r-pill);
+  font-weight: 600;
+  font-size: var(--fs-sm);
   color: var(--n-brown-2);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
-.lang-pill button.active { background: var(--n-gold); color: #0a0b0e; }
+.lang-pill button.active { background: var(--tg-blue); color: #ffffff; }
 [dir="ltr"] .lang-pill button.arabic { order: 1; }
 [dir="ltr"] .lang-pill button.english { order: 0; }
 
@@ -240,11 +265,12 @@ body[data-lang="en"] [data-lang="en"] { display: inherit; }
 body[data-lang="en"] [data-lang="en"][data-inline] { display: inline; }
 body[data-lang="ar"] [data-lang="ar"][data-inline] { display: inline; }
 
+/* --- hero: light, airy, Telegram-blue glow ----------------------------- */
 .n-hero {
   background:
-    radial-gradient(circle at 85% 15%, rgba(200, 164, 94, 0.1), transparent 40%),
-    radial-gradient(circle at 10% 80%, rgba(200, 164, 94, 0.06), transparent 45%),
-    linear-gradient(160deg, #0d0f14, #0a0b0e 70%);
+    radial-gradient(circle at 85% 15%, rgba(36, 129, 204, 0.12), transparent 40%),
+    radial-gradient(circle at 10% 80%, rgba(36, 129, 204, 0.07), transparent 45%),
+    linear-gradient(170deg, #ffffff, #f4f4f5 75%);
   color: var(--n-brown);
   position: relative;
   overflow: hidden;
@@ -256,153 +282,188 @@ body[data-lang="ar"] [data-lang="ar"][data-inline] { display: inline; }
   width: 100%;
   height: 70px;
   background: var(--n-sand);
-  border-radius: 50% 50% 0 0 / 24px 24px 0 0;
+  border-radius: 50% 50% 0 0 / 26px 26px 0 0;
 }
 .n-hero h1 {
   font-family: var(--font-head);
   font-weight: 800;
-  font-size: clamp(2.1rem, 4.6vw, 3.6rem);
-  line-height: 1.3;
+  font-size: var(--fs-2xl);
+  line-height: 1.22;
   color: var(--n-brown);
 }
-.n-hero h1 .accent { color: var(--n-gold-2); }
+.n-hero h1 .accent { color: var(--tg-blue); }
 .n-hero .stat {
   background: var(--n-sand-2);
   border: 1px solid var(--n-line);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   padding: 18px 22px;
 }
 .n-hero .stat .num {
   font-family: var(--font-head);
-  font-size: 1.9rem;
+  font-size: 1.85rem;
   font-weight: 800;
-  color: var(--n-gold-2);
+  color: var(--tg-blue);
 }
 
 .pkg { position: relative; overflow: hidden; }
 .pkg.featured {
-  border: 1.5px solid var(--n-gold-soft);
-  transform: scale(1.03);
-  background: linear-gradient(180deg, rgba(200, 164, 94, 0.07), var(--n-cream) 40%);
+  border: 1.5px solid var(--tg-blue);
+  background: linear-gradient(180deg, var(--tg-blue-tint-2), var(--n-cream) 45%);
 }
 .pkg.featured::after {
-  content: "★";
+  content: "\2605";
   position: absolute;
   top: 14px;
   right: 18px;
   font-size: 1.1rem;
-  color: var(--n-gold);
+  color: var(--tg-blue);
 }
 [dir="ltr"] .pkg.featured::after { right: auto; left: 18px; }
 .pkg.selected {
-  border-color: var(--n-gold-soft);
-  box-shadow: 0 0 0 1px var(--n-gold-soft), var(--shadow-lg);
+  border-color: var(--tg-blue);
+  box-shadow: 0 0 0 1px var(--tg-blue), var(--shadow-md);
 }
 .pkg .price {
   font-family: var(--font-head);
   font-size: 2.4rem;
   font-weight: 800;
-  color: var(--n-gold-2);
+  color: var(--tg-blue);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
 }
-.pkg .price small { font-size: 0.95rem; color: var(--n-brown-2); }
+.pkg .price small { font-size: var(--fs-base); color: var(--n-brown-2); }
 .pkg ul { list-style: none; }
 .pkg ul li {
   padding: 9px 0 9px 30px;
   position: relative;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-  font-size: 0.95rem;
+  border-bottom: 1px dashed var(--n-line);
+  font-size: var(--fs-base);
   color: var(--n-brown-2);
 }
 .pkg ul li::before {
-  content: "◆";
+  content: "\25C6";
   position: absolute;
   left: 0;
-  color: var(--n-gold);
+  color: var(--tg-blue);
   font-size: 0.7rem;
   top: 13px;
 }
 [dir="ltr"] .pkg ul li { padding: 9px 30px 9px 0; }
 [dir="ltr"] .pkg ul li::before { left: auto; right: 0; }
 
+/* --- forms: flat fields, Telegram focus ring ---------------------------- */
 .n-form input,
 .n-form select,
 .n-form textarea {
   width: 100%;
-  padding: 13px 17px;
-  border: 1px solid var(--n-line);
-  border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, 0.035);
+  padding: 12px 16px;
+  border: 1px solid var(--n-line-2);
+  border-radius: var(--r-md);
+  background: var(--n-sand-2);
   font-family: var(--font-ar);
-  font-size: 0.98rem;
+  font-size: var(--fs-base);
   color: var(--n-brown);
-  transition: border 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .n-form input:focus,
 .n-form select:focus,
 .n-form textarea:focus {
   outline: none;
-  border-color: var(--n-gold);
-  box-shadow: 0 0 0 3px rgba(200, 164, 94, 0.12);
+  border-color: var(--tg-blue);
+  box-shadow: 0 0 0 3px var(--tg-blue-soft);
 }
-.n-form label { font-weight: 800; font-size: 0.88rem; color: var(--n-brown-2); margin-bottom: 7px; display: block; }
-.n-form select option { background: var(--n-cream); color: var(--n-brown); }
+.n-form label { font-weight: 600; font-size: var(--fs-sm); color: var(--n-brown-2); margin-bottom: 7px; display: block; }
+.n-form select option { background: #ffffff; color: var(--n-brown); }
 
 input, select, textarea {
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid var(--n-line);
+  background: var(--n-sand-2);
+  border: 1px solid var(--n-line-2);
   color: var(--n-brown);
+  border-radius: var(--r-md);
 }
 input::placeholder, textarea::placeholder { color: var(--n-earth); }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: var(--n-gold);
-  box-shadow: 0 0 0 3px rgba(200, 164, 94, 0.12);
+  border-color: var(--tg-blue);
+  box-shadow: 0 0 0 3px var(--tg-blue-soft);
 }
-select option { background: var(--n-cream); color: var(--n-brown); }
+select option { background: #ffffff; color: var(--n-brown); }
 
-.wa-float {
+/* --- Telegram mark ------------------------------------------------------
+   The paper plane and the blue disc come from templates/partials/_telegram_mark.html,
+   so they need no icon font and follow currentColor everywhere. */
+.tg-icon {
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+  vertical-align: -0.18em;
+}
+.tg-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  box-shadow: 0 6px 18px rgba(36, 129, 204, 0.3);
+}
+.tg-icon-sm { width: 1em; height: 1em; }
+.tg-icon-lg { width: 1.5em; height: 1.5em; }
+
+/* --- floating contact: circular Telegram disc --------------------------- */
+.tg-float {
   position: fixed;
   bottom: 24px;
   inset-inline-end: 24px;
   width: 56px;
   height: 56px;
-  border-radius: 16px;
-  background: var(--n-online);
-  color: #04130d;
+  border-radius: 50%;
+  background: var(--tg-blue);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-lg);
   z-index: 100;
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
-.wa-float:hover { transform: translateY(-3px) scale(1.04); filter: brightness(1.06); }
+.tg-float:hover { transform: translateY(-2px); background: var(--tg-blue-press); }
+.tg-float .tg-icon { width: 26px; height: 26px; }
+
+/* Telegram CTAs read as one channel: same blue, rounder, same radius */
+.btn-tg,
+.tg-agent,
+.m-tg {
+  background: var(--tg-blue);
+  color: #ffffff;
+  border-color: transparent;
+}
+.btn-tg:hover,
+.tg-agent:hover { background: var(--tg-blue-press); }
+.btn-tg .tg-icon,
+.tg-agent .tg-icon,
+.m-tg .tg-icon { color: #ffffff; }
 
 .n-footer {
-  background: var(--n-green-3);
-  color: rgba(238, 241, 246, 0.7);
+  background: var(--n-cream);
+  color: var(--n-brown-2);
   border-block-start: 1px solid var(--n-line);
 }
-.n-footer a { color: var(--n-gold-2); text-decoration: none; }
+.n-footer a { color: var(--tg-blue); text-decoration: none; }
 .n-footer a:hover { text-decoration: underline; }
 
 .bg-sand { background: var(--n-sand); }
 .bg-cream { background: var(--n-cream); }
-.bg-green { background: var(--n-green); }
+.bg-green { background: var(--tg-blue); }
 .bg-green-3 { background: var(--n-green-3); }
-.text-green { color: var(--n-green); }
-.text-gold { color: var(--n-gold); }
+.text-green { color: var(--tg-blue); }
+.text-gold { color: var(--tg-blue); }
 
-.emp-card.dormant { filter: none; opacity: 0.92; }
-.emp-card.dormant .emp-ava { background: repeating-linear-gradient(45deg, rgba(200,164,94,0.12) 0 12px, rgba(200,164,94,0.04) 12px 24px); }
+.emp-card.dormant { filter: none; opacity: 0.94; }
+.emp-card.dormant .emp-ava { background: repeating-linear-gradient(45deg, rgba(36,129,204,0.10) 0 12px, rgba(36,129,204,0.03) 12px 24px); }
 .emp-card .emp-ava { display: grid; place-items: center; }
-.awake-pulse { animation: pulseGold 1.6s ease-in-out infinite; }
-@keyframes pulseGold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 164, 94, 0.4); }
-  50% { box-shadow: 0 0 0 12px rgba(200, 164, 94, 0); }
+.awake-pulse { animation: pulseBlue 1.6s ease-in-out infinite; }
+@keyframes pulseBlue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(36, 129, 204, 0.35); }
+  50% { box-shadow: 0 0 0 12px rgba(36, 129, 204, 0); }
 }
 
 .chip {
@@ -411,21 +472,48 @@ select option { background: var(--n-cream); color: var(--n-brown); }
   border: 1px solid var(--n-line);
   color: var(--n-brown-2);
   padding: 7px 15px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: var(--fs-sm);
+  font-weight: 600;
   transition: 0.15s;
   font-family: var(--font-ar);
 }
-.chip:hover { background: var(--n-gold); color: #0a0b0e; border-color: var(--n-gold); }
+.chip:hover { background: var(--tg-blue); color: #ffffff; border-color: var(--tg-blue); }
 
-.cmsg.ai { background: var(--n-sand-2); color: var(--n-brown); border: 1px solid var(--n-line); }
-.cmsg.me { background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold)); color: #0a0b0e; }
-.msg-agent, .chat-box .msg { background: var(--n-sand-2); color: var(--n-brown); border: 1px solid var(--n-line); }
-.msg-client { background: linear-gradient(135deg, var(--n-gold-2), var(--n-gold)); color: #0a0b0e; }
+/* --- conversation surfaces: rounder, Telegram bubbles ------------------- */
+.cmsg,
+.msg-agent,
+.chat-box .msg {
+  background: var(--n-sand-2);
+  color: var(--n-brown);
+  border: 1px solid var(--n-line);
+  border-radius: var(--r-bubble);
+  padding: 12px 18px;
+  line-height: 1.7;
+}
+.cmsg.ai,
+.msg-agent,
+.chat-box .msg {
+  border-start-start-radius: 8px; /* the one tight corner, like a Telegram bubble */
+}
+.cmsg.me,
+.msg-client {
+  background: var(--tg-blue-tint);
+  color: var(--n-brown);
+  border: 1px solid var(--tg-blue-soft);
+  border-start-end-radius: 8px;
+}
+.msg-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.msg-row.me { justify-content: flex-start; }
+.bubble-tail {
+  width: 10px;
+  height: 10px;
+  background: var(--tg-blue-tint);
+  border-start-end-radius: 8px;
+  margin-inline-end: -6px;
+}
 
 @media (max-width: 768px) {
-  .pkg.featured { transform: none; }
   .n-hero .edge { height: 34px; }
 }

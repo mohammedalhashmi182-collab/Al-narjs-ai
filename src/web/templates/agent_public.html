@@ -1,4 +1,5 @@
 {% set _lang = page_lang(request) %}
+{% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% import "partials/_seo.html" as seo with context %}
 {% set _agent_jsonld = {
   "@context": "https://schema.org",
@@ -23,38 +24,38 @@
 <head>
     <link rel="icon" href="/static/favicon.png" type="image/png">
     {{ _head | safe }}
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <style>
-        body { font-family: "Tajawal", sans-serif; background: #0a0b0e; color: #eef1f6; line-height: 1.9; }
+        body { font-family: "'IBM Plex Sans Arabic'", sans-serif; background: #F4F4F5; color: #0F0F0F; line-height: 1.9; }
         .wrap { max-width: 900px; margin-inline: auto; padding-inline: 22px; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
-        .brand { font-weight: 800; font-family: "Manrope", sans-serif; color: #e6c98a; text-decoration: none; }
-        .back { color: #98a1b0; text-decoration: none; font-size: .92rem; }
-        .card { background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 28px; margin: 28px 0; }
-        h1 { font-family: "Manrope", sans-serif; font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.32; margin: 26px 0 10px; }
-        h2 { font-family: "Manrope", sans-serif; font-size: 1.25rem; color: #e6c98a; margin: 30px 0 12px; }
-        .no { display: inline-block; border: 1px solid rgba(200,164,94,.5); color: #e6c98a; border-radius: 999px; padding: 4px 14px; font-size: .82rem; }
-        .dept { color: #98a1b0; font-size: .9rem; }
-        .muted { color: #98a1b0; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,.08); }
+        .brand { font-weight: 800; font-family: "Inter", sans-serif; color: #1B6FB3; text-decoration: none; }
+        .back { color: #707579; text-decoration: none; font-size: .92rem; }
+        .card { background: #FFFFFF; border: 1px solid rgba(0,0,0,.08); border-radius: 22px; padding: 28px; margin: 28px 0; }
+        h1 { font-family: "Inter", sans-serif; font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.32; margin: 26px 0 10px; }
+        h2 { font-family: "Inter", sans-serif; font-size: 1.25rem; color: #1B6FB3; margin: 30px 0 12px; }
+        .no { display: inline-block; border: 1px solid rgba(36,129,204,.5); color: #1B6FB3; border-radius: 999px; padding: 4px 14px; font-size: .82rem; }
+        .dept { color: #707579; font-size: .9rem; }
+        .muted { color: #707579; }
         ul { padding-inline-start: 20px; }
         li { margin-bottom: 8px; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 8px; }
-        .btn { display: inline-block; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, #e6c98a, #c8a45e); color: #0a0b0e; }
-        .btn-ghost { border: 1px solid rgba(255,255,255,.16); color: #eef1f6; }
+        .btn { display: inline-block; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #1B6FB3, #2481CC); color: #F4F4F5; }
+        .btn-ghost { border: 1px solid rgba(0,0,0,.14); color: #0F0F0F; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        .grid a { display: block; background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 14px 16px; text-decoration: none; color: #eef1f6; font-size: .9rem; }
-        .grid a:hover { border-color: #c8a45e; }
-        .grid small { display: block; color: #98a1b0; }
-        footer { border-top: 1px solid rgba(255,255,255,.08); margin-top: 40px; padding: 22px 0 40px; color: #98a1b0; font-size: .86rem; }
-        footer a { color: #98a1b0; }
+        .grid a { display: block; background: #FFFFFF; border: 1px solid rgba(0,0,0,.08); border-radius: 18px; padding: 14px 16px; text-decoration: none; color: #0F0F0F; font-size: .9rem; }
+        .grid a:hover { border-color: #2481CC; }
+        .grid small { display: block; color: #707579; }
+        footer { border-top: 1px solid rgba(0,0,0,.08); margin-top: 40px; padding: 22px 0 40px; color: #707579; font-size: .86rem; }
+        footer a { color: #707579; }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#eef1f6">AI</span></a>
+        <a class="brand" href="/home">النرجس <span style="color:#0F0F0F">AI</span></a>
         <a class="back" href="/home#agents">&larr; {% if _lang == 'ar' %}كل الوكلاء{% else %}All agents{% endif %}</a>
     </div>
 
@@ -65,7 +66,7 @@
         <p class="muted">{{ agent.intro_ar if _lang == 'ar' else agent.intro_en }}</p>
         <div class="cta">
             <a class="btn btn-gold" href="/portal?pkg={{ recommended_pkg }}">{% if _lang == 'ar' %}أيقظ هذا الوكيل{% else %}Wake this agent{% endif %}</a>
-            <a class="btn btn-ghost" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">Telegram</a>
+            <a class="btn btn-ghost" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">{{ tg_plane() }} Telegram</a>
             <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}اسأل المستشار{% else %}Ask the consultant{% endif %}</a>
         </div>
     </div>

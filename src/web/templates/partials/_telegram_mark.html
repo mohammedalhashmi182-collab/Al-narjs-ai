@@ -1,0 +1,18 @@
+{#
+  Telegram mark, drawn inline so it inherits currentColor and needs no icon font.
+
+  - tg_plane(cls='tg-icon'): the paper plane only, for use on a blue button
+  - tg_plane_cls(extra_style, cls='tg-icon'): same, with a style attribute
+  - tg_badge(cls='tg-mark'): the full brand lockup, blue disc + white plane
+#}
+{% macro tg_plane(cls='tg-icon') -%}
+<svg class="{{ cls }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.78 15.6l-.3-4.2 3.9-3.5c.34-.3-.07-.46-.52-.19L7.74 11.3 3.6 10.1c-.9-.28-.92-.9.19-1.33l15.1-5.83c.68-.25 1.28.16 1.03 1.12l-2.56 12.06c-.18.85-.69 1.06-1.4.66l-3.9-2.88-1.87 1.8c-.22.22-.4.4-.81.4z"/></svg>
+{%- endmacro %}
+
+{% macro tg_plane_cls(extra='', cls='tg-icon') -%}
+<svg class="{{ cls }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="{{ extra }}"><path fill="currentColor" d="M9.78 15.6l-.3-4.2 3.9-3.5c.34-.3-.07-.46-.52-.19L7.74 11.3 3.6 10.1c-.9-.28-.92-.9.19-1.33l15.1-5.83c.68-.25 1.28.16 1.03 1.12l-2.56 12.06c-.18.85-.69 1.06-1.4.66l-3.9-2.88-1.87 1.8c-.22.22-.4.4-.81.4z"/></svg>
+{%- endmacro %}
+
+{% macro tg_badge(cls='tg-mark') -%}
+<svg class="{{ cls }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="#2481CC"/><path fill="#fff" d="M9.78 15.6l-.3-4.2 3.9-3.5c.34-.3-.07-.46-.52-.19L7.74 11.3 3.6 10.1c-.9-.28-.92-.9.19-1.33l15.1-5.83c.68-.25 1.28.16 1.03 1.12l-2.56 12.06c-.18.85-.69 1.06-1.4.66l-3.9-2.88-1.87 1.8c-.22.22-.4.4-.81.4z"/></svg>
+{%- endmacro %}

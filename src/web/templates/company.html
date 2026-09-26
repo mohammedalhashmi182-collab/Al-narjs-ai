@@ -24,7 +24,7 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-cyan-500">
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-cyan-500">
         <div class="flex items-center">
             <div class="p-3 bg-cyan-100 rounded-full"><i class="fas fa-robot text-cyan-600 text-2xl"></i></div>
             <div class="mx-3">
@@ -34,7 +34,7 @@
         </div>
         <p class="text-xs mt-2 text-gray-400"><span id="kpi-agents-sub"></span></p>
     </div>
-    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-blue-500">
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-blue-500">
         <div class="flex items-center">
             <div class="p-3 bg-blue-100 rounded-full"><i class="fas fa-users text-blue-600 text-2xl"></i></div>
             <div class="mx-3">
@@ -44,7 +44,7 @@
         </div>
         <p class="text-xs mt-2 text-rose-500"><span id="kpi-leads-sub"></span></p>
     </div>
-    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-emerald-500">
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-emerald-500">
         <div class="flex items-center">
             <div class="p-3 bg-emerald-100 rounded-full"><i class="fas fa-coins text-emerald-600 text-2xl"></i></div>
             <div class="mx-3">
@@ -54,7 +54,7 @@
         </div>
         <p class="text-xs mt-2 text-gray-400"><span id="kpi-revenue-sub"></span></p>
     </div>
-    <div class="bg-white rounded-lg shadow p-6 border-t-4 border-amber-500">
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-amber-500">
         <div class="flex items-center">
             <div class="p-3 bg-amber-100 rounded-full"><i class="fas fa-tasks text-amber-600 text-2xl"></i></div>
             <div class="mx-3">
@@ -66,7 +66,7 @@
     </div>
 </div>
 
-<div class="bg-gradient-to-r from-emerald-50 to-amber-50 rounded-lg shadow border-t-4 border-amber-500 mb-8 p-6">
+<div class="bg-gradient-to-r from-emerald-50 to-amber-50 rounded-2xl shadow border-t-4 border-amber-500 mb-8 p-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
             <h3 class="text-lg font-bold text-gray-900">
@@ -80,19 +80,19 @@
         <span id="rev-wave" class="px-2 py-1 text-xs font-bold rounded-full bg-white border border-gray-200 text-gray-700"></span>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-amber-500">
+        <div class="bg-white rounded-2xl shadow p-4 border-t-2 border-amber-500">
             <p class="text-xs text-gray-500">Target</p>
             <p id="rev-target" class="text-2xl font-bold text-gray-900">—</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-emerald-500">
+        <div class="bg-white rounded-2xl shadow p-4 border-t-2 border-emerald-500">
             <p class="text-xs text-gray-500">Verified (actual only)</p>
             <p id="rev-verified" class="text-2xl font-bold text-emerald-600">—</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-rose-500">
+        <div class="bg-white rounded-2xl shadow p-4 border-t-2 border-rose-500">
             <p class="text-xs text-gray-500">Gap</p>
             <p id="rev-gap" class="text-2xl font-bold text-rose-600">—</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-4 border-t-2 border-blue-500">
+        <div class="bg-white rounded-2xl shadow p-4 border-t-2 border-blue-500">
             <p class="text-xs text-gray-500">Potential (separate)</p>
             <p id="rev-potential" class="text-2xl font-bold text-blue-600">—</p>
         </div>
@@ -103,7 +103,7 @@
         <span id="rev-contacts" class="font-bold text-gray-700">—</span>
         · <span id="rev-tiers" class="font-bold text-gray-700">—</span>
     </p>
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
         <div class="p-3 border-b border-gray-200 flex items-center justify-between">
             <h4 class="font-semibold text-gray-900">Top 10 Actions Now</h4>
             <button onclick="loadRevenue()" class="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">↻ refresh</button>
@@ -121,7 +121,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-lg shadow border-t-4 border-green-600 mb-8 p-6">
+<div class="bg-white rounded-2xl shadow border-t-4 border-green-600 mb-8 p-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
             <h3 class="text-lg font-bold text-gray-900">
@@ -135,7 +135,7 @@
         <span id="wa-badge" class="px-2 py-1 text-xs font-bold rounded-full bg-gray-200 text-gray-700">…</span>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 lg:col-span-1">
+        <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200 lg:col-span-1">
             <p class="text-xs font-bold text-gray-500 uppercase mb-2">WhatsApp Sender</p>
             <p class="text-sm text-gray-800">
                 <span class="text-gray-500">Status:</span>
@@ -155,14 +155,14 @@
         <div class="lg:col-span-2">
             <p class="text-xs font-bold text-gray-500 uppercase mb-2">TODAY (verified, never fabricated)</p>
             <div class="grid grid-cols-4 gap-3">
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Queued</p><p id="wa-today-queued" class="text-xl font-bold text-gray-900">—</p></div>
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Sent (acked)</p><p id="wa-today-sent" class="text-xl font-bold text-green-600">—</p></div>
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Delivered</p><p id="wa-today-delivered" class="text-xl font-bold text-blue-600">—</p></div>
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Replies</p><p id="wa-today-replies" class="text-xl font-bold text-cyan-600">—</p></div>
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Qualified</p><p id="wa-today-qualified" class="text-xl font-bold text-indigo-600">—</p></div>
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Proposals</p><p id="wa-today-proposals" class="text-xl font-bold text-purple-600">—</p></div>
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Won</p><p id="wa-today-won" class="text-xl font-bold text-emerald-600">—</p></div>
-                <div class="bg-white rounded-lg border border-gray-200 p-3"><p class="text-xs text-gray-500">Verified SAR</p><p id="wa-today-sar" class="text-xl font-bold text-amber-600">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Queued</p><p id="wa-today-queued" class="text-xl font-bold text-gray-900">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Sent (acked)</p><p id="wa-today-sent" class="text-xl font-bold text-green-600">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Delivered</p><p id="wa-today-delivered" class="text-xl font-bold text-blue-600">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Replies</p><p id="wa-today-replies" class="text-xl font-bold text-cyan-600">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Qualified</p><p id="wa-today-qualified" class="text-xl font-bold text-indigo-600">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Proposals</p><p id="wa-today-proposals" class="text-xl font-bold text-purple-600">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Won</p><p id="wa-today-won" class="text-xl font-bold text-emerald-600">—</p></div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-3"><p class="text-xs text-gray-500">Verified SAR</p><p id="wa-today-sar" class="text-xl font-bold text-amber-600">—</p></div>
             </div>
             <p class="text-xs text-gray-500 mt-3">Total sent: <span id="wa-total-sent" class="font-bold text-gray-700">—</span> · Failed: <span id="wa-total-failed" class="font-bold text-gray-700">—</span> · Replies: <span id="wa-total-replies" class="font-bold text-gray-700">—</span> · Response rate: <span id="wa-response-rate" class="font-bold text-gray-700">—</span> · Buying signals: <span id="wa-buying-signals" class="font-bold text-gray-700">—</span> · Objections today: <span id="wa-objections" class="font-bold text-gray-700">—</span></p>
         </div>
@@ -170,16 +170,16 @@
 </div>
 
 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Opportunities</p><p id="kpi-opportunities" class="text-xl font-bold text-gray-900">-</p></div>
-    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Follow-ups Due</p><p id="kpi-followups" class="text-xl font-bold text-gray-900">-</p></div>
-    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Active Schedules</p><p id="kpi-schedules" class="text-xl font-bold text-gray-900">-</p></div>
-    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Decisions Logged</p><p id="kpi-decisions" class="text-xl font-bold text-gray-900">-</p></div>
-    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Experiments</p><p id="kpi-experiments" class="text-xl font-bold text-gray-900">-</p></div>
-    <div class="bg-white rounded-lg shadow p-4"><p class="text-xs text-gray-500">Executions / Failed</p><p id="kpi-executions" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-2xl shadow p-4"><p class="text-xs text-gray-500">Opportunities</p><p id="kpi-opportunities" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-2xl shadow p-4"><p class="text-xs text-gray-500">Follow-ups Due</p><p id="kpi-followups" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-2xl shadow p-4"><p class="text-xs text-gray-500">Active Schedules</p><p id="kpi-schedules" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-2xl shadow p-4"><p class="text-xs text-gray-500">Decisions Logged</p><p id="kpi-decisions" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-2xl shadow p-4"><p class="text-xs text-gray-500">Experiments</p><p id="kpi-experiments" class="text-xl font-bold text-gray-900">-</p></div>
+    <div class="bg-white rounded-2xl shadow p-4"><p class="text-xs text-gray-500">Executions / Failed</p><p id="kpi-executions" class="text-xl font-bold text-gray-900">-</p></div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow">
+    <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar">الفرص المكتشفة</span><span data-lang="en" data-inline>Opportunities</span></h3>
             <span class="text-xs text-gray-500">/api/opportunities</span>
@@ -192,7 +192,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow">
+    <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar">المهام الموكلة</span><span data-lang="en" data-inline>Tasks</span></h3>
             <span class="text-xs text-gray-500">/api/tasks</span>
@@ -206,7 +206,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-lg shadow mb-8">
+<div class="bg-white rounded-2xl shadow mb-8">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar">سجل القرارات (لا يحذف أبداً)</span><span data-lang="en" data-inline>Decision Log (append-only)</span></h3>
         <span class="text-xs text-gray-500">/api/decisions</span>

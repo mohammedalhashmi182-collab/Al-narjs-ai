@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% set _lang = page_lang(request) %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
@@ -8,7 +9,7 @@
     <meta property="og:image" content="https://karmaai.online/static/og-image.png">
     <meta name="twitter:image" content="https://karmaai.online/static/og-image.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0a0b0e">
+    <meta name="theme-color" content="#F4F4F5">
     {% if _lang == 'ar' %}
     <title>النرجس للذكاء الاصطناعي | فريقك الرقمي في انتظار لمسة إيقاظ</title>
     <meta name="description" content="منصة النرجس للذكاء الاصطناعي من الرياض — فريق من الوكلاء الأذكياء يعملون على مدار الساعة: محتوى، تسويق، متاجر، وخدمة عملاء.">
@@ -115,29 +116,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     {% include "partials/_analytics.html" %}
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0b0e;
-            --bg-2: #0e1015;
-            --bg-3: #12151c;
-            --panel: rgba(255, 255, 255, .028);
-            --panel-2: rgba(255, 255, 255, .05);
-            --line: rgba(255, 255, 255, .08);
-            --line-2: rgba(255, 255, 255, .15);
-            --gold: #c8a45e;
-            --gold-bright: #e6c98a;
-            --gold-soft: rgba(200, 164, 94, .32);
-            --ink: #eef1f6;
-            --muted: #98a1b0;
-            --faint: #6d7685;
-            --online: #3dbd7d;
+            --bg: #F4F4F5;
+            --bg-2: #FFFFFF;
+            --bg-3: #F9F9F9;
+            --panel: rgba(36,129,204,.028);
+            --panel-2: rgba(36,129,204,.05);
+            --line: rgba(36,129,204,.08);
+            --line-2: rgba(36,129,204,.15);
+            --gold: #2481CC;
+            --gold-bright: #1B6FB3;
+            --gold-soft: rgba(36,129,204, .32);
+            --ink: #0F0F0F;
+            --muted: #707579;
+            --faint: #707579;
+            --online: #4DCD5E;
             --r: 18px;
             --r-lg: 26px;
-            --font: "Tajawal", sans-serif;
-            --head: "Manrope", "Almarai", "Tajawal", sans-serif;
-            --num: "Manrope", sans-serif;
+            --font: "'IBM Plex Sans Arabic'", sans-serif;
+            --head: "Inter", "Inter", "'IBM Plex Sans Arabic'", sans-serif;
+            --num: "Inter", sans-serif;
             --ease: cubic-bezier(.22, 1, .36, 1);
             --shadow: 0 30px 70px rgba(0, 0, 0, .45);
         }
@@ -154,7 +155,7 @@
         }
         a { text-decoration: none; color: inherit; }
         button { font-family: inherit; }
-        ::selection { background: rgba(200, 164, 94, .28); color: #fff; }
+        ::selection { background: #2481cc; color: #fff; }
         .w-full { width: 100%; }
 
         #progress {
@@ -167,15 +168,15 @@
         .mesh {
             position: fixed; inset: 0; z-index: -3; pointer-events: none;
             background:
-                radial-gradient(1000px 620px at 78% -14%, rgba(200, 164, 94, .075), transparent 60%),
-                radial-gradient(760px 560px at 6% 2%, rgba(200, 164, 94, .04), transparent 55%),
+                radial-gradient(1000px 620px at 78% -14%, rgba(36,129,204, .075), transparent 60%),
+                radial-gradient(760px 560px at 6% 2%, rgba(36,129,204, .04), transparent 55%),
                 linear-gradient(172deg, #0b0c10 0%, var(--bg) 52%, var(--bg-2) 100%);
         }
         .grid {
             position: fixed; inset: 0; z-index: -2; pointer-events: none;
             background-image:
-                linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, .018) 1px, transparent 1px);
+                linear-gradient(rgba(36,129,204,.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,129,204,.018) 1px, transparent 1px);
             background-size: 74px 74px;
             -webkit-mask-image: radial-gradient(ellipse 92% 60% at 50% 0%, #000 6%, transparent 76%);
             mask-image: radial-gradient(ellipse 92% 60% at 50% 0%, #000 6%, transparent 76%);
@@ -190,8 +191,8 @@
             font-family: var(--head); font-size: 2rem; font-weight: 800; color: var(--gold-bright);
             display: flex; flex-direction: column; align-items: center; gap: 18px;
         }
-        .preloader .mark span { color: var(--bg); background: linear-gradient(135deg, var(--gold-bright), var(--gold)); padding: 14px 18px; border-radius: 14px; line-height: 1; }
-        .preloader .bar { width: 120px; height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
+        .preloader .mark span { color: var(--bg); background: linear-gradient(135deg, var(--gold-bright), var(--gold)); padding: 14px 18px; border-radius: 18px; line-height: 1; }
+        .preloader .bar { width: 120px; height: 2px; background: var(--line); border-radius: 6px; overflow: hidden; }
         .preloader .bar i { display: block; height: 100%; width: 40%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); animation: load 1s var(--ease) infinite; }
         @keyframes load { from { transform: translateX(-120%); } to { transform: translateX(320%); } }
 
@@ -203,18 +204,14 @@
         }
         .nav.scrolled .inner {
             padding-block: 12px;
-            background: rgba(10, 11, 14, .82);
+            background: rgba(255, 255, 255, .88);
             -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
             border: 1px solid var(--line); border-inline: none;
-            box-shadow: 0 16px 44px rgba(0, 0, 0, .5);
+            box-shadow: 0 16px 44px rgba(0,0,0,0.090);
         }
         .brand { display: flex; align-items: center; gap: 13px; }
-        .brand .mark {
-            width: 44px; height: 44px; display: grid; place-items: center;
-            border-radius: 12px; color: var(--bg); font-weight: 800; font-size: 1.3rem;
-            background: linear-gradient(135deg, var(--gold-bright), var(--gold) 65%, #a5803c);
-            box-shadow: 0 10px 26px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .35);
-        }
+        .tg-mark { width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 6px 18px rgba(36,129,204,.30); }
+        .tg-icon { width: 1.15em; height: 1.15em; flex: 0 0 auto; vertical-align: -.18em; }
         .brand .name { font-family: var(--head); font-weight: 800; font-size: 1.1rem; line-height: 1.25; letter-spacing: .1px; }
         .brand .name b { color: var(--gold-bright); }
         .brand .sub { font-size: .6rem; letter-spacing: 4.5px; color: var(--gold); text-transform: uppercase; }
@@ -223,7 +220,7 @@
         .nav-links a { position: relative; transition: color .2s; padding-block: 4px; }
         .nav-links a::after {
             content: ""; position: absolute; inset-block-end: -2px; inset-inline-start: 0;
-            width: 0; height: 2px; border-radius: 2px; background: var(--gold);
+            width: 0; height: 2px; border-radius: 6px; background: var(--gold);
             transition: width .3s var(--ease);
         }
         .nav-links a:hover { color: var(--ink); }
@@ -242,22 +239,22 @@
 
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-            padding: 13px 26px; border-radius: 12px; font-weight: 800; font-size: .95rem;
+            padding: 13px 26px; border-radius: 16px; font-weight: 800; font-size: .95rem;
             border: 1px solid transparent; cursor: pointer;
             transition: all .25s var(--ease);
         }
         .btn:active { transform: translateY(1px); }
         .btn-gold {
-            background: linear-gradient(135deg, var(--gold-bright), var(--gold) 60%, #a5803c);
-            color: var(--bg); box-shadow: 0 18px 40px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .35);
+            background: linear-gradient(135deg, var(--gold-bright), var(--gold) 60%, #175E97);
+            color: var(--bg); box-shadow: 0 18px 40px rgba(0,0,0,0.081), inset 0 1px 0 rgba(36,129,204,.35);
         }
-        .btn-gold:hover { box-shadow: 0 24px 54px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .35); transform: translateY(-2px); }
+        .btn-gold:hover { box-shadow: 0 24px 54px rgba(0,0,0,0.090), inset 0 1px 0 rgba(36,129,204,.35); transform: translateY(-2px); }
         .btn-ghost { background: var(--panel); color: var(--ink); border-color: var(--line-2); }
         .btn-ghost:hover { border-color: var(--gold); color: var(--gold-bright); }
-        .btn-online { background: var(--online); color: #04130d; box-shadow: 0 14px 34px rgba(0, 0, 0, .4); }
+        .btn-online { background: var(--online); color: #F4F4F5; box-shadow: 0 14px 34px rgba(0,0,0,0.072); }
         .btn-online:hover { filter: brightness(1.06); transform: translateY(-2px); }
-        .btn-tg { background: linear-gradient(135deg, #0088cc, #00a8ff); color: #fff; box-shadow: 0 14px 34px rgba(0, 136, 204, .35); }
-        .btn-tg:hover { filter: brightness(1.07); transform: translateY(-2px); box-shadow: 0 20px 44px rgba(0, 136, 204, .45); }
+        .btn-tg { background: linear-gradient(135deg, #2E90DA, #2481cc); color: #fff; box-shadow: 0 14px 34px rgba(36, 129, 204, .28); }
+        .btn-tg:hover { filter: brightness(1.07); transform: translateY(-2px); box-shadow: 0 20px 44px rgba(36, 129, 204, .34); }
 
         .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 140px 28px 70px; }
         .hero .inner { max-width: 1240px; margin-inline: auto; width: 100%; display: grid; grid-template-columns: 1.04fr .96fr; gap: 64px; align-items: center; position: relative; }
@@ -266,17 +263,17 @@
             display: inline-flex; align-items: center; gap: 10px;
             padding: 8px 16px; border-radius: 999px; font-size: .8rem; font-weight: 700; letter-spacing: .5px;
             color: var(--gold-bright); border: 1px solid var(--gold-soft);
-            background: rgba(200, 164, 94, .06);
+            background: rgba(36,129,204, .06);
         }
-        .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 0 rgba(61, 189, 125, .5); animation: ping 2.4s infinite; }
-        @keyframes ping { 70% { box-shadow: 0 0 0 7px rgba(61, 189, 125, 0); } 100% { box-shadow: 0 0 0 0 rgba(61, 189, 125, 0); } }
+        .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 0 rgba(77, 205, 94, .5); animation: ping 2.4s infinite; }
+        @keyframes ping { 70% { box-shadow: 0 0 0 7px rgba(77, 205, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(77, 205, 94, 0); } }
 
         .hero h1 {
             font-family: var(--head); font-weight: 800; line-height: 1.3; letter-spacing: -.5px;
             font-size: clamp(2.1rem, 4.6vw, 3.6rem); margin-block: 28px 18px;
         }
         .grad {
-            background: linear-gradient(100deg, var(--gold-bright) 0%, var(--gold) 55%, #e9d3a0 100%);
+            background: linear-gradient(100deg, var(--gold-bright) 0%, var(--gold) 55%, #4A9FE8 100%);
             -webkit-background-clip: text; background-clip: text; color: transparent;
         }
         .hero p.sub { font-size: 1.06rem; color: var(--muted); max-width: 34em; }
@@ -296,7 +293,7 @@
 
         .console {
             border: 1px solid var(--line-2); border-radius: var(--r-lg);
-            background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .012));
+            background: linear-gradient(180deg, rgba(36,129,204,.035), rgba(36,129,204,.012));
             box-shadow: var(--shadow);
             overflow: hidden; position: relative;
         }
@@ -317,11 +314,11 @@
         .emp { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-block-end: 1px solid var(--line); }
         .emp:last-child { border-block-end: none; }
         .emp-ava {
-            width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0;
+            width: 42px; height: 42px; border-radius: 16px; display: grid; place-items: center; flex-shrink: 0;
             font-family: var(--num); font-weight: 800; font-size: .78rem; color: var(--gold-bright);
-            border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .07);
+            border: 1px solid var(--gold-soft); background: rgba(36,129,204, .07);
         }
-        .emp.woke .emp-ava { color: var(--online); border-color: rgba(61, 189, 125, .4); background: rgba(61, 189, 125, .08); }
+        .emp.woke .emp-ava { color: var(--online); border-color: rgba(77, 205, 94, .4); background: rgba(77, 205, 94, .08); }
         .emp .en { flex: 1; min-width: 0; }
         .emp .en b { display: block; font-size: .93rem; }
         .emp .en small { color: var(--muted); font-size: .72rem; }
@@ -332,13 +329,13 @@
         .emp.woke .sit i { color: var(--online); }
         .emp .wk {
             border: 1px solid var(--line-2); background: transparent; cursor: pointer; font-weight: 800; font-size: .74rem;
-            padding: 7px 18px; border-radius: 10px; color: var(--ink); flex-shrink: 0; transition: all .25s;
+            padding: 7px 18px; border-radius: 14px; color: var(--ink); flex-shrink: 0; transition: all .25s;
         }
         .emp .wk:hover { border-color: var(--gold); color: var(--gold-bright); }
-        .emp.woke .wk { background: var(--online); border-color: transparent; color: #04130d; }
-        .emp.woke .wk:hover { filter: brightness(1.06); color: #04130d; }
+        .emp.woke .wk { background: var(--online); border-color: transparent; color: #F4F4F5; }
+        .emp.woke .wk:hover { filter: brightness(1.06); color: #F4F4F5; }
 
-        .console-chart { margin: 10px 20px 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; }
+        .console-chart { margin: 10px 20px 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; }
         .console-chart .ch-lbl { display: flex; justify-content: space-between; font-size: .72rem; color: var(--muted); font-weight: 700; margin-bottom: 12px; }
         .console-chart .ch-lbl b { color: var(--gold-bright); font-family: var(--num); font-variant-numeric: tabular-nums; }
         .console-chart svg { width: 100%; height: 86px; display: block; }
@@ -353,11 +350,11 @@
         .console-foot b { color: var(--gold-bright); font-family: var(--num); font-variant-numeric: tabular-nums; }
         .chips-float { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; justify-content: center; }
         .chips-float span {
-            padding: 7px 14px; border-radius: 10px; font-size: .74rem; font-weight: 700;
+            padding: 7px 14px; border-radius: 14px; font-size: .74rem; font-weight: 700;
             border: 1px solid var(--line); color: var(--muted);
         }
 
-        .trust { border-block: 1px solid var(--line); padding: 30px 28px; text-align: center; background: rgba(255, 255, 255, .012); }
+        .trust { border-block: 1px solid var(--line); padding: 30px 28px; text-align: center; background: rgba(36,129,204,.012); }
         .trust .row { max-width: 1240px; margin-inline: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 30px; }
         .trust span { color: var(--muted); font-weight: 700; font-size: .9rem; letter-spacing: .3px; }
         .trust span i { color: var(--gold); font-size: .6rem; margin-inline-end: 12px; }
@@ -379,11 +376,11 @@
             position: relative; border: 1px solid var(--line); border-radius: var(--r);
             background: var(--panel); padding: 28px; transition: all .3s var(--ease);
         }
-        .bcard:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0, 0, 0, .4); }
+        .bcard:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0,0,0,0.072); }
         .bcard .ic {
-            width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px;
+            width: 46px; height: 46px; display: grid; place-items: center; border-radius: 16px;
             font-size: 1.1rem; color: var(--gold-bright); margin-bottom: 18px;
-            border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .07);
+            border: 1px solid var(--gold-soft); background: rgba(36,129,204, .07);
         }
         .bcard h3 { font-family: var(--head); font-size: 1.12rem; font-weight: 800; margin-bottom: 10px; }
         .bcard p { font-size: .9rem; color: var(--muted); line-height: 1.9; }
@@ -397,7 +394,7 @@
         .flow svg { width: 100%; height: 100%; }
         .flow .node {
             position: absolute; top: 50%; transform: translate(-50%, -50%);
-            display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+            display: grid; place-items: center; width: 40px; height: 40px; border-radius: 16px;
             background: var(--bg-3); border: 1px solid var(--line-2); color: var(--gold-bright); font-size: .86rem; z-index: 2;
         }
         .flow .node:nth-child(1) { inset-inline-start: 8%; }
@@ -407,7 +404,7 @@
         .spark { margin-top: 24px; }
         .spark svg { width: 100%; height: 74px; display: block; }
         .sp-line { fill: none; stroke: var(--online); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 500; stroke-dashoffset: 500; animation: draw 2.4s var(--ease) .2s forwards; }
-        .sp-area { fill: rgba(61, 189, 125, .1); opacity: 0; animation: fadeIn 1.6s ease 1.1s forwards; }
+        .sp-area { fill: rgba(77, 205, 94, .1); opacity: 0; animation: fadeIn 1.6s ease 1.1s forwards; }
 
         .agents { position: relative; }
         .agents::before {
@@ -426,28 +423,28 @@
             position: relative; border: 1px solid var(--line); border-radius: var(--r);
             background: var(--panel); padding: 26px; transition: all .3s var(--ease);
         }
-        .ag-card:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0, 0, 0, .4); }
+        .ag-card:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0,0,0,0.072); }
         .ag-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
         .ag-ava {
-            width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; flex-shrink: 0;
+            width: 46px; height: 46px; border-radius: 17px; display: grid; place-items: center; flex-shrink: 0;
             font-family: var(--num); font-weight: 800; font-size: .82rem; color: var(--gold-bright);
-            border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .07);
+            border: 1px solid var(--gold-soft); background: rgba(36,129,204, .07);
         }
         .ag-no { font-family: var(--num); font-size: .68rem; color: var(--gold); letter-spacing: 2px; font-weight: 700; }
         .ag-name { font-family: var(--head); font-weight: 800; font-size: 1.02rem; }
         .ag-card p.desc { font-size: .88rem; color: var(--muted); line-height: 1.95; }
-        .ag-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-block-start: 14px; border-block-start: 1px dashed rgba(255, 255, 255, .1); font-size: .78rem; color: var(--faint); }
+        .ag-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-block-start: 14px; border-block-start: 1px dashed rgba(36,129,204,.1); font-size: .78rem; color: var(--faint); }
         .ag-foot .st { display: flex; align-items: center; gap: 7px; color: var(--online); font-weight: 800; font-size: .76rem; }
         .ag-foot .st i { font-size: .6rem; }
         .loading-msg { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px; }
 
         .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 56px; }
         .step { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); padding: 34px 30px; transition: all .3s var(--ease); }
-        .step:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0, 0, 0, .4); }
+        .step:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0,0,0,0.072); }
         .step .n {
-            display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px;
+            display: grid; place-items: center; width: 44px; height: 44px; border-radius: 16px;
             font-family: var(--num); font-weight: 800; color: var(--gold-bright); font-size: 1rem;
-            border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .06); margin-bottom: 20px;
+            border: 1px solid var(--gold-soft); background: rgba(36,129,204, .06); margin-bottom: 20px;
         }
         .step h3 { font-family: var(--head); font-size: 1.14rem; font-weight: 800; margin-bottom: 10px; }
         .step p { font-size: .9rem; color: var(--muted); }
@@ -458,11 +455,11 @@
             border: 1px solid var(--line); border-radius: var(--r); padding: 30px 26px;
             background: var(--panel); transition: all .3s var(--ease);
         }
-        .pc:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0, 0, 0, .4); }
+        .pc:hover { border-color: var(--line-2); transform: translateY(-4px); box-shadow: 0 22px 50px rgba(0,0,0,0.072); }
         .pc.featured {
             border: 1px solid var(--gold-soft);
-            background: linear-gradient(180deg, rgba(200, 164, 94, .07), var(--panel) 40%);
-            box-shadow: 0 30px 70px rgba(0, 0, 0, .45);
+            background: linear-gradient(180deg, rgba(36,129,204, .07), var(--panel) 40%);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.081);
         }
         .pc.featured::before { content: ""; position: absolute; inset-inline: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
         .pc .tag {
@@ -474,7 +471,7 @@
         .pc .price { font-family: var(--num); font-weight: 800; font-size: 2.1rem; color: var(--gold-bright); margin-block: 16px 4px; line-height: 1; font-variant-numeric: tabular-nums; }
         .pc .price small { font-family: var(--font); font-size: .8rem; color: var(--muted); font-weight: 500; }
         .pc ul { list-style: none; margin-block: 20px 26px; flex: 1; }
-        .pc ul li { padding-block: 9px; font-size: .9rem; color: var(--muted); display: flex; gap: 12px; align-items: center; border-block-end: 1px dashed rgba(255, 255, 255, .07); }
+        .pc ul li { padding-block: 9px; font-size: .9rem; color: var(--muted); display: flex; gap: 12px; align-items: center; border-block-end: 1px dashed rgba(36,129,204,.07); }
         .pc ul li:last-child { border: none; }
         .pc ul li i { color: var(--gold); font-size: .72rem; }
         .pc.featured ul li i { color: var(--online); }
@@ -482,16 +479,16 @@
         .t-home { margin-top: 56px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
         .t-feature {
             border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 40px;
-            background: linear-gradient(160deg, rgba(200, 164, 94, .05), var(--panel) 55%);
+            background: linear-gradient(160deg, rgba(36,129,204, .05), var(--panel) 55%);
         }
-        .t-feature .who-mark { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-family: var(--head); color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .08); margin-block-end: 18px; }
+        .t-feature .who-mark { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-family: var(--head); color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(36,129,204, .08); margin-block-end: 18px; }
         .t-feature .star { color: var(--gold); font-size: .82rem; letter-spacing: 4px; margin-bottom: 16px; }
         .t-feature p.qt { font-size: 1.2rem; line-height: 2.05; font-weight: 600; }
         .t-feature .who { margin-top: 24px; font-weight: 800; color: var(--gold-bright); }
         .t-feature .where { font-size: .8rem; color: var(--faint); margin-top: 2px; }
         .t-feature .steps-mini { margin-top: 22px; display: flex; flex-direction: column; gap: 13px; }
         .t-feature .steps-mini > div { display: flex; gap: 14px; align-items: flex-start; font-size: .95rem; color: var(--muted); line-height: 1.8; }
-        .t-feature .n-mini { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; font-family: var(--num); font-weight: 800; font-size: .82rem; color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .06); }
+        .t-feature .n-mini { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 13px; flex-shrink: 0; font-family: var(--num); font-weight: 800; font-size: .82rem; color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(36,129,204, .06); }
         .t-side { display: flex; flex-direction: column; gap: 14px; }
         .q { border: 1px solid var(--line); border-radius: var(--r); padding: 24px; background: var(--panel); transition: all .3s var(--ease); }
         .q:hover { border-color: var(--line-2); transform: translateY(-3px); }
@@ -505,26 +502,26 @@
         .glass-panel {
             max-width: 780px; margin: 54px auto 0; position: relative;
             border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 42px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .012));
+            background: linear-gradient(180deg, rgba(36,129,204,.035), rgba(36,129,204,.012));
             box-shadow: var(--shadow);
         }
         .f-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
         .field label { font-size: .8rem; font-weight: 800; color: var(--muted); display: block; margin-bottom: 8px; letter-spacing: .3px; transition: color .2s; }
         .field:focus-within label { color: var(--gold-bright); }
         .field input, .field select, .field textarea {
-            width: 100%; padding: 13px 16px; border-radius: 12px; font-family: var(--font); font-size: .95rem;
-            color: var(--ink); background: rgba(255, 255, 255, .035); border: 1px solid var(--line);
+            width: 100%; padding: 13px 16px; border-radius: 16px; font-family: var(--font); font-size: .95rem;
+            color: var(--ink); background: rgba(36,129,204,.035); border: 1px solid var(--line);
             transition: border-color .25s, box-shadow .25s; resize: vertical;
         }
         .field input:focus, .field select:focus, .field textarea:focus {
             outline: none; border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(200, 164, 94, .12);
+            box-shadow: 0 0 0 3px rgba(36,129,204, .12);
         }
         .field.full { grid-column: 1 / -1; }
         .glass-panel .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
         .glass-panel .actions .btn { flex: 1; min-width: 205px; }
-        .form-msg { text-align: center; font-weight: 800; padding: 13px; border-radius: 12px; margin-top: 18px; display: none; background: rgba(200, 164, 94, .1); color: var(--gold-bright); border: 1px solid var(--gold-soft); }
-        .form-msg.ok { background: rgba(61, 189, 125, .1); color: var(--online); border-color: rgba(61, 189, 125, .3); }
+        .form-msg { text-align: center; font-weight: 800; padding: 13px; border-radius: 16px; margin-top: 18px; display: none; background: rgba(36,129,204, .1); color: var(--gold-bright); border: 1px solid var(--gold-soft); }
+        .form-msg.ok { background: rgba(77, 205, 94, .1); color: var(--online); border-color: rgba(77, 205, 94, .3); }
         .form-msg.err { background: rgba(248, 113, 113, .1); color: #f0a0a0; border-color: rgba(248, 113, 113, .3); }
 
         /* Telegram quick-connect panel: AI agent + human support */
@@ -532,35 +529,35 @@
             max-width: 780px; margin: 26px auto 0; padding: 1.5rem;
             display: flex; flex-direction: column; gap: 1rem;
             border: 1px solid var(--line-2); border-radius: var(--r-lg);
-            background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .012));
+            background: linear-gradient(180deg, rgba(36,129,204,.035), rgba(36,129,204,.012));
             box-shadow: var(--shadow); text-align: center;
         }
         .tg-panel .tg-lbl { font-size: .82rem; font-weight: 800; letter-spacing: .4px; color: var(--faint); }
-        .tg-panel .tg-lbl i { color: #2aabee; margin-inline-end: 6px; }
+        .tg-panel .tg-lbl .tg-icon { color: #2481cc; width: 1.05em; height: 1.05em; margin-inline-end: 6px; }
         .tg-actions { display: flex; flex-direction: column; gap: .85rem; }
         .tg-btn {
             display: flex; align-items: center; justify-content: center; gap: .75rem;
-            padding: 1rem 1.5rem; border-radius: 12px; font-weight: 800; font-size: .95rem;
+            padding: 1rem 1.5rem; border-radius: 20px; font-weight: 800; font-size: .95rem;
             text-decoration: none; transition: all .25s var(--ease); border: 2px solid transparent;
         }
-        .tg-agent { background: linear-gradient(135deg, #0088cc, #00a8ff); color: #fff; }
-        .tg-agent:hover { box-shadow: 0 6px 20px rgba(0, 136, 204, .45); transform: translateY(-2px); }
-        .tg-support { background: transparent; color: #2aabee; border-color: rgba(42, 171, 238, .5); }
-        .tg-support:hover { background: rgba(42, 171, 238, .1); border-color: #2aabee; transform: translateY(-2px); }
+        .tg-agent { background: linear-gradient(135deg, #2E90DA, #2481cc); color: #fff; }
+        .tg-agent:hover { box-shadow: 0 6px 20px rgba(36, 129, 204, .34); transform: translateY(-2px); }
+        .tg-support { background: transparent; color: #1B6FB3; border-color: rgba(36, 129, 204, .45); }
+        .tg-support:hover { background: rgba(36, 129, 204, .08); border-color: #2481cc; transform: translateY(-2px); }
         .tg-panel .tg-note { font-size: .78rem; color: var(--faint); }
         .mob-cta { display: none; }
         @media (max-width: 640px) {
             .mob-cta {
                 display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
                 position: fixed; inset-inline: 12px; bottom: 12px; z-index: 160;
-                padding: 10px; border-radius: 18px;
-                background: rgba(12, 13, 17, .92); border: 1px solid var(--line-2);
-                backdrop-filter: blur(12px); box-shadow: 0 14px 44px rgba(0, 0, 0, .55);
+                padding: 10px; border-radius: 22px;
+                background: rgba(255, 255, 255, .94); border: 1px solid var(--line-2);
+                backdrop-filter: blur(12px); box-shadow: 0 14px 44px rgba(0,0,0,0.099);
             }
-            .mob-cta a { display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center; font-weight: 800; font-size: .93rem; padding: 13px 6px; border-radius: 12px; text-decoration: none; }
-            .mob-cta .m-consult { color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(200, 164, 94, .1); }
+            .mob-cta a { display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center; font-weight: 800; font-size: .93rem; padding: 13px 6px; border-radius: 16px; text-decoration: none; }
+            .mob-cta .m-consult { color: var(--gold-bright); border: 1px solid var(--gold-soft); background: rgba(36,129,204, .1); }
             .mob-cta .m-consult:active { transform: scale(.98); }
-            .mob-cta .m-tg { color: #fff; background: linear-gradient(135deg, #0088cc, #00a8ff); }
+            .mob-cta .m-tg { color: #fff; background: linear-gradient(135deg, #2E90DA, #2481cc); }
             .mob-cta .m-tg:active { transform: scale(.98); }
             .tg-float { bottom: 86px; }
             .contact-pad { padding-bottom: 120px; }
@@ -574,7 +571,7 @@
         .footer a:hover { color: var(--gold-bright); }
         .socials { display: flex; gap: 11px; margin-top: 20px; }
         .socials a {
-            width: 40px; height: 40px; display: grid; place-items: center; border-radius: 11px;
+            width: 40px; height: 40px; display: grid; place-items: center; border-radius: 15px;
             border: 1px solid var(--line); color: var(--muted); background: var(--panel); transition: all .25s;
         }
         .socials a:hover { color: var(--bg); background: var(--gold); border-color: var(--gold); }
@@ -583,14 +580,14 @@
 
         .tg-float {
             position: fixed; bottom: 26px; inset-inline-end: 26px; z-index: 150;
-            width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; cursor: pointer;
-            background: linear-gradient(135deg, #0088cc, #00a8ff); color: #fff; font-size: 1.5rem;
-            box-shadow: 0 18px 44px rgba(0, 0, 0, .5); transition: all .25s var(--ease);
+            width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; cursor: pointer;
+            background: linear-gradient(135deg, #2E90DA, #2481cc); color: #fff; font-size: 1.5rem;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.090); transition: all .25s var(--ease);
         }
         .tg-float:hover { transform: translateY(-3px); filter: brightness(1.06); }
         .to-top {
             position: fixed; bottom: 26px; inset-inline-start: 26px; z-index: 150;
-            width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+            width: 44px; height: 44px; border-radius: 16px; display: grid; place-items: center;
             border: 1px solid var(--line-2); background: var(--bg-3); color: var(--gold-bright); cursor: pointer;
             opacity: 0; pointer-events: none; transition: all .3s var(--ease);
         }
@@ -636,13 +633,13 @@
             .lc-line, .sp-line { animation: none; stroke-dashoffset: 0; }
             .lc-area, .sp-area { opacity: 1; }
         }
-        .launch-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: linear-gradient(90deg, #1a1508, #2a2010 45%, #1a1508); border-bottom: 1px solid var(--gold-soft); }
+        .launch-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: linear-gradient(90deg, #FFFFFF, #DDEEFB 45%, #FFFFFF); border-bottom: 1px solid var(--gold-soft); }
         .launch-bar .inner { max-width: 1200px; margin: 0 auto; padding: 8px 18px; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; font-size: .86rem; }
-        .launch-bar .inner code { background: var(--gold-soft); color: var(--gold-bright); padding: 2px 8px; border-radius: 6px; font-weight: 700; letter-spacing: .4px; font-family: var(--num); }
+        .launch-bar .inner code { background: var(--gold-soft); color: var(--gold-bright); padding: 2px 8px; border-radius: 10px; font-weight: 700; letter-spacing: .4px; font-family: var(--num); }
         .launch-bar .launch-ico { color: var(--gold-bright); }
         .launch-bar .launch-txt b { color: var(--gold-bright); }
         .launch-bar .launch-cd { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
-        .launch-bar .launch-cd .cd { display: inline-block; min-width: 34px; text-align: center; background: rgba(0,0,0,.35); border: 1px solid var(--gold-soft); color: var(--gold-bright); font-family: var(--num); font-weight: 800; padding: 3px 8px; border-radius: 8px; font-size: .82rem; }
+        .launch-bar .launch-cd .cd { display: inline-block; min-width: 34px; text-align: center; background: rgba(0,0,0,.35); border: 1px solid var(--gold-soft); color: var(--gold-bright); font-family: var(--num); font-weight: 800; padding: 3px 8px; border-radius: 12px; font-size: .82rem; }
         .launch-bar .launch-x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: .9rem; padding: 4px; margin-inline-start: 4px; }
         .launch-bar .launch-x:hover { color: var(--ink); }
         body.launch-on { padding-top: 40px; }
@@ -682,7 +679,7 @@
     <nav class="nav" id="nav">
         <div class="inner">
             <a href="/home" class="brand">
-                <span class="mark">النرجس</span>
+                {{ tg_badge() }}
                 <span>
                     <span class="name">النرجس <b>AI</b></span>
                     <span class="sub">AL-NARJIS AI</span>
@@ -766,10 +763,10 @@
                         <svg viewBox="0 0 560 86" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="lgGrad" x1="0" y1="0" x2="1" y2="0">
-                                    <stop offset="0" stop-color="#c8a45e"/><stop offset="1" stop-color="#e6c98a"/>
+                                    <stop offset="0" stop-color="#2481CC"/><stop offset="1" stop-color="#1B6FB3"/>
                                 </linearGradient>
                                 <linearGradient id="lgArea" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#c8a45e" stop-opacity=".18"/><stop offset="1" stop-color="#c8a45e" stop-opacity="0"/>
+                                    <stop offset="0" stop-color="#2481CC" stop-opacity=".18"/><stop offset="1" stop-color="#2481CC" stop-opacity="0"/>
                                 </linearGradient>
                             </defs>
                             <path class="lc-area" d="M0 70 L70 58 L140 62 L210 44 L280 50 L350 32 L420 40 L490 22 L560 28 L560 86 L0 86 Z"/>
@@ -819,7 +816,7 @@
                     <div class="flow" id="flow">
                         <svg viewBox="0 0 300 40" preserveAspectRatio="none">
                             <defs>
-                                <linearGradient id="fg1" x1="0" x2="1"><stop offset="0" stop-color="#c8a45e"/><stop offset="1" stop-color="#3dbd7d"/></linearGradient>
+                                <linearGradient id="fg1" x1="0" x2="1"><stop offset="0" stop-color="#2481CC"/><stop offset="1" stop-color="#4DCD5E"/></linearGradient>
                             </defs>
                             <path d="M0 20 H300" stroke="url(#fg1)" stroke-dasharray="5 6" stroke-width="1.5" opacity=".6">
                                 <animate attributeName="stroke-dashoffset" from="0" to="-44" dur="1.8s" repeatCount="indefinite"/>
@@ -855,7 +852,7 @@
                         <svg viewBox="0 0 560 74" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="spArea" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#3dbd7d" stop-opacity=".18"/><stop offset="1" stop-color="#3dbd7d" stop-opacity="0"/>
+                                    <stop offset="0" stop-color="#4DCD5E" stop-opacity=".18"/><stop offset="1" stop-color="#4DCD5E" stop-opacity="0"/>
                                 </linearGradient>
                             </defs>
                             <path class="sp-area" d="M0 60 L80 50 L160 54 L240 34 L320 42 L400 24 L480 30 L560 16 L560 74 L0 74 Z"/>
@@ -917,9 +914,9 @@
                     <h3><span data-lang="ar">مثال توضيحي على المخرجات</span><span data-lang="en" data-inline>Illustrative output sample</span></h3>
                     <p style="font-size:.86rem;color:var(--muted);"><span data-lang="ar">الأمثلة أدناه توضيحية只为 توضيح شكل المخرج — ليست مخرجات عميل حقيقي ولا保证了 للأداء.</span><span data-lang="en" data-inline>The samples below are illustrative only — they show the output format and are not real client results or a performance guarantee.</span></p>
                     <div class="flow" style="display:grid;gap:10px;">
-                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-011 · كاتب المحتوى</b><br><span data-lang="ar">«تقويم محتوى أسبوعي: 4 منشورات + 3 ستوري + جدول публикаيات»</span><span data-lang="en" data-inline>"Weekly content calendar: 4 posts + 3 stories + publishing schedule"</span></div>
-                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-009 · خدمة العملاء</b><br><span data-lang="ar">«رد مقترح على استفسار شحن:确认 الطلب + رقم التتبع + موعد التسليم»</span><span data-lang="en" data-inline>"Suggested reply to a shipping question: order confirmation + tracking + delivery date"</span></div>
-                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-015 · محلل المنافسين</b><br><span data-lang="ar">«جدول مقارنة: 5 منافسين × 6 معايير + توصيتان للتحسين»</span><span data-lang="en" data-inline>"Comparison table: 5 competitors × 6 criteria + 2 recommended improvements"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-011 · كاتب المحتوى</b><br><span data-lang="ar">«تقويم محتوى أسبوعي: 4 منشورات + 3 ستوري + جدول публикаيات»</span><span data-lang="en" data-inline>"Weekly content calendar: 4 posts + 3 stories + publishing schedule"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-009 · خدمة العملاء</b><br><span data-lang="ar">«رد مقترح على استفسار شحن:确认 الطلب + رقم التتبع + موعد التسليم»</span><span data-lang="en" data-inline>"Suggested reply to a shipping question: order confirmation + tracking + delivery date"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-015 · محلل المنافسين</b><br><span data-lang="ar">«جدول مقارنة: 5 منافسين × 6 معايير + توصيتان للتحسين»</span><span data-lang="en" data-inline>"Comparison table: 5 competitors × 6 criteria + 2 recommended improvements"</span></div>
                     </div>
                 </div>
             </div>
@@ -1077,16 +1074,16 @@
                     </div>
                 </div>
                 <div class="actions">
-                    <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i><span data-lang="ar">أرسل الطلب</span><span data-lang="en" data-inline>Send request</span></button>
-                    <a id="tgDirect" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="btn btn-tg"><i class="fab fa-telegram"></i><span data-lang="ar">إطلاق الوكيل عبر Telegram</span><span data-lang="en" data-inline>Launch agent on Telegram</span></a>
+                    <button type="submit" class="btn btn-gold">{{ tg_plane() }}<span data-lang="ar">أرسل الطلب</span><span data-lang="en" data-inline>Send request</span></button>
+                    <a id="tgDirect" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="btn btn-tg">{{ tg_plane() }}<span data-lang="ar">إطلاق الوكيل عبر Telegram</span><span data-lang="en" data-inline>Launch agent on Telegram</span></a>
                 </div>
                 <div id="formMsg" class="form-msg"></div>
             </form>
 
             <div class="tg-panel reveal">
-                <span class="tg-lbl"><i class="fab fa-telegram"></i><span data-lang="ar">ربط مباشر عبر تيليجرام</span><span data-lang="en" data-inline>Direct link on Telegram</span></span>
+                <span class="tg-lbl">{{ tg_plane() }}<span data-lang="ar">ربط مباشر عبر تيليجرام</span><span data-lang="en" data-inline>Direct link on Telegram</span></span>
                 <div class="tg-actions">
-                    <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="tg-btn tg-agent"><i class="fab fa-telegram"></i><span data-lang="ar">إطلاق الوكيل الذكي عبر Telegram</span><span data-lang="en" data-inline>Launch the AI agent on Telegram</span></a>
+                    <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="tg-btn tg-agent">{{ tg_plane() }}<span data-lang="ar">إطلاق الوكيل الذكي عبر Telegram</span><span data-lang="en" data-inline>Launch the AI agent on Telegram</span></a>
                     <a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener" class="tg-btn tg-support"><i class="fas fa-headset"></i><span data-lang="ar">تحدث مع الدعم الفني</span><span data-lang="en" data-inline>Talk to human support</span></a>
                 </div>
                 <span class="tg-note"><span data-lang="ar">رد فوري · محادثتك تصل مباشرة لفريقنا</span><span data-lang="en" data-inline>Instant reply · your chat reaches our team directly</span></span>
@@ -1096,17 +1093,17 @@
 
     <div class="mob-cta">
         <a href="/consult" class="m-consult"><i class="fas fa-comments"></i><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
-        <a id="mTgCta" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="m-tg"><i class="fab fa-telegram"></i><span data-lang="ar">تيليجرام</span><span data-lang="en" data-inline>Telegram</span></a>
+        <a id="mTgCta" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="m-tg">{{ tg_plane() }}<span data-lang="ar">تيليجرام</span><span data-lang="en" data-inline>Telegram</span></a>
     </div>
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="footer">
         <div class="grid-x">
             <div>
-                <a href="/home" class="brand"><span class="mark" style="font-size:1rem;">النرجس</span><span><span class="name" style="font-size:1rem;">النرجس <b>AI</b></span></span></a>
+                <a href="/home" class="brand">{{ tg_badge() }}<span><span class="name" style="font-size:1rem;">النرجس <b>AI</b></span></span></a>
                 <p style="max-width:30em;margin-top:16px;"><span data-lang="ar">وكلاء ذكاء اصطناعي يعملون على مدار الساعة لتنمية أعمالك — بجودة عربية أصيلة من الرياض.</span><span data-lang="en" data-inline>AI agents working around the clock to grow your business — authentic craft from Riyadh.</span></p>
                 <div class="socials">
-                    <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+                    <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
                     <a href="/consult" aria-label="Smart Consultant"><i class="fas fa-comments"></i></a>
                 </div>
             </div>
@@ -1122,7 +1119,7 @@
             </div>
             <div>
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
-                <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener"><i class="fab fa-telegram" style="margin-inline-end:8px;color:#2aabee;"></i>@AlNarjs7BOT · Telegram</a>
+                <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">{{ tg_plane_cls("margin-inline-end:8px") }}@AlNarjs7BOT · Telegram</a>
                 <span style="display:block;padding-block:5px;font-size:.86rem;color:var(--muted);"><i class="fas fa-phone" style="margin-inline-end:8px;color:var(--gold);"></i>+966 55 297 8753</span>
                 <a href="mailto:al-narjis@karmaai.online">al-narjis@karmaai.online</a>
                 <a href="https://www.google.com/maps/search/?api=1&query=Riyadh+Saudi+Arabia" target="_blank" rel="noopener"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
@@ -1143,7 +1140,7 @@
         </div>
     </footer>
 
-    <a id="tgFloat" class="tg-float" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+    <a id="tgFloat" class="tg-float" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
     <button class="to-top" id="toTop" aria-label="Top"><i class="fas fa-arrow-up"></i></button>
 
     <script>
@@ -1354,13 +1351,13 @@
         })();
     </script>
 
-    <div id="cookieBar" style="position:fixed;bottom:16px;inset-inline:16px;max-width:560px;margin-inline:auto;background:#12151c;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,.5);">
-        <p style="font-size:.85rem;color:#98a1b0;margin:0 0 10px;">
+    <div id="cookieBar" style="position:fixed;bottom:16px;inset-inline:16px;max-width:560px;margin-inline:auto;background:#F9F9F9;border:1px solid rgba(0,0,0,.08);border-radius: 18px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,0.090);">
+        <p style="font-size:.85rem;color:#707579;margin:0 0 10px;">
             <span data-lang="ar">نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.</span>
             <span data-lang="en" data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>
         </p>
         <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;"><span data-lang="ar">موافق</span><span data-lang="en" data-inline>Got it</span></button>
-        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:#c8a45e;"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
+        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:#2481CC;"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
     </div>
     <script>
         (function () {
