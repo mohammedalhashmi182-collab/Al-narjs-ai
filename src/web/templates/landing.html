@@ -693,6 +693,7 @@
                 <a href="#agents"><span data-lang="ar">الوكلاء</span><span data-lang="en" data-inline>Agents</span></a>
                 <a href="#how"><span data-lang="ar">كيف يعمل</span><span data-lang="en" data-inline>How it works</span></a>
                 <a href="#about"><span data-lang="ar">من نحن</span><span data-lang="en" data-inline>About</span></a>
+                <a href="/blog"><span data-lang="ar">المدوّنة</span><span data-lang="en" data-inline>Blog</span></a>
                 <a href="#pricing"><span data-lang="ar">الباقات</span><span data-lang="en" data-inline>Pricing</span></a>
                 <a href="/consult"><span data-lang="ar">المستشار الذكي</span><span data-lang="en" data-inline>Consultant</span></a>
                 <a href="/guide" class="guide-link"><span data-lang="ar">دليل مجاني</span><span data-lang="en" data-inline>Free guide</span></a>
@@ -890,7 +891,7 @@
                     <p class="desc"><span data-lang="ar">{{ agents_preview[2].intro_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[2].intro_en }}</span></p>
                     <div class="ag-foot"><span>{{ agents_preview[2].dept }}</span><span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>
                 </div>
-                <div class="loading-msg" id="agentsStatus" style="grid-column:1/-1;text-align:center;"><span data-lang="ar">جارٍ تحميل بقية الوكلاء…</span><span data-lang="en" data-inline>Loading the rest of the team…</span> <a href="/agents"><span data-lang="ar">أو اعرض القائمة كاملة</span><span data-lang="en" data-inline>or view the full list</span></a></div>
+                <div class="loading-msg" id="agentsStatus" style="grid-column:1/-1;text-align:center;"><span data-lang="ar">جارٍ تحميل بقية الوكلاء…</span><span data-lang="en" data-inline>Loading the rest of the team…</span> <a href="/home#agents"><span data-lang="ar">أو اعرض القائمة كاملة</span><span data-lang="en" data-inline>or view the full list</span></a></div>
             </div>
         </div>
     </section>
@@ -1114,7 +1115,10 @@
                 <a href="/portal"><span data-lang="ar">بوابة العميل</span><span data-lang="en" data-inline>Client portal</span></a>
                 <a href="/consult"><span data-lang="ar">المستشار الذكي</span><span data-lang="en" data-inline>Smart consultant</span></a>
                 <a href="#agents"><span data-lang="ar">الوكلاء</span><span data-lang="en" data-inline>Agents</span></a>
+                <a href="/blog"><span data-lang="ar">المدوّنة</span><span data-lang="en" data-inline>Blog</span></a>
+                <a href="/ai-agents-saudi-businesses"><span data-lang="ar">وكلاء الذكاء الاصطناعي في السعودية</span><span data-lang="en" data-inline>AI Agents in KSA</span></a>
                 <a href="#pricing"><span data-lang="ar">الباقات</span><span data-lang="en" data-inline>Pricing</span></a>
+                <a href="/ai-agents-saudi-businesses"><span data-lang="ar">وكلاء الذكاء الاصطناعي</span><span data-lang="en" data-inline>AI Agents</span></a>
             </div>
             <div>
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
@@ -1279,8 +1283,8 @@
                 } catch (e) {
                     var st = document.getElementById('agentsStatus');
                     if (st) st.innerHTML = document.body.dataset.lang === 'ar'
-                        ? 'تعذر تحميل القائمة الكاملة — <a href="/agents">افتح صفحة الوكلاء</a>'
-                        : 'Could not load the full list — <a href="/agents">open the agents page</a>';
+                        ? 'تعذر تحميل القائمة الكاملة — <a href="/home#agents">افتح صفحة الوكلاء</a>'
+                        : 'Could not load the full list — <a href="/home#agents">open the agents page</a>';
                 } finally { clearTimeout(to); }
             })();
 

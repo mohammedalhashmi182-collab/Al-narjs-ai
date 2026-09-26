@@ -1,0 +1,99 @@
+{% set _lang = page_lang(request) %}
+{% import "partials/_seo.html" as seo with context %}
+{% set _body = article.body_ar if _lang == 'ar' else article.body_en %}
+{% set _faq_items = article.faq if _lang == 'ar' else article.faq_en %}
+{% set _faq_entities = [] %}
+{% for f in _faq_items %}{% set _ = _faq_entities.append({
+  "@type": "Question",
+  "name": f.q,
+  "acceptedAnswer": {"@type": "Answer", "text": f.a}
+}) %}{% endfor %}
+{% set _jsonld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": _faq_entities} %}
+{% set _head = seo.head(
+  (article.title_ar ~ ' | مدونة النرجس للذكاء الاصطناعي'),
+  (article.title_en ~ ' | Al-Narjis AI Blog'),
+  article.desc_ar,
+  article.desc_en,
+  request.url.path,
+  'article',
+  jsonld=_jsonld) %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    {{ _head | safe }}
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        body { font-family: "Tajawal", sans-serif; background: #0a0b0e; color: #eef1f6; line-height: 2; }
+        .wrap { max-width: 760px; margin-inline: auto; padding-inline: 22px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .brand { font-weight: 800; font-family: "Manrope", sans-serif; color: #e6c98a; text-decoration: none; }
+        .back { color: #98a1b0; text-decoration: none; font-size: .92rem; }
+        h1 { font-family: "Manrope", sans-serif; font-size: clamp(1.7rem, 4.4vw, 2.4rem); line-height: 1.34; margin: 28px 0 12px; }
+        h2 { font-family: "Manrope", sans-serif; font-size: 1.22rem; color: #e6c98a; margin: 34px 0 10px; }
+        .meta { color: #98a1b0; font-size: .88rem; }
+        p, li { color: #d7dce5; }
+        ul { padding-inline-start: 22px; }
+        li { margin-bottom: 10px; }
+        .faq { border-top: 1px solid rgba(255,255,255,.08); margin-top: 40px; padding-top: 24px; }
+        .faq h2 { margin-top: 0; }
+        .faq h3 { font-size: 1.02rem; margin: 20px 0 6px; color: #eef1f6; }
+        .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0; }
+        .btn { display: inline-block; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #e6c98a, #c8a45e); color: #0a0b0e; }
+        .btn-ghost { border: 1px solid rgba(255,255,255,.16); color: #eef1f6; }
+        .more { border-top: 1px solid rgba(255,255,255,.08); margin-top: 34px; padding-top: 20px; }
+        .more a { display: block; color: #e6c98a; text-decoration: none; font-size: .95rem; margin-bottom: 10px; }
+        footer { border-top: 1px solid rgba(255,255,255,.08); margin-top: 40px; padding: 22px 0 40px; color: #98a1b0; font-size: .86rem; }
+        footer a { color: #98a1b0; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="topbar">
+        <a class="brand" href="/home">النرجس <span style="color:#eef1f6">AI</span></a>
+        <a class="back" href="/blog">&larr; {% if _lang == 'ar' %}المدوّنة{% else %}Blog{% endif %}</a>
+    </div>
+
+    <div class="meta">{{ article.category_ar if _lang == 'ar' else article.category_en }} · {{ article.date }} · {{ article.reading_minutes }} {% if _lang == 'ar' %}دقائق قراءة{% else %}min read{% endif %}</div>
+    <h1>{{ article.title_ar if _lang == 'ar' else article.title_en }}</h1>
+
+    {% for block in _body %}
+        {% if block.h %}<h2>{{ block.h }}</h2>{% endif %}
+        {% for para in block.p %}<p>{{ para }}</p>{% endfor %}
+        {% if block.ul %}
+        <ul>{% for item in block.ul %}<li>{{ item }}</li>{% endfor %}</ul>
+        {% endif %}
+    {% endfor %}
+
+    {% if _faq_items %}
+    <div class="faq">
+        <h2>{% if _lang == 'ar' %}أسئلة شائعة{% else %}FAQ{% endif %}</h2>
+        {% for f in _faq_items %}
+        <h3>{{ f.q }}</h3>
+        <p>{{ f.a }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="cta">
+        <a class="btn btn-gold" href="/home#pricing">{% if _lang == 'ar' %}شاهد الباقات{% else %}See the plans{% endif %}</a>
+        <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}اسأل المستشار الذكي{% else %}Ask the Smart Consultant{% endif %}</a>
+    </div>
+
+    {% if more %}
+    <div class="more">
+        <h2 style="margin-top:0">{% if _lang == 'ar' %}اقرأ أيضاً{% else %}Read next{% endif %}</h2>
+        {% for a in more %}<a href="/blog/{{ a.slug }}">→ {{ a.title_ar if _lang == 'ar' else a.title_en }}</a>{% endfor %}
+    </div>
+    {% endif %}
+
+    <footer>
+        النرجس للذكاء الاصطناعي — الرياض ·
+        <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·
+        <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a>
+    </footer>
+</div>
+</body>
+</html>

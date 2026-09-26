@@ -1,0 +1,23 @@
+{% macro head(title_ar, title_en, desc_ar, desc_en, path, og_type='website', jsonld=None) %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title_ar if _lang == 'ar' else title_en }}</title>
+<meta name="description" content="{{ desc_ar if _lang == 'ar' else desc_en }}">
+<meta name="robots" content="index,follow,max-image-preview:large">
+{% if path.startswith('/ar/') or path.startswith('/en/') %}{% set _base = path[3:] %}{% else %}{% set _base = path %}{% endif %}
+{% set _canon = '/' ~ _lang ~ _base %}
+<link rel="canonical" href="https://karmaai.online{{ _canon }}">
+<link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base }}">
+<link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base }}">
+<link rel="alternate" hreflang="x-default" href="https://karmaai.online{{ _base }}">
+<meta property="og:type" content="{{ og_type }}">
+<meta property="og:site_name" content="Al-Narjis AI">
+<meta property="og:title" content="{{ title_ar if _lang == 'ar' else title_en }}">
+<meta property="og:description" content="{{ desc_ar if _lang == 'ar' else desc_en }}">
+<meta property="og:url" content="https://karmaai.online{{ _canon }}">
+<meta property="og:locale" content="{{ 'ar_SA' if _lang == 'ar' else 'en_US' }}">
+<meta property="og:locale:alternate" content="{{ 'en_US' if _lang == 'ar' else 'ar_SA' }}">
+<meta property="og:image" content="https://karmaai.online/static/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+{% if jsonld %}<script type="application/ld+json">{{ jsonld | tojson }}</script>{% endif %}
+{% endmacro %}

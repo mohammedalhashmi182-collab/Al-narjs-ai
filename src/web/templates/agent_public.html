@@ -1,0 +1,112 @@
+{% set _lang = page_lang(request) %}
+{% import "partials/_seo.html" as seo with context %}
+{% set _agent_jsonld = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": agent.title_ar if _lang == 'ar' else agent.title_en,
+  "description": agent.intro_ar if _lang == 'ar' else agent.intro_en,
+  "serviceType": agent.dept if _lang == 'ar' else agent.dept_en,
+  "provider": {"@type": "Organization", "name": "Al-Narjis AI", "url": "https://karmaai.online"},
+  "areaServed": "Saudi Arabia",
+  "availableLanguage": ["ar", "en"]
+} %}
+{% set _head = seo.head(
+  (agent.title_ar ~ ' — ' ~ agent.no ~ ' | النرجس للذكاء الاصطناعي'),
+  (agent.title_en ~ ' — ' ~ agent.no ~ ' | Al-Narjis AI'),
+  (agent.intro_ar[:150]),
+  (agent.intro_en[:150]),
+  request.url.path,
+  'article',
+  jsonld=_agent_jsonld) %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    {{ _head | safe }}
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        body { font-family: "Tajawal", sans-serif; background: #0a0b0e; color: #eef1f6; line-height: 1.9; }
+        .wrap { max-width: 900px; margin-inline: auto; padding-inline: 22px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .brand { font-weight: 800; font-family: "Manrope", sans-serif; color: #e6c98a; text-decoration: none; }
+        .back { color: #98a1b0; text-decoration: none; font-size: .92rem; }
+        .card { background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 28px; margin: 28px 0; }
+        h1 { font-family: "Manrope", sans-serif; font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.32; margin: 26px 0 10px; }
+        h2 { font-family: "Manrope", sans-serif; font-size: 1.25rem; color: #e6c98a; margin: 30px 0 12px; }
+        .no { display: inline-block; border: 1px solid rgba(200,164,94,.5); color: #e6c98a; border-radius: 999px; padding: 4px 14px; font-size: .82rem; }
+        .dept { color: #98a1b0; font-size: .9rem; }
+        .muted { color: #98a1b0; }
+        ul { padding-inline-start: 20px; }
+        li { margin-bottom: 8px; }
+        .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 8px; }
+        .btn { display: inline-block; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #e6c98a, #c8a45e); color: #0a0b0e; }
+        .btn-ghost { border: 1px solid rgba(255,255,255,.16); color: #eef1f6; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .grid a { display: block; background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 14px 16px; text-decoration: none; color: #eef1f6; font-size: .9rem; }
+        .grid a:hover { border-color: #c8a45e; }
+        .grid small { display: block; color: #98a1b0; }
+        footer { border-top: 1px solid rgba(255,255,255,.08); margin-top: 40px; padding: 22px 0 40px; color: #98a1b0; font-size: .86rem; }
+        footer a { color: #98a1b0; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="topbar">
+        <a class="brand" href="/home">النرجس <span style="color:#eef1f6">AI</span></a>
+        <a class="back" href="/home#agents">&larr; {% if _lang == 'ar' %}كل الوكلاء{% else %}All agents{% endif %}</a>
+    </div>
+
+    <div class="card">
+        <span class="no">{{ agent.no }}</span>
+        <span class="dept"> · {{ agent.dept if _lang == 'ar' else agent.dept_en }}</span>
+        <h1>{{ agent.title_ar if _lang == 'ar' else agent.title_en }}</h1>
+        <p class="muted">{{ agent.intro_ar if _lang == 'ar' else agent.intro_en }}</p>
+        <div class="cta">
+            <a class="btn btn-gold" href="/portal?pkg={{ recommended_pkg }}">{% if _lang == 'ar' %}أيقظ هذا الوكيل{% else %}Wake this agent{% endif %}</a>
+            <a class="btn btn-ghost" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">Telegram</a>
+            <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}اسأل المستشار{% else %}Ask the consultant{% endif %}</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>{% if _lang == 'ar' %}ماذا يُنتج{% else %}What it produces{% endif %}</h2>
+        {% if outputs %}
+        <ul>
+            {% for item in outputs %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">{% if _lang == 'ar' %}مخرجات قابلة للتخصيص حسب مهمتك. اطلب عيّنة قبل الاشتراك.{% else %}Outputs tailored to your task. Ask for a sample before subscribing.{% endif %}</p>
+        {% endif %}
+    </div>
+
+    {% if agent.questions %}
+    <div class="card">
+        <h2>{% if _lang == 'ar' %}أسئلة يطرحها عند الإيقاظ{% else %}Questions it asks when woken{% endif %}</h2>
+        <ul>
+            {% for q in agent.questions %}<li>{{ q.q_ar if _lang == 'ar' else q.q_en }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2>{% if _lang == 'ar' %}وكلاء من نفس القسم{% else %}Agents in the same department{% endif %}</h2>
+        <div class="grid">
+            {% for rel in related %}
+            <a href="/ai-agent/{{ rel.slug }}">
+                <small>{{ rel.no }} · {{ rel.dept if _lang == 'ar' else rel.dept_en }}</small>
+                {{ rel.title_ar if _lang == 'ar' else rel.title_en }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <footer>
+        {{ agent.no }} · النرجس للذكاء الاصطناعي — الرياض ·
+        <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·
+        <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a>
+    </footer>
+</div>
+</body>
+</html>

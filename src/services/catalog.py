@@ -547,6 +547,34 @@ EMPLOYEES: dict[str, dict] = {
 }
 
 
+DEPT_EN: dict[str, str] = {
+    "التسويق الرقمي": "Digital Marketing",
+    "المحتوى": "Content",
+    "نمو الأعمال": "Business Growth",
+    "المنتجات والهندسة": "Product & Engineering",
+    "التحليلات": "Analytics",
+    "الإدارة التنفيذية": "Executive Office",
+    "الشؤون المؤسسية": "Corporate Affairs",
+    "التجارة الإلكترونية": "E-commerce",
+    "خدمة العملاء": "Customer Care",
+}
+
+
+def dept_label(dept: str, lang: str) -> str:
+    """Arabic is the source of truth; English pages must never print an Arabic dept."""
+    if lang == "en":
+        return DEPT_EN.get(dept, dept)
+    return dept
+
+
+_MISSING_DEPT_EN = sorted({e.get("dept", "") for e in EMPLOYEES.values()} - set(DEPT_EN))
+if _MISSING_DEPT_EN:
+    raise RuntimeError(f"departments without an English label: {_MISSING_DEPT_EN}")
+
+for _employee in EMPLOYEES.values():
+    _employee["dept_en"] = DEPT_EN[_employee.get("dept", "")]
+
+
 def get_package(package_key: str) -> dict | None:
     return PACKAGES.get(package_key)
 
@@ -566,6 +594,7 @@ def employee_identity(slug: str, defn_name: str) -> dict:
         "title_ar": emp.get("title_ar", defn_name),
         "title_en": emp.get("title_en", defn_name),
         "dept": emp.get("dept", ""),
+        "dept_en": dept_label(emp.get("dept", ""), "en"),
     }
 
 
@@ -579,6 +608,7 @@ def team_with_identity(agent_slugs: list[str], names: dict[str, str]) -> list[di
             "title_ar": emp.get("title_ar", names.get(slug, slug)),
             "title_en": emp.get("title_en", names.get(slug, slug)),
             "dept": emp.get("dept", ""),
+            "dept_en": dept_label(emp.get("dept", ""), "en"),
             "intro_ar": emp.get("intro_ar", ""),
             "intro_en": emp.get("intro_en", ""),
         })

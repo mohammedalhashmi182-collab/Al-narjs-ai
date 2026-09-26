@@ -385,14 +385,120 @@ async def landing_page(request: Request):
 
 @app.get("/robots.txt", response_class=HTMLResponse)
 async def robots_txt():
-    from fastapi.responses import FileResponse
-    return FileResponse("src/web/static/robots.txt", media_type="text/plain")
+    from fastapi.responses import PlainTextResponse
+
+    from src.services.seo import build_robots
+
+    return PlainTextResponse(build_robots(), media_type="text/plain")
 
 
 @app.get("/sitemap.xml", response_class=HTMLResponse)
 async def sitemap_xml():
-    from fastapi.responses import FileResponse
-    return FileResponse("src/web/static/sitemap.xml", media_type="application/xml")
+    from fastapi.responses import Response
+
+    from src.services import blog_articles_1, catalog, seo
+
+    xml = seo.build_sitemap(list(catalog.EMPLOYEES.keys()), blog_articles_1.ARTICLES)
+    return Response(content=xml, media_type="application/xml")
+
+
+@app.get("/ai-agent/{slug}", response_class=HTMLResponse)
+async def public_agent_page(slug: str, request: Request):
+    """One indexable page per agent — the SEO surface for the team."""
+    from src.services import catalog
+
+    employee = catalog.get_employee(slug)
+    if not employee:
+        raise HTTPException(404, "Agent not found")
+
+    same_dept = [
+        emp
+        for key, emp in catalog.EMPLOYEES.items()
+        if key != slug and emp.get("dept") == employee.get("dept")
+    ]
+    related = same_dept[:6]
+    if len(related) < 6:
+        for key, emp in catalog.EMPLOYEES.items():
+            if key != slug and emp not in related:
+                related.append(emp)
+            if len(related) >= 6:
+                break
+
+    recommended_pkg = "growth"
+    for pkg_key, team in catalog.PACKAGE_TEAMS.items():
+        if slug in team:
+            recommended_pkg = pkg_key
+            break
+
+    return templates.TemplateResponse(
+        request,
+        "agent_public.html",
+        {
+            "agent": employee,
+            "related": related,
+            "recommended_pkg": recommended_pkg,
+            "outputs": employee.get("outputs", []),
+        },
+    )
+
+
+@app.get("/blog", response_class=HTMLResponse)
+async def blog_index_page(request: Request):
+    from src.services import blog_articles_1
+
+    return templates.TemplateResponse(
+        request, "blog_index.html", {"articles": blog_articles_1.ARTICLES}
+    )
+
+
+@app.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_post_page(slug: str, request: Request):
+    from src.services import blog_articles_1
+
+    articles = blog_articles_1.ARTICLES
+    article = next((a for a in articles if a["slug"] == slug), None)
+    if not article:
+        raise HTTPException(404, "Article not found")
+    more = [a for a in articles if a["slug"] != slug][:4]
+    return templates.TemplateResponse(
+        request, "blog_post.html", {"article": article, "more": more}
+    )
+
+
+@app.get("/ai-agents-saudi-businesses", response_class=HTMLResponse)
+async def intent_page(request: Request):
+    """Search-intent landing page: 'AI agents for Saudi businesses'."""
+    from src.services import catalog
+
+    teams = []
+    for key, pkg in catalog.PACKAGES.items():
+        members = []
+        for slug in catalog.PACKAGE_TEAMS.get(key, []):
+            emp = catalog.get_employee(slug)
+            if emp:
+                members.append({"slug": slug, **emp})
+        teams.append(
+            {
+                "key": key,
+                "name": pkg["name"],
+                "name_en": pkg["name_en"],
+                "price": pkg["price"],
+                "tagline": pkg["tagline"],
+                "tagline_en": pkg["tagline_en"],
+                "members": members,
+            }
+        )
+    return templates.TemplateResponse(
+        request,
+        "intent_agents.html",
+        {
+            "teams": teams,
+            "agent_count": len(catalog.EMPLOYEES),
+            "agents": [
+                {"slug": slug, **emp} for slug, emp in catalog.EMPLOYEES.items()
+            ],
+        },
+    )
 
 
 @app.get("/privacy", response_class=HTMLResponse)
