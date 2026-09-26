@@ -195,6 +195,26 @@ def test_owner_console_keeps_dark_surfaces_on_green() -> None:
         assert hexv not in body, f"admin css still carries {hexv}"
 
 
+def test_owner_console_primary_button_is_gold_with_dark_text() -> None:
+    """Gold is light, so a gold button must not keep white label text."""
+    body = ADMIN_CSS.read_text(encoding="utf-8")
+    rule = re.search(r"\.bg-blue-600 \{[^}]*\}", body)
+    assert rule, "the admin primary button rule is missing"
+    text = rule.group(0)
+    assert "var(--ad-action)" in text, "the admin primary button is not the gold action colour"
+    assert "#ffffff" not in text.lower(), "white text on a gold button fails contrast"
+    assert "var(--ad-gold)" not in text, "the admin primary button fell back to structural green"
+
+
+def test_admin_action_token_is_actually_used() -> None:
+    """A defined-but-unused action token means the primary was never wired up."""
+    body = ADMIN_CSS.read_text(encoding="utf-8")
+    for token in ("--ad-action", "--ad-action-press"):
+        uses = len(re.findall(re.escape(token) + r"(?![\w-])", body))
+        assert uses >= 2, f"{token} is defined but never used ({uses} reference(s))"
+
+
+
 def test_telegram_mark_partial_exists_and_is_reusable() -> None:
     partial = TEMPLATES / "partials" / "_telegram_mark.html"
     assert partial.exists(), "the shared Telegram mark partial is missing"

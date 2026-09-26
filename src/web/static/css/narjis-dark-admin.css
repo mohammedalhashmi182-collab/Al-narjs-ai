@@ -54,8 +54,10 @@ body { background: var(--ad-sand); color: var(--ad-text); }
 .focus\:ring-blue-500:focus, .focus\:ring-blue-500 { --tw-ring-color: var(--ad-gold-soft) !important; }
 .focus\:border-blue-500:focus { border-color: var(--ad-gold) !important; }
 
-.bg-blue-600 { background: var(--ad-gold) !important; background-color: var(--ad-gold) !important; color: #ffffff; }
-.hover\:bg-blue-700:hover { background: #3d5f33 !important; background-color: #3d5f33 !important; }
+  /* primary action: gold, with dark ink for contrast (gold is a light colour,
+     so white text here would fail) */
+  .bg-blue-600 { background: var(--ad-action) !important; background-color: var(--ad-action) !important; color: #292524; }
+  .hover\:bg-blue-700:hover { background: var(--ad-action-press) !important; background-color: var(--ad-action-press) !important; color: #292524; }
 .bg-blue-100 { background: var(--ad-gold-bg) !important; background-color: var(--ad-gold-bg) !important; }
 
 .bg-green-100 { background: var(--ad-green-soft) !important; background-color: var(--ad-green-soft) !important; }
