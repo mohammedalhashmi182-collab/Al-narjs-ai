@@ -1,0 +1,109 @@
+{% set _lang = page_lang(request) %}
+{% import "partials/_seo.html" as seo with context %}
+{% set _items = [] %}
+{% for t in teams %}
+{% set _ = _items.append({
+  "@type": "ListItem",
+  "position": loop.index,
+  "item": {
+    "@type": "Service",
+    "name": t.name,
+    "description": t.tagline,
+    "url": "https://karmaai.online/portal?pkg=" ~ t.key
+  }
+}) %}
+{% endfor %}
+{% set _jsonld = {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": _items} %}
+{% set _head = seo.head(
+  'وكلاء الذكاء الاصطناعي للأعمال السعودية | النرجس',
+  'AI Agents for Saudi Businesses | Al-Narjis AI',
+  'وكلاء ذكاء اصطناعي بالاشتراك الشهري للأعمال السعودية: ' ~ agent_count ~ ' وكيلاً متخصصاً، وفريق من 5 لكل باقة، بفاتورة رسمية.',
+  'Monthly AI agent subscriptions for Saudi businesses: ' ~ agent_count ~ ' specialized agents and a dedicated 5-agent team per plan.',
+  request.url.path,
+  'website',
+  jsonld=_jsonld) %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    {{ _head | safe }}
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        body { font-family: "Tajawal", sans-serif; background: #0a0b0e; color: #eef1f6; line-height: 1.95; }
+        .wrap { max-width: 980px; margin-inline: auto; padding-inline: 22px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .brand { font-weight: 800; font-family: "Manrope", sans-serif; color: #e6c98a; text-decoration: none; }
+        .back { color: #98a1b0; text-decoration: none; font-size: .92rem; }
+        h1 { font-family: "Manrope", sans-serif; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.28; margin: 34px 0 14px; }
+        h2 { font-family: "Manrope", sans-serif; font-size: 1.4rem; color: #e6c98a; margin: 40px 0 12px; }
+        .lead { color: #b9c1cd; font-size: 1.06rem; max-width: 760px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; }
+        .team { background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 22px; }
+        .team h3 { font-family: "Manrope", sans-serif; margin: 4px 0 6px; font-size: 1.1rem; }
+        .price { color: #e6c98a; font-weight: 800; }
+        .team ul { padding-inline-start: 20px; margin: 12px 0 16px; }
+        .team li { color: #b9c1cd; font-size: .92rem; }
+        .muted { color: #98a1b0; }
+        .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0 8px; }
+        .btn { display: inline-block; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #e6c98a, #c8a45e); color: #0a0b0e; }
+        .btn-ghost { border: 1px solid rgba(255,255,255,.16); color: #eef1f6; }
+        .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+        .links a { font-size: .88rem; color: #98a1b0; text-decoration: none; border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 6px 14px; }
+        .links a:hover { border-color: #c8a45e; color: #e6c98a; }
+        footer { border-top: 1px solid rgba(255,255,255,.08); margin-top: 46px; padding: 22px 0 40px; color: #98a1b0; font-size: .86rem; }
+        footer a { color: #98a1b0; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="topbar">
+        <a class="brand" href="/home">النرجس <span style="color:#eef1f6">AI</span></a>
+        <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
+    </div>
+
+    <h1>{% if _lang == 'ar' %}وكلاء الذكاء الاصطناعي للأعمال السعودية{% else %}AI Agents for Saudi Businesses{% endif %}</h1>
+    <p class="lead">
+        {% if _lang == 'ar' %}
+        منصة سعودية من الرياض تقدم الذكاء الاصطناعي باشتراك شهري: {{ agent_count }} وكيلاً متخصصاً، وكل باقة تفتح لك فريقاً من خمسة وكلاء في مجال عملك. فاتورة رسمية، ضريبة 15٪، إلغاء في أي وقت.
+        {% else %}
+        A Riyadh-based Saudi platform that delivers AI on a monthly subscription: {{ agent_count }} specialized agents, and every plan opens a five-agent team for your field. Official invoice, 15% VAT, cancel anytime.
+        {% endif %}
+    </p>
+
+    <div class="cta">
+        <a class="btn btn-gold" href="/home#pricing">{% if _lang == 'ar' %}شاهد الباقات{% else %}See the plans{% endif %}</a>
+        <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}اسأل المستشار الذكي{% else %}Ask the Smart Consultant{% endif %}</a>
+        <a class="btn btn-ghost" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">Telegram</a>
+    </div>
+
+    <h2>{% if _lang == 'ar' %}الفرق حسب مجالك{% else %}Teams by field{% endif %}</h2>
+    <div class="grid">
+        {% for t in teams %}
+        <div class="team">
+            <h3>{{ t.name if _lang == 'ar' else t.name_en }}</h3>
+            <div class="price">{{ t.price }} {% if _lang == 'ar' %}ريال/شهر{% else %}SAR / month{% endif %}</div>
+            <p class="muted" style="font-size:.9rem">{{ t.tagline if _lang == 'ar' else t.tagline_en }}</p>
+            <ul>
+                {% for m in t.members %}<li><a href="/ai-agent/{{ m.slug }}" style="color:#e6c98a">{{ m.no }}</a> · {{ m.title_ar if _lang == 'ar' else m.title_en }}</li>{% endfor %}
+            </ul>
+            <a class="btn btn-ghost" href="/portal?pkg={{ t.key }}">{% if _lang == 'ar' %}اطلب الباقة{% else %}Request plan{% endif %}</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2>{% if _lang == 'ar' %}وكلاء جاهزون للاستخدام{% else %}Agents ready to wake{% endif %}</h2>
+    <div class="links">
+        {% for a in agents %}<a href="/ai-agent/{{ a.slug }}">{{ a.no }} {{ a.title_ar if _lang == 'ar' else a.title_en }}</a>{% endfor %}
+    </div>
+
+    <footer>
+        النرجس للذكاء الاصطناعي — الرياض ·
+        <a href="/blog">{% if _lang == 'ar' %}المدوّنة{% else %}Blog{% endif %}</a> ·
+        <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·
+        <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a>
+    </footer>
+</div>
+</body>
+</html>

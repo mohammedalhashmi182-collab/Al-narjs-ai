@@ -1,0 +1,79 @@
+{% set _lang = page_lang(request) %}
+{% import "partials/_seo.html" as seo with context %}
+{% set _head = seo.head(
+  'مدونة النرجس: ذكاء اصطناعي بالعربي للأعمال السعودية',
+  'Al-Narjis AI Blog: AI for Saudi Businesses, in Arabic',
+  'مقالات عملية بالعربية عن وكلاء الذكاء الاصطناعي: خدمة العملاء، المحتوى، المتاجر، والعيادات — بلا نظريات.',
+  'Practical articles in Arabic and English on AI agents: customer care, content, e-commerce, and clinics.',
+  request.url.path,
+  'website') %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    {{ _head | safe }}
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Manrope:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        body { font-family: "Tajawal", sans-serif; background: #0a0b0e; color: #eef1f6; line-height: 1.9; }
+        .wrap { max-width: 900px; margin-inline: auto; padding-inline: 22px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .brand { font-weight: 800; font-family: "Manrope", sans-serif; color: #e6c98a; text-decoration: none; }
+        .back { color: #98a1b0; text-decoration: none; font-size: .92rem; }
+        h1 { font-family: "Manrope", sans-serif; font-size: clamp(1.8rem, 4.6vw, 2.6rem); line-height: 1.32; margin: 30px 0 12px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 30px 0; }
+        .post { display: block; text-decoration: none; color: #eef1f6; background: #0e1015; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 20px; }
+        .post:hover { border-color: #c8a45e; }
+        .post .cat { color: #e6c98a; font-size: .82rem; }
+        .post h2 { font-family: "Manrope", sans-serif; font-size: 1.08rem; margin: 8px 0; line-height: 1.45; }
+        .post p { color: #98a1b0; font-size: .9rem; margin: 0; }
+        .post .meta { color: #6f7887; font-size: .8rem; margin-top: 10px; }
+        .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 10px; }
+        .btn { display: inline-block; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #e6c98a, #c8a45e); color: #0a0b0e; }
+        .btn-ghost { border: 1px solid rgba(255,255,255,.16); color: #eef1f6; }
+        footer { border-top: 1px solid rgba(255,255,255,.08); margin-top: 40px; padding: 22px 0 40px; color: #98a1b0; font-size: .86rem; }
+        footer a { color: #98a1b0; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="topbar">
+        <a class="brand" href="/home">النرجس <span style="color:#eef1f6">AI</span></a>
+        <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
+    </div>
+
+    <h1>{% if _lang == 'ar' %}مدوّبة الذكاء الاصطناعي بالعربي{% else %}The AI blog, in Arabic first{% endif %}</h1>
+    <p style="color:#98a1b0;max-width:640px">
+        {% if _lang == 'ar' %}
+        مقالات عملية عن وكلاء الذكاء الاصطناعي في السعودية: متى تستخدمهم، وما الذي يخرجونه، وأين تتوقف الأتمتة.
+        {% else %}
+        Practical articles on AI agents in Saudi Arabia: when to use them, what they deliver, and where automation stops.
+        {% endif %}
+    </p>
+
+    <div class="grid">
+        {% for a in articles %}
+        <a class="post" href="/blog/{{ a.slug }}">
+            <div class="cat">{{ a.category_ar if _lang == 'ar' else a.category_en }}</div>
+            <h2>{{ a.title_ar if _lang == 'ar' else a.title_en }}</h2>
+            <p>{{ a.desc_ar if _lang == 'ar' else a.desc_en }}</p>
+            <div class="meta">{{ a.date }} · {{ a.reading_minutes }} {% if _lang == 'ar' %}دقائق{% else %}min{% endif %}</div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <div class="cta">
+        <a class="btn btn-gold" href="/home#pricing">{% if _lang == 'ar' %}شاهد الباقات{% else %}See the plans{% endif %}</a>
+        <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}المستشار الذكي{% else %}Smart Consultant{% endif %}</a>
+        <a class="btn btn-ghost" href="/ai-agents-saudi-businesses">{% if _lang == 'ar' %}وكلاء الذكاء الاصطناعي في السعودية{% else %}AI agents for Saudi businesses{% endif %}</a>
+    </div>
+
+    <footer>
+        النرجس للذكاء الاصطناعي — الرياض ·
+        <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·
+        <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a>
+    </footer>
+</div>
+</body>
+</html>
