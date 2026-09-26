@@ -692,6 +692,7 @@
                 <a href="#features"><span data-lang="ar">المميزات</span><span data-lang="en" data-inline>Features</span></a>
                 <a href="#agents"><span data-lang="ar">الوكلاء</span><span data-lang="en" data-inline>Agents</span></a>
                 <a href="#how"><span data-lang="ar">كيف يعمل</span><span data-lang="en" data-inline>How it works</span></a>
+                <a href="#about"><span data-lang="ar">من نحن</span><span data-lang="en" data-inline>About</span></a>
                 <a href="#pricing"><span data-lang="ar">الباقات</span><span data-lang="en" data-inline>Pricing</span></a>
                 <a href="/consult"><span data-lang="ar">المستشار الذكي</span><span data-lang="en" data-inline>Consultant</span></a>
                 <a href="/guide" class="guide-link"><span data-lang="ar">دليل مجاني</span><span data-lang="en" data-inline>Free guide</span></a>
@@ -715,7 +716,7 @@
                     <span data-lang="en" data-inline>Your digital workforce,<br>asleep — one touch away</span>
                 </h1>
                 <p class="sub">
-                    <span data-lang="ar">يتقن: </span><span data-lang="en" data-inline>Mastering: </span><span class="rotor" id="rotor"></span>
+                    <span data-lang="ar">يتقن: </span><span data-lang="en" data-inline>Mastering: </span><span class="rotor" id="rotor">كتابة المحتوى</span>
                 </p>
                 <div class="cta-row">
                     <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">أيقظ فريقك</span><span data-lang="en" data-inline>Wake your team</span></a>
@@ -726,10 +727,10 @@
                 <div class="hint"><i class="fas fa-shield-halved"></i><span data-lang="ar">فاتورة رسمية موثقة · بدون عقود طويلة · إلغاء في أي وقت</span><span data-lang="en" data-inline>Official invoiced billing · No long contracts · Cancel anytime</span></div>
 
                 <div class="stats">
-                    <div class="stat"><div class="num" id="c0">0</div><div class="lbl"><span data-lang="ar">وكيلاً ذكياً متخصصاً</span><span data-lang="en" data-inline>Specialized agents</span></div></div>
-                    <div class="stat"><div class="num" id="c1">0</div><div class="lbl"><span data-lang="ar">ساعة عمل يومياً</span><span data-lang="en" data-inline>Hours a day</span></div></div>
-                    <div class="stat"><div class="num" id="c2">0</div><div class="lbl"><span data-lang="ar">لغات ولهجات</span><span data-lang="en" data-inline>Languages &amp; dialects</span></div></div>
-                    <div class="stat"><div class="num" id="c3">0</div><div class="lbl"><span data-lang="ar">دعم محلي</span><span data-lang="en" data-inline>Local support</span></div></div>
+                    <div class="stat"><div class="num" id="c0" data-target="{{ agent_count }}">{{ agent_count }}</div><div class="lbl"><span data-lang="ar">وكيلاً ذكياً متخصصاً</span><span data-lang="en" data-inline>Specialized agents</span></div></div>
+                    <div class="stat"><div class="num" id="c1" data-target="5">5</div><div class="lbl"><span data-lang="ar">وكلاء في كل باقة</span><span data-lang="en" data-inline>Agents per plan</span></div></div>
+                    <div class="stat"><div class="num" id="c2" data-target="4">4</div><div class="lbl"><span data-lang="ar">باقات شهرية</span><span data-lang="en" data-inline>Monthly plans</span></div></div>
+                    <div class="stat"><div class="num" id="c3" data-target="15">15</div><div class="lbl"><span data-lang="ar">% ضريبة القيمة المضافة على الفاتورة</span><span data-lang="en" data-inline>% VAT on the invoice</span></div></div>
                 </div>
             </div>
 
@@ -775,8 +776,8 @@
                         </svg>
                     </div>
                     <div class="console-foot">
-                        <span><b id="heroCount">30</b> <span data-lang="ar">موظفاً رقمياً</span><span data-lang="en" data-inline>digital employees</span></span>
-                        <span><b>24/7</b> <span data-lang="ar">فعالية</span><span data-lang="en" data-inline>uptime</span></span>
+                        <span><b id="heroCount">{{ agent_count }}</b> <span data-lang="ar">موظفاً رقمياً</span><span data-lang="en" data-inline>digital employees</span></span>
+                        <span><b>5</b> <span data-lang="ar">وكلاء في كل باقة</span><span data-lang="en" data-inline>agents per plan</span></span>
                         <span><b>AR · EN</b> <span data-lang="ar">لغة العمل</span><span data-lang="en" data-inline>work language</span></span>
                     </div>
                 </div>
@@ -812,7 +813,7 @@
             <div class="bento">
                 <div class="bcard b-lg">
                     <div class="ic"><i class="fas fa-robot"></i></div>
-                    <h3><span data-lang="ar"><b class="cnt20">30</b> وكيلاً — <b class="cnt20b">30</b> وظيفة حقيقية</span><span data-lang="en" data-inline><b class="cnt20b">30</b> agents — <b class="cnt20b">30</b> real jobs</span></h3>
+                    <h3><span data-lang="ar"><b class="cnt20">{{ agent_count }}</b> وكيلاً — <b class="cnt20b">{{ agent_count }}</b> وظيفة حقيقية</span><span data-lang="en" data-inline><b class="cnt20b">{{ agent_count }}</b> agents — <b class="cnt20b">{{ agent_count }}</b> real jobs</span></h3>
                     <p><span data-lang="ar">كل وكيل موظف رقمي يحمل رقمه وتعريفه الوظيفي وقسمه. يستيقظ حين يلمسه العميل ويؤدي عمله كاملاً — من تقويم المحتوى إلى سياسة المتجر.</span><span data-lang="en" data-inline>Every agent is a digital employee with an ID, a job title, and a department. Woken by a single touch, they deliver end-to-end — from content calendars to store policy.</span></p>
                     <div class="flow" id="flow">
                         <svg viewBox="0 0 300 40" preserveAspectRatio="none">
@@ -874,7 +875,52 @@
             </div>
             <div class="filters reveal" id="filters"></div>
             <div class="agents-grid reveal" id="agents-grid">
-                <div class="loading-msg"><i class="fas fa-spinner fa-spin"></i> <span data-lang="ar">جارٍ تحميل الوكلاء…</span><span data-lang="en" data-inline>Loading agents…</span></div>
+                <div class="ag-card">
+                    <div class="ag-head"><div class="ag-ava">{{ agents_preview[0].no[-2:] }}</div><div><div class="ag-no">{{ agents_preview[0].no }}</div><div class="ag-name"><span data-lang="ar">{{ agents_preview[0].title_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[0].title_en }}</span></div></div></div>
+                    <p class="desc"><span data-lang="ar">{{ agents_preview[0].intro_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[0].intro_en }}</span></p>
+                    <div class="ag-foot"><span>{{ agents_preview[0].dept }}</span><span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>
+                </div>
+                <div class="ag-card">
+                    <div class="ag-head"><div class="ag-ava">{{ agents_preview[1].no[-2:] }}</div><div><div class="ag-no">{{ agents_preview[1].no }}</div><div class="ag-name"><span data-lang="ar">{{ agents_preview[1].title_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[1].title_en }}</span></div></div></div>
+                    <p class="desc"><span data-lang="ar">{{ agents_preview[1].intro_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[1].intro_en }}</span></p>
+                    <div class="ag-foot"><span>{{ agents_preview[1].dept }}</span><span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>
+                </div>
+                <div class="ag-card">
+                    <div class="ag-head"><div class="ag-ava">{{ agents_preview[2].no[-2:] }}</div><div><div class="ag-no">{{ agents_preview[2].no }}</div><div class="ag-name"><span data-lang="ar">{{ agents_preview[2].title_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[2].title_en }}</span></div></div></div>
+                    <p class="desc"><span data-lang="ar">{{ agents_preview[2].intro_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[2].intro_en }}</span></p>
+                    <div class="ag-foot"><span>{{ agents_preview[2].dept }}</span><span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>
+                </div>
+                <div class="loading-msg" id="agentsStatus" style="grid-column:1/-1;text-align:center;"><span data-lang="ar">جارٍ تحميل بقية الوكلاء…</span><span data-lang="en" data-inline>Loading the rest of the team…</span> <a href="/agents"><span data-lang="ar">أو اعرض القائمة كاملة</span><span data-lang="en" data-inline>or view the full list</span></a></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== ABOUT ==================== -->
+    <section class="section" id="about">
+        <div class="sec-inner">
+            <div class="reveal" style="text-align:center;">
+                <span class="eyebrow"><span data-lang="ar">من نحن</span><span data-lang="en" data-inline>About us</span></span>
+                <h2 class="sec-title"><span data-lang="ar">النرجس للذكاء الاصطناعي</span><span data-lang="en" data-inline>Al-Narjis AI</span></h2>
+            </div>
+            <div class="bento">
+                <div class="bcard b-lg reveal">
+                    <p style="font-size:1.02rem;line-height:1.95;">
+                        <span data-lang="ar">منصة سعودية تقدم خدمات الذكاء الاصطناعي بنموذج اشتراكات شهري، صُممت خصيصاً لأصحاب المشاريع الصغيرة والمتوسطة. نبني شبكة من </span><span data-lang="en" data-inline>A Saudi platform delivering AI services on a monthly subscription model, built for small and mid-sized business owners. We run a network of </span><b>{{ agent_count }}</b><span data-lang="ar"> وكيلاً ذكياً متخصصاً في مجالات مختلفة، ويفتح كل اشتراك لعميلنا فريقاً مخصصاً من 5 وكلاء يعملون حسب مجاله — من خدمة العملاء والمحتوى إلى التجارة الإلكترونية والنمو والمبيعات. الدفع بفاتورة رسمية، والباقات تبدأ من 800 ريال شهرياً، ومستشارنا الذكي يساعد كل عميل على اختيار الباقة الأنسب قبل الاشتراك.</span><span data-lang="en" data-inline> specialized agents, and every subscription opens a dedicated team of 5 agents matched to the client's field — from customer care and content to e-commerce, growth and sales. Billing is by official invoice, plans start at 800 SAR per month, and our Smart Consultant recommends the right plan before you subscribe.</span>
+                    </p>
+                    <div class="actions" style="margin-top:18px;">
+                        <a href="/consult" class="btn btn-gold"><i class="fas fa-comments"></i><span data-lang="ar">اسأل المستشار الذكي</span><span data-lang="en" data-inline>Ask the Smart Consultant</span></a>
+                        <a href="/pricing" class="btn btn-ghost"><span data-lang="ar">شاهد الباقات</span><span data-lang="en" data-inline>See the plans</span></a>
+                    </div>
+                </div>
+                <div class="bcard reveal">
+                    <h3><span data-lang="ar">مثال توضيحي على المخرجات</span><span data-lang="en" data-inline>Illustrative output sample</span></h3>
+                    <p style="font-size:.86rem;color:var(--muted);"><span data-lang="ar">الأمثلة أدناه توضيحية只为 توضيح شكل المخرج — ليست مخرجات عميل حقيقي ولا保证了 للأداء.</span><span data-lang="en" data-inline>The samples below are illustrative only — they show the output format and are not real client results or a performance guarantee.</span></p>
+                    <div class="flow" style="display:grid;gap:10px;">
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-011 · كاتب المحتوى</b><br><span data-lang="ar">«تقويم محتوى أسبوعي: 4 منشورات + 3 ستوري + جدول публикаيات»</span><span data-lang="en" data-inline>"Weekly content calendar: 4 posts + 3 stories + publishing schedule"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-009 · خدمة العملاء</b><br><span data-lang="ar">«رد مقترح على استفسار شحن:确认 الطلب + رقم التتبع + موعد التسليم»</span><span data-lang="en" data-inline>"Suggested reply to a shipping question: order confirmation + tracking + delivery date"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-015 · محلل المنافسين</b><br><span data-lang="ar">«جدول مقارنة: 5 منافسين × 6 معايير + توصيتان للتحسين»</span><span data-lang="en" data-inline>"Comparison table: 5 competitors × 6 criteria + 2 recommended improvements"</span></div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -911,83 +957,79 @@
         <div class="sec-inner">
             <div class="reveal" style="text-align:center;">
                 <span class="eyebrow"><span data-lang="ar">باقات الاشتراك</span><span data-lang="en" data-inline>Subscriptions</span></span>
-                <h2 class="sec-title"><span data-lang="ar">فريق</span><span data-lang="en" data-inline">A team</span> <span class="c" data-lang="ar">لا يتغيب عن العمل</span><span class="c" data-lang="en" data-inline>that never calls in sick</span></h2>
+                <h2 class="sec-title"><span data-lang="ar">فريق</span><span data-lang="en" data-inline>A team</span> <span class="c" data-lang="ar">لا يتغيب عن العمل</span><span class="c" data-lang="en" data-inline>that never calls in sick</span></h2>
                 <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">الريال السعودي · اشتراك شهري · إلغاء في أي وقت</span><span data-lang="en" data-inline>SAR · Monthly · Cancel anytime</span></p>
+                <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">في المنصة <b>{{ agent_count }}</b> وكيلاً ذكياً متخصصاً — وكل باقة تفتح لك فريقاً مخصصاً من <b>5 وكلاء</b> حسب مجالك.</span><span data-lang="en" data-inline>The platform has <b>{{ agent_count }}</b> specialized agents — every plan opens a dedicated team of <b>5 agents</b> for your field.</span></p>
             </div>
             <div class="pricing-grid">
-                <div class="pc reveal" data-pkg="social">
-                    <h3>سوشيال ميديا</h3><span class="en-nm">Social Media</span>
-                    <div class="price">1,500 <small>ريال/شهر</small></div>
+                <div class="pc featured reveal" data-pkg="social">
+                    <span class="tag"><span data-lang="ar">الأكثر طلباً ★</span><span data-lang="en" data-inline>Most popular ★</span></span>
+                    <h3><span data-lang="ar">{{ packages['social'].name }}</span><span class="en-nm">{{ packages['social'].name_en }}</span></h3>
+                    <div class="price">{{ packages['social'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
                     <ul>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">٣٠ منشوراً شهرياً</span><span data-lang="en" data-inline>30 posts / month</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقويم محتوى</span><span data-lang="en" data-inline>Content calendar</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">كتابة إعلانات A/B</span><span data-lang="en" data-inline>A/B ad copies</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقارير أداء</span><span data-lang="en" data-inline>Performance reports</span></li>
                     </ul>
-                    <a href="#" class="btn btn-ghost w-full js-order"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
+                    <a href="/portal?pkg=social" class="btn btn-gold w-full"><i class="fas fa-bolt"></i><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
                 </div>
-                <div class="pc featured reveal" data-pkg="ecommerce">
-                    <span class="tag"><span data-lang="ar">الأكثر طلباً ★</span><span data-lang="en" data-inline>Most popular ★</span></span>
-                    <h3>متاجر إلكترونية</h3><span class="en-nm">E-commerce</span>
-                    <div class="price">1,000 <small>ريال/شهر</small></div>
+                <div class="pc reveal" data-pkg="ecommerce">
+                    <h3><span data-lang="ar">{{ packages['ecommerce'].name }}</span><span class="en-nm">{{ packages['ecommerce'].name_en }}</span></h3>
+                    <div class="price">{{ packages['ecommerce'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
                     <ul>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">وصف منتجات</span><span data-lang="en" data-inline>Product descriptions</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">ردود استفسارات فورية</span><span data-lang="en" data-inline>Instant replies</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">توصيات الباقات</span><span data-lang="en" data-inline>Bundle recommendations</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">تحسين محركات SEO</span><span data-lang="en" data-inline>SEO optimization</span></li>
                     </ul>
-                    <a href="#" class="btn btn-gold w-full js-order"><i class="fas fa-bolt"></i><span data-lang="ar">اختر الآن</span><span data-lang="en" data-inline>Choose now</span></a>
+                    <a href="/portal?pkg=ecommerce" class="btn btn-ghost w-full"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
                 </div>
                 <div class="pc reveal" data-pkg="content">
-                    <h3>تسويق محتوى</h3><span class="en-nm">Content Marketing</span>
-                    <div class="price">1,200 <small>ريال/شهر</small></div>
+                    <h3><span data-lang="ar">{{ packages['content'].name }}</span><span class="en-nm">{{ packages['content'].name_en }}</span></h3>
+                    <div class="price">{{ packages['content'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
                     <ul>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">مقالات مدونة</span><span data-lang="en" data-inline>Blog articles</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقارير السوق</span><span data-lang="en" data-inline>Market reports</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">رسائل إيميل تسويقية</span><span data-lang="en" data-inline>Newsletters</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">تحليل المنافسين</span><span data-lang="en" data-inline>Competitor analysis</span></li>
                     </ul>
-                    <a href="#" class="btn btn-ghost w-full js-order"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
+                    <a href="/portal?pkg=content" class="btn btn-ghost w-full"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
                 </div>
                 <div class="pc reveal" data-pkg="growth">
-                    <h3>نمو الأعمال</h3><span class="en-nm">Business Growth</span>
-                    <div class="price">800 <small>ريال/شهر</small></div>
+                    <h3><span data-lang="ar">{{ packages['growth'].name }}</span><span class="en-nm">{{ packages['growth'].name_en }}</span></h3>
+                    <div class="price">{{ packages['growth'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
                     <ul>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">أفكار مشاريع</span><span data-lang="en" data-inline>Business ideas</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">استراتيجية نمو</span><span data-lang="en" data-inline>Growth strategy</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">إدارة مشاريع</span><span data-lang="en" data-inline>Project management</span></li>
                         <li><i class="fas fa-circle-check"></i><span data-lang="ar">تطوير سيرة ذاتية</span><span data-lang="en" data-inline>CV development</span></li>
                     </ul>
-                    <a href="#" class="btn btn-ghost w-full js-order"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
+                    <a href="/portal?pkg=growth" class="btn btn-ghost w-full"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ==================== TESTIMONIALS ==================== -->
-    <section class="section" id="testimonials">
+    <!-- ==================== FIRST WEEK ==================== -->
+    <section class="section" id="first-week">
         <div class="sec-inner">
             <div class="reveal" style="text-align:center;">
-                <span class="eyebrow"><span data-lang="ar">مسار العمل</span><span data-lang="en" data-inline>Your first week</span></span>
+                <span class="eyebrow"><span data-lang="ar">ما تحصل عليه</span><span data-lang="en" data-inline>What you get</span></span>
                 <h2 class="sec-title"><span data-lang="ar">أسبوعك الأول</span><span data-lang="en" data-inline>Your first week</span> <span class="c" data-lang="ar">مع فريقك الجديد</span><span class="c" data-lang="en" data-inline>with a new team</span></h2>
             </div>
             <div class="t-home reveal">
                 <div class="t-feature">
                     <div>
                         <div class="who-mark">أ</div>
-                        <p class="qt"><span data-lang="ar">من اختيار الباقة إلى أول تسليم — ثلاثة خطوات واضحة.</span><span data-lang="en" data-inline>From plan choice to first delivery — three clear steps.</span></p>
-                        <div class="steps-mini">
-                            <div><span class="n-mini">01</span><span data-lang="ar">تستلم فريقك الرقمي (٥ موظفين) فور اختيار الباقة.</span><span data-lang="en" data-inline>Receive your 5-employee digital team as soon as you subscribe.</span></div>
-                            <div><span class="n-mini">02</span><span data-lang="ar">توقظهم وتعرّفهم على عملك في جلسة قصيرة مريحة.</span><span data-lang="en" data-inline>Wake them and brief them about your business in one short session.</span></div>
-                            <div><span class="n-mini">03</span><span data-lang="ar">يبدأ التسليم: تقويم محتوى، نصوص، ردود، وتقارير.</span><span data-lang="en" data-inline>Delivery begins: content calendar, copies, replies, and reports.</span></div>
-                        </div>
+                        <p class="qt"><span data-lang="ar">مخرجات جاهزة للاستخدام من أول أسبوع — نصوص وتقويمات وتقارير، بالعربية.</span><span data-lang="en" data-inline>Usable output from the first week — copies, calendars and reports, in Arabic.</span></p>
                         <div class="who"><span data-lang="ar">بدون عقود طويلة</span><span data-lang="en" data-inline>No long contracts</span></div>
                         <div class="where"><span data-lang="ar">اشتراك شهري · إلغاء متى شئت</span><span data-lang="en" data-inline>Monthly · Cancel anytime</span></div>
                     </div>
                 </div>
                 <div class="t-side">
                     <div class="q"><p><span data-lang="ar">المخرجات بالعربية جاهزة للاستخدام — نصوص، تقويمات، تقارير، وسياسات المتجر.</span><span data-lang="en" data-inline>Arabic-ready outputs — copies, calendars, reports, and store policies.</span></p><div class="who"><span data-lang="ar">ماذا تستلم؟</span><span data-lang="en" data-inline>What you get</span></div><div class="where"><span data-lang="ar">موجودة في الباقة نفسها</span><span data-lang="en" data-inline>Included in your plan</span></div></div>
-                    <div class="q"><p><span data-lang="ar">يعمل بالعربية الفصيحة ويفهم لهجات المملكة، مع نسخة إنجليزية عند الحاجة.</span><span data-lang="en" data-inline>Works in modern Arabic, understands Saudi dialects, English on demand.</span></p><div class="who"><span data-lang="ar">لغة العمل</span><span data-lang="en" data-inline">Work language</span></div><div class="where"><span data-lang="ar">عربي أولاً · EN عند الحاجة</span><span data-lang="en" data-inline">Arabic first · EN on demand</span></div></div>
+                    <div class="q"><p><span data-lang="ar">يعمل بالعربية الفصيحة ويفهم لهجات المملكة، مع نسخة إنجليزية عند الحاجة.</span><span data-lang="en" data-inline>Works in modern Arabic, understands Saudi dialects, English on demand.</span></p><div class="who"><span data-lang="ar">لغة العمل</span><span data-lang="en" data-inline>Work language</span></div><div class="where"><span data-lang="ar">عربي أولاً · EN عند الحاجة</span><span data-lang="en" data-inline>Arabic first · EN on demand</span></div></div>
                 </div>
             </div>
         </div>
@@ -1063,10 +1105,8 @@
                 <a href="/home" class="brand"><span class="mark" style="font-size:1rem;">النرجس</span><span><span class="name" style="font-size:1rem;">النرجس <b>AI</b></span></span></a>
                 <p style="max-width:30em;margin-top:16px;"><span data-lang="ar">وكلاء ذكاء اصطناعي يعملون على مدار الساعة لتنمية أعمالك — بجودة عربية أصيلة من الرياض.</span><span data-lang="en" data-inline>AI agents working around the clock to grow your business — authentic craft from Riyadh.</span></p>
                 <div class="socials">
-                    <a href="#" aria-label="X"><i class="fab fa-x-twitter"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                     <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+                    <a href="/consult" aria-label="Smart Consultant"><i class="fas fa-comments"></i></a>
                 </div>
             </div>
             <div>
@@ -1080,8 +1120,8 @@
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
                 <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener"><i class="fab fa-telegram" style="margin-inline-end:8px;color:#2aabee;"></i>@AlNarjs7BOT · Telegram</a>
                 <span style="display:block;padding-block:5px;font-size:.86rem;color:var(--muted);"><i class="fas fa-phone" style="margin-inline-end:8px;color:var(--gold);"></i>+966 55 297 8753</span>
-                <a href="mailto:aimerchantvault.77@gmail.com">aimerchantvault.77@gmail.com</a>
-                <a href="#"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
+                <a href="mailto:al-narjis@karmaai.online">al-narjis@karmaai.online</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=Riyadh+Saudi+Arabia" target="_blank" rel="noopener"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
             </div>
         </div>
         <div class="base">
@@ -1151,8 +1191,8 @@
             if (toTop) toTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
             var rotor = document.getElementById('rotor');
-            var wordsAr = ['كتابة المحتوى', 'حملات التسويق', 'تشغيل المتجر', 'خدمة عملاء 24/7', 'تحليل السوق'];
-            var wordsEn = ['content writing', 'marketing campaigns', 'store operations', '24/7 support', 'market analysis'];
+            var wordsAr = ['كتابة المحتوى', 'حملات التسويق', 'تشغيل المتجر', 'خدمة العملاء', 'تحليل السوق'];
+            var wordsEn = ['content writing', 'marketing campaigns', 'store operations', 'customer care', 'market analysis'];
             var ri = 0;
             function rotorStart() {
                 if (!rotor) return;
@@ -1211,8 +1251,10 @@
                 document.querySelectorAll('.ag-card').forEach(function (c) { c.classList.add('in'); });
             }
             (async function () {
+                var ctrl = new AbortController();
+                var to = setTimeout(function () { ctrl.abort(); }, 5000);
                 try {
-                    var res = await fetch('/api/agents');
+                    var res = await fetch('/api/agents', { signal: ctrl.signal });
                     var data = await res.json();
                     if (data.agents && data.agents.length) {
                         allAgents = data.agents;
@@ -1233,24 +1275,19 @@
                             });
                         });
                         renderAgents();
-                    }
+                    } else { throw new Error('empty'); }
                 } catch (e) {
-                    grid.innerHTML = '<div class="loading-msg">' + (document.body.dataset.lang === 'ar' ? 'تعذر التحميل' : 'Failed to load') + '</div>';
-                }
+                    var st = document.getElementById('agentsStatus');
+                    if (st) st.innerHTML = document.body.dataset.lang === 'ar'
+                        ? 'تعذر تحميل القائمة الكاملة — <a href="/agents">افتح صفحة الوكلاء</a>'
+                        : 'Could not load the full list — <a href="/agents">open the agents page</a>';
+                } finally { clearTimeout(to); }
             })();
 
             var TG_LINK = 'https://t.me/AlNarjs7BOT';
             var TG_SUPPORT = 'https://t.me/AlNarjs7BOT?start=support';
             var tds = document.querySelectorAll('.tg-btn');
             tds.forEach(function (a, i) { a.href = i === 1 ? TG_SUPPORT : TG_LINK; });
-
-            document.querySelectorAll('.js-order').forEach(function (btn) {
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    var pkg = btn.closest('.pc') ? btn.closest('.pc').dataset.pkg : 'social';
-                    window.location.href = '/portal?pkg=' + pkg;
-                });
-            });
 
             var form = document.getElementById('leadForm');
             if (form) form.addEventListener('submit', function (e) {
@@ -1300,7 +1337,12 @@
             if (stats) {
                 var obs = new IntersectionObserver(function (entries) {
                     entries.forEach(function (en) {
-                        if (en.isIntersecting) { obs.unobserve(en.target); countUp(c0, agentCount || 30, '+'); countUp(c1, 24, '/7'); countUp(c2, 5); countUp(c3, 100, '%'); }
+                        if (en.isIntersecting) {
+                            obs.unobserve(en.target);
+                            stats.querySelectorAll('.num').forEach(function (el) {
+                                countUp(el, parseInt(el.dataset.target || '0', 10));
+                            });
+                        }
                     });
                 }, { threshold: .4 });
                 obs.observe(stats);
