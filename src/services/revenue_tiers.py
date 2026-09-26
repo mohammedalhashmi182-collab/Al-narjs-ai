@@ -1,4 +1,4 @@
-"""Transparent, evidence-weighted revenue tier scoring.
+﻿"""Transparent, evidence-weighted revenue tier scoring.
 
 Every score is the sum of observable facts about a lead (quotation evidence,
 historical recency, invoice count, reachability, existing priority, deal value,
@@ -41,8 +41,8 @@ WEIGHT_RECENT_2024 = 12        # last invoice in 2024
 WEIGHT_RECENT_2023 = 8         # last invoice in 2023
 WEIGHT_INVOICES_5 = 8          # 5+ invoices ever
 WEIGHT_INVOICES_2 = 4          # 2-4 invoices ever
-WEIGHT_WHATSAPP = 22           # reachable on WhatsApp right now
-WEIGHT_PHONE = 14              # reachable by phone (non-WA valid number)
+WEIGHT_MOBILE = 22             # reachable on a Saudi mobile right now
+WEIGHT_PHONE = 14              # reachable by other valid phone number
 WEIGHT_EMAIL = 6               # reachable by email
 WEIGHT_PRIORITY_HIGH = 12      # existing segmenter priority HIGH
 WEIGHT_PRIORITY_MEDIUM = 6     # existing segmenter priority MEDIUM
@@ -85,8 +85,8 @@ def is_valid_email(value: Any) -> bool:
     return bool(value) and len(str(value)) > 5 and bool(_EMAIL_RE.match(str(value).strip()))
 
 
-def is_whatsapp_capable(phone: Any) -> bool:
-    """Heuristic for SA McDonald's-style WhatsApp reachability (leading 9665 / 05)."""
+def is_reachable_mobile(phone: Any) -> bool:
+    """Heuristic for Saudi-mobile reachability (leading 9665 / 05)."""
     p = str(phone or "").replace(" ", "").replace("-", "").replace("+", "")
     return p.startswith("9665") or p.startswith("05")
 
@@ -162,8 +162,8 @@ def score_lead(lead_like: Any) -> TierScore:
 
     phone = _field(lead_like, "phone_number") or _field(lead_like, "phone")
     email = _field(lead_like, "email") or _field(lead_like, "email_address")
-    if is_whatsapp_capable(phone):
-        score += WEIGHT_WHATSAPP
+    if is_reachable_mobile(phone):
+        score += WEIGHT_MOBILE
         reasons.append("رقم واتساب متاح للتواصل الفوري")
     elif is_valid_phone(phone):
         score += WEIGHT_PHONE
@@ -172,7 +172,7 @@ def score_lead(lead_like: Any) -> TierScore:
     if is_valid_email(email):
         score += WEIGHT_EMAIL
         reasons.append("بريد إلكتروني متاح")
-    if not (is_whatsapp_capable(phone) or is_valid_phone(phone) or is_valid_email(email)):
+    if not (is_reachable_mobile(phone) or is_valid_phone(phone) or is_valid_email(email)):
         reasons.append("لا قناة تواصل صالحة مسجلة")
 
     priority = _field(lead_like, "priority")
@@ -211,10 +211,10 @@ def data_flags(lead_like: Any) -> list[str]:
     email = _field(lead_like, "email") or _field(lead_like, "email_address")
     phone_raw = _field(lead_like, "phone_raw") or _field(lead_like, "raw_phone")
 
-    reachable = is_whatsapp_capable(phone) or is_valid_phone(phone) or is_valid_email(email)
+    reachable = is_reachable_mobile(phone) or is_valid_phone(phone) or is_valid_email(email)
     if not reachable:
         flags.append("no_reachable_channel")
-    if phone_raw and not is_valid_phone(phone) and not is_whatsapp_capable(phone):
+    if phone_raw and not is_valid_phone(phone) and not is_reachable_mobile(phone):
         flags.append("unparsed_phone")
     name = _field(lead_like, "company_name") or _field(lead_like, "name", "")
     letters = re.sub(r"[^A-Za-z\u0600-\u06FF]", "", str(name or ""))

@@ -25,7 +25,7 @@ from .lead_outreach import generate_message
 from .lead_segmentation import SEGMENT_LABELS_AR
 from .revenue_tiers import data_flags, provenance, reference_id, score_lead, tier_counts
 from .catalog import PACKAGES as _CATALOG
-from .whatsapp_sender import send_status
+from .telegram_sender import send_status
 
 # --- sizing assumptions (documented for owner audit) --------------------------
 TARGET_SAR = settings.revenue_target_sar  # default 10 000
@@ -173,8 +173,8 @@ async def radar_payload(
 
     draft = generate_message(lead, lang="ar")
     next_act = compute_next_action(lead)
-    from .lead_normalize import is_whatsapp_capable
-    channel = "whatsapp" if is_whatsapp_capable(phone) else ("phone" if phone else ("email" if email else "unknown"))
+    from .lead_normalize import is_reachable_mobile
+    channel = "telegram" if is_reachable_mobile(phone) else ("phone" if phone else ("email" if email else "unknown"))
 
     lead_id = getattr(lead, "id", None)
     demo_link = f"/acquisition/leads/{lead_id}/demo" if lead_id else None
@@ -200,8 +200,8 @@ async def radar_payload(
         "proposal_link": proposal_link,
         "invoice_hint": f"POST /api/payments {{package: \"{pkg}\", lead_id: \"{lead_id}\"}}",
         "message_draft": draft.get("message", ""),
-        "wa_link": draft.get("wa_link"),
-        "wa_number": draft.get("wa_number"),
+        "tg_link": draft.get("tg_link"),
+        "lead_mobile": draft.get("lead_mobile"),
         "channel": channel,
         "next_action": next_act.get("next_action", ""),
         "next_reason": next_act.get("reason", ""),
@@ -275,7 +275,7 @@ async def build_wave(
         "wave": payloads,
         "top_10": payloads[:10],
         "next_20": payloads[10:30],
-        "whatsapp": send_status(),
+        "telegram": send_status(),
     }
 
 

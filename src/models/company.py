@@ -267,7 +267,7 @@ class OutboundMessage(Base):
     lead_id: Mapped[Optional[UUID]] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("acquisition_leads.id", ondelete="SET NULL"), index=True, nullable=True
     )
-    channel: Mapped[str] = mapped_column(String(30), default="whatsapp", nullable=False)
+    channel: Mapped[str] = mapped_column(String(30), default="telegram", nullable=False)
     phone: Mapped[Optional[str]] = mapped_column(String(32))
     text: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(30), default="queued", nullable=False, index=True)

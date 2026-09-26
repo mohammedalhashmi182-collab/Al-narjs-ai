@@ -133,16 +133,17 @@ def is_valid_phone(value: Any) -> bool:
     return bool(normalize_phone(value))
 
 
-_WHATSAPP_MOBILE = re.compile(r"^\+9665\d{8}$")
+_SA_MOBILE = re.compile(r"^\+9665\d{8}$")
 
 
-def is_whatsapp_capable(value: Any) -> bool:
+def is_reachable_mobile(value: Any) -> bool:
+    """True when the value is a reachable Saudi mobile number (05XXXXXXXX)."""
     normalized = normalize_phone(value)
-    return bool(normalized and _WHATSAPP_MOBILE.match(normalized))
+    return bool(normalized and _SA_MOBILE.match(normalized))
 
 
-def wa_me_number(value: Any) -> Optional[str]:
-    """Digits suitable for https://wa.me/<number> (no plus, no leading zeros)."""
+def normalize_mobile_e164(value: Any) -> Optional[str]:
+    """Digits in E.164 form without the leading plus (e.g. 966553078789)."""
     normalized = normalize_phone(value)
     if not normalized:
         return None

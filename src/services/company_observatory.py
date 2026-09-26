@@ -170,7 +170,7 @@ class CompanyObservatory:
     async def whatsapp_snapshot(self, session) -> dict:
         """WhatsApp/revenue conversation state (secret-free, observable facts)."""
         from src.models import AcquisitionLead, InboundMessage, OutboundMessage
-        from src.services.whatsapp_sender import send_status
+        from src.services.telegram_sender import send_status
 
         total_sent = (await session.execute(select(func.count()).select_from(OutboundMessage))).scalar_one()
         sent_today = (

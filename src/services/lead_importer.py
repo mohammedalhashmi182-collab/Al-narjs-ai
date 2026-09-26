@@ -23,7 +23,7 @@ from src.services.lead_normalize import (
     company_name_key,
     is_valid_email,
     is_valid_phone,
-    is_whatsapp_capable,
+    is_reachable_mobile,
     normalize_company_name,
     normalize_email,
     normalize_phone,
@@ -165,7 +165,7 @@ def read_sheet(ws, sheet_name: str) -> list[dict]:
         for wanted in (True, False):
             for candidate in phone_candidates:
                 normalized = normalize_phone(candidate)
-                if normalized and is_whatsapp_capable(normalized) == wanted:
+                if normalized and is_reachable_mobile(normalized) == wanted:
                     phone, phone_raw = normalized, candidate
                     break
             if phone:
@@ -301,7 +301,7 @@ def merge_records(records: list[dict]) -> list[dict]:
 def _better_phone(candidates: list[str]) -> Optional[str]:
     ranked = sorted(
         {p for p in candidates if p},
-        key=lambda p: (is_whatsapp_capable(p), is_valid_phone(p), p),
+        key=lambda p: (is_reachable_mobile(p), is_valid_phone(p), p),
         reverse=True,
     )
     return ranked[0] if ranked else None
@@ -397,7 +397,7 @@ def compute_stats(raw_records: list[dict], leads: list[dict]) -> dict:
 
     phones = [l["phone"] for l in leads if l.get("phone")]
     valid_phones = [p for p in phones if is_valid_phone(p)]
-    wa = [p for p in phones if is_whatsapp_capable(p)]
+    wa = [p for p in phones if is_reachable_mobile(p)]
     emails = [l["email"] for l in leads if is_valid_email(l.get("email"))]
 
     segments: dict[str, int] = defaultdict(int)
@@ -412,7 +412,7 @@ def compute_stats(raw_records: list[dict], leads: list[dict]) -> dict:
         "duplicate_records": len(raw_records) - len(leads),
         "unique_phones": len(set(phones)),
         "valid_phones": len(valid_phones),
-        "whatsapp_capable_numbers": len(wa),
+        "reachable_mobile_numbers": len(wa),
         "emails": len(emails),
         "historical_customers": sum(1 for l in leads if l.get("historical_customer")),
         "quotations_without_purchase": sum(1 for l in leads if l.get("quotation_without_purchase")),

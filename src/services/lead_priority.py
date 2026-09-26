@@ -14,7 +14,7 @@ from typing import Any, Optional
 from src.services.lead_normalize import (
     is_valid_email,
     is_valid_phone,
-    is_whatsapp_capable,
+    is_reachable_mobile,
     parse_date,
 )
 from src.services.lead_segmentation import SEGMENT_LABELS_AR, SEGMENT_RELEVANCE
@@ -71,7 +71,7 @@ def score_lead(
             reasons.append("نشاط خلال 2023")
 
     if is_valid_phone(phone):
-        if is_whatsapp_capable(phone):
+        if is_reachable_mobile(phone):
             score += 18
             reasons.append("رقم جوال صالح يدعم واتساب")
         else:

@@ -133,27 +133,27 @@ class Settings(BaseSettings):
     # Revenue execution (maximum-revenue mode): daily operational target in SAR.
     revenue_target_sar: int = Field(default=10000, alias="REVENUE_TARGET")
 
-    # WhatsApp Business Cloud API — empty leaves auto-send disabled (wa.me fallback).
-    # Auto-send is enabled only when WHATSAPP_TOKEN AND WHATSAPP_PHONE_ID are set.
+    # --- RETIRED: WhatsApp / 360dialog ------------------------------------------
+    # Telegram is the only messaging channel (docs/design-system.md). No code path
+    # reads these any more: the WhatsApp router, sender and webhook were removed.
+    # The env-var NAMES are kept in place on purpose so no deployed environment or
+    # secret store breaks, and so the change stays reversible. Removing the fields
+    # and the matching Render/dashboard variables is a separate, explicit step
+    # (CLAUDE.md rule 6 — settings env-var names and render.yaml need owner sign-off).
+
+    # WhatsApp Business Cloud API — retired, auto-send is gone.
     whatsapp_token: str | None = Field(default=None, alias="WHATSAPP_TOKEN")
     whatsapp_phone_number_id: str | None = Field(default=None, alias="WHATSAPP_PHONE_ID")
 
-    # WhatsApp inbound webhook — optional; required to verify Meta signatures.
-    # Meta signs POST bodies with the app secret (X-Hub-Signature-256) and asks
-    # for a GET challenge only when the verify token matches.
+    # WhatsApp inbound webhook — retired; the app no longer verifies Meta signatures.
     whatsapp_app_secret: str | None = Field(default=None, alias="WHATSAPP_APP_SECRET")
     whatsapp_webhook_verify_token: str | None = Field(default=None, alias="WHATSAPP_WEBHOOK_VERIFY_TOKEN")
 
-    # Anti-spam governance (WhatsApp platform rules): maximum auto-sent messages
-    # per day across all leads, and the minimum hours between two outbound
-    # messages to the same lead. Opt-outs are always honored regardless.
+    # Anti-spam governance values — retired with the sender they governed.
     whatsapp_daily_auto_limit: int = Field(default=200, alias="WHATSAPP_DAILY_AUTO_LIMIT")
     whatsapp_lead_cooldown_hours: int = Field(default=12, alias="WHATSAPP_LEAD_COOLDOWN_HOURS")
 
-    # 360dialog gateway — a Cloud-API-compatible BSP that does not require the
-    # owner to create a Meta app. When DIALOG_API_KEY is set, outbound WhatsApp
-    # traffic routes to the 360dialog base URL with a D360-API-KEY header
-    # instead of graph.facebook.com; governance, queueing and records are shared.
+    # 360dialog gateway — retired with the Cloud-API-compatible sender it fronted.
     dialog_api_key: str | None = Field(default=None, alias="DIALOG_API_KEY")
     dialog_base_url: str = Field(default="https://waba.360dialog.io", alias="DIALOG_BASE_URL")
     dialog_phone_id: str | None = Field(default=None, alias="DIALOG_PHONE_ID")

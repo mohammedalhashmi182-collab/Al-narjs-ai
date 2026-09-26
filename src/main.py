@@ -270,10 +270,8 @@ from src.interfaces.company_routes import router as company_router  # noqa: E402
 
 app.include_router(company_router)
 
-from src.interfaces.whatsapp_routes import router as whatsapp_router  # noqa: E402
-
-app.include_router(whatsapp_router)
-
+# Telegram is the only messaging channel. The former WhatsApp router is retired
+# (see docs/design-system.md); inbound/outbound both run through Telegram.
 from src.interfaces.telegram_routes import router as telegram_router  # noqa: E402
 
 app.include_router(telegram_router)

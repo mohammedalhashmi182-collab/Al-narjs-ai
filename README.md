@@ -3,13 +3,13 @@
 منصة وكلاء ذكاء اصطناعي عربية أولاً — تعمل على الإنترنت فعلياً على [karmaai.online](https://karmaai.online).
 مبنية على هذا المستودع: FastAPI + PostgreSQL على Render، بوت تيليجرام، محرك workflows، مدفوعات، وواجهة عامة.
 
-**Production:** https://karmaai.online · **Tests:** 194 passing · **Stack:** FastAPI, SQLAlchemy (asyncpg), Alembic, Telegram Bot API, Meta WhatsApp Cloud API.
+**Production:** https://karmaai.online · **Tests:** 194 passing · **Stack:** FastAPI, SQLAlchemy (asyncpg), Alembic, Telegram Bot API.
 
 ## Features
 
 - **20 Pre-built Agents**: Customer service, content writing, marketing, analysis, automation, and more
 - **Multi-Model Support**: Gemini (production default) with automatic fallback to Moonshot/Kimi, plus optional OpenAI, Groq, Anthropic and local Ollama
-- **Telegram + WhatsApp**: Inbound/outbound messaging, webhooks, owner alerts, welcome flows (`POST /telegram`, `POST /whatsapp`)
+- **Telegram**: Inbound/outbound messaging, webhooks, owner alerts, welcome flows (`POST /webhooks/telegram`)
 - **Workflow Engine**: DAG-based workflow execution with context passing between steps
 - **Scheduler**: Cron-based and interval-based scheduling
 - **Trigger Engine**: Webhook, file watch, and database polling triggers
@@ -156,7 +156,7 @@ curl -X POST http://localhost:8000/api/schedules \
 ```bash
 # Health probes
 curl https://karmaai.online/telegram/health
-curl https://karmaai.online/whatsapp/health
+curl https://karmaai.online/webhooks/telegram/health
 
 # Register the Telegram webhook (uses the bot token from the environment)
 python scripts/setup_telegram_webhook.py

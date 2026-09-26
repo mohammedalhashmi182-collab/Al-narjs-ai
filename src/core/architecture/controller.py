@@ -2,8 +2,8 @@
 
 Two wrapped surfaces are provided:
 
-- :func:`process_webhook` — reuses the exact WhatsApp inbound pipeline
-  (``src.services.whatsapp_webhook.process_inbound_payload``) inside a tenant
+- :func:`process_webhook` — reuses the exact Telegram inbound pipeline
+  (``src.services.telegram_webhook.process_inbound_update``) inside a tenant
   guard with trace telemetry. The transactional contract (commit on success,
   rollback + re-raise on failure) is preserved.
 - :class:`GuardedConsult` — wraps a Gemini-style consult call with dynamic
@@ -65,13 +65,13 @@ async def process_webhook(
     *,
     process_fn: Optional[Any] = None,
 ) -> Dict[str, Any]:
-    """Wrapped WhatsApp controller: same pipeline + tenant guard + telemetry.
+    """Wrapped inbound controller: same pipeline + tenant guard + telemetry.
 
     ``process_fn`` defaults to the production inbound handler, so behaviour is
     identical to the deployed webhook while the guard adds tenant context and a
     trace id. Re-raises on failure so the route layer keeps deciding status.
     """
-    from src.services.whatsapp_webhook import process_inbound_payload as _default
+    from src.services.telegram_webhook import process_inbound_update as _default
 
     handler = process_fn or _default
     async with webhook_guard(session_factory, tenant_id) as (session, trace_id):

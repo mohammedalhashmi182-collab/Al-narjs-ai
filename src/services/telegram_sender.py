@@ -1,6 +1,6 @@
 """Telegram Bot API outbound adapter — gated behind a real credential.
 
-Rules (mirroring ``whatsapp_sender``):
+Rules (kept from the retired WhatsApp sender, which they governed):
 - Without ``TELEGRAM_TOKEN`` the sender is fully disabled: nothing leaves the
   local system and nothing is marked sent.
 - Every send requires a real Bot API ack (``ok: true`` + ``message_id``) before
@@ -121,12 +121,6 @@ async def send_owner_alert(text: str) -> dict:
 
 # --- Lead-aware outbound (reuses the WhatsApp queue governance) ---------------
 
-def _wa_me_link(phone: Any) -> str | None:
-    from .lead_normalize import wa_me_number
-
-    return wa_me_number(phone)
-
-
 async def _lead_for(session: AsyncSession, record: OutboundMessage) -> AcquisitionLead | None:
     if not record.lead_id:
         return None
@@ -160,7 +154,7 @@ async def enqueue(
         text=str(message),
         status="queued" if is_enabled() else "awaiting_credential",
         message_type=message_type or "text",
-        wa_me_link=_wa_me_link(chat_id),
+        wa_me_link=None,
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC),
     )

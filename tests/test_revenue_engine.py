@@ -1,4 +1,4 @@
-"""Revenue engine, payment lock and WhatsApp sender behavior (in-memory DB)."""
+"""Revenue engine, payment lock and Telegram sender behavior (in-memory DB)."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from src.services.revenue_tiers import (
     score_lead,
 )
 from src.services.revenue_radar import _interleave, build_wave
-from src.services.whatsapp_sender import is_enabled, send_status
+from src.services.telegram_sender import is_enabled, send_status
 
 
 # ---------------------------------------------------------------------------
@@ -186,26 +186,34 @@ class TestInterleave:
 
 
 # ---------------------------------------------------------------------------
-# WhatsApp sender safety
+# Telegram sender safety
 # ---------------------------------------------------------------------------
 
-class TestWhatsApp:
+class TestTelegramSender:
     def test_sender_disabled_without_credentials(self):
         from src.config import settings as _settings
 
-        was_token = _settings.whatsapp_token
-        was_phone = _settings.whatsapp_phone_number_id
+        was_token = _settings.telegram_token
+        was_owner = _settings.telegram_owner_chat_id
         try:
-            # Force both credentials off for the assertion.
-            object.__setattr__(_settings, "whatsapp_token", None)
-            object.__setattr__(_settings, "whatsapp_phone_number_id", None)
+            # Force the credentials off for the assertion.
+            object.__setattr__(_settings, "telegram_token", None)
+            object.__setattr__(_settings, "telegram_owner_chat_id", None)
             assert is_enabled() is False
             status = send_status()
             assert status["enabled"] is False
-            assert "wa.me" in status["fallback"]
+            assert status["connected"] is False
+            assert status["disabled_reason"]
+            # The status payload must never leak a credential value.
+            assert "t.me" in status["fallback"]
         finally:
-            object.__setattr__(_settings, "whatsapp_token", was_token)
-            object.__setattr__(_settings, "whatsapp_phone_number_id", was_phone)
+            object.__setattr__(_settings, "telegram_token", was_token)
+            object.__setattr__(_settings, "telegram_owner_chat_id", was_owner)
+
+    def test_status_never_exposes_the_token(self):
+        status = send_status()
+        assert "telegram_token" not in status
+        assert set(status) >= {"enabled", "connected", "env_required"}
 
 
 # ---------------------------------------------------------------------------

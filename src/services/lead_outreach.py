@@ -11,13 +11,18 @@ from __future__ import annotations
 from typing import Any, Optional
 from urllib.parse import quote
 
-from src.config.settings import settings
 from src.services import catalog
-from src.services.lead_normalize import wa_me_number
+from src.services.lead_normalize import normalize_mobile_e164
 
 VARIANT_QUOTE = "quote_followup"
 VARIANT_CUSTOMER = "customer_reengage"
 VARIANT_COLD = "cold_intro"
+
+# Telegram is the only support/outreach channel. The share URL is a deep link that
+# opens the chat picker with the draft already filled in; the rep picks the contact.
+TELEGRAM_SHARE_URL = "https://karmaai.online"
+TELEGRAM_BOT = "https://t.me/AlNarjs7BOT"
+TELEGRAM_SUPPORT = "https://t.me/AlNarjs7BOT?start=support"
 
 VARIANT_LABELS_AR = {
     VARIANT_QUOTE: "متابعة عرض سعر",
@@ -93,7 +98,7 @@ def generate_message(
     variant: Optional[str] = None,
     lang: str = "ar",
 ) -> dict:
-    """Return ``{variant, message, wa_link, wa_number, package}`` for a lead."""
+    """Return ``{variant, message, tg_link, lead_mobile, package}`` for a lead."""
     variant = variant or determine_variant(lead)
     company = (_val(lead, "company_name") or "").strip()
     contact = (_val(lead, "contact_name") or "").strip()
@@ -157,17 +162,20 @@ def generate_message(
     message = f"{message}\n{signature}"
 
     phone = _val(lead, "phone")
-    wa_number = wa_me_number(phone) if phone else None
-    wa_link = f"https://wa.me/{wa_number}?text={quote(message)}" if wa_number else None
+    reachable = normalize_mobile_e164(phone) if phone else None
+    tg_link = (
+        f"https://t.me/share/url?url={quote(TELEGRAM_SHARE_URL)}&text={quote(message)}"
+        if reachable
+        else None
+    )
 
     return {
         "variant": variant,
         "variant_label": VARIANT_LABELS_AR.get(variant, variant),
         "message": message,
-        "wa_link": wa_link,
-        "wa_number": wa_number,
+        "tg_link": tg_link,
+        "lead_mobile": reachable,
         "package": package,
         "package_name": _package_name(package, lang),
-        "company_whatsapp": settings.whatsapp_business_number,
         "lang": lang,
     }
