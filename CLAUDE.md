@@ -9,7 +9,7 @@ Any commit that lands on `main` **deploys to production within a minute** (Rende
 
 1. **Never write, print, log, or commit secrets.** `.env` is gitignored. Secrets live only in `.env` (local, gitignored) and in Render env vars. Never paste keys into code, comments, commit messages, or chat output.
 2. **Never push directly to `main`.** Work on a feature branch and open a pull request. `main` = production.
-3. **Run the tests before requesting a merge:** `python -m pytest` from the repo root (bare `pytest` fails with `No module named 'src'`). Baseline is **194 passing**.
+3. **Run the tests before requesting a merge:** `python -m pytest` from the repo root (bare `pytest` fails with `No module named 'src'`). Baseline is **334 passing**.
 4. **Never invent business data.** No fake leads, sales, revenue, testimonials, or metrics. Report real numbers only.
 5. **Do not change pricing, payment capture/refund, or lead-status logic** without explicit owner approval.
 6. Ask before touching: `alembic/versions/*` (schema), `render.yaml`, `Procfile`, `nginx.conf`, anything in `src/config/settings.py` env-var names.
