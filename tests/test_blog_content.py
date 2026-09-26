@@ -8,13 +8,14 @@ article mixed stray Latin and transliterated words into Arabic sentences
 (``sortez closures المتطلبات``), which shipped to a live page. Never relax it.
 """
 
+import pathlib
 import re
 import unicodedata
 
 import pytest
 
 from src.services import blog_articles_1 as blog
-from src.services import seo
+from src.services import catalog, seo
 
 FORBIDDEN_CLAIMS = [
     "ضمان المبيعات",
@@ -158,3 +159,20 @@ def test_public_arabic_ratio_is_high(article: dict) -> None:
 def test_articles_are_indexable_seo_paths() -> None:
     for article in blog.ARTICLES:
         assert seo.is_public_path(f"/blog/{article['slug']}")
+
+
+MARKETING_DOCS = ["marketing/launch-content-ar.md", "marketing/launch-plan-ar.md"]
+AGENT_COUNT_CLAIM = re.compile(r"(\d+)\s+وكيل")
+
+
+@pytest.mark.parametrize("doc", MARKETING_DOCS)
+def test_marketing_agent_count_matches_the_catalog(doc: str) -> None:
+    """Published copy states the agent count as a literal. The site and the catalog
+    already say 35; if the catalog grows, this fails instead of shipping a wrong count."""
+    path = pathlib.Path(doc)
+    if not path.exists():
+        pytest.skip(f"{doc} not present")
+    counts = {int(n) for n in AGENT_COUNT_CLAIM.findall(path.read_text(encoding="utf-8"))}
+    assert counts == {len(catalog.EMPLOYEES)}, (
+        f"{doc} claims {sorted(counts)} agents, the catalog has {len(catalog.EMPLOYEES)}"
+    )
