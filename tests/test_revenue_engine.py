@@ -154,6 +154,37 @@ class TestReferenceId:
         assert p["duplicate_protected"] is True
         assert p["source"] == "owner_workbook"
 
+    def test_provenance_survives_an_unconfigured_workbook_path(self):
+        """LEADS_EXCEL_PATH is optional, so provenance must not assume a path.
+
+        It used to call PurePath(settings.leads_excel_path) unguarded, which
+        raised TypeError on any host that did not set the variable. The revenue
+        radar builds provenance for every lead in a wave, so a single missing
+        optional env var turned the whole radar into a 500.
+        """
+        from src.config import settings as _settings
+
+        was = _settings.leads_excel_path
+        try:
+            object.__setattr__(_settings, "leads_excel_path", None)
+            p = provenance(_FakeLead(source_sheet="2024", dedup_key="abc-123"))
+            assert p["source_file_basename"] is None
+            assert p["source"] == "owner_workbook"
+        finally:
+            object.__setattr__(_settings, "leads_excel_path", was)
+
+    def test_provenance_reports_only_the_basename_when_configured(self):
+        from src.config import settings as _settings
+
+        was = _settings.leads_excel_path
+        try:
+            object.__setattr__(_settings, "leads_excel_path", "/srv/owner/secrets/leads.xlsx")
+            p = provenance(_FakeLead(dedup_key="abc-123"))
+            assert p["source_file_basename"] == "leads.xlsx"
+            assert "/srv/owner" not in str(p.values())
+        finally:
+            object.__setattr__(_settings, "leads_excel_path", was)
+
 
 # ---------------------------------------------------------------------------
 # Flags

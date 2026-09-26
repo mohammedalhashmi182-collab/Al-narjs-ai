@@ -241,9 +241,10 @@ def reference_id(lead_like: Any) -> str:
 
 def provenance(lead_like: Any) -> dict:
     """Row-level provenance pointing back to the owner's workbook without paths."""
+    configured = settings.leads_excel_path
     return {
         "source": "owner_workbook",
-        "source_file_basename": PurePath(settings.leads_excel_path).name,
+        "source_file_basename": PurePath(configured).name if configured else None,
         "source_sheet": _field(lead_like, "source_sheet"),
         "source_customer_code": _field(lead_like, "source_customer_code"),
         "dedup_key": _field(lead_like, "dedup_key"),
