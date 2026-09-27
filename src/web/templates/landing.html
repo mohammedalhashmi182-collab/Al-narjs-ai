@@ -197,8 +197,10 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,var(--gold-deep),var(--g
 
 /* ---------- preloader ---------- */
 .preloader{position:fixed;inset:0;z-index:200;background:var(--bg);display:grid;place-items:center;
-    transition:opacity .5s var(--ease),visibility .5s}
-.preloader.done{opacity:0;visibility:hidden}
+    transition:opacity .5s var(--ease),visibility .5s;
+    animation:plFailsafe 0s linear 4s forwards}
+.preloader.done,.preloader.hide{opacity:0;visibility:hidden;pointer-events:none}
+@keyframes plFailsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
 .preloader .mark{text-align:center}
 .preloader .mark span{font-weight:700;font-size:1.5rem;letter-spacing:.02em}
 .preloader .bar{width:140px;height:3px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:var(--sp-2)}
@@ -207,6 +209,9 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,var(--gold-deep),var(--g
 @keyframes pl{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
 
 /* ---------- launch bar ---------- */
+/* hidden until JS confirms the offer is still live and not dismissed;
+   removing .launch-on (dismiss) hides it again */
+body:not(.launch-on) .launch-bar{display:none}
 .launch-bar{position:relative;z-index:60;background:var(--ink);color:#fff;font-size:.86rem}
 .launch-bar .inner{max-width:var(--wrap);margin-inline:auto;padding:10px var(--sp-3);
     display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
@@ -1078,12 +1083,12 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,var(--gold-deep),var(--g
             window.addEventListener('load', function () {
                 setTimeout(function () {
                     var p = document.getElementById('preloader');
-                    if (p) p.classList.add('hide');
+                    if (p) p.classList.add('done', 'hide');
                 }, 600);
             });
             setTimeout(function () {
                 var p = document.getElementById('preloader');
-                if (p) p.classList.add('hide');
+                if (p) p.classList.add('done', 'hide');
             }, 2400);
 
             var prog = document.getElementById('progress'), nav = document.getElementById('nav'), toTop = document.getElementById('toTop');
@@ -1092,8 +1097,8 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,var(--gold-deep),var(--g
                 var st = h.scrollTop || document.body.scrollTop;
                 var max = h.scrollHeight - h.clientHeight;
                 if (prog) prog.style.width = (max > 0 ? (st / max * 100) : 0) + '%';
-                if (nav) nav.classList.toggle('scrolled', st > 30);
-                if (toTop) toTop.classList.toggle('show', st > 600);
+                if (nav) nav.classList.toggle('stuck', st > 30);
+                if (toTop) toTop.classList.toggle('on', st > 600);
             }
             window.addEventListener('scroll', onScroll, { passive: true });
             onScroll();
@@ -1120,7 +1125,7 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,var(--gold-deep),var(--g
             document.querySelectorAll('[data-wake]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var emp = btn.closest('.emp');
-                    var woke = emp.classList.toggle('woke');
+                    var woke = emp.classList.toggle('awake');
                     emp.classList.toggle('dormant', !woke);
                     var ar = document.body.dataset.lang === 'ar';
                     btn.querySelector('[data-w-b]').innerHTML = '<span data-lang="ar">' + (woke ? 'أيقظ الآن' : 'أيقظ') + '</span><span data-lang="en" data-inline>' + (woke ? 'Wake again' : 'Wake') + '</span>';
@@ -1311,6 +1316,11 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,var(--gold-deep),var(--g
         (function () {
             var bar = document.getElementById('launchBar');
             var closeBtn = document.getElementById('launchX');
+            function hideBar() {
+                if (bar) bar.style.display = 'none';
+                document.body.classList.remove('launch-on');
+            }
+            if (closeBtn) closeBtn.addEventListener('click', function () { localStorage.setItem('narjis-promo-dismissed', '1'); hideBar(); });
             if (bar && !localStorage.getItem('narjis-promo-dismissed')) {
                 document.body.classList.add('launch-on');
                 var cd = document.getElementById('launchCd');
@@ -1321,13 +1331,12 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,var(--gold-deep),var(--g
                     function tick() {
                         if (!end || isNaN(end.getTime())) { cd.textContent = cd.getAttribute('data-target') || '--'; return; }
                         var diff = end.getTime() - Date.now();
-                        if (diff <= 0) { cd.textContent = '00:00'; setTimeout(function(){ if (bar) bar.style.display = 'none'; }, 1000); return; }
+                        if (diff <= 0) { cd.textContent = '00:00'; setTimeout(hideBar, 1000); return; }
                         var d = Math.floor(diff / 86400000), h = Math.floor(diff % 86400000 / 3600000), m = Math.floor(diff % 3600000 / 60000);
                         cd.textContent = (d > 0 ? d + ' d ' : '') + pad(h) + ':' + pad(m);
                     }
                     tick(); setInterval(tick, 30000);
                 }
-                if (closeBtn) closeBtn.addEventListener('click', function () { localStorage.setItem('narjis-promo-dismissed', '1'); bar.style.display = 'none'; document.body.classList.remove('launch-on'); });
             }
         })();
     </script>
