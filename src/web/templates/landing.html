@@ -266,7 +266,7 @@ body:not(.launch-on) .launch-bar{display:none}
 /* ---------- hero ---------- */
 .hero{position:relative;z-index:1;padding-block:var(--sp-16) var(--sp-12)}
 .hero .inner{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--sp-3);
-    display:grid;grid-template-columns:1.05fr .95fr;gap:var(--sp-8);align-items:center}
+    display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:var(--sp-8);align-items:center}
 .badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface);
     border:1px solid var(--line);border-radius:var(--r-pill);padding:7px 14px;
     font-size:.82rem;font-weight:600;color:var(--ink-2);box-shadow:var(--shadow-sm)}
@@ -274,6 +274,12 @@ body:not(.launch-on) .launch-bar{display:none}
     box-shadow:0 0 0 3px rgba(79,121,66,.16)}
 .hero h1{font-size:clamp(2.3rem,5.2vw,3.9rem);margin-block:var(--sp-3) var(--sp-2);letter-spacing:-.03em}
 .hero .sub{font-size:clamp(1rem,1.6vw,1.16rem);color:var(--ink-2);max-width:34ch}
+.hero .sub.lead{max-width:56ch}
+.more-links{display:flex;flex-wrap:wrap;gap:var(--sp-3);margin-block-start:var(--sp-3);
+    font-size:.9rem}
+.more-links a{color:var(--green-deep);text-decoration:none;border-block-end:1px solid transparent}
+.more-links a:hover{border-block-end-color:var(--gold)}
+.more-links i{color:var(--gold-deep)}
 .rotor{color:var(--green-deep);font-weight:700;position:relative;white-space:nowrap}
 .rotor::after{content:"";display:inline-block;width:2px;height:1.05em;background:var(--gold);
     margin-inline-start:4px;vertical-align:-.16em;animation:cur 1.05s steps(1) infinite}
@@ -325,6 +331,114 @@ body:not(.launch-on) .launch-bar{display:none}
 .lc-line{stroke:var(--green);stroke-width:2;fill:none;stroke-linecap:round}
 .lc-area{fill:url(#lgArea)}
 .console-foot{padding:0 var(--sp-2) var(--sp-2);font-size:.76rem;color:var(--ink-3)}
+
+/* ---------- live demo ---------- */
+.demo .sec-inner{max-width:var(--wrap)}
+.demo-note{display:flex;align-items:flex-start;gap:8px;margin-block-start:var(--sp-2);
+    max-width:70ch;font-size:.86rem;color:var(--ink-3)}
+.demo-note i{color:var(--green);margin-top:5px}
+.demo-box{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);
+    margin-block-start:var(--sp-4);background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden}
+.demo-side{padding:var(--sp-3);background:var(--bg);border-inline-end:1px solid var(--line-soft);
+    display:flex;flex-direction:column;gap:var(--sp-2)}
+.demo-side-lbl{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;
+    letter-spacing:.02em;color:var(--ink-2)}
+.demo-side-lbl b{display:grid;place-items:center;width:19px;height:19px;flex-shrink:0;
+    border-radius:50%;background:var(--gold);color:var(--ink);font-size:.7rem}
+.demo-picker{display:grid;gap:8px}
+.pk{display:flex;align-items:center;gap:10px;width:100%;text-align:start;cursor:pointer;
+    font:inherit;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--r);padding:10px 12px;transition:all .25s var(--ease)}
+.pk:hover{border-color:var(--green)}
+.pk[aria-checked="true"]{border-color:var(--green);background:var(--green-wash);color:var(--green-deep)}
+.pk .pk-ic{width:32px;height:32px;flex-shrink:0;border-radius:var(--r-sm);display:grid;
+    place-items:center;background:var(--line-soft);color:var(--ink-3);font-size:.9rem;
+    transition:all .25s var(--ease)}
+.pk[aria-checked="true"] .pk-ic{background:var(--green);color:#fff}
+.pk .pk-tx{min-width:0;flex:1}
+.pk .pk-tx b{display:block;font-size:.88rem;font-weight:600}
+.pk .pk-tx small{display:block;font-size:.72rem;color:var(--ink-3)}
+.demo-run{width:100%;cursor:pointer}
+.demo-run[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+.demo-steps{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.demo-steps li{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;line-height:1.5;
+    color:var(--ink-3);transition:color .3s var(--ease)}
+.demo-steps .st{width:16px;height:16px;flex-shrink:0;margin-top:2px;border-radius:50%;
+    border:1.5px solid var(--line);display:grid;place-items:center;font-size:.5rem;
+    color:transparent;transition:all .3s var(--ease)}
+.demo-steps li.run{color:var(--ink-2)}
+.demo-steps li.run .st{border-color:var(--gold);color:var(--gold-deep);animation:pulse 1.2s ease-in-out infinite}
+.demo-steps li.done{color:var(--green-deep)}
+.demo-steps li.done .st{border-color:var(--green);background:var(--green);color:#fff}
+
+.demo-main{display:flex;flex-direction:column;min-width:0}
+.demo-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);
+    padding:14px var(--sp-3);border-block-end:1px solid var(--line-soft);background:var(--bg)}
+.demo-who{display:flex;align-items:center;gap:10px;min-width:0}
+.demo-who .demo-ava{width:38px;height:38px;flex-shrink:0;border-radius:var(--r-sm);display:grid;
+    place-items:center;font-size:.74rem;font-weight:700;background:var(--line-soft);color:var(--ink-3);
+    transition:all .35s var(--ease)}
+.demo-box.running .demo-ava{background:var(--gold);color:var(--ink)}
+.demo-box.done .demo-ava{background:var(--green);color:#fff}
+.demo-who .who-tx{min-width:0}
+.demo-who .who-tx b{display:block;font-size:.92rem;font-weight:600;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+.demo-who .who-tx small{display:block;font-size:.73rem;color:var(--ink-3)}
+.demo-brief{padding:10px var(--sp-3);font-size:.83rem;line-height:1.6;color:var(--ink-2);
+    border-block-end:1px solid var(--line-soft);background:var(--surface)}
+.demo-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:var(--sp-2) var(--sp-3) 0}
+.demo-tab{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;
+    font:inherit;border-radius:var(--r-pill);padding:6px 13px;font-size:.78rem;font-weight:600;
+    transition:all .25s var(--ease)}
+.demo-tab:hover{border-color:var(--green);color:var(--green-deep)}
+.demo-tab[aria-selected="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.demo-panel{padding:var(--sp-3);min-height:290px;display:flex;flex-direction:column}
+.demo-empty{margin:auto;text-align:center;max-width:34ch;display:grid;gap:10px;justify-items:center;
+    font-size:.9rem;line-height:1.7;color:var(--ink-3)}
+.demo-empty i{font-size:1.6rem;color:var(--line)}
+.demo-out{animation:demoIn .45s var(--ease) both}
+@keyframes demoIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.d-ideas{display:grid;gap:10px}
+.d-idea{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:start;
+    padding:12px;border:1px solid var(--line-soft);border-radius:var(--r);background:var(--bg)}
+.d-idea .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    background:var(--gold-wash);color:var(--gold-deep);font-size:.72rem;font-weight:700}
+.d-idea b{display:block;font-size:.9rem;margin-block-end:3px}
+.d-idea small{display:block;font-size:.82rem;line-height:1.65;color:var(--ink-3)}
+
+.d-caps{display:grid;gap:12px}
+.d-cap{border:1px solid var(--line-soft);border-radius:var(--r);background:var(--bg);overflow:hidden}
+.d-cap-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;
+    border-block-end:1px solid var(--line-soft);background:var(--surface);font-size:.74rem;color:var(--ink-3)}
+.d-cap-bar b{color:var(--ink-2);font-weight:600}
+.d-cap-bar .sp{margin-inline-start:auto}
+.d-cap-body{padding:12px;font-size:.88rem;line-height:1.8;color:var(--ink-2);white-space:pre-line}
+.d-cap-tags{padding:0 12px 12px;font-size:.79rem;line-height:1.7;color:var(--green-deep);word-break:break-word}
+
+.d-cal-wrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:var(--r);background:var(--bg)}
+.d-cal{width:100%;border-collapse:collapse;font-size:.82rem;min-width:460px}
+.d-cal th,.d-cal td{text-align:start;padding:10px 12px;border-block-end:1px solid var(--line-soft);
+    vertical-align:top;line-height:1.55}
+.d-cal th{font-size:.7rem;letter-spacing:.06em;color:var(--ink-3);font-weight:700;background:var(--surface)}
+.d-cal tbody tr:last-child td{border-block-end:0}
+.d-cal td b{font-weight:600}
+
+.d-ads{display:grid;gap:12px}
+.d-ad{border:1px solid var(--line-soft);border-radius:var(--r);background:var(--bg);padding:14px}
+.d-ad-pl{display:block;font-size:.7rem;letter-spacing:.06em;color:var(--ink-3);font-weight:700}
+.d-ad-hl{font-size:1rem;font-weight:700;margin-block:6px 5px;line-height:1.35}
+.d-ad-tx{font-size:.85rem;line-height:1.75;color:var(--ink-2)}
+.d-ad-cta{display:inline-flex;align-items:center;gap:6px;margin-block-start:12px;
+    background:var(--gold);color:var(--ink);border-radius:var(--r-pill);padding:6px 15px;
+    font-size:.8rem;font-weight:700}
+
+.d-ins{display:grid;gap:12px}
+.d-ins-lead{font-size:.9rem;line-height:1.85;color:var(--ink-2)}
+.d-ins ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.d-ins li{display:flex;align-items:flex-start;gap:9px;font-size:.86rem;line-height:1.7;color:var(--ink-2)}
+.d-ins li i{color:var(--green);margin-top:6px;font-size:.55rem}
 
 /* ---------- trust strip ---------- */
 .trust{position:relative;z-index:1;border-block:1px solid var(--line);
@@ -408,23 +522,79 @@ body:not(.launch-on) .launch-bar{display:none}
 .step p{font-size:.89rem;color:var(--ink-2)}
 
 /* ---------- pricing ---------- */
-.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:var(--sp-2);
-    margin-block-start:var(--sp-6)}
-.pkg{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
-    padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-2);box-shadow:var(--shadow-sm);
-    transition:all .3s var(--ease)}
-.pkg:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
-.pkg.featured{border-color:var(--gold);box-shadow:0 2px 4px rgba(41,37,36,.06),0 18px 44px rgba(244,196,48,.16)}
-.pkg .tag{position:absolute;inset-block-start:-11px;inset-inline-end:var(--sp-2);
-    background:var(--gold);color:var(--ink);font-size:.72rem;font-weight:700;border-radius:var(--r-pill);padding:4px 12px}
-.pkg .n{font-weight:700;font-size:1.12rem}
-.pkg .pc{font-size:.86rem;color:var(--ink-3)}
+/* the cards lead with the result and the problem, not with a tool list */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:var(--sp-2);
+    margin-block-start:var(--sp-4);align-items:stretch}
+.pc{position:relative;display:flex;flex-direction:column;gap:14px;scroll-margin-block-start:96px;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:var(--sp-3);box-shadow:var(--shadow-sm);
+    transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.pc:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.pc.featured{border-color:var(--gold);
+    box-shadow:0 2px 4px rgba(41,37,36,.06),0 18px 44px rgba(244,196,48,.16)}
+.pc .tag{position:absolute;inset-block-start:-11px;inset-inline-end:var(--sp-2);
+    background:var(--gold);color:var(--ink);font-size:.72rem;font-weight:700;
+    border-radius:var(--r-pill);padding:4px 12px}
+.pc-head{display:grid;gap:2px}
+.pc h3{font-size:1.06rem}
+.pc .en-nm{font-size:.8rem;font-weight:600;color:var(--ink-3);letter-spacing:.02em}
 .price{font-size:2.3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .price small{font-size:.86rem;font-weight:600;color:var(--ink-3)}
-.pkg ul{display:grid;gap:9px;font-size:.9rem;color:var(--ink-2);flex:1}
-.pkg li{display:flex;align-items:flex-start;gap:8px}
-.pkg li i{color:var(--green);font-size:.8rem;margin-block-start:.42em;flex-shrink:0}
-.pkg .actions{margin-block-start:auto}
+
+/* the outcome, stated before any feature */
+.pc-out{background:var(--green-wash);border-radius:var(--r);padding:11px 13px;
+    font-size:.95rem;font-weight:600;line-height:1.55;color:var(--green-deep)}
+
+/* the five solution blocks */
+.pc-b{display:grid;gap:4px}
+.pc-b h4{display:flex;align-items:center;gap:6px;font-size:.73rem;font-weight:700;
+    letter-spacing:.05em;color:var(--ink-3)}
+.pc-b h4 i{color:var(--green);font-size:.72rem;flex-shrink:0}
+.pc-b p{font-size:.88rem;line-height:1.6;color:var(--ink-2)}
+.pc-list{display:grid;gap:7px}
+.pc-list li{display:flex;align-items:flex-start;gap:8px;font-size:.87rem;line-height:1.55;color:var(--ink-2)}
+.pc-list li i{color:var(--green);font-size:.78rem;margin-block-start:.42em;flex-shrink:0}
+.pc-list li b{color:var(--ink);font-weight:600}
+
+/* the team: five named agents, kept as detail inside the solution */
+.pc-team{display:flex;flex-wrap:wrap;gap:5px}
+.pc-team span{font-size:.76rem;font-weight:600;color:var(--ink-2);background:var(--line-soft);
+    border-radius:var(--r-pill);padding:3px 10px}
+
+/* what the client does not have to do: the honest part of the pitch */
+.pc-not{background:var(--gold-wash);border:1px solid rgba(201,162,39,.24);
+    border-radius:var(--r);padding:11px 13px;display:grid;gap:7px}
+.pc-not h4{display:flex;align-items:center;gap:6px;font-size:.73rem;font-weight:700;
+    letter-spacing:.05em;color:var(--gold-deep)}
+.pc-not h4 i{color:var(--gold-deep);font-size:.72rem;flex-shrink:0}
+.pc-not li{display:flex;align-items:flex-start;gap:8px;font-size:.85rem;line-height:1.55;color:var(--ink-2)}
+.pc-not li i{color:var(--gold-deep);font-size:.74rem;margin-block-start:.42em;flex-shrink:0}
+
+.pc .actions{margin-block-start:auto;padding-block-start:2px}
+.pc .actions .btn{width:100%}
+
+/* self-qualification: start from your situation */
+.plan-choose{display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:10px;
+    margin-block-start:var(--sp-3)}
+.pc-pick{display:flex;align-items:center;gap:10px;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;
+    transition:border-color .22s var(--ease),background .22s var(--ease)}
+.pc-pick:hover{border-color:var(--green);background:var(--green-wash)}
+.pc-pick i{color:var(--green);font-size:1.02rem;flex-shrink:0}
+.pc-pick .pk-tx{display:grid;gap:1px;min-width:0}
+.pc-pick b{font-size:.88rem;font-weight:600;line-height:1.45}
+.pc-pick small{font-size:.78rem;color:var(--ink-3);font-weight:600}
+
+/* the difference between plans, in one place */
+.pcmp{width:100%;border-collapse:collapse;margin-block-start:var(--sp-2);font-size:.87rem}
+.pcmp th,.pcmp td{padding:12px 13px;text-align:start;vertical-align:top;
+    border-block-end:1px solid var(--line-soft);line-height:1.6}
+.pcmp thead th{font-size:.76rem;letter-spacing:.05em;color:var(--ink-3);font-weight:700;
+    border-block-end:1px solid var(--line)}
+.pcmp tbody th{font-weight:700;white-space:nowrap}
+.pcmp tbody tr:last-child th,.pcmp tbody tr:last-child td{border-block-end:0}
+.pcmp .diff{color:var(--ink-2)}
+.pcmp-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* ---------- telegram panel / support ---------- */
 .tg-panel{position:relative;z-index:1;margin-block:var(--sp-4);
@@ -481,7 +651,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .footer{position:relative;z-index:1;background:var(--ink);color:#E7E5E4;
     padding-block:var(--sp-12) var(--sp-4);margin-block-start:var(--sp-8)}
 .footer .inner{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--sp-3);
-    display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:var(--sp-6)}
+    display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);gap:var(--sp-6)}
 .footer .brand .name{color:#fff}
 .footer .brand .name b{color:var(--gold)}
 .footer .brand .sub{color:rgba(231,229,228,.55)}
@@ -521,31 +691,220 @@ body:not(.launch-on) .launch-bar{display:none}
 .m-consult{flex:1;text-align:center;background:var(--gold);color:var(--ink);border-radius:var(--r);
     padding:12px 16px;font-weight:600;font-size:.9rem}
 
+/* ---------- trust / proof: no invented clients, only what is true ---------- */
+.proof{background:var(--surface);border-block:1px solid var(--line)}
+.proof .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:var(--sp-3);
+    max-width:var(--wrap);margin-inline:auto;padding:var(--sp-6) var(--sp-3) var(--sp-3)}
+.proof .pf{display:grid;gap:6px;align-content:start}
+.proof .pf b{display:flex;align-items:center;gap:8px;font-size:.96rem;font-weight:700;color:var(--ink)}
+.proof .pf b i{color:var(--green);font-size:.92rem;flex-shrink:0}
+.proof .pf p{font-size:.87rem;line-height:1.65;color:var(--ink-2)}
+.proof-note{max-width:var(--wrap);margin-inline:auto;padding:0 var(--sp-3) var(--sp-6)}
+.proof-note .pn{background:var(--green-wash);border:1px solid rgba(79,121,66,.2);
+    border-radius:var(--r);padding:15px 17px;font-size:.91rem;line-height:1.75;color:var(--ink-2)}
+.proof-note .pn b{color:var(--ink);font-weight:700}
+.proof-note a{color:var(--green-deep);font-weight:600}
+
+/* ---------- "what does your business need" (deterministic, no API) ---------- */
+.needs-wrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:var(--sp-3);
+    margin-block-start:var(--sp-4);align-items:start}
+.nd-pick{display:grid;gap:8px}
+.nd-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:start;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:13px 14px;font-size:.92rem;font-weight:600;color:var(--ink-2);
+    transition:border-color .2s var(--ease),background .2s var(--ease),color .2s var(--ease)}
+.nd-btn i{color:var(--green);font-size:.98rem;flex-shrink:0}
+.nd-btn:hover{border-color:var(--green);color:var(--ink)}
+.nd-btn[aria-pressed="true"]{border-color:var(--green);background:var(--green-wash);color:var(--green-deep)}
+.nd-out{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:var(--sp-3);box-shadow:var(--shadow-sm);min-height:280px;
+    display:flex;flex-direction:column;gap:14px}
+.nd-empty{margin:auto;text-align:center;color:var(--ink-3);font-size:.95rem;
+    display:flex;flex-direction:column;align-items:center;gap:10px}
+.nd-empty i{color:var(--green);font-size:1.5rem;opacity:.6}
+.nd-head{display:grid;gap:6px}
+.nd-head .nd-team{font-size:1.06rem;font-weight:700;color:var(--green-deep)}
+.nd-head .nd-why{font-size:.9rem;color:var(--ink-2);line-height:1.6}
+.nd-lbl{font-size:.73rem;font-weight:700;letter-spacing:.05em;color:var(--ink-3);
+    display:flex;align-items:center;gap:6px}
+.nd-lbl i{color:var(--green);font-size:.72rem}
+.nd-agents{display:flex;flex-wrap:wrap;gap:6px}
+.nd-agents span{font-size:.8rem;font-weight:600;color:var(--ink-2);background:var(--line-soft);
+    border-radius:var(--r-pill);padding:4px 11px}
+.nd-agents span.on{background:var(--green-wash);color:var(--green-deep);
+    border:1px solid rgba(79,121,66,.32)}
+.nd-ex{display:grid;gap:8px}
+.nd-ex li{display:flex;align-items:flex-start;gap:8px;font-size:.89rem;line-height:1.6;color:var(--ink-2)}
+.nd-ex li i{color:var(--green);font-size:.78rem;margin-block-start:.42em;flex-shrink:0}
+.nd-ex li b{color:var(--ink);font-weight:600}
+.nd-cta{display:flex;flex-wrap:wrap;gap:10px;margin-block-start:auto;padding-block-start:2px}
+
+/* ---------- why Al-Narjis: a neutral comparison ---------- */
+.why-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-block-start:var(--sp-3);
+    border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)}
+.why{width:100%;border-collapse:collapse;font-size:.87rem;min-width:660px}
+.why th,.why td{padding:12px 14px;text-align:start;vertical-align:top;
+    border-block-end:1px solid var(--line-soft);line-height:1.6}
+.why thead th{font-size:.8rem;font-weight:700;letter-spacing:.03em;background:var(--line-soft);color:var(--ink)}
+.why thead th.us{background:var(--green-wash);color:var(--green-deep)}
+.why tbody th{font-weight:600;color:var(--ink);white-space:nowrap;width:132px}
+.why td{color:var(--ink-2)}
+.why td.us{color:var(--ink);font-weight:600;background:rgba(238,243,234,.5)}
+.why tbody tr:last-child th,.why tbody tr:last-child td{border-block-end:0}
+.why-note{margin-block-start:var(--sp-2);font-size:.86rem;color:var(--ink-3);line-height:1.7}
+
+/* ---------- conversion: one clear next step per stage ---------- */
+.next-step{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;
+    margin-block-start:var(--sp-4);padding:var(--sp-3);
+    background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
+    border:1px solid rgba(79,121,66,.2);border-radius:var(--r-lg)}
+.next-step .ns-tx{display:grid;gap:2px;flex:1 1 260px;min-width:0}
+.next-step .ns-tx b{font-size:.98rem;font-weight:700;color:var(--ink)}
+.next-step .ns-tx span{font-size:.87rem;color:var(--ink-2);line-height:1.6}
+.next-step .ns-note{font-size:.86rem;color:var(--ink-3);line-height:1.7;
+    margin-block-start:var(--sp-3);max-width:60ch}
+
+/* ---------- what your business needs ---------- */
+.needs-wrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);
+    gap:var(--sp-3);align-items:start}
+.nd-pick{display:grid;gap:var(--sp-1);position:sticky;inset-block-start:96px}
+.nd-btn{display:flex;align-items:center;gap:var(--sp-2);width:100%;
+    padding:var(--sp-2) var(--sp-3);text-align:start;cursor:pointer;
+    font:inherit;font-size:.92rem;color:var(--ink-2);
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+    transition:border-color .2s,box-shadow .2s,transform .2s,color .2s}
+.nd-btn i{color:var(--green);font-size:.95rem;flex:none;width:18px;text-align:center}
+.nd-btn:hover{border-color:rgba(79,121,66,.4);transform:translateY(-1px)}
+.nd-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.nd-btn[aria-pressed="true"]{color:var(--ink);font-weight:600;
+    background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
+    border-color:rgba(79,121,66,.45);box-shadow:0 2px 10px rgba(79,121,66,.12)}
+.nd-btn[aria-pressed="true"] i{color:var(--gold)}
+.nd-out{display:grid;gap:var(--sp-3);padding:var(--sp-4);
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+    box-shadow:var(--sh-1)}
+.nd-empty{display:flex;align-items:flex-start;gap:var(--sp-2);margin:0;
+    color:var(--ink-3);font-size:.92rem;line-height:1.8}
+.nd-empty i{margin-block-start:.25rem;color:var(--gold);flex:none}
+.nd-head{display:grid;gap:var(--sp-1);padding-block-end:var(--sp-3);
+    border-block-end:1px dashed var(--line)}
+.nd-team{font-size:1.1rem;font-weight:700;color:var(--ink)}
+.nd-why{margin:0;font-size:.93rem;color:var(--ink-2);line-height:1.8;max-width:62ch}
+.nd-clear{display:inline-flex;align-items:center;gap:var(--sp-1);justify-self:start;
+    margin-block-start:var(--sp-1);padding:.3rem .7rem;cursor:pointer;
+    font:inherit;font-size:.8rem;color:var(--ink-3);
+    background:transparent;border:1px solid var(--line);border-radius:99px}
+.nd-clear:hover{color:var(--ink);border-color:rgba(79,121,66,.4)}
+.nd-clear:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.nd-lbl{display:flex;align-items:center;gap:var(--sp-1);margin-block-end:var(--sp-1);
+    font-size:.8rem;font-weight:600;color:var(--ink-3)}
+.nd-lbl i{color:var(--green);font-size:.82rem}
+.nd-agents{display:flex;flex-wrap:wrap;gap:var(--sp-1)}
+.nd-agents span{padding:.3rem .68rem;font-size:.84rem;color:var(--ink-2);
+    background:var(--page);border:1px solid var(--line);border-radius:99px}
+.nd-agents span.on{color:var(--ink);font-weight:600;background:var(--green-wash);
+    border-color:rgba(79,121,66,.35)}
+.nd-ex{display:grid;gap:var(--sp-1);margin:0;padding:0;list-style:none}
+.nd-ex li{display:flex;align-items:flex-start;gap:var(--sp-2);
+    font-size:.9rem;color:var(--ink-2);line-height:1.75}
+.nd-ex i{color:var(--green);font-size:.82rem;margin-block-start:.42rem;flex:none}
+.nd-cta{display:flex;flex-wrap:wrap;gap:var(--sp-2);
+    padding-block-start:var(--sp-3);border-block-start:1px dashed var(--line)}
+.nd-fallback{display:flex;flex-wrap:wrap;gap:var(--sp-1);margin:0}
+.nd-fallback a{display:inline-flex;align-items:center;padding:.4rem .8rem;
+    font-size:.87rem;color:var(--ink-2);text-decoration:none;
+    background:var(--surface);border:1px solid var(--line);border-radius:99px}
+.nd-fallback a:hover{border-color:rgba(79,121,66,.4);color:var(--ink)}
+
+/* ---------- why al-narjis ---------- */
+.why-note{max-width:70ch;margin:var(--sp-3) auto 0;text-align:center;
+    font-size:.87rem;color:var(--ink-3);line-height:1.8}
+.why-cta{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap;
+    margin-block-start:var(--sp-5);padding:var(--sp-4);
+    background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
+    border:1px solid rgba(79,121,66,.2);border-radius:var(--r-lg)}
+.why-cta p{flex:1 1 280px;min-width:0;margin:0;
+    font-size:1rem;font-weight:600;color:var(--ink);line-height:1.7}
+.why-cta-row{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.why-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;
+    border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)}
+.why{width:100%;border-collapse:collapse;min-width:760px;font-size:.9rem}
+.why th,.why td{padding:var(--sp-3) var(--sp-3);text-align:start;line-height:1.75;
+    border-block-end:1px solid var(--line);vertical-align:top}
+.why thead th{font-size:.8rem;font-weight:600;color:var(--ink-3);
+    letter-spacing:.02em;background:var(--page);white-space:nowrap}
+.why thead th.us{color:var(--green);background:var(--green-wash)}
+.why tbody th{font-weight:600;color:var(--ink);white-space:nowrap;width:1%}
+.why tbody td{color:var(--ink-2)}
+.why tbody tr:last-child th,.why tbody tr:last-child td{border-block-end:0}
+.why tbody tr:nth-child(even) td,.why tbody tr:nth-child(even) th{background:#FCFCFB}
+.why .us{color:var(--ink);font-weight:600;background:var(--green-wash)}
+
+/* ---------- pricing close ---------- */
+.pcmp-close{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap;
+    margin-block-start:var(--sp-5);padding:var(--sp-4);
+    background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
+    border:1px solid rgba(79,121,66,.2);border-radius:var(--r-lg)}
+.pcmp-close p{flex:1 1 300px;min-width:0;margin:0;
+    font-size:.94rem;color:var(--ink-2);line-height:1.8}
+.pcmp-close-cta{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.pc-aside{margin:var(--sp-2) 0 0;padding:var(--sp-2);font-size:.82rem;
+    color:var(--ink-3);line-height:1.7;background:var(--page);
+    border:1px solid var(--line);border-radius:var(--r-sm)}
+.pc-aside i{color:var(--gold);margin-inline-end:var(--sp-1)}
+
 /* ---------- responsive ---------- */
 @media (max-width:1080px){
-    .bento{grid-template-columns:repeat(2,1fr)}
+    .bento{grid-template-columns:repeat(2,minmax(0,1fr))}
     .bcard.b-lg{grid-column:span 2;grid-row:auto}
-    .footer .inner{grid-template-columns:1fr 1fr}
+    .footer .inner{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:900px){
     :root{--sec-pad:var(--sp-8)}
     .hero{padding-block:var(--sp-12) var(--sp-8)}
-    .hero .inner{grid-template-columns:1fr;gap:var(--sp-6)}
+    .hero .inner{grid-template-columns:minmax(0,1fr);gap:var(--sp-6)}
     .nav-links{display:none}
-    .stats{grid-template-columns:repeat(2,1fr);gap:var(--sp-3)}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-3)}
     .mob-cta{display:flex}
+    .needs-wrap{grid-template-columns:1fr}
+    .nd-pick{position:static;
+        grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-1)}
+    .nd-btn{font-size:.88rem;padding:var(--sp-2)}
+    .pcmp-close{align-items:flex-start}
     body{padding-block-end:66px}
     .tg-float{inset-block-end:80px}
     .to-top{inset-block-end:80px}
+    .demo-box{grid-template-columns:1fr}
+    .demo-side{border-inline-end:0;border-block-end:1px solid var(--line-soft)}
+    .needs-wrap{grid-template-columns:1fr}
+    .nd-out{min-height:0}
 }
 @media (max-width:620px){
     :root{--sec-pad:var(--sp-6)}
-    .bento{grid-template-columns:1fr}
+    .bento{grid-template-columns:minmax(0,1fr)}
     .bcard.b-lg{grid-column:span 1}
-    .footer .inner{grid-template-columns:1fr;gap:var(--sp-4)}
-    .stats{grid-template-columns:1fr 1fr}
+    .footer .inner{grid-template-columns:minmax(0,1fr);gap:var(--sp-4)}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    /* the console row is nowrap by design; on a narrow phone the status and the
+       wake button would push it past the clipped console, so let it wrap instead */
+    .emp{flex-wrap:wrap;row-gap:8px}
+    .emp .en{flex:1 1 58%}
+    .emp .sit{flex:1 1 auto;min-width:0}
+    .wk{flex:0 0 auto}
     .hero h1{letter-spacing:-.02em}
     .cta-row .btn{flex:1 1 100%}
+    .pcmp thead th,.pcmp td,.pcmp tbody th{padding:10px 9px}
+    .nd-pick{grid-template-columns:1fr}
+    .nd-out{padding:var(--sp-3)}
+    .nd-cta .btn,.pcmp-close-cta .btn,.why-cta-row .btn{flex:1 1 100%}
+    .why thead th,.why td,.why tbody th{padding:var(--sp-2);font-size:.85rem}
+}
+/* very narrow phones: the long hero labels must be allowed to wrap,
+   otherwise .btn{white-space:nowrap} forces the row wider than the screen */
+@media (max-width:400px){
+    .cta-row .btn{white-space:normal;text-align:center}
+    .mob-cta .btn{white-space:normal}
+    .next-step .btn,.pcmp-close-cta .btn,.nd-cta .btn,.why-cta-row .btn{width:100%;text-align:center}
 }
 
 /* ---------- reduced motion: no drift, no animation ---------- */
@@ -621,26 +980,27 @@ body:not(.launch-on) .launch-bar{display:none}
     <header class="hero" id="top">
         <div class="inner">
             <div>
-                <span class="badge"><span class="dot"></span><span data-lang="ar">من الرياض إلى العالم</span><span data-lang="en" data-inline>From Riyadh, for the world</span></span>
+                <span class="badge"><span class="dot"></span><span data-lang="ar">للمتاجر وصنّاع المحتوى والمكاتب الخدمية</span><span data-lang="en" data-inline>For stores, creators and service firms</span></span>
                 <h1>
-                    <span data-lang="ar">فريقك الرقمي…<br>في انتظار لمسة <span class="grad">إيقاظ</span></span>
-                    <span data-lang="en" data-inline>Your digital workforce,<br>asleep — one touch away</span>
+                    <span data-lang="ar">فريق تسويق ومحتوى ومبيعات<br>يعمل من <span class="grad">أول شهر</span></span>
+                    <span data-lang="en" data-inline>A marketing, content and sales team<br>working from <span class="grad">month one</span></span>
                 </h1>
-                <p class="sub">
-                    <span data-lang="ar">يتقن: </span><span data-lang="en" data-inline>Mastering: </span><span class="rotor" id="rotor">كتابة المحتوى</span>
+                <p class="sub lead">
+                    <span data-lang="ar">تشترك في باقة فيها خمسة وكلاء متخصصون بدل توظيف فريق. يغطّي: </span><span data-lang="en" data-inline>Subscribe to a plan with five specialized agents instead of hiring a team. Covers: </span><span class="rotor" id="rotor">كتابة المحتوى</span>
                 </p>
                 <div class="cta-row">
-                    <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">أيقظ فريقك</span><span data-lang="en" data-inline>Wake your team</span></a>
-                    <a href="#agents" class="btn btn-ghost"><span data-lang="ar">تعرّف على الوكلاء</span><span data-lang="en" data-inline>Meet the agents</span></a>
-                    <a href="/guide" class="btn btn-ghost"><i class="fas fa-book-open"></i><span data-lang="ar">دليل مجاني</span><span data-lang="en" data-inline>Free guide</span></a>
-                    <a href="/consult" class="btn btn-online"><i class="fas fa-comments"></i><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
+                    <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">شاهد ماذا يستطيع فريقك الرقمي أن يفعل</span><span data-lang="en" data-inline>See what your digital team can do</span></a>
+                    <a href="/consult" class="btn btn-ghost"><span data-lang="ar">ابدأ باستشارة مجانية</span><span data-lang="en" data-inline>Start a free consultation</span></a>
+                </div>
+                <div class="more-links">
+                    <a href="/guide"><i class="fas fa-book-open"></i> <span data-lang="ar">دليل مجاني: تشغيل التسويق بالوكلاء</span><span data-lang="en" data-inline>Free guide: running marketing with agents</span></a>
                 </div>
                 <div class="hint"><i class="fas fa-shield-halved"></i><span data-lang="ar">فاتورة رسمية موثقة · بدون عقود طويلة · إلغاء في أي وقت</span><span data-lang="en" data-inline>Official invoiced billing · No long contracts · Cancel anytime</span></div>
 
                 <div class="stats">
-                    <div class="stat"><div class="num" id="c0" data-target="{{ agent_count }}">{{ agent_count }}</div><div class="lbl"><span data-lang="ar">وكيلاً ذكياً متخصصاً</span><span data-lang="en" data-inline>Specialized agents</span></div></div>
-                    <div class="stat"><div class="num" id="c1" data-target="5">5</div><div class="lbl"><span data-lang="ar">وكلاء في كل باقة</span><span data-lang="en" data-inline>Agents per plan</span></div></div>
-                    <div class="stat"><div class="num" id="c2" data-target="4">4</div><div class="lbl"><span data-lang="ar">باقات شهرية</span><span data-lang="en" data-inline>Monthly plans</span></div></div>
+                    <div class="stat"><div class="num" id="c0" data-target="800">800</div><div class="lbl"><span data-lang="ar">ريال شهرياً تبدأ به الباقات</span><span data-lang="en" data-inline>SAR per month to start with</span></div></div>
+                    <div class="stat"><div class="num" id="c1" data-target="5">5</div><div class="lbl"><span data-lang="ar">وكلاء متخصصون في كل باقة</span><span data-lang="en" data-inline>Specialized agents in every plan</span></div></div>
+                    <div class="stat"><div class="num" id="c2" data-target="{{ agent_count }}">{{ agent_count }}</div><div class="lbl"><span data-lang="ar">وكيلاً في الكتالوج الكامل</span><span data-lang="en" data-inline>agents in the full catalogue</span></div></div>
                     <div class="stat"><div class="num" id="c3" data-target="15">15</div><div class="lbl"><span data-lang="ar">% ضريبة القيمة المضافة على الفاتورة</span><span data-lang="en" data-inline>% VAT on the invoice</span></div></div>
                 </div>
             </div>
@@ -672,7 +1032,7 @@ body:not(.launch-on) .launch-bar{display:none}
                         </div>
                     </div>
                     <div class="console-chart">
-                        <div class="ch-lbl"><span data-lang="ar">مخرجات الأسابيع</span><span data-lang="en" data-inline>Weekly output</span><b>+38%</b></div>
+                        <div class="ch-lbl"><span data-lang="ar">مخرجات الأسابيع</span><span data-lang="en" data-inline>Weekly output</span></div>
                         <svg viewBox="0 0 560 86" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="lgGrad" x1="0" y1="0" x2="1" y2="0">
@@ -713,6 +1073,189 @@ body:not(.launch-on) .launch-bar{display:none}
             <span><i class="fas fa-diamond"></i><span data-lang="ar">نمو أعمال</span><span data-lang="en" data-inline>Business growth</span></span>
         </div>
     </div>
+
+    <!-- ==================== TRUST / PROOF ==================== -->
+    <section class="proof" id="proof">
+        <div class="row">
+            <div class="pf reveal">
+                <b><i class="fas fa-eye"></i><span data-lang="ar">شاهد المخرجات قبل أن تدفع</span><span data-lang="en" data-inline>See the output before you pay</span></b>
+                <p><span data-lang="ar">جرّب النموذج التفاعلي في هذه الصفحة: ثلاثة أعمال تجريبية بأسماء مختلقة، وخمسة أنواع مخرجات — أفكار، نصوص، تقويم، إعلان، وقراءة أداء.</span><span data-lang="en" data-inline>Try the interactive sample on this page: three invented businesses and five output types — ideas, captions, calendar, ad copy, and a performance read.</span></p>
+                <p><a href="#demo"><span data-lang="ar">افتح النموذج التفاعلي ←</span><span data-lang="en" data-inline>Open the live sample &rarr;</span></a></p>
+            </div>
+            <div class="pf reveal">
+                <b><i class="fas fa-diagram-project"></i><span data-lang="ar">آلية عمل واضحة</span><span data-lang="en" data-inline>A mechanism you can follow</span></b>
+                <p><span data-lang="ar">لا نتركك تخمّن: تختار الباقة، ويسألك كل وكيل عن عملك في أسئلة قصيرة، ثم يستلم عملاؤك المخرجات منسّقة بالعربية.</span><span data-lang="en" data-inline>No guessing: you pick a plan, each agent asks about your business in short questions, then you receive the output organised in Arabic.</span></p>
+                <p><a href="#how"><span data-lang="ar">الخطوات الثلاث بالتفصيل ←</span><span data-lang="en" data-inline>The three steps in detail &rarr;</span></a></p>
+            </div>
+            <div class="pf reveal">
+                <b><i class="fas fa-file-invoice"></i><span data-lang="ar">شركة سعودية وفاتورة رسمية</span><span data-lang="en" data-inline>A Saudi company, invoiced properly</span></b>
+                <p><span data-lang="ar">منصة سعودية في الرياض. اشتراك شهري بفاتورة رسمية وضريبة قيمة مضافة 15٪، بدون عقود طويلة، وإلغاء في أي وقت.</span><span data-lang="en" data-inline>A Saudi platform based in Riyadh. Monthly subscription on an official invoice with 15% VAT, no long-term contract, cancel any time.</span></p>
+            </div>
+            <div class="pf reveal">
+                <b><i class="fas fa-users-gear"></i><span data-lang="ar">فريق محدّد لكل باقة</span><span data-lang="en" data-inline>A defined team per plan</span></b>
+                <p><span data-lang="ar"><b>{{ agent_count }}</b> وكيلاً في الكتالوج، وكل باقة تفتح <b>5</b> منهم حسب مجالك — لا تحرق اشتراكك على وكيل واحد.</span><span data-lang="en" data-inline><b>{{ agent_count }}</b> agents in the catalogue, and every plan opens <b>5</b> of them for your field — your subscription is not spent on a single agent.</span></p>
+            </div>
+        </div>
+        <div class="proof-note">
+            <p class="pn"><i class="fas fa-circle-info" style="color:var(--green);margin-inline-end:6px"></i><span data-lang="ar">لن تجد هنا شعارات عملاء ولا شهادات تقييم، لأننا لا ننشر ما لا نستطيع إثباته. وما نعرضه بدلها هو <b>المخرجات نفسها</b> — جرّب النموذج التفاعلي، واقرأ شروط الاشتراك في صفحة الباقات قبل أن تقرر.</span><span data-lang="en" data-inline>You will not find client logos or reviews here, because we do not publish what we cannot prove. What we show instead is <b>the output itself</b> — try the interactive sample, and read the subscription terms on the plans section before you decide.</span></p>
+        </div>
+    </section>
+
+    <!-- ==================== DEMO ==================== -->
+    <section class="section demo" id="demo">
+        <div class="sec-inner">
+            <div class="reveal">
+                <span class="eyebrow"><span data-lang="ar">جرّبه بنفسك</span><span data-lang="en" data-inline>Try it yourself</span></span>
+                <h2 class="sec-title"><span data-lang="ar">شاهد وكيل </span><span data-lang="en" data-inline>Watch the </span><span class="c" data-lang="ar">مديرة السوشيال ميديا</span><span class="c" data-lang="en" data-inline>Social Media Lead</span><span data-lang="ar"> وهو ينتج العمل</span><span data-lang="en" data-inline> produce the work</span></h2>
+                <p class="demo-note"><i class="fas fa-circle-info"></i><span data-lang="ar">مثال توضيحي كامل بأسماء افتراضية — وليس بيانات عميل حقيقي.</span><span data-lang="en" data-inline>A complete illustrative sample with fictional names — not a real client's data.</span></p>
+            </div>
+
+            <div class="demo-box reveal" id="demoBox">
+                <div class="demo-side">
+                    <div class="demo-side-lbl"><b>1</b><span data-lang="ar">اختر نشاطاً تجريبياً</span><span data-lang="en" data-inline>Pick a sample business</span></div>
+                    <div class="demo-picker" id="demoPicker" role="radiogroup" aria-label="Sample business"></div>
+
+                    <div class="demo-side-lbl"><b>2</b><span data-lang="ar">أيقظ الوكيل</span><span data-lang="en" data-inline>Wake the agent</span></div>
+                    <button type="button" class="btn btn-gold demo-run" id="demoRun" disabled><i class="fas fa-bolt"></i><span data-lang="ar">أيقظ الوكيل</span><span data-lang="en" data-inline>Wake the agent</span></button>
+
+                    <ol class="demo-steps" id="demoSteps"></ol>
+                </div>
+
+                <div class="demo-main">
+                    <div class="demo-bar">
+                        <div class="demo-who">
+                            <span class="demo-ava" id="demoAva">AG-001</span>
+                            <span class="who-tx">
+                                <b><span data-lang="ar">مديرة السوشيال ميديا</span><span data-lang="en" data-inline>Social Media Lead</span></b>
+                                <small>Social Media Lead · AG-001</small>
+                            </span>
+                        </div>
+                        <span class="status-pill" id="demoStatus">IDLE</span>
+                    </div>
+                    <p class="demo-brief" id="demoBrief" hidden></p>
+                    <div class="demo-tabs" id="demoTabs" role="tablist" hidden></div>
+                    <div class="demo-panel" id="demoPanel">
+                        <p class="demo-empty"><i class="fas fa-hand-pointer"></i><span data-lang="ar">اختر نشاطاً من اليسار ثم أبقِ الوكيل — المخرجات الحقيقية تظهر هنا.</span><span data-lang="en" data-inline>Pick a business on the left, then wake the agent — the deliverables appear here.</span></p>
+                    </div>
+                </div>
+            </div>
+            <noscript>
+                <p class="demo-empty"><i class="fas fa-circle-info"></i><span data-lang="ar">هذا العرض التفاعلي يحتاج JavaScript.</span><span data-lang="en" data-inline>This interactive demo needs JavaScript.</span></p>
+            </noscript>
+
+            <div class="next-step reveal">
+                <div class="ns-tx">
+                    <b><span data-lang="ar">هذه كانت عيّنة. الحقيقية تعمل على نشاطك.</span><span data-lang="en" data-inline>That was a sample. The real one works on your business.</span></b>
+                    <span><span data-lang="ar">ادفع بنفسك: فريقك يسأل عن نشاطك في أسئلة قصيرة، ثم يستلم أول مخرجاته.</span><span data-lang="en" data-inline>You pay for your own: the team asks about your business in short questions, then delivers your first output.</span></span>
+                </div>
+                <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">ابدأ باقتك</span><span data-lang="en" data-inline>Start your plan</span></a>
+                <a href="/consult" class="btn btn-ghost"><span data-lang="ar">لست متأكداً؟ استشارة مجانية</span><span data-lang="en" data-inline>Not sure? Free consult</span></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== WHAT YOUR BUSINESS NEEDS ==================== -->
+    <section class="section" id="needs">
+        <div class="sec-inner">
+            <div class="reveal" style="text-align:center;">
+                <span class="eyebrow"><span data-lang="ar">اختر مشكلتك</span><span data-lang="en" data-inline>Pick your problem</span></span>
+                <h2 class="sec-title"><span data-lang="ar">ما الذي يحتاجه</span><span data-lang="en" data-inline>What does your</span> <span class="c" data-lang="ar">عملك؟</span><span class="c" data-lang="en" data-inline>business need?</span></h2>
+                <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">لا تحتاج أن تعرف اسم الوكيل ولا الأداة. اختر ما يعطلك اليوم، ونقول لك أي فريق يجيء معك وماذا ينفّذ.</span><span data-lang="en" data-inline>You do not need to know an agent or a tool name. Choose what is costing you today, and we will tell you which team shows up and what it executes.</span></p>
+            </div>
+
+            <div class="needs-wrap">
+                <div class="nd-pick reveal" id="ndPick" role="group" aria-label="What your business needs"></div>
+                <div class="nd-out reveal" id="ndOut"></div>
+            </div>
+            <noscript>
+                <p class="nd-empty"><i class="fas fa-circle-info"></i><span data-lang="ar">هذا الاختيار التفاعلي يحتاج JavaScript. تصفّح الباقات مباشرة:</span><span data-lang="en" data-inline>This picker needs JavaScript. Browse the plans directly:</span></p>
+                <p class="nd-fallback">
+                    <a href="/portal?pkg=social">{{ packages['social'].name }}</a>
+                    <a href="/portal?pkg=ecommerce">{{ packages['ecommerce'].name }}</a>
+                    <a href="/portal?pkg=content">{{ packages['content'].name }}</a>
+                    <a href="/portal?pkg=growth">{{ packages['growth'].name }}</a>
+                    <a href="/consult"><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
+                </p>
+            </noscript>
+        </div>
+    </section>
+
+    <!-- ==================== WHY AL-NARJIS ==================== -->
+    <section class="section" id="why">
+        <div class="sec-inner">
+            <div class="reveal" style="text-align:center;">
+                <span class="eyebrow"><span data-lang="ar">مقارنة صادقة</span><span data-lang="en" data-inline>An honest comparison</span></span>
+                <h2 class="sec-title"><span data-lang="ar">لماذا النرجس وليس</span><span data-lang="en" data-inline>Why Al-Narjis and not</span> <span class="c" data-lang="ar">أداة AI أخرى؟</span><span class="c" data-lang="en" data-inline>another AI tool?</span></h2>
+                <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">الفرق ليس في الذكاء — بل في طريقة العمل. هذا ما يغيّره اشتراكك.</span><span data-lang="en" data-inline>The difference is not intelligence — it is the way the work runs. This is what your subscription changes.</span></p>
+            </div>
+            <div class="why-wrap reveal">
+                <table class="why">
+                    <thead>
+                        <tr>
+                            <th><span data-lang="ar">المعيار</span><span data-lang="en" data-inline>Criterion</span></th>
+                            <th><span data-lang="ar">أداة AI عامة</span><span data-lang="en" data-inline>A general AI tool</span></th>
+                            <th><span data-lang="ar">مستقل</span><span data-lang="en" data-inline>A freelancer</span></th>
+                            <th><span data-lang="ar">فريق موظفين</span><span data-lang="en" data-inline>An employee team</span></th>
+                            <th class="us"><span data-lang="ar">النرجس</span><span data-lang="en" data-inline>Al-Narjis</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th><span data-lang="ar">طريقة العمل</span><span data-lang="en" data-inline>How work happens</span></th>
+                            <td><span data-lang="ar">تسأل الأداة في كل مرة، بلا سياق محفوظ</span><span data-lang="en" data-inline>You prompt it every time, with no saved context</span></td>
+                            <td><span data-lang="ar">مهمة منفصلة، والاتصال يتقطّع بين جهات</span><span data-lang="en" data-inline>Separate tasks, and communication happens in pieces</span></td>
+                            <td><span data-lang="ar">دوام ثابت، ومهام محدودة بوقت العمل</span><span data-lang="en" data-inline>Fixed hours, with work limited to office time</span></td>
+                            <td class="us"><span data-lang="ar">مهام ومسؤوليات محددة داخل المنصة</span><span data-lang="en" data-inline>Named tasks and owners inside the platform</span></td>
+                        </tr>
+                        <tr>
+                            <th><span data-lang="ar">التخصص</span><span data-lang="en" data-inline>Specialisation</span></th>
+                            <td><span data-lang="ar">مساعد واحد يلبّي كل شيء</span><span data-lang="en" data-inline>One assistant for everything</span></td>
+                            <td><span data-lang="ar">تخصص واحد غالباً</span><span data-lang="en" data-inline>Usually one speciality</span></td>
+                            <td><span data-lang="ar">تخصصات مختلفة داخل الأقسام</span><span data-lang="en" data-inline>Different roles across departments</span></td>
+                            <td class="us"><span data-lang="ar">وكيل مخصص لكل وظيفة</span><span data-lang="en" data-inline>A dedicated agent per job function</span></td>
+                        </tr>
+                        <tr>
+                            <th><span data-lang="ar">التكرار</span><span data-lang="en" data-inline>Repeatability</span></th>
+                            <td><span data-lang="ar">تبدأ من الصفر في كل مرة</span><span data-lang="en" data-inline>You start from scratch each time</span></td>
+                            <td><span data-lang="ar">يتكرر، وقد تتغيّر الجودة</span><span data-lang="en" data-inline>It repeats, and quality can vary</span></td>
+                            <td><span data-lang="ar">ثابت، لكن مكلّف</span><span data-lang="en" data-inline>Consistent, but costly</span></td>
+                            <td class="us"><span data-lang="ar">نفس المهمة تعطي نفس الشكل كل دورة</span><span data-lang="en" data-inline>The same task returns the same shape each cycle</span></td>
+                        </tr>
+                        <tr>
+                            <th><span data-lang="ar">العربية أولاً</span><span data-lang="en" data-inline>Arabic first</span></th>
+                            <td><span data-lang="ar">تعمد على لغة النموذج</span><span data-lang="en" data-inline>Depends on the model's language</span></td>
+                            <td><span data-lang="ar">حسب المستقل واللغة</span><span data-lang="en" data-inline>Depends on the person and their language</span></td>
+                            <td><span data-lang="ar">حسب إتقان الموظف للغة</span><span data-lang="en" data-inline>Depends on the employee's fluency</span></td>
+                            <td class="us"><span data-lang="ar">واجهة ومحتوى ومخرجات بالعربية أولاً</span><span data-lang="en" data-inline>Interface, content and outputs are Arabic first</span></td>
+                        </tr>
+                        <tr>
+                            <th><span data-lang="ar">مخرجات جاهزة</span><span data-lang="en" data-inline>Ready output</span></th>
+                            <td><span data-lang="ar">نص خام تنسّخه وتحرّره</span><span data-lang="en" data-inline>Raw text you copy and edit</span></td>
+                            <td><span data-lang="ar">مسودة تحتاج متابعة</span><span data-lang="en" data-inline>A draft that needs follow-up</span></td>
+                            <td><span data-lang="ar">يُسلَّم بعد متابعة ومراجعة</span><span data-lang="en" data-inline>Delivered after review and follow-up</span></td>
+                            <td class="us"><span data-lang="ar">مخرجات منسّقة جاهزة للاستخدام</span><span data-lang="en" data-inline>Structured output, ready to use</span></td>
+                        </tr>
+                        <tr>
+                            <th><span data-lang="ar">فريق مركزي</span><span data-lang="en" data-inline>One team in one place</span></th>
+                            <td><span data-lang="ar">لا يوجد فريق</span><span data-lang="en" data-inline>No team</span></td>
+                            <td><span data-lang="ar">مقسم بين عدة أشخاص</span><span data-lang="en" data-inline>Split across several people</span></td>
+                            <td><span data-lang="ar">موزّع على الأقسام</span><span data-lang="en" data-inline>Spread across departments</span></td>
+                            <td class="us"><span data-lang="ar">فريق كامل في مكان واحد</span><span data-lang="en" data-inline>A full team in one place</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="why-note reveal"><span data-lang="ar">نقارن طريقة العمل لا الأدوات، وكل حالة لها حلّها. إن كنت تحتاج مهمة واحدة متكررة، فقد تكون أداة عامة تكفيك.</span><span data-lang="en" data-inline>This compares how the work runs, not the tools — and every situation has its answer. If you need one repeated task, a general tool may well be enough.</span></p>
+
+            <div class="why-cta reveal">
+                <p><span data-lang="ar">إن كان عندك أكثر من مهمة تتكرر، فأنت تحتاج فريقاً لا أداة.</span><span data-lang="en" data-inline>If you have more than one repeating task, you need a team, not a tool.</span></p>
+                <div class="why-cta-row">
+                    <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">اعرف باقتك</span><span data-lang="en" data-inline>Find your plan</span></a>
+                    <a href="/consult" class="btn btn-ghost"><i class="fas fa-comments"></i><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- ==================== FEATURES ==================== -->
     <section class="section" id="features">
@@ -825,10 +1368,10 @@ body:not(.launch-on) .launch-bar{display:none}
                 </div>
                 <div class="bcard reveal">
                     <h3><span data-lang="ar">مثال توضيحي على المخرجات</span><span data-lang="en" data-inline>Illustrative output sample</span></h3>
-                    <p style="font-size:.86rem;color:var(--muted);"><span data-lang="ar">الأمثلة أدناه توضيحية只为 توضيح شكل المخرج — ليست مخرجات عميل حقيقي ولا保证了 للأداء.</span><span data-lang="en" data-inline>The samples below are illustrative only — they show the output format and are not real client results or a performance guarantee.</span></p>
+                    <p style="font-size:.86rem;color:var(--muted);"><span data-lang="ar">الأمثلة أدناه توضيحية لبيان شكل المخرج — ليست مخرجات عميل حقيقي، ولا ضمان للأداء.</span><span data-lang="en" data-inline>The samples below are illustrative only — they show the output format and are not real client results or a performance guarantee.</span></p>
                     <div class="flow" style="display:grid;gap:10px;">
-                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-011 · كاتب المحتوى</b><br><span data-lang="ar">«تقويم محتوى أسبوعي: 4 منشورات + 3 ستوري + جدول публикаيات»</span><span data-lang="en" data-inline>"Weekly content calendar: 4 posts + 3 stories + publishing schedule"</span></div>
-                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-009 · خدمة العملاء</b><br><span data-lang="ar">«رد مقترح على استفسار شحن:确认 الطلب + رقم التتبع + موعد التسليم»</span><span data-lang="en" data-inline>"Suggested reply to a shipping question: order confirmation + tracking + delivery date"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-011 · كاتب المحتوى</b><br><span data-lang="ar">«تقويم محتوى أسبوعي: 4 منشورات + 3 ستوري + جدول نشرات»</span><span data-lang="en" data-inline>"Weekly content calendar: 4 posts + 3 stories + publishing schedule"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-009 · خدمة العملاء</b><br><span data-lang="ar">«رد مقترح على استفسار شحن: تأكيد الطلب + رقم التتبع + موعد التسليم»</span><span data-lang="en" data-inline>"Suggested reply to a shipping question: order confirmation + tracking + delivery date"</span></div>
                         <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-015 · محلل المنافسين</b><br><span data-lang="ar">«جدول مقارنة: 5 منافسين × 6 معايير + توصيتان للتحسين»</span><span data-lang="en" data-inline>"Comparison table: 5 competitors × 6 criteria + 2 recommended improvements"</span></div>
                     </div>
                 </div>
@@ -868,55 +1411,240 @@ body:not(.launch-on) .launch-bar{display:none}
         <div class="sec-inner">
             <div class="reveal" style="text-align:center;">
                 <span class="eyebrow"><span data-lang="ar">باقات الاشتراك</span><span data-lang="en" data-inline>Subscriptions</span></span>
-                <h2 class="sec-title"><span data-lang="ar">فريق</span><span data-lang="en" data-inline>A team</span> <span class="c" data-lang="ar">لا يتغيب عن العمل</span><span class="c" data-lang="en" data-inline>that never calls in sick</span></h2>
+                <h2 class="sec-title"><span data-lang="ar">اختر الباقة التي</span><span data-lang="en" data-inline>Pick the plan that</span> <span class="c" data-lang="ar">تحل مشكلتك</span><span class="c" data-lang="en" data-inline>solves your problem</span></h2>
                 <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">الريال السعودي · اشتراك شهري · إلغاء في أي وقت</span><span data-lang="en" data-inline>SAR · Monthly · Cancel anytime</span></p>
                 <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">في المنصة <b>{{ agent_count }}</b> وكيلاً ذكياً متخصصاً — وكل باقة تفتح لك فريقاً مخصصاً من <b>5 وكلاء</b> حسب مجالك.</span><span data-lang="en" data-inline>The platform has <b>{{ agent_count }}</b> specialized agents — every plan opens a dedicated team of <b>5 agents</b> for your field.</span></p>
             </div>
+
+            <div class="plan-choose reveal">
+                <a class="pc-pick" href="#plan-social"><i class="fas fa-arrow-down"></i><span class="pk-tx"><b><span data-lang="ar">تنشر ثم تتوقف، ولا أحد يخطط</span><span data-lang="en" data-inline>You post, then it stops, and nobody plans</span></b><small><span data-lang="ar">باقة سوشيال ميديا</span><span data-lang="en" data-inline>Social Media plan</span></small></span></a>
+                <a class="pc-pick" href="#plan-ecommerce"><i class="fas fa-arrow-down"></i><span class="pk-tx"><b><span data-lang="ar">أسئلة العملاء تتكرر والرد يتأخر</span><span data-lang="en" data-inline>Customer questions pile up and replies are slow</span></b><small><span data-lang="ar">باقة المتاجر الإلكترونية</span><span data-lang="en" data-inline>E-commerce plan</span></small></span></a>
+                <a class="pc-pick" href="#plan-content"><i class="fas fa-arrow-down"></i><span class="pk-tx"><b><span data-lang="ar">تبني ثقة لكنك لا تكتب بانتظام</span><span data-lang="en" data-inline>You need trust-building content but do not write</span></b><small><span data-lang="ar">باقة تسويق المحتوى</span><span data-lang="en" data-inline>Content Marketing plan</span></small></span></a>
+                <a class="pc-pick" href="#plan-growth"><i class="fas fa-arrow-down"></i><span class="pk-tx"><b><span data-lang="ar">أفكار كثيرة ولا يوجد من ينفّذها</span><span data-lang="en" data-inline>Many ideas and nobody to execute them</span></b><small><span data-lang="ar">باقة نمو الأعمال</span><span data-lang="en" data-inline>Business Growth plan</span></small></span></a>
+            </div>
+
             <div class="pricing-grid">
-                <div class="pc featured reveal" data-pkg="social">
+                <div class="pc featured reveal" id="plan-social" data-pkg="social">
                     <span class="tag"><span data-lang="ar">الأكثر طلباً ★</span><span data-lang="en" data-inline>Most popular ★</span></span>
-                    <h3><span data-lang="ar">{{ packages['social'].name }}</span><span class="en-nm">{{ packages['social'].name_en }}</span></h3>
+                    <div class="pc-head">
+                        <h3><span data-lang="ar">{{ packages['social'].name }}</span><span class="en-nm">{{ packages['social'].name_en }}</span></h3>
+                    </div>
                     <div class="price">{{ packages['social'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
-                    <ul>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">٣٠ منشوراً شهرياً</span><span data-lang="en" data-inline>30 posts / month</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقويم محتوى</span><span data-lang="en" data-inline>Content calendar</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">كتابة إعلانات A/B</span><span data-lang="en" data-inline>A/B ad copies</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقارير أداء</span><span data-lang="en" data-inline>Performance reports</span></li>
-                    </ul>
-                    <a href="/portal?pkg=social" class="btn btn-gold w-full"><i class="fas fa-bolt"></i><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
+                    <p class="pc-out"><span data-lang="ar">تنشر بانتظام كل شهر بنفس الجودة، دون أن يتوقف نشاطك يوماً واحد.</span><span data-lang="en" data-inline>You publish every month at the same quality, without your business pausing for a single day.</span></p>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-user-check"></i><span data-lang="ar">لمن تناسب</span><span data-lang="en" data-inline>Who it fits</span></h4>
+                        <p><span data-lang="ar">لأصحاب المتاجر والمطاعم والعيادات التي أوقفت النشر لأن الوقت لم يسعفهم.</span><span data-lang="en" data-inline>For shop, restaurant and clinic owners whose posting stopped because time ran out.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-triangle-exclamation"></i><span data-lang="ar">المشكلة التي تحلها</span><span data-lang="en" data-inline>The problem it solves</span></h4>
+                        <p><span data-lang="ar">محتوى متقطّع بلا خطة، وتقارير أداء لا تتحوّل إلى قرار.</span><span data-lang="en" data-inline>Content with no plan behind it, and performance reports that never become a decision.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-people-group"></i><span data-lang="ar">ماذا ينفّذ الفريق</span><span data-lang="en" data-inline>What the team does</span></h4>
+                        <p><span data-lang="ar">يخطّط للنشر، يكتب المنشورات، يجهّز الإعلانات، ويطوّر النصوص.</span><span data-lang="en" data-inline>It plans the calendar, writes the posts, prepares the ads, and sharpens the copy.</span></p>
+                        <div class="pc-team">
+                            <span data-lang="ar">مدير حسابات السوشيال ميديا</span><span data-lang="en" data-inline>Social Media Manager</span>
+                            <span data-lang="ar">كاتب إعلانات</span><span data-lang="en" data-inline>Ad Writer</span>
+                            <span data-lang="ar">مولّد أفكار محتوى</span><span data-lang="en" data-inline>Content Ideas</span>
+                            <span data-lang="ar">وكيل تسويق</span><span data-lang="en" data-inline>Marketing Agent</span>
+                            <span data-lang="ar">محسّن نصوص</span><span data-lang="en" data-inline>Text Improver</span>
+                        </div>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-box-open"></i><span data-lang="ar">ماذا تستلم</span><span data-lang="en" data-inline>What you receive</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar"><b>٣٠ منشوراً شهرياً</b> جاهزة للنشر</span><span data-lang="en" data-inline><b>30 posts a month</b>, ready to publish</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقويم محتوى يحدّد ماذا ينشر ومتى</span><span data-lang="en" data-inline>A content calendar that sets what to post and when</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">كتابة إعلانات A/B لاختبار الفكرة الأقوى</span><span data-lang="en" data-inline>A/B ad copies to test the stronger angle</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقارير أداء شهرية تقرأها في دقائق</span><span data-lang="en" data-inline>Monthly performance reports you can read in minutes</span></li>
+                        </ul>
+                    </div>
+                    <div class="pc-not">
+                        <h4><i class="fas fa-hand"></i><span data-lang="ar">ما لا تحتاج أن تفعله بنفسك</span><span data-lang="en" data-inline>What you no longer have to do</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تكتب منشوراً ولا تفكر في ماذا تنشر غداً</span><span data-lang="en" data-inline>You no longer write a post or wonder what to post tomorrow</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تجدول ولا تتابع جدول النشر</span><span data-lang="en" data-inline>You no longer schedule or chase a posting calendar</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تكتب نص الإعلان ولا تجمّع أرقام التقرير</span><span data-lang="en" data-inline>You no longer write the ad or compile the report numbers</span></li>
+                        </ul>
+                    </div>
+                    <div class="actions"><a href="/portal?pkg=social" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
                 </div>
-                <div class="pc reveal" data-pkg="ecommerce">
-                    <h3><span data-lang="ar">{{ packages['ecommerce'].name }}</span><span class="en-nm">{{ packages['ecommerce'].name_en }}</span></h3>
+                <div class="pc reveal" id="plan-ecommerce" data-pkg="ecommerce">
+                    <div class="pc-head">
+                        <h3><span data-lang="ar">{{ packages['ecommerce'].name }}</span><span class="en-nm">{{ packages['ecommerce'].name_en }}</span></h3>
+                    </div>
                     <div class="price">{{ packages['ecommerce'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
-                    <ul>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">وصف منتجات</span><span data-lang="en" data-inline>Product descriptions</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">ردود استفسارات فورية</span><span data-lang="en" data-inline>Instant replies</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">توصيات الباقات</span><span data-lang="en" data-inline>Bundle recommendations</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">تحسين محركات SEO</span><span data-lang="en" data-inline>SEO optimization</span></li>
-                    </ul>
-                    <a href="/portal?pkg=ecommerce" class="btn btn-ghost w-full"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
+                    <p class="pc-out"><span data-lang="ar">متجرك يردّ على العميل ويقترح عليه ما يناسبه، حتى خارج ساعات دوامك.</span><span data-lang="en" data-inline>Your store answers the customer and suggests the right fit, even outside working hours.</span></p>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-user-check"></i><span data-lang="ar">لمن تناسب</span><span data-lang="en" data-inline>Who it fits</span></h4>
+                        <p><span data-lang="ar">لمتاجر سلة وأونست وشوبيفاي التي تتكرّر أسئلتها وتترك سلاتها مفتوحة.</span><span data-lang="en" data-inline>For Salla, Ounass and Shopify stores where the same questions repeat and carts sit open.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-triangle-exclamation"></i><span data-lang="ar">المشكلة التي تحلها</span><span data-lang="en" data-inline>The problem it solves</span></h4>
+                        <p><span data-lang="ar">ردود يدوية بطيئة، وصفحات منتجات ضعيفة، وفواتير تضيع بسبب التأخير.</span><span data-lang="en" data-inline>Slow manual replies, weak product pages, and orders lost to the delay.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-people-group"></i><span data-lang="ar">ماذا ينفّذ الفريق</span><span data-lang="en" data-inline>What the team does</span></h4>
+                        <p><span data-lang="ar">يكتب وصف المنتجات، يدير المتجر، يردّ على الاستفسارات، ويحرّك العملاء.</span><span data-lang="en" data-inline>It writes product pages, runs the store, answers questions, and follows up with customers.</span></p>
+                        <div class="pc-team">
+                            <span data-lang="ar">كاتب وصف منتجات</span><span data-lang="en" data-inline>Product Describer</span>
+                            <span data-lang="ar">مدير المتجر</span><span data-lang="en" data-inline>Store Manager</span>
+                            <span data-lang="ar">خدمة العملاء</span><span data-lang="en" data-inline>Customer Service</span>
+                            <span data-lang="ar">مدير العملاء</span><span data-lang="en" data-inline>Customer Manager</span>
+                            <span data-lang="ar">كاتب إيميل</span><span data-lang="en" data-inline>Email Writer</span>
+                        </div>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-box-open"></i><span data-lang="ar">ماذا تستلم</span><span data-lang="en" data-inline>What you receive</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">وصف منتجات لكل منتج في متجرك</span><span data-lang="en" data-inline>Product descriptions for everything in your store</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">ردود فورية على الأسئلة المتكرّرة</span><span data-lang="en" data-inline>Instant answers to the questions that keep repeating</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">توصيات باقات مناسبة لعميلك</span><span data-lang="en" data-inline>Bundle recommendations matched to the customer</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">تحسين محركات SEO لصفحات المنتجات</span><span data-lang="en" data-inline>SEO optimisation for the product pages</span></li>
+                        </ul>
+                    </div>
+                    <div class="pc-not">
+                        <h4><i class="fas fa-hand"></i><span data-lang="ar">ما لا تحتاج أن تفعله بنفسك</span><span data-lang="en" data-inline>What you no longer have to do</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تجيب عن الأسئلة نفسها كل ساعة</span><span data-lang="en" data-inline>You no longer answer the same question every hour</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تكتب وصف كل منتج بنفسك</span><span data-lang="en" data-inline>You no longer write every product description</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تتابع السلة المتروكة ولا تفكّر فيها</span><span data-lang="en" data-inline>You no longer chase the abandoned cart</span></li>
+                        </ul>
+                    </div>
+                    <div class="actions"><a href="/portal?pkg=ecommerce" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
                 </div>
-                <div class="pc reveal" data-pkg="content">
-                    <h3><span data-lang="ar">{{ packages['content'].name }}</span><span class="en-nm">{{ packages['content'].name_en }}</span></h3>
+                <div class="pc reveal" id="plan-content" data-pkg="content">
+                    <div class="pc-head">
+                        <h3><span data-lang="ar">{{ packages['content'].name }}</span><span class="en-nm">{{ packages['content'].name_en }}</span></h3>
+                    </div>
                     <div class="price">{{ packages['content'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
-                    <ul>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">مقالات مدونة</span><span data-lang="en" data-inline>Blog articles</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقارير السوق</span><span data-lang="en" data-inline>Market reports</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">رسائل إيميل تسويقية</span><span data-lang="en" data-inline>Newsletters</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">تحليل المنافسين</span><span data-lang="en" data-inline>Competitor analysis</span></li>
-                    </ul>
-                    <a href="/portal?pkg=content" class="btn btn-ghost w-full"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
+                    <p class="pc-out"><span data-lang="ar">محتوى يبني ثقة ويجلب زوّاراً من البحث، دون أن يكون عبئاً جديداً عليك.</span><span data-lang="en" data-inline>Content that builds trust and brings search visitors, without becoming one more burden on you.</span></p>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-user-check"></i><span data-lang="ar">لمن تناسب</span><span data-lang="en" data-inline>Who it fits</span></h4>
+                        <p><span data-lang="ar">لشركات الخدمات — عيادات ومكاتب وورش — التي تبني سمعتها على المحتوى الطويل.</span><span data-lang="en" data-inline>For service businesses — clinics, offices and workshops — that build reputation on long-form content.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-triangle-exclamation"></i><span data-lang="ar">المشكلة التي تحلها</span><span data-lang="en" data-inline>The problem it solves</span></h4>
+                        <p><span data-lang="ar">لا أحد يبحث عن موضوع، والكتابة تتأجَّل، والسوق والمنافسون مجهولان.</span><span data-lang="en" data-inline>Nobody researches a topic, the writing keeps getting postponed, and the market stays unread.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-people-group"></i><span data-lang="ar">ماذا ينفّذ الفريق</span><span data-lang="en" data-inline>What the team does</span></h4>
+                        <p><span data-lang="ar">يبحث عن المواضيع، يكتب المقالات، يدير المحتوى، ويقرأ السوق والمنافسين.</span><span data-lang="en" data-inline>It finds the topics, writes the articles, manages the content, and reads the market and competitors.</span></p>
+                        <div class="pc-team">
+                            <span data-lang="ar">كاتب محتوى</span><span data-lang="en" data-inline>Content Writer</span>
+                            <span data-lang="ar">كاتب مقالات</span><span data-lang="en" data-inline>Article Writer</span>
+                            <span data-lang="ar">مدير محتوى</span><span data-lang="en" data-inline>Content Manager</span>
+                            <span data-lang="ar">محلل سوق</span><span data-lang="en" data-inline>Market Analyst</span>
+                            <span data-lang="ar">محلل منافسين</span><span data-lang="en" data-inline>Competitor Analyst</span>
+                        </div>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-box-open"></i><span data-lang="ar">ماذا تستلم</span><span data-lang="en" data-inline>What you receive</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">مقالات مدونة مبنية على بحث في موضوعك</span><span data-lang="en" data-inline>Blog articles built on real research into your topic</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">تقارير سوق تشرح الوضع بدل التخمين</span><span data-lang="en" data-inline>Market reports that explain the situation instead of guessing</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">رسائل إيميل تسويقية مقسّمة حسب الجمهور</span><span data-lang="en" data-inline>Marketing emails segmented by audience</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">تحليل منافسين يوضّح أين تقف</span><span data-lang="en" data-inline>Competitor analysis that shows where you stand</span></li>
+                        </ul>
+                    </div>
+                    <div class="pc-not">
+                        <h4><i class="fas fa-hand"></i><span data-lang="ar">ما لا تحتاج أن تفعله بنفسك</span><span data-lang="en" data-inline>What you no longer have to do</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تبحث عن موضوع ولا تجادل عن الفكرة</span><span data-lang="en" data-inline>You no longer hunt for a topic or argue about the angle</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تكتب المسودة ولا تعيد صياغتها</span><span data-lang="en" data-inline>You no longer write the draft or rewrite it</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تقرأ تقرير السوق قبل أن تقرر</span><span data-lang="en" data-inline>You no longer read a market report before deciding</span></li>
+                        </ul>
+                    </div>
+                    <div class="actions"><a href="/portal?pkg=content" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
                 </div>
-                <div class="pc reveal" data-pkg="growth">
-                    <h3><span data-lang="ar">{{ packages['growth'].name }}</span><span class="en-nm">{{ packages['growth'].name_en }}</span></h3>
+                <div class="pc reveal" id="plan-growth" data-pkg="growth">
+                    <div class="pc-head">
+                        <h3><span data-lang="ar">{{ packages['growth'].name }}</span><span class="en-nm">{{ packages['growth'].name_en }}</span></h3>
+                    </div>
                     <div class="price">{{ packages['growth'].price }} <small><span data-lang="ar">ريال/شهر</span><span data-lang="en" data-inline>SAR / month</span></small></div>
-                    <ul>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">أفكار مشاريع</span><span data-lang="en" data-inline>Business ideas</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">استراتيجية نمو</span><span data-lang="en" data-inline>Growth strategy</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">إدارة مشاريع</span><span data-lang="en" data-inline>Project management</span></li>
-                        <li><i class="fas fa-circle-check"></i><span data-lang="ar">تطوير سيرة ذاتية</span><span data-lang="en" data-inline>CV development</span></li>
-                    </ul>
-                    <a href="/portal?pkg=growth" class="btn btn-ghost w-full"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a>
+                    <p class="pc-out"><span data-lang="ar">أفكار وخطوات تنفيذ مرتّبة، بدل أن تبقى في ملف لا يخرج منه شيء.</span><span data-lang="en" data-inline>Ideas and ordered next steps, instead of a file nothing ever comes out of.</span></p>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-user-check"></i><span data-lang="ar">لمن تناسب</span><span data-lang="en" data-inline>Who it fits</span></h4>
+                        <p><span data-lang="ar">لمن عنده فكرة مشروع أو مشروع قائم لكنه يفتقر خطة وأولويات واضحة.</span><span data-lang="en" data-inline>For someone with an idea or a running business but no clear plan or priorities.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-triangle-exclamation"></i><span data-lang="ar">المشكلة التي تحلها</span><span data-lang="en" data-inline>The problem it solves</span></h4>
+                        <p><span data-lang="ar">أفكار متفرّقة بلا تقييم، ومهام بلا مسؤول، وقرارات تُؤجَّل.</span><span data-lang="en" data-inline>Scattered ideas that were never assessed, tasks with no owner, and decisions that keep slipping.</span></p>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-people-group"></i><span data-lang="ar">ماذا ينفّذ الفريق</span><span data-lang="en" data-inline>What the team does</span></h4>
+                        <p><span data-lang="ar">يولّد الأفكار، يرتّب الأولويات، يدير التنفيذ، ويقرأ أرقامك.</span><span data-lang="en" data-inline>It generates ideas, ranks priorities, manages execution, and reads your numbers.</span></p>
+                        <div class="pc-team">
+                            <span data-lang="ar">مستشار أفكار المشاريع</span><span data-lang="en" data-inline>Business Ideas Consultant</span>
+                            <span data-lang="ar">مدير المشاريع</span><span data-lang="en" data-inline>Project Manager</span>
+                            <span data-lang="ar">مدير إدارة الوقت</span><span data-lang="en" data-inline>Time Management Coach</span>
+                            <span data-lang="ar">محلل البيانات</span><span data-lang="en" data-inline>Data Analyst</span>
+                        </div>
+                    </div>
+                    <div class="pc-b">
+                        <h4><i class="fas fa-box-open"></i><span data-lang="ar">ماذا تستلم</span><span data-lang="en" data-inline>What you receive</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">أفكار مشاريع مقيَّمة لا مجرد إلهام</span><span data-lang="en" data-inline>Assessed business ideas, not just inspiration</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">استراتيجية نمو وأولويات مرتّبة</span><span data-lang="en" data-inline>A growth strategy with priorities in order</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">إدارة مشاريع ومتابعة للتنفيذ</span><span data-lang="en" data-inline>Project management and follow-through on execution</span></li>
+                            <li><i class="fas fa-circle-check"></i><span data-lang="ar">قراءة لأرقامك — ومتابعة أسبوعية للتنفيذ</span><span data-lang="en" data-inline>A read of your numbers, with weekly follow-through</span></li>
+                        </ul>
+                        <p class="pc-aside"><i class="fas fa-circle-info"></i><span data-lang="ar">يشمل الفريق أيضاً وكيل كتابة السيرة الذاتية، وهو مفيد إن كنت توظّف في نشاطك.</span><span data-lang="en" data-inline>The team also includes a CV agent, which is useful if you are hiring.</span></p>
+                    </div>
+                    <div class="pc-not">
+                        <h4><i class="fas fa-hand"></i><span data-lang="ar">ما لا تحتاج أن تفعله بنفسك</span><span data-lang="en" data-inline>What you no longer have to do</span></h4>
+                        <ul class="pc-list">
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تختار الفكرة ولا تقارن بينها</span><span data-lang="en" data-inline>You no longer pick the idea yourself</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا ترتّب الأولويات ولا تصطدم بالمهام</span><span data-lang="en" data-inline>You no longer rank priorities or wrestle with the task list</span></li>
+                            <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تتابع تنفيذ الخطة بنفسك</span><span data-lang="en" data-inline>You no longer chase the plan yourself</span></li>
+                        </ul>
+                    </div>
+                    <div class="actions"><a href="/portal?pkg=growth" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                </div>
+            </div>
+
+            <div class="reveal" style="margin-block-start:var(--sp-6)">
+                <h3 class="sec-title" style="font-size:clamp(1.3rem,2.4vw,1.7rem);margin-block-end:var(--sp-1)"><span data-lang="ar">ما الذي يميّز كل باقة عن الأخرى</span><span data-lang="en" data-inline>What makes each plan different</span></h3>
+                <div class="pcmp-wrap">
+                    <table class="pcmp">
+                        <thead>
+                            <tr>
+                                <th><span data-lang="ar">الباقة</span><span data-lang="en" data-inline>Plan</span></th>
+                                <th><span data-lang="ar">إذا كان وضعك</span><span data-lang="en" data-inline>If your situation is</span></th>
+                                <th><span data-lang="ar">الفرق عن الباقي</span><span data-lang="en" data-inline>What makes it different</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>{{ packages['social'].name }}</th>
+                                <td><span data-lang="ar">تنشر على منصاتك وتحتاج محتوى ثابتاً</span><span data-lang="en" data-inline>You post on social and need steady content</span></td>
+                                <td class="diff"><span data-lang="ar">الباقة الوحيدة التي تعطي عدداً ثابتاً من المنشورات شهرياً مع جدولها.</span><span data-lang="en" data-inline>The only plan that delivers a fixed number of posts a month, with their calendar.</span></td>
+                            </tr>
+                            <tr>
+                                <th>{{ packages['ecommerce'].name }}</th>
+                                <td><span data-lang="ar">عندك متجر وأسئلة العملاء كثيرة</span><span data-lang="en" data-inline>You have a store and many customer questions</span></td>
+                                <td class="diff"><span data-lang="ar">تعمل داخل المتجر نفسه: وصف المنتجات والردود والتوصيات، لا المحتوى فقط.</span><span data-lang="en" data-inline>It works inside the store itself: product pages, replies and bundles, not just content.</span></td>
+                            </tr>
+                            <tr>
+                                <th>{{ packages['content'].name }}</th>
+                                <td><span data-lang="ar">تبني ثقة وتحتاج حضوراً طويل الأمد</span><span data-lang="en" data-inline>You build trust and need long-term presence</span></td>
+                                <td class="diff"><span data-lang="ar">تعتمد على البحث والمنافسين، لا على المنشور القصير.</span><span data-lang="en" data-inline>It is built on search and competitor research, not on the short post.</span></td>
+                            </tr>
+                            <tr>
+                                <th>{{ packages['growth'].name }}</th>
+                                <td><span data-lang="ar">عندك أفكار ولا يوجد من ينفّذها</span><span data-lang="en" data-inline>You have ideas and nobody to execute them</span></td>
+                                <td class="diff"><span data-lang="ar">الأرخص، وتركّز على القرار والتنظيم بدل إنتاج المحتوى.</span><span data-lang="en" data-inline>The entry plan, focused on deciding and organising rather than producing content.</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="pcmp-close reveal">
+                <p><span data-lang="ar">ما زلت متردداً؟ قل لنا وضعك في سطر، ونقول لك أي باقة تناسبك — بلا التزام.</span><span data-lang="en" data-inline>Still unsure? Tell us your situation in a line, and we will tell you which plan fits — no commitment.</span></p>
+                <div class="pcmp-close-cta">
+                    <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">اختر باقتك وابدأ</span><span data-lang="en" data-inline>Pick a plan and start</span></a>
+                    <a href="/consult" class="btn btn-ghost"><i class="fas fa-comments"></i><span data-lang="ar">استشارة مجانية</span><span data-lang="en" data-inline>Free consult</span></a>
                 </div>
             </div>
         </div>
@@ -1133,6 +1861,602 @@ body:not(.launch-on) .launch-bar{display:none}
                 });
             });
 
+            /* ---------- live demo: Social Media Lead, fictional sample businesses ---------- */
+            var DEMO_TABS = {
+                ideas:    { ar: 'أفكار محتوى',   en: 'Content ideas' },
+                captions: { ar: 'نصوص المنشورات', en: 'Captions' },
+                calendar: { ar: 'تقويم محتوى',   en: 'Content calendar' },
+                ad:       { ar: 'نص إعلاني',     en: 'Ad copy' },
+                insight:  { ar: 'قراءة أداء',    en: 'Performance insight' }
+            };
+            var DEMO_STEPS = {
+                ar: ['قراءة النشاط والجمهور', 'استخراج زاوية المحتوى',
+                     'كتابة النصوص والجدولة', 'مراجعة الأداء واقتراح التحسين'],
+                en: ['Reading the business and its audience', 'Extracting the content angle',
+                     'Writing the copy and the schedule', 'Reviewing performance and proposing the fix']
+            };
+            // All businesses, copy and figures below are invented for this demo.
+            var DEMO_DATA = {
+                cafe: {
+                    ic: 'fa-mug-hot', ava: 'AG-001',
+                    name: { ar: 'مقهى ريحان',   en: 'Reihan Cafe' },
+                    kind: { ar: 'قهوة مختصة · الرياض', en: 'Specialty coffee · Riyadh' },
+                    brief: {
+                        ar: 'مقهى حبوب مختصة ومخبوزات في شمال الرياض. الصباح مزدحم، والمقاعد تفرّغ بعد المغرب — والهدف ملء الساعات المسائية.',
+                        en: 'A specialty coffee and bakery in north Riyadh. Mornings are busy, but seats empty after sunset — the goal is to fill the evening hours.'
+                    },
+                    ideas: [
+                        { t: { ar: 'ساعة ما بعد المغرب', en: 'The after-sunset hour' },
+                          d: { ar: 'زاوية الوقت لا الموعد: تراس مضيء، مشروب بارد جديد، وصوت منخفض. تجعل الساعة نفسها هي المحتوى.',
+                               en: 'Sell the hour, not the appointment: a lit terrace, the new cold brew, low volume. The time itself becomes the content.' } },
+                        { t: { ar: 'من البُنّة إلى الكوب', en: 'Bean to cup' },
+                          d: { ar: 'ثلاث لقطات متتابعة: التحميص، الطحن، التحضير. محتوى تعليمي قصير يبني ثقة قبل السعر.',
+                               en: 'Three sequential frames: roast, grind, pour. A short educational piece that earns trust before price.' } },
+                        { t: { ar: 'الزبون الثابت', en: 'The regular' },
+                          d: { ar: 'تفاصيل زبائن يأتون كل أسبوع. يحوّل المكان من محل إلى علاقة، والدليل الاجتماعي يصنعه الناس لا الإعلان.',
+                               en: 'Details of customers who return weekly. Turns a shop into a relationship — social proof people make, not ads buy.' } }
+                    ],
+                    captions: [
+                        { ch: { ar: 'إنستغرام', en: 'Instagram' },
+                          body: { ar: 'من بعد المغرب، المقهى يغيّر صوته.\nنوقف المكائن، ننزل الإضاءة، ونترك المكان يتنفس.\nالموسم الجديد من المشروبات الباردة متوفر من اليوم.',
+                                  en: 'After sunset, the café changes its voice.\nMachines off, lights down, and the room gets to breathe.\nThe new cold-drink season starts today.' },
+                          tags: { ar: '#مقهى_رياحان #قهوة_باردة #قهوة_مختصة #الرياض',
+                                  en: '#ReihanCafe #ColdBrew #SpecialtyCoffee #Riyadh' } },
+                        { ch: { ar: 'سناب شات', en: 'Snapchat' },
+                          body: { ar: 'طلبت نفس الطلب سبعة أسابيع متتالية. هذا ما يعني أن المكان صار موعداً.',
+                                  en: 'Same order, seven weeks running. That is what a place becoming a ritual looks like.' },
+                          tags: { ar: '#قهوة #الرياض', en: '#Coffee #Riyadh' } }
+                    ],
+                    calendar: [
+                        { d: { ar: 'الأحد',  en: 'Sun' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'ريلز 15ث', en: '15s Reel' }, h: { ar: 'أول مشروب بارد', en: 'First cold brew of the week' } },
+                        { d: { ar: 'الاثنين', en: 'Mon' }, p: { ar: 'سناب شات', en: 'Snapchat' },  f: { ar: 'قصة',      en: 'Story' },      h: { ar: 'ماذا طلب الزبون أمس؟', en: "What did yesterday's customer order?" } },
+                        { d: { ar: 'الثلاثاء', en: 'Tue' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'كاروسيل',   en: 'Carousel' },   h: { ar: 'من البُنّة إلى الكوب', en: 'Bean to cup' } },
+                        { d: { ar: 'الأربعاء', en: 'Wed' }, p: { ar: 'تيك توك',  en: 'TikTok' },    f: { ar: 'فيديو قصير', en: 'Short video' }, h: { ar: 'تحضير المكائن', en: 'Machine prep' } },
+                        { d: { ar: 'الخميس',  en: 'Thu' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'ريلز',      en: 'Reel' },      h: { ar: 'المقاعد بعد المغرب', en: 'Seats after sunset' } }
+                    ],
+                    ad: [
+                        { pl: { ar: 'ريلز · ميتا', en: 'Meta Reel' },
+                          hl: { ar: 'مقعدك بعد المغرب', en: 'Your evening seat is free' },
+                          tx: { ar: 'الساعة الهادئة تبدأ من المغرب. مشروبات باردة جديدة، وإضاءة منخفضة، بلا ضجيج.',
+                                en: 'The quiet hour starts at sunset. New cold drinks, low light, no noise.' },
+                          cta: { ar: 'اطلب الآن', en: 'Order now' } },
+                        { pl: { ar: 'سناب · إعلان', en: 'Snap ad' },
+                          hl: { ar: 'برد، فقط.', en: 'Cold. That is it.' },
+                          tx: { ar: 'ثلاث رشفات لا أكثر، لمكان يُفضَّل بعد المغرب.',
+                                en: 'Three sips, no more, for a place you prefer after sunset.' },
+                          cta: { ar: 'شاهد المزاج', en: 'See the vibe' } }
+                    ],
+                    insight: {
+                        lead: { ar: 'المشكلة ليست في اكتشافك للنشاط، بل في التوقيت. يتركز النشاط الصباحي بينما الطلب الطبيعي يتسع بعد المغرب، فالمحتوى يجب أن يسبق الطلب لا يتبعه.',
+                                en: 'The gap is not a discovery problem but a timing one. Activity clusters in the morning while natural demand opens after sunset — so content has to lead demand, not chase it.' },
+                        points: [
+                            { ar: 'الصباح يثبت أن المنتج جيد؛ المساء هو ما يجب أن يبيعه.', en: 'Mornings prove the product works; evenings are what the content has to sell.' },
+                            { ar: 'تعليمات التحضير تصنع ثقة وتبرر سعر المشروب المختص.', en: 'Brew process content builds trust and justifies a specialty price.' },
+                            { ar: 'أولوية للمحتوى القصير المتكرر أسبوعياً على الإنتاج الطويل مرة شهرياً.', en: 'Favour short recurring posts weekly over one long production monthly.' }
+                        ],
+                        next: { ar: 'الاختبار المقترح: منشوران متطابقان، أحدهما الساعة 6 مساءً والآخر 11 صباحاً، لمدة أسبوعين.',
+                                en: 'Suggested test: two identical posts, one at 6pm and one at 11am, over two weeks.' }
+                    }
+                },
+                boutique: {
+                    ic: 'fa-shirt', ava: 'AG-001',
+                    name: { ar: 'متجر نَوْلة للأزياء', en: 'Nowla Boutique' },
+                    kind: { ar: 'أزياء إلكترونية · المملكة', en: 'Online fashion · KSA' },
+                    brief: {
+                        ar: 'متجر أزياء إلكتروني يبيع تشكيلة الكتان الصيفية بتوصيل لكل المملكة. المنافسة على السعر، والهدف أن يُشترى المتجر لقيمته لا لخصمه.',
+                        en: 'An online store selling a summer linen range with delivery across the Kingdom. Competitors compete on price; the goal is to be bought for value, not discount.'
+                    },
+                    ideas: [
+                        { t: { ar: 'قطعة واحدة بثلاث طرق', en: 'One piece, three ways' },
+                          d: { ar: 'تغيير الإكسسوار والقصة حول قطعة واحدة. يبيّن التنوع ويشتري المنتج الواحد ثلاث مرات.',
+                               en: 'Same garment, changed accessories and framing. Shows versatility and sells one piece three times.' } },
+                        { t: { ar: 'القماش قبل السعر', en: 'Fabric before price' },
+                          d: { ar: 'لمسة القماش، الخياطة، ووزن القطعة — قبل أي ذكر للسعر. يشتري القرار بالعيّن لا بالحساب.',
+                               en: 'Fabric hand, stitching, weight — before any price. The decision is made by touch, not arithmetic.' } },
+                        { t: { ar: 'مقاسات حقيقية', en: 'Real measurements' },
+                          d: { ar: 'شخصية بعينها تقيس قطعة واحدة. يقلّل إرجاع المقاس، وهو أسرع خسارة في متجر أزياء.',
+                               en: 'A real person measuring a real garment. Fewer size returns — the fastest leak in any fashion store.' } }
+                    ],
+                    captions: [
+                        { ch: { ar: 'إنستغرام', en: 'Instagram' },
+                          body: { ar: 'قطعة واحدة. ثلاث مناسبات.\nمع الكاب: نهار. مع الحقيبة: عمل. فوق الطويلة: سهرة.\nالخامة هي التي تصنع الفرق، والمقاس الذي تحتاجه مكتوب في كل قطعة.',
+                                  en: 'One piece. Three occasions.\nWith the cap: daytime. With the bag: work. Over the slip: evening.\nThe fabric is the difference, and the size you need is on every item.' },
+                          tags: { ar: '#أزياء_صيفية #كتان #تسوق_اونلاين #السعودية',
+                                  en: '#SummerFashion #Linen #OnlineShopping #KSA' } },
+                        { ch: { ar: 'تيك توك', en: 'TikTok' },
+                          body: { ar: 'القطعة التي ترتدينها ثلاث مرات في الأسبوع، لا الفستان الذي تشترينه مرة.',
+                                  en: 'The one you wear three times a week — not the dress you buy once.' },
+                          tags: { ar: '#ستايل #OOTD', en: '#Style #OOTD' } }
+                    ],
+                    calendar: [
+                        { d: { ar: 'الأحد',   en: 'Sun' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'كاروسيل',   en: 'Carousel' },   h: { ar: 'قطعة بثلاث طرق', en: 'One piece, three ways' } },
+                        { d: { ar: 'الاثنين',  en: 'Mon' }, p: { ar: 'تيك توك',   en: 'TikTok' },     f: { ar: 'فيديو',      en: 'Video' },      h: { ar: 'لمسة القماش', en: 'Fabric hand' } },
+                        { d: { ar: 'الثلاثاء', en: 'Tue' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'ريلز',       en: 'Reel' },       h: { ar: 'قياس حقيقي', en: 'Real measurements' } },
+                        { d: { ar: 'الأربعاء', en: 'Wed' }, p: { ar: 'سناب شات',  en: 'Snapchat' },  f: { ar: 'قصة',        en: 'Story' },      h: { ar: 'خلف الكواليس', en: 'Behind the packing' } },
+                        { d: { ar: 'الخميس',   en: 'Thu' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'كاروسيل',   en: 'Carousel' },   h: { ar: 'التشكيلة الكاملة', en: 'The full range' } }
+                    ],
+                    ad: [
+                        { pl: { ar: 'فيود · ميتا', en: 'Meta feed' },
+                          hl: { ar: 'خمس إطلالات في أسبوع', en: 'Five outfits, one week' },
+                          tx: { ar: 'تشكيلة الكتان الصيفية، بخامة تتنفس ومقاسات مكتوبة. توصيل لكل المملكة.',
+                                en: 'The summer linen range, in a breathable fabric with written measurements. Delivered across the Kingdom.' },
+                          cta: { ar: 'تسوّق التشكيلة', en: 'Shop the range' } },
+                        { pl: { ar: 'قصة · سناب', en: 'Snap story' },
+                          hl: { ar: 'المقاس مكتوب. لن ترجع.', en: 'The size is written. No returns.' },
+                          tx: { ar: 'مقاسات كل قطعة موثّقة بالسنتيمتر قبل الشراء.',
+                                en: 'Every item measured in centimetres before you buy.' },
+                          cta: { ar: 'شوف المقاسات', en: 'Check sizes' } }
+                    ],
+                    insight: {
+                        lead: { ar: 'السعر ليس ما يميّزك، بل نقطة المقارنة التي يفرضها المنافس. المحتوى الذي يشرح الخامة ينقل المقارنة من رقم إلى قيمة.',
+                                en: 'Price is not the differentiator, only the comparison others impose. Content that explains the fabric moves the comparison from a number to a value.' },
+                        points: [
+                            { ar: 'الخصومات تُنهي البيع، لكنها لا تبنيه. الخامة تبنيه.', en: 'Discounts close the sale but do not build it. Fabric closes and builds it.' },
+                            { ar: 'توثيق المقاس يقلّل الإرجاع — وهي كلفة خفية أكبر من هامش الربح.', en: 'Documented sizing cuts returns — a hidden cost larger than the margin.' },
+                            { ar: 'إيقاع المحتوى الأسبوعي — سبعة أيام بمواد جاهزة — هو أصغر وحدة إنتاج مستدامة.', en: 'A weekly content rhythm — seven days from prepared assets — is the smallest sustainable unit.' }
+                        ],
+                        next: { ar: 'الاختبار المقترح: نفس القطعة بنسختين، واحدة تشرح القماش والأخرى تذكر الخصم، لقياس أثر القيمة مقابل السعر.',
+                                en: 'Suggested test: the same garment in two versions — one explaining fabric, one leading with a discount — to measure value against price.' }
+                    }
+                },
+                clinic: {
+                    ic: 'fa-tooth', ava: 'AG-001',
+                    name: { ar: 'عيادة أُصول لطب الأسنان', en: 'Usul Dental Clinic' },
+                    kind: { ar: 'رعاية أسنان · الرياض', en: 'Dental care · Riyadh' },
+                    brief: {
+                        ar: 'عيادة أسنان في شرق الرياض. أغلب المواعيد الملغاة سببها الخوف لا السعر، والرسالة: الراحة قبل العلاج.',
+                        en: 'A dental clinic in east Riyadh. Most cancellations are driven by fear, not price — so the message is comfort before treatment.'
+                    },
+                    ideas: [
+                        { t: { ar: 'قبل الموعد', en: 'Before the appointment' },
+                          d: { ar: 'ما يراه المريض عند الدخول: الإضاءة، الموسيقى، الرائحة. التفاصيل التي تسبق العلاج تهدّئ قبل أن تبدأ الجلسة.',
+                               en: 'What a patient sees on arrival: light, music, scent. The details before treatment calm them before the chair does.' } },
+                        { t: { ar: 'ماذا يحدث فعلاً', en: 'What actually happens' },
+                          d: { ar: 'شرح صوتي مرحز لخطوة واحدة. المحتوى الطبي الغامض هو أصل الخوف، والشفافية تقيسه.',
+                               en: 'A short narrated walkthrough of a single step. Medical uncertainty is the root of fear; clarity shrinks it.' } },
+                        { t: { ar: 'الروتين لا الألم', en: 'Routine, not pain' },
+                          d: { ar: 'محتوى وقائي: متى تذهب، ومتى تؤجل. يمنع الزيارات المهدرة ويبني علاقة لا تعتمد على الحالة الطارئة.',
+                               en: 'Preventive content: when to come, when not to. Saves wasted visits and builds a relationship that does not depend on emergencies.' } }
+                    ],
+                    captions: [
+                        { ch: { ar: 'إنستغرام', en: 'Instagram' },
+                          body: { ar: 'أكثر سبب لإلغاء الموعد ليس الثمن. إنه الانتظار.\nنبدأ بشرح ما سيحدث، خطوة خطوة، قبل أن تبدأ الجلسة.\nأسأل، ثم أشرح، ثم نبدأ — بالوتيرة التي تريحك.',
+                                  en: 'The top reason an appointment is cancelled is not the fee. It is the waiting.\nWe start by explaining what will happen, step by step, before the chair does.\nI ask, then explain, then we begin — at a pace that suits you.' },
+                          tags: { ar: '#أسنان #عيادة_أسنان #الرياض #الوقاية_الأسنية',
+                                  en: '#Dentist #DentalClinic #Riyadh #DentalCare' } },
+                        { ch: { ar: 'تيك توك', en: 'TikTok' },
+                          body: { ar: 'ثلاث علامات تدل على أن موعدك لا يحتمل التأجيل.',
+                                  en: 'Three signs your appointment should not wait.' },
+                          tags: { ar: '#صحة_الأسنان', en: '#DentalHealth' } }
+                    ],
+                    calendar: [
+                        { d: { ar: 'الأحد',    en: 'Sun' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'ريلز',      en: 'Reel' },      h: { ar: 'أول 60 ثانية في العيادة', en: 'The first 60 seconds inside' } },
+                        { d: { ar: 'الاثنين',   en: 'Mon' }, p: { ar: 'تيك توك',   en: 'TikTok' },    f: { ar: 'فيديو',     en: 'Video' },     h: { ar: 'شرح خطوة واحدة', en: 'One step, explained' } },
+                        { d: { ar: 'الثلاثاء',  en: 'Tue' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'كاروسيل',   en: 'Carousel' },  h: { ar: 'متى تذهب ومتى تؤجل', en: 'When to come, when to wait' } },
+                        { d: { ar: 'الأربعاء',  en: 'Wed' }, p: { ar: 'سناب شات',  en: 'Snapchat' },  f: { ar: 'قصة',       en: 'Story' },     h: { ar: 'سؤال ورد اليوم', en: "Today's question" } },
+                        { d: { ar: 'الخميس',    en: 'Thu' }, p: { ar: 'إنستغرام', en: 'Instagram' }, f: { ar: 'ريلز',      en: 'Reel' },      h: { ar: 'الروتين الوقائي', en: 'The preventive routine' } }
+                    ],
+                    ad: [
+                        { pl: { ar: 'فيود · ميتا', en: 'Meta feed' },
+                          hl: { ar: 'موعدك يبدأ بالشرح', en: 'Your appointment starts with an explanation' },
+                          tx: { ar: 'نشرح كل خطوة قبل أن تبدأ. تعرف ماذا ستحس، ولماذا، وكم يستغرق.',
+                                en: 'We explain every step before it starts. You know what you will feel, why, and how long it takes.' },
+                          cta: { ar: 'احجز استشارة', en: 'Book a consult' } },
+                        { pl: { ar: 'قصة · سناب', en: 'Snap story' },
+                          hl: { ar: 'العيادة مغلقة؟ موعدك يُنقل.', en: 'Moved, not missed.' },
+                          tx: { ar: 'إذا لم تستطع الحضور، دعنا نعيد جدولتك بدل أن تختفي من السجل.',
+                                en: 'If you cannot make it, let us reschedule instead of dropping off the list.' },
+                          cta: { ar: 'غيّر موعدك', en: 'Reschedule' } }
+                    ],
+                    insight: {
+                        lead: { ar: 'الإلغاء في العيادات غالباً هروب لا اعتراض. المحتوى الذي يقلّل الغموض قبل الزيارة يقلّل الإلغاء بعدها.',
+                                en: 'A cancellation is usually avoidance, not refusal. Content that removes uncertainty before the visit reduces the cancellation after it.' },
+                        points: [
+                            { ar: 'شرح خطوات العلاج يخفف القلق أكثر من أي خصم.', en: 'Explaining the treatment steps lowers anxiety more effectively than any discount.' },
+                            { ar: 'إعادة الجدولة كإجراء طبيعي تحمي السعة المفقودة.', en: 'Treating rescheduling as normal protects lost capacity.' },
+                            { ar: 'المحتوى الوقائي يبني قناة لا تعتمد على الإعلانات المدفوعة.', en: 'Preventive content builds a channel that does not depend on paid ads.' }
+                        ],
+                        next: { ar: 'الاختبار المقترح: قياس نسبة الإلغاء قبل وبعد أسبوع من نشر خطوات العلاج المسبقة.',
+                                en: 'Suggested test: measure the cancellation rate before and after one week of pre-treatment step content.' }
+                    }
+                }
+            };
+
+            var demoBox = document.getElementById('demoBox');
+            if (demoBox) {
+                var dPicker = document.getElementById('demoPicker'),
+                    dRun = document.getElementById('demoRun'),
+                    dSteps = document.getElementById('demoSteps'),
+                    dTabs = document.getElementById('demoTabs'),
+                    dPanel = document.getElementById('demoPanel'),
+                    dBrief = document.getElementById('demoBrief'),
+                    dStatus = document.getElementById('demoStatus'),
+                    dAva = document.getElementById('demoAva'),
+                    dKey = null, dTab = 'ideas', dTimers = [];
+
+                function dAr() { return document.body.dataset.lang === 'ar'; }
+                function dT(o) { return o[dAr() ? 'ar' : 'en']; }
+                function dEsc(s) {
+                    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                }
+                function dClear() {
+                    dTimers.forEach(function (t) { clearTimeout(t); });
+                    dTimers = [];
+                }
+                function dAfter(fn, ms) { dTimers.push(setTimeout(fn, ms)); }
+
+                function dStatus2(state) {
+                    dStatus.textContent = state;
+                    dBox(state);
+                }
+                function dBox(state) {
+                    demoBox.classList.remove('running', 'done');
+                    if (state === 'run') demoBox.classList.add('running');
+                    if (state === 'done') demoBox.classList.add('done');
+                }
+
+                function dRenderPicker() {
+                    dPicker.innerHTML = Object.keys(DEMO_DATA).map(function (k) {
+                        var b = DEMO_DATA[k];
+                        return '<button type="button" class="pk" role="radio" data-k="' + k + '" ' +
+                            'aria-checked="' + (k === dKey ? 'true' : 'false') + '">' +
+                            '<span class="pk-ic"><i class="fas ' + b.ic + '"></i></span>' +
+                            '<span class="pk-tx"><b>' + dEsc(dT(b.name)) + '</b>' +
+                            '<small>' + dEsc(dT(b.kind)) + '</small></span></button>';
+                    }).join('');
+                }
+
+                function dRenderSteps(state) {
+                    var list = DEMO_STEPS[dAr() ? 'ar' : 'en'];
+                    dSteps.innerHTML = list.map(function (s, i) {
+                        var cls = state === 'done' ? 'done' : (state === 'run' && i === dStepNow ? 'run' : '');
+                        return '<li class="' + cls + '"><span class="st"><i class="fas fa-check"></i></span>' +
+                            '<span>' + dEsc(s) + '</span></li>';
+                    }).join('');
+                }
+
+                var dStepNow = 0;
+                function dRunFlow() {
+                    if (!dKey) return;
+                    dClear();
+                    dStepNow = 0;
+                    dRun.disabled = true;
+                    dStatus2('WORKING');
+                    dPanel.innerHTML = '<p class="demo-empty"><i class="fas fa-circle-notch fa-spin"></i>' +
+                        '<span>' + dEsc(dAr() ? 'الوكيل يعمل الآن…' : 'The agent is working…') + '</span></p>';
+                    dTabs.hidden = true;
+                    dBrief.hidden = true;
+                    dRenderSteps('run');
+
+                    var n = DEMO_STEPS[dAr() ? 'ar' : 'en'].length;
+                    (function next() {
+                        if (dStepNow >= n) {
+                            dAfter(function () {
+                                dStatus2('DONE');
+                                dRenderSteps('done');
+                                dBrief.hidden = false;
+                                dBrief.textContent = dT(DEMO_DATA[dKey].brief);
+                                dRenderTabs();
+                                dRenderOut();
+                                dRun.disabled = false;
+                            }, 320);
+                            return;
+                        }
+                        dRenderSteps('run');
+                        dStepNow++;
+                        dAfter(next, 620);
+                    })();
+                }
+
+                /* ---------- what does your business need ----------
+                   deterministic: a fixed bilingual table, no API call */
+                var NEEDS = {
+                    more: {
+                        icon: 'fa-arrow-trend-up',
+                        label: { ar: 'أريد عملاء أكثر', en: 'I want more customers' },
+                        plan: 'social',
+                        team: { ar: 'فريق التسويق الرقمي', en: 'The digital marketing team' },
+                        why: { ar: 'يبدأ من الحساب ويبني خطة محتوى وإعلانات، فتبقى الجهة الأولى عند جمهورك.',
+                               en: 'It starts from the account and builds a content and ads plan, so you stay present in front of your audience.' },
+                        agents: ['ad_writer', 'marketing_agent', 'social_media'],
+                        does: {
+                            ar: ['أفكار محتوى مرتبطة بمنتجك الواحد', 'كتابة إعلانات A/B لاختبار ما يجذب فعلاً',
+                                 'تقويم محتوى يوزّع النشر على الأسبوع'],
+                            en: ['Content ideas tied to one product', 'A/B ad copies to test what actually pulls',
+                                 'A content calendar that spreads the week'],
+                        },
+                    },
+                    content: {
+                        icon: 'fa-pen-nib',
+                        label: { ar: 'أريد محتوى وتسويق', en: 'I want content and marketing' },
+                        plan: 'content',
+                        team: { ar: 'فريق المحتوى', en: 'The content team' },
+                        why: { ar: 'يبحث عن المواضيع ويكتب المقالات، ويقرأ السوق والمنافسين قبل أن يقترح.',
+                               en: 'It researches topics and writes the articles, reading the market and competitors before it suggests anything.' },
+                        agents: ['content_writer', 'article_writer', 'content_manager'],
+                        does: {
+                            ar: ['مقالات مبنية على بحث في موضوعك', 'رسائل إيميل مقسّمة حسب الجمهور',
+                                 'خطة موضوعات لشهر كامل'],
+                            en: ['Articles built on research into your topic', 'Emails segmented by audience',
+                                 'A one-month topic plan'],
+                        },
+                    },
+                    store: {
+                        icon: 'fa-store',
+                        label: { ar: 'أريد تحسين متجر إلكتروني', en: 'I want to improve my online store' },
+                        plan: 'ecommerce',
+                        team: { ar: 'فريق التجارة الإلكترونية', en: 'The e-commerce team' },
+                        why: { ar: 'يعمل داخل المتجر: الصفحات والوصف والتوصيات، لا المحتوى فقط.',
+                               en: 'It works inside the store: pages, descriptions and bundles — not just content.' },
+                        agents: ['product_describer', 'store_manager', 'email_writer'],
+                        does: {
+                            ar: ['كتابة وصف منتج لكل منتج', 'ترتيب صفحات المتجر للبيع',
+                                 'اقتراح باقات ترفع السلة'],
+                            en: ['A description for every product', 'Store pages arranged for selling',
+                                 'Bundle suggestions that lift the cart'],
+                        },
+                    },
+                    care: {
+                        icon: 'fa-headset',
+                        label: { ar: 'أريد خدمة عملاء', en: 'I want customer service' },
+                        plan: 'ecommerce',
+                        team: { ar: 'فريق خدمة العملاء', en: 'The customer care team' },
+                        why: { ar: 'يردّ على الأسئلة المتكرّرة ويحرّك العميل بعده، في وقت لا يكون فيه أحد.',
+                               en: 'It answers the repeated questions and follows the customer up, at hours when nobody is there.' },
+                        agents: ['customer_service', 'customer_manager', 'email_writer'],
+                        does: {
+                            ar: ['ردود فورية على الأسئلة المتكرّرة', 'متابعة العميل بعد الطلب',
+                                 'رسائل بريدية للعربة المتروكة'],
+                            en: ['Instant answers to repeated questions', 'Follow-up after the order',
+                                 'Email for the abandoned cart'],
+                        },
+                    },
+                    rivals: {
+                        icon: 'fa-magnifying-glass-chart',
+                        label: { ar: 'أريد تحليل المنافسين', en: 'I want competitor analysis' },
+                        plan: 'content',
+                        team: { ar: 'فريق التحليلات', en: 'The analysis team' },
+                        why: { ar: 'يقرأ السوق والمنافسين ويعطيك صورة بدل التخمين، قبل أن تقرر.',
+                               en: 'It reads the market and the competitors and gives you a picture instead of a guess, before you decide.' },
+                        agents: ['competitor_analyst', 'market_analyst', 'data_analyst'],
+                        does: {
+                            ar: ['تحليل المنافسين ومواقعهم', 'قراءة أرقامك أنت', 'توصيات مبنية على السوق'],
+                            en: ['Competitor analysis and their positions', 'A read of your own numbers',
+                                 'Recommendations based on the market'],
+                        },
+                    },
+                    time: {
+                        icon: 'fa-hourglass-half',
+                        label: { ar: 'أريد توفير وقت التشغيل', en: 'I want to save operating time' },
+                        plan: 'growth',
+                        team: { ar: 'فريق نمو الأعمال', en: 'The business growth team' },
+                        why: { ar: 'يرتّب الأولويات ويدير التنفيذ، فتنزل المهمة من رأسك إلى قائمة واضحة.',
+                               en: 'It ranks priorities and manages execution, so the task leaves your head and lands on a clear list.' },
+                        agents: ['project_manager', 'time_manager', 'business_ideas'],
+                        does: {
+                            ar: ['ترتيب المهام حسب الأولوية', 'خطة نمو وأفكار مقيَّمة', 'متابعة التنفيذ أسبوعياً'],
+                            en: ['Tasks ranked by priority', 'A growth plan with assessed ideas',
+                                 'Weekly follow-through on execution'],
+                        },
+                    },
+                };
+
+                /* exact catalogue job titles, so the page can never drift from the registry */
+                var AGENT_TITLE = {
+                    social_media: { ar: 'مدير حسابات السوشيال ميديا', en: 'Social Media Manager' },
+                    ad_writer: { ar: 'كاتب إعلانات', en: 'Ad Copywriter' },
+                    content_ideas: { ar: 'مولّد أفكار المحتوى', en: 'Content Ideas Generator' },
+                    marketing_agent: { ar: 'استراتيجي التسويق', en: 'Marketing Strategist' },
+                    text_improver: { ar: 'محسّن النصوص', en: 'Text Improver' },
+                    product_describer: { ar: 'كاتب وصف المنتجات', en: 'Product Descriptions Writer' },
+                    store_manager: { ar: 'مدير المتجر الإلكتروني', en: 'Store Manager' },
+                    customer_service: { ar: 'موظف خدمة العملاء', en: 'Customer Service Agent' },
+                    customer_manager: { ar: 'مدير علاقات العملاء', en: 'Customer Relationship Manager' },
+                    email_writer: { ar: 'كاتب الرسائل الإلكترونية', en: 'Email Writer' },
+                    content_writer: { ar: 'كاتب المحتوى', en: 'Content Writer' },
+                    article_writer: { ar: 'كاتب المقالات', en: 'Article Writer' },
+                    content_manager: { ar: 'مدير المحتوى', en: 'Content Manager' },
+                    market_analyst: { ar: 'محلل السوق', en: 'Market Analyst' },
+                    competitor_analyst: { ar: 'محلل المنافسين', en: 'Competitor Analyst' },
+                    data_analyst: { ar: 'محلل البيانات', en: 'Data Analyst' },
+                    business_ideas: { ar: 'مستشار أفكار المشاريع', en: 'Business Ideas Consultant' },
+                    project_manager: { ar: 'مدير المشاريع', en: 'Project Manager' },
+                    time_manager: { ar: 'مدير إدارة الوقت', en: 'Time Management Coach' },
+                };
+                /* the full 5-agent roster of every plan, from the catalogue */
+                var PLAN_TEAM = {
+                    social: ['social_media', 'ad_writer', 'content_ideas', 'marketing_agent', 'text_improver'],
+                    ecommerce: ['product_describer', 'store_manager', 'customer_service', 'customer_manager', 'email_writer'],
+                    content: ['content_writer', 'article_writer', 'content_manager', 'market_analyst', 'competitor_analyst'],
+                    growth: ['business_ideas', 'project_manager', 'time_manager', 'data_analyst'],
+                };
+
+                var ndPick = document.getElementById('ndPick'),
+                    ndOut = document.getElementById('ndOut'),
+                    ndKey = null;
+
+                function nAr() { return document.body.dataset.lang === 'ar'; }
+                function nT(o) { return o[nAr() ? 'ar' : 'en']; }
+                function nEsc(s) {
+                    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                }
+
+                function ndMarkPicked() {
+                    /* update in place: re-rendering would detach the buttons
+                       (losing focus) and silently kill the next click */
+                    ndPick.querySelectorAll('.nd-btn').forEach(function (b) {
+                        b.setAttribute('aria-pressed', b.dataset.k === ndKey ? 'true' : 'false');
+                    });
+                }
+
+                function ndRenderPick() {
+                    ndPick.innerHTML = Object.keys(NEEDS).map(function (k) {
+                        var d = NEEDS[k];
+                        return '<button type="button" class="nd-btn" data-k="' + k + '" aria-pressed="false">' +
+                            '<i class="fas ' + d.icon + '"></i>' +
+                            '<span data-lang="ar">' + nEsc(d.label.ar) + '</span>' +
+                            '<span data-lang="en" data-inline>' + nEsc(d.label.en) + '</span></button>';
+                    }).join('');
+                }
+
+                function ndEmpty() {
+                    ndOut.innerHTML = '<p class="nd-empty"><i class="fas fa-hand-pointer"></i>' +
+                        '<span>' + (nAr() ? 'اختر ما يصف وضعك، وستظهر هنا الباقة وفريقها وأمثلة ما سينفّذونه.'
+                                           : 'Pick what describes your situation, and the plan, its team and sample work appear here.') +
+                        '</span></p>';
+                }
+
+                function ndRender() {
+                    if (!ndKey) { ndEmpty(); return; }
+                    var d = NEEDS[ndKey], roster = PLAN_TEAM[d.plan] || [];
+                    var chips = roster.map(function (slug) {
+                        var t = AGENT_TITLE[slug];
+                        if (!t) return '';
+                        var on = d.agents.indexOf(slug) > -1;
+                        return '<span class="' + (on ? 'on' : '') + '" title="AG">' + nEsc(nT(t)) + '</span>';
+                    }).join('');
+                    var does = d.does[nAr() ? 'ar' : 'en'].map(function (x) {
+                        return '<li><i class="fas fa-circle-check"></i>' + nEsc(x) + '</li>';
+                    }).join('');
+                    ndOut.innerHTML =
+                        '<div class="nd-head">' +
+                            '<span class="nd-team">' + nEsc(nT(d.team)) + '</span>' +
+                            '<p class="nd-why">' + nEsc(nT(d.why)) + '</p>' +
+                            '<button type="button" class="nd-clear" aria-label="' +
+                                (nAr() ? 'اختر مشكلة أخرى' : 'Pick another problem') + '">' +
+                                '<i class="fas fa-rotate-right"></i>' +
+                                (nAr() ? 'مشكلة أخرى' : 'Another problem') + '</button>' +
+                        '</div>' +
+                        '<div><span class="nd-lbl"><i class="fas fa-user-check"></i>' +
+                            (nAr() ? 'الوكلاء المرتبطون بمشكلتك' : 'The agents tied to your problem') + '</span>' +
+                            '<div class="nd-agents">' + chips + '</div></div>' +
+                        '<div><span class="nd-lbl"><i class="fas fa-list-check"></i>' +
+                            (nAr() ? 'أمثلة لما سينفّذونه' : 'Examples of what they will do') + '</span>' +
+                            '<ul class="nd-ex">' + does + '</ul></div>' +
+                        '<div class="nd-cta">' +
+                            '<a class="btn btn-gold" href="/portal?pkg=' + d.plan + '"><i class="fas fa-bolt"></i>' +
+                                (nAr() ? 'ابدأ بهذه الباقة' : 'Start with this plan') + '</a>' +
+                            '<a class="btn btn-ghost" href="/consult">' +
+                                (nAr() ? 'استشارة مجانية' : 'Free consult') + '</a>' +
+                        '</div>';
+                }
+
+                ndPick.addEventListener('click', function (e) {
+                    var b = e.target.closest('.nd-btn');
+                    if (!b) return;
+                    ndKey = b.dataset.k;
+                    ndMarkPicked();
+                    ndRender();
+                });
+
+                /* clicking the picked problem again clears the panel */
+                ndOut.addEventListener('click', function (e) {
+                    if (e.target.closest('.nd-clear')) {
+                        ndKey = null;
+                        ndMarkPicked();
+                        ndEmpty();
+                    }
+                });
+
+                ndRenderPick();
+                ndEmpty();
+
+                function dRenderTabs() {
+                    dTabs.hidden = false;
+                    dTabs.innerHTML = Object.keys(DEMO_TABS).map(function (k) {
+                        return '<button type="button" class="demo-tab" role="tab" data-t="' + k + '" ' +
+                            'aria-selected="' + (k === dTab ? 'true' : 'false') + '">' +
+                            dEsc(dT(DEMO_TABS[k])) + '</button>';
+                    }).join('');
+                }
+
+                function dIdeas(b) {
+                    return '<div class="d-out d-ideas">' + b.ideas.map(function (it, i) {
+                        return '<div class="d-idea"><span class="n">' + (i + 1) + '</span><span>' +
+                            '<b>' + dEsc(dT(it.t)) + '</b><small>' + dEsc(dT(it.d)) + '</small></span></div>';
+                    }).join('') + '</div>';
+                }
+                function dCaps(b) {
+                    return '<div class="d-out d-caps">' + b.captions.map(function (c) {
+                        return '<div class="d-cap"><div class="d-cap-bar"><b>' + dEsc(dT(c.ch)) +
+                            '</b><span class="sp">' + dEsc(dAr() ? 'منشور جاهز للنشر' : 'Ready to post') +
+                            '</span></div><div class="d-cap-body">' + dEsc(dT(c.body)) +
+                            '</div><div class="d-cap-tags">' + dEsc(dT(c.tags)) + '</div></div>';
+                    }).join('') + '</div>';
+                }
+                function dCal(b) {
+                    return '<div class="d-out"><div class="d-cal-wrap"><table class="d-cal"><thead><tr>' +
+                        '<th>' + dEsc(dAr() ? 'اليوم' : 'Day') + '</th>' +
+                        '<th>' + dEsc(dAr() ? 'المنصة' : 'Platform') + '</th>' +
+                        '<th>' + dEsc(dAr() ? 'الصيغة' : 'Format') + '</th>' +
+                        '<th>' + dEsc(dAr() ? 'الفكرة' : 'Hook') + '</tr></thead><tbody>' +
+                        b.calendar.map(function (r) {
+                            return '<tr><td><b>' + dEsc(dT(r.d)) + '</b></td><td>' + dEsc(dT(r.p)) +
+                                '</td><td>' + dEsc(dT(r.f)) + '</td><td>' + dEsc(dT(r.h)) + '</td></tr>';
+                        }).join('') + '</tbody></table></div></div>';
+                }
+                function dAds(b) {
+                    return '<div class="d-out d-ads">' + b.ad.map(function (a) {
+                        return '<div class="d-ad"><span class="d-ad-pl">' + dEsc(dT(a.pl)) + '</span>' +
+                            '<div class="d-ad-hl">' + dEsc(dT(a.hl)) + '</div>' +
+                            '<div class="d-ad-tx">' + dEsc(dT(a.tx)) + '</div>' +
+                            '<span class="d-ad-cta"><i class="fas fa-arrow-right"></i>' +
+                            dEsc(dT(a.cta)) + '</span></div>';
+                    }).join('') + '</div>';
+                }
+                function dInsight(b) {
+                    return '<div class="d-out d-ins"><p class="d-ins-lead">' + dEsc(dT(b.insight.lead)) + '</p><ul>' +
+                        b.insight.points.map(function (p) {
+                            return '<li><i class="fas fa-circle"></i><span>' + dEsc(dT(p)) + '</span></li>';
+                        }).join('') + '</ul>' +
+                        '<p class="d-ins-lead"><b>' + dEsc(dAr() ? 'الاختبار التالي' : 'Next test') + ':</b> ' +
+                        dEsc(dT(b.insight.next)) + '</p>' +
+                        '<p class="demo-note" style="margin:0"><i class="fas fa-circle-info"></i>' +
+                        dEsc(dAr() ? 'أرقام هذا المثال تخص نشاطاً افتراضياً.'
+                            : "These figures belong to the fictional sample above.") + '</p></div>';
+                }
+
+                function dRenderOut() {
+                    var b = DEMO_DATA[dKey];
+                    var map = { ideas: dIdeas, captions: dCaps, calendar: dCal, ad: dAds, insight: dInsight };
+                    dPanel.innerHTML = map[dTab](b);
+                }
+
+                dPicker.addEventListener('click', function (e) {
+                    var btn = e.target.closest('.pk');
+                    if (!btn) return;
+                    dKey = btn.dataset.k;
+                    dRenderPicker();
+                    dAva.textContent = DEMO_DATA[dKey].ava;
+                    dRun.disabled = false;
+                    // step 1 only selects; the run starts from the wake button
+                    dClear();
+                    dStepNow = 0;
+                    dBox('');
+                    dStatus2('IDLE');
+                    dRenderSteps('idle');
+                    dTabs.hidden = true;
+                    dBrief.hidden = true;
+                    dPanel.innerHTML = '<p class="demo-empty"><i class="fas fa-bolt"></i><span>' +
+                        dEsc(dAr() ? 'اضغط «أيقظ الوكيل» لبدء العمل.'
+                            : 'Press "Wake the agent" to start the work.') + '</span></p>';
+                });
+                dRun.addEventListener('click', dRunFlow);
+                dTabs.addEventListener('click', function (e) {
+                    var btn = e.target.closest('.demo-tab');
+                    if (!btn) return;
+                    dTab = btn.dataset.t;
+                    dRenderTabs();
+                    dRenderOut();
+                });
+
+                dRenderPicker();
+                dRenderSteps('idle');
+                dStatus2('IDLE');
+            }
+
             var allAgents = [], curDept = 'الكل', agentCount = 0;
             var grid = document.getElementById('agents-grid');
             var filters = document.getElementById('filters');
@@ -1287,7 +2611,8 @@ body:not(.launch-on) .launch-bar{display:none}
                         if (en.isIntersecting) {
                             obs.unobserve(en.target);
                             stats.querySelectorAll('.num').forEach(function (el) {
-                                countUp(el, parseInt(el.dataset.target || '0', 10));
+                                var t = parseInt(el.dataset.target || '', 10);
+                                if (isFinite(t)) countUp(el, t);
                             });
                         }
                     });
