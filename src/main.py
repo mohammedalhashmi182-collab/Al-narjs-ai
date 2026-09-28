@@ -905,6 +905,7 @@ async def portal_create_project(request: PortalProjectCreate):
             phone=request.phone.strip(),
             email=request.email,
             package=request.package,
+            status="pending",
         )
         session.add(project)
         await session.flush()
@@ -955,6 +956,14 @@ async def portal_wake_agent(project_id: str, slug: str):
         if not agent:
             raise HTTPException(404, "Agent not part of this project")
 
+        project = (
+            await session.execute(select(ClientProject).where(ClientProject.id == UUID(project_id)))
+        ).scalar_one_or_none()
+        if not project:
+            raise HTTPException(404, "Project not found")
+        if project.status != "active":
+            raise HTTPException(402, "Subscription not active — activate your plan first")
+
         emp = catalog.get_employee(slug)
         defn = await app.state.agent_registry.get_agent(slug)
         if not emp or not defn:
@@ -995,6 +1004,14 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
         if not agent:
             raise HTTPException(404, "Agent not part of this project")
 
+        project = (
+            await session.execute(select(ClientProject).where(ClientProject.id == UUID(project_id)))
+        ).scalar_one_or_none()
+        if not project:
+            raise HTTPException(404, "Project not found")
+        if project.status != "active":
+            raise HTTPException(402, "Subscription not active — activate your plan first")
+
         agent_def = await app.state.agent_registry.get_agent(slug)
         if not agent_def:
             raise HTTPException(404, "Agent definition missing")
@@ -1024,7 +1041,7 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
             temperature=agent_def.default_parameters.get("temperature", 0.7),
             max_tokens=agent_def.default_parameters.get("max_tokens", 2000),
         )
-        response = await app.state.model_provider.complete(agent_def.default_model, model_request)
+        response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
 
         agent.result = response.content
         agent.status = "done"
@@ -1063,6 +1080,8 @@ async def portal_project_payload(session, project) -> dict:
         "package_name": pkg.get("name", project.package),
         "package_en": pkg.get("name_en", project.package),
         "client_name": project.client_name,
+        "status": project.status,
+        "requires_payment": project.status != "active",
         "team": team,
     }
 
@@ -1656,6 +1675,7 @@ class PaymentCreateRequest(BaseModel):
     customer_email: Optional[str] = None
     promo: Optional[str] = None
     lead_id: Optional[str] = None
+    project_id: Optional[str] = None
 
 
 def _request_locale(request: Request) -> str:
@@ -1682,6 +1702,13 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             except ValueError:
                 raise HTTPException(422, "lead_id must be a valid UUID")
 
+        project_uuid = None
+        if body.project_id:
+            try:
+                project_uuid = _UUID(body.project_id)
+            except ValueError:
+                raise HTTPException(422, "project_id must be a valid UUID")
+
         payment = await pm.create_payment(
             session,
             body.package,
@@ -1690,6 +1717,7 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             body.customer_email,
             promo=body.promo,
             lead_id=lead_uuid,
+            project_id=project_uuid,
         )
 
         method = body.method.lower()
@@ -1920,7 +1948,8 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
             )
 
     await session.commit()
-    return {"applied": True}
+    activation = await _pm.activate_subscription(session, payment)
+    return {"applied": True, **activation}
 
 
 class ConfirmReceivedRequest(BaseModel):
@@ -2009,6 +2038,9 @@ async def get_payment(payment_id: str):
             payment = await pm.verify_payment(session, UUID(payment_id))
         except pm.PaymentError as e:
             raise HTTPException(404, str(e))
+
+        if payment.status == "paid":
+            await _apply_paid_outcome(session, payment.id, note="مؤكد عبر بوابة الدفع")
 
     return {
         "payment_id": str(payment.id),

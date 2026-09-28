@@ -13,8 +13,8 @@ prompts:
     Market segment: {{segment}}
     Current trends: {{trends}}
     Competitors: {{competitors}}
-    Target geography: {{geography}
-    Budget range: {{budget}
+    Target geography: {{geography}}
+    Budget range: {{budget}}
     
     Provide analysis:
     1. Market size and growth

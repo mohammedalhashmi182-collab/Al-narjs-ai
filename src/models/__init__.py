@@ -225,6 +225,9 @@ class Payment(Base):
     lead_id: Mapped[Optional[UUID]] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("acquisition_leads.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    project_id: Mapped[Optional[UUID]] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     status: Mapped[str] = mapped_column(String(50), default="pending", index=True)
     gateway: Mapped[str] = mapped_column(String(50), default="moyasar")
     gateway_payment_id: Mapped[Optional[str]] = mapped_column(String(100))
@@ -242,7 +245,8 @@ class ClientProject(Base):
     phone: Mapped[str] = mapped_column(String(50), nullable=False)
     email: Mapped[Optional[str]] = mapped_column(String(255))
     package: Mapped[str] = mapped_column(String(50), nullable=False)
-    status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
+    subscription_note: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     agents: Mapped[list["ClientAgent"]] = relationship("ClientAgent", back_populates="project", cascade="all, delete-orphan")

@@ -31,8 +31,8 @@
             <span data-lang="en" data-inline>Payment Received ✓</span>
         </h1>
         <p class="n-sub mb-4">
-            <span data-lang="ar">شكراً لثقتك بالنرجس للذكاء الاصطناعي. سيتواصل معك فريقنا قريباً.</span>
-            <span data-lang="en" data-inline>Thank you for trusting Al-Narjis AI. Our team will contact you soon.</span>
+            <span data-lang="ar">تم تفعيل باقتك فعلياً — فريقك جاهز الآن ويستطيع العمل. افتح بوابتك وابدأ.</span>
+            <span data-lang="en" data-inline>Your plan is now active — your team is awake and ready. Open your portal and start.</span>
         </p>
         {% else %}
         <h1 class="n-title text-2xl mb-2">
@@ -48,6 +48,11 @@
         <p class="text-xs mb-4" style="color:var(--n-brown-2);"><span data-lang="ar">رقم العملية: {{ payment_id }}</span><span data-lang="en" data-inline>Payment ID: {{ payment_id }}</span></p>
         {% endif %}
         <div class="flex flex-col gap-3 mt-2">
+            <a id="portalGo" href="/portal" class="btn btn-gold w-full" {% if result != "success" %}style="display:none;"{% endif %}>
+                <i class="fas fa-bolt"></i>
+                <span data-lang="ar">افتح بوابة فريقك — أيقظ موظفيك</span>
+                <span data-lang="en" data-inline>Open Your Team Portal — Wake Your Employees</span>
+            </a>
             <a href="/home#pricing" class="btn btn-green w-full">
                 <span data-lang="ar">العودة إلى الأسعار</span>
                 <span data-lang="en" data-inline>Back to Pricing</span>
@@ -101,8 +106,8 @@
                 }
                 if (sub) {
                     if (ok) {
-                        sub.querySelector('[data-lang="ar"]').textContent = 'شكراً لثقتك بالنرجس للذكاء الاصطناعي. سنفعّل باقتك خلال دقائق.';
-                        sub.querySelector('[data-lang="en"]').textContent = 'Thank you for trusting Al-Narjis AI. We will activate your plan within minutes.';
+                        sub.querySelector('[data-lang="ar"]').textContent = 'تم تفعيل باقتك فعلياً — فريقك جاهز الآن. افتح بوابتك وابدأ.';
+                        sub.querySelector('[data-lang="en"]').textContent = 'Your plan is now active — your team is awake and ready. Open your portal and start.';
                     } else {
                         sub.querySelector('[data-lang="ar"]').textContent = 'حدث خطأ أثناء العملية. جرّب مجدداً أو تواصل معنا.';
                         sub.querySelector('[data-lang="en"]').textContent = 'Something went wrong. Please try again or contact us.';
@@ -114,6 +119,8 @@
                         if (typeof gtag === 'function') gtag('event', 'purchase', { value: st.value || (st.total || st.amount || 0), currency: 'SAR', transaction_id: id });
                     } catch (e) { }
                     window.history.replaceState(null, '', '/payment/success?id=' + id);
+                    var pg = document.getElementById('portalGo');
+                    if (pg) pg.style.display = '';
                     if (st.invoice_url) {
                         var card = document.querySelector('.n-card');
                         var a = document.createElement('div');

@@ -115,6 +115,19 @@
                 <p class="n-sub mt-3" data-lang="ar">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>
                 <p class="n-sub mt-3" data-lang="en" data-inline>Your employees await a wake touch — click anyone to start serving you.</p>
             </div>
+            <div id="pendingBanner" class="n-card p-4 mb-8 hidden" style="background:#FDF6E3;border:1px solid var(--n-gold);">
+                <div class="flex flex-col sm:flex-row items-center gap-3 justify-between text-center sm:text-start">
+                    <div class="text-sm" style="color:var(--n-brown);">
+                        <i class="fas fa-moon"></i>
+                        <span data-lang="ar"><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>
+                        <span data-lang="en" data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>
+                    </div>
+                    <button id="pendingCta" class="btn btn-gold" style="white-space:nowrap;">
+                        <i class="fas fa-credit-card"></i>
+                        <span data-lang="ar">فعّل اشتراكك الآن</span><span data-lang="en" data-inline>Activate Subscription</span>
+                    </button>
+                </div>
+            </div>
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="team-grid"></div>
             <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
                 <button id="subscribeBtn" class="btn btn-gold" style="padding:14px 28px;font-size:1rem;">
@@ -284,17 +297,27 @@
                     const data = await r.json();
                     if (!r.ok) throw new Error(data.detail || 'error');
                     state.projectId = data.project_id;
+                    state.projectPaid = data.status === 'active';
                     localStorage.setItem('narjis-project', state.projectId);
-                    renderTeam(data.team);
+                    renderTeam(data.team, data.status);
                 } catch (err) {
                     msg.textContent = txt('حدث خطأ: ' + err.message, 'Error: ' + err.message);
                 }
             });
 
-            function renderTeam(team) {
+            function renderTeam(team, status) {
+                state.projectPaid = status === 'active';
                 $('step-register').classList.add('hidden');
                 $('step-chat').classList.add('hidden');
+                $('step-checkout').classList.add('hidden');
                 $('step-team').classList.remove('hidden');
+                const pending = !state.projectPaid;
+                const pb = $('pendingBanner');
+                if (pb) pb.classList.toggle('hidden', !pending);
+                if (pending) {
+                    const pc = $('pendingCta');
+                    if (pc) pc.addEventListener('click', () => openCheckout());
+                }
                 const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال' };
             const DEPT_EN = {
                 'التسويق الرقمي': 'Digital Marketing',
@@ -313,7 +336,7 @@
                                 <span>${a.no.replace('AG-','')}</span>
                             </div>
                             <div>
-                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · <span data-lang="ar">موظف نائم</span><span data-lang="en" data-inline>Asleep</span></div>
+                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · <span data-lang="ar">${pending ? 'موظف نائم' : 'يقف الآن'}</span><span data-lang="en" data-inline>${pending ? 'Asleep' : 'On standby'}</span></div>
                                 <h3 class="n-title text-base">
                                     <span data-lang="ar">${a.title_ar}</span><span data-lang="en" data-inline>${a.title_en}</span>
                                 </h3>
@@ -325,9 +348,9 @@
                         <p class="text-sm text-neutral-600" style="color:var(--n-brown-2);">
                             <span data-lang="ar">${a.intro_ar}</span><span data-lang="en" data-inline>${a.intro_en}</span>
                         </p>
-                        <button class="btn btn-gold w-full mt-4 wake-btn" data-slug="${a.slug}">
-                            <i class="fas fa-bolt"></i>
-                            <span data-lang="ar">أيقظ الموظف</span><span data-lang="en" data-inline>Wake Up</span>
+                        <button class="btn w-full mt-4 wake-btn ${pending ? 'btn-outline' : 'btn-gold'}" data-slug="${a.slug}">
+                            <i class="${pending ? 'fas fa-lock' : 'fas fa-bolt'}"></i>
+                            <span data-lang="ar">${pending ? 'فعّل اشتراكك ليستيقظ' : 'أيقظ الموظف'}</span><span data-lang="en" data-inline>${pending ? 'Activate to wake' : 'Wake Up'}</span>
                         </button>
                     </div>
                 `).join('');
@@ -335,11 +358,15 @@
                 document.querySelectorAll('.wake-btn').forEach(b => {
                     b.addEventListener('click', e => {
                         e.stopPropagation();
+                        if (pending) { openCheckout(); return; }
                         wakeAgent(b.dataset.slug);
                     });
                 });
                 document.querySelectorAll('.emp-card').forEach(c => {
-                    c.addEventListener('click', () => wakeAgent(c.dataset.slug));
+                    c.addEventListener('click', () => {
+                        if (pending) { openCheckout(); return; }
+                        wakeAgent(c.dataset.slug);
+                    });
                 });
             }
 
@@ -392,7 +419,7 @@
             $('chatSend').addEventListener('click', sendAnswer);
             $('chatAnswer').addEventListener('keydown', e => { if (e.key === 'Enter') sendAnswer(); });
             $('chatBack').addEventListener('click', () => {
-                if (state.projectId) fetch(`/api/portal/projects/${state.projectId}`).then(r => r.json()).then(d => renderTeam(d.team)).catch(() => {});
+                if (state.projectId) fetch(`/api/portal/projects/${state.projectId}`).then(r => r.json()).then(d => renderTeam(d.team, d.status)).catch(() => {});
             });
 
             function sendAnswer() {
@@ -477,7 +504,7 @@
                     '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>';
                 window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
             }
-            $('subscribeBtn').addEventListener('click', () => {
+            function openCheckout() {
                 fetch('/api/portal/packages').then(r => r.json()).then(d => {
                     coPkg = d.packages.find(x => x.key === state.pkg);
                     if (!coPkg) return;
@@ -497,7 +524,8 @@
                     $('step-team').classList.add('hidden');
                     $('step-checkout').classList.remove('hidden');
                 }).catch(() => alert(txt('تعذر تحميل بيانات الدفع', 'Failed to load payment data')));
-            });
+            }
+            $('subscribeBtn').addEventListener('click', openCheckout);
 
             const promoInput = $('promoInput');
             const promoApply = $('promoApply');
@@ -525,6 +553,7 @@
                             customer_phone: client.phone,
                             customer_email: client.email,
                             promo: promoInput ? promoInput.value.trim() : '',
+                            project_id: state.projectId,
                         })
                     });
                     const data = await r.json();
@@ -553,7 +582,7 @@
             const pid = localStorage.getItem('narjis-project');
             if (pid) {
                 fetch('/api/portal/projects/' + pid).then(r => r.json()).then(d => {
-                    if (d.team) { state.projectId = d.project_id; state.pkg = d.package; renderTeam(d.team); }
+                    if (d.team) { state.projectId = d.project_id; state.pkg = d.package; state.client = { name: d.client_name, phone: null, email: null }; renderTeam(d.team, d.status); }
                 }).catch(() => {});
             }
         })();
