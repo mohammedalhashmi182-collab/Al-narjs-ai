@@ -70,6 +70,9 @@ async def init_db():
                 ("workflow_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
                 ("step_executions", "tenant_id", "VARCHAR(64) NOT NULL DEFAULT 'system'"),
                 ("step_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
+                # Client subscription lifecycle (payment -> project activation)
+                ("payments", "project_id", "UUID"),
+                ("client_projects", "subscription_note", "TEXT"),
             ]
             for table, column, ddl in placeholders:
                 try:
@@ -104,6 +107,9 @@ async def init_db():
                 ("workflow_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
                 ("step_executions", "tenant_id", "VARCHAR(64) NOT NULL DEFAULT 'system'"),
                 ("step_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
+                # Client subscription lifecycle (payment -> project activation)
+                ("payments", "project_id", "CHAR(36)"),
+                ("client_projects", "subscription_note", "TEXT"),
             ]
             for table, column, ddl in sqlite_placeholders:
                 try:

@@ -15,7 +15,7 @@ prompts:
     - Followers: {{followers}}
     - Engagement rate: {{engagement}}
     - Content types: {{content_types}}
-    - Posting frequency: {{frequency}
+    - Posting frequency: {{frequency}}
     
     Goals: {{goals}}
     Target audience: {{audience}}

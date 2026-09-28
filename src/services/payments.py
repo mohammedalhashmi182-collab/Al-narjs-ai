@@ -82,6 +82,7 @@ async def create_payment(
     customer_email: Optional[str] = None,
     promo: Optional[str] = None,
     lead_id: Optional[UUID] = None,
+    project_id: Optional[UUID] = None,
 ) -> Payment:
     pkg = catalog.PACKAGES.get(package)
     if not pkg:
@@ -103,6 +104,7 @@ async def create_payment(
         customer_phone=customer_phone,
         customer_email=customer_email,
         lead_id=lead_id,
+        project_id=project_id,
         status="pending",
         gateway="invoice",
         description=description,
@@ -309,3 +311,59 @@ async def capture_paypal_order(order_id: str) -> dict:
     if resp.status_code not in (200, 201):
         raise PaymentError(f"PayPal capture error {resp.status_code}: {resp.text}")
     return resp.json()
+
+
+async def activate_subscription(session: AsyncSession, payment: Payment) -> dict:
+    """Activate the client's portal project once a payment is confirmed paid.
+
+    Links the paid payment to the matching ``ClientProject`` (by explicit
+    ``project_id``, else by phone+package against the latest pending project)
+    and flips it to ``active`` so portal agents can be woken and run.
+
+    Returns a dict describing the outcome; never raises.
+    """
+    from datetime import datetime, timezone
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _sel
+
+    from src.models import ClientProject
+
+    if not payment or payment.status != "paid":
+        return {"activated": False, "reason": "payment not paid"}
+
+    project = None
+
+    if getattr(payment, "project_id", None):
+        try:
+            pid = _UUID(str(payment.project_id))
+        except (ValueError, TypeError):
+            pid = None
+        if pid is not None:
+            project = (
+                await session.execute(_sel(ClientProject).where(ClientProject.id == pid))
+            ).scalar_one_or_none()
+
+    if project is None:
+        # Legacy fallback: match the latest pending project on phone+package.
+        query = _sel(ClientProject)
+        if payment.customer_phone:
+            query = query.where(ClientProject.phone == payment.customer_phone)
+        else:
+            query = query.where(ClientProject.email == payment.customer_email) if payment.customer_email else query
+        query = query.where(ClientProject.package == payment.package)
+        query = query.order_by(ClientProject.created_at.desc())
+        project = (await session.execute(query.limit(1))).scalar_one_or_none()
+
+    if project is None:
+        return {"activated": False, "reason": "no matching project"}
+
+    if project.status == "active":
+        return {"activated": True, "already_active": True}
+
+    project.status = "active"
+    project.subscription_note = (
+        f"activated by payment {payment.id} on {datetime.now(timezone.utc).isoformat()}"
+    )
+    await session.commit()
+    return {"activated": True, "project_id": str(project.id)}
