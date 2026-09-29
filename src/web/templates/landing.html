@@ -234,6 +234,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .brand .name{font-weight:700;font-size:1.06rem;line-height:1.15;display:block}
 .brand .name b{color:var(--gold-deep);font-weight:700}
 .brand .sub{font-size:.62rem;letter-spacing:.18em;color:var(--ink-3);display:block}
+.brand .logo{height:44px;width:auto;max-width:130px;object-fit:contain;border-radius:10px;display:block;flex:0 0 auto}
 .nav-links{display:flex;align-items:center;gap:var(--sp-3);margin-inline-start:auto;flex-wrap:wrap}
 .nav-links a{font-size:.92rem;font-weight:500;color:var(--ink-2);padding:8px 2px;position:relative;
     transition:color .2s}
@@ -951,7 +952,7 @@ body:not(.launch-on) .launch-bar{display:none}
     <nav class="nav" id="nav">
         <div class="inner">
             <a href="/home" class="brand">
-                {{ tg_badge() }}
+                <img class="logo" src="/static/logo.png" alt="Al-Narjis AI">
                 <span>
                     <span class="name">النرجس <b>AI</b></span>
                     <span class="sub">AL-NARJIS AI</span>
@@ -1741,7 +1742,7 @@ body:not(.launch-on) .launch-bar{display:none}
     <footer class="footer">
         <div class="grid-x">
             <div>
-                <a href="/home" class="brand">{{ tg_badge() }}<span><span class="name" style="font-size:1rem;">النرجس <b>AI</b></span></span></a>
+                <a href="/home" class="brand"><img class="logo" src="/static/logo.png" alt="Al-Narjis AI"><span><span class="name" style="font-size:1rem;">النرجس <b>AI</b></span></span></a>
                 <p style="max-width:30em;margin-top:16px;"><span data-lang="ar">وكلاء ذكاء اصطناعي يعملون على مدار الساعة لتنمية أعمالك — بجودة عربية أصيلة من الرياض.</span><span data-lang="en" data-inline>AI agents working around the clock to grow your business — authentic craft from Riyadh.</span></p>
                 <div class="socials">
                     <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
