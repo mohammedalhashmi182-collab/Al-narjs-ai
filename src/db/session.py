@@ -18,6 +18,9 @@ engine = create_async_engine(
     settings.database_url,
     echo=settings.database_echo,
     pool_pre_ping=True,
+    # Recycle connections well before the database/proxy idle timeout so the
+    # first request after a quiet period never pays for a dead-connection retry.
+    pool_recycle=600,
     pool_size=10,
     max_overflow=20,
 )
