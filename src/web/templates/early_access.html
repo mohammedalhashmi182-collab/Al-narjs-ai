@@ -2,10 +2,10 @@
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% import "partials/_seo.html" as seo with context %}
 {% set _head = seo.head(
-  'الحجز المبكر | النرجس للذكاء الاصطناعي',
-  'Early Access | Al-Narjis AI',
-  'سجّل بريدك أولاً ونصلك الدعوة التجريبية وعرض الإطلاق على بريدك مباشرة — فريق وكلاء AI سعودي، بأسعار حقيقية من الموقع.',
-  'Register your email and we will send the trial invite and launch offer straight to your inbox — a Saudi AI-agent team at the real prices listed on the site.',
+  'الحجز المبكر — تفعيل فوري | النرجس للذكاء الاصطناعي',
+  'Early Access — Instant Activation | Al-Narjis AI',
+  'انضم إلى قائمة الوصول المبكر وأطلق موظفيك الرقميين فوراً — سجل اسم منشأتك وبريدك ونوع الوكيل المطلوب، ونصلك على بريدك مباشرة.',
+  'Join the early-access list and launch your digital staff now — register your company name, email and the agent type you need, and we will reach you on your inbox.',
   request.url.path,
   'website') %}
 <!DOCTYPE html>
@@ -17,135 +17,135 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg:#060607; --bg2:#101014;
-            --gold:#00D49C; --gold-b:#00AD92;
-            --green:#00879F; --green-wash:rgba(0,212,156,.14);
-            --line:rgba(246,245,244,.09); --ink:#F6F5F4; --muted:#B9B8C0;
-            --font:"Cairo",sans-serif; --head:"Cairo","Cairo",sans-serif;
-            --r:12px;
-        }
         * { margin:0; padding:0; box-sizing:border-box; }
         html { scroll-behavior:smooth; }
-        body { font-family:var(--font); background:var(--bg); color:var(--ink); line-height:1.9; -webkit-font-smoothing:antialiased; }
+        body {
+            font-family:"Cairo",sans-serif;
+            min-height:100vh;
+            background:radial-gradient(900px 600px at 82% -12%, rgba(16,185,129,.14), transparent 60%),
+                       radial-gradient(800px 520px at 6% 96%, rgba(251,191,36,.10), transparent 58%),
+                       linear-gradient(175deg,#0B1120,#020617 55%,#0B1120);
+            background-attachment:fixed;
+            color:#F8FAFC; line-height:1.7; -webkit-font-smoothing:antialiased;
+        }
         a { text-decoration:none; color:inherit; }
-        .mesh { position:fixed; inset:0; z-index:-1; background:radial-gradient(1000px 620px at 78% -14%, rgba(0,212,156,.16), transparent 60%), radial-gradient(900px 600px at 8% 88%, rgba(0,135,159,.14), transparent 62%), linear-gradient(172deg,#0C0C0E,#060607 52%,#0C0C0E); }
-        .wrap { max-width:1100px; margin-inline:auto; padding-inline:24px; }
-        .nav { display:flex; align-items:center; justify-content:space-between; padding:20px 0; }
-        .brand { display:flex; align-items:center; gap:13px; }
-        .name { font-weight:800; }
-        .name b { color:var(--gold-b); }
-        .nav .ghost { font-weight:700; color:var(--muted); }
-        .nav .btn { padding:10px 20px; border-radius:16px; background:linear-gradient(135deg,var(--gold-b),var(--gold)); color:#141414; font-weight:800; margin-inline-start:14px; }
-        .hero { padding:64px 0 40px; text-align:center; }
-        .hero .tag { display:inline-block; color:var(--gold-b); border:1px solid var(--gold); border-radius:999px; padding:6px 16px; font-size:.85rem; margin-bottom:22px; }
-        .hero h1 { font-size:clamp(1.9rem,5vw,3.1rem); line-height:1.35; font-weight:800; }
-        .hero h1 .grad { background:linear-gradient(100deg,#D0F94A,#00D49C 55%,#00AD92); -webkit-background-clip:text; background-clip:text; color:transparent; }
-        .hero .sub { color:var(--muted); font-size:1.05rem; max-width:760px; margin-inline:auto; margin-top:16px; }
-        .cover { display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:30px 0 26px; }
-        @media (max-width:900px){ .cover { grid-template-columns:1fr; } }
-        .h2 { font-size:1.35rem; font-weight:800; margin-bottom:10px; }
-        .p { color:var(--muted); }
-        .cta-card { background:var(--bg2); border:1px solid var(--line); border-radius:26px; padding:30px; }
-        .form { display:flex; flex-direction:column; gap:12px; margin-top:18px; }
-        .field { display:flex; flex-direction:column; gap:6px; }
-        .field label { font-size:.85rem; color:var(--muted); }
-        .field input, .field textarea { background:#101014; border:1px solid var(--line); border-radius:16px; color:var(--ink); padding:13px 16px; font-family:inherit; font-size:1rem; resize:vertical; }
-        .field input:focus, .field textarea:focus { outline:none; border-color:var(--gold); }
-        .form button { background:linear-gradient(135deg,var(--gold-b),var(--gold)); color:#141414; font-weight:800; font-size:1.05rem; padding:15px; border:0; border-radius:16px; cursor:pointer; }
-        .form button:hover { filter:brightness(1.07); }
-        .msg { display:none; font-size:.95rem; border-radius:14px; padding:12px 14px; margin-top:10px; }
-        .msg.ok { display:block; background:rgba(0,212,156,.12); border:1px solid rgba(0,212,156,.4); color:#00D49C; }
-        .msg.err { display:block; background:rgba(220,80,80,.12); border:1px solid rgba(220,80,80,.4); color:#f29999; }
-        .note { color:var(--muted); font-size:.8rem; margin-top:12px; text-align:center; }
-        .note a { color:var(--gold-b); text-decoration:underline; }
-        .tg-card { margin-top:24px; background:var(--bg2); border:1px solid var(--line); border-radius:20px; padding:20px; display:flex; align-items:center; gap:16px; }
-        .tg-mark { width:46px; height:46px; border-radius:50%; flex:0 0 auto; box-shadow:0 4px 12px rgba(0,212,156,.28); }
-        .tg-card b { display:block; }
-        .tg-card span { color:var(--muted); font-size:.88rem; }
-        .tg-card a { display:inline-block; margin-inline-start:auto; padding:10px 18px; border-radius:14px; background:linear-gradient(135deg,var(--gold-b),var(--gold)); color:#141414; font-weight:800; font-size:.9rem; }
-        @media (max-width:640px){ .tg-card { flex-wrap:wrap; } .tg-card a { margin-inline-start:0; } }
-        .plus { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; padding:34px 0 20px; }
-        .card { background:var(--bg2); border:1px solid var(--line); border-radius:var(--r); padding:20px; }
-        .card i { color:var(--gold-b); font-size:1.3rem; }
-        .card b { display:block; margin:12px 0 6px; }
-        .card p { color:var(--muted); font-size:.88rem; }
-        footer { border-top:1px solid var(--line); padding:26px 0 64px; text-align:center; color:var(--muted); font-size:.9rem; }
-        footer b { color:var(--gold-b); }
-        footer a { color:var(--muted); margin-inline:8px; }
-        footer a:hover { color:var(--gold-b); }
-        .mcta { position:fixed; inset-inline:0; bottom:0; z-index:40; display:none; padding:12px 18px; background:rgba(6,6,7,.92); border-top:1px solid var(--line); }
-        .mcta a { display:block; text-align:center; background:linear-gradient(135deg,var(--gold-b),var(--gold)); color:#141414; font-weight:800; padding:13px; border-radius:16px; }
-        @media (max-width:900px){ .mcta { display:block; } }
-        @media (prefers-reduced-motion: reduce){ * { transition:none !important; scroll-behavior:auto; } }
+        .top { max-width:1120px; margin-inline:auto; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; }
+        .top .back { color:#94A3B8; font-size:.92rem; font-weight:700; }
+        .top .back i { color:#34D399; margin-inline-end:6px; }
+        .wrap { min-height:calc(100vh - 76px); display:flex; flex-direction:column; justify-content:center; align-items:center; padding:28px 16px 48px; }
+        .card {
+            width:100%; max-width:420px; background:#0F172A;
+            border:1px solid rgba(16,185,129,.30); border-radius:24px; padding:32px;
+            box-shadow:0 30px 70px rgba(2,6,23,.55), 0 0 0 1px rgba(16,185,129,.06);
+        }
+        .head { text-align:center; margin-bottom:26px; }
+        .head h1 {
+            font-size:1.72rem; font-weight:800; line-height:1.45;
+            background:linear-gradient(90deg,#34D399,#FBBF24); -webkit-background-clip:text; background-clip:text; color:transparent;
+        }
+        .head p { color:#94A3B8; font-size:.85rem; margin-top:8px; }
+        .form { display:flex; flex-direction:column; gap:18px; }
+        .field label {
+            display:block; font-size:.7rem; font-weight:700; color:#FBBF24;
+            letter-spacing:.02em; margin-bottom:7px;
+        }
+        .field.opt label span { color:#64748B; font-weight:400; }
+        .field input, .field select {
+            width:100%; background:#020617; border:1px solid #1E293B;
+            border-radius:14px; padding:12px 16px; font-family:inherit; font-size:.92rem;
+            color:#F8FAFC; outline:none; transition:border-color .18s ease, box-shadow .18s ease;
+        }
+        .field input::placeholder { color:#475569; }
+        .field input:focus, .field select:focus { border-color:#10B981; box-shadow:0 0 0 3px rgba(16,185,129,.16); }
+        .field select { appearance:none; background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:left 16px center; padding-inline-end:40px; padding-inline-start:16px; }
+        .submit {
+            width:100%; margin-top:6px; border:0; cursor:pointer;
+            background:linear-gradient(90deg,#10B981,#F59E0B); color:#020617;
+            font-family:inherit; font-weight:800; font-size:1rem; padding:15px 18px; border-radius:14px;
+            transition:filter .18s ease, transform .12s ease, box-shadow .18s ease;
+            box-shadow:0 14px 30px rgba(16,185,129,.22);
+        }
+        .submit:hover { filter:brightness(1.08); box-shadow:0 16px 34px rgba(245,158,11,.24); }
+        .submit:active { transform:scale(.98); }
+        .submit:disabled { opacity:.55; cursor:not-allowed; }
+        .msg { display:none; font-size:.9rem; border-radius:14px; padding:12px 14px; margin-top:14px; }
+        .msg.ok { display:block; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.4); color:#6EE7B7; }
+        .msg.err { display:block; background:rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.4); color:#FCA5A5; }
+        .note { margin-top:16px; font-size:.76rem; color:#64748B; text-align:center; }
+        .note a { color:#34D399; text-decoration:underline; }
+        .tg-line { margin-top:18px; display:flex; align-items:center; gap:10px; justify-content:center; font-size:.82rem; color:#94A3B8; }
+        .tg-line .dot { width:38px; height:38px; border-radius:50%; flex:0 0 auto; box-shadow:0 4px 12px rgba(16,185,129,.28); }
+        .tg-line a { color:#34D399; font-weight:700; margin-inline-start:4px; }
+        .foot { text-align:center; margin-top:26px; color:#64748B; font-size:.82rem; }
+        .foot b { color:#34D399; }
+        .foot .links { margin-top:6px; display:flex; gap:14px; justify-content:center; }
+        .foot .links a { color:#64748B; }
+        .foot .links a:hover { color:#34D399; }
+        @media (max-width:520px){ .card { padding:24px 20px; } .head h1 { font-size:1.45rem; } }
+        @media (prefers-reduced-motion: reduce){ * { transition:none !important; transform:none !important; scroll-behavior:auto; } .submit:active { transform:none; } }
     </style>
     {% include "partials/_analytics.html" %}
 </head>
 <body class="luxury">
-<div class="mesh"></div>
-<div class="wrap">
-    <nav class="nav">
-        <a href="/home" class="brand">
-            <span style="font-size:1.15rem;">النرجس <b style="color:var(--gold-b)">AI</b></span>
-        </a>
-        <div>
-            <a href="/home" class="ghost">الرئيسية</a>
-            <a href="/portal" class="btn"><i class="fas fa-bolt"></i> أيقظ فريقك</a>
-        </div>
-    </nav>
+    <div class="top">
+        <a class="back" href="/home"><i class="fas fa-arrow-left"></i>{% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
+        <a class="back" href="/portal"><i class="fas fa-bolt"></i>{% if _lang == 'ar' %}أيقظ فريقك{% else %}Wake your team{% endif %}</a>
+    </div>
 
-    <section class="hero">
-        <span class="tag">نافذة الحجز المبكر · بأسعار حقيقية</span>
-        <h1>فريق وكلاء AI ينوب عنك<br>حجز <span class="grad">مقعدك أولاً</span></h1>
-        <p class="sub">سجّل بريدك الإلكتروني أولاً، ونرسل لك الدعوة التجريبية وعرض الإطلاق على بريدك مباشرة عند فتح النافذة. نحافظ على بياناتك — انظر سياسة الخصوصية.</p>
-    </section>
+    <div class="wrap">
+        <div class="card">
+            <div class="head">
+                <h1>{% if _lang == 'ar' %}النرجس لأتمتة الذكاء الاصطناعي{% else %}Al-Narjis AI Automation{% endif %}</h1>
+                <p>{% if _lang == 'ar' %}انضم إلى قائمة الوصول المبكر وأطلق موظفيك الرقميين فوراً{% else %}Join the early-access list and launch your digital staff now{% endif %}</p>
+            </div>
 
-    <section class="cover">
-        <div class="cta-card">
-            <h2 class="h2">المقعد مفتوح لمن يسجّل أولاً</h2>
-            <p class="p">الاشتراك يحصل بدوره فوق دور حقيقي. حجزك على البريد يضلك في الطابور بلا سباق على صفحات التسعير.</p>
-            <form class="form" id="eaForm">
-                <div class="field"><label>الاسم الكامل</label><input name="name" type="text" required placeholder="مثال: محمد الهاشمي"></div>
-                <div class="field"><label>البريد الإلكتروني</label><input name="email" type="email" required placeholder="you@example.com"></div>
-                <div class="field"><label>رقم الجوال (اختياري)</label><input name="phone" type="tel" placeholder="05xxxxxxxx"></div>
-                <div class="field"><label>نشاطك التجاري (اختياري)</label><input name="message" type="text" placeholder="مثال: متجر إلكتروني / مطعم"></div>
-                <button type="submit" id="eaSubmit">احجز مقعدي على بريدي</button>
+            <form id="registrationForm" class="form">
+                <div class="field">
+                    <label for="clientName">{% if _lang == 'ar' %}اسم المنشأة / العميل{% else %}Company / Client name{% endif %}</label>
+                    <input type="text" id="clientName" name="name" required placeholder="{% if _lang == 'ar' %}شركة النرجس المحدودة{% else %}Your Company LLC{% endif %}">
+                </div>
+                <div class="field">
+                    <label for="clientEmail">{% if _lang == 'ar' %}البريد الإلكتروني{% else %}Email{% endif %}</label>
+                    <input type="email" id="clientEmail" name="email" required placeholder="you@example.com">
+                </div>
+                <div class="field opt">
+                    <label for="clientPhone"><span>{% if _lang == 'ar' %}رقم التواصل (تيليجرام أو جوال — اختياري){% else %}Contact number (Telegram or mobile — optional){% endif %}</span></label>
+                    <input type="tel" id="clientPhone" name="phone" placeholder="+966 50 000 0000">
+                </div>
+                <div class="field">
+                    <label for="agentType">{% if _lang == 'ar' %}نوع الوكيل المطلوب{% else %}Required agent type{% endif %}</label>
+                    <select id="agentType" name="message">
+                        <option>{% if _lang == 'ar' %}وكيل خدمة العملاء الذكي{% else %}Smart Customer-Service Agent{% endif %}</option>
+                        <option>{% if _lang == 'ar' %}وكيل مبيعات وإغلاق صفقات{% else %}Sales &amp; Closing Agent{% endif %}</option>
+                        <option>{% if _lang == 'ar' %}منظومة الأتمتة الشاملة (AI CEO){% else %}Full Automation System (AI CEO){% endif %}</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit" id="eaSubmit">{% if _lang == 'ar' %}تفعيل الوصول المبكر الفوري{% else %}Start Early Access Now{% endif %}</button>
             </form>
             <div class="msg" id="eaMsg"></div>
-            <p class="note">بالتسجيل أنت توافق على <a href="/privacy">سياسة الخصوصية</a> وحقك في <a href="/data-deletion">حذف بياناتك</a> في أي وقت.</p>
+            <p class="note">{% if _lang == 'ar' %}بالتسجيل أنت توافق على <a href="/privacy">سياسة الخصوصية</a> وحقك في <a href="/data-deletion">حذف بياناتك</a>{% else %}By registering you agree to our <a href="/privacy">Privacy Policy</a> and your <a href="/data-deletion">data-deletion rights</a>{% endif %}</p>
+            <div class="tg-line"><span class="dot">{{ tg_plane() }}</span><span>{% if _lang == 'ar' %}أو تواصل مباشرة{% else %}Or contact us directly{% endif %}</span><a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">Telegram</a></div>
         </div>
 
-        <div>
-            <div class="tg-card">
-                <span class="tg-mark">{{ tg_plane() }}</span>
-                <div><b>أو تواصل مباشرة عبر تيليجرام</b><span>رد سريع ودعم حقيقي — الحجز يتم عبر البوابة حتى نفتح نافذة البريد.</span></div>
-                <a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">تواصل الآن</a>
-            </div>
-            <div class="plus" style="grid-template-columns:1fr; padding-top:26px;">
-                <div class="card"><i class="fas fa-laptop-code"></i><b>دعوة تجريبية شخصية</b><p>نعرض عليهم العرض التجريبي الخاص لشركتهم قبل أي دفع — عينة تهيئة فعلية.</p></div>
-                <div class="card"><i class="fas fa-tag"></i><b>عرض الإطلاق للمسجّلين أولاً</b><p>من يسجّل بريده مبكراً يفتح نافذة الباقات والسعر الحقيقي قبل التعمّم.</p></div>
-                <div class="card"><i class="fas fa-bell"></i><b>إشعار أولاً بأول</b><p>عند فتح النافذة نصله — بياناتك مستخدمة للوصول التجريبي فقط.</p></div>
+        <div class="foot">
+            <div>النرجس للذكاء الاصطناعي · <b>Al-Narjis AI</b> · الرياض — karmaai.online</div>
+            <div class="links">
+                <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a>
+                <a href="/terms">{% if _lang == 'ar' %}الشروط{% else %}Terms{% endif %}</a>
+                <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a>
             </div>
         </div>
-    </section>
-
-    <footer>
-        النرجس للذكاء الاصطناعي · <b>Al-Narjis AI</b> · الرياض — karmaai.online<br>
-        <a href="/privacy">الخصوصية</a> · <a href="/terms">الشروط</a> · <a href="/data-deletion">حذف البيانات</a>
-    </footer>
-</div>
-
-<div class="mcta"><a href="#eaForm">احجز مقعدي على بريدي</a></div>
+    </div>
 
 <script>
 (function () {
-    var form = document.getElementById('eaForm');
+    var form = document.getElementById('registrationForm');
     var msg = document.getElementById('eaMsg');
     var btn = document.getElementById('eaSubmit');
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         msg.className = 'msg';
-        msg.textContent = 'جارٍ تسجيل بريدك…';
+        msg.textContent = 'جارٍ تفعيل وصولك المبكر…';
         msg.style.display = 'block';
         btn.disabled = true;
         var data = Object.fromEntries(new FormData(form).entries());
@@ -155,8 +155,9 @@
         }).then(function (r) {
             if (r.ok) {
                 msg.className = 'msg ok';
-                msg.textContent = 'تم تسجيل بريدك بنجاح. نرسل لك الدعوة التجريبية وعرض الإطلاق على بريدك عند فتح النافذة.';
+                msg.textContent = 'تم تفعيل وصولك المبكر! نرسل لك ترحيب وتفاصيل الفريق على بريدك.';
                 form.remove();
+                btn.remove();
             } else {
                 msg.className = 'msg err';
                 msg.textContent = 'حدث خطأ، حاول مرة أخرى.';
