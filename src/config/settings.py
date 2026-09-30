@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     moonshot_base_url: str = Field(default="https://api.moonshot.ai/v1", alias="MOONSHOT_BASE_URL")
     moonshot_default_model: str = Field(default="kimi-k2.7-code", alias="MOONSHOT_DEFAULT_MODEL")
 
+    # OpenRouter — OpenAI-compatible aggregator (optional; set OPENROUTER_API_KEY to enable).
+    # Registered as a resilience fallback for the gemini chain, so generation keeps working
+    # when Gemini/Moonshot are down. Falls back at priority 30 (after moonshot, before raising).
+    openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
+    openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1", alias="OPENROUTER_BASE_URL")
+    openrouter_default_model: str = Field(default="openai/gpt-4o-mini", alias="OPENROUTER_DEFAULT_MODEL")
+
     code_executor_timeout: int = Field(default=30, alias="CODE_EXECUTOR_TIMEOUT")
 
     secret_key: str = Field(alias="SECRET_KEY")

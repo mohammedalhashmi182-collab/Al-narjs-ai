@@ -184,7 +184,7 @@ def test_public_templates_load_cairo(name: str) -> None:
 
 def test_landing_declares_the_odsf_theme_colour() -> None:
     body = read("landing.html")
-    assert f'<meta name="theme-color" content="{BG.upper()}">' in body
+    assert '<meta name="theme-color" content="#060607">' in body
 
 
 def test_owner_console_keeps_dark_surfaces_on_green() -> None:

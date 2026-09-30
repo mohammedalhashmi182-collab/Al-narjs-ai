@@ -1,7 +1,13 @@
-# Al-Narjis Design System — ODSF v0.2
+# Al-Narjis Design System — ODSF v0.3
 
 Single source of truth for the visual identity of [karmaai.online](https://karmaai.online).
 `tests/test_design_system.py` enforces this file. If a test fails, fix the CSS — not the test.
+
+**ODSF v0.3** keeps the gold/green/Cairo brand DNA (sections 2–7 below) and adds the
+**Luxury Dark** public presentation (section 8): the whole public site is a cinematic,
+near-black, glassmorphic storefront inspired by premium product films. The light palette in
+section 2 remains the canonical neutral reference (printed invoices) and the single source
+of the brand hues.
 
 ---
 
@@ -15,7 +21,11 @@ Arabic is the primary language and the layout is RTL. Type is **Cairo** (see §5
 
 ---
 
-## 2. Core colors (design tokens)
+## 2. Core colors (canonical brand tokens)
+
+The light values below are the canonical brand palette — the single source of the brand hues
+(gold, green) and the neutral surfaces for printed invoices. Public pages present them in the
+Luxury Dark mode of §8.
 
 | Token | Value | Role |
 | --- | --- | --- |
@@ -148,6 +158,60 @@ Every button: 48px min touch height, 16px×24px padding, visible `:focus-visible
 ---
 
 ## 7. Voice of customer-facing copy
+
+Practical, clear, motivating, direct. No filler.
+
+- Arabic first; English is a translation, not a rewrite.
+- Say the price, the deliverable, and the next step. No "revolutionary", "game-changing",
+  "unleash", "seamless".
+- Never claim customers, results, or metrics that do not exist.
+
+---
+
+## 8. Luxury Dark public presentation (ODSF v0.3)
+
+Every public page (`landing`, `portal`, `guide`, `consult`, `package`, `payment_status`,
+`agent_public`, `blog_*`, `intent_agents`, `login`, `privacy`/`terms`/`data_deletion`) renders
+on a deep near-black canvas. The owner console (`narjis-dark-admin.css`) keeps its own dark
+surfaces. Printed invoices (`invoice.html`, `invoice_en.html`) stay light on purpose.
+
+| Token (public dark) | Value | Role |
+| --- | --- | --- |
+| `--lux-bg` | `#060607` | Page background — near-black with a warm hint. |
+| `--lux-bg-alt` | `#0B0B0D` | Alternating section background. |
+| `--lux-surface` | `#101014` | Opaque card base under the glass layer. |
+| `--lux-glass` | `rgba(255,255,255,.04)` | Glassmorphism fill. |
+| `--lux-glass-line` | `rgba(246,245,244,.09)` | Hairline border on glass. |
+| `--lux-ink` | `#F6F5F4` | Primary text — near-white, warm. |
+| `--lux-ink-2` | `#B9B8C0` | Secondary text. |
+| `--lux-ink-3` | `#8E8D96` | Muted text, captions. |
+| `--lux-glow` | `rgba(0,212,156,.28)` | Aura behind mint actions (public dark). |
+
+> **Owner revision (Humain-inspired, Luxury Dark):** on the public dark presentation the single
+> action hue is a **Humain-family green** — mint `#00D49C` (action) / teal `#00AD92` (hover) /
+> deep aqua `#00879F` (structure) with the signature lime `#D0F94A` accent and the
+> `lime → mint → aqua` gradient on key headlines and CTAs. The yellow/gold was removed from the
+> public site on the owner's request ("ثيم مثل موقع هيومين على خلفية داكنة"). Token names that
+> historically said "gold" (`--gold`, `--odsf-gold`, `.btn-gold`…) are kept for compatibility but
+> reference for printed light surfaces; the owner console keeps its own dark admin accent.
+
+**Rules**
+
+- Brand hues, radii, Cairo type and the one-single-action rule carry over unchanged from §1–§5,
+  with the action hue resolved to the Humain mint family on the public dark surfaces (see revision note above).
+- Cards: `--lux-glass` fill, 1px `--lux-glass-line` border, `--lux-surface` fallback,
+  `backdrop-filter: blur(14px)`, radius 16px, and a faint border glow that brightens on hover
+  — never a hard neon, always a whisper (alpha ≤ `.28`).
+- Heading scale is intentionally oversized and hard: `clamp(2.5rem, 8vw, 6rem)` for the hero,
+  weight 800, tight leading, generous white space. Muted grey (`--lux-ink-2/-3`) carries captions.
+- Cinematic hero: a moving light sequence (CSS conic beams + canvas particle field) sits behind
+  the interactive agent console; no external video, no audio, `prefers-reduced-motion` disables
+  the motion.
+- Smooth scroll and scroll-driven reveals use **Lenis + GSAP/ScrollTrigger**, vendored locally
+  (no CDN). Reveals are opacity + `16px` translate, ≤600ms, and are fully disabled under
+  `prefers-reduced-motion: reduce`.
+- Content and SEO contracts are unchanged: no dead CTAs, catalog-sourced numbers, per-view
+  single action, bilingual copy, JSON-LD, `body [data-lang]` scoped hide rule.
 
 Practical, clear, motivating, direct. No filler.
 

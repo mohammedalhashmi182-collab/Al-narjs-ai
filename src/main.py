@@ -545,6 +545,29 @@ async def guide_page(request: Request):
     return templates.TemplateResponse(request, "guide.html")
 
 
+@app.get("/early-access", response_class=HTMLResponse)
+async def early_access_page(request: Request):
+    from src.services import catalog
+
+    agent_count = len(catalog.EMPLOYEES)
+    registry = getattr(app.state, "agent_registry", None)
+    if registry is not None:
+        try:
+            registered = await registry.list_agents()
+            if registered:
+                agent_count = len(registered)
+        except Exception:  # DB unavailable -> catalog stays the source of truth
+            pass
+    return templates.TemplateResponse(
+        request,
+        "early_access.html",
+        {
+            "agent_count": agent_count,
+            "packages": catalog.PACKAGES,
+        },
+    )
+
+
 @app.get("/agents", response_class=HTMLResponse)
 async def agents_page(request: Request):
     from src.core.owner_auth import check_owner
@@ -1119,21 +1142,11 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     _emps = ", ".join(
         e["title_ar"] for e in _catalog.EMPLOYEES.values()
     )
-    system_prompt = (
-        "You are the Smart Consultant (المستشار الذكي) of Al-Narjis AI (النرجس للذكاء الاصطناعي), "
-        "a Riyadh-based AI agency offering a team of "
-        f"({len(_catalog.EMPLOYEES)}) specialist AI agents across these packages: {_pkgs}.\n"
-        "Your job: read the client's working style, environment and challenges from the conversation, "
-        "then guide them to the best solutions and the most relevant agents. "
-        "Rules:\n"
-        "- Ask a focused clarifying question first if their situation is unclear (one question max).\n"
-        "- Then propose a concrete plan, mention which named agents would help (job titles like "
-        f"{_emps}), and suggest a package.\n"
-        "- Be warm, practical and specific.\n"
-        "- Respond in the language of the visitor"
-        + (": Modern Standard Arabic (اللغة العربية الفصحى), with clear short sections and bullet points." if locale == "ar" else
-           ": clear, fluent English, with clear short sections and bullet points.")
-        + "\n- Keep replies concise (under ~250 words) unless asked for depth."
+    from src.core.karma_persona import build_consult_system_prompt, extract_lead
+    system_prompt = build_consult_system_prompt(
+        locale=locale,
+        packages_text=_pkgs,
+        employees_text=_emps,
     )
 
     model_request = ModelRequest(
@@ -1144,11 +1157,16 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     )
 
     try:
-        response = await app.state.model_provider.complete(
-            "gemini:gemini-3.6-flash",
-            model_request,
-        )
-        return {"reply": response.content.strip()}
+        response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
+        lead_data, reply = extract_lead(response.content)
+        if lead_data:
+            import asyncio
+
+            from src.services import karma_lead as _karma_lead
+            asyncio.get_running_loop().create_task(
+                _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
+            )
+        return {"reply": reply or response.content.strip()}
     except Exception as e:
         from src.utils.logger import get_logger
         get_logger(__name__).error(f"Consult failed: {e}")

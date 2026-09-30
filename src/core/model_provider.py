@@ -28,6 +28,7 @@ class ModelProviderType(str, Enum):
     ANTHROPIC = "anthropic"
     GEMINI = "gemini"
     MOONSHOT = "moonshot"
+    OPENROUTER = "openrouter"
     CODE_EXECUTOR = "code_executor"
 
 
@@ -473,6 +474,25 @@ class MoonshotClient(OpenAICompatibleClient):
         return response.json()
 
 
+class OpenRouterClient(OpenAICompatibleClient):
+    def __init__(self, config: dict):
+        super().__init__(config, ModelProviderType.OPENROUTER)
+
+    def _get_base_url(self) -> str:
+        return self.config.get("base_url", "https://openrouter.ai/api/v1")
+
+    def _get_headers(self) -> dict:
+        headers = {
+            "Authorization": f"Bearer {self.config['api_key']}",
+            "Content-Type": "application/json",
+        }
+        if self.config.get("referer"):
+            headers["HTTP-Referer"] = self.config["referer"]
+        if self.config.get("app_title"):
+            headers["X-Title"] = self.config["app_title"]
+        return headers
+
+
 class AnthropicClient(BaseModelClient):
     @property
     def provider_type(self) -> ModelProviderType:
@@ -686,6 +706,16 @@ class ModelProvider:
                 "default_model": self.settings.moonshot_default_model,
             })
 
+        if getattr(self.settings, "openrouter_api_key", None):
+            referer = getattr(self.settings, "domain", "karmaai.online")
+            self._clients[ModelProviderType.OPENROUTER] = OpenRouterClient({
+                "api_key": self.settings.openrouter_api_key,
+                "base_url": getattr(self.settings, "openrouter_base_url", "https://openrouter.ai/api/v1"),
+                "default_model": getattr(self.settings, "openrouter_default_model", "openai/gpt-4o-mini"),
+                "referer": f"https://{referer}",
+                "app_title": "Al-Narjis AI / KarmaAI",
+            })
+
         self._clients[ModelProviderType.CODE_EXECUTOR] = CodeExecutorClient({
             "default_timeout": self.settings.code_executor_timeout,
         })
@@ -703,8 +733,25 @@ class ModelProvider:
                 model_name=self.settings.moonshot_default_model,
                 priority=20,
             ))
+        if getattr(self.settings, "openrouter_api_key", None):
+            gemini_chain.append(ModelSpec(
+                provider=ModelProviderType.OPENROUTER,
+                model_name=getattr(self.settings, "openrouter_default_model", "openai/gpt-4o-mini"),
+                priority=30,
+            ))
         if gemini_chain:
             self.register_fallback_chain("gemini", gemini_chain)
+
+        openrouter_chain: list[ModelSpec] = []
+        if getattr(self.settings, "openrouter_api_key", None):
+            openrouter_chain.append(ModelSpec(
+                provider=ModelProviderType.OPENROUTER,
+                model_name=getattr(self.settings, "openrouter_default_model", "openai/gpt-4o-mini"),
+                role=ModelRole.PRIMARY,
+                priority=10,
+            ))
+        if openrouter_chain:
+            self.register_fallback_chain("openrouter", openrouter_chain)
 
     def get_client(self, provider: ModelProviderType) -> BaseModelClient | None:
         return self._clients.get(provider)

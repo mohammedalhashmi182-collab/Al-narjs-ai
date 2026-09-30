@@ -112,7 +112,7 @@ async def campaign_payload(session, campaign: Campaign) -> dict:
             "priority_score": lead.priority_score,
             "message_variant": cl.message_variant,
             "message": cl.message_text or draft["message"],
-            "wa_link": draft["wa_link"],
+            "tg_link": draft["tg_link"],
             "status": cl.status,
         })
 
@@ -140,12 +140,12 @@ async def campaign_csv(session, campaign: Campaign) -> str:
     payload = await campaign_payload(session, campaign)
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    writer.writerow(["company_name", "phone", "email", "segment", "priority", "variant", "message", "wa_link", "status"])
+    writer.writerow(["company_name", "phone", "email", "segment", "priority", "variant", "message", "tg_link", "status"])
     for lead in payload["leads"]:
         writer.writerow([
             lead["company_name"], lead["phone"] or "", lead["email"] or "",
             lead["segment"], lead["priority"], lead["message_variant"],
-            lead["message"], lead["wa_link"] or "", lead["status"],
+            lead["message"], lead["tg_link"] or "", lead["status"],
         ])
     return buffer.getvalue()
 
