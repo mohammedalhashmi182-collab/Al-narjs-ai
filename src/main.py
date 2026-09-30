@@ -1481,6 +1481,24 @@ async def create_lead(request: Request):
         email_sent = await email_service.send_welcome(lead_email, lead_name or "عميلنا العزيز")
         await _schedule_lead_followups(lead_id, lead_email, lead_name)
 
+    try:
+        from src.services.telegram_sender import send_owner_alert
+
+        _name = body.get("name") or "عميل جديد"
+        _phone = body.get("phone") or "—"
+        _email = email or "—"
+        _agent = message or package or "—"
+        alert_text = (
+            "🚨 تسجيل وصول مبكر جديد — Al-Narjis AI\n"
+            f"👤 العميل: {_name}\n"
+            f"📞 الجوال: {_phone}\n"
+            f"📧 البريد: {_email}\n"
+            f"🤖 الطلب: {_agent}"
+        )
+        await send_owner_alert(alert_text)
+    except Exception:  # alert must never break the capture response
+        pass
+
     return {"success": True, "lead_id": str(lead_id), "email_sent": email_sent}
 
 
