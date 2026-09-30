@@ -30,37 +30,38 @@
     {{ _head | safe }}
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
+    <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     <style>
-        body { font-family: "Cairo", sans-serif; background: #FAFAF9; color: #292524; line-height: 1.95; }
+        body { font-family: "Cairo", sans-serif; background: #060607; color: #F6F5F4; line-height: 1.95; }
         .wrap { max-width: 980px; margin-inline: auto; padding-inline: 22px; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(41,37,36,.09); }
-        .brand { font-weight: 800; font-family: "Inter", sans-serif; color: #3D5F33; text-decoration: none; }
-        .back { color: #57534E; text-decoration: none; font-size: .92rem; }
-        h1 { font-family: "Inter", sans-serif; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.28; margin: 34px 0 14px; }
-        h2 { font-family: "Inter", sans-serif; font-size: 1.4rem; color: #3D5F33; margin: 40px 0 12px; }
-        .lead { color: #3C3C3C; font-size: 1.06rem; max-width: 760px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(246,245,244,.09); }
+        .brand { font-weight: 800; font-family: "Cairo", sans-serif; color: #00D49C; text-decoration: none; }
+        .back { color: #B9B8C0; text-decoration: none; font-size: .92rem; }
+        h1 { font-family: "Cairo", sans-serif; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.28; margin: 34px 0 14px; }
+        h2 { font-family: "Cairo", sans-serif; font-size: 1.4rem; color: #00D49C; margin: 40px 0 12px; }
+        .lead { color: #D8D6D3; font-size: 1.06rem; max-width: 760px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; }
-        .team { background: #FFFFFF; border: 1px solid rgba(41,37,36,.09); border-radius: 22px; padding: 22px; }
-        .team h3 { font-family: "Inter", sans-serif; margin: 4px 0 6px; font-size: 1.1rem; }
-        .price { color: #3D5F33; font-weight: 800; }
+        .team { background: rgba(16,16,20,.92); border: 1px solid rgba(246,245,244,.1); border-radius: 22px; padding: 22px; }
+        .team h3 { font-family: "Cairo", sans-serif; margin: 4px 0 6px; font-size: 1.1rem; }
+        .price { color: #00D49C; font-weight: 800; }
         .team ul { padding-inline-start: 20px; margin: 12px 0 16px; }
-        .team li { color: #3C3C3C; font-size: .92rem; }
-        .muted { color: #57534E; }
+        .team li { color: #D8D6D3; font-size: .92rem; }
+        .muted { color: #B9B8C0; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0 8px; }
         .btn { display: inline-block; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, #3D5F33, #4F7942); color: #FAFAF9; }
-        .btn-ghost { border: 1px solid rgba(0,0,0,.14); color: #292524; }
+        .btn-gold { background:linear-gradient(135deg,#00AD92,#00D49C); color:#05231D; box-shadow: 0 0 26px rgba(0,212,156,.34); }
+        .btn-ghost { border: 1px solid rgba(246,245,244,.16); color: #F6F5F4; }
         .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-        .links a { font-size: .88rem; color: #57534E; text-decoration: none; border: 1px solid rgba(79,121,66,.1); border-radius: 999px; padding: 6px 14px; }
-        .links a:hover { border-color: #4F7942; color: #3D5F33; }
-        footer { border-top: 1px solid rgba(41,37,36,.09); margin-top: 46px; padding: 22px 0 40px; color: #57534E; font-size: .86rem; }
-        footer a { color: #57534E; }
+        .links a { font-size: .88rem; color: #B9B8C0; text-decoration: none; border: 1px solid rgba(0,212,156,.35); border-radius: 999px; padding: 6px 14px; }
+        .links a:hover { border-color: #00AD92; color: #00D49C; }
+        footer { border-top: 1px solid rgba(246,245,244,.09); margin-top: 46px; padding: 22px 0 40px; color: #B9B8C0; font-size: .86rem; }
+        footer a { color: #B9B8C0; }
     </style>
 </head>
-<body>
+<body class="luxury">
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#292524">AI</span></a>
+        <a class="brand" href="/home">النرجس <span style="color:#F6F5F4">AI</span></a>
         <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
     </div>
 
@@ -87,7 +88,7 @@
             <div class="price">{{ t.price }} {% if _lang == 'ar' %}ريال/شهر{% else %}SAR / month{% endif %}</div>
             <p class="muted" style="font-size:.9rem">{{ t.tagline if _lang == 'ar' else t.tagline_en }}</p>
             <ul>
-                {% for m in t.members %}<li><a href="/ai-agent/{{ m.slug }}" style="color:#3D5F33">{{ m.no }}</a> · {{ m.title_ar if _lang == 'ar' else m.title_en }}</li>{% endfor %}
+                {% for m in t.members %}<li><a href="/ai-agent/{{ m.slug }}" style="color:#00D49C">{{ m.no }}</a> · {{ m.title_ar if _lang == 'ar' else m.title_en }}</li>{% endfor %}
             </ul>
             <a class="btn btn-ghost" href="/portal?pkg={{ t.key }}">{% if _lang == 'ar' %}اطلب الباقة{% else %}Request plan{% endif %}</a>
         </div>

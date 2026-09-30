@@ -14,37 +14,38 @@
     {{ _head | safe }}
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
+    <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     <style>
-        body { font-family: "Cairo", sans-serif; background: #FAFAF9; color: #292524; line-height: 1.9; }
+        body { font-family: "Cairo", sans-serif; background: #060607; color: #F6F5F4; line-height: 1.9; }
         .wrap { max-width: 900px; margin-inline: auto; padding-inline: 22px; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(41,37,36,.09); }
-        .brand { font-weight: 800; font-family: "Inter", sans-serif; color: #3D5F33; text-decoration: none; }
-        .back { color: #57534E; text-decoration: none; font-size: .92rem; }
-        h1 { font-family: "Inter", sans-serif; font-size: clamp(1.8rem, 4.6vw, 2.6rem); line-height: 1.32; margin: 30px 0 12px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(246,245,244,.09); }
+        .brand { font-weight: 800; font-family: "Cairo", sans-serif; color: #00D49C; text-decoration: none; }
+        .back { color: #B9B8C0; text-decoration: none; font-size: .92rem; }
+        h1 { font-family: "Cairo", sans-serif; font-size: clamp(1.8rem, 4.6vw, 2.6rem); line-height: 1.32; margin: 30px 0 12px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 30px 0; }
-        .post { display: block; text-decoration: none; color: #292524; background: #FFFFFF; border: 1px solid rgba(41,37,36,.09); border-radius: 20px; padding: 20px; }
-        .post:hover { border-color: #4F7942; }
-        .post .cat { color: #3D5F33; font-size: .82rem; }
-        .post h2 { font-family: "Inter", sans-serif; font-size: 1.08rem; margin: 8px 0; line-height: 1.45; }
-        .post p { color: #57534E; font-size: .9rem; margin: 0; }
-        .post .meta { color: #6f7887; font-size: .8rem; margin-top: 10px; }
+        .post { display: block; text-decoration: none; color: #F6F5F4; background: #101014; border: 1px solid rgba(246,245,244,.1); border-radius: 20px; padding: 20px; }
+        .post:hover { border-color: #00AD92; }
+        .post .cat { color: #00D49C; font-size: .82rem; }
+        .post h2 { font-family: "Cairo", sans-serif; font-size: 1.08rem; margin: 8px 0; line-height: 1.45; }
+        .post p { color: #B9B8C0; font-size: .9rem; margin: 0; }
+        .post .meta { color: #8E8D96; font-size: .8rem; margin-top: 10px; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 10px; }
         .btn { display: inline-block; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, #3D5F33, #4F7942); color: #FAFAF9; }
-        .btn-ghost { border: 1px solid rgba(0,0,0,.14); color: #292524; }
-        footer { border-top: 1px solid rgba(41,37,36,.09); margin-top: 40px; padding: 22px 0 40px; color: #57534E; font-size: .86rem; }
-        footer a { color: #57534E; }
+        .btn-gold { background:linear-gradient(135deg,#00AD92,#00D49C); color:#05231D; box-shadow: 0 0 26px rgba(0,212,156,.34); }
+        .btn-ghost { border: 1px solid rgba(246,245,244,.16); color: #F6F5F4; }
+        footer { border-top: 1px solid rgba(246,245,244,.09); margin-top: 40px; padding: 22px 0 40px; color: #B9B8C0; font-size: .86rem; }
+        footer a { color: #B9B8C0; }
     </style>
 </head>
-<body>
+<body class="luxury">
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#292524">AI</span></a>
+        <a class="brand" href="/home">النرجس <span style="color:#F6F5F4">AI</span></a>
         <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
     </div>
 
     <h1>{% if _lang == 'ar' %}مدوّبة الذكاء الاصطناعي بالعربي{% else %}The AI blog, in Arabic first{% endif %}</h1>
-    <p style="color:#57534E;max-width:640px">
+    <p style="color:#B9B8C0;max-width:640px">
         {% if _lang == 'ar' %}
         مقالات عملية عن وكلاء الذكاء الاصطناعي في السعودية: متى تستخدمهم، وما الذي يخرجونه، وأين تتوقف الأتمتة.
         {% else %}
