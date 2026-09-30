@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, Depends, HTTPException, Request, WebSocket
+from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -1427,7 +1427,7 @@ async def promo_status():
 
 
 @app.post("/api/leads")
-async def create_lead(request: Request):
+async def create_lead(request: Request, background_tasks: BackgroundTasks):
     """Public website capture — writes one canonical CRM record."""
     body = await request.json()
     from src.models import AcquisitionLead, LeadEvent
@@ -1475,31 +1475,26 @@ async def create_lead(request: Request):
         lead_email = lead.email
         lead_name = lead.contact_name or lead.company_name
 
-    email_sent = False
-    if lead_email:
-        from src.services import email_service
-        email_sent = await email_service.send_welcome(lead_email, lead_name or "عميلنا العزيز")
-        await _schedule_lead_followups(lead_id, lead_email, lead_name)
+    _name = body.get("name") or "عميل جديد"
+    _phone = body.get("phone") or "—"
+    _email = email or "—"
+    _agent = message or package or "—"
+    alert_text = (
+        "🚨 تسجيل وصول مبكر جديد — Al-Narjis AI\n"
+        f"👤 العميل: {_name}\n"
+        f"📞 الجوال: {_phone}\n"
+        f"📧 البريد: {_email}\n"
+        f"🤖 الطلب: {_agent}"
+    )
 
-    try:
-        from src.services.telegram_sender import send_owner_alert
+    # The visitor is answered the moment the record is committed. Welcome email,
+    # follow-up scheduling and the owner alert run after the response so a slow
+    # SMTP or Telegram call can never stall the public form.
+    background_tasks.add_task(
+        _lead_side_effects, lead_id, lead_email, lead_name, alert_text
+    )
 
-        _name = body.get("name") or "عميل جديد"
-        _phone = body.get("phone") or "—"
-        _email = email or "—"
-        _agent = message or package or "—"
-        alert_text = (
-            "🚨 تسجيل وصول مبكر جديد — Al-Narjis AI\n"
-            f"👤 العميل: {_name}\n"
-            f"📞 الجوال: {_phone}\n"
-            f"📧 البريد: {_email}\n"
-            f"🤖 الطلب: {_agent}"
-        )
-        await send_owner_alert(alert_text)
-    except Exception:  # alert must never break the capture response
-        pass
-
-    return {"success": True, "lead_id": str(lead_id), "email_sent": email_sent}
+    return {"success": True, "lead_id": str(lead_id), "email_queued": bool(lead_email)}
 
 
 @app.post("/api/leads/{lead_id}/demo-viewed")
@@ -1559,6 +1554,28 @@ async def _schedule_lead_followups(lead_id, email: str, name: str):
             ))
         except Exception as e:
             logger.warning("Could not schedule lead follow-up step %s: %s", step, e)
+
+
+async def _lead_side_effects(lead_id, email, name, alert_text: str) -> None:
+    """Best-effort post-capture work: runs after the visitor already has a 200."""
+    if email:
+        try:
+            from src.services import email_service
+
+            await email_service.send_welcome(email, name or "عميلنا العزيز")
+        except Exception as e:
+            logger.warning("Lead welcome email failed for %s: %s", lead_id, e)
+        try:
+            await _schedule_lead_followups(lead_id, email, name)
+        except Exception as e:
+            logger.warning("Lead follow-up scheduling failed for %s: %s", lead_id, e)
+
+    try:
+        from src.services.telegram_sender import send_owner_alert
+
+        await send_owner_alert(alert_text)
+    except Exception as e:
+        logger.warning("Owner alert failed for lead %s: %s", lead_id, e)
 
 
 @app.post("/api/email/test", dependencies=[Depends(require_owner_api)])
