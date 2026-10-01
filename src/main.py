@@ -387,6 +387,10 @@ async def landing_page(request: Request):
         {
             "agent_count": agent_count,
             "agents_preview": employees[:3],
+            # one leader above a sample of the team, for the orchestrator visual
+            "orch_team": [
+                {"slug": slug, **emp} for slug, emp in list(catalog.EMPLOYEES.items())[:6]
+            ],
             "packages": catalog.PACKAGES,
         },
     )

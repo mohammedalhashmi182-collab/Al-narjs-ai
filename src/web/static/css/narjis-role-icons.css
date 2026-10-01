@@ -54,17 +54,20 @@
 /* hover: the tile turns to the action gold and the glyph redraws */
 .ag-card:hover .role-tile,
 .bcard:hover .role-tile,
+.orch-pill:hover .role-tile,
 .role-tile:hover {
   background: var(--odsf-gold, #F4C430);
   color: var(--n-brown, #292524);
 }
 .ag-card:hover .role-ico .g,
 .bcard:hover .role-ico .g,
+.orch-pill:hover .role-ico .g,
 .role-tile:hover .role-ico .g {
   animation: role-draw .7s cubic-bezier(.16, 1, .3, 1) both;
 }
 .ag-card:hover .role-ico,
 .bcard:hover .role-ico,
+.orch-pill:hover .role-ico,
 .role-tile:hover .role-ico {
   animation: role-pop .6s cubic-bezier(.16, 1, .3, 1);
 }
