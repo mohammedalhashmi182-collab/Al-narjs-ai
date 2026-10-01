@@ -71,6 +71,12 @@
         .msg { display:none; font-size:.9rem; border-radius:14px; padding:12px 14px; margin-top:14px; }
         .msg.ok { display:block; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.4); color:#6EE7B7; }
         .msg.err { display:block; background:rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.4); color:#FCA5A5; }
+        .tg-cta { display:none; margin-top:16px; padding:18px 16px; text-align:center; border:1px solid rgba(16,185,129,.34); background:rgba(16,185,129,.07); border-radius:18px; }
+        .tg-cta.on { display:block; }
+        .tg-cta p { color:#94A3B8; font-size:.84rem; margin-bottom:12px; }
+        .tg-cta a { display:inline-flex; align-items:center; gap:9px; padding:13px 24px; border-radius:12px; font-weight:800; font-size:.94rem; color:#022C22; background:linear-gradient(90deg,#10B981,#34D399); box-shadow:0 12px 26px rgba(16,185,129,.24); transition:filter .18s ease, transform .12s ease; }
+        .tg-cta a:hover { filter:brightness(1.06); }
+        .tg-cta a:active { transform:scale(.98); }
         .note { margin-top:16px; font-size:.76rem; color:#64748B; text-align:center; }
         .note a { color:#34D399; text-decoration:underline; }
         .tg-line { margin-top:18px; display:flex; align-items:center; gap:10px; justify-content:center; font-size:.82rem; color:#94A3B8; }
@@ -123,6 +129,10 @@
                 <button type="submit" class="submit" id="eaSubmit">{% if _lang == 'ar' %}تفعيل الوصول المبكر الفوري{% else %}Start Early Access Now{% endif %}</button>
             </form>
             <div class="msg" id="eaMsg"></div>
+            <div class="tg-cta" id="eaTg">
+                <p>{% if _lang == 'ar' %}لتفعيل أسرع، افتح محادثة تليجرام الآن — سيُربط رقمك بحسابك مباشرة{% else %}Activate faster: open Telegram now and your account links instantly{% endif %}</p>
+                <a id="eaTgLink" href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">{{ tg_plane() }} Telegram</a>
+            </div>
             <p class="note">{% if _lang == 'ar' %}بالتسجيل أنت توافق على <a href="/privacy">سياسة الخصوصية</a> وحقك في <a href="/data-deletion">حذف بياناتك</a>{% else %}By registering you agree to our <a href="/privacy">Privacy Policy</a> and your <a href="/data-deletion">data-deletion rights</a>{% endif %}</p>
             <div class="tg-line"><span class="dot">{{ tg_plane() }}</span><span>{% if _lang == 'ar' %}أو تواصل مباشرة{% else %}Or contact us directly{% endif %}</span><a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">Telegram</a></div>
         </div>
@@ -153,16 +163,24 @@
         fetch('/api/leads', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
         }).then(function (r) {
-            if (r.ok) {
-                msg.className = 'msg ok';
-                msg.textContent = 'تم تفعيل وصولك المبكر! نرسل لك ترحيب وتفاصيل الفريق على بريدك.';
-                form.remove();
-                btn.remove();
-            } else {
+            if (!r.ok) {
                 msg.className = 'msg err';
                 msg.textContent = 'حدث خطأ، حاول مرة أخرى.';
                 btn.disabled = false;
+                return null;
             }
+            return r.json().catch(function () { return {}; });
+        }).then(function (res) {
+            if (!res) return;
+            msg.className = 'msg ok';
+            msg.textContent = 'تم تفعيل وصولك المبكر! نرسل لك ترحيب وتفاصيل الفريق على بريدك.';
+            if (res.lead_id) {
+                document.getElementById('eaTgLink').href =
+                    'https://t.me/AlNarjs7BOT?start=lead_' + res.lead_id;
+                document.getElementById('eaTg').classList.add('on');
+            }
+            form.remove();
+            btn.remove();
         }).catch(function () {
             msg.className = 'msg err';
             msg.textContent = 'تعذر الاتصال، تحقق من الإنترنت.';
