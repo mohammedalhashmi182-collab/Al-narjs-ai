@@ -125,15 +125,48 @@ class TestOwnerChannelEndpoints:
 
 
 class TestWhatsappChannelEndpoints:
+    @pytest.fixture(autouse=True)
+    def _configured_webhook(self):
+        """Run this class against a *configured* webhook.
+
+        ``POST /webhooks/whatsapp`` short-circuits to ``200 {"status":
+        "disabled"}`` when the app secret or verify token is missing, so a test
+        that asserts on signature rejection silently depended on the ambient
+        environment: it passed against a developer's local ``.env`` and failed
+        in CI, which has none (``.env`` is gitignored). Injecting the values
+        here makes the class hermetic and keeps the assertion honest — the
+        ``disabled`` branch has its own explicit coverage in
+        ``test_whatsapp_integration.py``.
+
+        Uses the same ``object.__setattr__`` + restore idiom as
+        ``test_whatsapp_integration._creds`` so the settings singleton is put
+        back exactly as it was found.
+        """
+        from src.config import settings as s
+
+        names = ("whatsapp_app_secret", "whatsapp_webhook_verify_token")
+        old = [getattr(s, n) for n in names]
+        object.__setattr__(s, "whatsapp_app_secret", "TEST-APP-SECRET-NOT-REAL")
+        object.__setattr__(s, "whatsapp_webhook_verify_token", "TEST-VERIFY-TOKEN-NOT-REAL")
+        try:
+            yield
+        finally:
+            for n, v in zip(names, old):
+                object.__setattr__(s, n, v)
+
     async def test_health_is_public_and_secret_free(self, api):
         r = await api.get("/webhooks/whatsapp/health")
         assert r.status_code == 200
         assert "Authorization" not in r.text
         assert "Bearer" not in r.text
+        # the injected dummy must not be echoed back now that it is "configured"
+        assert "TEST-APP-SECRET-NOT-REAL" not in r.text
+        assert "TEST-VERIFY-TOKEN-NOT-REAL" not in r.text
 
     async def test_post_without_signature_is_rejected(self, api):
         r = await api.post("/webhooks/whatsapp", json={"entry": []})
         assert r.status_code == 403
+        assert r.json()["status"] == "invalid_signature"
 
     def test_sender_reports_meta_cloud_only(self):
         from src.services import whatsapp_sender as ws
