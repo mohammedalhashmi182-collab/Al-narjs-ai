@@ -112,8 +112,13 @@ class Settings(BaseSettings):
     promo_percent: int = Field(default=50, alias="PROMO_PERCENT")
     promo_expires: str | None = Field(default=None, alias="PROMO_EXPIRES")  # ISO date, e.g. 2026-09-10
 
-    # Privacy-friendly analytics: set IDs to inject tags, else nothing is loaded
-    meta_pixel_id: str | None = Field(default=None, alias="META_PIXEL_ID")
+    # Privacy-friendly analytics: set IDs to inject tags, else nothing is loaded.
+    # A Meta Pixel ID is a public client-side identifier (it appears in every
+    # page's HTML by design), not a secret — unlike a Conversions API token,
+    # which must never be committed or rendered. Keep the default so production
+    # attribution cannot silently stop when an env var goes missing; override
+    # with META_PIXEL_ID per environment.
+    meta_pixel_id: str | None = Field(default="1097204086820069", alias="META_PIXEL_ID")
     meta_ad_account_id: str | None = Field(default=None, alias="META_AD_ACCOUNT_ID")
     gtag_id: str | None = Field(default=None, alias="GTAG_ID")
 
