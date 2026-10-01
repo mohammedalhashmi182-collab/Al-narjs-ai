@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -23,7 +24,7 @@ from sqlalchemy import func as sa_func
 from sqlalchemy import select as sa_select
 
 from src.config.settings import settings
-from src.models import InboundMessage, OutboundMessage
+from src.models import AcquisitionLead, InboundMessage, OutboundMessage
 from src.services.telegram_sender import inbound_summary
 from src.services import telegram_sender
 from src.services.telegram_webhook import (
@@ -55,6 +56,36 @@ def _record_reject(reason: str, body_len: int) -> None:
     }
 
 
+DEEP_LINK_WELCOME = (
+    "أهلاً {name} 👋\n"
+    "سجّلنا طلبك معنا: {request}\n"
+    "فريق النرجس يراجعه الآن، وستصلك التفاصيل على بريدك الإلكتروني خلال وقت قصير.\n"
+    "اكتب هنا تفاصيل طلبك وسنرد عليك مباشرة."
+)
+
+
+async def _first_contact_text(session, payload: dict, chat_id: Any) -> str:
+    """Personalize the welcome when the chat arrived through a website deep link."""
+    message = payload.get("message") or payload.get("edited_message") or {}
+    provider_id = f"tg:{chat_id}:{message.get('message_id')}"[:255]
+    rec = (
+        await session.execute(
+            sa_select(InboundMessage).where(InboundMessage.provider_message_id == provider_id)
+        )
+    ).scalar_one_or_none()
+    lead = None
+    if rec is not None and rec.lead_id:
+        lead = (
+            await session.execute(sa_select(AcquisitionLead).where(AcquisitionLead.id == rec.lead_id))
+        ).scalar_one_or_none()
+    if lead is None:
+        return WELCOME_TEXT
+    request_text = (lead.notes or lead.suggested_package or "").strip()
+    if not request_text:
+        return WELCOME_TEXT
+    return DEEP_LINK_WELCOME.format(name=lead.company_name, request=request_text[:120])
+
+
 async def _side_effects(session, payload: dict, summary: dict) -> None:
     """First-contact welcome to the sender + owner push for every new message.
 
@@ -80,7 +111,8 @@ async def _side_effects(session, payload: dict, summary: dict) -> None:
     ).scalar_one_or_none()
     if already_welcomed is None:
         try:
-            await telegram_sender.send_now(session, lead_id=None, chat_id=chat_id, text=WELCOME_TEXT)
+            text = await _first_contact_text(session, payload, chat_id)
+            await telegram_sender.send_now(session, lead_id=None, chat_id=chat_id, text=text)
             await session.commit()
         except Exception:
             await session.rollback()
