@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import StaticPool
 
 from src.db.session import Base
+from src.interfaces.telegram_routes import WELCOME_TEXT, _first_contact_text
 from src.models import AcquisitionLead, InboundMessage, LeadEvent
 from src.services.telegram_webhook import _lead_id_from_start, process_inbound_update
 
@@ -136,3 +137,39 @@ async def test_unknown_deep_link_id_is_recorded_as_unmatched(maker) -> None:
         assert summary["messages_processed"] == 1
         assert summary["mapped_leads"] == 0
         assert summary["unmatched"] == 1
+
+
+async def test_first_contact_welcome_names_the_requested_agent(maker) -> None:
+    async with maker() as session:
+        lead = AcquisitionLead(
+            company_name="مجموعة المدى",
+            contact_name="مدير العمليات",
+            phone="+966500000001",
+            email="ops@example.com",
+            source="website",
+            segment="other",
+            lead_status="NEW",
+            notes="وكيل خدمة العملاء الذكي",
+        )
+        session.add(lead)
+        await session.commit()
+        await session.refresh(lead)
+
+        update = _start_update(555000444, f"/start lead_{lead.id}")
+        summary = await process_inbound_update(session, update)
+        await session.commit()
+        assert summary["mapped_leads"] == 1
+
+        text = await _first_contact_text(session, update, 555000444)
+        assert "مجموعة المدى" in text
+        assert "وكيل خدمة العملاء الذكي" in text
+        assert "بريدك الإلكتروني" in text
+
+
+async def test_first_contact_welcome_falls_back_for_unknown_chats(maker) -> None:
+    async with maker() as session:
+        update = _start_update(555000555, "مرحبا")
+        await process_inbound_update(session, update)
+        await session.commit()
+
+        assert await _first_contact_text(session, update, 555000555) == WELCOME_TEXT
