@@ -332,7 +332,7 @@ async def company_radar(request: Request, top: int = 10, size: int = 0, verified
         "tier_counts": wave["tier_counts"],
         "top_10": wave["top_10"],
         "next_20": wave["next_20"],
-        "whatsapp": wave["whatsapp"],
+        "telegram": wave["telegram"],
         "conversation": conversation,
     }
 

@@ -270,11 +270,17 @@ from src.interfaces.company_routes import router as company_router  # noqa: E402
 
 app.include_router(company_router)
 
-# Telegram is the only messaging channel. The former WhatsApp router is retired
-# (see docs/design-system.md); inbound/outbound both run through Telegram.
+# Telegram is the primary channel. The WhatsApp Cloud API is registered as a
+# second, owner-enabled channel (reinstated on request): it shares the same CRM
+# and intent engine, and stays inert until WHATSAPP_TOKEN + WHATSAPP_PHONE_ID
+# hold a valid Meta credential.
 from src.interfaces.telegram_routes import router as telegram_router  # noqa: E402
 
 app.include_router(telegram_router)
+
+from src.interfaces.whatsapp_routes import router as whatsapp_router  # noqa: E402
+
+app.include_router(whatsapp_router)
 
 
 async def get_session() -> AsyncSession:
