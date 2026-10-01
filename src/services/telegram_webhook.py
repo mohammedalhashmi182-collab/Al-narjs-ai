@@ -22,7 +22,7 @@ import logging
 import re
 from datetime import UTC, datetime
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -147,6 +147,27 @@ async def _lead_for_sender(session: AsyncSession, chat_id: Any, text: Any) -> Ac
     return None
 
 
+_START_LEAD = re.compile(r"(?:^|\s)(?:/?start\s+)?lead_([0-9a-fA-F-]{8,36})", re.IGNORECASE)
+
+
+def _lead_id_from_start(text: Any) -> str | None:
+    """Extract the lead id from a website deep link: ``?start=lead_<uuid>``."""
+    match = _START_LEAD.search(str(text or ""))
+    if match is None:
+        return None
+    candidate = match.group(1)
+    try:
+        return str(UUID(candidate))
+    except ValueError:
+        return None
+
+
+async def _lead_by_id(session: AsyncSession, lead_id: str) -> AcquisitionLead | None:
+    return (
+        await session.execute(sa_select(AcquisitionLead).where(AcquisitionLead.id == UUID(lead_id)))
+    ).scalar_one_or_none()
+
+
 # --- Processing ---------------------------------------------------------------
 
 def _timestamp(ts: Any) -> datetime | None:
@@ -238,6 +259,27 @@ async def process_inbound_update(session: AsyncSession, update: Any) -> dict:
     session.add(rec)
     await session.flush()
     summary["messages_processed"] += 1
+
+    deep_lead = None
+    deep_id = _lead_id_from_start(text)
+    if deep_id:
+        deep_lead = await _lead_by_id(session, deep_id)
+        if deep_lead is not None:
+            rec.lead_id = deep_lead.id
+            rec.processing_status = "processed"
+            before = deep_lead.lead_status or "NEW"
+            session.add(LeadEvent(
+                lead_id=deep_lead.id,
+                event_type="telegram_connected",
+                status_before=before,
+                status_after=before,
+                channel=CHANNEL,
+                message=(rec.text or "")[:2000],
+                note=f"عميل ربط حسابه بالتليجرام من رابط التسجيل · chat {chat_id}",
+                created_at=now_utc,
+            ))
+            summary["mapped_leads"] += 1
+            return summary
 
     lead = await _lead_for_sender(session, chat_id, text)
     if lead is None:
