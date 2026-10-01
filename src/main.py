@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -338,7 +338,12 @@ async def login_submit(request: Request):
     from starlette.responses import RedirectResponse
     from src.core.owner_auth import set_owner_cookie
 
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception:
+        body = None
+    if not isinstance(body, dict):
+        return JSONResponse({"error": "wrong_password"}, status_code=400)
     password = body.get("password", "")
     if password == settings.owner_password:
         resp = RedirectResponse("/", status_code=303)
