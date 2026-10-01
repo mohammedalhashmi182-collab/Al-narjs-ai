@@ -1426,20 +1426,46 @@ async def promo_status():
     return {"promo": pm.promo_info()}
 
 
+PHONE_INVALID_MESSAGE = (
+    "رقم الجوال غير صحيح. اكتبه بالشكل 05XXXXXXXX أو ‎+9665XXXXXXXX."
+)
+PHONE_MOBILE_REQUIRED_MESSAGE = (
+    "رقم الجوال مطلوب لتفعيل الوصول المبكر، ويجب أن يكون جوالًا سعوديًا صحيحًا "
+    "(05XXXXXXXX أو ‎+9665XXXXXXXX)."
+)
+
+
 @app.post("/api/leads")
 async def create_lead(request: Request, background_tasks: BackgroundTasks):
-    """Public website capture — writes one canonical CRM record."""
+    """Public website capture — writes one canonical CRM record.
+
+    Phone quality gate: a supplied number must be a real number, and the
+    early-access programme additionally requires a reachable Saudi mobile
+    (``05XXXXXXXX`` / ``+9665XXXXXXXX``). Nothing is written, no welcome email
+    and no owner alert happen for a rejected number.
+    """
     body = await request.json()
     from src.models import AcquisitionLead, LeadEvent
-    from src.services.lead_normalize import normalize_email, normalize_phone
+    from src.services.lead_normalize import (
+        is_reachable_mobile,
+        is_valid_phone,
+        normalize_email,
+        normalize_phone,
+    )
     from src.services.lead_priority import score_lead
     from src.services.lead_segmentation import classify, suggest_package
 
     name = (body.get("name") or "").strip()
-    phone = normalize_phone(body.get("phone"))
+    raw_phone = (body.get("phone") or "").strip()
     email = normalize_email(body.get("email"))
     message = (body.get("message") or "").strip() or None
     package = (body.get("package") or "").strip() or None
+
+    if raw_phone and not is_valid_phone(raw_phone):
+        raise HTTPException(400, PHONE_INVALID_MESSAGE)
+    if package == "early_access" and not is_reachable_mobile(raw_phone):
+        raise HTTPException(400, PHONE_MOBILE_REQUIRED_MESSAGE)
+    phone = normalize_phone(raw_phone)
 
     segment, _reason = classify(name)
     priority = score_lead(company_name=name, phone=phone, email=email, segment=segment)

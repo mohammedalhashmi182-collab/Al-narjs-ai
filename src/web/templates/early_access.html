@@ -57,6 +57,11 @@
         }
         .field input::placeholder { color:#475569; }
         .field input:focus, .field select:focus { border-color:#10B981; box-shadow:0 0 0 3px rgba(16,185,129,.16); }
+        .field input.bad, .field select.bad { border-color:#F87171; box-shadow:0 0 0 3px rgba(248,113,113,.16); }
+        .field .hint { display:none; margin-top:7px; font-size:.74rem; font-weight:600; color:#FCA5A5; }
+        .field .hint.on { display:block; }
+        .field .ok-tag { display:none; margin-top:7px; font-size:.74rem; font-weight:600; color:#6EE7B7; }
+        .field .ok-tag.on { display:block; }
         .field select { appearance:none; background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:left 16px center; padding-inline-end:40px; padding-inline-start:16px; }
         .submit {
             width:100%; margin-top:6px; border:0; cursor:pointer;
@@ -114,9 +119,11 @@
                     <label for="clientEmail">{% if _lang == 'ar' %}البريد الإلكتروني{% else %}Email{% endif %}</label>
                     <input type="email" id="clientEmail" name="email" required placeholder="you@example.com">
                 </div>
-                <div class="field opt">
-                    <label for="clientPhone"><span>{% if _lang == 'ar' %}رقم التواصل (تيليجرام أو جوال — اختياري){% else %}Contact number (Telegram or mobile — optional){% endif %}</span></label>
-                    <input type="tel" id="clientPhone" name="phone" placeholder="+966 50 000 0000">
+                <div class="field">
+                    <label for="clientPhone">{% if _lang == 'ar' %}رقم الجوال / التيليجرام{% else %}Mobile number{% endif %}</label>
+                    <input type="tel" id="clientPhone" name="phone" inputmode="tel" autocomplete="tel" required placeholder="05XXXXXXXX أو +9665XXXXXXXX">
+                    <p class="hint" id="phoneHint" role="alert" aria-live="polite">{% if _lang == 'ar' %}اكتب رقم جوال سعودي صحيح يبدأ بـ 05 أو ‎+9665 ويحتوي 10 أرقام، مثال: 0550123456{% else %}Enter a valid Saudi mobile starting with 05 or +9665 — 10 digits, e.g. 0550123456{% endif %}</p>
+                    <p class="ok-tag" id="phoneOk">{% if _lang == 'ar' %}✓ تم التحقق من الرقم{% else %}✓ Number verified{% endif %}</p>
                 </div>
                 <div class="field">
                     <label for="agentType">{% if _lang == 'ar' %}نوع الوكيل المطلوب{% else %}Required agent type{% endif %}</label>
@@ -152,8 +159,46 @@
     var form = document.getElementById('registrationForm');
     var msg = document.getElementById('eaMsg');
     var btn = document.getElementById('eaSubmit');
+    var phoneInput = document.getElementById('clientPhone');
+    var hint = document.getElementById('phoneHint');
+    var okTag = document.getElementById('phoneOk');
+
+    // Saudi mobile gate — mirrors is_reachable_mobile() in
+    // src/services/lead_normalize.py (05XXXXXXXX / +9665XXXXXXXX). The server
+    // re-checks every submission, so this only saves the visitor a round trip.
+    var SA_MOBILE = /^(?:\+?966|0)?5\d{8}$/;
+
+    function digitsOf(value) {
+        return String(value == null ? '' : value)
+            .replace(/[\u0660-\u0669\u06f0-\u06f9]/g, function (d) {
+                var c = d.charCodeAt(0);
+                var base = c >= 0x06f0 ? 0x06f0 : 0x0660;
+                return String(c - base);
+            })
+            .replace(/\D/g, '');
+    }
+
+    function checkPhone(showMessage) {
+        var digits = digitsOf(phoneInput.value);
+        var valid = SA_MOBILE.test(digits);
+        phoneInput.classList.toggle('bad', !valid);
+        if (hint) hint.classList.toggle('on', showMessage && !valid);
+        if (okTag) okTag.classList.toggle('on', valid);
+        return valid;
+    }
+
+    phoneInput.addEventListener('input', function () { checkPhone(false); });
+    phoneInput.addEventListener('blur', function () { checkPhone(true); });
+
     form.addEventListener('submit', function (e) {
         e.preventDefault();
+        if (!checkPhone(true)) {
+            msg.className = 'msg err';
+            msg.textContent = 'أوقفنا الإرسال: رقم الجوال غير صحيح. عدّله ثم أعد المحاولة.';
+            msg.style.display = 'block';
+            phoneInput.focus();
+            return;
+        }
         msg.className = 'msg';
         msg.textContent = 'جارٍ تفعيل وصولك المبكر…';
         msg.style.display = 'block';
