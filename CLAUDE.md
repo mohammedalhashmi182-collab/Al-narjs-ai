@@ -1,7 +1,7 @@
 # Al-Narjis AI — working agreement for coding agents
 
 This repository is a **live production system**, not a sandbox.
-Production URL: **https://karmaai.online** · Database: PostgreSQL on Render · Channel: Telegram bot (the WhatsApp integration has been removed).
+Production URL: **https://karmaai.online** · Database: PostgreSQL on Render · Channel: Telegram bot (WhatsApp Cloud API is a second, owner-enabled channel).
 
 Any commit that lands on `main` **deploys to production within a minute** (Render auto-deploy).
 
@@ -55,7 +55,7 @@ For local coding agents only, `opencode.json` exposes the optional **Genspark LL
 ## Front-end rules
 
 - Arabic-first, RTL. All public copy is Arabic; keep it professional and consistent.
-- **Telegram is the only channel** (`https://t.me/AlNarjs7BOT`, support: `?start=support`). Do not reintroduce `wa.me` links or the WhatsApp router; the integration was removed. Historical lead records and verified third-party contact sheets are data, not UI, and keep whatever they say.
+- **Telegram is the primary channel** (`https://t.me/AlNarjs7BOT`, support: `?start=support`). The WhatsApp Cloud API is a second, owner-enabled channel: keep its routes live but never assume it's active; `/webhooks/whatsapp/health` reports `configured/connected` without leaking secrets. Historical lead records and verified third-party contact sheets are data, not UI, and keep whatever they say.
 - New pages must include: Telegram quick-connect panel, working mobile CTA, and matching `privacy.html` / `data_deletion.html` policy text.
 - **No dead CTAs.** No `href="#"` on public pages, no invented numbers. Agent counts, prices, and plan names are rendered from `src/services/catalog.py` (never hard-coded), and the landing page reads the live registry count.
 - New public pages reuse the SEO head macro: `{% import "partials/_seo.html" as seo with context %}` then `seo.head(title_ar, title_en, desc_ar, desc_en, request.url.path, og_type, extra_head)`. Note `with context` is required, and the path must be passed explicitly.
