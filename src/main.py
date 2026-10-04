@@ -2190,16 +2190,34 @@ async def report_transfer_sent(payment_id: str):
 @app.get("/invoice/{payment_id}")
 async def invoice_page(request: Request, payment_id: str):
     from uuid import UUID
+
     from sqlalchemy import select
+
     from src.models import Payment
     from src.services import payments as pm
 
     locale = _request_locale(request)
-    async with app.state.session_factory() as session:
-        result = await session.execute(select(Payment).where(Payment.id == UUID(payment_id)))
-        payment = result.scalar_one_or_none()
+
+    # A malformed id used to raise ValueError and answer 500. Anything that is
+    # not a resolvable invoice lands on the recovery page below instead, because
+    # this URL is handed to a buyer at the exact moment they decide to pay.
+    payment = None
+    try:
+        parsed = UUID(payment_id)
+    except (ValueError, AttributeError, TypeError):
+        parsed = None
+    if parsed is not None:
+        async with app.state.session_factory() as session:
+            result = await session.execute(select(Payment).where(Payment.id == parsed))
+            payment = result.scalar_one_or_none()
+
     if not payment:
-        raise HTTPException(404, "Invoice not found")
+        return templates.TemplateResponse(
+            request,
+            "invoice_missing.html" if locale == "ar" else "invoice_missing_en.html",
+            {"missing_ref": payment_id[:8]},
+            status_code=404,
+        )
 
     template = "invoice.html" if locale == "ar" else "invoice_en.html"
     return templates.TemplateResponse(
