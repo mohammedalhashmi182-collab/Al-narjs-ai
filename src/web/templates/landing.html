@@ -2781,6 +2781,7 @@ select option{background:#101014;color:#F6F5F4}
                     if (r.ok) {
                         msg.textContent = isAr ? '✓ تم استلام طلبك! سنتواصل معك قريباً.' : '✓ Received! We will contact you soon.';
                         msg.classList.add('ok');
+                        if (window.fbq) fbq('track', 'Lead');
                         form.reset();
                     } else {
                         msg.textContent = isAr ? 'حدث خطأ — جرّب تيليجرام المباشر.' : 'Something went wrong — try Telegram.';

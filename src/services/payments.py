@@ -21,6 +21,11 @@ MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
 VAT_RATE = 0.15
 
+# Methods that are settled by the Moyasar hosted checkout. Every one of them
+# needs MOYASAR_API_SECRET; without it the route silently degrades to a manual
+# invoice, which is why the UI asks capabilities() before offering a button.
+CARD_METHODS = ("mada", "stcpay", "creditcard", "applepay")
+
 
 def vat_amount(halalas: int) -> int:
     return round(halalas * VAT_RATE)
@@ -65,6 +70,91 @@ def apply_promo(halalas: int, promo: Optional[str] = None) -> tuple[int, int]:
 
 class PaymentError(Exception):
     pass
+
+
+def paypal_ready() -> bool:
+    settings = get_settings()
+    return bool(settings.paypal_client_id and settings.paypal_client_secret)
+
+
+def capabilities() -> dict:
+    """Which methods can actually take money right now.
+
+    Booleans and public bank/contact details only — never a key, a secret or a
+    token. The checkout renders exactly these methods, so a button can never
+    promise a card payment that the server would quietly turn into a manual
+    transfer.
+    """
+    from src.services import transfer
+
+    settings = get_settings()
+    card = bool(settings.moyasar_api_secret)
+    paypal = paypal_ready()
+    methods = {method: card for method in CARD_METHODS}
+    methods["paypal"] = paypal
+    methods["invoice"] = True
+    return {
+        "methods": methods,
+        "card": card,
+        "paypal": paypal,
+        "paypal_test_mode": bool(paypal and settings.paypal_mode != "live"),
+        "invoice": True,
+        "bank": transfer.bank_details(),
+        "contact": transfer.contact_channels(),
+    }
+
+
+def readiness() -> dict:
+    """Owner-facing detail: what is configured and what is missing.
+
+    Reports env-var *names* and booleans only. Values are never included, so
+    this is safe to render on an owner screen.
+    """
+    settings = get_settings()
+    caps = capabilities()
+    missing: list[str] = []
+    if not settings.moyasar_api_secret:
+        missing.append("MOYASAR_API_SECRET")
+    if not paypal_ready():
+        missing.append("PAYPAL_CLIENT_ID+PAYPAL_CLIENT_SECRET")
+    return {
+        **caps,
+        "collect_money_now": bool(caps["card"] or caps["paypal"]),
+        "paypal_mode": settings.paypal_mode,
+        "promo_active": promo_active(),
+        "missing_env": missing,
+        "env_required": {
+            "card": ["MOYASAR_API_SECRET", "MOYASAR_PUBLISHABLE_KEY"],
+            "paypal": ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_MODE=live"],
+        },
+    }
+
+
+def reference(payment: Payment) -> str:
+    """The short human-quotable invoice reference shown to the buyer."""
+    return str(payment.id)[:8].upper()
+
+
+def transfer_instructions(payment: Payment) -> dict:
+    """Everything the buyer needs to settle a manual invoice unaided."""
+    from src.services import transfer
+
+    ref = reference(payment)
+    total = total_with_vat(payment.amount)
+    customer = payment.customer_name or payment.customer_phone or payment.customer_email
+    return {
+        "payment_id": str(payment.id),
+        "reference": ref,
+        "status": payment.status,
+        "base_halalas": payment.amount,
+        "vat_halalas": vat_amount(payment.amount),
+        "total_halalas": total,
+        "total_sar": round(total / 100, 2),
+        "currency": payment.currency or "SAR",
+        "bank": transfer.bank_details(),
+        "contact": transfer.contact_buttons(ref, round(total / 100, 2), customer),
+        "invoice_url": f"/invoice/{payment.id}",
+    }
 
 
 def _auth_header(settings) -> str:

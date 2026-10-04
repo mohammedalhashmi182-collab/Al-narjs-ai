@@ -1,0 +1,143 @@
+{# Self-serve settlement block for a manual (bank-transfer) invoice.
+
+   Context: xfer — the dict from payments.transfer_instructions(), or None when
+   the payment is already settled (then this partial renders nothing).
+            xfer_lang — 'ar' | 'en'; defaults to the including page's _lang.
+
+   It is deliberately self-contained: the invoice pages carry their own styles
+   and do not load narjis.css, so the block brings its own scoped rules. #}
+{% if xfer %}
+{% set xf_lang = xfer_lang | default(_lang | default('ar')) %}
+{% set xf_ar = xf_lang == 'ar' %}
+<style>
+    .xfer { margin-top:22px; border:1px solid #E7E5E4; border-radius:16px; overflow:hidden; }
+    .xfer-h { background:#F4C430; color:#292524; font-weight:800; padding:12px 16px; font-size:15px; }
+    .xfer-b { padding:16px; }
+    .xfer-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px dashed #E7E5E4; }
+    .xfer-row:last-of-type { border-bottom:none; }
+    .xfer-k { font-size:12px; color:#8A8580; }
+    .xfer-v { font-weight:800; font-size:15px; letter-spacing:.4px; word-break:break-all; text-align:end; }
+    .xfer-total { font-size:19px; color:#4F7942; }
+    .xfer-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:46px; padding:12px 16px; border-radius:12px; font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; border:none; cursor:pointer; text-decoration:none; }
+    .xfer-main { background:#4F7942; color:#fff; width:100%; }
+    .xfer-main:disabled { opacity:.6; cursor:default; }
+    .xfer-alt { background:#F4C430; color:#292524; flex:1; }
+    .xfer-ghost { border:1px solid #D6D3D1; background:#fff; color:#292524; flex:1; }
+    .xfer-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .xfer-note { margin:12px 0 0; font-size:12px; line-height:1.9; color:#57534E; }
+    .xfer-ok { margin:12px 0 0; font-size:13px; font-weight:700; color:#4F7942; }
+    @media print { .xfer-actions, .xfer-main { display:none; } }
+</style>
+<div class="xfer" id="xfer" data-payment="{{ xfer.payment_id }}">
+    <div class="xfer-h">{% if xf_ar %}كيف تُكمل الدفع{% else %}How to complete the payment{% endif %}</div>
+    <div class="xfer-b">
+        <div class="xfer-row">
+            <span class="xfer-k">{% if xf_ar %}رقم الفاتورة{% else %}Invoice reference{% endif %}</span>
+            <span class="xfer-v" id="xferRef">{{ xfer.reference }}</span>
+        </div>
+        <div class="xfer-row">
+            <span class="xfer-k">{% if xf_ar %}المبلغ المستحق{% else %}Amount due{% endif %}</span>
+            <span class="xfer-v xfer-total">{{ "%.2f"|format(xfer.total_sar) }} {{ xfer.currency }}</span>
+        </div>
+        {% if xfer.bank.iban %}
+        <div class="xfer-row">
+            <span class="xfer-k">{% if xf_ar %}الآيبان{% else %}IBAN{% endif %}</span>
+            <span class="xfer-v" id="xferIban">{{ xfer.bank.iban }}</span>
+        </div>
+        {% if xfer.bank.bank_name %}
+        <div class="xfer-row">
+            <span class="xfer-k">{% if xf_ar %}البنك{% else %}Bank{% endif %}</span>
+            <span class="xfer-v">{{ xfer.bank.bank_name }}</span>
+        </div>
+        {% endif %}
+        {% if xfer.bank.account_name %}
+        <div class="xfer-row">
+            <span class="xfer-k">{% if xf_ar %}اسم الحساب{% else %}Account name{% endif %}</span>
+            <span class="xfer-v">{{ xfer.bank.account_name }}</span>
+        </div>
+        {% endif %}
+        {% endif %}
+        <p class="xfer-note">
+            {% if xfer.bank.iban %}
+                {% if xf_ar %}حوّل المبلغ إلى الآيبان أعلاه، ثم اضغط «أرسلت التحويل» ليتأكد الفريق فوراً.
+                {% else %}Transfer the amount to the IBAN above, then press “I sent the transfer” so the team can confirm it immediately.{% endif %}
+            {% else %}
+                {% if xf_ar %}اضغط «أرسلت التحويل» بعد إتمام التحويل، ليتسلم الفريق رقم الفاتورة والمبلغ ويفعّل باقتك.
+                {% else %}Press “I sent the transfer” once you have paid. The team receives the reference and amount and activates your plan.{% endif %}
+            {% endif %}
+        </p>
+        <div class="xfer-actions">
+            <button type="button" class="xfer-btn xfer-main" id="xferReport">
+                {% if xf_ar %}أرسلت التحويل{% else %}I sent the transfer{% endif %}
+            </button>
+            {% if xfer.contact.whatsapp %}
+            <a class="xfer-btn xfer-alt" id="xferWa" href="{{ xfer.contact.whatsapp }}" target="_blank" rel="noopener">{% if xf_ar %}تواصل عبر واتساب{% else %}Contact on WhatsApp{% endif %}</a>
+            {% endif %}
+            <button type="button" class="xfer-btn xfer-ghost" data-copy-target="xferRef">{% if xf_ar %}نسخ رقم الفاتورة{% else %}Copy reference{% endif %}</button>
+            {% if xfer.bank.iban %}
+            <button type="button" class="xfer-btn xfer-ghost" data-copy-target="xferIban">{% if xf_ar %}نسخ الآيبان{% else %}Copy IBAN{% endif %}</button>
+            {% endif %}
+        </div>
+        <p class="xfer-ok" id="xferOk" hidden></p>
+    </div>
+</div>
+<script>
+    (function () {
+        var root = document.getElementById('xfer');
+        if (!root) return;
+        var ar = document.documentElement.lang === 'ar';
+        var t = {
+            sent: ar ? 'تم إشعارنا. سنؤكد التحويل وتُفعَّل باقتك خلال دقائق.' : 'Notified. We verify the transfer and activate your plan within minutes.',
+            again: ar ? 'وصلنا إشعارك سابقاً وسيتم التأكيد قريباً.' : 'We already have your report and will confirm shortly.',
+            failed: ar ? 'تعذر الإشعار. أرسل لنا رقم الفاتورة عبر واتساب.' : 'Could not notify us. Send the invoice reference on WhatsApp.',
+            copied: ar ? 'تم النسخ' : 'Copied'
+        };
+        var ok = document.getElementById('xferOk');
+
+        document.querySelectorAll('[data-copy-target]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var el = document.getElementById(btn.dataset.copyTarget);
+                if (!el) return;
+                var text = el.textContent.trim();
+                var done = function () {
+                    var old = btn.textContent;
+                    btn.textContent = t.copied;
+                    setTimeout(function () { btn.textContent = old; }, 1600);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done, function () {});
+                } else {
+                    var sel = window.getSelection();
+                    var range = document.createRange();
+                    range.selectNodeContents(el);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    try { document.execCommand('copy'); done(); } catch (e) {}
+                }
+            });
+        });
+
+        var report = document.getElementById('xferReport');
+        if (!report) return;
+        report.addEventListener('click', function () {
+            report.disabled = true;
+            report.textContent = ar ? 'جارٍ الإشعار...' : 'Notifying...';
+            fetch('/api/payments/' + root.dataset.payment + '/transfer-reported', { method: 'POST' })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (res) {
+                    if (!res.ok) throw new Error((res.d.detail && res.d.detail.error) || 'error');
+                    ok.hidden = false;
+                    ok.textContent = res.d.already_reported ? t.again : t.sent;
+                    report.textContent = ar ? 'تم الإشعار' : 'Reported';
+                })
+                .catch(function () {
+                    report.disabled = false;
+                    report.textContent = ar ? 'أرسلت التحويل' : 'I sent the transfer';
+                    ok.hidden = false;
+                    ok.style.color = '#b91c1c';
+                    ok.textContent = t.failed;
+                });
+        });
+    })();
+</script>
+{% endif %}

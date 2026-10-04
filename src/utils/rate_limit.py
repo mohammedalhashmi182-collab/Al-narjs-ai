@@ -60,3 +60,18 @@ def rate_limit_login(request: Request) -> None:
             detail={"error": "Too many attempts", "retry_after_seconds": retry_after},
             headers={"Retry-After": str(retry_after)},
         )
+
+
+# A buyer clicks "I sent the transfer" once. This endpoint pushes an alert to the
+# owner's Telegram, so it must not be callable in a loop by a bored script.
+transfer_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=600)
+
+
+def rate_limit_transfer_report(request: Request) -> None:
+    ok, retry_after = transfer_limiter.check(f"{client_ip(request)}:/api/payments/transfer-reported")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )

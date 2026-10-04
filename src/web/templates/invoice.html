@@ -65,6 +65,7 @@
                 <tr class="tot"><td>الإجمالي</td><td>{{ "%.2f"|format(total / 100) }} ر.س</td></tr>
             </table>
             <div class="meta" style="margin-top:16px;">الدفع عبر {{ 'PayPal' if payment.gateway == 'paypal' else ('مويصر' if payment.gateway == 'moyasar' else 'تحويل بنكي') }}</div>
+            {% include "partials/_transfer.html" %}
         </div>
         <div class="foot">شكراً لثقتك بالنرجس للذكاء الاصطناعي ✺ · www.karmaai.online</div>
     </div>

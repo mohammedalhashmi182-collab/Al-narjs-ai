@@ -13,7 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.settings import get_settings, settings
 from src.utils.logger import configure_logging, get_logger
-from src.utils.rate_limit import rate_limit_consult, rate_limit_login
+from src.utils.rate_limit import (
+    rate_limit_consult,
+    rate_limit_login,
+    rate_limit_transfer_report,
+)
 from src.db.session import init_db, get_session_factory, close_db
 
 configure_logging(settings.log_level, settings.log_json)
@@ -1776,6 +1780,23 @@ def _request_locale(request: Request) -> str:
     return request.cookies.get("narjis_lang") or "ar"
 
 
+# Declared before /api/payments/{payment_id} so the literal path wins.
+@app.get("/api/payments/capabilities")
+async def payment_capabilities():
+    """Which payment methods are real right now. Booleans and public details only."""
+    from src.services import payments as pm
+
+    return pm.capabilities()
+
+
+@app.get("/api/owner/payments/readiness", dependencies=[Depends(require_owner_api)])
+async def owner_payment_readiness():
+    """Owner view of the same thing, plus what is missing to switch card on."""
+    from src.services import payments as pm
+
+    return pm.readiness()
+
+
 @app.post("/api/payments")
 async def create_payment(request: Request, body: PaymentCreateRequest):
     from src.services import payments as pm
@@ -1783,7 +1804,10 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
     locale = _request_locale(request)
     include_vat = locale == "ar"
     base = str(request.base_url).rstrip("/")
-    base_amount = pm.package_amount(body.package)
+    try:
+        base_amount = pm.package_amount(body.package)
+    except pm.PaymentError as exc:
+        raise HTTPException(400, str(exc))
     final_amount, discount_pct = pm.apply_promo(base_amount, body.promo)
     discount_halalas = base_amount - final_amount
     async with app.state.session_factory() as session:
@@ -1852,6 +1876,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "promo_applied": discount_pct > 0,
                     "vat": 0,
                     "total": payment.amount,
+                    "invoice_total": pm.total_with_vat(payment.amount),
+                    "invoice_url": f"/invoice/{payment.id}",
                 }
 
         # Moyasar if configured and method is a local gateway
@@ -1896,6 +1922,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "amount": payment.amount,
                     "discount": discount_halalas,
                     "promo_applied": discount_pct > 0,
+                    "invoice_total": pm.total_with_vat(payment.amount),
+                    "invoice_url": f"/invoice/{payment.id}",
                 }
 
         # Invoice / bank-transfer fallback
@@ -1910,6 +1938,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             "promo_applied": discount_pct > 0,
             "vat": 0,
             "total": payment.amount,
+            "invoice_total": pm.total_with_vat(payment.amount),
+            "invoice_url": f"/invoice/{payment.id}",
         }
 
 
@@ -2095,6 +2125,68 @@ async def confirm_payment_received(payment_id: str, body: ConfirmReceivedRequest
         }
 
 
+@app.post(
+    "/api/payments/{payment_id}/transfer-reported",
+    dependencies=[Depends(rate_limit_transfer_report)],
+)
+async def report_transfer_sent(payment_id: str):
+    """The buyer says they sent the money: record it and alert the owner.
+
+    This never marks the payment paid. Only the owner does that, through
+    confirm-received, after the money is actually in the account.
+    """
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _select
+
+    from src.models import Payment as _Payment
+    from src.services import payments as _pm
+
+    try:
+        payment_uuid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+        ).scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+        if payment.gateway in ("moyasar", "paypal") and payment.gateway_payment_id:
+            raise HTTPException(409, "This invoice is settled through its payment gateway")
+        already = payment.gateway_source == "transfer_reported"
+        if not already and payment.status != "paid":
+            payment.gateway_source = "transfer_reported"
+            await session.commit()
+        instructions = _pm.transfer_instructions(payment)
+        was_paid = payment.status == "paid"
+
+    notified = False
+    if not already and not was_paid:
+        try:
+            from src.services import telegram_sender
+
+            await telegram_sender.send_owner_alert(
+                "💰 تحويل بنكي معلَن\n"
+                f"فاتورة: {instructions['reference']}\n"
+                f"المبلغ: {instructions['total_sar']} {instructions['currency']}\n"
+                f"العميل: {payment.customer_name or '-'} · {payment.customer_phone or '-'}\n"
+                "العميل يقول إنه أرسل التحويل. فعّلها من /api/payments/"
+                f"{instructions['payment_id']}/confirm-received بعد التأكد من الإيداع."
+            )
+            notified = True
+        except Exception:  # noqa: BLE001 - an alert failure must not lose the record
+            notified = False
+
+    return {
+        **instructions,
+        "already_reported": already,
+        "notified_owner": notified,
+        "awaiting_verification": not was_paid,
+    }
+
+
 @app.get("/invoice/{payment_id}")
 async def invoice_page(request: Request, payment_id: str):
     from uuid import UUID
@@ -2118,6 +2210,7 @@ async def invoice_page(request: Request, payment_id: str):
             "base": payment.amount,
             "vat": pm.vat_amount(payment.amount),
             "total": pm.total_with_vat(payment.amount),
+            "xfer": pm.transfer_instructions(payment) if payment.status != "paid" else None,
         },
     )
 

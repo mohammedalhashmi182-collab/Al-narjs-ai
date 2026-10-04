@@ -65,6 +65,7 @@
                 <tr class="tot"><td>Total</td><td>{{ "%.2f"|format(total / 100) }} SAR</td></tr>
             </table>
             <div class="meta" style="margin-top:16px;">Paid via {{ 'PayPal' if payment.gateway == 'paypal' else ('Moyasar' if payment.gateway == 'moyasar' else 'Bank transfer') }}</div>
+            {% include "partials/_transfer.html" %}
         </div>
         <div class="foot">Thank you for trusting Al-Narjis AI ✺ · karmaai.online</div>
     </div>

@@ -183,6 +183,7 @@ form.addEventListener('submit', function (e) {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
     }).then(function (r) {
         if (r.ok) {
+            if (window.fbq) fbq('track', 'Lead');
             msg.className = 'msg ok';
             msg.textContent = '✓ تم! حمّل دليلك الآن من الأسفل.';
             dl.classList.add('show');
