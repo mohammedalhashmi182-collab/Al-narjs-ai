@@ -1786,7 +1786,7 @@ async def payment_capabilities():
     """Which payment methods are real right now. Booleans and public details only."""
     from src.services import payments as pm
 
-    return pm.capabilities()
+    return await pm.capabilities_async()
 
 
 @app.get("/api/owner/payments/readiness", dependencies=[Depends(require_owner_api)])
@@ -1794,7 +1794,7 @@ async def owner_payment_readiness():
     """Owner view of the same thing, plus what is missing to switch card on."""
     from src.services import payments as pm
 
-    return pm.readiness()
+    return await pm.readiness_async()
 
 
 @app.post("/api/payments")

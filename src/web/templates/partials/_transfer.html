@@ -62,15 +62,26 @@
                 {% if xf_ar %}حوّل المبلغ إلى الآيبان أعلاه، ثم اضغط «أرسلت التحويل» ليتأكد الفريق فوراً.
                 {% else %}Transfer the amount to the IBAN above, then press “I sent the transfer” so the team can confirm it immediately.{% endif %}
             {% else %}
-                {% if xf_ar %}اضغط «أرسلت التحويل» بعد إتمام التحويل، ليتسلم الفريق رقم الفاتورة والمبلغ ويفعّل باقتك.
-                {% else %}Press “I sent the transfer” once you have paid. The team receives the reference and amount and activates your plan.{% endif %}
+                {# No published IBAN: the buyer cannot transfer yet, so asking them to confirm
+                   a transfer would be asking them to claim something that never happened.
+                   WhatsApp becomes the primary action and the wording says what is true. #}
+                <strong>{% if xf_ar %}لم تُنشر بيانات الحساب بعد{% else %}Account details are not published yet{% endif %}</strong> —
+                {% if xf_ar %}تواصل معنا على واتساب برقم الفاتورة هذا وسنرسل لك بيانات التحويل فوراً.
+                {% else %}message us on WhatsApp with this invoice reference and we will send you the transfer details immediately.{% endif %}
             {% endif %}
         </p>
         <div class="xfer-actions">
-            <button type="button" class="xfer-btn xfer-main" id="xferReport">
-                {% if xf_ar %}أرسلت التحويل{% else %}I sent the transfer{% endif %}
+            {% if not xfer.bank.iban and xfer.contact.whatsapp %}
+            <a class="xfer-btn xfer-main" id="xferWa" href="{{ xfer.contact.whatsapp }}" target="_blank" rel="noopener">{% if xf_ar %}أرسل رقم الفاتورة عبر واتساب{% else %}Send the reference on WhatsApp{% endif %}</a>
+            {% endif %}
+            <button type="button" class="xfer-btn {% if xfer.bank.iban %}xfer-main{% else %}xfer-ghost{% endif %}" id="xferReport">
+                {% if xfer.bank.iban %}
+                    {% if xf_ar %}أرسلت التحويل{% else %}I sent the transfer{% endif %}
+                {% else %}
+                    {% if xf_ar %}دفعت بطريقة أخرى{% else %}I already paid another way{% endif %}
+                {% endif %}
             </button>
-            {% if xfer.contact.whatsapp %}
+            {% if xfer.contact.whatsapp and xfer.bank.iban %}
             <a class="xfer-btn xfer-alt" id="xferWa" href="{{ xfer.contact.whatsapp }}" target="_blank" rel="noopener">{% if xf_ar %}تواصل عبر واتساب{% else %}Contact on WhatsApp{% endif %}</a>
             {% endif %}
             <button type="button" class="xfer-btn xfer-ghost" data-copy-target="xferRef">{% if xf_ar %}نسخ رقم الفاتورة{% else %}Copy reference{% endif %}</button>
