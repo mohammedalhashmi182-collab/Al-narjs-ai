@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
+import time
 from typing import Optional
 from uuid import UUID
 
@@ -25,6 +27,16 @@ VAT_RATE = 0.15
 # needs MOYASAR_API_SECRET; without it the route silently degrades to a manual
 # invoice, which is why the UI asks capabilities() before offering a button.
 CARD_METHODS = ("mada", "stcpay", "creditcard", "applepay")
+
+# A configured secret is not a working secret. Production answered 401
+# "Invalid authorization credentials" on a set MOYASAR_API_SECRET, so the
+# checkout was advertising mada, Visa, Mastercard and Apple Pay and failing
+# every payment. The presence of the env var is not evidence, so this probes
+# the credential and trusts the answer.
+CREDENTIAL_PROBE_TTL_SECONDS = 300.0
+CREDENTIAL_PROBE_TIMEOUT_SECONDS = 4.0
+_credential_cache: dict[str, tuple[float, str]] = {}
+_credential_lock = asyncio.Lock()
 
 
 def vat_amount(halalas: int) -> int:
@@ -87,18 +99,70 @@ def paypal_collects_money() -> bool:
     return paypal_ready() and settings.paypal_mode == "live"
 
 
-def capabilities() -> dict:
+def cached_credential_state(name: str) -> str:
+    """The last probe answer, or "ok" while nothing has disproved it.
+
+    Optimistic on purpose: an unprobed or unreachable gateway must not remove a
+    method that works. Only a positive rejection hides it.
+    """
+    entry = _credential_cache.get(name)
+    if entry and entry[0] > time.monotonic():
+        return entry[1]
+    return "ok"
+
+
+async def probe_moyasar_credentials() -> str:
+    """Ask Moyasar whether the configured secret is accepted.
+
+    A GET on the invoice list is the cheapest authenticated call that changes
+    nothing. Only 401/403 counts as proof: a timeout, a DNS failure or any
+    unexpected status returns "unknown", which keeps the method visible, because
+    hiding a working checkout over a network blip costs a real sale.
+    """
+    settings = get_settings()
+    if not settings.moyasar_api_secret:
+        return "unset"
+
+    entry = _credential_cache.get("moyasar")
+    if entry and entry[0] > time.monotonic():
+        return entry[1]
+
+    async with _credential_lock:
+        entry = _credential_cache.get("moyasar")
+        if entry and entry[0] > time.monotonic():
+            return entry[1]
+        state = "unknown"
+        try:
+            async with httpx.AsyncClient(timeout=CREDENTIAL_PROBE_TIMEOUT_SECONDS) as client:
+                resp = await client.get(
+                    MOYASAR_INVOICES_URL,
+                    params={"page": 1},
+                    headers={"Authorization": _auth_header(settings)},
+                )
+            state = "rejected" if resp.status_code in (401, 403) else "ok"
+        except Exception:  # noqa: BLE001 - a probe must never raise into a request
+            state = "unknown"
+        _credential_cache["moyasar"] = (time.monotonic() + CREDENTIAL_PROBE_TTL_SECONDS, state)
+        return state
+
+
+def capabilities(card_state: Optional[str] = None) -> dict:
     """Which methods can actually take money right now.
 
     Booleans and public bank/contact details only — never a key, a secret or a
     token. The checkout renders exactly these methods, so a button can never
     promise a card payment that the server would quietly turn into a manual
     transfer.
+
+    ``card_state`` carries the Moyasar credential verdict. Pass the probed value
+    on the request path; omit it and the last known verdict is used.
     """
     from src.services import transfer
 
     settings = get_settings()
-    card = bool(settings.moyasar_api_secret)
+    if card_state is None:
+        card_state = cached_credential_state("moyasar")
+    card = bool(settings.moyasar_api_secret) and card_state != "rejected"
     paypal = paypal_collects_money()
     methods = {method: card for method in CARD_METHODS}
     methods["paypal"] = paypal
@@ -106,6 +170,8 @@ def capabilities() -> dict:
     return {
         "methods": methods,
         "card": card,
+        "card_configured": bool(settings.moyasar_api_secret),
+        "card_credentials": card_state,
         "paypal": paypal,
         "paypal_configured": paypal_ready(),
         "paypal_test_mode": paypal_ready() and settings.paypal_mode != "live",
@@ -115,25 +181,56 @@ def capabilities() -> dict:
     }
 
 
-def readiness() -> dict:
+async def capabilities_async() -> dict:
+    """capabilities() with a live credential verdict for the card gateway."""
+    return capabilities(card_state=await probe_moyasar_credentials())
+
+
+async def readiness_async() -> dict:
+    """readiness() with a live credential verdict for the card gateway."""
+    return readiness(card_state=await probe_moyasar_credentials())
+
+
+def readiness(card_state: Optional[str] = None) -> dict:
     """Owner-facing detail: what is configured and what is missing.
 
     Reports env-var *names* and booleans only. Values are never included, so
     this is safe to render on an owner screen.
     """
     settings = get_settings()
-    caps = capabilities()
+    caps = capabilities(card_state=card_state)
     missing: list[str] = []
     if not settings.moyasar_api_secret:
         missing.append("MOYASAR_API_SECRET")
     if not paypal_ready():
         missing.append("PAYPAL_CLIENT_ID+PAYPAL_CLIENT_SECRET")
+
+    # A configured-but-rejected secret is worse than a missing one: it looks
+    # ready and fails on every buyer. Name it first.
+    blocking: list[str] = []
+    if caps["card_credentials"] == "rejected":
+        blocking.append(
+            "MOYASAR_API_SECRET is set but Moyasar rejected it (401). "
+            "Card checkout is hidden and every card payment would fail."
+        )
+    if paypal_ready() and caps["paypal_test_mode"]:
+        blocking.append(
+            "PAYPAL_MODE is not 'live', so PayPal completes sandbox checkouts "
+            "that take no money. It is hidden until PAYPAL_MODE=live."
+        )
+    if not caps["bank"].get("iban"):
+        blocking.append(
+            "content/transfer.json has no bank details, so a bank-transfer "
+            "buyer cannot pay unaided and must be messaged."
+        )
+
     return {
         **caps,
         "collect_money_now": bool(caps["card"] or caps["paypal"]),
         "paypal_mode": settings.paypal_mode,
         "promo_active": promo_active(),
         "missing_env": missing,
+        "blocking_issues": blocking,
         "env_required": {
             "card": ["MOYASAR_API_SECRET", "MOYASAR_PUBLISHABLE_KEY"],
             "paypal": ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_MODE=live"],

@@ -71,11 +71,15 @@ def _gateway_config(moyasar=None, paypal_id=None, paypal_secret=None, paypal_mod
     object.__setattr__(s, "paypal_client_id", paypal_id)
     object.__setattr__(s, "paypal_client_secret", paypal_secret)
     object.__setattr__(s, "paypal_mode", paypal_mode)
+    # The credential verdict is cached at module level; drop it on both edges so
+    # one test can never hand the next one a "rejected" gateway.
+    pm._credential_cache.clear()
     try:
         yield
     finally:
         for n, v in old.items():
             object.__setattr__(s, n, v)
+        pm._credential_cache.clear()
 
 
 @contextmanager
@@ -194,6 +198,136 @@ class TestReadiness:
         with _gateway_config(moyasar=MOYASAR_SECRET, paypal_id="id", paypal_secret=PAYPAL_SECRET):
             blob = str(pm.readiness())
         assert MOYASAR_SECRET not in blob and PAYPAL_SECRET not in blob
+
+
+# ---------------------------------------------------------------------------
+# A configured secret is not a working secret
+#
+# Production answered 401 "Invalid authorization credentials" on a set
+# MOYASAR_API_SECRET, so the checkout advertised mada/Visa/Mastercard/Apple Pay
+# and failed every payment while reporting card: true. These pin the probe that
+# made the capability honest.
+# ---------------------------------------------------------------------------
+
+
+class _FakeResponse:
+    def __init__(self, status_code: int):
+        self.status_code = status_code
+        self.text = '{"type":"authentication_error"}'
+
+
+class _FakeClient:
+    """Records calls so the cache can be asserted, and replays a status."""
+
+    calls: list[str] = []
+    status = 200
+    boom = False
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        return False
+
+    async def get(self, url, params=None, headers=None):
+        type(self).calls.append(url)
+        if type(self).boom:
+            raise RuntimeError("network down")
+        return _FakeResponse(type(self).status)
+
+
+@pytest.fixture
+def fake_moyasar(monkeypatch):
+    _FakeClient.calls = []
+    _FakeClient.status = 200
+    _FakeClient.boom = False
+    monkeypatch.setattr(httpx, "AsyncClient", _FakeClient)
+    return _FakeClient
+
+
+class TestGatewayCredentialProbe:
+    async def test_a_rejected_secret_hides_every_card_method(self, fake_moyasar):
+        fake_moyasar.status = 401
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            state = await pm.probe_moyasar_credentials()
+            caps = await pm.capabilities_async()
+        assert state == "rejected"
+        assert caps["card"] is False and caps["card_configured"] is True
+        for method in pm.CARD_METHODS:
+            assert caps["methods"][method] is False
+        # The buyer still has a real way to pay.
+        assert caps["methods"]["invoice"] is True
+
+    async def test_an_accepted_secret_keeps_the_card_methods(self, fake_moyasar):
+        fake_moyasar.status = 200
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            state = await pm.probe_moyasar_credentials()
+            caps = await pm.capabilities_async()
+        assert state == "ok" and caps["card"] is True
+
+    async def test_a_network_blip_does_not_remove_a_working_method(self, fake_moyasar):
+        """Only positive proof of rejection may hide a payment method."""
+        fake_moyasar.boom = True
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            state = await pm.probe_moyasar_credentials()
+            caps = await pm.capabilities_async()
+        assert state == "unknown"
+        assert caps["card"] is True
+
+    async def test_the_verdict_is_cached_so_a_visitor_never_waits_twice(self, fake_moyasar):
+        fake_moyasar.status = 401
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            await pm.probe_moyasar_credentials()
+            await pm.probe_moyasar_credentials()
+            await pm.capabilities_async()
+        assert len(fake_moyasar.calls) == 1
+
+    async def test_the_probe_uses_an_endpoint_that_creates_nothing(self, fake_moyasar):
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            await pm.probe_moyasar_credentials()
+        assert fake_moyasar.calls == [pm.MOYASAR_INVOICES_URL]
+
+    async def test_no_secret_means_no_probe_at_all(self, fake_moyasar):
+        with _gateway_config():
+            assert await pm.probe_moyasar_credentials() == "unset"
+        assert fake_moyasar.calls == []
+
+    async def test_the_owner_is_told_the_credential_is_the_problem(self, fake_moyasar):
+        fake_moyasar.status = 401
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            report = await pm.readiness_async()
+        assert report["collect_money_now"] is False
+        assert any("MOYASAR_API_SECRET" in issue for issue in report["blocking_issues"])
+
+    async def test_sandbox_paypal_is_named_as_a_blocking_issue(self, fake_moyasar):
+        with _gateway_config(
+            moyasar=MOYASAR_SECRET,
+            paypal_id="id",
+            paypal_secret=PAYPAL_SECRET,
+            paypal_mode="sandbox",
+        ):
+            report = await pm.readiness_async()
+        assert any("PAYPAL_MODE" in issue for issue in report["blocking_issues"])
+
+    def test_missing_bank_details_are_named_as_a_blocking_issue(self):
+        with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file():
+            report = pm.readiness()
+        assert any("transfer.json" in issue for issue in report["blocking_issues"])
+
+    async def test_the_capabilities_endpoint_reports_the_rejection(self, api, fake_moyasar):
+        anon, _ = api
+        fake_moyasar.status = 401
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            response = await anon.get("/api/payments/capabilities")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["card_credentials"] == "rejected"
+        assert body["card"] is False
+        assert body["methods"]["mada"] is False
+        assert MOYASAR_SECRET not in str(body)
 
 
 # ---------------------------------------------------------------------------
@@ -402,6 +536,35 @@ class TestTemplates:
         assert "/transfer-reported" in partial
         assert "xferReport" in partial
         assert 'data-payment="{{ xfer.payment_id }}"' in partial
+
+    def test_an_unpublished_account_asks_for_the_reference_not_for_a_transfer(self):
+        """No IBAN means the buyer cannot have paid; do not imply they did."""
+        partial = self._read("partials/_transfer.html")
+        assert "لم تُنشر بيانات الحساب بعد" in partial
+        assert "Account details are not published yet" in partial
+        # WhatsApp is promoted to the primary action in that state.
+        assert "{% if not xfer.bank.iban and xfer.contact.whatsapp %}" in partial
+
+    async def test_the_invoice_offers_whatsapp_when_no_bank_details_exist(self, api, maker):
+        anon, _ = api
+        payment = await _insert_payment(maker)
+        with _bank_file():
+            r = await anon.get(f"/invoice/{payment.id}")
+        assert r.status_code == 200
+        body = r.text
+        assert "لم تُنشر بيانات الحساب بعد" in body
+        assert "wa.me" in body
+        assert "نسخ الآيبان" not in body
+
+    async def test_the_invoice_publishes_the_iban_when_it_is_set(self, api, maker):
+        anon, _ = api
+        payment = await _insert_payment(maker)
+        with _bank_file(iban="SA0380000000608010167519", bank_name="Al Rajhi"):
+            r = await anon.get(f"/invoice/{payment.id}")
+        body = r.text
+        assert "SA0380000000608010167519" in body
+        assert "لم تُنشر بيانات الحساب بعد" not in body
+        assert "نسخ الآيبان" in body
 
     def test_the_checkout_asks_the_server_which_methods_are_real(self):
         portal = self._read("portal.html")
