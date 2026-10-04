@@ -1,0 +1,75 @@
+{# Recovery page for an invoice link that does not resolve.
+
+   Reached when a buyer opens /invoice/{id} for a payment the database cannot
+   find. It happens for real: one production verification payment created during
+   a deploy restart returned 200 with this link and then answered "Invoice not
+   found" -- to a buyer who was at that moment deciding to pay.
+
+   So this page never ends the journey. It repeats the reference, states plainly
+   that the invoice could not be loaded, and puts WhatsApp and Telegram one tap
+   away with the reference already in the message. Same shell as invoice.html so
+   it does not look like a different (or broken) site.
+
+   Context: missing_ref — the 8-character reference shown to the buyer. #}
+{% set _lang = 'ar' %}
+{% set _ref = (missing_ref or '')|upper %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>تعذّر عرض الفاتورة | النرجس للذكاء الاصطناعي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Cairo',sans-serif; background:#FAFAF9; color:#292524; padding:24px; }
+        .inv { max-width:640px; margin:0 auto; background:#fff; border-radius:20px; overflow:hidden; border:1px solid #E7E5E4; }
+        .inv-head { background:#00879F; color:#fff; text-align:center; padding:28px 20px 24px; }
+        .inv-head .mark { color:#00879F; margin-bottom:6px; font-size:18px; }
+        .inv-head .nm { font-size:22px; font-weight:800; color:#fff; }
+        .inv-head .sb { font-size:11px; letter-spacing:3px; color:#00879F; }
+        .inv-head .uri { font-size:10px; color:#fff; opacity:.85; margin-top:6px; letter-spacing:1px; }
+        .inv-body { padding:26px; }
+        h1 { font-size:20px; font-weight:800; margin-bottom:8px; }
+        p { line-height:2; font-size:14px; color:#57534E; }
+        .ref { display:block; margin:18px 0; padding:16px; background:#FBFAF8; border:1px dashed #D6D3D1; border-radius:14px; text-align:center; }
+        .ref small { display:block; font-size:11px; color:#8A8580; margin-bottom:6px; }
+        .ref b { font-size:22px; letter-spacing:2px; word-break:break-all; }
+        .btn { display:flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:13px 18px; border-radius:14px; font-family:'Cairo',sans-serif; font-weight:700; font-size:15px; text-decoration:none; border:none; cursor:pointer; }
+        .wa { background:#25D366; color:#fff; width:100%; }
+        .tg { background:#4F7942; color:#fff; width:100%; margin-top:10px; }
+        .note { margin-top:18px; font-size:12px; color:#8A8580; line-height:1.9; }
+        .foot { text-align:center; font-size:11px; color:#8A8580; padding:16px; background:#FBFAF8; }
+    </style>
+</head>
+<body>
+    <div class="inv">
+        <div class="inv-head">
+            <div class="mark">✺</div>
+            <div class="nm">النرجس للذكاء الاصطناعي</div>
+            <div class="sb">AL-NARJIS AI · SMART AGENT PLATFORM</div>
+            <div class="uri">الرياض · www.karmaai.online</div>
+        </div>
+        <div class="inv-body">
+            <h1>لم نتمكن من عرض هذه الفاتورة</h1>
+            <p>
+                وصلنا طلبك لكن تعذّر تحميل الفاتورة. لا يوجد أي ضرر: احتفظ بالرقم
+                المرجعي أدناه وأرسله لنا، وسنرسل لك الفاتورة وبيانات التحويل
+                فوراً.
+            </p>
+            <span class="ref">
+                <small>رقم الفاتورة</small>
+                <b>{{ _ref }}</b>
+            </span>
+            {% set _msg = 'السلام عليكم، أرغب في إتمام الفاتورة رقم ' + _ref %}
+            <a class="btn wa" href="https://wa.me/966552978753?text={{ _msg|urlencode }}" target="_blank" rel="noopener">إرسال الرقم عبر واتساب</a>
+            <a class="btn tg" href="https://t.me/AlNarjs7BOT?start={{ _ref }}" target="_blank" rel="noopener">إرسال الرقم عبر تيليجرام</a>
+            <p class="note">هذا الرقم مرجعي فقط ولا يحتاج أي بيانات إضافية منك.</p>
+        </div>
+        <div class="foot">شكراً لثقتك بالنرجس للذكاء الاصطناعي ✺ · www.karmaai.online</div>
+    </div>
+</body>
+</html>

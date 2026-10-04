@@ -331,6 +331,112 @@ class TestGatewayCredentialProbe:
 
 
 # ---------------------------------------------------------------------------
+# A gateway failure must not hand the buyer a dead invoice link
+#
+# Production returned 200 with an invoice_url for a payment that was never
+# persisted: GET /invoice/{id} answered "Invoice not found". The buyer was told
+# an invoice existed and could not open it.
+# ---------------------------------------------------------------------------
+
+
+class TestGatewayFailureFallback:
+    async def _post_card(self, api, error: str):
+        anon, _ = api
+
+        async def _boom(*args, **kwargs):
+            raise pm.PaymentError(error)
+
+        with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
+            pm.initiate_moyasar = _boom
+            r = await anon.post(
+                "/api/payments",
+                json={"package": "growth", "method": "mada", "customer_name": "مشتر"},
+            )
+        return r
+
+    async def test_the_invoice_link_the_response_promises_actually_opens(self, api, monkeypatch):
+        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["gateway"] == "invoice"
+        invoice_url = body["invoice_url"]
+        assert invoice_url == f"/invoice/{body['payment_id']}"
+
+        anon, _ = api
+        page = await anon.get(invoice_url)
+        assert page.status_code == 200, f"dead invoice link: {invoice_url}"
+        assert body["payment_id"] in page.text
+
+    async def test_the_payment_is_reachable_after_the_gateway_failed(self, api, monkeypatch):
+        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
+        payment_id = r.json()["payment_id"]
+        anon, _ = api
+        fetched = await anon.get(f"/api/payments/{payment_id}")
+        assert fetched.status_code == 200
+
+    async def test_the_buyer_can_report_the_transfer_on_that_invoice(self, api, monkeypatch):
+        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
+        payment_id = r.json()["payment_id"]
+        anon, _ = api
+        report = await anon.post(f"/api/payments/{payment_id}/transfer-reported")
+        assert report.status_code == 200
+
+    async def test_the_gateway_error_is_not_shown_to_the_buyer(self, api, monkeypatch):
+        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
+        assert "401" in r.json()["message"]  # the owner still sees the cause
+        anon, _ = api
+        page = await anon.get(r.json()["invoice_url"])
+        assert "Moyasar error" not in page.text
+        assert "Invalid authorization credentials" not in page.text
+
+
+class TestUnresolvableInvoiceLink:
+    """The buyer reaches this URL at the moment they decide to pay.
+
+    A bare 404 JSON ends the sale. One production payment answered 200 with this
+    link and then "Invoice not found", so the page now recovers instead.
+    """
+
+    async def test_an_unknown_reference_answers_a_page_not_a_json_error(self, api):
+        anon, _ = api
+        r = await anon.get("/invoice/00000000-0000-0000-0000-000000000000")
+        assert r.status_code == 404
+        assert "application/json" not in r.headers.get("content-type", "")
+        assert "لم نتمكن من عرض هذه الفاتورة" in r.text
+
+    async def test_the_recovery_page_shows_the_reference_the_buyer_can_read_out(self, api):
+        anon, _ = api
+        r = await anon.get("/invoice/deadbeef-0000-0000-0000-000000000000")
+        assert "DEADBEEF" in r.text
+
+    async def test_the_recovery_page_offers_a_way_to_reach_a_human(self, api):
+        anon, _ = api
+        body = (await anon.get("/invoice/deadbeef-0000-0000-0000-000000000000")).text
+        assert "wa.me/966552978753" in body
+        assert "t.me/AlNarjs7BOT" in body
+        assert "DEADBEEF" in body.split("wa.me")[0] or "text=" in body
+
+    async def test_a_malformed_reference_does_not_crash(self, api):
+        anon, _ = api
+        r = await anon.get("/invoice/not-a-uuid-at-all")
+        assert r.status_code == 404
+        assert "لم نتمكن" in r.text
+
+    async def test_the_english_buyer_gets_the_english_page(self, api):
+        anon, _ = api
+        r = await anon.get("/invoice/deadbeef-0000-0000-0000-000000000000", cookies={"narjis_lang": "en"})
+        assert "We could not load this invoice" in r.text
+        assert "Send the reference on WhatsApp" in r.text
+
+    async def test_a_real_invoice_is_never_replaced_by_the_recovery_page(self, api, maker):
+        anon, _ = api
+        payment = await _insert_payment(maker)
+        r = await anon.get(f"/invoice/{payment.id}")
+        assert r.status_code == 200
+        assert "لم نتمكن من عرض هذه الفاتورة" not in r.text
+
+
+# ---------------------------------------------------------------------------
 # Transfer instructions
 # ---------------------------------------------------------------------------
 
