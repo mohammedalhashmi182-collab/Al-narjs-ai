@@ -527,13 +527,23 @@
                             <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
                                 <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
                             </button>`).join('');
-                        if (hidden && !cap.card && !cap.paypal) {
+if (hidden) {
                             const note = document.getElementById('coCardNote');
                             if (note) {
                                 note.hidden = false;
-                                note.textContent = ar
-                                    ? 'الدفع بالبطاقة غير مفعّل حالياً — التحويل البنكي يفعّل باقتك فور تأكيد الإيداع.'
-                                    : 'Card checkout is not live yet — a bank transfer activates your plan as soon as it lands.';
+                                let msg;
+                                if (!cap.card) {
+                                    msg = ar
+                                        ? 'الدفع بالبطاقة غير مفعّل حالياً — التحويل البنكي يفعّل باقتك فور تأكيد الإيداع.'
+                                        : 'Card checkout is not live yet — a bank transfer activates your plan as soon as it lands.';
+                                } else if (cap.paypal_test_mode) {
+                                    msg = ar
+                                        ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
+                                        : 'PayPal is in test mode, so only the live payment methods are shown.';
+                                } else {
+                                    msg = ar ? 'وسائل الدفع المفعّلة فقط.' : 'Only the enabled payment methods are shown.';
+                                }
+note.textContent = msg;
                             }
                         }
                         document.querySelectorAll('.co-method').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.m)));
