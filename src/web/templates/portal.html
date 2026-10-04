@@ -161,6 +161,7 @@
                     </button>
                 </div>
                 <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
+                <p id="coCardNote" hidden class="mt-4 text-sm" style="color:var(--n-brown-2);"></p>
                 <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
                 <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
                     <i class="fas fa-arrow-left"></i> <span data-lang="ar">رجوع للفريق</span><span data-lang="en" data-inline>Back to Team</span>
@@ -511,19 +512,46 @@
                     if (!coPkg) return;
                     showCoSummary();
                     const ar = isAr();
-                    const methods = [
+                    const all = [
                         { m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' },
                         { m: 'mada', i: 'fas fa-credit-card', t: ar ? 'مدى / بطاقة مصرفية' : 'mada / Bank Card' },
                         { m: 'applepay', i: 'fab fa-apple', t: 'Apple Pay' },
                         { m: 'invoice', i: 'fas fa-landmark', t: ar ? 'تحويل بنكي' : 'Bank Transfer' },
                     ];
-                    $('coMethods').innerHTML = methods.map(x => `
-                        <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
-                            <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
-                        </button>`).join('');
-                    document.querySelectorAll('.co-method').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.m)));
-                    $('step-team').classList.add('hidden');
-                    $('step-checkout').classList.remove('hidden');
+                    // Never offer a method the server cannot settle: a card button
+                    // that silently becomes a manual transfer is a dead promise.
+                    fetch('/api/payments/capabilities').then(r => r.json()).then(cap => {
+                        const live = all.filter(x => cap.methods[x.m]);
+                        const hidden = all.length - live.length;
+                        $('coMethods').innerHTML = live.map(x => `
+                            <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
+                                <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
+                            </button>`).join('');
+                        if (hidden && !cap.card && !cap.paypal) {
+                            const note = document.getElementById('coCardNote');
+                            if (note) {
+                                note.hidden = false;
+                                note.textContent = ar
+                                    ? 'الدفع بالبطاقة غير مفعّل حالياً — التحويل البنكي يفعّل باقتك فور تأكيد الإيداع.'
+                                    : 'Card checkout is not live yet — a bank transfer activates your plan as soon as it lands.';
+                            }
+                        }
+                        document.querySelectorAll('.co-method').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.m)));
+                        $('step-team').classList.add('hidden');
+                        $('step-checkout').classList.remove('hidden');
+                        if (window.fbq && window.NARJIS_CO) {
+                            fbq('track', 'InitiateCheckout', {
+                                content_ids: [coPkg.key],
+                                content_type: 'product',
+                                value: window.NARJIS_CO.total,
+                                currency: 'SAR'
+                            });
+                        }
+                    }).catch(() => {
+                        document.querySelectorAll('.co-method').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.m)));
+                        $('step-team').classList.add('hidden');
+                        $('step-checkout').classList.remove('hidden');
+                    });
                 }).catch(() => alert(txt('تعذر تحميل بيانات الدفع', 'Failed to load payment data')));
             }
             $('subscribeBtn').addEventListener('click', openCheckout);
@@ -567,10 +595,18 @@
                         window.location.href = data.redirect_url;
                         return;
                     }
+                    const sar = v => (Number(v || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    // Quote what the invoice bills, not the pre-VAT base.
+                    const due = data.invoice_total || data.total;
                     if (data.gateway === 'invoice') {
                         msg.innerHTML = '<div style="color:var(--n-green);">' + (isAr()
-                            ? 'فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + data.total.toLocaleString() + ' ر.س. أرسل التحويل وأخبرنا عبر تيليجرام لتفعيل باقتك فوراً.'
-                            : 'Invoice ' + data.payment_id.slice(0, 8).toUpperCase() + ' created — ' + data.total.toLocaleString() + ' SAR. Send the transfer and notify us on Telegram to activate instantly.') + '</div>';
+                            ? 'فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + sar(due) + ' ر.س'
+                            : 'Invoice ' + data.payment_id.slice(0, 8).toUpperCase() + ' created — ' + sar(due) + ' SAR') +
+                            '<a class="btn btn-gold" style="margin-top:12px;width:100%;" href="' + (data.invoice_url || ('/invoice/' + data.payment_id)) + '">' +
+                            (isAr() ? 'افتح الفاتورة وأكمل التحويل' : 'Open the invoice and pay') + '</a>' +
+                            '<div style="margin-top:10px;font-size:.85rem;opacity:.75;">' + (isAr()
+                                ? 'تحويل بنكي يفعّل باقتك فور تأكيد الإيداع.'
+                                : 'A bank transfer activates your plan once the payment lands.') + '</div></div>';
                         return;
                     }
                     throw new Error(txt('تعذر إتمام الدفع', 'Payment failed'));

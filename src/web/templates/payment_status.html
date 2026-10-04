@@ -117,8 +117,10 @@
                 }
                 if (ok) {
                     try {
-                        if (window.fbq) fbq('track', 'Purchase', { value: st.value || (st.total || st.amount || 0), currency: 'SAR', transaction_id: id });
-                        if (typeof gtag === 'function') gtag('event', 'purchase', { value: st.value || (st.total || st.amount || 0), currency: 'SAR', transaction_id: id });
+                        // /api/payments speaks halalas; every ad platform wants SAR.
+                        var purchaseValue = Number(st.value || st.total || st.amount || 0) / 100;
+                        if (window.fbq) fbq('track', 'Purchase', { value: purchaseValue, currency: 'SAR', transaction_id: id });
+                        if (typeof gtag === 'function') gtag('event', 'purchase', { value: purchaseValue, currency: 'SAR', transaction_id: id });
                     } catch (e) { }
                     window.history.replaceState(null, '', '/payment/success?id=' + id);
                     var pg = document.getElementById('portalGo');

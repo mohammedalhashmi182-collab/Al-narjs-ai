@@ -217,6 +217,7 @@
             return r.json().catch(function () { return {}; });
         }).then(function (res) {
             if (!res) return;
+            if (window.fbq) fbq('track', 'Lead');
             msg.className = 'msg ok';
             msg.textContent = 'تم تفعيل وصولك المبكر! نرسل لك ترحيب وتفاصيل الفريق على بريدك.';
             if (res.lead_id) {
