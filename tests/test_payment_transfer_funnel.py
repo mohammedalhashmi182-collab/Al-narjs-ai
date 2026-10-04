@@ -147,11 +147,14 @@ class TestCapabilities:
             caps = pm.capabilities()
         assert caps["paypal"] is True and caps["paypal_test_mode"] is False
 
-    def test_a_sandbox_paypal_is_flagged_as_a_test_mode(self):
+    def test_a_sandbox_paypal_is_not_offered_as_a_way_to_pay(self):
+        """A sandbox checkout takes no money: showing it is a dead CTA."""
         with _gateway_config(paypal_id="id", paypal_secret=PAYPAL_SECRET, paypal_mode="sandbox"):
             caps = pm.capabilities()
-        assert caps["paypal"] is True
+        assert caps["paypal_configured"] is True
         assert caps["paypal_test_mode"] is True
+        assert caps["paypal"] is False
+        assert caps["methods"]["paypal"] is False
 
     def test_capabilities_never_expose_a_secret(self):
         with _gateway_config(moyasar=MOYASAR_SECRET, paypal_id="id", paypal_secret=PAYPAL_SECRET):
@@ -404,6 +407,11 @@ class TestTemplates:
         portal = self._read("portal.html")
         assert "/api/payments/capabilities" in portal
         assert "cap.methods[x.m]" in portal
+
+    def test_a_hidden_method_is_explained_rather_than_silently_dropped(self):
+        portal = self._read("portal.html")
+        assert "if (hidden) {" in portal
+        assert "coCardNote" in portal
 
     def test_the_invoice_branch_leads_the_buyer_to_the_payable_invoice(self):
         portal = self._read("portal.html")

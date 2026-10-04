@@ -77,6 +77,16 @@ def paypal_ready() -> bool:
     return bool(settings.paypal_client_id and settings.paypal_client_secret)
 
 
+def paypal_collects_money() -> bool:
+    """A sandbox PayPal completes a checkout that never charges the buyer.
+
+    Offering it next to the real methods is worse than not offering it: the
+    buyer pays, no money moves, no subscription activates.
+    """
+    settings = get_settings()
+    return paypal_ready() and settings.paypal_mode == "live"
+
+
 def capabilities() -> dict:
     """Which methods can actually take money right now.
 
@@ -89,7 +99,7 @@ def capabilities() -> dict:
 
     settings = get_settings()
     card = bool(settings.moyasar_api_secret)
-    paypal = paypal_ready()
+    paypal = paypal_collects_money()
     methods = {method: card for method in CARD_METHODS}
     methods["paypal"] = paypal
     methods["invoice"] = True
@@ -97,7 +107,8 @@ def capabilities() -> dict:
         "methods": methods,
         "card": card,
         "paypal": paypal,
-        "paypal_test_mode": bool(paypal and settings.paypal_mode != "live"),
+        "paypal_configured": paypal_ready(),
+        "paypal_test_mode": paypal_ready() and settings.paypal_mode != "live",
         "invoice": True,
         "bank": transfer.bank_details(),
         "contact": transfer.contact_channels(),
