@@ -25,9 +25,46 @@ configure_logging(settings.log_level, settings.log_json)
 logger = get_logger(__name__)
 
 
+def _log_database_target() -> None:
+    """Say out loud, at boot, where the data actually lives.
+
+    Production ran for weeks on ``sqlite+aiosqlite:///ai_agent_system.db`` inside
+    the container. The file is on the container's ephemeral filesystem, so every
+    deploy and every restart silently destroyed every lead, client project and
+    payment. Nothing failed, nothing warned: the site answered 200 the whole time,
+    and three test payments created an hour apart were each gone after the next
+    deploy.
+
+    The check below changes no behaviour. It exists so the next occurrence is
+    visible in the boot log instead of being discovered the way this one was.
+    The database URL is never logged -- only the dialect and the target kind.
+    """
+    from src.db.session import engine
+
+    dialect = engine.dialect.name
+    database = str(engine.url.database or "")
+
+    if dialect != "sqlite":
+        logger.info("Database dialect: %s (persistent target)", dialect)
+        return
+
+    if database in ("", ":memory:"):
+        logger.info("Database is SQLite in-memory: expected for tests and local runs.")
+        return
+
+    logger.warning(
+        "Database is the SQLite file %s. Fine locally, unsafe on Render: the "
+        "container filesystem is ephemeral, so every deploy and restart deletes "
+        "all data. Point DATABASE_URL at a persistent store before taking real "
+        "leads.",
+        database,
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    _log_database_target()
     session_factory = await get_session_factory()
 
     from src.core.agent_registry import AgentRegistry
