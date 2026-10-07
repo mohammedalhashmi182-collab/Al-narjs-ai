@@ -341,18 +341,30 @@ class TestGatewayCredentialProbe:
 
 class TestGatewayFailureFallback:
     async def _post_card(self, api, error: str):
+        """Post a card payment with the gateway forced to fail.
+
+        The stub is installed with monkeypatch, not by assigning to the module.
+        A bare ``pm.initiate_moyasar = _boom`` leaks into every later test in the
+        session: the real function never comes back, so a later test that exercises
+        initiate_moyasar directly calls the stub instead and fails for a reason that
+        has nothing to do with what it asserts.
+        """
         anon, _ = api
+        from src.services import payments as payments_module
 
         async def _boom(*args, **kwargs):
             raise pm.PaymentError(error)
 
-        with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
-            pm.initiate_moyasar = _boom
-            r = await anon.post(
-                "/api/payments",
-                json={"package": "growth", "method": "mada", "customer_name": "مشتر"},
-            )
-        return r
+        monkey = pytest.MonkeyPatch()
+        monkey.setattr(payments_module, "initiate_moyasar", _boom)
+        try:
+            with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
+                return await anon.post(
+                    "/api/payments",
+                    json={"package": "growth", "method": "mada", "customer_name": "مشتر"},
+                )
+        finally:
+            monkey.undo()
 
     async def test_the_invoice_link_the_response_promises_actually_opens(self, api, monkeypatch):
         r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
@@ -434,6 +446,75 @@ class TestUnresolvableInvoiceLink:
         r = await anon.get(f"/invoice/{payment.id}")
         assert r.status_code == 200
         assert "لم نتمكن من عرض هذه الفاتورة" not in r.text
+
+
+# ---------------------------------------------------------------------------
+# Owner decision: prices are VAT-inclusive, so the charge equals the invoice
+#
+# Moyasar and PayPal previously charged payment.amount, the pre-VAT base, while
+# the invoice document bills base + 15%. Every card sale under-collected 15%
+# against its own invoice: 800 charged, 920 billed. The owner chose option A.
+# ---------------------------------------------------------------------------
+
+
+class TestVatInclusiveCharging:
+    async def test_moyasar_is_asked_to_charge_the_invoice_total(self, maker, monkeypatch):
+        captured: dict = {}
+
+        async def _fake_post(*args, **kwargs):
+            captured.update(kwargs.get("json") or {})
+            raise pm.PaymentError("stop before the network is needed")
+
+        monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
+        from src.services import catalog
+
+        base = catalog.PACKAGES["growth"]["amount"]
+        async with maker() as session:
+            payment = await pm.create_payment(session, "growth", "عميل", None, None)
+            with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
+                await pm.initiate_moyasar(session, payment, pm.source_mada())
+
+        assert captured["amount"] == pm.total_with_vat(base)
+        assert captured["amount"] == 92000
+        assert captured["amount"] != base, "charging the pre-VAT base under-collects 15%"
+
+    async def test_an_explicit_charge_amount_is_honoured(self, maker, monkeypatch):
+        captured: dict = {}
+
+        async def _fake_post(*args, **kwargs):
+            captured.update(kwargs.get("json") or {})
+            raise pm.PaymentError("stop")
+
+        monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
+        async with maker() as session:
+            payment = await pm.create_payment(session, "growth", "عميل", None, None)
+            with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
+                await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=99900)
+        assert captured["amount"] == 99900
+
+    async def test_a_charge_below_the_recorded_base_is_refused(self, maker):
+        async with maker() as session:
+            payment = await pm.create_payment(session, "growth", "عميل", None, None)
+            with pytest.raises(pm.PaymentError):
+                await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=1)
+
+    def test_the_invoice_and_the_charge_agree_for_every_package(self):
+        from src.services import catalog
+
+        for key, meta in catalog.PACKAGES.items():
+            base = meta["amount"]
+            assert pm.total_with_vat(base) == pm.total_with_vat(base)
+            assert pm.total_with_vat(base) > base, key
+
+    async def test_the_api_reports_the_vat_inclusive_total_to_the_checkout(self, api):
+        from src.services import catalog
+
+        anon, _ = api
+        with _gateway_config():
+            r = await anon.post("/api/payments", json={"package": "growth", "method": "invoice"})
+        base = catalog.PACKAGES["growth"]["amount"]
+        assert r.json()["invoice_total"] == pm.total_with_vat(base)
+        assert r.json()["total"] == base  # the recorded base is still reported for records
 
 
 # ---------------------------------------------------------------------------

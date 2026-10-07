@@ -313,15 +313,29 @@ async def create_payment(
     return payment
 
 
-async def initiate_moyasar(session: AsyncSession, payment: Payment, source: dict, callback_url: Optional[str] = None) -> dict:
+async def initiate_moyasar(
+    session: AsyncSession,
+    payment: Payment,
+    source: dict,
+    callback_url: Optional[str] = None,
+    amount_halalas: Optional[int] = None,
+) -> dict:
     settings = get_settings()
     if not settings.moyasar_api_secret:
         raise PaymentError("Moyasar API secret not configured")
 
+    # Owner decision (option A): package prices are VAT-inclusive, so the amount
+    # charged must equal what the invoice bills. This previously charged
+    # payment.amount (the pre-VAT base) while the invoice document showed
+    # base + 15%, under-collecting 15% on every card sale.
+    charge = total_with_vat(payment.amount) if amount_halalas is None else amount_halalas
+    if charge < payment.amount:
+        raise PaymentError("Charge amount is below the recorded base amount")
+
     # Use the hosted-invoice flow so the customer pays on Moyasar's checkout
     # page without requiring client-side card tokenization.
     payload = {
-        "amount": payment.amount,
+        "amount": charge,
         "currency": "SAR",
         "description": payment.description or "النرجس للذكاء الاصطناعي",
         "callback_url": callback_url or settings.payment_success_url,
