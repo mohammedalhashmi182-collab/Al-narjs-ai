@@ -1,1 +1,1 @@
-# src/interfaces/__init__.py
+﻿# interfaces package
