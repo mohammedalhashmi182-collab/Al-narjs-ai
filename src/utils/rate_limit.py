@@ -26,6 +26,16 @@ class SlidingWindowLimiter:
             q.append(now)
             return True, 0
 
+    def reset(self) -> None:
+        """Drop all recorded hits.
+
+        The limiters are process-wide by design, so a test suite that drives one
+        endpoint repeatedly exhausts the window and every later test sees a 429
+        that has nothing to do with what it is asserting.
+        """
+        with self._lock:
+            self._hits.clear()
+
 
 def client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
@@ -69,6 +79,39 @@ transfer_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=600)
 
 def rate_limit_transfer_report(request: Request) -> None:
     ok, retry_after = transfer_limiter.check(f"{client_ip(request)}:/api/payments/transfer-reported")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+# The Botpress closed-sale endpoint creates a customer, wakes the CEO and pushes
+# an owner alert in one call, so it is the most expensive endpoint in the app.
+# The signature already proves the caller is Botpress; this limits a misconfigured
+# or replaying sender. Deliberately tight: real closed sales are rare.
+botpress_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=300)
+
+
+def rate_limit_botpress(request: Request) -> None:
+    ok, retry_after = botpress_limiter.check(f"{client_ip(request)}:/api/v1/botpress-lead")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+# Karmish drives the model provider, so every call costs money and tokens. It is
+# owner-only, and this is the second lock: a stolen session cookie must not be
+# able to run up a bill.
+karmish_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=300)
+
+
+def rate_limit_karmish(request: Request) -> None:
+    ok, retry_after = karmish_limiter.check(f"{client_ip(request)}:/api/v1/karmish/talk")
     if not ok:
         raise HTTPException(
             status_code=429,

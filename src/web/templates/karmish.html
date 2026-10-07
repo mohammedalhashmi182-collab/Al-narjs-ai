@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}كرميش — وحدة تحكم المالك | النرجس للذكاء الاصطناعي{% endblock %}
+
+{% block content %}
+{#
+   Karmish is the owner's console, not a marketing page.
+
+   It talks to the CEO and the fleet, so it is deliberately NOT public and NOT
+   indexable: the route requires the owner session cookie and the page ships
+   `noindex, nofollow`. The first version of this screen was a public route whose
+   copy promised "full permissions to control the system" and "run any command
+   without human intervention" — an unauthenticated command surface for the
+   whole fleet, one URL away.
+
+   Everything visible here is owner-only. No stack traces, no secrets, no
+   environment values, and the agent count is read from the live catalog rather
+   than hard-coded, because the count changes with the roster.
+#}
+<div class="k-shell" id="kShell" data-owner="{{ agent_count }}" data-locale="{{ _lang }}">
+
+    <header class="k-head">
+        <div class="k-head-title">
+            <span class="k-disc" aria-hidden="true"></span>
+            <div>
+                <h1 class="k-title">كرميش</h1>
+                <p class="k-sub">Karmish · {{ agent_count }} وكيلاً · جلسة المالك</p>
+            </div>
+        </div>
+        <div class="k-head-state">
+            <span class="k-pill" id="kStatus" data-state="idle">جاهز</span>
+        </div>
+    </header>
+
+    <main class="k-main">
+        <ol class="k-log" id="kLog" role="log" aria-live="polite" aria-relevant="additions">
+            <li class="k-msg k-msg--karmish">
+                <div class="k-bubble">
+                    أهلاً. أنا كرميش. هذه الجلسة مرتبطة بمالك النظام فقط.
+                    اكتب أمراً وسأمرّره للـ CEO وأ落实到 الوكلاء.
+                </div>
+            </li>
+        </ol>
+
+        <form class="k-compose" id="kForm" autocomplete="off">
+            <label class="k-sr-only" for="kInput">اكتب رسالتك إلى كرميش</label>
+            <textarea class="k-input" id="kInput" name="message" rows="1" maxlength="2000"
+                      placeholder="اكتب أمراً لكرميش…" required></textarea>
+            <button class="k-send" id="kSend" type="submit" disabled>إرسال</button>
+        </form>
+
+        <p class="k-foot">
+            كل أمر يُنفَّذ عبر الـ CEO ولا يُنفَّذ مباشرة على الخادم.
+            الحسابات والأسعار والدفع لا تتغير من هنا.
+        </p>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/karmish.js') }}"></script>
+{% endblock %}
