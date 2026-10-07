@@ -75,6 +75,13 @@ async def init_db():
                 ("step_executions", "cost", "NUMERIC(12,4) NOT NULL DEFAULT 0"),
                 # Client subscription lifecycle (payment -> project activation)
                 ("payments", "project_id", "UUID"),
+                # The production Postgres was built before this column existed on
+                # the model. create_all() creates missing *tables* but never adds
+                # missing *columns* to a table that already exists, so the column
+                # was absent while the model declared it: every payment INSERT
+                # failed with "column lead_id does not exist" and the checkout
+                # answered 500 to every buyer.
+                ("payments", "lead_id", "UUID"),
                 ("client_projects", "subscription_note", "TEXT"),
             ]
             for table, column, ddl in placeholders:
