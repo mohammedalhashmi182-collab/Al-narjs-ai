@@ -29,6 +29,11 @@ PRIVATE_PREFIXES = (
     "/demo",
     "/invoice",
     "/payment",
+    # Karmish is the owner console. It drives the CEO brain, the queue and the
+    # model provider behind an owner session cookie, so it must never be indexed
+    # or advertised. It is served with X-Robots-Tag: noindex as well; this entry
+    # is the half that keeps it out of sitemap.xml and robots.txt Allow rules.
+    "/karmish",
 )
 
 # Public, indexable pages: (path, changefreq, priority)

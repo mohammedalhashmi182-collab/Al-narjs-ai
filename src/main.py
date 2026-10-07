@@ -248,6 +248,50 @@ try:
 except Exception:
     pass
 
+# Static assets are content-addressed by deploy, not by filename, so a browser
+# that already has narjis.css must not re-download it on every page view.
+# StaticFiles already sends ETag and Last-Modified and honours conditional
+# requests; what was missing was an explicit Cache-Control, so a repeat visit
+# still paid a full round trip per asset. Fingerprinted and non-fingerprinted
+# assets are treated differently on purpose -- see _static_cache_control.
+_STATIC_IMMUTABLE = {"max-age=31536000", "immutable"}
+_STATIC_REVALIDATE = {"max-age=3600", "public", "must-revalidate"}
+# CSS/JS that ship under a stable name and change on deploy. Cached for an hour
+# with revalidation, so a deploy is picked up without a hard reload.
+_STATIC_REVALIDATE_DIRS = ("/css/", "/js/")
+_STATIC_REVALIDATE_SUFFIXES = (".css", ".js")
+
+
+def _static_cache_control(path: str) -> str:
+    """Choose a cache policy for one static asset.
+
+    Long-lived, immutable assets (images, fonts, vendor bundles) are cached for a
+    year. Hand-edited CSS/JS keep their filename across deploys, so caching them
+    for a year would serve stale code after a release -- they get a bounded,
+    revalidated cache instead. HTML is never touched here; that would pin a page
+    to an old shell.
+    """
+    lowered = path.lower()
+    if lowered.endswith(_STATIC_REVALIDATE_SUFFIXES):
+        if any(marker in lowered for marker in _STATIC_REVALIDATE_DIRS):
+            return ", ".join(sorted(_STATIC_REVALIDATE))
+    return ", ".join(sorted(_STATIC_IMMUTABLE))
+
+
+@app.middleware("http")
+async def static_cache_headers(request: Request, call_next):
+    """Attach Cache-Control to /static responses, and only to /static.
+
+    Added last so it wraps the static mount: the header must be set on the file
+    response, not recomputed per template render.
+    """
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/static/"):
+        response.headers.setdefault("Cache-Control", _static_cache_control(path))
+    return response
+
+
 templates = Jinja2Templates(directory="src/web/templates")
 
 
@@ -285,6 +329,13 @@ app.include_router(telegram_router)
 from src.interfaces.whatsapp_routes import router as whatsapp_router  # noqa: E402
 
 app.include_router(whatsapp_router)
+
+# Botpress is a third channel: it only carries closed sales from the social
+# media agent into the CRM, the CEO brain and the queue. It is signed with its
+# own secret and inert until BOTPRESS_WEBHOOK_SECRET is set.
+from src.interfaces.botpress_routes import router as botpress_router  # noqa: E402
+
+app.include_router(botpress_router)
 
 
 async def get_session() -> AsyncSession:
@@ -371,10 +422,35 @@ async def owner_entry(request: Request):
     return RedirectResponse("/")
 
 
+# Karmish: the owner's console for the CEO and the fleet. Owner session required,
+# because it can drive agents and the model provider. This is why /karmish is in
+# seo.PRIVATE_PREFIXES rather than in the sitemap -- an unauthenticated command
+# surface for 35 agents must never be indexable. The agent count is read live,
+# never hard-coded, per the design-system rule.
+@app.get("/karmish", response_class=HTMLResponse)
+async def karmish_page(request: Request):
+    from src.core.owner_auth import check_owner
+    from src.services import catalog
+
+    if not check_owner(request):
+        return RedirectResponse("/login")
+
+    response = templates.TemplateResponse(
+        request,
+        "karmish.html",
+        {
+            "_lang": _request_locale(request),
+            "agent_count": len(catalog.EMPLOYEES),
+        },
+    )
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
     from src.services import catalog
-
     employees = list(catalog.EMPLOYEES.values())
     agent_count = len(employees)
     registry = getattr(app.state, "agent_registry", None)
