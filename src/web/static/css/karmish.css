@@ -1,0 +1,14 @@
+﻿:root{--k-bg-primary:#0b0f19;--k-bg-secondary:#111827;--k-text-primary:#f3f4f6;--k-text-secondary:#9ca3af;--k-brand:#d4af37;--k-border:#1f2937}
+.karmish-wrapper{display:flex;height:100dvh;background:radial-gradient(circle at center,#111827 0%,#0b0f19 100%);color:var(--k-text-primary);font-family:'Cairo',sans-serif}
+.k-chat-header{padding:20px;border-bottom:1px solid var(--k-border);display:flex;align-items:center}
+.k-header-title h1{margin:0;font-size:18px;color:var(--k-brand)}
+.k-header-title p{margin:0;font-size:12px;color:var(--k-text-secondary)}
+.k-chat-messages{flex:1;overflow-y:auto;padding:30px;display:flex;flex-direction:column;gap:20px}
+.k-welcome{text-align:center;margin:auto;max-width:680px}
+.k-welcome h2{color:var(--k-brand);font-size:28px;margin:0}
+.k-welcome p{color:var(--k-text-secondary);line-height:1.9}
+.k-chat-input-area{padding:25px;border-top:1px solid var(--k-border)}
+.k-input-wrapper{width:min(880px,92vw);margin:0 auto;background:#111827;border:1px solid #374151;border-radius:30px;padding:8px 8px 8px 16px;display:flex;align-items:flex-end;gap:10px;box-shadow:0 10px 25px rgba(0,0,0,.3)}
+#kChatInput{flex:1;background:transparent;border:none;outline:none;color:#fff;font-family:inherit;font-size:15px;line-height:1.9;min-height:44px;max-height:220px;resize:none;padding:8px 4px}
+.k-send-btn{background:var(--k-brand);border:none;color:#0b0f19;font-weight:700;padding:10px 20px;border-radius:20px;cursor:pointer;height:44px}
+.k-send-btn:hover{background:#f3cd57}

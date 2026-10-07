@@ -1,29 +1,16 @@
-{
-  "$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "genspark-llm-proxy": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Genspark LLM Proxy (optional)",
-      "options": {
-        "baseURL": "https://www.genspark.ai/api/llm_proxy/v1",
-        "apiKey": "{env:GENSPARK_API_KEY}"
-      },
-      "models": {
-        "claude-haiku-4-5": {
-          "name": "Claude Haiku 4.5",
-          "limit": {
-            "context": 200000,
-            "output": 32768
-          }
-        },
-        "grok-4.7": {
-          "name": "Grok 4.7",
-          "limit": {
-            "context": 200000,
-            "output": 32768
-          }
-        }
-      }
+﻿{
+  "project": "Al-Narjis AI Corporate",
+  "domain": "karmaai.online",
+  "agent_settings": {
+    "mode": "build",
+    "provider": "opencode-go",
+    "model": "deepseek-v4-pro"
+  },
+  "integrations": {
+    "google_one_storage": true,
+    "botpress_webhooks": {
+      "social_media_agent": "/api/v1/social-webhook",
+      "karmish_twin_agent": "/api/v1/karmish-twin"
     }
   }
 }

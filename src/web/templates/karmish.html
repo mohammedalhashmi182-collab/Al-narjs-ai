@@ -1,0 +1,43 @@
+﻿{% extends "base.html" %}
+{% import "partials/_seo.html" as seo with context %}
+
+{% block head %}
+{{ seo.head(
+  "كرميش - التوأم الرقمي الذكي | النرجس للذكاء الاصطناعي",
+  "Karmish - Al-Narjis AI Digital Twin",
+  "التوأم الرقمي كرميش للذكاء الاصطناعي: واجهة محادثة فاخرة، عصرية وحصرية لشركة النرجس.",
+  "Karmish digital twin: premium ChatGPT-like interface by Al-Narjis AI.",
+  request.url.path,
+  og_type="website"
+) }}
+<link rel="stylesheet" href="{{ url_for('static', path='css/karmish.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="karmish-wrapper" id="karmishApp">
+  <main class="karmish-main" style="width:100%">
+    <header class="k-chat-header">
+      <div class="k-header-title">
+        <h1>كرميش · Karmish</h1>
+        <p>التوأم الرقمي الذكي</p>
+      </div>
+    </header>
+    <div class="k-chat-messages" id="kChatMessages">
+      <div class="k-welcome" id="kWelcome">
+        <h2>مرحباً بك، أنا كرميش</h2>
+        <p>التوأم الرقمي الذكي لشركة النرجس. نظام الـ 33 وكيلاً والـ CEO تحت إمرتي.</p>
+      </div>
+    </div>
+    <div class="k-chat-input-area">
+      <div class="k-input-wrapper">
+        <textarea id="kChatInput" rows="1" placeholder="اكتب أمراً لتنفيذه تلقائياً..."></textarea>
+        <button class="k-send-btn" id="kSendBtn">إرسال</button>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/karmish.js') }}"></script>
+{% endblock %}

@@ -1,3 +1,8 @@
+﻿@app.get("/karmish", response_class=HTMLResponse)
+async def karmish_page(request: Request):
+    locale = _request_locale(request)
+    return templates.TemplateResponse(request, "karmish.html", {"_lang": locale})
+
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
@@ -283,6 +288,8 @@ from src.interfaces.telegram_routes import router as telegram_router  # noqa: E4
 app.include_router(telegram_router)
 
 from src.interfaces.whatsapp_routes import router as whatsapp_router  # noqa: E402
+from src.interfaces import botpress_routes
+
 
 app.include_router(whatsapp_router)
 
@@ -421,7 +428,7 @@ async def sitemap_xml():
 
 @app.get("/ai-agent/{slug}", response_class=HTMLResponse)
 async def public_agent_page(slug: str, request: Request):
-    """One indexable page per agent — the SEO surface for the team."""
+    """One indexable page per agent â€” the SEO surface for the team."""
     from src.services import catalog
 
     employee = catalog.get_employee(slug)
@@ -1004,7 +1011,7 @@ async def portal_wake_agent(project_id: str, slug: str):
         if not project:
             raise HTTPException(404, "Project not found")
         if project.status != "active":
-            raise HTTPException(402, "Subscription not active — activate your plan first")
+            raise HTTPException(402, "Subscription not active â€” activate your plan first")
 
         emp = catalog.get_employee(slug)
         defn = await app.state.agent_registry.get_agent(slug)
@@ -1052,7 +1059,7 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
         if not project:
             raise HTTPException(404, "Project not found")
         if project.status != "active":
-            raise HTTPException(402, "Subscription not active — activate your plan first")
+            raise HTTPException(402, "Subscription not active â€” activate your plan first")
 
         agent_def = await app.state.agent_registry.get_agent(slug)
         if not agent_def:
@@ -1071,7 +1078,7 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
         from src.core.model_provider import ModelRequest
         locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
         lang_instruction = (
-            "Respond in Modern Standard Arabic (اللغة العربية الفصحى) unless the user"
+            "Respond in Modern Standard Arabic (Ø§Ù„Ù„ØºØ© Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø§Ù„ÙØµØ­Ù‰) unless the user"
             " explicitly asks otherwise. Structure your answer clearly with headings."
             if locale == "ar" else
             "Respond in clear, fluent business English. Use proper terminology and"
@@ -1191,7 +1198,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         get_logger(__name__).error(f"Consult failed: {e}")
         return {
             "reply": (
-                "عذراً، تعذر الاتصال بالمستشار حالياً. تفضل بزيارة /portal لتفعيل فريقك مباشرة."
+                "Ø¹Ø°Ø±Ø§Ù‹ØŒ ØªØ¹Ø°Ø± Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø³ØªØ´Ø§Ø± Ø­Ø§Ù„ÙŠØ§Ù‹. ØªÙØ¶Ù„ Ø¨Ø²ÙŠØ§Ø±Ø© /portal Ù„ØªÙØ¹ÙŠÙ„ ÙØ±ÙŠÙ‚Ùƒ Ù…Ø¨Ø§Ø´Ø±Ø©."
                 if locale == "ar" else
                 "Sorry, we can't reach the consultant right now. Visit /portal to activate your team directly."
             )
@@ -1446,17 +1453,17 @@ async def promo_status():
 
 
 PHONE_INVALID_MESSAGE = (
-    "رقم الجوال غير صحيح. اكتبه بالشكل 05XXXXXXXX أو ‎+9665XXXXXXXX."
+    "Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ù„ ØºÙŠØ± ØµØ­ÙŠØ­. Ø§ÙƒØªØ¨Ù‡ Ø¨Ø§Ù„Ø´ÙƒÙ„ 05XXXXXXXX Ø£Ùˆ â€Ž+9665XXXXXXXX."
 )
 PHONE_MOBILE_REQUIRED_MESSAGE = (
-    "رقم الجوال مطلوب لتفعيل الوصول المبكر، ويجب أن يكون جوالًا سعوديًا صحيحًا "
-    "(05XXXXXXXX أو ‎+9665XXXXXXXX)."
+    "Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ù„ Ù…Ø·Ù„ÙˆØ¨ Ù„ØªÙØ¹ÙŠÙ„ Ø§Ù„ÙˆØµÙˆÙ„ Ø§Ù„Ù…Ø¨ÙƒØ±ØŒ ÙˆÙŠØ¬Ø¨ Ø£Ù† ÙŠÙƒÙˆÙ† Ø¬ÙˆØ§Ù„Ù‹Ø§ Ø³Ø¹ÙˆØ¯ÙŠÙ‹Ø§ ØµØ­ÙŠØ­Ù‹Ø§ "
+    "(05XXXXXXXX Ø£Ùˆ â€Ž+9665XXXXXXXX)."
 )
 
 
 @app.post("/api/leads")
 async def create_lead(request: Request, background_tasks: BackgroundTasks):
-    """Public website capture — writes one canonical CRM record.
+    """Public website capture â€” writes one canonical CRM record.
 
     Phone quality gate: a supplied number must be a real number, and the
     early-access programme additionally requires a reachable Saudi mobile
@@ -1491,7 +1498,7 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
 
     async with app.state.session_factory() as session:
         lead = AcquisitionLead(
-            company_name=name or "عميل محتمل",
+            company_name=name or "Ø¹Ù…ÙŠÙ„ Ù…Ø­ØªÙ…Ù„",
             contact_name=name or None,
             phone=phone,
             phone_raw=(body.get("phone") or None),
@@ -1520,16 +1527,16 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
         lead_email = lead.email
         lead_name = lead.contact_name or lead.company_name
 
-    _name = body.get("name") or "عميل جديد"
-    _phone = body.get("phone") or "—"
-    _email = email or "—"
-    _agent = message or package or "—"
+    _name = body.get("name") or "Ø¹Ù…ÙŠÙ„ Ø¬Ø¯ÙŠØ¯"
+    _phone = body.get("phone") or "â€”"
+    _email = email or "â€”"
+    _agent = message or package or "â€”"
     alert_text = (
-        "🚨 تسجيل وصول مبكر جديد — Al-Narjis AI\n"
-        f"👤 العميل: {_name}\n"
-        f"📞 الجوال: {_phone}\n"
-        f"📧 البريد: {_email}\n"
-        f"🤖 الطلب: {_agent}"
+        "ðŸš¨ ØªØ³Ø¬ÙŠÙ„ ÙˆØµÙˆÙ„ Ù…Ø¨ÙƒØ± Ø¬Ø¯ÙŠØ¯ â€” Al-Narjis AI\n"
+        f"ðŸ‘¤ Ø§Ù„Ø¹Ù…ÙŠÙ„: {_name}\n"
+        f"ðŸ“ž Ø§Ù„Ø¬ÙˆØ§Ù„: {_phone}\n"
+        f"ðŸ“§ Ø§Ù„Ø¨Ø±ÙŠØ¯: {_email}\n"
+        f"ðŸ¤– Ø§Ù„Ø·Ù„Ø¨: {_agent}"
     )
 
     # The visitor is answered the moment the record is committed. Welcome email,
@@ -1591,7 +1598,7 @@ async def _schedule_lead_followups(lead_id, email: str, name: str):
                 payload={
                     "step": step,
                     "email": email,
-                    "name": name or "عميلنا العزيز",
+                    "name": name or "Ø¹Ù…ÙŠÙ„Ù†Ø§ Ø§Ù„Ø¹Ø²ÙŠØ²",
                     "lead_id": str(lead_id),
                 },
                 run_once_at=now_ry + timedelta(hours=hours[step]),
@@ -1607,7 +1614,7 @@ async def _lead_side_effects(lead_id, email, name, alert_text: str) -> None:
         try:
             from src.services import email_service
 
-            await email_service.send_welcome(email, name or "عميلنا العزيز")
+            await email_service.send_welcome(email, name or "Ø¹Ù…ÙŠÙ„Ù†Ø§ Ø§Ù„Ø¹Ø²ÙŠØ²")
         except Exception as e:
             logger.warning("Lead welcome email failed for %s: %s", lead_id, e)
         try:
@@ -1638,7 +1645,7 @@ async def email_test(request: Request):
             "message": "SMTP not configured. Set SMTP_USERNAME, SMTP_PASSWORD (Gmail App Password), SMTP_FROM in .env",
         }
 
-    ok = await email_service.send_welcome(to, "اختبار التجربة")
+    ok = await email_service.send_welcome(to, "Ø§Ø®ØªØ¨Ø§Ø± Ø§Ù„ØªØ¬Ø±Ø¨Ø©")
     return {"configured": True, "sent": ok}
 
 
@@ -1980,7 +1987,7 @@ async def capture_payment(payment_id: str, request: Request):
 
     if payment.status == "paid":
         async with app.state.session_factory() as session:
-            await _apply_paid_outcome(session, payment.id, note="مؤكد عبر بوابة الدفع")
+            await _apply_paid_outcome(session, payment.id, note="Ù…Ø¤ÙƒØ¯ Ø¹Ø¨Ø± Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø¯ÙØ¹")
 
     email_sent = False
     if payment.status == "paid" and payment.customer_email:
@@ -2033,7 +2040,7 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
 
     session.add(
         Decision(
-            decision=f"تم استلام دفعة ({package}) بقيمة {total_halalas // 100} ر.س",
+            decision=f"ØªÙ… Ø§Ø³ØªÙ„Ø§Ù… Ø¯ÙØ¹Ø© ({package}) Ø¨Ù‚ÙŠÙ…Ø© {total_halalas // 100} Ø±.Ø³",
             reason=marker,
             actor="owner",
             evidence=OrderedDict(
@@ -2042,7 +2049,7 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
             expected="paid",
             actual="paid",
             status="resolved",
-            learning=note or "تحقق يدوي من استلام الدفعة",
+            learning=note or "ØªØ­Ù‚Ù‚ ÙŠØ¯ÙˆÙŠ Ù…Ù† Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ø¯ÙØ¹Ø©",
         )
     )
 
@@ -2065,8 +2072,8 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
                     status_before=before,
                     status_after="WON",
                     channel="payment",
-                    message=f"دفعة باكية {package} مؤكدة — تحويل العميل إلى WON",
-                    note=note or "تم تأكيد استلام الدفعة",
+                    message=f"Ø¯ÙØ¹Ø© Ø¨Ø§ÙƒÙŠØ© {package} Ù…Ø¤ÙƒØ¯Ø© â€” ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¥Ù„Ù‰ WON",
+                    note=note or "ØªÙ… ØªØ£ÙƒÙŠØ¯ Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ø¯ÙØ¹Ø©",
                     created_at=datetime.now(timezone.utc),
                 )
             )
@@ -2111,7 +2118,7 @@ async def confirm_payment_received(payment_id: str, body: ConfirmReceivedRequest
         payment.status = "paid"
         await session.commit()
 
-        note = (body.note or "التحقق يدوي من استلام التحويل البنكي/فاتورة").strip()
+        note = (body.note or "Ø§Ù„ØªØ­Ù‚Ù‚ ÙŠØ¯ÙˆÙŠ Ù…Ù† Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø¨Ù†ÙƒÙŠ/ÙØ§ØªÙˆØ±Ø©").strip()
         outcome = await _apply_paid_outcome(session, payment.id, note=note)
 
         return {
@@ -2168,12 +2175,12 @@ async def report_transfer_sent(payment_id: str):
             from src.services import telegram_sender
 
             await telegram_sender.send_owner_alert(
-                "💰 تحويل بنكي معلَن\n"
-                f"فاتورة: {instructions['reference']}\n"
-                f"المبلغ: {instructions['total_sar']} {instructions['currency']}\n"
-                f"العميل: {payment.customer_name or '-'} · {payment.customer_phone or '-'}\n"
-                "العميل يقول إنه أرسل التحويل. فعّلها من /api/payments/"
-                f"{instructions['payment_id']}/confirm-received بعد التأكد من الإيداع."
+                "ðŸ’° ØªØ­ÙˆÙŠÙ„ Ø¨Ù†ÙƒÙŠ Ù…Ø¹Ù„ÙŽÙ†\n"
+                f"ÙØ§ØªÙˆØ±Ø©: {instructions['reference']}\n"
+                f"Ø§Ù„Ù…Ø¨Ù„Øº: {instructions['total_sar']} {instructions['currency']}\n"
+                f"Ø§Ù„Ø¹Ù…ÙŠÙ„: {payment.customer_name or '-'} Â· {payment.customer_phone or '-'}\n"
+                "Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙŠÙ‚ÙˆÙ„ Ø¥Ù†Ù‡ Ø£Ø±Ø³Ù„ Ø§Ù„ØªØ­ÙˆÙŠÙ„. ÙØ¹Ù‘Ù„Ù‡Ø§ Ù…Ù† /api/payments/"
+                f"{instructions['payment_id']}/confirm-received Ø¨Ø¹Ø¯ Ø§Ù„ØªØ£ÙƒØ¯ Ù…Ù† Ø§Ù„Ø¥ÙŠØ¯Ø§Ø¹."
             )
             notified = True
         except Exception:  # noqa: BLE001 - an alert failure must not lose the record
@@ -2245,7 +2252,7 @@ async def get_payment(payment_id: str):
             raise HTTPException(404, str(e))
 
         if payment.status == "paid":
-            await _apply_paid_outcome(session, payment.id, note="مؤكد عبر بوابة الدفع")
+            await _apply_paid_outcome(session, payment.id, note="Ù…Ø¤ÙƒØ¯ Ø¹Ø¨Ø± Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø¯ÙØ¹")
 
     return {
         "payment_id": str(payment.id),
@@ -2269,3 +2276,4 @@ async def payment_success(request: Request, id: Optional[str] = None):
 @app.get("/payment/failure")
 async def payment_failure(request: Request, id: Optional[str] = None):
     return templates.TemplateResponse(request, "payment_status.html", {"result": "failure", "payment_id": id})
+app.include_router(botpress_routes.router)
