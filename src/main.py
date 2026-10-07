@@ -1954,7 +1954,11 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
         method = body.method.lower()
 
         if method == "paypal":
-            charge = pm.total_with_vat(payment.amount) if include_vat else payment.amount
+            # Owner decision (option A): prices are VAT-inclusive and the invoice
+            # document always bills base + 15%, so every automated charge must
+            # equal total_with_vat. Previously the English locale charged the
+            # pre-VAT base while the invoice showed the VAT-inclusive figure.
+            charge = pm.total_with_vat(payment.amount)
             try:
                 order = await pm.create_paypal_order(
                     session,
