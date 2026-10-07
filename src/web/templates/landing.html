@@ -132,12 +132,12 @@
        Gold stays the single action colour, green stays structure/Telegram;
        the surfaces flip to a near-black film grade, so every component below
        keeps working verbatim off the same tokens. */
-    --gold:#00D49C;
-    --gold-deep:#00AD92;
-    --gold-wash:rgba(0,212,156,.14);
-    --green:#00AD92;
-    --green-deep:#00D49C;          /* mint raised text on dark */
-    --green-wash:rgba(0,212,156,.14);
+    --gold:#F4C430;
+    --gold-deep:#E0B824;
+    --gold-wash:rgba(244, 196, 48,.14);
+    --green:#E0B824;
+    --green-deep:#F4C430;          /* mint raised text on dark */
+    --green-wash:rgba(244, 196, 48,.14);
     --bg:#060607;
     --surface:#101014;
     --ink:#F6F5F4;
@@ -148,10 +148,10 @@
     --ok:#58A052;
     --err:#E06C5B;
     --muted:#8E8D96;
-    --gold-bright:#00D49C;
-    --odsf-gold:#00D49C; --odsf-gold-deep:#00AD92;
-    --odsf-gold-wash:rgba(0,212,156,.2); --n-gold-soft:rgba(0,212,156,.32);
-    --grad-humain:linear-gradient(100deg,#D0F94A,#00D49C 55%,#00AD92);
+    --gold-bright:#F4C430;
+    --odsf-gold:#F4C430; --odsf-gold-deep:#E0B824;
+    --odsf-gold-wash:rgba(244, 196, 48,.2); --n-gold-soft:rgba(244, 196, 48,.32);
+    --grad-humain:linear-gradient(100deg,#FFF4CC,#F4C430 55%,#E0B824);
     --faint:rgba(231,229,228,.42);
     --page:rgba(255,255,255,.03);
     --sh-1:var(--shadow-sm);
@@ -191,7 +191,7 @@ body[data-lang="ar"] [data-lang="ar"]{display:inline}
 body[data-lang="ar"] [data-lang="ar"].full,
 body[data-lang="en"] [data-lang="en"].full{display:block}
 body[data-lang="en"] [data-lang="en"]{display:inline}
-html[dir="ltr"] .grad{background:linear-gradient(100deg,#D0F94A,#00D49C 55%,#00AD92)}
+html[dir="ltr"] .grad{background:linear-gradient(100deg,#FFF4CC,#F4C430 55%,#E0B824)}
 
 /* ---------- progress ---------- */
 #progress{position:fixed;inset-block-start:0;inset-inline:0;height:3px;z-index:120;
@@ -200,8 +200,8 @@ html[dir="ltr"] .grad{background:linear-gradient(100deg,#D0F94A,#00D49C 55%,#00A
 /* ---------- ambient field: one soft gold bloom, one green, barely there ---------- */
 .mesh,.grid{position:fixed;inset:0;pointer-events:none;z-index:0}
 .mesh{background:
-    radial-gradient(58% 42% at 78% 6%, rgba(0,212,156,.18), transparent 70%),
-    radial-gradient(52% 40% at 12% 78%, rgba(0,212,156,.13), transparent 72%);}
+    radial-gradient(58% 42% at 78% 6%, rgba(244, 196, 48,.18), transparent 70%),
+    radial-gradient(52% 40% at 12% 78%, rgba(244, 196, 48,.13), transparent 72%);}
 .grid{background-image:
     linear-gradient(to right, rgba(246,245,244,.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(246,245,244,.05) 1px, transparent 1px);
@@ -287,7 +287,7 @@ body:not(.launch-on) .launch-bar{display:none}
     border:1px solid var(--line);border-radius:var(--r-pill);padding:7px 14px;
     font-size:.82rem;font-weight:600;color:var(--ink-2);box-shadow:var(--shadow-sm)}
 .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);
-    box-shadow:0 0 0 3px rgba(0,212,156,.16)}
+    box-shadow:0 0 0 3px rgba(244, 196, 48,.16)}
 .hero h1{font-size:clamp(2.5rem,6.4vw,5rem);margin-block:var(--sp-3) var(--sp-2);letter-spacing:-.03em}
 .hero .sub{font-size:clamp(1rem,1.6vw,1.16rem);color:var(--ink-2);max-width:34ch}
 .hero .sub.lead{max-width:56ch}
@@ -303,7 +303,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .hint{display:flex;align-items:center;gap:8px;margin-block-start:var(--sp-3);
     font-size:.87rem;color:var(--ink-3)}
 .hint i{color:var(--green)}
-.grad{background:linear-gradient(100deg,#D0F94A,#00D49C 55%,#00AD92);
+.grad{background:linear-gradient(100deg,#FFF4CC,#F4C430 55%,#E0B824);
     -webkit-background-clip:text;background-clip:text;color:transparent}
 .c{color:var(--green-deep)}
 
@@ -320,7 +320,7 @@ body:not(.launch-on) .launch-bar{display:none}
     padding:14px var(--sp-2);border-block-end:1px solid var(--line-soft);background:var(--bg)}
 .console-bar .ttl{font-weight:700;font-size:.95rem}
 .status-pill{font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--green-deep);
-    background:var(--green-wash);border:1px solid rgba(0,212,156,.22);border-radius:var(--r-pill);padding:3px 10px}
+    background:var(--green-wash);border:1px solid rgba(244, 196, 48,.22);border-radius:var(--r-pill);padding:3px 10px}
 .console-body{padding:var(--sp-2);display:grid;gap:10px}
 .emp{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);
     background:var(--bg);border:1px solid var(--line-soft);transition:all .35s var(--ease)}
@@ -334,7 +334,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .wk{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:var(--r-pill);
     padding:6px 14px;font-size:.78rem;font-weight:600;transition:all .25s var(--ease)}
 .emp.dormant .wk:hover{background:var(--gold);border-color:var(--gold);color:var(--ink)}
-.emp.awake{background:var(--green-wash);border-color:rgba(0,212,156,.3)}
+.emp.awake{background:var(--green-wash);border-color:rgba(244, 196, 48,.3)}
 .emp.awake .emp-ava{background:var(--gold);color:#141414}
 .emp.awake .sit{color:var(--green-deep)}
 .emp.awake .sit i{color:var(--green);animation:pulse 1.8s ease-in-out infinite}
@@ -488,12 +488,12 @@ body:not(.launch-on) .launch-bar{display:none}
 .orch-ceo{
     position:relative;display:flex;align-items:center;gap:var(--sp-2);
     padding:var(--sp-2) var(--sp-3);border-radius:var(--r-lg);
-    background:var(--surface);border:1px solid rgba(0,212,156,.28);
-    box-shadow:0 0 0 1px rgba(0,212,156,.10), var(--shadow-sm);
+    background:var(--surface);border:1px solid rgba(244, 196, 48,.28);
+    box-shadow:0 0 0 1px rgba(244, 196, 48,.10), var(--shadow-sm);
 }
 .orch-ceo::after{
     content:"";position:absolute;inset:-10px;border-radius:calc(var(--r-lg) + 10px);
-    border:1px solid rgba(0,212,156,.16);pointer-events:none;
+    border:1px solid rgba(244, 196, 48,.16);pointer-events:none;
     animation:orch-halo 4.5s var(--ease) infinite;
 }
 @keyframes orch-halo{
@@ -513,7 +513,7 @@ body:not(.launch-on) .launch-bar{display:none}
 
 /* trunk: CEO -> bus */
 .orch-trunk{width:2px;height:var(--sp-4);
-    background:linear-gradient(var(--gold),rgba(0,212,156,.15))}
+    background:linear-gradient(var(--gold),rgba(244, 196, 48,.15))}
 
 /* bus: one horizontal rail. The inset is exactly half a column (column +
    gutter solved out of the 6-col grid) so the rail meets the first and last
@@ -523,7 +523,7 @@ body:not(.launch-on) .launch-bar{display:none}
     content:"";position:absolute;inset-block-start:0;
     inset-inline:calc((100% - (var(--orch-cols) - 1) * var(--sp-2)) / (var(--orch-cols) * 2));
     height:2px;background:linear-gradient(90deg,
-        transparent,rgba(0,212,156,.42) 6%,rgba(0,212,156,.42) 94%,transparent);
+        transparent,rgba(244, 196, 48,.42) 6%,rgba(244, 196, 48,.42) 94%,transparent);
 }
 
 .orch-team{
@@ -533,7 +533,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .orch-node{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
 /* the drop from the bus into each teammate */
 .orch-node::before{content:"";width:2px;height:var(--sp-2);
-    background:linear-gradient(rgba(0,212,156,.42),rgba(0,212,156,.10))}
+    background:linear-gradient(rgba(244, 196, 48,.42),rgba(244, 196, 48,.10))}
 .orch-pill{
     width:100%;display:flex;align-items:center;gap:10px;min-height:56px;
     padding:10px var(--sp-2);border-radius:var(--r);text-align:start;
@@ -541,7 +541,7 @@ body:not(.launch-on) .launch-bar{display:none}
     transition:transform .22s var(--ease),border-color .22s var(--ease),
                box-shadow .22s var(--ease),background .22s var(--ease);
 }
-.orch-pill:hover{transform:translateY(-2px);border-color:rgba(0,212,156,.42);
+.orch-pill:hover{transform:translateY(-2px);border-color:rgba(244, 196, 48,.42);
     box-shadow:var(--shadow-md);background:#141418}
 .orch-pill .role-tile{width:34px;height:34px;flex:0 0 34px;border-radius:10px}
 .orch-pill-tx{display:flex;flex-direction:column;min-width:0;line-height:1.35}
@@ -576,7 +576,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .bcard{grid-column:span 1;background:var(--surface);border:1px solid var(--line);
     border-radius:var(--r-lg);padding:var(--sp-2);box-shadow:var(--shadow-sm);
     transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s;position:relative;overflow:hidden}
-.bcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(0,212,156,.5)}
+.bcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(244, 196, 48,.5)}
 .bcard.b-lg{grid-column:span 2;grid-row:span 2;display:flex;flex-direction:column;justify-content:center;
     background:linear-gradient(160deg,var(--gold-wash),var(--surface) 58%)}
 .ic{width:44px;height:44px;border-radius:var(--r);display:grid;place-items:center;margin-block-end:var(--sp-2);
@@ -601,7 +601,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .ag-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
     padding:var(--sp-2);display:flex;flex-direction:column;gap:10px;
     box-shadow:var(--shadow-sm);transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s}
-.ag-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:rgba(0,212,156,.42)}
+.ag-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:rgba(244, 196, 48,.42)}
 .ag-head{display:flex;align-items:center;gap:10px}
 .ag-card:hover .ag-no{font-size:.7rem;color:var(--ink-3);font-variant-numeric:tabular-nums;letter-spacing:.06em}
 .ag-name{font-size:.95rem;font-weight:600;line-height:1.35}
@@ -624,7 +624,7 @@ body:not(.launch-on) .launch-bar{display:none}
     margin-block-start:var(--sp-6);counter-reset:st}
 .step{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
     padding:var(--sp-2);box-shadow:var(--shadow-sm);counter-increment:st;transition:all .3s var(--ease)}
-.step:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(0,212,156,.5)}
+.step:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(244, 196, 48,.5)}
 .step::before{content:counter(st,decimal-leading-zero);position:absolute;inset-block-start:12px;inset-inline-end:16px;
     font-size:1.6rem;font-weight:700;color:var(--line);font-variant-numeric:tabular-nums;line-height:1}
 .step h3{font-size:1.02rem;margin-block-end:6px}
@@ -640,7 +640,7 @@ body:not(.launch-on) .launch-bar{display:none}
     transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
 .pc:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
 .pc.featured{border-color:var(--gold);
-    box-shadow:0 2px 4px rgba(41,37,36,.06),0 18px 44px rgba(0,212,156,.16)}
+    box-shadow:0 2px 4px rgba(41,37,36,.06),0 18px 44px rgba(244, 196, 48,.16)}
 .pc .tag{position:absolute;inset-block-start:-11px;inset-inline-end:var(--sp-2);
     background:var(--gold);color:#141414;font-size:.72rem;font-weight:700;
     border-radius:var(--r-pill);padding:4px 12px}
@@ -708,7 +708,7 @@ body:not(.launch-on) .launch-bar{display:none}
 /* ---------- telegram panel / support ---------- */
 .tg-panel{position:relative;z-index:1;margin-block:var(--sp-4);
     background:linear-gradient(150deg,var(--green-wash),var(--surface) 60%);
-    border:1px solid rgba(0,212,156,.24);border-radius:var(--r-lg);padding:var(--sp-6) var(--sp-3);
+    border:1px solid rgba(244, 196, 48,.24);border-radius:var(--r-lg);padding:var(--sp-6) var(--sp-3);
     text-align:center}
 .tg-lbl{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;
     border-radius:var(--r-pill);padding:6px 16px;font-size:.8rem;font-weight:700;margin-block-end:var(--sp-3)}
@@ -716,7 +716,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .tg-note{font-size:.92rem;color:var(--ink-2);margin-block:var(--sp-2)}
 .tg-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2);justify-content:center;margin-block-start:var(--sp-3)}
 .tg-btn{display:inline-flex;align-items:center;gap:8px;background:var(--surface);
-    border:1px solid rgba(0,212,156,.32);border-radius:var(--r);padding:13px var(--sp-3);
+    border:1px solid rgba(244, 196, 48,.32);border-radius:var(--r);padding:13px var(--sp-3);
     font-weight:600;font-size:.95rem;color:var(--green-deep);transition:all .22s var(--ease)}
 .tg-btn:hover{background:var(--green);border-color:var(--green);color:#fff;transform:translateY(-1px)}
 .glass-panel{background:rgba(255,255,255,.04);backdrop-filter:blur(16px) saturate(180%);
@@ -740,7 +740,7 @@ body:not(.launch-on) .launch-bar{display:none}
     padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);
     background:var(--surface);color:var(--ink);transition:border-color .2s,box-shadow .2s}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green);
-    box-shadow:0 0 0 3px rgba(0,212,156,.14)}
+    box-shadow:0 0 0 3px rgba(244, 196, 48,.14)}
 .form-msg{font-size:.88rem;margin-block-start:var(--sp-2);min-height:1.4em}
 .form-msg.ok{color:var(--ok)}
 .form-msg.err{color:var(--err)}
@@ -748,7 +748,7 @@ body:not(.launch-on) .launch-bar{display:none}
 /* ---------- faq ---------- */
 .q{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
     margin-block-end:10px;overflow:hidden;transition:border-color .25s,box-shadow .25s}
-.q:hover{border-color:rgba(0,212,156,.35);box-shadow:var(--shadow-sm)}
+.q:hover{border-color:rgba(244, 196, 48,.35);box-shadow:var(--shadow-sm)}
 .q .qt{width:100%;text-align:start;background:transparent;border:0;padding:var(--sp-2);
     font-size:.98rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:10px}
 .q .qt i{margin-inline-start:auto;color:var(--green-deep);font-size:.85rem;transition:transform .3s var(--ease)}
@@ -782,7 +782,7 @@ body:not(.launch-on) .launch-bar{display:none}
 /* ---------- floating UI ---------- */
 .tg-float{position:fixed;inset-block-end:20px;inset-inline-end:20px;z-index:90;
     width:54px;height:54px;border-radius:var(--r);display:grid;place-items:center;
-    background:var(--green);color:#fff;box-shadow:0 8px 28px rgba(0,212,156,.4);
+    background:var(--green);color:#fff;box-shadow:0 8px 28px rgba(244, 196, 48,.4);
     transition:transform .25s var(--ease)}
 .tg-float:hover{transform:translateY(-3px) scale(1.03)}
 .to-top{position:fixed;inset-block-end:20px;inset-inline-start:20px;z-index:90;
@@ -809,7 +809,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .proof .pf b i{color:var(--green);font-size:.92rem;flex-shrink:0}
 .proof .pf p{font-size:.87rem;line-height:1.65;color:var(--ink-2)}
 .proof-note{max-width:var(--wrap);margin-inline:auto;padding:0 var(--sp-3) var(--sp-6)}
-.proof-note .pn{background:var(--green-wash);border:1px solid rgba(0,212,156,.2);
+.proof-note .pn{background:var(--green-wash);border:1px solid rgba(244, 196, 48,.2);
     border-radius:var(--r);padding:15px 17px;font-size:.91rem;line-height:1.75;color:var(--ink-2)}
 .proof-note .pn b{color:var(--ink);font-weight:700}
 .proof-note a{color:var(--green-deep);font-weight:600}
@@ -841,7 +841,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .nd-agents span{font-size:.8rem;font-weight:600;color:var(--ink-2);background:var(--line-soft);
     border-radius:var(--r-pill);padding:4px 11px}
 .nd-agents span.on{background:var(--green-wash);color:var(--green-deep);
-    border:1px solid rgba(0,212,156,.32)}
+    border:1px solid rgba(244, 196, 48,.32)}
 .nd-ex{display:grid;gap:8px}
 .nd-ex li{display:flex;align-items:flex-start;gap:8px;font-size:.89rem;line-height:1.6;color:var(--ink-2)}
 .nd-ex li i{color:var(--green);font-size:.78rem;margin-block-start:.42em;flex-shrink:0}
@@ -866,7 +866,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .next-step{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;
     margin-block-start:var(--sp-4);padding:var(--sp-3);
     background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
-    border:1px solid rgba(0,212,156,.2);border-radius:var(--r-lg)}
+    border:1px solid rgba(244, 196, 48,.2);border-radius:var(--r-lg)}
 .next-step .ns-tx{display:grid;gap:2px;flex:1 1 260px;min-width:0}
 .next-step .ns-tx b{font-size:.98rem;font-weight:700;color:var(--ink)}
 .next-step .ns-tx span{font-size:.87rem;color:var(--ink-2);line-height:1.6}
@@ -883,11 +883,11 @@ body:not(.launch-on) .launch-bar{display:none}
     background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
     transition:border-color .2s,box-shadow .2s,transform .2s,color .2s}
 .nd-btn i{color:var(--green);font-size:.95rem;flex:none;width:18px;text-align:center}
-.nd-btn:hover{border-color:rgba(0,212,156,.4);transform:translateY(-1px)}
+.nd-btn:hover{border-color:rgba(244, 196, 48,.4);transform:translateY(-1px)}
 .nd-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .nd-btn[aria-pressed="true"]{color:var(--ink);font-weight:600;
     background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
-    border-color:rgba(0,212,156,.45);box-shadow:0 2px 10px rgba(0,212,156,.12)}
+    border-color:rgba(244, 196, 48,.45);box-shadow:0 2px 10px rgba(244, 196, 48,.12)}
 .nd-btn[aria-pressed="true"] i{color:var(--gold)}
 .nd-out{display:grid;gap:var(--sp-3);padding:var(--sp-4);
     background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
@@ -903,7 +903,7 @@ body:not(.launch-on) .launch-bar{display:none}
     margin-block-start:var(--sp-1);padding:.3rem .7rem;cursor:pointer;
     font:inherit;font-size:.8rem;color:var(--ink-3);
     background:transparent;border:1px solid var(--line);border-radius:99px}
-.nd-clear:hover{color:var(--ink);border-color:rgba(0,212,156,.4)}
+.nd-clear:hover{color:var(--ink);border-color:rgba(244, 196, 48,.4)}
 .nd-clear:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .nd-lbl{display:flex;align-items:center;gap:var(--sp-1);margin-block-end:var(--sp-1);
     font-size:.8rem;font-weight:600;color:var(--ink-3)}
@@ -912,7 +912,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .nd-agents span{padding:.3rem .68rem;font-size:.84rem;color:var(--ink-2);
     background:var(--page);border:1px solid var(--line);border-radius:99px}
 .nd-agents span.on{color:var(--ink);font-weight:600;background:var(--green-wash);
-    border-color:rgba(0,212,156,.35)}
+    border-color:rgba(244, 196, 48,.35)}
 .nd-ex{display:grid;gap:var(--sp-1);margin:0;padding:0;list-style:none}
 .nd-ex li{display:flex;align-items:flex-start;gap:var(--sp-2);
     font-size:.9rem;color:var(--ink-2);line-height:1.75}
@@ -923,7 +923,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .nd-fallback a{display:inline-flex;align-items:center;padding:.4rem .8rem;
     font-size:.87rem;color:var(--ink-2);text-decoration:none;
     background:var(--surface);border:1px solid var(--line);border-radius:99px}
-.nd-fallback a:hover{border-color:rgba(0,212,156,.4);color:var(--ink)}
+.nd-fallback a:hover{border-color:rgba(244, 196, 48,.4);color:var(--ink)}
 
 /* ---------- why al-narjis ---------- */
 .why-note{max-width:70ch;margin:var(--sp-3) auto 0;text-align:center;
@@ -931,7 +931,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .why-cta{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap;
     margin-block-start:var(--sp-5);padding:var(--sp-4);
     background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
-    border:1px solid rgba(0,212,156,.2);border-radius:var(--r-lg)}
+    border:1px solid rgba(244, 196, 48,.2);border-radius:var(--r-lg)}
 .why-cta p{flex:1 1 280px;min-width:0;margin:0;
     font-size:1rem;font-weight:600;color:var(--ink);line-height:1.7}
 .why-cta-row{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
@@ -953,7 +953,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .pcmp-close{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap;
     margin-block-start:var(--sp-5);padding:var(--sp-4);
     background:linear-gradient(120deg,var(--green-wash),var(--surface) 70%);
-    border:1px solid rgba(0,212,156,.2);border-radius:var(--r-lg)}
+    border:1px solid rgba(244, 196, 48,.2);border-radius:var(--r-lg)}
 .pcmp-close p{flex:1 1 300px;min-width:0;margin:0;
     font-size:.94rem;color:var(--ink-2);line-height:1.8}
 .pcmp-close-cta{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
@@ -1022,7 +1022,7 @@ select option{background:#101014;color:#F6F5F4}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:#060607}
 ::-webkit-scrollbar-thumb{background:rgba(246,245,244,.14);border-radius:999px;border:2px solid #060607}
-::-webkit-scrollbar-thumb:hover{background:rgba(0,212,156,.45)}
+::-webkit-scrollbar-thumb:hover{background:rgba(244, 196, 48,.45)}
 
 /* hero ambient orbs sit inside the overflow-hidden hero, never full-bleed */
 .hero .lux-orb,.hero .lux-grain,.hero .lux-vignette{pointer-events:none}
@@ -1040,7 +1040,7 @@ select option{background:#101014;color:#F6F5F4}
 .t-feature{position:relative;overflow:hidden;border-radius:var(--r-lg);
     border:1px solid var(--line);background:var(--surface);padding:var(--sp-4)}
 .t-feature::before{content:"";position:absolute;inset:0;pointer-events:none;
-    background:radial-gradient(70% 60% at 85% -10%,rgba(0,212,156,.12),transparent 70%)}
+    background:radial-gradient(70% 60% at 85% -10%,rgba(244, 196, 48,.12),transparent 70%)}
 .t-side{position:relative;z-index:1}
 
 /* footer + on-page form furniture */
@@ -1133,8 +1133,8 @@ select option{background:#101014;color:#F6F5F4}
 
     <!-- ==================== HERO ==================== -->
     <header class="hero lux-hero" id="top">
-        <div class="lux-orb" data-drift="60" style="width:420px;height:420px;background:rgba(0,212,156,.22);top:-140px;inset-inline-end:-90px;"></div>
-        <div class="lux-orb" data-drift="-40" style="width:340px;height:340px;background:rgba(0,212,156,.07);bottom:-120px;inset-inline-start:-80px;"></div>
+        <div class="lux-orb" data-drift="60" style="width:420px;height:420px;background:rgba(244, 196, 48,.22);top:-140px;inset-inline-end:-90px;"></div>
+        <div class="lux-orb" data-drift="-40" style="width:340px;height:340px;background:rgba(244, 196, 48,.07);bottom:-120px;inset-inline-start:-80px;"></div>
         <div class="lux-grain"></div>
         <div class="lux-vignette"></div>
         <div class="inner">
@@ -1195,10 +1195,10 @@ select option{background:#101014;color:#F6F5F4}
                         <svg viewBox="0 0 560 86" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="lgGrad" x1="0" y1="0" x2="1" y2="0">
-                                    <stop offset="0" stop-color="#00D49C"/><stop offset="1" stop-color="#00879F"/>
+                                    <stop offset="0" stop-color="#F4C430"/><stop offset="1" stop-color="#B3922E"/>
                                 </linearGradient>
                                 <linearGradient id="lgArea" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#00D49C" stop-opacity=".20"/><stop offset="1" stop-color="#00D49C" stop-opacity="0"/>
+                                    <stop offset="0" stop-color="#F4C430" stop-opacity=".20"/><stop offset="1" stop-color="#F4C430" stop-opacity="0"/>
                                 </linearGradient>
                             </defs>
                             <path class="lc-area" d="M0 70 L70 58 L140 62 L210 44 L280 50 L350 32 L420 40 L490 22 L560 28 L560 86 L0 86 Z"/>
@@ -1431,7 +1431,7 @@ select option{background:#101014;color:#F6F5F4}
                     <div class="flow" id="flow">
                         <svg viewBox="0 0 300 40" preserveAspectRatio="none">
                             <defs>
-                                <linearGradient id="fg1" x1="0" x2="1"><stop offset="0" stop-color="#00D49C"/><stop offset="1" stop-color="#00879F"/></linearGradient>
+                                <linearGradient id="fg1" x1="0" x2="1"><stop offset="0" stop-color="#F4C430"/><stop offset="1" stop-color="#B3922E"/></linearGradient>
                             </defs>
                             <path d="M0 20 H300" stroke="url(#fg1)" stroke-dasharray="5 6" stroke-width="1.5" opacity=".6">
                                 <animate attributeName="stroke-dashoffset" from="0" to="-44" dur="1.8s" repeatCount="indefinite"/>
@@ -1467,7 +1467,7 @@ select option{background:#101014;color:#F6F5F4}
                         <svg viewBox="0 0 560 74" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="spArea" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#00879F" stop-opacity=".16"/><stop offset="1" stop-color="#00879F" stop-opacity="0"/>
+                                    <stop offset="0" stop-color="#B3922E" stop-opacity=".16"/><stop offset="1" stop-color="#B3922E" stop-opacity="0"/>
                                 </linearGradient>
                             </defs>
                             <path class="sp-area" d="M0 60 L80 50 L160 54 L240 34 L320 42 L400 24 L480 30 L560 16 L560 74 L0 74 Z"/>
@@ -2835,7 +2835,7 @@ select option{background:#101014;color:#F6F5F4}
             <span data-lang="en" data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>
         </p>
         <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;"><span data-lang="ar">موافق</span><span data-lang="en" data-inline>Got it</span></button>
-        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:#00D49C;"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
+        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:#F4C430;"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
     </div>
     <script>
         (function () {

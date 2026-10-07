@@ -19,36 +19,36 @@ body.luxury {
   --n-green-3: #0b0b0d;
   --tg-blue-tint: #172117;
   --tg-blue-tint-2: #0d1114;
-  --tg-blue-soft: rgba(0, 212, 156, 0.22);
+  --tg-blue-soft: rgba(244, 196, 48, 0.22);
   --n-brown: #f6f5f4;
   --n-brown-2: #b9b8c0;
   --n-earth: #8e8d96;
   --n-line: rgba(246, 245, 244, 0.09);
   --n-line-2: rgba(246, 245, 244, 0.16);
-  --odsf-gold-wash: rgba(0, 212, 156, 0.22);
-  --n-gold-soft: rgba(0, 212, 156, 0.32);
-  --n-gold: #00d49c;
-  --n-gold-2: #00ad92;
-  --odsf-gold: #00d49c;
-  --odsf-gold-deep: #00ad92;
-  --tg-blue: #00ad92;
-  --green: #00ad92;
-  --green-deep: #00d49c;
+  --odsf-gold-wash: rgba(244, 196, 48, 0.22);
+  --n-gold-soft: rgba(244, 196, 48, 0.28);
+  --n-gold: #f4c430;
+  --n-gold-2: #e0b824;
+  --odsf-gold: #f4c430;
+  --odsf-gold-deep: #e0b824;
+  --tg-blue: #e0b824;
+  --green: #e0b824;
+  --green-deep: #f4c430;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.65);
 
   background-color: #060607;
   background-image:
-    radial-gradient(1200px 620px at 85% -12%, rgba(0, 212, 156, 0.16), transparent 60%),
-    radial-gradient(900px 520px at -8% 28%, rgba(208, 249, 74, 0.06), transparent 55%),
+    radial-gradient(1200px 620px at 85% -12%, rgba(244, 196, 48, 0.16), transparent 60%),
+    radial-gradient(900px 520px at -8% 28%, rgba(244, 196, 48, 0.06), transparent 55%),
     radial-gradient(700px 500px at 50% 115%, rgba(0, 135, 159, 0.14), transparent 60%);
   background-attachment: local;
   color: #f6f5f4;
   line-height: 1.75;
 }
 
-body.luxury ::selection { background: rgba(0, 212, 156, 0.4); color: #ffffff; }
+body.luxury ::selection { background: rgba(244, 196, 48, 0.4); color: #ffffff; }
 
 body.luxury ::-webkit-scrollbar-track { background: #060607; }
 body.luxury ::-webkit-scrollbar-thumb { background: rgba(246, 245, 244, 0.22); border: 2px solid #060607; }
@@ -59,7 +59,7 @@ body.luxury button:focus-visible,
 body.luxury input:focus-visible,
 body.luxury select:focus-visible,
 body.luxury textarea:focus-visible {
-  outline: 2px solid var(--tg-blue, #00879f);
+  outline: 2px solid var(--tg-blue, #b3922e);
   outline-offset: 2px;
 }
 
@@ -83,29 +83,29 @@ body.luxury .n-card::after {
   transition: box-shadow 0.35s ease;
 }
 body.luxury .n-card:hover::after {
-  box-shadow: 0 0 36px 0 rgba(0, 212, 156, 0.2), 0 0 72px 0 rgba(0, 212, 156, 0.08);
+  box-shadow: 0 0 36px 0 rgba(244, 196, 48, 0.2), 0 0 72px 0 rgba(244, 196, 48, 0.08);
 }
 
 /* --- brand actions on dark: HUMAIN mint is the single primary ----------------- */
 body.luxury .btn-gold {
-  background: linear-gradient(135deg, var(--odsf-gold-deep, #00ad92), var(--odsf-gold, #00d49c));
+  background: linear-gradient(135deg, var(--odsf-gold-deep, #e0b824), var(--odsf-gold, #f4c430));
   color: #05231d;
   border-color: transparent;
-  box-shadow: 0 0 0 1px rgba(0, 212, 156, 0.45), 0 0 28px rgba(0, 212, 156, 0.28);
+  box-shadow: 0 0 0 1px rgba(244, 196, 48, 0.45), 0 0 28px rgba(244, 196, 48, 0.28);
 }
 body.luxury .btn-gold:hover {
-  background: var(--odsf-gold, #00d49c);
+  background: var(--odsf-gold, #f4c430);
   color: #05231d;
   transform: translateY(-1px);
-  box-shadow: 0 0 0 1px rgba(0, 212, 156, 0.55), 0 0 38px rgba(0, 212, 156, 0.4);
+  box-shadow: 0 0 0 1px rgba(244, 196, 48, 0.55), 0 0 38px rgba(244, 196, 48, 0.28);
 }
-body.luxury .btn-green { background: var(--tg-blue, #00879f); color: #ffffff; }
+body.luxury .btn-green { background: var(--tg-blue, #b3922e); color: #ffffff; }
 body.luxury .btn-outline {
   background: rgba(255, 255, 255, 0.03);
   color: #f6f5f4;
   border: 1px solid rgba(246, 245, 244, 0.16);
 }
-body.luxury .btn-outline:hover { border-color: var(--tg-blue, #00879f); color: #f6f5f4; }
+body.luxury .btn-outline:hover { border-color: var(--tg-blue, #b3922e); color: #f6f5f4; }
 
 /* --- chrome: nav, divides, pills, chips ---------------------------------- */
 body.luxury .n-nav {
@@ -114,7 +114,7 @@ body.luxury .n-nav {
   -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid rgba(246, 245, 244, 0.08);
 }
-body.luxury .n-divider { color: var(--tg-blue, #00879f); }
+body.luxury .n-divider { color: var(--tg-blue, #b3922e); }
 body.luxury .n-title { color: #f6f5f4; }
 body.luxury .n-sub { color: #b9b8c0; }
 
@@ -126,8 +126,8 @@ body.luxury .chip {
 body.luxury .lang-pill button { color: #b9b8c0; }
 body.luxury .n-hero {
   background:
-    radial-gradient(1000px 560px at 82% 8%, rgba(0, 212, 156, 0.2), transparent 60%),
-    radial-gradient(700px 460px at 12% 88%, rgba(0, 212, 156, 0.09), transparent 55%),
+    radial-gradient(1000px 560px at 82% 8%, rgba(244, 196, 48, 0.2), transparent 60%),
+    radial-gradient(700px 460px at 12% 88%, rgba(244, 196, 48, 0.09), transparent 55%),
     linear-gradient(178deg, rgba(255, 255, 255, 0.03), rgba(6, 6, 7, 0.2) 70%);
   color: #f6f5f4;
 }
@@ -152,10 +152,10 @@ body.luxury .n-form label { color: #b9b8c0; }
 /* --- pricing / listings / bubbles ----------------------------------------- */
 body.luxury .pkg { border-color: rgba(246, 245, 244, 0.09); }
 body.luxury .pkg.featured {
-  border-color: var(--tg-blue, #00879f);
-  background: linear-gradient(180deg, rgba(0, 212, 156, 0.12), rgba(16, 16, 20, 0.1) 45%);
+  border-color: var(--tg-blue, #b3922e);
+  background: linear-gradient(180deg, rgba(244, 196, 48, 0.12), rgba(16, 16, 20, 0.1) 45%);
 }
-body.luxury .pkg .price { color: var(--tg-blue, #00879f); }
+body.luxury .pkg .price { color: var(--tg-blue, #b3922e); }
 body.luxury .pkg .price small { color: #b9b8c0; }
 body.luxury .pkg ul li { color: #b9b8c0; border-bottom-color: rgba(246, 245, 244, 0.08); }
 
@@ -168,9 +168,9 @@ body.luxury .chat-box .msg {
 }
 body.luxury .cmsg.me,
 body.luxury .msg-client {
-  background: rgba(0, 212, 156, 0.2);
+  background: rgba(244, 196, 48, 0.2);
   color: #f6f5f4;
-  border-color: rgba(0, 212, 156, 0.35);
+  border-color: rgba(244, 196, 48, 0.35);
 }
 
 body.luxury .n-footer { background: #0b0b0d; border-block-start-color: rgba(246, 245, 244, 0.08); }
@@ -179,7 +179,7 @@ body.luxury .tg-float,
 body.luxury .btn-tg,
 body.luxury .tg-agent,
 body.luxury .m-tg {
-  box-shadow: 0 0 26px rgba(0, 212, 156, 0.4);
+  box-shadow: 0 0 26px rgba(244, 196, 48, 0.28);
 }
 
 /* --- shared utilities ------------------------------------------------------ */

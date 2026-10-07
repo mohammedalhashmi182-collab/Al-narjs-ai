@@ -185,15 +185,20 @@ surfaces. Printed invoices (`invoice.html`, `invoice_en.html`) stay light on pur
 | `--lux-ink` | `#F6F5F4` | Primary text — near-white, warm. |
 | `--lux-ink-2` | `#B9B8C0` | Secondary text. |
 | `--lux-ink-3` | `#8E8D96` | Muted text, captions. |
-| `--lux-glow` | `rgba(0,212,156,.28)` | Aura behind mint actions (public dark). |
+| `--lux-glow` | `rgba(244,196,48,.28)` | Aura behind gold actions (public dark). |
 
-> **Owner revision (Humain-inspired, Luxury Dark):** on the public dark presentation the single
-> action hue is a **Humain-family green** — mint `#00D49C` (action) / teal `#00AD92` (hover) /
-> deep aqua `#00879F` (structure) with the signature lime `#D0F94A` accent and the
-> `lime → mint → aqua` gradient on key headlines and CTAs. The yellow/gold was removed from the
-> public site on the owner's request ("ثيم مثل موقع هيومين على خلفية داكنة"). Token names that
-> historically said "gold" (`--gold`, `--odsf-gold`, `.btn-gold`…) are kept for compatibility but
-> reference for printed light surfaces; the owner console keeps its own dark admin accent.
+> **Owner revision (2026-10-07, supersedes the Humain-mint revision):** on the public
+> dark presentation the single action hue is **Narcissus gold** — `#F4C430` (action) /
+> `#E0B824` (hover) / `#B3922E` (pressed) with the signature gold→warm-white gradient on
+> key headlines and CTAs. The earlier mint/teal direction (`#00D49C` / `#00AD92` /
+> `#00879F`) came from a Humain-inspired dark theme and has been **retired on the owner's
+> instruction**; those values must not appear in public tokens. Gold is the brand
+> differentiator — it is the flower the company is named for — so on the dark surfaces it
+> reads as the action colour rather than as decoration. The owner console keeps its own
+> dark admin accent, and gold also remains the action colour on printed light surfaces.
+>
+> Tokens that historically named a retired hue are kept for compatibility; only their
+> values change. `tests/test_design_system.py` enforces this section.
 
 **Rules**
 
