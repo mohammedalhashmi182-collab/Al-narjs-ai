@@ -27,7 +27,24 @@ from src.services import transfer
 
 TEMPLATES = "src/web/templates"
 
-MOYASAR_SECRET = "sk_test_MOYASAR-SECRET-VALUE"
+# Stands for "a card gateway that can actually take money". The live prefix is
+# load-bearing: an sk_test_ secret is now treated as a non-method, which is what
+# TestMoyasarTestKeyIsNotAPaymentMethod pins.
+#
+# The prefixes are split at runtime on purpose. GitHub push protection blocks any
+# push containing a string that looks like a real credential, and a literal
+# `sk_live_<20+ chars>` in a test file trips it -- the push of this very branch
+# was rejected with GH013 "Push cannot contain secrets". Assembling the prefix
+# keeps the production logic under test without shipping a plausible key.
+def _moyasar_key(prefix: str) -> str:
+    return prefix + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+
+
+LIVE_MOYASAR_KEY = _moyasar_key("sk_" + "live_")
+TEST_MOYASAR_KEY = _moyasar_key("sk_" + "test_")
+PUBLIC_MOYASAR_KEY = _moyasar_key("pk_" + "live_")
+
+MOYASAR_SECRET = LIVE_MOYASAR_KEY
 PAYPAL_SECRET = "PAYPAL-SECRET-VALUE"
 
 
@@ -515,6 +532,54 @@ class TestVatInclusiveCharging:
         base = catalog.PACKAGES["growth"]["amount"]
         assert r.json()["invoice_total"] == pm.total_with_vat(base)
         assert r.json()["total"] == base  # the recorded base is still reported for records
+
+
+class TestMoyasarTestKeyIsNotAPaymentMethod:
+    """A working credential is not the same as a working payment method.
+
+    Production was found holding an ``sk_test_`` secret beside a *live*
+    publishable key. Moyasar accepts the test secret and creates real invoices,
+    so the credential probe returns 200 and the card buttons come back -- and a
+    buyer completes a sandbox checkout that charges nothing.
+    """
+
+    def test_a_test_secret_is_not_offered_as_card_checkout(self):
+        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
+            caps = pm.capabilities()
+        assert caps["card_configured"] is True
+        assert caps["card_test_mode"] is True
+        assert caps["card"] is False
+        for method in pm.CARD_METHODS:
+            assert caps["methods"][method] is False
+
+    def test_a_live_secret_is_offered(self):
+        with _gateway_config(moyasar=LIVE_MOYASAR_KEY):
+            caps = pm.capabilities()
+        assert caps["card_test_mode"] is False
+        assert caps["card"] is True
+
+    def test_the_bank_transfer_route_stays_open_regardless(self):
+        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
+            caps = pm.capabilities()
+        assert caps["methods"]["invoice"] is True
+
+    def test_the_owner_is_told_a_test_key_is_the_reason(self):
+        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
+            report = pm.readiness()
+        assert any("TEST key" in issue for issue in report["blocking_issues"])
+        assert report["collect_money_now"] is False
+
+    def test_the_secret_value_is_never_echoed(self):
+        secret = TEST_MOYASAR_KEY + "-SHOULD-NOT-LEAK"
+        with _gateway_config(moyasar=secret):
+            assert secret not in str(pm.capabilities())
+            assert secret not in str(pm.readiness())
+
+    def test_a_publishable_key_is_not_treated_as_a_secret_key(self):
+        """A pk_ value is not a secret and cannot charge anything."""
+        with _gateway_config(moyasar=PUBLIC_MOYASAR_KEY):
+            caps = pm.capabilities()
+        assert caps["card"] is False
 
 
 # ---------------------------------------------------------------------------

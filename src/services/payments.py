@@ -99,6 +99,26 @@ def paypal_collects_money() -> bool:
     return paypal_ready() and settings.paypal_mode == "live"
 
 
+def moyasar_secret_is_live() -> bool:
+    """Whether the configured Moyasar secret can actually take a payment.
+
+    A ``sk_test_`` secret is accepted by the API and creates real invoices, so a
+    probe cannot detect it -- it returns 200 exactly like a live key. The prefix
+    is the only signal, and it is decisive: Moyasar keys are self-describing and
+    the prefix is not a secret, so reading it leaks nothing.
+
+    Production was found configured with a test secret beside a *live*
+    publishable key. The card buttons would have reappeared as soon as the
+    credential passed its probe, and every buyer would have completed a sandbox
+    checkout that charged nothing and activated nothing. A working probe is not
+    the same as a working payment method.
+    """
+    secret = (get_settings().moyasar_api_secret or "").strip()
+    if not secret:
+        return False
+    return secret.startswith("sk_live_")
+
+
 def cached_credential_state(name: str) -> str:
     """The last probe answer, or "ok" while nothing has disproved it.
 
@@ -163,6 +183,11 @@ def capabilities(card_state: Optional[str] = None) -> dict:
     if card_state is None:
         card_state = cached_credential_state("moyasar")
     card = bool(settings.moyasar_api_secret) and card_state != "rejected"
+    test_mode = card and not moyasar_secret_is_live()
+    if test_mode:
+        # The credential works, so it passes the probe -- but a test secret cannot
+        # move money. Offering it would be the PayPal-sandbox trap again.
+        card = False
     paypal = paypal_collects_money()
     methods = {method: card for method in CARD_METHODS}
     methods["paypal"] = paypal
@@ -172,6 +197,7 @@ def capabilities(card_state: Optional[str] = None) -> dict:
         "card": card,
         "card_configured": bool(settings.moyasar_api_secret),
         "card_credentials": card_state,
+        "card_test_mode": test_mode,
         "paypal": paypal,
         "paypal_configured": paypal_ready(),
         "paypal_test_mode": paypal_ready() and settings.paypal_mode != "live",
@@ -212,6 +238,12 @@ def readiness(card_state: Optional[str] = None) -> dict:
         blocking.append(
             "MOYASAR_API_SECRET is set but Moyasar rejected it (401). "
             "Card checkout is hidden and every card payment would fail."
+        )
+    if caps.get("card_test_mode"):
+        blocking.append(
+            "MOYASAR_API_SECRET is a TEST key (sk_test_). Moyasar accepts it and "
+            "creates invoices, but no money moves, so card checkout is hidden. "
+            "Set an sk_live_ secret to take real card payments."
         )
     if paypal_ready() and caps["paypal_test_mode"]:
         blocking.append(
