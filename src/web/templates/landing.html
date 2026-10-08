@@ -58,6 +58,78 @@
     }
     </script>
     <script type="application/ld+json">
+    {#
+      ProfessionalService is a LocalBusiness subtype. Added because the page had
+      an Organization but no local entity, and the local pack plus AI Overview
+      citations both key off this node.
+
+      Every field is real: the address is the one already published on
+      /privacy, the catalogue is rendered from catalog.PACKAGES, and the payment
+      methods are the ones /api/payments/capabilities actually reports. There is
+      no aggregateRating, because there is nothing to rate and inventing one
+      would be exactly the fabricated business data this site refuses to publish.
+    #}
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "@id": "https://karmaai.online/#business",
+      "name": "النرجس للذكاء الاصطناعي",
+      "alternateName": "Al-Narjis AI",
+      "legalName": "Arabian Convoy Establishment",
+      "url": "https://karmaai.online",
+      "description": "فريق من {{ division_count }} أقسام متخصصة يغطيها {{ agent_count }} وكيلاً، يعمل على المحتوى والتسويق والمتاجر الإلكترونية وخدمة العملاء.",
+      "inLanguage": ["ar", "en"],
+      "image": "https://karmaai.online/static/img/og-cover.png",
+      "logo": "https://karmaai.online/static/img/og-cover.png",
+      "foundingLocation": "Riyadh, Saudi Arabia",
+      "currenciesAccepted": "SAR",
+      "paymentAccepted": "تحويل بنكي, فاتورة ضريبية",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District",
+        "postalCode": "13263",
+        "addressLocality": "Riyadh",
+        "addressRegion": "Riyadh",
+        "addressCountry": "SA"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 24.7136,
+        "longitude": 46.6753
+      },
+      "areaServed": [
+        { "@type": "Country", "name": "Saudi Arabia" },
+        { "@type": "AdministrativeArea", "name": "Riyadh" }
+      ],
+      "openingHoursSpecification": [{
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday",
+          "Friday", "Saturday", "Sunday"
+        ],
+        "opens": "00:00",
+        "closes": "23:59"
+      }],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "باقات النرجس",
+        "itemListElement": [
+          {% for key, pkg in packages.items() %}
+          {
+            "@type": "Offer",
+            "name": {{ pkg.name | tojson }},
+            "name_en": {{ pkg.name_en | tojson }},
+            "description": {{ pkg.tagline_en | tojson }},
+            "price": "{{ pkg.price }}",
+            "priceCurrency": "SAR",
+            "url": "https://karmaai.online/portal?pkg={{ key }}"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }
+    }
+    </script>
+    <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
@@ -76,7 +148,7 @@
           "name": "What is Al-Narjis AI?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Al-Narjis AI is a Riyadh-based platform of 30 specialized AI agents that operate around the clock for small and medium businesses: content, marketing, online stores, growth, and customer care."
+            "text": "Al-Narjis AI is a Riyadh-based platform of {{ agent_count }} specialized AI agents that operate around the clock for small and medium businesses: content, marketing, online stores, growth, and customer care."
           }
         },
         {
