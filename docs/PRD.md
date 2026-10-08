@@ -78,7 +78,7 @@ method, at any point. No leads, sales or testimonials may be claimed.
 | User | Job | Currently |
 | --- | --- | --- |
 | Owner (Arabic) | Approve and direct work; receive alerts | Alerts reached the wrong Telegram account — **fixed** |
-| Owner (Karmish) | Direct the CEO and the 35 agents from one console | **Shipped**, owner-only |
+| Owner (Karmish) | Direct the CEO and the 35 agents from one console | **Moved out** — now a separate product with its own repository and host |
 | Prospective buyer (Arabic) | Understand the offer and pay without a human | Blocked at payment |
 | Social media agent (Botpress) | Hand a closed sale to the CEO | **Shipped**, inert until a secret is set |
 | Existing lead | Be contacted and activated | CRM fine; storage not durable |
@@ -135,13 +135,22 @@ removed gold from the public site on request ("ثيم مثل موقع هيومي
 and the owner console. The document is the contract; §7 D4 confirms this before
 any pixel is written.
 
-### R4 — Karmish owner console *(shipped)*
+### R4 — Karmish owner console *(moved out of this product)*
 
-Owner-only console at `/karmish`; `POST /api/v1/karmish/talk` is owner-gated and
-rate-limited; responses state what actually ran, including "nothing was
-executed"; excluded from sitemap and `robots.txt`; `X-Robots-Tag: noindex`.
-58 tests, including assertions that the CEO was *called* rather than merely
-reported.
+**No longer served here.** The console was extracted to its own repository
+and its own host, where it is an independent application: it imports nothing
+from `src.*`, opens no connection to the corporate database and calls no
+corporate service.
+
+What shipped here first, and is the reason the extraction was safe: the
+console was owner-only and rate-limited, its replies stated what actually
+ran rather than what was merely called, it was excluded from the sitemap and
+`robots.txt`, and it shipped `X-Robots-Tag: noindex`. Those properties moved
+with it.
+
+This application now returns 404 for `/karmish` and for the talk endpoint,
+and the tests assert that absence so a second copy of that command surface
+cannot reappear here.
 
 ### R5 — Botpress closed-sale intake *(shipped, inert)*
 

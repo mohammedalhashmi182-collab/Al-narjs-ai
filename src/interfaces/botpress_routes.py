@@ -62,7 +62,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from src.utils.rate_limit import rate_limit_botpress, rate_limit_karmish
+from src.utils.rate_limit import rate_limit_botpress
 
 log = logging.getLogger(__name__)
 
@@ -541,75 +541,3 @@ async def botpress_health():
         "signature_header": SIGNATURE_HEADER,
     }
 
-
-class KarmishTalk(BaseModel):
-    """One owner instruction. Bounded, and unknown keys are refused."""
-
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-
-    message: str = Field(min_length=1, max_length=MAX_FREE_TEXT * 4)
-    sessionId: Optional[str] = Field(default=None, max_length=64)
-
-
-@router.post("/karmish/talk", dependencies=[Depends(rate_limit_karmish)])
-async def karmish_talk(body: KarmishTalk, request: Request):
-    """Owner-only instruction channel for the Karmish console.
-
-    Two locks, both required: the owner session cookie and the rate limiter. The
-    first version of this screen was reachable by anyone and its own copy
-    advertised "full permissions to control the system".
-
-    The reply states what actually happened. It never claims an action ran when
-    the orchestrator was absent, which is precisely the bug that made the earlier
-    Botpress endpoint report success while doing nothing.
-    """
-    from src.core.owner_auth import check_owner
-
-    if not check_owner(request):
-        return JSONResponse({"status": "unauthorized"}, status_code=401)
-
-    text = _clean(body.message, MAX_FREE_TEXT * 4)
-    if not text:
-        return _reject("empty_message", 422)
-
-    app = request.app
-    company_brain = getattr(app.state, "company_brain", None)
-    queue_worker = getattr(app.state, "queue_worker", None)
-
-    actions: list[str] = []
-
-    if company_brain is not None and hasattr(company_brain, "run_once"):
-        try:
-            await company_brain.run_once()
-            actions.append("أُبلغ الـ CEO وأعيد ترتيب أولوياته")
-        except Exception as exc:  # noqa: BLE001
-            log.warning("karmish ceo_brain failed: %s", exc)
-
-    task_id = None
-    if queue_worker is not None and hasattr(queue_worker, "enqueue_agent"):
-        from src.automation.queue_worker import TaskPriority
-        from src.services import catalog
-
-        slug = "customer_manager" if "customer_manager" in catalog.EMPLOYEES else next(iter(catalog.EMPLOYEES))
-        try:
-            task_id = await queue_worker.enqueue_agent(
-                agent_slug=slug,
-                input_data={"origin": "karmish", "instruction": text},
-                priority=TaskPriority.NORMAL,
-                metadata={"origin": "karmish"},
-            )
-            actions.append("سُلّم الأمر للوكيل المسؤول")
-        except Exception as exc:  # noqa: BLE001
-            log.warning("karmish enqueue failed: %s", exc)
-
-    if actions:
-        reply = "تم: " + "، و".join(actions) + "."
-        if task_id:
-            reply += f"\nرقم المهمة: {task_id}"
-    else:
-        reply = (
-            "استلمت أمرك، لكن لا يوجد محرك تشغيل مرفق بهذه النسخة"
-            " (CEO/الطابور غير مفعّلين)، فلم يُنفَّذ شيء بعد."
-        )
-
-    return {"reply": reply, "actions": actions, "task_id": task_id}

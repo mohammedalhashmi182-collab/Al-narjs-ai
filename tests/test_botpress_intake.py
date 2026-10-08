@@ -151,10 +151,8 @@ def _reset_limiters():
     from src.utils import rate_limit as rl
 
     rl.botpress_limiter.reset()
-    rl.karmish_limiter.reset()
     yield
     rl.botpress_limiter.reset()
-    rl.karmish_limiter.reset()
 
 
 @pytest.fixture
@@ -506,172 +504,41 @@ class TestCrmEffects:
         assert len(row.payload_hash) == 64
         assert row.media_meta["origin"] == "botpress"
         assert SECRET not in json.dumps(row.media_meta, ensure_ascii=False)
-
-
 # ---------------------------------------------------------------------------
-# Karmish console
+# Karmish left this application
 # ---------------------------------------------------------------------------
+# The owner console now lives in its own repository and on its own host. What is
+# asserted here is only that this application no longer serves it, so a stale
+# bookmark or a crawler can never reach a second copy of that command surface.
 
 
-class TestKarmishConsole:
-    async def test_the_page_requires_the_owner_session(self, client):
-        anon, _ = client
-        response = await anon.get("/karmish", follow_redirects=False)
-        assert response.status_code in (302, 307)
-        assert response.headers["location"] == "/login"
+class TestKarmishIsGoneFromTheCorporateSite:
+    async def test_the_page_no_longer_exists(self, client):
+        anon, owned = client
+        for browser in (anon, owned):
+            response = await browser.get("/karmish", follow_redirects=False)
+            assert response.status_code == 404, "the console must not be served here"
 
-    async def test_the_page_renders_for_the_owner(self, client):
-        _, owned = client
-        response = await owned.get("/karmish")
-        assert response.status_code == 200
-        assert "كرميش" in response.text
+    async def test_the_talk_endpoint_no_longer_exists(self, client):
+        anon, owned = client
+        for browser in (anon, owned):
+            response = await browser.post("/api/v1/karmish/talk", json={"message": "hi"})
+            assert response.status_code == 404
 
-    async def test_the_page_is_never_indexable(self, client):
-        _, owned = client
-        response = await owned.get("/karmish")
-        assert "noindex" in response.headers.get("x-robots-tag", "")
-        assert response.headers.get("cache-control") == "no-store"
-
-    async def test_the_agent_count_is_read_live_not_hard_coded(self, client):
-        from src.services import catalog
-
-        _, owned = client
-        response = await owned.get("/karmish")
-        assert str(len(catalog.EMPLOYEES)) in response.text
-
-    async def test_the_talk_endpoint_is_owner_only(self, client):
-        anon, _ = client
-        with _configured():
-            response = await anon.post("/api/v1/karmish/talk", json={"message": "hello"})
-        assert response.status_code == 401
-
-    async def test_the_talk_endpoint_does_not_execute_anything_for_a_stranger(self, client):
-        anon, _ = client
-        brain = RecordingBrain()
-        with _configured(), _orchestrator(brain, RecordingQueue()):
-            response = await anon.post("/api/v1/karmish/talk", json={"message": "run everything"})
-        assert response.status_code == 401
-        assert brain.calls == 0
-
-    async def test_the_talk_endpoint_reports_what_actually_happened(self, client):
-        _, owned = client
-        brain = RecordingBrain()
-        queue = RecordingQueue()
-        with _configured(), _orchestrator(brain, queue):
-            response = await owned.post("/api/v1/karmish/talk", json={"message": "review priorities"})
-        assert response.status_code == 200
-        body = response.json()
-        assert brain.calls == 1
-        assert body["task_id"] == "task-1"
-        assert body["actions"]
-
-    async def test_the_talk_endpoint_says_so_when_nothing_ran(self, client):
-        _, owned = client
-        with _configured(), _orchestrator(None, None):
-            response = await owned.post("/api/v1/karmish/talk", json={"message": "review"})
-        body = response.json()
-        assert body["actions"] == []
-        assert body["task_id"] is None
-        assert "لم" in body["reply"]
-
-    async def test_the_talk_endpoint_refuses_an_empty_message(self, client):
-        _, owned = client
-        with _configured():
-            response = await owned.post("/api/v1/karmish/talk", json={"message": "   "})
-        assert response.status_code in (401, 422)
-
-    async def test_the_talk_endpoint_refuses_an_oversized_message(self, client):
-        _, owned = client
-        with _configured():
-            response = await owned.post("/api/v1/karmish/talk", json={"message": "x" * 5000})
-        assert response.status_code == 422
-
-    async def test_the_talk_endpoint_refuses_an_unknown_field(self, client):
-        _, owned = client
-        with _configured():
-            response = await owned.post(
-                "/api/v1/karmish/talk", json={"message": "hello", "asAdmin": True}
-            )
-        assert response.status_code == 422
-
-
-# ---------------------------------------------------------------------------
-# SEO and cache policy
-# ---------------------------------------------------------------------------
-
-
-class TestSeoAndCaching:
-    def test_karmish_is_not_a_public_path(self):
-        from src.services import seo
-
-        assert seo.is_public_path("/karmish") is False
-
-    def test_karmish_is_disallowed_in_robots(self):
-        from src.services import seo
-
-        assert "Disallow: /karmish" in seo.build_robots()
-
-    def test_karmish_never_appears_in_the_sitemap(self):
-        from src.services import seo
-
-        assert "/karmish" not in seo.build_sitemap([], [])
-
-    def test_a_page_under_karmish_is_also_private(self):
-        from src.services import seo
-
-        assert seo.is_public_path("/karmish/anything") is False
-
-    def test_hand_edited_css_is_revalidated_not_frozen_for_a_year(self):
-        from src.main import _static_cache_control
-
-        assert "max-age=3600" in _static_cache_control("/static/css/karmish.css")
-        assert "immutable" not in _static_cache_control("/static/css/karmish.css")
-
-    def test_fingerprinted_assets_are_immutable(self):
-        from src.main import _static_cache_control
-
-        assert "immutable" in _static_cache_control("/static/logo.png")
-        assert "immutable" in _static_cache_control("/static/vendor/lib.css")
-
-    async def test_static_responses_carry_a_cache_control(self, client):
-        anon, _ = client
-        response = await anon.get("/static/css/karmish.css")
-        assert response.status_code == 200
-        assert "max-age" in response.headers.get("cache-control", "")
-
-    async def test_html_is_not_given_a_static_cache_policy(self, client):
-        anon, _ = client
-        response = await anon.get("/home")
-        assert "immutable" not in response.headers.get("cache-control", "")
-
-
-class TestNoSecretsReachTheClient:
-    async def test_no_page_in_this_feature_embeds_a_secret(self, client):
+    def test_no_karmish_template_or_asset_remains(self):
         from pathlib import Path
 
-        _, owned = client
-        response = await owned.get("/karmish")
-        assert "BOTPRESS_WEBHOOK_SECRET" not in response.text
-        for relative in ("src/web/templates/karmish.html", "src/web/static/js/karmish.js"):
-            source = Path(relative).read_text(encoding="utf-8")
-            assert "BOTPRESS_WEBHOOK_SECRET" not in source
-            assert "process.env" not in source
-            assert "import.meta.env" not in source
+        for relative in (
+            "src/web/templates/karmish.html",
+            "src/web/static/js/karmish.js",
+            "src/web/static/css/karmish.css",
+        ):
+            assert not Path(relative).exists(), f"{relative} should have moved out"
 
+    def test_the_path_stays_private_in_seo(self):
+        from src.services import seo
 
-class TestEndpointsRemainIsolated:
-    async def test_the_existing_channels_are_untouched(self, client):
-        anon, _ = client
-        for path in ("/webhooks/telegram/health", "/webhooks/whatsapp/health"):
-            response = await anon.get(path)
-            assert response.status_code == 200, path
-
-    async def test_billing_is_not_reachable_through_the_new_paths(self, client):
-        anon, _ = client
-        response = await anon.get("/api/v1/botpress/health")
-        assert "/api/payments" not in response.text
-
-
-def test_uuid_helper_is_importable():
-    """Guards the module's own imports: a missing symbol fails collection."""
-    assert uuid4 is not None
+        # a stale link must resolve as private, never as an indexable page
+        assert seo.is_public_path("/karmish") is False
+        assert "Disallow: /karmish" in seo.build_robots()
+        assert "/karmish" not in seo.build_sitemap([], [])

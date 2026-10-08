@@ -102,19 +102,3 @@ def rate_limit_botpress(request: Request) -> None:
             detail={"error": "Too many requests", "retry_after_seconds": retry_after},
             headers={"Retry-After": str(retry_after)},
         )
-
-
-# Karmish drives the model provider, so every call costs money and tokens. It is
-# owner-only, and this is the second lock: a stolen session cookie must not be
-# able to run up a bill.
-karmish_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=300)
-
-
-def rate_limit_karmish(request: Request) -> None:
-    ok, retry_after = karmish_limiter.check(f"{client_ip(request)}:/api/v1/karmish/talk")
-    if not ok:
-        raise HTTPException(
-            status_code=429,
-            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
-            headers={"Retry-After": str(retry_after)},
-        )

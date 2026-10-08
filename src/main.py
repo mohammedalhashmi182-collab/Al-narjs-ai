@@ -462,32 +462,6 @@ async def owner_entry(request: Request):
     return RedirectResponse("/")
 
 
-# Karmish: the owner's console for the CEO and the fleet. Owner session required,
-# because it can drive agents and the model provider. This is why /karmish is in
-# seo.PRIVATE_PREFIXES rather than in the sitemap -- an unauthenticated command
-# surface for 35 agents must never be indexable. The agent count is read live,
-# never hard-coded, per the design-system rule.
-@app.get("/karmish", response_class=HTMLResponse)
-async def karmish_page(request: Request):
-    from src.core.owner_auth import check_owner
-    from src.services import catalog
-
-    if not check_owner(request):
-        return RedirectResponse("/login")
-
-    response = templates.TemplateResponse(
-        request,
-        "karmish.html",
-        {
-            "_lang": _request_locale(request),
-            "agent_count": len(catalog.EMPLOYEES),
-        },
-    )
-    response.headers["X-Robots-Tag"] = "noindex, nofollow"
-    response.headers["Cache-Control"] = "no-store"
-    return response
-
-
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
     from src.services import catalog
