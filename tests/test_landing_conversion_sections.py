@@ -72,7 +72,11 @@ def _why() -> str:
 
 def _needs_js() -> str:
     body = _body()
-    return body[body.index("var NEEDS ="):body.index("var allAgents")]
+    # bounded by an explicit marker so this stays the picker only, and the
+    # divisions/ops-room client code below the marker cannot leak in
+    return body[
+        body.index("var NEEDS =") : body.index("/* ---------- divisions & ops room ---------- */")
+    ]
 
 
 def _pricing_markup() -> str:

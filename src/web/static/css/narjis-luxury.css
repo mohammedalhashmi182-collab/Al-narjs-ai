@@ -233,3 +233,237 @@ body.luxury .bg-sand { background: #060607; }
   body.luxury .n-card::after,
   body.luxury .n-card:hover::after { box-shadow: none; }
 }
+/* ==================== DIVISIONS (team-first framing) ==================== */
+/* The public site leads with divisions, never a raw roster count. */
+.dv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  margin-block-start: 28px;
+}
+.dv-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 18px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--n-line-2);
+  background:
+    linear-gradient(180deg, rgba(244, 196, 48, .05), rgba(244, 196, 48, 0) 58%),
+    var(--n-surface, rgba(255, 255, 255, .03));
+  transition: border-color .22s ease, transform .22s ease, box-shadow .22s ease;
+}
+.dv-card:hover,
+.dv-card:focus-within {
+  border-color: var(--n-gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.dv-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dv-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.dv-title h3 {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 1.06rem;
+  font-weight: 700;
+  color: #f6f5f4;
+  line-height: 1.35;
+}
+.dv-title h3 [data-lang="en"] {
+  display: none;
+}
+.dv-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .8rem;
+  color: var(--n-gold);
+  font-weight: 600;
+}
+.dv-count i {
+  font-size: .7rem;
+  opacity: .9;
+}
+.dv-blurb {
+  margin: 0;
+  font-size: .92rem;
+  line-height: 1.7;
+  color: #b9b8c0;
+}
+.dv-blurb [data-lang="en"] {
+  display: none;
+}
+.dv-roster {
+  margin-block-start: auto;
+  border-block-start: 1px solid var(--n-line-2);
+  padding-block-start: 12px;
+}
+.dv-roster summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--n-gold);
+  padding-block: 4px;
+}
+.dv-roster summary::-webkit-details-marker {
+  display: none;
+}
+.dv-roster summary i {
+  margin-inline-start: auto;
+  font-size: .7rem;
+  transition: transform .2s ease;
+}
+.dv-roster[open] summary i {
+  transform: rotate(180deg);
+}
+.dv-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.dv-list a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: .86rem;
+  line-height: 1.5;
+  color: #d6d5db;
+  text-decoration: none;
+}
+.dv-list a:hover,
+.dv-list a:focus-visible {
+  color: var(--n-gold);
+}
+.dv-list a i {
+  font-size: .34rem;
+  color: var(--n-gold);
+  opacity: .7;
+}
+.dv-list a [data-lang="en"] {
+  display: none;
+}
+.dv-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-block-start: 30px;
+}
+
+/* ==================== LIVE OPS ROOM ==================== */
+.pulse-sec {
+  padding-block: 26px;
+}
+.pulse-live {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--n-line-2);
+  background: rgba(255, 255, 255, .025);
+}
+.pulse-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+  padding-block: 6px;
+}
+.pulse-item + .pulse-item {
+  border-inline-start: 1px solid var(--n-line-2);
+}
+.pulse-n {
+  font-family: var(--font-head);
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #f6f5f4;
+  font-variant-numeric: tabular-nums;
+}
+.pulse-item.live .pulse-n {
+  color: var(--n-gold);
+}
+.pulse-l {
+  font-size: .78rem;
+  line-height: 1.5;
+  color: #b9b8c0;
+  max-width: 16ch;
+}
+.pulse-l [data-lang="en"] {
+  display: none;
+}
+.pulse-note {
+  margin: 14px auto 0;
+  max-width: 62ch;
+  text-align: center;
+  font-size: .8rem;
+  line-height: 1.7;
+  color: #9a99a2;
+}
+.pulse-note i {
+  color: var(--n-gold);
+  margin-inline-end: 6px;
+}
+.pulse-note [data-lang="en"] {
+  display: none;
+}
+.pulse-stamp {
+  margin: 10px auto 0;
+  text-align: center;
+  font-size: .74rem;
+  color: var(--n-online);
+  letter-spacing: .02em;
+}
+.pulse-stamp i {
+  font-size: .38rem;
+  vertical-align: middle;
+}
+
+@media (max-width: 560px) {
+  .pulse-live {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pulse-item + .pulse-item {
+    border-inline-start: 0;
+  }
+  .pulse-item:nth-child(even) {
+    border-inline-end: 1px solid var(--n-line-2);
+  }
+.pulse-item:nth-child(n + 3) {
+    border-block-start: 1px solid var(--n-line-2);
+  }
+  /* an odd final item takes the full row instead of leaving a hole */
+  .pulse-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  .pulse-n {
+    font-size: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dv-card,
+  .dv-card:hover,
+  .dv-roster summary i { transition: none; }
+  .dv-card:hover,
+  .dv-card:focus-within { transform: none; }
+}

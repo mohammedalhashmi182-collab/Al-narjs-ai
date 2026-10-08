@@ -1252,13 +1252,15 @@ select option{background:#101014;color:#F6F5F4}
             </div>
             <div class="pf reveal">
                 <b><i class="fas fa-users-gear"></i><span data-lang="ar">فريق محدّد لكل باقة</span><span data-lang="en" data-inline>A defined team per plan</span></b>
-                <p><span data-lang="ar"><b>{{ agent_count }}</b> وكيلاً في الكتالوج، وكل باقة تفتح <b>5</b> منهم حسب مجالك — لا تحرق اشتراكك على وكيل واحد.</span><span data-lang="en" data-inline><b>{{ agent_count }}</b> agents in the catalogue, and every plan opens <b>5</b> of them for your field — your subscription is not spent on a single agent.</span></p>
+                <p><span data-lang="ar"><b>{{ division_count }}</b> أقسام متخصصة يغطيها <b>{{ agent_count }}</b> وكيلاً، وكل باقة تفتح <b>5</b> منهم حسب مجالك — لا تحرق اشتراكك على وكيل واحد.</span><span data-lang="en" data-inline><b>{{ division_count }}</b> specialised divisions staffed by <b>{{ agent_count }}</b> agents, and every plan opens <b>5</b> of them for your field — your subscription is not spent on a single agent.</span></p>
             </div>
         </div>
         <div class="proof-note">
             <p class="pn"><i class="fas fa-circle-info" style="color:var(--green);margin-inline-end:6px"></i><span data-lang="ar">لن تجد هنا شعارات عملاء ولا شهادات تقييم، لأننا لا ننشر ما لا نستطيع إثباته. وما نعرضه بدلها هو <b>المخرجات نفسها</b> — جرّب النموذج التفاعلي، واقرأ شروط الاشتراك في صفحة الباقات قبل أن تقرر.</span><span data-lang="en" data-inline>You will not find client logos or reviews here, because we do not publish what we cannot prove. What we show instead is <b>the output itself</b> — try the interactive sample, and read the subscription terms on the plans section before you decide.</span></p>
         </div>
     </section>
+
+{% include "partials/_pulse.html" %}
 
     <!-- ==================== DEMO ==================== -->
     <section class="section demo" id="demo">
@@ -1480,33 +1482,7 @@ select option{background:#101014;color:#F6F5F4}
     </section>
 
     <!-- ==================== AGENTS ==================== -->
-    <section class="section agents" id="agents">
-        <div class="sec-inner">
-            <div class="reveal" style="text-align:center;">
-                <span class="eyebrow"><span data-lang="ar">عائلة الوكلاء</span><span data-lang="en" data-inline>The agent family</span></span>
-                <h2 class="sec-title"><span data-lang="ar">فريقك القادم…</span><span data-lang="en" data-inline>Your next team…</span> <span class="c" data-lang="ar">نائمٌ مستعد</span><span class="c" data-lang="en" data-inline>sleeping, ready</span></h2>
-            </div>
-            <div class="filters reveal" id="filters"></div>
-            <div class="agents-grid reveal" id="agents-grid">
-                <div class="ag-card">
-                    <div class="ag-head"><div class="role-tile">{{ role_icon(agents_preview[0].dept) }}</div><div><div class="ag-no">{{ agents_preview[0].no }}</div><div class="ag-name"><span data-lang="ar">{{ agents_preview[0].title_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[0].title_en }}</span></div></div></div>
-                    <p class="desc"><span data-lang="ar">{{ agents_preview[0].intro_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[0].intro_en }}</span></p>
-                    <div class="ag-foot"><span>{{ agents_preview[0].dept }}</span><span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>
-                </div>
-                <div class="ag-card">
-                    <div class="ag-head"><div class="role-tile">{{ role_icon(agents_preview[1].dept) }}</div><div><div class="ag-no">{{ agents_preview[1].no }}</div><div class="ag-name"><span data-lang="ar">{{ agents_preview[1].title_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[1].title_en }}</span></div></div></div>
-                    <p class="desc"><span data-lang="ar">{{ agents_preview[1].intro_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[1].intro_en }}</span></p>
-                    <div class="ag-foot"><span>{{ agents_preview[1].dept }}</span><span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>
-                </div>
-                <div class="ag-card">
-                    <div class="ag-head"><div class="role-tile">{{ role_icon(agents_preview[2].dept) }}</div><div><div class="ag-no">{{ agents_preview[2].no }}</div><div class="ag-name"><span data-lang="ar">{{ agents_preview[2].title_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[2].title_en }}</span></div></div></div>
-                    <p class="desc"><span data-lang="ar">{{ agents_preview[2].intro_ar }}</span><span data-lang="en" data-inline>{{ agents_preview[2].intro_en }}</span></p>
-                    <div class="ag-foot"><span>{{ agents_preview[2].dept }}</span><span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>
-                </div>
-                <div class="loading-msg" id="agentsStatus" style="grid-column:1/-1;text-align:center;"><span data-lang="ar">جارٍ تحميل بقية الوكلاء…</span><span data-lang="en" data-inline>Loading the rest of the team…</span> <a href="/home#agents"><span data-lang="ar">أو اعرض القائمة كاملة</span><span data-lang="en" data-inline>or view the full list</span></a></div>
-            </div>
-        </div>
-    </section>
+    {% include "partials/_divisions.html" %}
 
     <!-- ==================== ORCHESTRATOR ==================== -->
     <section class="section" id="orchestrator">
@@ -2663,70 +2639,7 @@ select option{background:#101014;color:#F6F5F4}
                 dStatus2('IDLE');
             }
 
-            var allAgents = [], curDept = 'الكل', agentCount = 0;
-            var grid = document.getElementById('agents-grid');
-            var filters = document.getElementById('filters');
-            // All nine catalog departments. Kept in sync with ROLE_ICONS in
-            // partials/_role_icon.html (tests/test_design_system.py enforces it).
-            var DEPT_EN = {
-                'التسويق الرقمي': 'Digital Marketing',
-                'المحتوى': 'Content',
-                'التجارة الإلكترونية': 'E-commerce',
-                'خدمة العملاء': 'Customer Care',
-                'التحليلات': 'Analytics',
-                'نمو الأعمال': 'Business Growth',
-                'المنتجات والهندسة': 'Product & Engineering',
-                'الإدارة التنفيذية': 'Executive Management',
-                'الشؤون المؤسسية': 'Corporate Affairs'
-            };
-            // same nine keys, mapped to the inline SVG markup from the partial
-            var ROLE_ICONS = {
-                'التسويق الرقمي': 'megaphone',
-                'المحتوى': 'doc',
-                'التجارة الإلكترونية': 'cart',
-                'خدمة العملاء': 'headset',
-                'التحليلات': 'chart',
-                'نمو الأعمال': 'growth',
-                'المنتجات والهندسة': 'gear',
-                'الإدارة التنفيذية': 'compass',
-                'الشؤون المؤسسية': 'building'
-            };
-            function roleIcon(dept) {
-                var s = '<svg class="role-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">';
-                var g = function (d) { return '<path class="g" pathLength="1" d="' + d + '"/>'; };
-                switch (ROLE_ICONS[dept]) {
-                    case 'megaphone': return s + g('M3.5 9.5v5a1 1 0 0 0 1 1H7l7 4.2V5.3L7 9.5H4.5a1 1 0 0 0-1 1Z') + g('M17 8.6a4.6 4.6 0 0 1 0 6.8') + g('M19.6 6.2a8 8 0 0 1 0 11.6') + '</svg>';
-                    case 'doc': return s + g('M6 3.5h7.5L18 8v12.5H6z') + g('M13.5 3.5V8H18') + g('M8.8 12h6.4') + g('M8.8 15.2h4.6') + '</svg>';
-                    case 'cart': return s + g('M2.8 4h2.4l2.3 10.4a1.4 1.4 0 0 0 1.4 1.1h7.8a1.4 1.4 0 0 0 1.4-1.1L20 7.2H6.2') + g('M9.6 19.4a1.1 1.1 0 1 0 0-2.2 1.1 1.1 0 0 0 0 2.2Z') + g('M17 19.4a1.1 1.1 0 1 0 0-2.2 1.1 1.1 0 0 0 0 2.2Z') + '</svg>';
-                    case 'headset': return s + g('M4.2 14.5v-2.3a7.8 7.8 0 0 1 15.6 0v2.3') + g('M4.2 13.2h1.7a1 1 0 0 1 1 1v3.4a1 1 0 0 1-1 1H4.6a.4.4 0 0 1-.4-.4Z') + g('M19.8 13.2h-1.7a1 1 0 0 0-1 1v3.4a1 1 0 0 0 1 1h1.3a.4.4 0 0 0 .4-.4Z') + g('M18.1 18.7v.6a2.2 2.2 0 0 1-2.2 2.2H13') + '</svg>';
-                    case 'chart': return s + g('M3.6 20.4h16.8') + g('M6.4 20.4v-5.2') + g('M11 20.4V9.6') + g('M15.6 20.4v-8') + g('M20.2 20.4V4.6') + '</svg>';
-                    case 'growth': return s + g('M3.4 16.6l4.8-4.9 3.4 2.9 5-5.6 3.9 2.2') + g('M17.2 11.2h3.3v-3.3') + g('M3.4 20.4h17.2') + '</svg>';
-                    case 'gear': return s + '<circle class="g" pathLength="1" cx="12" cy="12" r="3.1"/>' + g('M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2 5.5 5.5') + '</svg>';
-                    case 'building': return s + g('M3.6 20.4h16.8') + g('M5.6 20.4V5.2a1.4 1.4 0 0 1 1.4-1.4h5.6a1.4 1.4 0 0 1 1.4 1.4v15.2') + g('M14 9.6h3a1.4 1.4 0 0 1 1.4 1.4v9.4') + g('M8.4 7.6h2.6M8.4 11h2.6M8.4 14.4h2.6') + '</svg>';
-                    default: return s + '<circle class="g" pathLength="1" cx="12" cy="12" r="8.4"/>' + g('M12 7.6v4.6l3 1.8') + '</svg>';
-                }
-            }
-            function deptLabel(d, isAr) { return d === 'الكل' ? (isAr ? 'الكل' : 'All') : (isAr ? d : (DEPT_EN[d] || d)); }
-            function renderAgents() {
-                var isAr = document.body.dataset.lang === 'ar';
-                var list = allAgents.filter(function (a) { return curDept === 'الكل' || (a.dept || a.category) === curDept; });
-                if (!list.length) { grid.innerHTML = '<div class="loading-msg">' + (isAr ? 'لا وكلاء' : 'No agents') + '</div>'; return; }
-                grid.innerHTML = list.map(function (a) {
-                    var dept = a.dept || a.category || '';
-                    var no = (a.employee_no || 'AG-00').replace('AG-', '');
-                    var name = isAr ? (a.title_ar || a.name) : (a.title_en || a.title_ar || a.name);
-                    var desc = isAr ? (a.intro_ar || a.description || '') : (a.intro_en || a.intro_ar || a.description || '');
-                    return '<div class="ag-card">' +
-                        '<div class="ag-head"><div class="role-tile">' + roleIcon(dept) + '</div><div>' +
-                        '<div class="ag-no">' + (a.employee_no || '') + '</div>' +
-                        '<div class="ag-name">' + name + '</div></div></div>' +
-                        '<p class="desc">' + desc + '</p>' +
-                        '<div class="ag-foot"><span>' + deptLabel(dept, isAr) + '</span>' +
-                        '<span class="st"><i class="fas fa-circle"></i><span data-lang="ar">موظف · جاهز</span><span data-lang="en" data-inline>Employee · ready</span></span></div>' +
-                        '</div>';
-                }).join('');
-                document.querySelectorAll('.ag-card').forEach(function (c) { c.classList.add('in'); });
-            }
+            /* ---------- divisions & ops room ---------- */
             (async function () {
                 var ctrl = new AbortController();
                 var to = setTimeout(function () { ctrl.abort(); }, 5000);
@@ -2734,32 +2647,53 @@ select option{background:#101014;color:#F6F5F4}
                     var res = await fetch('/api/agents', { signal: ctrl.signal });
                     var data = await res.json();
                     if (data.agents && data.agents.length) {
-                        allAgents = data.agents;
-                        agentCount = data.agents.length;
+                        var liveCount = data.agents.length;
                         var heroCount = document.getElementById('heroCount');
-                        if (heroCount) heroCount.textContent = agentCount;
-                        document.querySelectorAll('.cnt20').forEach(function (el) { el.textContent = agentCount; });
-                        document.querySelectorAll('.cnt20b').forEach(function (el) { el.textContent = agentCount; });
-                        var isArL = document.body.dataset.lang === 'ar';
-                        var depts = ['الكل'].concat(data.agents.map(function (a) { return a.dept || a.category; }).filter(function (v, i, arr) { return v && arr.indexOf(v) === i; }));
-                        filters.innerHTML = depts.map(function (d) { return '<button class="fchip' + (d === 'الكل' ? ' on' : '') + '" data-d="' + d + '">' + deptLabel(d, isArL) + '</button>'; }).join('');
-                        filters.querySelectorAll('.fchip').forEach(function (b) {
-                            b.addEventListener('click', function () {
-                                filters.querySelectorAll('.fchip').forEach(function (x) { x.classList.remove('on'); });
-                                b.classList.add('on');
-                                curDept = b.dataset.d;
-                                renderAgents();
-                            });
-                        });
-                        renderAgents();
-                    } else { throw new Error('empty'); }
+                        if (heroCount) heroCount.textContent = liveCount;
+                        document.querySelectorAll('.cnt20').forEach(function (el) { el.textContent = liveCount; });
+                        document.querySelectorAll('.cnt20b').forEach(function (el) { el.textContent = liveCount; });
+                    }
                 } catch (e) {
-                    var st = document.getElementById('agentsStatus');
-                    if (st) st.innerHTML = document.body.dataset.lang === 'ar'
-                        ? 'تعذر تحميل القائمة الكاملة — <a href="/home#agents">افتح صفحة الوكلاء</a>'
-                        : 'Could not load the full list — <a href="/home#agents">open the agents page</a>';
+                    /* the page already ships server-rendered counts; stay silent */
                 } finally { clearTimeout(to); }
             })();
+
+            (async function () {
+                var live = document.getElementById('pulse-live');
+                if (!live) return;
+                var ctrl = new AbortController();
+                var to = setTimeout(function () { ctrl.abort(); }, 5000);
+                try {
+                    var res = await fetch('/api/pulse', { signal: ctrl.signal });
+                    if (!res.ok) throw new Error('pulse');
+                    var d = await res.json();
+                    // a database-backed metric of zero carries no information on a
+                    // sales page, so it stays as the placeholder: never a false
+                    // number, and never an empty-looking counter either
+                    var live = { hideZero: true };
+                    var set = function (key, value, opts) {
+                        var el = document.querySelector('#pulse-live [data-pulse="' + key + '"]');
+                        if (!el || value === null || value === undefined) return;
+                        var item = el.closest('.pulse-item');
+                        if (opts && opts.hideZero && value === 0) {
+                            if (item) item.hidden = true;
+                            return;
+                        }
+                        el.textContent = value;
+                        if (item) item.classList.add('live');
+                    };
+                    set('divisions', d.divisions);
+                    set('agents', d.agents);
+                    set('plans', d.plans);
+                    set('leads_received', d.leads_received, live);
+                    set('projects', d.projects, live);
+                    var stamp = document.getElementById('pulse-stamp');
+                    if (stamp) stamp.hidden = false;
+                } catch (e) {
+                    /* leave capability copy in place; never show a fake number */
+                } finally { clearTimeout(to); }
+            })();
+            /* ---------- end divisions & ops room ---------- */
 
             var TG_LINK = 'https://t.me/AlNarjs7BOT';
             var TG_SUPPORT = 'https://t.me/AlNarjs7BOT?start=support';

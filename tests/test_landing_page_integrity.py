@@ -66,12 +66,16 @@ def test_landing_has_about_and_no_fake_testimonials() -> None:
 def test_landing_renders_values_without_javascript() -> None:
     body = _read("landing.html")
     assert 'id="rotor"></span>' not in body, "rotor must have server-rendered text"
-    assert 'id="agents-grid">' in body
-    # first agents must be pre-rendered, not only a spinner
-    grid_start = body.index('id="agents-grid"')
-    grid_slice = body[grid_start:grid_start + 4000]
-    assert "ag-card" in grid_slice
-    assert "fa-spinner" not in grid_slice
+    # The whole team section lives in an included partial and is rendered
+    # server-side as divisions, so nothing on it depends on JavaScript:
+    # no grid to hydrate, no spinner to wait for.
+    divisions = _read("partials/_divisions.html")
+    assert "dv-grid" in divisions
+    assert "{% for d in divisions %}" in divisions
+    assert "ag-card" not in divisions
+    pulse = _read("partials/_pulse.html")
+    assert 'id="pulse-live"' in pulse
+    assert "fa-spinner" not in body and "fa-spinner" not in divisions
 
 
 def test_agents_count_matches_catalog() -> None:

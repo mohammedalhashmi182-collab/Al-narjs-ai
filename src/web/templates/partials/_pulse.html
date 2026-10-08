@@ -1,0 +1,37 @@
+<!-- ==================== LIVE PULSE ==================== -->
+    <section class="section pulse-sec" id="pulse">
+        <div class="sec-inner">
+            <div class="reveal" style="text-align:center;margin-block-end:16px;">
+                <span class="eyebrow"><span data-lang="ar">غرفة العمليات</span><span data-lang="en" data-inline>The ops room</span></span>
+                <h2 class="sec-title"><span data-lang="ar">ما يراه النظام</span><span data-lang="en" data-inline>What the system sees</span></h2>
+            </div>
+            <div class="pulse-live" id="pulse-live">
+                <div class="pulse-item" data-k="divisions">
+                    <span class="pulse-n" data-pulse="divisions">{{ division_count }}</span>
+                    <span class="pulse-l"><span data-lang="ar">قسم متخصص</span><span data-lang="en" data-inline>specialised divisions</span></span>
+                </div>
+                <div class="pulse-item" data-k="agents">
+                    <span class="pulse-n" data-pulse="agents">{{ agent_count }}</span>
+                    <span class="pulse-l"><span data-lang="ar">متخصصاً خلفها</span><span data-lang="en" data-inline>specialists behind them</span></span>
+                </div>
+                <div class="pulse-item" data-k="plans">
+                    <span class="pulse-n" data-pulse="plans">{{ packages|length }}</span>
+                    <span class="pulse-l"><span data-lang="ar">باقة تشغيل كاملة</span><span data-lang="en" data-inline>full-service plans</span></span>
+                </div>
+                <div class="pulse-item" data-k="leads_received">
+                    <span class="pulse-n" data-pulse="leads_received">—</span>
+                    <span class="pulse-l"><span data-lang="ar">طلبات تواصل استلمناها</span><span data-lang="en" data-inline>requests we received</span></span>
+                </div>
+                <div class="pulse-item" data-k="projects">
+                    <span class="pulse-n" data-pulse="projects">—</span>
+                    <span class="pulse-l"><span data-lang="ar">مشروع عميل مسجّل في النظام</span><span data-lang="en" data-inline>client projects in the system</span></span>
+                </div>
+            </div>
+            <p class="pulse-note reveal">
+                <i class="fas fa-circle-info"></i>
+                <span data-lang="ar">غرفة العمليات تُقرأ مباشرة من قاعدة البيانات عند فتح الصفحة. إن لم يتوفر رقم، نعرض ما نقدّمه بدل اختلاق قيمة.</span>
+                <span data-lang="en" data-inline>The ops room reads straight from the database as you open this page. If a number is unavailable we show capability instead of inventing a value.</span>
+            </p>
+            <p class="pulse-stamp" id="pulse-stamp" hidden><i class="fas fa-circle"></i> <span data-lang="ar">محدّث الآن من النظام</span><span data-lang="en" data-inline>live from the system now</span></p>
+        </div>
+    </section>
