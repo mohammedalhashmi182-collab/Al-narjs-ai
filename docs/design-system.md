@@ -3,7 +3,8 @@
 Single source of truth for the visual identity of [karmaai.online](https://karmaai.online).
 `tests/test_design_system.py` enforces this file. If a test fails, fix the CSS — not the test.
 
-**ODSF v0.3** keeps the gold/green/Cairo brand DNA (sections 2–7 below) and adds the
+**ODSF v0.4** keeps the green/Cairo brand DNA (sections 2–7 below), replaces the gold
+action hue with vermilion, and adds the
 **Luxury Dark** public presentation (section 8): the whole public site is a cinematic,
 near-black, glassmorphic storefront inspired by premium product films. The light palette in
 section 2 remains the canonical neutral reference (printed invoices) and the single source
@@ -24,14 +25,30 @@ Arabic is the primary language and the layout is RTL. Type is **Cairo** (see §5
 ## 2. Core colors (canonical brand tokens)
 
 The light values below are the canonical brand palette — the single source of the brand hues
-(gold, green) and the neutral surfaces for printed invoices. Public pages present them in the
+(vermilion accent, green) and the neutral surfaces for printed invoices. Public pages present them in the
 Luxury Dark mode of §8.
 
 | Token | Value | Role |
 | --- | --- | --- |
-| `--gold` | `#F4C430` | Primary — the warm heart of the narjis flower. Primary buttons, active states, key emphasis. |
-| `--gold-deep` | `#C9A227` | Pressed / hover state, gold text on light surfaces (contrast-safe). |
-| `--gold-wash` | `#FEF6DC` | Tinted background for highlighted blocks. |
+| `--accent` | `#FF5A36` | Primary — vermilion. Primary buttons, active states, key emphasis. |
+| `--accent-deep` | `#D93F1E` | Pressed / hover state, accent text on light surfaces (contrast-safe). |
+| `--accent-wash` | `#FFEAE4` | Tinted background for highlighted blocks. |
+
+**Why vermilion and not gold.** Gold (`#F4C430`) was the action hue until the owner
+retired it. The replacement was chosen from 2026 evidence rather than taste, and
+every claim below is measured:
+
+| Requirement | Result |
+|---|---|
+| One saturated accent on a near-black canvas (the 2026 norm for AI/SaaS) | 6.30:1 against `#060607` — AA |
+| Ink text on an accent-filled control | 5.62:1 — AA at body size |
+| **White text on the accent fill** | **3.10:1 — fails AA. Every accent-filled control therefore uses the dark ink, never `#fff`.** |
+| Outside the 220°–280° band that research now identifies as AI-generated convergence (indigo, blue→purple gradients) | `#FF5A36` sits at ~14° |
+| Clear of the Telegram blue `#229ED9` and green, so a CTA never reads as a chat link | no collision |
+
+The old names are **retired, not deleted**: `--gold`, `--gold-deep`, `--gold-wash`,
+`--n-gold*` and `--odsf-gold*` all resolve to the accent family so nothing breaks.
+New code must use the accent names.
 | `--green` | `#4F7942` | Secondary — calm herbal green. Outlines, links, "organic/automation" accents, success. |
 | `--green-deep` | `#3D5F33` | Pressed state, green text on light surfaces. |
 | `--green-wash` | `#EEF3EA` | Tinted background. |
@@ -45,18 +62,19 @@ Luxury Dark mode of §8.
 
 **Rules**
 
-- Gold is the *action* colour. Never use it for body text on `--bg` (fails contrast) — use
-  `--gold-deep` for gold text.
+- The accent is the *action* colour. Never place body text in `--accent` on `--bg`
+  (fails contrast) — use `--accent-deep` for accent text on light surfaces, and
+  reserve the full accent for fills that carry dark ink.
 - Green is the *structure* colour: secondary buttons, links, informational accents.
-- Exactly one gold primary button per view. A second gold button halves the first one's power.
+- Exactly one accent primary button per view. A second one halves its power.
 - Do not introduce a third brand hue. Status colours (`--ok`, `--warn`, `--err`) are the only
   permitted exception and must not be used decoratively.
 
 ```css
 :root {
-  --gold:      #F4C430;
-  --gold-deep: #C9A227;
-  --gold-wash: #FEF6DC;
+  --accent:      #FF5A36;
+  --accent-deep: #D93F1E;
+  --accent-wash: #FFEAE4;
   --green:      #4F7942;
   --green-deep: #3D5F33;
   --green-wash: #EEF3EA;

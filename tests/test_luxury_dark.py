@@ -69,14 +69,37 @@ def test_the_layer_exists(luxury: str) -> None:
     assert "body.luxury" in luxury, "the layer is not scoped to body.luxury"
 
 
-class TestGoldIsThePublicActionHue:
-    def test_the_layer_defines_gold(self, luxury: str) -> None:
-        for token in ("--n-gold", "--odsf-gold"):
+class TestVermilionIsThePublicActionHue:
+    """The owner's replacement for gold: one saturated vermilion action hue.
+
+    The colour itself moved on instruction, but the rule behind it did not: one
+    action hue per view, defined once as a token, never re-decided by a
+    component. These tests keep that rule under the new name so the layer cannot
+    quietly grow a second action colour again.
+    """
+
+    ACCENT = "#ff5a36"
+
+    def test_the_layer_defines_the_accent(self, luxury: str) -> None:
+        for token in ("--n-accent", "--odsf-accent"):
             match = re.search(rf"{token}:\s*(#[0-9a-f]{{6}})", luxury, re.I)
             assert match, f"{token} is not defined in the luxury layer"
-            assert match.group(1).lower() == "#f4c430", (
-                f"{token} is {match.group(1)}, expected the owner's #f4c430 gold"
+            assert match.group(1).lower() == self.ACCENT, (
+                f"{token} is {match.group(1)}, expected the owner's {self.ACCENT}"
             )
+
+    def test_the_legacy_gold_names_resolve_to_the_accent(self, luxury: str) -> None:
+        """Retired, not deleted: `--n-gold*` still resolves, so nothing breaks."""
+        for token in ("--n-gold", "--odsf-gold"):
+            match = re.search(rf"{token}:\s*([^;]+);", luxury)
+            assert match, f"{token} disappeared; templates still reference it"
+            assert "accent" in match.group(1).lower(), (
+                f"{token} no longer aliases the accent family: {match.group(1)}"
+            )
+
+    def test_no_gold_hue_survives_anywhere_in_the_layer(self, luxury: str) -> None:
+        for retired in ("f4c430", "e0b824", "c9a227", "fef6dc"):
+            assert retired not in luxury.lower(), f"gold #{retired} is still in the luxury layer"
 
     def test_the_layer_defines_no_retired_mint(self, luxury: str) -> None:
         for hex_value in RETIRED_HEXES:
@@ -90,15 +113,51 @@ class TestGoldIsThePublicActionHue:
             assert hex_value not in body, f"{page} still hardcodes the retired #{hex_value}"
         assert not RETIRED_RGB.search(body), f"{page} still hardcodes a retired mint rgb()"
 
+    @pytest.mark.parametrize("page", PUBLIC_PAGES)
+    def test_no_public_page_carries_a_retired_gold_hex(self, page: str) -> None:
+        body = read(TEMPLATES / page).lower()
+        for retired in ("f4c430", "e0b824"):
+            assert retired not in body, f"{page} still hardcodes the retired gold #{retired}"
+
     def test_the_dark_canvas_is_near_black(self, luxury: str) -> None:
         assert re.search(r"--n-sand:\s*#060607", luxury, re.I), "the page canvas is not #060607"
         assert re.search(r"background-color:\s*#060607", luxury, re.I)
 
-    def test_gold_is_the_only_action_colour_on_public_pages(self) -> None:
-        """One action hue per view (§1-§5). The brand gold owns it."""
+    def test_the_accent_is_the_only_action_colour_on_public_pages(self) -> None:
+        """One action hue per view. The accent owns it."""
         landing = read(TEMPLATES / "landing.html")
-        assert re.search(r"--gold:\s*#f4c430", landing, re.I), (
-            "landing.html does not resolve the action colour to gold"
+        assert re.search(r"--gold:\s*#ff5a36", landing, re.I), (
+            "landing.html does not resolve the action colour to the accent"
+        )
+
+    def test_the_accent_is_readable_on_the_dark_canvas(self) -> None:
+        """The reason vermilion: measurable contrast on a near-black canvas."""
+        def luminance(hex_value: str) -> float:
+            value = hex_value.lstrip("#")
+            channels = [int(value[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+            linear = [
+                c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+                for c in channels
+            ]
+            return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+        def ratio(a: str, b: str) -> float:
+            first, second = sorted((luminance(a), luminance(b)), reverse=True)
+            return (first + 0.05) / (second + 0.05)
+
+        assert ratio(self.ACCENT, "#060607") >= 4.5, (
+            "the accent fails AA against the dark canvas"
+        )
+
+    def test_white_text_is_never_put_on_the_accent_fill(self) -> None:
+        """White on vermilion is 3.10:1 and fails AA, so ink is required."""
+        landing = read(TEMPLATES / "landing.html")
+        pattern = re.compile(
+            r"background:\s*var\(--(?:gold|odsf-gold)\)[^;]*;[^}]*color:\s*#fff",
+            re.I | re.S,
+        )
+        assert not pattern.search(landing), (
+            "a control fills with the accent and sets white text; use the dark ink"
         )
 
 
@@ -144,7 +203,7 @@ class TestGlassAndMotion:
         radial washes behind the hero. A 1px border ring and the text selection
         highlight are a border and a highlight, not auras, so they are excluded.
         """
-        pattern = r"rgba\(\s*244,\s*196,\s*48,\s*([\d.]+)\s*\)"
+        pattern = r"rgba\(\s*255,\s*90,\s*54,\s*([\d.]+)\s*\)"
         glows: list[float] = []
 
         for declaration in re.findall(r"box-shadow:[^;]+;", luxury):

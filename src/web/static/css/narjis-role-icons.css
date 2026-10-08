@@ -56,7 +56,7 @@
 .bcard:hover .role-tile,
 .orch-pill:hover .role-tile,
 .role-tile:hover {
-  background: var(--odsf-gold, #F4C430);
+  background: var(--odsf-gold, #FF5A36);
   color: var(--n-brown, #292524);
 }
 .ag-card:hover .role-ico .g,
