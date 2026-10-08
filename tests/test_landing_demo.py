@@ -38,7 +38,11 @@ def _body() -> str:
 def _demo_js() -> str:
     """The demo data object and its wiring, bounded to avoid the rest of the page."""
     body = _body()
-    return body[body.index("var DEMO_TABS"):body.index("var allAgents")]
+    # bounded by an explicit marker so the divisions/ops-room client code,
+    # which does fetch(), can never be mistaken for the offline demo
+    return body[
+        body.index("var DEMO_TABS") : body.index("/* ---------- divisions & ops room ---------- */")
+    ]
 
 
 def _demo_css() -> str:

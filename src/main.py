@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -23,6 +24,8 @@ from src.db.session import init_db, get_session_factory, close_db
 configure_logging(settings.log_level, settings.log_json)
 
 logger = get_logger(__name__)
+
+_PULSE_TTL_SECONDS = 30.0
 
 
 def _log_database_target() -> None:
@@ -504,6 +507,10 @@ async def landing_page(request: Request):
         {
             "agent_count": agent_count,
             "agents_preview": employees[:3],
+            # divisions first: the public site never advertises a raw roster size
+            "divisions": catalog.DIVISIONS,
+            "division_count": catalog.DIVISION_COUNT,
+            "catalog_employees": catalog.EMPLOYEES,
             # one leader above a sample of the team, for the orchestrator visual
             "orch_team": [
                 {"slug": slug, **emp} for slug, emp in list(catalog.EMPLOYEES.items())[:6]
@@ -511,6 +518,55 @@ async def landing_page(request: Request):
             "packages": catalog.PACKAGES,
         },
     )
+
+
+@app.get("/api/pulse")
+async def public_pulse():
+    """Live, aggregate-only numbers for the public site.
+
+    Truthfulness rules for this endpoint:
+      * only COUNT(*) style aggregates are ever returned, never rows or names;
+      * any metric that cannot be read is returned as ``None`` so the page can
+        show capability copy instead of an invented number;
+      * counts are cached briefly so a public page view cannot hammer the DB.
+    """
+    from src.db.session import get_session_factory
+    from src.services import catalog
+    from sqlalchemy import text
+    from sqlalchemy.exc import SQLAlchemyError
+
+    now = time.monotonic()
+    cached = getattr(app.state, "public_pulse_cache", None)
+    if cached and cached["at"] > now - _PULSE_TTL_SECONDS:
+        return cached["payload"]
+
+    session_factory = await get_session_factory()
+
+    async def count(table: str) -> int | None:
+        # table names are literals from this module, never user input
+        async with session_factory() as session:
+            result = await session.execute(text(f"SELECT COUNT(*) FROM {table}"))
+            return int(result.scalar_one())
+
+    payload = {
+        "divisions": catalog.DIVISION_COUNT,
+        "agents": len(catalog.EMPLOYEES),
+        "plans": len(catalog.PACKAGES),
+        "leads_received": None,
+        "projects": None,
+    }
+
+    try:
+        payload["leads_received"] = await count("acquisition_leads")
+    except Exception:  # a public page must never 500 on a database problem
+        logger.warning("pulse: leads_received unavailable", exc_info=True)
+    try:
+        payload["projects"] = await count("client_projects")
+    except Exception:
+        logger.warning("pulse: projects unavailable", exc_info=True)
+
+    app.state.public_pulse_cache = {"at": now, "payload": payload}
+    return payload
 
 
 @app.get("/robots.txt", response_class=HTMLResponse)

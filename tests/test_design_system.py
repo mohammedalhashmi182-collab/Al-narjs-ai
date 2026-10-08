@@ -301,17 +301,26 @@ def _jinja_role_keys() -> set[str]:
     return set(re.findall(r"'([^']+)':\s*'\w+'", block.group(1)))
 
 
-def _js_role_keys() -> set[str]:
+def _js_role_keys() -> set[str] | None:
+    """Client-side role-icon keys, or ``None`` when the page has no client map.
+
+    The client used to re-declare every department to paint a JavaScript grid of
+    individual agent cards. That grid is gone: the team is rendered server-side as
+    divisions, so the duplicated map was deleted with it. Absence is the correct
+    state -- there is nothing left to drift.
+    """
     body = read("landing.html")
     block = re.search(r"var ROLE_ICONS = \{(.*?)\};", body, re.S)
-    assert block, "ROLE_ICONS map is missing from the landing client script"
+    if not block:
+        return None
     return set(re.findall(r"'([^']+)':\s*'\w+'", block.group(1)))
 
 
-def _js_dept_en_keys() -> set[str]:
+def _js_dept_en_keys() -> set[str] | None:
     body = read("landing.html")
     block = re.search(r"var DEPT_EN = \{(.*?)\};", body, re.S)
-    assert block, "DEPT_EN map is missing from the landing client script"
+    if not block:
+        return None
     return set(re.findall(r"'([^']+)':\s*'[^']+'", block.group(1)))
 
 
@@ -324,11 +333,15 @@ def test_every_catalog_department_has_a_role_icon() -> None:
 
 
 def test_role_icon_and_english_label_maps_agree() -> None:
-    assert _jinja_role_keys() == _js_role_keys(), (
+    js_roles, js_dept_en = _js_role_keys(), _js_dept_en_keys()
+    if js_roles is None and js_dept_en is None:
+        # no client copy of the maps exists, so there is nothing that can drift
+        return
+    assert js_roles == _jinja_role_keys(), (
         "the SSR role-icon map and the client role-icon map have drifted"
     )
-    assert _js_dept_en_keys() == _catalog_departments(), (
-        f"DEPT_EN is out of date: {sorted(_catalog_departments() ^ _js_dept_en_keys())}"
+    assert js_dept_en == _catalog_departments(), (
+        f"DEPT_EN is out of date: {sorted(_catalog_departments() ^ (js_dept_en or set()))}"
     )
 
 
@@ -347,7 +360,10 @@ def test_unknown_department_falls_back_to_the_same_glyph_on_both_sides() -> None
 
     body = read("landing.html")
     default = re.search(r"default: return s \+ (.*?); \}", body, re.S)
-    assert default, "the client roleIcon has no default branch"
+    if not default:
+        # the client no longer paints role icons at all, so only the server
+        # fallback can be reached and it is asserted above
+        return
     assert clock in default.group(1), (
         "the client fallback glyph differs from the server fallback glyph"
     )

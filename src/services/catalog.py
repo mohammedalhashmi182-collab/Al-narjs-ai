@@ -575,6 +575,107 @@ for _employee in EMPLOYEES.values():
     _employee["dept_en"] = DEPT_EN[_employee.get("dept", "")]
 
 
+DIVISION_SLUGS: dict[str, str] = {
+    "الإدارة التنفيذية": "executive-office",
+    "نمو الأعمال": "business-growth",
+    "التسويق الرقمي": "digital-marketing",
+    "المحتوى": "content",
+    "التجارة الإلكترونية": "ecommerce",
+    "خدمة العملاء": "customer-care",
+    "التحليلات": "analytics",
+    "المنتجات والهندسة": "product-engineering",
+    "الشؤون المؤسسية": "corporate-affairs",
+}
+
+DIVISION_BLURBS: dict[str, tuple[str, str]] = {
+    "الإدارة التنفيذية": (
+        "يقرّر بذكاء ويحوّل الرؤية إلى خطوات أسبوعية",
+        "Decides with intelligence and turns vision into weekly moves",
+    ),
+    "نمو الأعمال": (
+        "يبني خط النمو ويقيسه بالمرقام لا بالتخمين",
+        "Builds and measures the growth line with numbers, not hunches",
+    ),
+    "التسويق الرقمي": (
+        "يدير حساباتك وإعلاناتك ويجيب الجمهور",
+        "Runs your accounts and ads, and answers your audience",
+    ),
+    "المحتوى": (
+        "يبحث ويكتب وينشر بانتظام بلا فراغ",
+        "Researches, writes, and publishes on schedule without gaps",
+    ),
+    "التجارة الإلكترونية": (
+        "يرفع التحويل من الزيارة السلة إلى الطلب",
+        "Lifts conversion from visit and cart to order",
+    ),
+    "خدمة العملاء": (
+        "يرد على كل رسالة ولا يترك عميلاً ينتظر",
+        "Answers every message and leaves no customer waiting",
+    ),
+    "التحليلات": (
+        "يقرأ الأرقام ويخبرك بما يجب تغييره",
+        "Reads the numbers and tells you what to change",
+    ),
+    "المنتجات والهندسة": (
+        "يشحن ميزات سريعة بلا أخطاء",
+        "Ships fast features without breaking things",
+    ),
+    "الشؤون المؤسسية": (
+        "يرتّب العقود والامتثال والتقارير",
+        "Handles contracts, compliance, and reporting",
+    ),
+}
+
+
+def build_divisions() -> list[dict]:
+    """Derive the division view from EMPLOYEES so the public site can never drift."""
+    groups: dict[str, list[str]] = {}
+    for slug, employee in EMPLOYEES.items():
+        groups.setdefault(employee.get("dept", ""), []).append(slug)
+
+    unknown = sorted(set(groups) - set(DIVISION_SLUGS))
+    if unknown:
+        raise RuntimeError(f"departments without a division entry: {unknown}")
+
+    divisions: list[dict] = []
+    for dept in DIVISION_SLUGS:
+        agents = groups.get(dept, [])
+        if not agents:
+            raise RuntimeError(f"division has no agents: {dept}")
+        blurb_ar, blurb_en = DIVISION_BLURBS[dept]
+        divisions.append(
+            {
+                "slug": DIVISION_SLUGS[dept],
+                "name_ar": dept,
+                "name_en": DEPT_EN[dept],
+                "blurb_ar": blurb_ar,
+                "blurb_en": blurb_en,
+                "count": len(agents),
+                "agents": agents,
+            }
+        )
+    return divisions
+
+
+DIVISIONS: list[dict] = build_divisions()
+DIVISION_COUNT: int = len(DIVISIONS)
+AGENT_COUNT: int = len(EMPLOYEES)
+
+
+def get_division(slug: str) -> dict | None:
+    for division in DIVISIONS:
+        if division["slug"] == slug:
+            return division
+    return None
+
+
+def divisions_for_agent(agent_slug: str) -> dict | None:
+    employee = EMPLOYEES.get(agent_slug)
+    if not employee:
+        return None
+    return get_division(DIVISION_SLUGS.get(employee.get("dept", ""), ""))
+
+
 def get_package(package_key: str) -> dict | None:
     return PACKAGES.get(package_key)
 
