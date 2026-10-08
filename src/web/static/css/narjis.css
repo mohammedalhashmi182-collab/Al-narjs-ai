@@ -6,7 +6,7 @@
    first with one quiet shadow step.
 
    Token values verified against docs/design-system.md:
-   gold #F4C430, green #4F7942, page #FAFAF9, surface #FFFFFF,
+   gold #FF5A36, green #4F7942, page #FAFAF9, surface #FFFFFF,
    text #292524, secondary #57534E, separator #E7E5E4.
 
    Rules for this file:
@@ -45,19 +45,43 @@
   /* --- status ---------------------------------------------------------- */
   --n-online: #3f7d3a;   /* online dot: a status, not a brand colour */
   --n-danger: #9b2c2c;
-  --n-warn: #c9a227;
+  --n-warn: #d93f1e;
 
-  /* --- gold: the single primary action ---------------------------------- */
-  --odsf-gold: #f4c430;
-  --odsf-gold-deep: #c9a227;
-  --odsf-gold-wash: #fef6dc;
+  /* --- accent: the single primary action --------------------------------
+     Renamed from "gold" to "accent" on the owner's instruction. The hue is
+     vermilion, chosen for 2026 rather than taste: one saturated accent on a
+     near-black canvas, deliberately outside the 220-280 degree band that
+     research now identifies as the AI-generated convergence zone (indigo,
+     blue-to-purple gradients), and clear of the Telegram blue and green so a
+     call to action never reads as a chat link.
 
-  /* --- legacy aliases kept so existing class names keep working --------- */
-  --n-gold: var(--odsf-gold);
-  --n-gold-2: var(--odsf-gold-deep);
+     Measured, not eyeballed:
+       vermilion on the dark canvas  #0C0C0E .......  6.30:1   AA
+       near-black ink on vermilion .................  5.62:1   AA, body size
+       white on vermilion .........................  3.10:1   FAILS AA
+
+     That last line is why every accent-filled control uses ink, not white. */
+  --odsf-accent: #ff5a36;
+  --odsf-accent-deep: #d93f1e;
+  --odsf-accent-wash: #ffeae4;
+
+  /* --- legacy aliases kept so existing class names keep working ---------
+     `--n-gold*` now resolves to the accent family. Retired, not deleted, so
+     no template or stylesheet breaks; new code must use `--n-accent*`. */
+  --odsf-gold: var(--odsf-accent);
+  --odsf-gold-deep: var(--odsf-accent-deep);
+  --odsf-gold-wash: var(--odsf-accent-wash);
+
+  --n-accent: var(--odsf-accent);
+  --n-accent-2: var(--odsf-accent-deep);
+  --n-accent-soft: rgba(255, 90, 54, 0.32);
+
   --n-green: #4f7942;
   --n-green-2: #3d5f33;
-  --n-gold-soft: rgba(244, 196, 48, 0.32);
+
+  --n-gold: var(--n-accent);
+  --n-gold-2: var(--n-accent-2);
+  --n-gold-soft: var(--n-accent-soft);
 
   /* --- type: Cairo is the only approved family (see docs/design-system) */
   --font-ar: "Cairo", "Segoe UI", system-ui, sans-serif;

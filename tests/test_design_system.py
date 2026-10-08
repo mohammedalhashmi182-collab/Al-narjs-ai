@@ -1,6 +1,6 @@
 """Design-system guards — ODSF v0.2 (see docs/design-system.md).
 
-The visual identity is gold (#F4C430) for action, green (#4F7942) for
+The visual identity is the accent (vermilion #FF5A36) for action, green (#4F7942) for
 structure and Telegram, on ivory (#FAFAF9) with Cairo type. These tests fail
 loudly if a template or stylesheet reintroduces the previous blue identity,
 regresses to a retired font, or drops the Telegram mark.
@@ -50,8 +50,11 @@ ALL_TEMPLATES = PUBLIC_TEMPLATES + [
     "sales_proposal.html",
 ]
 
-# ODSF v0.2 palette
-GOLD = "#f4c430"
+# ODSF palette. The action hue is the accent, not gold: gold was retired on
+# the owner's instruction and replaced with vermilion, chosen for contrast on
+# the dark canvas and for staying outside the AI-convergence hue band.
+ACCENT = "#ff5a36"
+ACCENT_DEEP = "#d93f1e"
 GREEN = "#4f7942"
 BG = "#fafaf9"
 INK = "#292524"
@@ -110,7 +113,7 @@ def test_every_listed_template_exists() -> None:
 def test_design_doc_exists_and_is_the_source_of_truth() -> None:
     assert DESIGN_DOC.exists(), "docs/design-system.md is the design contract"
     body = DESIGN_DOC.read_text(encoding="utf-8").lower()
-    for token in (GOLD, GREEN, BG, INK):
+    for token in (ACCENT, GREEN, BG, INK):
         assert token in body, f"{token} is missing from the design doc"
     assert "cairo" in body, "the design doc does not name Cairo as the type family"
 
@@ -118,8 +121,8 @@ def test_design_doc_exists_and_is_the_source_of_truth() -> None:
 def test_design_css_defines_the_odsf_tokens() -> None:
     body = css()
     for token in (
-        f"--odsf-gold: {GOLD}",
-        f"--odsf-gold-deep: #c9a227",
+        f"--odsf-accent: {ACCENT}",
+        f"--odsf-accent-deep: {ACCENT_DEEP}",
         f"--tg-blue: {GREEN}",
         f"--n-sand: {BG}",
         f"--n-brown: {INK}",
@@ -190,19 +193,19 @@ def test_landing_declares_the_odsf_theme_colour() -> None:
 def test_owner_console_keeps_dark_surfaces_on_green() -> None:
     body = ADMIN_CSS.read_text(encoding="utf-8").lower()
     assert f"--ad-gold: {GREEN}" in body, "admin accent is not the ODSF green"
-    assert f"--ad-action: {GOLD}" in body, "admin has no gold primary action"
+    assert f"--ad-action: {ACCENT}" in body, "admin has no accent primary action"
     for hexv in ("#c8a45e", "#e6c98a", "#a5803c", "#3dbd7d", "#2481cc", "#1b6fb3"):
         assert hexv not in body, f"admin css still carries {hexv}"
 
 
-def test_owner_console_primary_button_is_gold_with_dark_text() -> None:
-    """Gold is light, so a gold button must not keep white label text."""
+def test_owner_console_primary_button_is_accent_with_dark_text() -> None:
+    """The accent is light, so an accent button must not keep white label text."""
     body = ADMIN_CSS.read_text(encoding="utf-8")
     rule = re.search(r"\.bg-blue-600 \{[^}]*\}", body)
     assert rule, "the admin primary button rule is missing"
     text = rule.group(0)
-    assert "var(--ad-action)" in text, "the admin primary button is not the gold action colour"
-    assert "#ffffff" not in text.lower(), "white text on a gold button fails contrast"
+    assert "var(--ad-action)" in text, "the admin primary button is not the accent action colour"
+    assert "#ffffff" not in text.lower(), "white text on an accent button fails contrast"
     assert "var(--ad-gold)" not in text, "the admin primary button fell back to structural green"
 
 

@@ -12,8 +12,8 @@
   --ad-gold: #4f7942;
   --ad-gold-2: #a8c79f;
   --ad-gold-soft: rgba(79, 121, 66, 0.32);
-  --ad-action: #f4c430;
-  --ad-action-press: #c9a227;
+  --ad-action: #ff5a36;
+  --ad-action-press: #d93f1e;
   --ad-text: #fafaf9;
   --ad-muted: #a8a29e;
   --ad-faint: #78716c;
@@ -41,7 +41,7 @@ body { background: var(--ad-sand); color: var(--ad-text); }
 .border-gray-200 { border-color: var(--ad-line) !important; }
 .border-gray-300 { border-color: var(--ad-line-2) !important; }
 
-.hover\:bg-gray-50:hover, tr:hover { background: rgba(244, 196, 48, 0.06) !important; }
+.hover\:bg-gray-50:hover, tr:hover { background: rgba(255, 90, 54, 0.06) !important; }
 .hover\:text-gray-700:hover { color: var(--ad-gold-2) !important; }
 .hover\:bg-black\/5:hover { background: rgba(255, 255, 255, 0.06) !important; }
 .hover\:bg-black\/10:hover { background: rgba(255, 255, 255, 0.09) !important; }

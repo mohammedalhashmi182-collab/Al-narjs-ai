@@ -19,36 +19,52 @@ body.luxury {
   --n-green-3: #0b0b0d;
   --tg-blue-tint: #172117;
   --tg-blue-tint-2: #0d1114;
-  --tg-blue-soft: rgba(244, 196, 48, 0.22);
+  --tg-blue-soft: rgba(255, 90, 54, 0.22);
   --n-brown: #f6f5f4;
   --n-brown-2: #b9b8c0;
   --n-earth: #8e8d96;
   --n-line: rgba(246, 245, 244, 0.09);
   --n-line-2: rgba(246, 245, 244, 0.16);
-  --odsf-gold-wash: rgba(244, 196, 48, 0.22);
-  --n-gold-soft: rgba(244, 196, 48, 0.28);
-  --n-gold: #f4c430;
-  --n-gold-2: #e0b824;
-  --odsf-gold: #f4c430;
-  --odsf-gold-deep: #e0b824;
-  --tg-blue: #e0b824;
-  --green: #e0b824;
-  --green-deep: #f4c430;
+
+  /* --- accent family (see narjis.css for the rationale) ----------------
+     The deep tone used to be #d93f1e, the gold layer's darker gold. Left in
+     place it would have read as a second, clashing hue sitting next to
+     vermilion, so it moved to the accent's own deep step. */
+  --odsf-accent: #ff5a36;
+  --odsf-accent-deep: #d93f1e;
+  --odsf-accent-wash: rgba(255, 90, 54, 0.22);
+  --n-accent: #ff5a36;
+  --n-accent-2: #d93f1e;
+  --n-accent-soft: rgba(255, 90, 54, 0.28);
+
+  --odsf-gold: var(--odsf-accent);
+  --odsf-gold-deep: var(--odsf-accent-deep);
+  --odsf-gold-wash: var(--odsf-accent-wash);
+  --n-gold: var(--n-accent);
+  --n-gold-2: var(--n-accent-2);
+  --n-gold-soft: var(--n-accent-soft);
+
+  /* The Telegram button carries the accent on this canvas, as it did when the
+     accent was gold: the dark storefront has one action colour, and the chat
+     entry point is the primary action on every page. */
+  --tg-blue: #d93f1e;
+  --green: #d93f1e;
+  --green-deep: #ff5a36;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.65);
 
   background-color: #060607;
   background-image:
-    radial-gradient(1200px 620px at 85% -12%, rgba(244, 196, 48, 0.16), transparent 60%),
-    radial-gradient(900px 520px at -8% 28%, rgba(244, 196, 48, 0.06), transparent 55%),
+    radial-gradient(1200px 620px at 85% -12%, rgba(255, 90, 54, 0.16), transparent 60%),
+    radial-gradient(900px 520px at -8% 28%, rgba(255, 90, 54, 0.06), transparent 55%),
     radial-gradient(700px 500px at 50% 115%, rgba(0, 135, 159, 0.14), transparent 60%);
   background-attachment: local;
   color: #f6f5f4;
   line-height: 1.75;
 }
 
-body.luxury ::selection { background: rgba(244, 196, 48, 0.4); color: #ffffff; }
+body.luxury ::selection { background: rgba(255, 90, 54, 0.4); color: #ffffff; }
 
 body.luxury ::-webkit-scrollbar-track { background: #060607; }
 body.luxury ::-webkit-scrollbar-thumb { background: rgba(246, 245, 244, 0.22); border: 2px solid #060607; }
@@ -83,21 +99,21 @@ body.luxury .n-card::after {
   transition: box-shadow 0.35s ease;
 }
 body.luxury .n-card:hover::after {
-  box-shadow: 0 0 36px 0 rgba(244, 196, 48, 0.2), 0 0 72px 0 rgba(244, 196, 48, 0.08);
+  box-shadow: 0 0 36px 0 rgba(255, 90, 54, 0.2), 0 0 72px 0 rgba(255, 90, 54, 0.08);
 }
 
 /* --- brand actions on dark: HUMAIN mint is the single primary ----------------- */
 body.luxury .btn-gold {
-  background: linear-gradient(135deg, var(--odsf-gold-deep, #e0b824), var(--odsf-gold, #f4c430));
+  background: linear-gradient(135deg, var(--odsf-gold-deep, #d93f1e), var(--odsf-gold, #ff5a36));
   color: #05231d;
   border-color: transparent;
-  box-shadow: 0 0 0 1px rgba(244, 196, 48, 0.45), 0 0 28px rgba(244, 196, 48, 0.28);
+  box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.45), 0 0 28px rgba(255, 90, 54, 0.28);
 }
 body.luxury .btn-gold:hover {
-  background: var(--odsf-gold, #f4c430);
+  background: var(--odsf-gold, #ff5a36);
   color: #05231d;
   transform: translateY(-1px);
-  box-shadow: 0 0 0 1px rgba(244, 196, 48, 0.55), 0 0 38px rgba(244, 196, 48, 0.28);
+  box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.55), 0 0 38px rgba(255, 90, 54, 0.28);
 }
 body.luxury .btn-green { background: var(--tg-blue, #b3922e); color: #ffffff; }
 body.luxury .btn-outline {
@@ -126,8 +142,8 @@ body.luxury .chip {
 body.luxury .lang-pill button { color: #b9b8c0; }
 body.luxury .n-hero {
   background:
-    radial-gradient(1000px 560px at 82% 8%, rgba(244, 196, 48, 0.2), transparent 60%),
-    radial-gradient(700px 460px at 12% 88%, rgba(244, 196, 48, 0.09), transparent 55%),
+    radial-gradient(1000px 560px at 82% 8%, rgba(255, 90, 54, 0.2), transparent 60%),
+    radial-gradient(700px 460px at 12% 88%, rgba(255, 90, 54, 0.09), transparent 55%),
     linear-gradient(178deg, rgba(255, 255, 255, 0.03), rgba(6, 6, 7, 0.2) 70%);
   color: #f6f5f4;
 }
@@ -153,7 +169,7 @@ body.luxury .n-form label { color: #b9b8c0; }
 body.luxury .pkg { border-color: rgba(246, 245, 244, 0.09); }
 body.luxury .pkg.featured {
   border-color: var(--tg-blue, #b3922e);
-  background: linear-gradient(180deg, rgba(244, 196, 48, 0.12), rgba(16, 16, 20, 0.1) 45%);
+  background: linear-gradient(180deg, rgba(255, 90, 54, 0.12), rgba(16, 16, 20, 0.1) 45%);
 }
 body.luxury .pkg .price { color: var(--tg-blue, #b3922e); }
 body.luxury .pkg .price small { color: #b9b8c0; }
@@ -168,9 +184,9 @@ body.luxury .chat-box .msg {
 }
 body.luxury .cmsg.me,
 body.luxury .msg-client {
-  background: rgba(244, 196, 48, 0.2);
+  background: rgba(255, 90, 54, 0.2);
   color: #f6f5f4;
-  border-color: rgba(244, 196, 48, 0.35);
+  border-color: rgba(255, 90, 54, 0.35);
 }
 
 body.luxury .n-footer { background: #0b0b0d; border-block-start-color: rgba(246, 245, 244, 0.08); }
@@ -179,7 +195,7 @@ body.luxury .tg-float,
 body.luxury .btn-tg,
 body.luxury .tg-agent,
 body.luxury .m-tg {
-  box-shadow: 0 0 26px rgba(244, 196, 48, 0.28);
+  box-shadow: 0 0 26px rgba(255, 90, 54, 0.28);
 }
 
 /* --- shared utilities ------------------------------------------------------ */
@@ -250,7 +266,7 @@ body.luxury .bg-sand { background: #060607; }
   border-radius: var(--r-lg);
   border: 1px solid var(--n-line-2);
   background:
-    linear-gradient(180deg, rgba(244, 196, 48, .05), rgba(244, 196, 48, 0) 58%),
+    linear-gradient(180deg, rgba(255, 90, 54, .05), rgba(255, 90, 54, 0) 58%),
     var(--n-surface, rgba(255, 255, 255, .03));
   transition: border-color .22s ease, transform .22s ease, box-shadow .22s ease;
 }
@@ -466,4 +482,148 @@ body.luxury .bg-sand { background: #060607; }
   .dv-roster summary i { transition: none; }
   .dv-card:hover,
   .dv-card:focus-within { transform: none; }
+}
+
+/* ==========================================================================
+   THEME PASS — hero scale, floating stat cards, and dark-canvas contrast
+
+   Four defects the storefront carried, all visible on the live page:
+
+   1. The hero headline was set at clamp(2.5rem, 6.4vw, 5rem). At desktop that
+      is an 80px line, which pushed one sentence into six lines and pushed the
+      CTA below the fold.
+   2. The gradient keyword inside the headline (`.grad`) relied on
+      `color: transparent` alone, which double-drew the glyph in Chromium and
+      clipped its descenders.
+   3. The comparison table highlights its own column with the *light* palette
+      (`--green-wash` / `--ink`), so on the dark canvas the winning column was
+      a pale grey block with unreadable text -- on the section whose entire job
+      is to be readable.
+   4. Plan names carry the English label in `class="en-nm"` with no
+      `data-lang`, so the page-wide language switch never hid it and every
+      pricing card read "نمو الأعمالBusiness Growth".
+
+   Plus the one element the reference boards all share and this page lacked: a
+   human-scale anchor with glass metric cards around it. An absolute floating
+   variant was tried first and rejected: a full-width two-column hero has no
+   free margin, so the cards clipped off-screen and crossed the console. The
+   same glass language is applied in flow to the hero stat row instead.
+   ========================================================================== */
+
+body.luxury .lux-hero h1 {
+  font-size: clamp(2.1rem, 4.5vw, 3.85rem);
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  max-width: 18ch;
+}
+
+body.luxury .grad {
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  background-image: linear-gradient(100deg, #fff4cc, #ff5a36 58%, #d93f1e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  display: inline-block;
+  /* inline-block plus a small inline pad stops ascenders and descenders
+     being clipped by the background-clip box */
+  padding-inline: 0.05em;
+  padding-block: 0.06em;
+}
+
+/* --- hero metric cards ---------------------------------------------------- */
+/* The reference boards put glass metric cards around the hero visual. A
+   full-width two-column hero has no free margin to float them into -- they
+   clipped off-screen and crossed the console -- so the same glass language is
+   applied to the stat row that already sat there, in flow and never overlapping.
+   Every value is rendered from the catalogue, so a card cannot show a number
+   the system does not actually have. */
+body.luxury .lux-hero .stats {
+  border-block-start: 0;
+  padding-block-start: 0;
+  margin-block-start: 28px;
+}
+
+body.luxury .lux-hero .stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 16px 15px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--n-line-2);
+  background: linear-gradient(
+    180deg,
+    rgba(30, 29, 27, 0.82),
+    rgba(18, 17, 16, 0.72)
+  );
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.38);
+  transition: border-color 0.22s ease, transform 0.22s ease;
+}
+
+body.luxury .lux-hero .stat::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 22px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.6), transparent);
+}
+
+body.luxury .lux-hero .stat:hover {
+  border-color: rgba(255, 90, 54, 0.42);
+  transform: translateY(-2px);
+}
+
+body.luxury .lux-hero .stat .num {
+  font-family: var(--font-head);
+  font-size: clamp(1.85rem, 2.6vw, 2.35rem);
+  font-weight: 800;
+  color: #ff5a36;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+body.luxury .lux-hero .stat .lbl {
+  font-size: 0.79rem;
+  line-height: 1.55;
+  color: #b9b8c0;
+  margin-block-start: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.luxury .lux-hero .stat {
+    transition: none;
+  }
+  body.luxury .lux-hero .stat:hover {
+    transform: none;
+  }
+}
+
+/* --- dark-canvas contrast fixes ------------------------------------------ */
+/* The winning column has to be the most readable thing in the table, not the
+   least: on dark it gets a gold-tinted wash with full-contrast text. */
+body.luxury .why .us {
+  color: #f6f5f4;
+  background: rgba(255, 90, 54, 0.1);
+}
+body.luxury .why thead th.us {
+  color: #ff5a36;
+  background: rgba(255, 90, 54, 0.16);
+}
+
+/* `.en-nm` is the only translated string on the page without a `data-lang`
+   attribute, so the language switch cannot reach it. Give it the same
+   behaviour explicitly instead of leaving both languages on screen. */
+body[data-lang="ar"] .pc .en-nm {
+  display: none;
+}
+body[data-lang="en"] .pc .en-nm {
+  display: inline;
+}
+
+/* the hero stat row: lead with the division, keep the roster honest beneath */
+body.luxury .lux-hero .stats {
+  border-block-start: 1px solid var(--n-line-2);
 }
