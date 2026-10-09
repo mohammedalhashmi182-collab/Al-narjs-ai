@@ -16,7 +16,7 @@ from src.services import catalog
 
 TEMPLATES = Path(__file__).resolve().parents[1] / "src" / "web" / "templates"
 LANDING = TEMPLATES / "landing.html"
-PUBLIC_PAGES = ["landing.html", "sales_lead.html"]
+PUBLIC_PAGES = [str(p.relative_to(TEMPLATES)) for p in TEMPLATES.rglob("*.html")]
 
 
 def _read(name: str) -> str:
@@ -48,10 +48,10 @@ def test_landing_prices_come_from_catalog() -> None:
         assert f"{{{{ packages['{key}']" in body, f"plan {key} not rendered from catalog"
 
 
-def test_plan_ctas_point_to_portal() -> None:
+def test_plan_order_ctas_point_to_telegram() -> None:
     body = _read("landing.html")
     for key in catalog.PACKAGES:
-        assert f'href="/portal?pkg={key}"' in body, f"plan {key} has no working CTA"
+        assert f'href="https://t.me/AlNarjs7BOT?start=plan_{key}"' in body, f"plan {key} has no working CTA"
     assert "js-order" not in body
 
 
@@ -139,3 +139,25 @@ def test_body_tag_carries_data_lang_and_must_survive_it() -> None:
         "the landing body carries data-lang; the language hide rule must "
         "therefore be descendant-scoped or the whole page disappears"
     )
+
+
+def test_public_contact_identity_is_consistent() -> None:
+    for path in TEMPLATES.rglob('*.html'):
+        body = path.read_text(encoding='utf-8')
+        assert 'Al-Narjs AI' not in body, path
+        assert 'aimerchantvault.77@gmail.com' not in body, path
+        for address in re.findall(r'mailto:([^"\s]+)', body):
+            assert address == 'Al-Narjis@karmaai.online', path
+
+
+def test_single_how_section_and_explicit_sample_disclosure() -> None:
+    body = _read('landing.html')
+    assert body.count('id="how"') == 1
+    assert body.index('id="how"') < body.index('id="pricing"')
+    assert 'ليست مخرجات عميل حقيقي' in body
+    assert 'جهازك لعناية البشرة… روتين 5 دقايق يغيّر يومك' in body
+    assert 'هل يوصل الشحن خارج الرياض؟' in body
+    assert 'المدة والتكلفة توضيحيتان' in body
+    for name in ['landing.html', 'consult.html', 'portal.html']:
+        assert 'يُدار بواسطة مؤسسة ذا أريبيان كونفو' in _read(name)
+        assert 'Operated by The Arabian Convoy Establishment' in _read(name)
