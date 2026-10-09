@@ -713,7 +713,7 @@ body:not(.launch-on) .launch-bar{display:none}
 .pc:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
 .pc.featured{border-color:var(--gold);
     box-shadow:0 2px 4px rgba(41,37,36,.06),0 18px 44px rgba(255, 90, 54,.16)}
-.pc .tag{position:absolute;inset-block-start:-11px;inset-inline-end:var(--sp-2);
+.pc .tag{align-self:flex-start;max-width:100%;
     background:var(--gold);color:#141414;font-size:.72rem;font-weight:700;
     border-radius:var(--r-pill);padding:4px 12px}
 .pc-head{display:grid;gap:2px}
@@ -1143,6 +1143,7 @@ select option{background:#101014;color:#F6F5F4}
     #progress{display:none}
 }
 </style>
+<noscript><style>.reveal,.lux-reveal{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body class="luxury" data-lang="{{ _lang }}">
     <div id="progress"></div>
@@ -1218,6 +1219,7 @@ select option{background:#101014;color:#F6F5F4}
                 </h1>
                 <p class="sub lead lux-reveal">
                     <span data-lang="ar">تشترك في باقة فيها خمسة وكلاء متخصصون بدل توظيف فريق. يغطّي: </span><span data-lang="en" data-inline>Subscribe to a plan with five specialized agents instead of hiring a team. Covers: </span><span class="rotor" id="rotor">كتابة المحتوى</span>
+                    <span style="display:block;font-size:.86rem;margin-top:12px;"><span data-lang="ar">يتقن: تقويم محتوى وسوشيال ميديا · ردود عملاء فورية · تحسين محركات البحث (SEO) · تحليل السوق والمنافسين · كتابة وصف منتجات.</span><span data-lang="en" data-inline>Mastering: content and social media calendars · instant customer replies · search engine optimization (SEO) · market and competitor analysis · product descriptions.</span></span>
                 </p>
                 <div class="cta-row lux-reveal">
                     <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">شاهد ماذا يستطيع فريقك الرقمي أن يفعل</span><span data-lang="en" data-inline>See what your digital team can do</span></a>
@@ -1615,16 +1617,16 @@ select option{background:#101014;color:#F6F5F4}
                         <span data-lang="ar">منصة سعودية تقدم خدمات الذكاء الاصطناعي بنموذج اشتراكات شهري، صُممت خصيصاً لأصحاب المشاريع الصغيرة والمتوسطة. نبني شبكة من </span><span data-lang="en" data-inline>A Saudi platform delivering AI services on a monthly subscription model, built for small and mid-sized business owners. We run a network of </span><b>{{ agent_count }}</b><span data-lang="ar"> وكيلاً ذكياً متخصصاً في مجالات مختلفة، ويفتح كل اشتراك لعميلنا فريقاً مخصصاً من 5 وكلاء يعملون حسب مجاله — من خدمة العملاء والمحتوى إلى التجارة الإلكترونية والنمو والمبيعات. الدفع بفاتورة رسمية، والباقات تبدأ من 800 ريال شهرياً، ومستشارنا الذكي يساعد كل عميل على اختيار الباقة الأنسب قبل الاشتراك.</span><span data-lang="en" data-inline> specialized agents, and every subscription opens a dedicated team of 5 agents matched to the client's field — from customer care and content to e-commerce, growth and sales. Billing is by official invoice, plans start at 800 SAR per month, and our Smart Consultant recommends the right plan before you subscribe.</span>
                     </p>
                     <div class="actions" style="margin-top:18px;">
-                        <a href="/consult" class="btn btn-gold"><i class="fas fa-comments"></i><span data-lang="ar">اسأل المستشار الذكي</span><span data-lang="en" data-inline>Ask the Smart Consultant</span></a>
+                        <a href="/consult" class="btn btn-gold"><i class="fas fa-comments"></i><span data-lang="ar">جرّب بنفسك الآن</span><span data-lang="en" data-inline>Try it yourself now</span></a>
                         <a href="/pricing" class="btn btn-ghost"><span data-lang="ar">شاهد الباقات</span><span data-lang="en" data-inline>See the plans</span></a>
                     </div>
                 </div>
                 <div class="bcard reveal">
-                    <h3><span data-lang="ar">مثال توضيحي على المخرجات</span><span data-lang="en" data-inline>Illustrative output sample</span></h3>
+                    <h3><span data-lang="ar">نموذج من مخرجاتنا — مثال توضيحي</span><span data-lang="en" data-inline>Sample Output</span></h3>
                     <p style="font-size:.86rem;color:var(--muted);"><span data-lang="ar">الأمثلة أدناه توضيحية لبيان شكل المخرج — ليست مخرجات عميل حقيقي، ولا ضمان للأداء.</span><span data-lang="en" data-inline>The samples below are illustrative only — they show the output format and are not real client results or a performance guarantee.</span></p>
                     <div class="flow" style="display:grid;gap:10px;">
-                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-011 · كاتب المحتوى</b><br><span data-lang="ar">«تقويم محتوى أسبوعي: 4 منشورات + 3 ستوري + جدول نشرات»</span><span data-lang="en" data-inline>"Weekly content calendar: 4 posts + 3 stories + publishing schedule"</span></div>
-                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-009 · خدمة العملاء</b><br><span data-lang="ar">«رد مقترح على استفسار شحن: تأكيد الطلب + رقم التتبع + موعد التسليم»</span><span data-lang="en" data-inline>"Suggested reply to a shipping question: order confirmation + tracking + delivery date"</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-011 · كاتب المحتوى</b><br><span data-lang="ar">جهازك لعناية البشرة… روتين 5 دقايق يغيّر يومك ✨ — اطلب الآن</span><span data-lang="en" data-inline>Your skincare device… a 5-minute routine to brighten your day ✨ — Order now</span></div>
+                        <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-009 · خدمة العملاء</b><br><span data-lang="ar">س: هل يوصل الشحن خارج الرياض؟ ج: أهلاً بك! نعم، في هذا المثال الافتراضي يصل خلال 3–5 أيام عمل بتكلفة 25 ريالاً. المدة والتكلفة توضيحيتان؛ نؤكد التفاصيل حسب سياسة متجرك قبل الطلب.</span><span data-lang="en" data-inline>Q: Do you ship outside Riyadh? A: Hello! In this fictional example, delivery takes 3–5 business days and costs SAR 25. These are illustrative terms; confirm your store’s actual policy before ordering.</span></div>
                         <div style="padding:10px 12px;border:1px solid var(--line);border-radius: 14px;font-size:.82rem;"><b style="color:var(--gold-bright);">AG-015 · محلل المنافسين</b><br><span data-lang="ar">«جدول مقارنة: 5 منافسين × 6 معايير + توصيتان للتحسين»</span><span data-lang="en" data-inline>"Comparison table: 5 competitors × 6 criteria + 2 recommended improvements"</span></div>
                     </div>
                 </div>
@@ -1720,7 +1722,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تكتب نص الإعلان ولا تجمّع أرقام التقرير</span><span data-lang="en" data-inline>You no longer write the ad or compile the report numbers</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="/portal?pkg=social" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_social" class="btn btn-gold">{{ tg_plane() }}<span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
                 </div>
                 <div class="pc reveal" id="plan-ecommerce" data-pkg="ecommerce">
                     <div class="pc-head">
@@ -1764,7 +1766,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تتابع السلة المتروكة ولا تفكّر فيها</span><span data-lang="en" data-inline>You no longer chase the abandoned cart</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="/portal?pkg=ecommerce" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_ecommerce" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
                 </div>
                 <div class="pc reveal" id="plan-content" data-pkg="content">
                     <div class="pc-head">
@@ -1808,7 +1810,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تقرأ تقرير السوق قبل أن تقرر</span><span data-lang="en" data-inline>You no longer read a market report before deciding</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="/portal?pkg=content" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_content" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
                 </div>
                 <div class="pc reveal" id="plan-growth" data-pkg="growth">
                     <div class="pc-head">
@@ -1852,7 +1854,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تتابع تنفيذ الخطة بنفسك</span><span data-lang="en" data-inline>You no longer chase the plan yourself</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="/portal?pkg=growth" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_growth" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
                 </div>
             </div>
 
@@ -2016,7 +2018,7 @@ select option{background:#101014;color:#F6F5F4}
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
                 <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">{{ tg_plane_cls("margin-inline-end:8px") }}@AlNarjs7BOT · Telegram</a>
                 <span style="display:block;padding-block:5px;font-size:.86rem;color:var(--muted);"><i class="fas fa-phone" style="margin-inline-end:8px;color:var(--gold);"></i>+966 55 297 8753</span>
-                <a href="mailto:al-narjis@karmaai.online">al-narjis@karmaai.online</a>
+                <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
                 <a href="https://www.google.com/maps/search/?api=1&query=Riyadh+Saudi+Arabia" target="_blank" rel="noopener"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
             </div>
         </div>
@@ -2026,8 +2028,8 @@ select option{background:#101014;color:#F6F5F4}
         </div>
         <div class="base" style="margin-top:14px;justify-content:center;text-align:center;">
             <span style="font-size:.78rem;color:var(--faint);">
-                <span data-lang="ar">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 · الرياض، المملكة العربية السعودية ·</span>
-                <span data-lang="en" data-inline>The Arabian Convoy Establishment · Commercial Reg. 31332495263 · Riyadh, Kingdom of Saudi Arabia ·</span>
+                <span data-lang="ar">يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 · الرياض، المملكة العربية السعودية ·</span>
+                <span data-lang="en" data-inline>Operated by The Arabian Convoy Establishment · Commercial Reg. 31332495263 · Riyadh, Kingdom of Saudi Arabia ·</span>
                 <a href="/privacy" style="display:inline;color:var(--muted);margin-inline:6px;"><span data-lang="ar">الخصوصية</span><span data-lang="en" data-inline>Privacy</span></a> ·
                 <a href="/terms" style="display:inline;color:var(--muted);margin-inline:6px;"><span data-lang="ar">الشروط</span><span data-lang="en" data-inline>Terms</span></a> ·
                 <a href="/data-deletion" style="display:inline;color:var(--muted);margin-inline:6px;"><span data-lang="ar">حذف البيانات</span><span data-lang="en" data-inline>Data deletion</span></a>
@@ -2809,7 +2811,9 @@ select option{background:#101014;color:#F6F5F4}
             var c0 = document.getElementById('c0'), c1 = document.getElementById('c1'), c2 = document.getElementById('c2'), c3 = document.getElementById('c3');
             function countUp(el, target, suffix) {
                 if (!el) return;
-                var cur = 0, step = Math.max(1, Math.round(target / 40));
+                var cur = parseInt(el.textContent.replace(/,/g, ''), 10) || target;
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) cur = target;
+                var step = Math.max(1, Math.round((target - cur) / 40));
                 var t = function () {
                     cur = Math.min(target, cur + step);
                     el.textContent = cur.toLocaleString('en') + (suffix || '');

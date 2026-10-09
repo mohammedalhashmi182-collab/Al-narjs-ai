@@ -29,6 +29,10 @@
         .msg-client { align-self: flex-end; }
         .spin { display: inline-block; animation: rot 0.9s linear infinite; }
         @keyframes rot { to { transform: rotate(360deg); } }
+        .package-skeleton { min-height:180px; border-radius:16px; background:var(--n-sand-2, #eee); animation:packagePulse 1.2s ease-in-out infinite alternate; }
+        @keyframes packagePulse { to { opacity:.45; } }
+        @media (prefers-reduced-motion:reduce) { .package-skeleton { animation:none; } }
+        @media (max-width:640px) { .n-nav > div { flex-wrap:wrap; gap:12px; } }
     </style>
 </head>
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
@@ -64,7 +68,11 @@
                 <p class="n-sub mt-3" data-lang="en" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10" id="pkg-grid"></div>
+            <div id="pkg-status" role="status" aria-live="polite"><span data-lang="ar">جارٍ تحميل الباقات…</span><span data-lang="en" data-inline>Loading plans…</span></div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10" id="pkg-grid" aria-busy="true">
+                {% for _ in range(4) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
+            </div>
+            <noscript><p>فعّل JavaScript لاختيار الباقة، أو <a href="https://t.me/AlNarjs7BOT">{{ tg_plane() }}تواصل عبر تيليجرام</a>.</p></noscript>
 
             <form id="regForm" class="n-form max-w-2xl mx-auto gap-5 hidden">
                 <div class="grid sm:grid-cols-2 gap-5">
@@ -200,8 +208,8 @@
             <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" data-inline>✺ Al-Narjis AI ✺</span></div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
-                <span data-lang="ar">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
-                <span data-lang="en" data-inline>The Arabian Convoy Establishment · CR 31332495263 ·</span>
+                <span data-lang="ar">يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
+                <span data-lang="en" data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>
                 <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar">الخصوصية</span><span data-lang="en" data-inline>Privacy</span></a>
                 <span style="opacity:0.6;">·</span>
                 <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar">الشروط</span><span data-lang="en" data-inline>Terms</span></a>
@@ -235,7 +243,14 @@
             let state = { projectId: null, pkg: null, current: null, questions: [], qIndex: 0, answers: {} };
 
             // ---- Load packages ----
-            fetch('/api/portal/packages').then(r => r.json()).then(data => {
+            const packageController = new AbortController();
+            const packageTimeout = setTimeout(() => packageController.abort(), 5000);
+            fetch('/api/portal/packages', { signal: packageController.signal }).then(r => {
+                if (!r.ok) throw new Error('packages');
+                return r.json();
+            }).then(data => {
+                if (!Array.isArray(data.packages) || !data.packages.length) throw new Error('packages');
+                $('pkg-status').textContent = '';
                 $('pkg-grid').innerHTML = data.packages.map(p => `
                     <div class="n-card pkg text-center cursor-pointer selectable" data-pkg="${p.key}" style="transition:0.2s">
                         <div class="text-3xl mb-2" style="color:var(--n-gold);"><i class="${p.icon}"></i></div>
@@ -270,7 +285,12 @@
                     $('regForm').scrollIntoView({ behavior: 'smooth' });
                 }
             }).catch(() => {
-                $('pkg-grid').innerHTML = '<div class="col-span-full text-center">' + txt('تعذر تحميل الباقات', 'Failed to load packages') + '</div>';
+                $('pkg-status').innerHTML = '<span data-lang="ar">تعذّر التحميل، حدّث الصفحة</span><span data-lang="en" data-inline>Unable to load, refresh the page</span> <a href="/portal" id="retry-packages"><span data-lang="ar">إعادة المحاولة</span><span data-lang="en" data-inline>Retry</span></a>';
+                $('retry-packages').href = window.location.pathname + window.location.search;
+                $('pkg-grid').innerHTML = '';
+            }).finally(() => {
+                clearTimeout(packageTimeout);
+                $('pkg-grid').setAttribute('aria-busy', 'false');
             });
 
             // ---- Register client ----
