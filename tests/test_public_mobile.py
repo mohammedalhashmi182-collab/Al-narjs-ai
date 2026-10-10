@@ -42,6 +42,7 @@ def context(browser):
 @pytest.mark.parametrize('width', [320, 390])
 @pytest.mark.parametrize('path', ['/home', '/consult', '/portal'])
 def test_mobile_pages_and_language_switch(context, width, path):
+    from playwright.sync_api import expect
     page = context.new_page()
     page.set_viewport_size({'width': width, 'height': 844})
     errors = []
@@ -50,8 +51,14 @@ def test_mobile_pages_and_language_switch(context, width, path):
     if path == '/portal':
         page.locator('.pkg').first.wait_for()
     for lang in ['ar', 'en']:
-        page.locator('[data-lang-btn="' + lang + '"]').first.click()
-        assert page.locator('body').is_visible()
+        if path in ['/consult', '/portal']:
+            with page.expect_navigation(wait_until='load'):
+                page.locator('[data-lang-btn="' + lang + '"]').first.click()
+            expect(page).to_have_url('http://testserver/' + lang + path)
+        else:
+            page.locator('[data-lang-btn="' + lang + '"]').first.click()
+        expect(page.locator('body')).to_be_visible()
+        expect(page.locator('body')).to_have_attribute('data-lang', lang)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         assert page.locator('a[href="#"]').count() == 0
     if path == '/home':
