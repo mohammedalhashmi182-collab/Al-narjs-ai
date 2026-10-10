@@ -593,7 +593,7 @@ DIVISION_BLURBS: dict[str, tuple[str, str]] = {
         "Decides with intelligence and turns vision into weekly moves",
     ),
     "نمو الأعمال": (
-        "يبني خط النمو ويقيسه بالمرقام لا بالتخمين",
+        "يبني خط النمو ويقيسه بالأرقام لا بالتخمين",
         "Builds and measures the growth line with numbers, not hunches",
     ),
     "التسويق الرقمي": (
@@ -605,7 +605,7 @@ DIVISION_BLURBS: dict[str, tuple[str, str]] = {
         "Researches, writes, and publishes on schedule without gaps",
     ),
     "التجارة الإلكترونية": (
-        "يرفع التحويل من الزيارة السلة إلى الطلب",
+        "يرفع التحويل من الزيارة إلى السلة ثم الطلب",
         "Lifts conversion from visit and cart to order",
     ),
     "خدمة العملاء": (

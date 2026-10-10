@@ -1201,10 +1201,6 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
         if not agent_def:
             raise HTTPException(404, "Agent definition missing")
 
-        agent.answers = request.answers
-        agent.status = "running"
-        await session.commit()
-
         tmpl = agent_def.prompt_templates.get("default")
         if not tmpl:
             raise HTTPException(404, "Prompt template not found")
@@ -1226,7 +1222,18 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
             temperature=agent_def.default_parameters.get("temperature", 0.7),
             max_tokens=agent_def.default_parameters.get("max_tokens", 2000),
         )
-        response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
+        agent.answers = request.answers
+        agent.status = "running"
+        await session.commit()
+        try:
+            response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
+            if not response.content or not response.content.strip():
+                raise ValueError("Empty agent response")
+        except Exception:
+            # Keep the previous deliverable and allow a retry after provider failure.
+            agent.status = "done" if agent.result else "interviewing"
+            await session.commit()
+            raise HTTPException(503, "Agent temporarily unavailable. Please retry.") from None
 
         agent.result = response.content
         agent.status = "done"
@@ -1333,6 +1340,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         from src.utils.logger import get_logger
         get_logger(__name__).error(f"Consult failed: {e}")
         return {
+            "unavailable": True,
             "reply": (
                 "عذراً، تعذر الاتصال بالمستشار حالياً. تفضل بزيارة /portal لتفعيل فريقك مباشرة."
                 if locale == "ar" else
