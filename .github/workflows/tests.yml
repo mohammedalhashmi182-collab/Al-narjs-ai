@@ -53,4 +53,12 @@ jobs:
           python -c "import sys, fastapi, sqlalchemy; print(sys.version); print('fastapi', fastapi.__version__); print('sqlalchemy', sqlalchemy.__version__)"
 
       - name: Run the test suite
-        run: python -m pytest -q
+        run: python -m pytest -q --disable-socket --allow-unix-socket
+
+      - name: Install Chromium for mobile acceptance
+        run: python -m playwright install --with-deps chromium
+
+      - name: Check public mobile pages and loading failures
+        env:
+          RUN_BROWSER_TESTS: "1"
+        run: python -m pytest -q tests/test_public_mobile.py --disable-socket --allow-unix-socket
