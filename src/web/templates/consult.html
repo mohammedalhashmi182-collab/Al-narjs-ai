@@ -127,6 +127,23 @@
             const $ = id => document.getElementById(id);
             const isAr = () => document.body.dataset.lang === 'ar';
             let history = [];
+            let sending = false;
+
+            function showRecovery() {
+                const d = document.createElement('div');
+                d.className = 'cmsg ai';
+                const a = document.createElement('a');
+                a.href = '/home#pricing';
+                a.textContent = isAr() ? 'استعرض الباقات مباشرة' : 'View plans directly';
+                d.appendChild(a);
+                d.appendChild(document.createTextNode(' · '));
+                const support = document.createElement('a');
+                support.href = 'https://t.me/AlNarjs7BOT?start=support';
+                support.textContent = isAr() ? 'تواصل مع الدعم عبر تيليجرام' : 'Contact support on Telegram';
+                d.appendChild(support);
+                $('chatBox').appendChild(d);
+                $('chatBox').scrollTop = $('chatBox').scrollHeight;
+            }
 
             function append(who, text) {
                 const d = document.createElement('div');
@@ -148,28 +165,45 @@
 
             async function send(text) {
                 text = (text || $('msg').value).trim();
-                if (!text) return;
+                if (!text || sending) return;
+                sending = true;
+                $('send').disabled = true;
                 $('msg').value = '';
                 append('me', text);
                 history.push({ role: 'user', content: text });
                 const typing = addTyping();
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 45000);
                 try {
                     const r = await fetch('/api/consult', {
                         method: 'POST',
+                        signal: controller.signal,
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ messages: history })
                     });
+                    if (!r.ok) throw new Error('Consult unavailable');
                     const data = await r.json();
                     typing.remove();
                     if (data.reply) {
                         append('ai', data.reply);
-                        history.push({ role: 'assistant', content: data.reply });
+                        if (data.unavailable) {
+                            showRecovery();
+                        } else {
+                            history.push({ role: 'assistant', content: data.reply });
+                        }
                     } else {
                         append('ai', isAr() ? 'حدث خطأ، حاول مجدداً.' : 'Something went wrong. Please try again.');
+                        showRecovery();
                     }
                 } catch (e) {
                     typing.remove();
-                    append('ai', isAr() ? 'تعذر الاتصال بالمستشار.' : 'Lost connection to the consultant.');
+                    append('ai', isAr() ? 'تعذر الاتصال بالمستشار. يمكنك المحاولة مجدداً أو اختيار أحد الروابط أدناه.' : 'The consultant is unavailable. Retry or use a link below.');
+                    showRecovery();
+                } finally {
+                    clearTimeout(timeout);
+                    typing.remove();
+                    sending = false;
+                    $('send').disabled = false;
                 }
             }
 

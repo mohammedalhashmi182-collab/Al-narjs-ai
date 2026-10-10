@@ -1368,7 +1368,7 @@ select option{background:#101014;color:#F6F5F4}
                     <p class="demo-brief" id="demoBrief" hidden></p>
                     <div class="demo-tabs" id="demoTabs" role="tablist" hidden></div>
                     <div class="demo-panel" id="demoPanel">
-                        <p class="demo-empty"><i class="fas fa-hand-pointer"></i><span data-lang="ar">اختر نشاطاً من اليسار ثم أبقِ الوكيل — المخرجات الحقيقية تظهر هنا.</span><span data-lang="en" data-inline>Pick a business on the left, then wake the agent — the deliverables appear here.</span></p>
+                        <p class="demo-empty"><i class="fas fa-hand-pointer"></i><span data-lang="ar">اختر نشاطاً تجريبياً ثم أيقظ الوكيل — تظهر هنا مخرجات توضيحية.</span><span data-lang="en" data-inline>Pick a business on the left, then wake the agent — the deliverables appear here.</span></p>
                     </div>
                 </div>
             </div>
@@ -1379,7 +1379,7 @@ select option{background:#101014;color:#F6F5F4}
             <div class="next-step reveal">
                 <div class="ns-tx">
                     <b><span data-lang="ar">هذه كانت عيّنة. الحقيقية تعمل على نشاطك.</span><span data-lang="en" data-inline>That was a sample. The real one works on your business.</span></b>
-                    <span><span data-lang="ar">ادفع بنفسك: فريقك يسأل عن نشاطك في أسئلة قصيرة، ثم يستلم أول مخرجاته.</span><span data-lang="en" data-inline>You pay for your own: the team asks about your business in short questions, then delivers your first output.</span></span>
+                    <span><span data-lang="ar">عند الاشتراك، يسألك الفريق عن نشاطك في أسئلة قصيرة، ثم تستلم مخرجاتك.</span><span data-lang="en" data-inline>When you subscribe, the team asks about your business in short questions, then delivers your output.</span></span>
                 </div>
                 <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">ابدأ باقتك</span><span data-lang="en" data-inline>Start your plan</span></a>
                 <a href="/consult" class="btn btn-ghost"><span data-lang="ar">لست متأكداً؟ استشارة مجانية</span><span data-lang="en" data-inline>Not sure? Free consult</span></a>
@@ -1456,7 +1456,7 @@ select option{background:#101014;color:#F6F5F4}
                         </tr>
                         <tr>
                             <th><span data-lang="ar">العربية أولاً</span><span data-lang="en" data-inline>Arabic first</span></th>
-                            <td><span data-lang="ar">تعمد على لغة النموذج</span><span data-lang="en" data-inline>Depends on the model's language</span></td>
+                            <td><span data-lang="ar">تعتمد على لغة النموذج</span><span data-lang="en" data-inline>Depends on the model's language</span></td>
                             <td><span data-lang="ar">حسب المستقل واللغة</span><span data-lang="en" data-inline>Depends on the person and their language</span></td>
                             <td><span data-lang="ar">حسب إتقان الموظف للغة</span><span data-lang="en" data-inline>Depends on the employee's fluency</span></td>
                             <td class="us"><span data-lang="ar">واجهة ومحتوى ومخرجات بالعربية أولاً</span><span data-lang="en" data-inline>Interface, content and outputs are Arabic first</span></td>
@@ -2809,7 +2809,13 @@ select option{background:#101014;color:#F6F5F4}
             var c0 = document.getElementById('c0'), c1 = document.getElementById('c1'), c2 = document.getElementById('c2'), c3 = document.getElementById('c3');
             function countUp(el, target, suffix) {
                 if (!el) return;
-                var cur = 0, step = Math.max(1, Math.round(target / 40));
+                var cur = parseInt(el.textContent.replace(/,/g, ""), 10);
+                if (!isFinite(cur)) cur = target;
+                if (cur >= target || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                    el.textContent = target.toLocaleString("en") + (suffix || "");
+                    return;
+                }
+                var step = Math.max(1, Math.round((target - cur) / 40));
                 var t = function () {
                     cur = Math.min(target, cur + step);
                     el.textContent = cur.toLocaleString('en') + (suffix || '');
