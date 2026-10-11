@@ -464,7 +464,7 @@ async def owner_entry(request: Request):
 
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
-    from src.services import catalog
+    from src.services import catalog, transfer
     employees = list(catalog.EMPLOYEES.values())
     agent_count = len(employees)
     registry = getattr(app.state, "agent_registry", None)
@@ -485,6 +485,9 @@ async def landing_page(request: Request):
             "divisions": catalog.DIVISIONS,
             "division_count": catalog.DIVISION_COUNT,
             "catalog_employees": catalog.EMPLOYEES,
+            # published contact channels: WhatsApp renders above Telegram, and the
+            # number must be the same one the invoices print
+            "contact": transfer.contact_channels(),
             # one leader above a sample of the team, for the orchestrator visual
             "orch_team": [
                 {"slug": slug, **emp} for slug, emp in list(catalog.EMPLOYEES.items())[:6]
@@ -694,7 +697,13 @@ async def package_detail_page(package_key: str, request: Request):
 
 @app.get("/portal", response_class=HTMLResponse)
 async def client_portal_page(request: Request):
-    return templates.TemplateResponse(request, "portal.html")
+    from src.services import transfer
+
+    # The checkout renders a WhatsApp escape hatch, so the number comes from the
+    # same published contact source as the invoice rather than a second copy.
+    return templates.TemplateResponse(
+        request, "portal.html", {"contact": transfer.contact_channels()}
+    )
 
 
 @app.get("/consult", response_class=HTMLResponse)
@@ -770,11 +779,19 @@ async def company_page(request: Request):
     return templates.TemplateResponse(request, "company.html", {"active": "company"})
 
 
+# Fields the owner console needs but that must never reach an anonymous
+# caller: model routing, which agents are internal machinery, employee
+# numbers, and the interview script.
+_AGENT_INTERNAL_FIELDS = ("default_model", "is_system", "employee_no", "questions")
+
+
 @app.get("/api/agents")
-async def list_agents(category: Optional[str] = None):
+async def list_agents(request: Request, category: Optional[str] = None):
     from src.core.agent_registry import AgentCategory
+    from src.core.owner_auth import check_owner
     from src.services import catalog
 
+    is_owner = check_owner(request)
     cat = AgentCategory(category) if category else None
     agents = await app.state.agent_registry.list_agents(cat)
     result = []
@@ -785,18 +802,151 @@ async def list_agents(category: Optional[str] = None):
             "name": a.name,
             "description": a.description,
             "category": a.category,
-            "default_model": a.default_model,
-            "is_system": a.is_system,
-            "employee_no": emp.get("no", ""),
             "title_ar": emp.get("title_ar", a.name),
             "title_en": emp.get("title_en", a.name),
             "dept": emp.get("dept", ""),
             "intro_ar": emp.get("intro_ar", a.description),
             "intro_en": emp.get("intro_en", a.description),
-            "questions": emp.get("questions", []),
         }
+        if is_owner:
+            item.update(
+                {
+                    "default_model": a.default_model,
+                    "is_system": a.is_system,
+                    "employee_no": emp.get("no", ""),
+                    "questions": emp.get("questions", []),
+                }
+            )
         result.append(item)
     return {"agents": result}
+
+
+# A provider that is out of credit or holding a revoked key makes every agent
+# look alive in the registry while none of them can answer. One cached
+# round-trip per provider is what separates "registered" from "actually works".
+_PROVIDER_PROBE_CACHE: dict = {}
+_PROVIDER_PROBE_TTL = 120.0
+
+
+async def _probe_provider(provider: str, model_spec: str) -> dict:
+    cached = _PROVIDER_PROBE_CACHE.get(provider)
+    now = time.monotonic()
+    if cached and now - cached[0] < _PROVIDER_PROBE_TTL:
+        return cached[1]
+
+    outcome = {"provider": provider, "model": model_spec, "reachable": False, "detail": ""}
+    try:
+        from src.core.model_provider import ModelRequest
+
+        started = time.monotonic()
+        await app.state.model_provider.complete(
+            model_spec, ModelRequest(prompt="ping", system_prompt="", max_tokens=1)
+        )
+        outcome["reachable"] = True
+        outcome["latency_ms"] = int((time.monotonic() - started) * 1000)
+    except Exception as e:
+        # Type only: the message is where a provider may echo its own key.
+        outcome["detail"] = type(e).__name__
+
+    _PROVIDER_PROBE_CACHE[provider] = (now, outcome)
+    return outcome
+
+
+@app.get("/api/owner/agents/status", dependencies=[Depends(require_owner_api)])
+async def owner_agents_status(limit: int = 500):
+    """What the owner actually asked for: is each agent working, or not."""
+    import asyncio
+
+    from sqlalchemy import desc, select
+
+    from src.core.model_provider import ModelSpec
+    from src.models import WorkflowExecution
+    from src.services import catalog
+
+    agents = await app.state.agent_registry.list_agents()
+
+    async with app.state.session_factory() as session:
+        rows = (
+            await session.execute(
+                select(WorkflowExecution)
+                .order_by(desc(WorkflowExecution.created_at))
+                .limit(limit)
+            )
+        ).scalars().all()
+
+    history: dict = {}
+    for e in rows:
+        h = history.setdefault(
+            e.workflow_id, {"runs": 0, "failures": 0, "last_status": None, "last_at": None}
+        )
+        h["runs"] += 1
+        if e.status == "failed":
+            h["failures"] += 1
+        if e.created_at and (h["last_at"] is None or e.created_at > h["last_at"]):
+            h["last_at"] = e.created_at
+            h["last_status"] = e.status
+
+    providers: dict = {}
+    for a in agents:
+        spec = getattr(a, "default_model", "") or ""
+        try:
+            providers.setdefault(ModelSpec.parse(spec).provider.value, spec)
+        except Exception:
+            continue
+
+    probes = await asyncio.gather(
+        *[_probe_provider(p, s) for p, s in providers.items()]
+    )
+    reach = {p["provider"]: p for p in probes}
+
+    items = []
+    for a in agents:
+        emp = catalog.get_employee(a.slug) or {}
+        h = history.get(a.slug, {})
+        spec = getattr(a, "default_model", "") or ""
+        try:
+            provider = ModelSpec.parse(spec).provider.value
+        except Exception:
+            provider = ""
+
+        runs, failures = h.get("runs", 0), h.get("failures", 0)
+        if failures and runs and failures >= runs:
+            state = "failing"
+        elif runs:
+            state = "healthy"
+        else:
+            state = "idle"
+
+        items.append(
+            {
+                "slug": a.slug,
+                "name": a.name,
+                "title_ar": emp.get("title_ar", a.name),
+                "dept": emp.get("dept", ""),
+                "is_system": getattr(a, "is_system", False),
+                "default_model": spec,
+                "provider": provider,
+                "provider_reachable": bool(reach.get(provider, {}).get("reachable")),
+                "state": state,
+                "runs": runs,
+                "failures": failures,
+                "last_status": h.get("last_status"),
+                "last_at": h["last_at"].isoformat() if h.get("last_at") else None,
+            }
+        )
+
+    return {
+        "summary": {
+            "total": len(items),
+            "healthy": sum(1 for i in items if i["state"] == "healthy"),
+            "failing": sum(1 for i in items if i["state"] == "failing"),
+            "idle": sum(1 for i in items if i["state"] == "idle"),
+            "providers_total": len(probes),
+            "providers_reachable": sum(1 for p in probes if p.get("reachable")),
+        },
+        "providers": list(probes),
+        "agents": items,
+    }
 
 
 @app.get("/api/agents/{slug}", dependencies=[Depends(require_owner_api)])
@@ -1328,17 +1478,42 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
             asyncio.get_running_loop().create_task(
                 _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
             )
-        return {"reply": reply or response.content.strip()}
+        content = reply or response.content.strip()
+        if not content:
+            # A model that answered with nothing usable is a failure, not a
+            # success with an empty bubble in the transcript.
+            raise RuntimeError("model returned empty content")
+        return {"reply": content}
     except Exception as e:
         from src.utils.logger import get_logger
-        get_logger(__name__).error(f"Consult failed: {e}")
-        return {
-            "reply": (
-                "عذراً، تعذر الاتصال بالمستشار حالياً. تفضل بزيارة /portal لتفعيل فريقك مباشرة."
-                if locale == "ar" else
-                "Sorry, we can't reach the consultant right now. Visit /portal to activate your team directly."
-            )
-        }
+
+        # Failure type only. The exception text is not logged: provider errors
+        # routinely echo the submitted key back in the response body.
+        get_logger(__name__).error(
+            "consult: every provider in the fallback chain failed (%s)",
+            type(e).__name__,
+        )
+        # 503 rather than 200. The old contract answered 200 with an apology
+        # string, which made a total outage indistinguishable from a working
+        # conversation to every monitor, every uptime check and every log-based
+        # alert. The body shape is unchanged -- {"reply": ...} -- so consult.html,
+        # which renders data.reply without checking the status, keeps working.
+        return JSONResponse(
+            status_code=503,
+            content={
+                "reply": (
+                    "المستشار الذكي غير متاح الآن. فريقنا يرد عليك مباشرة — "
+                    "راسلنا على تيليجرام أو ابدأ طلبك وسنكمل لك."
+                    if locale == "ar"
+                    else
+                    "The smart consultant is temporarily unavailable. Our team "
+                    "can still help — message us on Telegram or send your "
+                    "request and we will take it from there."
+                ),
+                "error": "consult_unavailable",
+                "retryable": True,
+            },
+        )
 
 
 @app.post("/api/workflows/{slug}/run", dependencies=[Depends(require_owner_api)])
