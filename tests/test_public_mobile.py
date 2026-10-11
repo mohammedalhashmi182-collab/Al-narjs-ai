@@ -99,6 +99,44 @@ def test_portal_http_failure(context):
     assert page.locator('.package-skeleton').count() == 0
 
 
+def test_landing_request_timeout_retains_details_and_allows_retry(context):
+    """A slow capture must not lose a prospect or permit duplicate clicks."""
+    page = context.new_page()
+    pending = []
+    page.route('**/api/leads', lambda route: pending.append(route))
+    page.clock.install()
+    page.goto('http://testserver/home')
+    page.locator('#name').fill('اختبار محلي')
+    page.locator('#phone').fill('0500000000')
+    page.locator('#message').fill('Local test only')
+    button = page.locator('#leadForm button[type=submit]')
+    button.click()
+    assert button.is_disabled()
+    page.clock.fast_forward(16000)
+    from playwright.sync_api import expect
+    expect(button).to_be_enabled()
+    expect(page.locator('#formMsg')).to_have_class('form-msg err')
+    expect(page.locator('#name')).to_have_value('اختبار محلي')
+    assert len(pending) == 1
+    page.unroute('**/api/leads')
+    page.route('**/api/leads', lambda route: route.fulfill(
+        status=200, content_type='application/json', body='{"ok":true}'))
+    button.click()
+    expect(page.locator('#formMsg')).to_have_class('form-msg ok')
+    expect(page.locator('#name')).to_have_value('')
+
+
+def test_landing_plan_alternatives_preserve_selected_package(context):
+    page = context.new_page()
+    page.goto('http://testserver/home')
+    assert page.locator('.hero .status-pill').inner_text() == 'تجربة توضيحية'
+    for package in ['social', 'ecommerce', 'content', 'growth']:
+        assert page.locator('#plan-' + package + ' .plan-online').get_attribute('href') == '/portal?pkg=' + package
+    page.locator('#plan-content .plan-online').click()
+    page.locator('.pkg.selected').wait_for()
+    assert page.locator('.pkg.selected').get_attribute('data-pkg') == 'content'
+
+
 def test_home_without_javascript(browser):
     from fastapi.testclient import TestClient
     from src.main import app
