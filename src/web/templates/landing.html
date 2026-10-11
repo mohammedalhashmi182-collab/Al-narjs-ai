@@ -139,6 +139,40 @@
     }
     </script>
     <script type="application/ld+json">
+    {#
+      The accountable human behind the platform.
+
+      Google's 2026 people-first guidance treats skill/experience as a content
+      attribute and names fabricated bios as a low-quality signal, so a "Team"
+      node was not enough. This is the person, and only the facts the owner has
+      actually stated.
+
+      OWNER ACTION: replace the three placeholder attributes below with real
+      values — his role, his prior experience, and a profile URL. Until then they
+      are deliberately omitted rather than invented, because a plausible-sounding
+      fabrication is worse than an omission.
+    #}
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "@id": "https://karmaai.online/#founder",
+      "name": "كريم",
+      "name_en": "Karim",
+      "jobTitle": "مؤسس المنصة",
+      "jobTitle_en": "Founder",
+      "description": "بدأ الفكرة على سيرفر محلي واحد بهدف جعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها، وطوّرها إلى منصة باشتراكات شهرية وفاتورة رسمية.",
+      "description_en": "Started the idea on a single local server with the aim of making AI assistance available to whoever needs it, and developed it into a platform with monthly subscriptions and official invoicing.",
+      "worksFor": { "@id": "https://karmaai.online/#business" },
+      "knowsAbout": [
+        "الذكاء الاصطناعي التطبيقي",
+        "أتمتة التسويق",
+        "تجارة إلكترونية",
+        "باقة وكلاء ذكاء اصطناعي"
+      ],
+      "foundingLocation": "Riyadh, Saudi Arabia"
+    }
+    </script>
+    <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -857,6 +891,22 @@ body:not(.launch-on) .launch-bar{display:none}
     background:var(--green);color:#fff;box-shadow:0 8px 28px rgba(255, 90, 54,.4);
     transition:transform .25s var(--ease)}
 .tg-float:hover{transform:translateY(-3px) scale(1.03)}
+/* Contact stack: WhatsApp above Telegram, so the money channel wins the
+   first position. The stack is a flex column anchored bottom-end, which keeps
+   both buttons on the same edge instead of relying on magic offsets. */
+.contact-stack{position:fixed;inset-block-end:20px;inset-inline-end:20px;z-index:90;
+    display:flex;flex-direction:column;gap:10px}
+.contact-stack .tg-float,.contact-stack .wa-float{position:static}
+.wa-float{width:54px;height:54px;border-radius:var(--r);display:grid;place-items:center;
+    background:#25D366;color:#fff;box-shadow:0 8px 28px rgba(37,211,102,.38);
+    transition:transform .25s var(--ease)}
+.wa-float:hover{transform:translateY(-3px) scale(1.03)}
+.wa-float i{font-size:1.5rem;line-height:1}
+.socials .wa-social{background:transparent}
+.socials .wa-social i{color:#25D366}
+@media (max-width:768px){.contact-stack{gap:8px}
+    .contact-stack .wa-float,.contact-stack .tg-float{width:48px;height:48px}}
+@media (prefers-reduced-motion:reduce){.wa-float:hover,.tg-float:hover{transform:none}}
 .to-top{position:fixed;inset-block-end:20px;inset-inline-start:20px;z-index:90;
     width:44px;height:44px;border-radius:var(--r-sm);display:grid;place-items:center;
     background:var(--surface);border:1px solid var(--line);color:var(--ink-2);
@@ -1611,6 +1661,14 @@ select option{background:#101014;color:#F6F5F4}
             </div>
             <div class="bento">
                 <div class="bcard b-lg reveal">
+                <div class="founder">
+                    <span class="founder-disc" aria-hidden="true">ك</span>
+                    <div>
+                        <b class="founder-name"><span data-lang="ar">كريم</span><span data-lang="en" data-inline>Karim</span></b>
+                        <span class="founder-role"><span data-lang="ar">مؤسس المنصة</span><span data-lang="en" data-inline>Founder</span></span>
+                    </div>
+                </div>
+                <p class="founder-story"><span data-lang="ar">بدأت الفكرة على سيرفر محلي واحد، قبل أن تكون منصة أو شركة: سؤال واحد — كيف نجعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها فعلاً؟ كل ما هنا نما من ذلك السيرفر، وما زال يعمل على نفس المبدأ: أن يبني لك الفريق ما تحتاجه فعلاً.</span><span data-lang="en" data-inline>This started on a single local server, before it was a platform or a company: one question — how do you make AI assistance genuinely available to the people who need it? Everything here grew out of that server, and it still runs on the same principle: build the team your work actually needs.</span></p>
                     <p style="font-size:1.02rem;line-height:1.95;">
                         <span data-lang="ar">منصة سعودية تقدم خدمات الذكاء الاصطناعي بنموذج اشتراكات شهري، صُممت خصيصاً لأصحاب المشاريع الصغيرة والمتوسطة. نبني شبكة من </span><span data-lang="en" data-inline>A Saudi platform delivering AI services on a monthly subscription model, built for small and mid-sized business owners. We run a network of </span><b>{{ agent_count }}</b><span data-lang="ar"> وكيلاً ذكياً متخصصاً في مجالات مختلفة، ويفتح كل اشتراك لعميلنا فريقاً مخصصاً من 5 وكلاء يعملون حسب مجاله — من خدمة العملاء والمحتوى إلى التجارة الإلكترونية والنمو والمبيعات. الدفع بفاتورة رسمية، والباقات تبدأ من 800 ريال شهرياً، ومستشارنا الذكي يساعد كل عميل على اختيار الباقة الأنسب قبل الاشتراك.</span><span data-lang="en" data-inline> specialized agents, and every subscription opens a dedicated team of 5 agents matched to the client's field — from customer care and content to e-commerce, growth and sales. Billing is by official invoice, plans start at 800 SAR per month, and our Smart Consultant recommends the right plan before you subscribe.</span>
                     </p>
@@ -1997,6 +2055,12 @@ select option{background:#101014;color:#F6F5F4}
                 <a href="/home" class="brand"><img class="logo" src="/static/logo.png" alt="Al-Narjis AI"><span><span class="name" style="font-size:1rem;">النرجس <b>AI</b></span></span></a>
                 <p style="max-width:30em;margin-top:16px;"><span data-lang="ar">وكلاء ذكاء اصطناعي يعملون على مدار الساعة لتنمية أعمالك — بجودة عربية أصيلة من الرياض.</span><span data-lang="en" data-inline>AI agents working around the clock to grow your business — authentic craft from Riyadh.</span></p>
                 <div class="socials">
+                    {# WhatsApp sits above Telegram on purpose: it is the channel a
+                       buyer reaches when money is on the line. The number is the
+                       one the invoices publish, never a second literal. #}
+                    {% if contact.whatsapp %}
+                    <a href="{{ contact.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp" class="wa-social"><i class="fab fa-whatsapp"></i></a>
+                    {% endif %}
                     <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
                     <a href="/consult" aria-label="Smart Consultant"><i class="fas fa-comments"></i></a>
                 </div>
@@ -2035,7 +2099,16 @@ select option{background:#101014;color:#F6F5F4}
         </div>
     </footer>
 
-    <a id="tgFloat" class="tg-float" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
+    {# Floating contact stack. WhatsApp first, then Telegram: WhatsApp is the
+       channel a buyer opens when they already have a question or an invoice,
+       so it must not sit below a chat link. Both numbers come from the
+       published contact source, so a change cannot leave a stale icon. #}
+    <div class="contact-stack">
+        {% if contact.whatsapp %}
+        <a id="waFloat" class="wa-float" href="{{ contact.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        {% endif %}
+        <a id="tgFloat" class="tg-float" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
+    </div>
     <button class="to-top" id="toTop" aria-label="Top"><i class="fas fa-arrow-up"></i></button>
 
     <script>

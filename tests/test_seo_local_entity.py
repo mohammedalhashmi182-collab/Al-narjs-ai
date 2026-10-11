@@ -48,8 +48,8 @@ def test_every_json_ld_block_on_the_rendered_page_parses(client: TestClient) -> 
     r = client.get("/home")
     assert r.status_code == 200
     blocks = json_ld_blocks(r.text)
-    # Organization, ProfessionalService, WebSite, FAQPage
-    assert len(blocks) == 4, "the page lost a structured-data block"
+    # Organization, ProfessionalService, WebSite, Person, FAQPage
+    assert len(blocks) == 5, "the page lost a structured-data block"
     for block in blocks:
         assert "@context" in block, block
         assert "@type" in block, block
@@ -124,6 +124,57 @@ def test_no_rating_is_invented(client: TestClient) -> None:
     )
     assert "aggregateRating" not in entity
     assert "review" not in json.dumps(entity).lower()
+
+
+def test_a_named_person_is_published(client: TestClient) -> None:
+    """E-E-A-T needs a human, not a "Team" node.
+
+    Google's 2026 guidance treats skill/experience as a content attribute and
+    names fabricated bios as a low-quality signal, so the founder is published
+    as a Person tied to the business entity.
+    """
+    types = {b.get("@type") for b in json_ld_blocks(client.get("/home").text)}
+    assert "Person" in types, f"no accountable person published; saw {types}"
+
+    person = next(
+        b for b in json_ld_blocks(client.get("/home").text)
+        if b.get("@type") == "Person"
+    )
+    assert person["name"].strip(), "the person entity has no name"
+    assert person["@id"] == "https://karmaai.online/#founder"
+    # the person must point at the business entity that exists on the page
+    assert person["worksFor"]["@id"] == "https://karmaai.online/#business"
+    assert person["knowsAbout"], "a person entity with no subject matter says nothing"
+
+
+def test_the_person_carries_no_invented_credentials(client: TestClient) -> None:
+    """Guard against the failure this entity could introduce.
+
+    A plausible-sounding fabricated credential is worse than an omission, so the
+    fields that would be invented are asserted absent until the owner supplies
+    them.
+    """
+    person = next(
+        b for b in json_ld_blocks(client.get("/home").text)
+        if b.get("@type") == "Person"
+    )
+    for fabricated in ("alumniOf", "worksFor_employer", "award", "hasCredential"):
+        assert fabricated not in person
+    # no invented years, titles or employers smuggled into the free-text fields
+    blob = json.dumps(person, ensure_ascii=False)
+    for pattern in (r"\b(19|20)\d{2}\b", r"PhD", r"CEO", r"CTO", r"years of experience"):
+        assert not re.search(pattern, blob, re.I), (
+            f"the person entity asserts something the owner never stated: {pattern}"
+        )
+
+
+def test_the_origin_story_is_visible_on_the_page(client: TestClient) -> None:
+    """The person must be visible to a reader, not only to a crawler."""
+    html = client.get("/home").text
+    assert "كريم" in html
+    assert "Karim" in html
+    assert "سيرفر محلي" in html, "the local-server origin is not stated in Arabic"
+    assert "single local server" in html, "the local-server origin is not stated in English"
 
 
 def test_the_faq_answer_matches_the_live_roster(client: TestClient) -> None:
