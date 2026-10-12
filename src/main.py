@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -2164,13 +2165,64 @@ async def owner_payment_readiness():
     return await pm.readiness_async()
 
 
+def _public_base_url(request: Request) -> str:
+    """Origin for URLs handed to a gateway: PUBLIC_BASE_URL, else the request
+    origin with the proxy's X-Forwarded-Proto honoured (TLS ends at the proxy)."""
+    configured = (settings.public_base_url or "").strip().rstrip("/")
+    if configured:
+        return configured
+    base = str(request.base_url).rstrip("/")
+    proto = (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
+    if proto == "https" and base.startswith("http://"):
+        base = "https://" + base[len("http://"):]
+    return base
+
+
+# A double click on "pay" used to create two orders and two Moyasar invoices.
+# Replays inside the window get the first response back. In-process only: with
+# several workers a replay can still land on another process.
+PAYMENT_IDEMPOTENCY_WINDOW_SECONDS = 120.0
+_payment_replays: dict[str, tuple[float, dict]] = {}
+_payment_locks: dict[str, asyncio.Lock] = {}
+
+
+def _payment_replay_key(request: Request, body: "PaymentCreateRequest") -> Optional[str]:
+    header = (request.headers.get("idempotency-key") or "").strip()
+    if header:
+        return "key:" + header[:128]
+    who = (body.customer_phone or body.customer_email or "").strip().lower()
+    if not who:
+        return None
+    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or ""))
+
+
 @app.post("/api/payments")
 async def create_payment(request: Request, body: PaymentCreateRequest):
+    key = _payment_replay_key(request, body)
+    if key is None:
+        return await _create_payment(request, body)
+    lock = _payment_locks.setdefault(key, asyncio.Lock())
+    async with lock:
+        now = time.monotonic()
+        for k, (at, _) in list(_payment_replays.items()):
+            if now - at > PAYMENT_IDEMPOTENCY_WINDOW_SECONDS:
+                _payment_replays.pop(k, None)
+                if k != key and not _payment_locks.get(k, lock).locked():
+                    _payment_locks.pop(k, None)
+        cached = _payment_replays.get(key)
+        if cached:
+            return {**cached[1], "replayed": True}
+        response = await _create_payment(request, body)
+        _payment_replays[key] = (time.monotonic(), response)
+        return response
+
+
+async def _create_payment(request: Request, body: PaymentCreateRequest):
     from src.services import payments as pm
 
     locale = _request_locale(request)
     include_vat = locale == "ar"
-    base = str(request.base_url).rstrip("/")
+    base = _public_base_url(request)
     try:
         base_amount = pm.package_amount(body.package)
     except pm.PaymentError as exc:
@@ -2245,8 +2297,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     "amount": payment.amount,
                     "discount": discount_halalas,
                     "promo_applied": discount_pct > 0,
-                    "vat": 0,
-                    "total": payment.amount,
+                    "vat": pm.vat_amount(payment.amount),
+                    "total": pm.total_with_vat(payment.amount),
                     "invoice_total": pm.total_with_vat(payment.amount),
                     "invoice_url": f"/invoice/{payment.id}",
                 }
@@ -2267,7 +2319,9 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
                     session,
                     payment,
                     source,
-                    callback_url=f"{base}/payment/success?id={payment.id}",
+                    success_url=f"{base}/payment/success?id={payment.id}",
+                    back_url=f"{base}/payment/failure?id={payment.id}",
+                    callback_url=f"{base}/webhooks/moyasar",
                 )
                 return {
                     "payment_id": str(payment.id),
@@ -2307,8 +2361,8 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
             "amount": payment.amount,
             "discount": discount_halalas,
             "promo_applied": discount_pct > 0,
-            "vat": 0,
-            "total": payment.amount,
+            "vat": pm.vat_amount(payment.amount),
+            "total": pm.total_with_vat(payment.amount),
             "invoice_total": pm.total_with_vat(payment.amount),
             "invoice_url": f"/invoice/{payment.id}",
         }
@@ -2630,6 +2684,42 @@ async def get_payment(payment_id: str):
         "vat": pm.vat_amount(payment.amount),
         "total": pm.total_with_vat(payment.amount),
     }
+
+
+@app.post("/webhooks/moyasar")
+async def moyasar_webhook(request: Request):
+    """Server-to-server notification from Moyasar (payment_paid / payment_failed).
+
+    Authenticated by the dashboard secret_token; the order is then decided from
+    a fresh API fetch, never from the body alone. Replays are a 200 no-op.
+    """
+    import hmac
+
+    from src.services import payments as pm
+
+    try:
+        event = await request.json()
+    except Exception:  # noqa: BLE001
+        raise HTTPException(400, "invalid JSON")
+    if not isinstance(event, dict):
+        raise HTTPException(400, "invalid payload")
+
+    expected = (settings.moyasar_webhook_secret or "").encode()
+    supplied = str(event.get("secret_token") or "").encode()
+    if not expected or not supplied or not hmac.compare_digest(supplied, expected):
+        raise HTTPException(401, "invalid secret_token")
+
+    async with app.state.session_factory() as session:
+        try:
+            result = await pm.handle_moyasar_webhook(session, event)
+        except pm.PaymentError as exc:
+            # Non-2xx makes Moyasar retry later.
+            raise HTTPException(502, f"could not verify with Moyasar: {exc}")
+        if result.get("status") == "paid" and not result.get("already"):
+            from uuid import UUID as _UUID
+
+            await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook ميسر")
+    return result
 
 
 @app.get("/payment/success")

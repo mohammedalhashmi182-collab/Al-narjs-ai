@@ -97,6 +97,11 @@ class Settings(BaseSettings):
     moyasar_publishable_key: str | None = Field(default=None, alias="MOYASAR_PUBLISHABLE_KEY")
     payment_success_url: str = Field(default="/payment/success", alias="PAYMENT_SUCCESS_URL")
     payment_failure_url: str = Field(default="/payment/failure", alias="PAYMENT_FAILURE_URL")
+    # Shared secret configured on the Moyasar dashboard webhook (secret_token).
+    moyasar_webhook_secret: str | None = Field(default=None, alias="MOYASAR_WEBHOOK_SECRET")
+    # Canonical public origin, e.g. https://alnarjs.com. Gateway return URLs are
+    # built from it so they are never http:// behind the TLS-terminating proxy.
+    public_base_url: str | None = Field(default=None, alias="PUBLIC_BASE_URL")
 
     # PayPal (international checkout)
     paypal_client_id: str | None = Field(default=None, alias="PAYPAL_CLIENT_ID")

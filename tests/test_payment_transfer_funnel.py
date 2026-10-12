@@ -531,7 +531,10 @@ class TestVatInclusiveCharging:
             r = await anon.post("/api/payments", json={"package": "growth", "method": "invoice"})
         base = catalog.PACKAGES["growth"]["amount"]
         assert r.json()["invoice_total"] == pm.total_with_vat(base)
-        assert r.json()["total"] == base  # the recorded base is still reported for records
+        # The bank-transfer quote must match the invoice: total is VAT-inclusive
+        # halalas, and the pre-VAT base stays available as "amount".
+        assert r.json()["total"] == pm.total_with_vat(base)
+        assert r.json()["amount"] == base
 
 
 class TestMoyasarTestKeyIsNotAPaymentMethod:
