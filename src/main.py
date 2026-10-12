@@ -396,6 +396,42 @@ class AgentRunRequest(BaseModel):
     prompt_template: str = "default"
 
 
+async def _record_agent_run(
+    slug: str,
+    status: str,
+    started,
+    error_type: Optional[str],
+    latency_ms: Optional[int],
+) -> None:
+    """Record an agent run so the console can answer "is this one working?".
+
+    Without this the dashboard's per-agent columns stay at zero forever, because
+    a direct agent run never touched the execution table. A failure to record
+    must never fail the run itself, so every error here is swallowed.
+    """
+    try:
+        from datetime import datetime, timezone
+
+        from src.models import WorkflowExecution
+        from src.utils.logger import get_logger
+
+        async with app.state.session_factory() as session:
+            session.add(
+                WorkflowExecution(
+                    workflow_id=slug,
+                    trigger_type="agent",
+                    status=status,
+                    started_at=started,
+                    completed_at=datetime.now(timezone.utc),
+                    error=error_type,
+                    context={"latency_ms": latency_ms} if latency_ms is not None else {},
+                )
+            )
+            await session.commit()
+    except Exception:
+        pass
+
+
 class WorkflowRunRequest(BaseModel):
     input_data: dict = {}
 
@@ -1064,7 +1100,20 @@ async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
         max_tokens=agent.default_parameters.get("max_tokens", 2000),
     )
 
-    response = await app.state.model_provider.complete(agent.default_model, model_request)
+    from datetime import datetime, timezone
+
+    started = datetime.now(timezone.utc)
+    try:
+        response = await app.state.model_provider.complete(agent.default_model, model_request)
+    except Exception as e:
+        await _record_agent_run(
+            agent.slug, "failed", started, type(e).__name__, None
+        )
+        raise
+
+    await _record_agent_run(
+        agent.slug, "completed", started, None, response.latency_ms
+    )
     return {
         "content": response.content,
         "structured_output": response.structured_output.model_dump() if response.structured_output else None,
