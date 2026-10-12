@@ -5,6 +5,48 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
+<section id="agentHealth" class="oc">
+    <div class="oc-head">
+        <div>
+            <h2 class="oc-title">حالة الوكلاء الآن</h2>
+            <p class="oc-sub">من يعمل فعلاً، ومن متوقف، ومن لم يُشغّل بعد — فحص مباشر للمزوّدات وبيانات التشغيل.</p>
+        </div>
+        <div class="oc-providers" id="ocProviders"></div>
+    </div>
+
+    <div class="oc-kpis">
+        <div class="oc-kpi"><span class="oc-kpi-v" id="ocTotal">-</span><span class="oc-kpi-l">إجمالي الوكلاء</span></div>
+        <div class="oc-kpi is-ok"><span class="oc-kpi-v" id="ocHealthy">-</span><span class="oc-kpi-l">يعمل</span></div>
+        <div class="oc-kpi is-bad"><span class="oc-kpi-v" id="ocFailing">-</span><span class="oc-kpi-l">فشل في كل تشغيلاته</span></div>
+        <div class="oc-kpi is-idle"><span class="oc-kpi-v" id="ocIdle">-</span><span class="oc-kpi-l">لم يُشغّل بعد</span></div>
+    </div>
+
+    <div class="oc-filters" id="ocFilters">
+        <button type="button" class="oc-chip is-on" data-state="all">الكل</button>
+        <button type="button" class="oc-chip" data-state="healthy">يعمل</button>
+        <button type="button" class="oc-chip" data-state="failing">فشل</button>
+        <button type="button" class="oc-chip" data-state="idle">لم يُشغّل</button>
+        <button type="button" class="oc-chip" data-state="system">وكلاء النظام</button>
+    </div>
+
+    <div class="oc-tablewrap">
+        <table class="oc-table">
+            <thead>
+                <tr>
+                    <th>الوكيل</th>
+                    <th>القسم</th>
+                    <th>المزوّد</th>
+                    <th>الحالة</th>
+                    <th class="oc-num">تشغيلات</th>
+                    <th class="oc-num">أخطاء</th>
+                    <th>آخر تشغيل</th>
+                </tr>
+            </thead>
+            <tbody id="ocRows"><tr><td colspan="7" class="oc-empty">جارٍ الفحص…</td></tr></tbody>
+        </table>
+    </div>
+</section>
+
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-2xl shadow p-6">
         <div class="flex items-center">
@@ -204,7 +246,115 @@
 {% endblock %}
 
 {% block scripts %}
+<style>
+#agentHealth {
+    --oc-ok: #16a34a; --oc-bad: #dc2626; --oc-idle: #a8a29e;
+    margin: 0 0 32px; padding: 20px; border-radius: 20px;
+    background: var(--n-surface, #fff); border: 1px solid var(--n-line, #e7e5e4);
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.oc-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
+.oc-title { margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--n-ink, #1c1917); }
+.oc-sub { margin: 4px 0 0; font-size: .875rem; color: var(--n-ink-soft, #78716c); }
+.oc-providers { display: flex; gap: 8px; flex-wrap: wrap; }
+.oc-prov { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+    font-size: .75rem; font-weight: 700; background: var(--n-surface-2, #f5f5f4); color: var(--n-ink-soft, #78716c); }
+.oc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--oc-bad); }
+.oc-prov.is-ok .oc-dot { background: var(--oc-ok); }
+.oc-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.oc-kpi { padding: 14px; border-radius: 14px; background: var(--n-surface-2, #fafaf9); border: 1px solid var(--n-line, #e7e5e4); display: flex; flex-direction: column; gap: 2px; }
+.oc-kpi-v { font-size: 1.75rem; font-weight: 800; line-height: 1.1; color: var(--n-ink, #1c1917); }
+.oc-kpi-l { font-size: .75rem; color: var(--n-ink-soft, #78716c); }
+.oc-kpi.is-ok .oc-kpi-v { color: var(--oc-ok); }
+.oc-kpi.is-bad .oc-kpi-v { color: var(--oc-bad); }
+.oc-kpi.is-idle .oc-kpi-v { color: var(--oc-idle); }
+.oc-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.oc-chip { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--n-line, #e7e5e4);
+    background: transparent; color: var(--n-ink-soft, #78716c); font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; }
+.oc-chip.is-on { background: var(--n-accent, #ff5a36); border-color: var(--n-accent, #ff5a36); color: #fff; }
+.oc-tablewrap { overflow-x: auto; }
+.oc-table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
+.oc-table th { text-align: start; padding: 8px 10px; color: var(--n-ink-soft, #78716c); font-weight: 700;
+    border-bottom: 1px solid var(--n-line, #e7e5e4); white-space: nowrap; }
+.oc-table td { padding: 10px; border-bottom: 1px solid var(--n-line, #e7e5e4); color: var(--n-ink, #1c1917); }
+.oc-num { text-align: end; font-variant-numeric: tabular-nums; }
+.oc-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+.oc-state { background: rgba(22,163,74,.12); color: var(--oc-ok); }
+.oc-state.is-failing { background: rgba(220,38,38,.12); color: var(--oc-bad); }
+.oc-state.is-idle { background: rgba(120,113,108,.14); color: #78716c; }
+.oc-state.is-blocked { background: rgba(220,38,38,.12); color: var(--oc-bad); }
+.oc-empty { padding: 24px; text-align: center; color: var(--n-ink-soft, #78716c); }
+.oc-when { color: var(--n-ink-soft, #78716c); white-space: nowrap; }
+</style>
 <script>
+    let ocAgents = [];
+    let ocFilter = 'all';
+
+    function ocStateLabel(a) {
+        if (!a.provider_reachable) return { cls: 'is-blocked', text: 'المزوّد لا يعمل' };
+        if (a.state === 'healthy') return { cls: '', text: 'يعمل' };
+        if (a.state === 'failing') return { cls: 'is-failing', text: 'فشل' };
+        return { cls: 'is-idle', text: 'لم يُشغّل' };
+    }
+
+    function ocRender() {
+        const rows = ocAgents.filter(a => {
+            if (ocFilter === 'system') return a.is_system;
+            if (ocFilter === 'all') return true;
+            return a.state === ocFilter;
+        });
+
+        document.getElementById('ocRows').innerHTML = rows.length ? rows.map(a => {
+            const s = ocStateLabel(a);
+            const when = a.last_at ? new Date(a.last_at).toLocaleString('ar', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+            return `<tr>
+                <td>${escapeHtml(a.title_ar || a.name)}${a.is_system ? ' <span class="oc-badge is-idle">نظام</span>' : ''}</td>
+                <td>${escapeHtml(a.dept || '—')}</td>
+                <td>${escapeHtml(a.provider || '—')}</td>
+                <td><span class="oc-badge oc-state ${s.cls}">${s.text}</span></td>
+                <td class="oc-num">${a.runs}</td>
+                <td class="oc-num">${a.failures}</td>
+                <td class="oc-when">${when}</td>
+            </tr>`;
+        }).join('') : '<tr><td colspan="7" class="oc-empty">لا يوجد وكلاء ضمن هذا التصنيف</td></tr>';
+    }
+
+    async function loadAgentHealth() {
+        const body = document.getElementById('ocRows');
+        try {
+            const r = await fetch('/api/owner/agents/status');
+            if (!r.ok) {
+                body.innerHTML = '<tr><td colspan="7" class="oc-empty">تعذّر الفحص — تحتاج جلسة المالك</td></tr>';
+                return;
+            }
+            const data = await r.json();
+            const s = data.summary;
+            document.getElementById('ocTotal').textContent = s.total;
+            document.getElementById('ocHealthy').textContent = s.healthy;
+            document.getElementById('ocFailing').textContent = s.failing;
+            document.getElementById('ocIdle').textContent = s.idle;
+
+            document.getElementById('ocProviders').innerHTML = (data.providers || []).map(p =>
+                `<span class="oc-prov ${p.reachable ? 'is-ok' : ''}" title="${escapeHtml(p.detail || '')}">
+                   <span class="oc-dot"></span>${escapeHtml(p.provider)}</span>`
+            ).join('');
+
+            ocAgents = data.agents || [];
+            ocRender();
+        } catch (e) {
+            body.innerHTML = '<tr><td colspan="7" class="oc-empty">تعذّر الفحص</td></tr>';
+        }
+    }
+
+    document.getElementById('ocFilters').addEventListener('click', function (e) {
+        const btn = e.target.closest('.oc-chip');
+        if (!btn) return;
+        document.querySelectorAll('#ocFilters .oc-chip').forEach(c => c.classList.remove('is-on'));
+        btn.classList.add('is-on');
+        ocFilter = btn.dataset.state;
+        ocRender();
+    });
+
     async function loadStats() {
         try {
             const [agents, workflows, schedules, queue] = await Promise.all([
@@ -287,10 +437,12 @@
     loadStats();
     loadBusinessOverview();
     loadRecentExecutions();
+    loadAgentHealth();
     setInterval(() => {
         loadStats();
         loadBusinessOverview();
         loadRecentExecutions();
+        loadAgentHealth();
     }, 30000);
 
     async function loadRecentExecutions() {
@@ -327,10 +479,12 @@
     loadStats();
     loadBusinessOverview();
     loadRecentExecutions();
+    loadAgentHealth();
     setInterval(() => {
         loadStats();
         loadBusinessOverview();
         loadRecentExecutions();
+        loadAgentHealth();
     }, 30000);
 </script>
 {% endblock %}

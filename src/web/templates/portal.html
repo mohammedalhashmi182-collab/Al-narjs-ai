@@ -29,6 +29,30 @@
         .msg-client { align-self: flex-end; }
         .spin { display: inline-block; animation: rot 0.9s linear infinite; }
         @keyframes rot { to { transform: rotate(360deg); } }
+#xfIban{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.3px}
+.xf-copy{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;
+    padding:7px 12px;border-radius:10px;border:1px solid var(--n-line);
+    background:var(--n-cream);color:var(--n-brown);cursor:pointer;font:inherit;font-size:.78rem}
+.xf-copy:hover{border-color:var(--n-gold)}
+.xf-copy i{font-size:.72rem}
+.xf-copy.done{color:var(--n-green);border-color:var(--n-green)}
+
+/* quick bank-transfer block, shown before the buyer starts a checkout */
+.xf-quick{border:1px solid var(--n-line);border-radius:var(--r-lg);overflow:hidden;background:var(--n-sand)}
+.xf-quick-h{display:flex;align-items:center;gap:9px;padding:11px 15px;
+    background:var(--odsf-gold);color:#292524;font-weight:800;font-size:.92rem}
+.xf-quick-b{padding:14px 16px;display:flex;flex-direction:column;gap:9px}
+.xf-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:4px}
+.xf-k{font-size:.78rem;color:var(--n-earth)}
+.xf-v{font-weight:700;font-size:.92rem;color:var(--n-brown);word-break:break-all;text-align:end}
+.xf-note{margin:6px 0 0;font-size:.78rem;line-height:1.85;color:var(--n-earth)}
+.xf-wa{display:flex;align-items:center;gap:10px;margin-top:12px;padding:13px 15px;
+    border-radius:12px;border:1px solid #25D366;background:rgba(37,211,102,.08);
+    color:var(--n-brown);text-decoration:none;font-size:.86rem;font-weight:600;line-height:1.6}
+.xf-wa:hover{background:rgba(37,211,102,.14)}
+.xf-wa i{font-size:1.15rem;color:#25D366;flex:0 0 auto}
+@media print{.xf-copy{display:none}}
+
         .package-skeleton { min-height:180px; border-radius:16px; background:var(--n-sand-2, #eee); animation:packagePulse 1.2s ease-in-out infinite alternate; }
         @keyframes packagePulse { to { opacity:.45; } }
         @media (prefers-reduced-motion:reduce) { .package-skeleton { animation:none; } }
@@ -168,8 +192,62 @@
                         <span data-lang="ar">تطبيق</span><span data-lang="en" data-inline>Apply</span>
                     </button>
                 </div>
-                <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
-                <p id="coCardNote" hidden class="mt-4 text-sm" style="color:var(--n-brown-2);"></p>
+<div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
+                    <p id="coCardNote" hidden class="mt-4 text-sm" style="color:var(--n-brown-2);"></p>
+                    {# Bank transfer, shown before the buyer starts a checkout.
+
+                       The invoice page already carries the IBAN and a copy
+                       button, but a buyer only reaches it *after* choosing a
+                       method, and the note beside the method list used to say
+                       only "card checkout is not live yet". The one method that
+                       genuinely takes money was therefore invisible at the
+                       moment of decision.
+
+                       The details below are the same published account the
+                       invoice prints -- one source, read from /api/payments/
+                       capabilities. Nothing here is a promise the server
+                       cannot keep: a transfer to a real IBAN, confirmed by the
+                       owner, is settlement. #}
+                    <div id="coXfer" hidden class="xf-quick" style="margin-top:18px;text-align:start;">
+                        <div class="xf-quick-h">
+                            <i class="fas fa-building-columns"></i>
+                            <span data-lang="ar">أو ادفع بتحويل بنكي مباشر</span>
+                            <span data-lang="en" data-inline>Or pay by direct bank transfer</span>
+                        </div>
+                        <div class="xf-quick-b">
+                            <div class="xf-row">
+                                <span class="xf-k" data-lang="ar">الآيبان</span>
+                                <span class="xf-k" data-lang="en" data-inline>IBAN</span>
+                                <span class="xf-v" id="xfIban">—</span>
+                                <button type="button" class="xf-copy" data-xf-copy="xfIban">
+                                    <i class="fas fa-copy"></i>
+                                    <span data-lang="ar">نسخ</span>
+                                    <span data-lang="en" data-inline>Copy</span>
+                                </button>
+                            </div>
+                            <div class="xf-row">
+                                <span class="xf-k" data-lang="ar">اسم الحساب</span>
+                                <span class="xf-k" data-lang="en" data-inline>Account name</span>
+                                <span class="xf-v" id="xfName">—</span>
+                            </div>
+                            <div class="xf-row">
+                                <span class="xf-k" data-lang="ar">البنك</span>
+                                <span class="xf-k" data-lang="en" data-inline>Bank</span>
+                                <span class="xf-v" id="xfBank">—</span>
+                            </div>
+                            <p class="xf-note">
+                                <span data-lang="ar">حوّل المبلغ ثم ارجع واضغط «ادفع بالتحويل» أعلاه لتظهر لك الفاتورة، وبعدها اضغط «أرسلت التحويل» ليصلنا الإشعار ونؤكد تفعيل باقتك.</span>
+                                <span data-lang="en" data-inline>Transfer the amount, then press “Pay by transfer” above to open your invoice, then press “I sent the transfer” so we are notified and activate your plan.</span>
+                            </p>
+                            {% if contact.whatsapp %}
+                            <a class="xf-wa" id="xfWa" href="{{ contact.whatsapp }}" target="_blank" rel="noopener">
+                                <i class="fab fa-whatsapp"></i>
+                                <span data-lang="ar">لست متأكداً كيف تدفع؟ راسلنا على واتساب ونرتّبها معك</span>
+                                <span data-lang="en" data-inline>Not sure how to pay? Message us on WhatsApp and we will sort it out with you</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
                 <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
                 <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
                     <i class="fas fa-arrow-left"></i> <span data-lang="ar">رجوع للفريق</span><span data-lang="en" data-inline>Back to Team</span>
@@ -238,6 +316,7 @@
 
             const $ = id => document.getElementById(id);
             const isAr = () => document.body.dataset.lang === 'ar';
+            const xfWhatsapp = (document.getElementById('xfWa') || {}).href ? document.getElementById('xfWa').getAttribute('href') : '';
             const txt = (ar, en) => isAr() ? ar : en;
 
             let state = { projectId: null, pkg: null, current: null, questions: [], qIndex: 0, answers: {} };
@@ -547,6 +626,45 @@
                             <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
                                 <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
                             </button>`).join('');
+                            /* Show the IBAN here, before any checkout starts, read
+                               from the same capabilities payload the invoice prints.
+                               It stays hidden when no account is published: a copy
+                               button for an empty value is a dead control. */
+                            (function () {
+                                const box = document.getElementById('coXfer');
+                                const bank = cap.bank || {};
+                                if (!box || !bank.iban) return;
+                                $('xfIban').textContent = bank.iban;
+                                $('xfName').textContent = bank.account_name || '—';
+                                $('xfBank').textContent = bank.bank_name || '—';
+                                box.hidden = false;
+                                box.querySelectorAll('[data-xf-copy]').forEach(function (btn) {
+                                    btn.addEventListener('click', function () {
+                                        const el = document.getElementById(btn.dataset.xfCopy);
+                                        if (!el) return;
+                                        const text = el.textContent.trim();
+                                        const done = function () {
+                                            const old = btn.innerHTML;
+                                            btn.classList.add('done');
+                                            btn.innerHTML = ar
+                                                ? '<i class="fas fa-check"></i><span>تم النسخ</span>'
+                                                : '<i class="fas fa-check"></i><span>Copied</span>';
+                                            setTimeout(function () {
+                                                btn.innerHTML = old; btn.classList.remove('done');
+                                            }, 1600);
+                                        };
+                                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                                            navigator.clipboard.writeText(text).then(done, function () {});
+                                        } else {
+                                            const sel = window.getSelection();
+                                            const range = document.createRange();
+                                            range.selectNodeContents(el);
+                                            sel.removeAllRanges(); sel.addRange(range);
+                                            try { document.execCommand('copy'); done(); } catch (e) {}
+                                        }
+                                    });
+                                });
+                            })();
 if (hidden) {
                             const note = document.getElementById('coCardNote');
                             if (note) {
@@ -554,8 +672,8 @@ if (hidden) {
                                 let msg;
                                 if (!cap.card) {
                                     msg = ar
-                                        ? 'الدفع بالبطاقة غير مفعّل حالياً — التحويل البنكي يفعّل باقتك فور تأكيد الإيداع.'
-                                        : 'Card checkout is not live yet — a bank transfer activates your plan as soon as it lands.';
+                                        ? 'الدفع بالبطاقة غير مفعّل حالياً — استخدم التحويل البنكي بالأسفل، وهو يفعّل باقتك فور تأكيد الإيداع.'
+                                        : 'Card checkout is not live yet — use the bank transfer below, which activates your plan as soon as it lands.';
                                 } else if (cap.paypal_test_mode) {
                                     msg = ar
                                         ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
@@ -636,7 +754,10 @@ note.textContent = msg;
                             (isAr() ? 'افتح الفاتورة وأكمل التحويل' : 'Open the invoice and pay') + '</a>' +
                             '<div style="margin-top:10px;font-size:.85rem;opacity:.75;">' + (isAr()
                                 ? 'تحويل بنكي يفعّل باقتك فور تأكيد الإيداع.'
-                                : 'A bank transfer activates your plan once the payment lands.') + '</div></div>';
+                                : 'A bank transfer activates your plan once the payment lands.') + '</div>'
+                            + (xfWhatsapp ? '<a class="btn btn-outline" style="margin-top:10px;width:100%;" target="_blank" rel="noopener" href="' + xfWhatsapp + '?text=' + encodeURIComponent((isAr() ? '\u0645\u0631\u062d\u0628\u0627\u064b\u060c \u0623\u0631\u0633\u0644\u062a \u0641\u0627\u062a\u0648\u0631\u0629 \u0631\u0642\u0645 ' : 'Hello, I sent invoice ') + data.payment_id.slice(0, 8).toUpperCase() + (isAr() ? ' \u0628\u0645\u0628\u0644\u063a ' + sar(due) + ' \u0631.\u0633 \u0648\u0623\u062d\u062a\u0627\u062c \u0645\u0633\u0627\u0639\u062f\u0629 \u0641\u064a \u0627\u0644\u062f\u0641\u0639.' : ' for ' + sar(due) + ' SAR and need help paying.')) + '"><i class="fab fa-whatsapp"></i> '
+                                + (isAr() ? '\u0645\u0633\u0627\u0639\u062f\u0629 \u0641\u064a \u0627\u0644\u062f\u0641\u0639 \u0639\u0628\u0631 \u0648\u0627\u062a\u0633\u0627\u0628' : 'Help me pay on WhatsApp') + '</a>' : '')
+                            + '</div>';
                         return;
                     }
                     throw new Error(txt('تعذر إتمام الدفع', 'Payment failed'));

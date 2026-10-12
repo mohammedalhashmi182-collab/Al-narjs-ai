@@ -15,3 +15,8 @@ Thumbs.db
 .outreach_opportunities_batch1.xlsx
 .outreach_telegram_batch1.xlsx
 .brand-backup/
+
+# Local verification artifacts from agent sessions - never commit.
+_*.png
+_*.log
+collected_session_assets/

@@ -207,7 +207,17 @@ class BaseModelClient(ABC):
                     raw_response=raw_response,
                 )
             except Exception as e:
-                logger.error(f"{self.provider_type.value} completion failed: {e}")
+                # The provider's own error text is deliberately not logged. A
+                # 401 from an OpenAI-compatible endpoint echoes the submitted
+                # key back inside the body ("Incorrect API key provided: sk-..."),
+                # and httpx puts that body in the exception string. Logging the
+                # class name keeps the diagnostic and drops the secret.
+                logger.error(
+                    "%s completion failed (%s) on model %s",
+                    self.provider_type.value,
+                    type(e).__name__,
+                    request.metadata.get("model_name", "unknown"),
+                )
                 raise ModelProviderError(str(e), self.provider_type, request.metadata.get("model_name", ""), e)
 
     async def stream(self, request: ModelRequest) -> AsyncIterator[str]:
@@ -739,6 +749,23 @@ class ModelProvider:
                 model_name=getattr(self.settings, "openrouter_default_model", "openai/gpt-4o-mini"),
                 priority=30,
             ))
+        # OpenAI used to be a registered client that the chain never referenced,
+        # so a configured OpenAI key sat unused. When it was the only key on the
+        # service it looked like a working fallback and was not one. The gate is
+        # *configuration* -- a key, a base URL and a model name all present. The
+        # key itself is never inspected here and never logged: an invalid or
+        # exhausted key simply fails this spec and the chain moves on, which is
+        # the behaviour the fallback loop already provides.
+        if (
+            getattr(self.settings, "openai_api_key", None)
+            and getattr(self.settings, "openai_base_url", None)
+            and getattr(self.settings, "openai_default_model", None)
+        ):
+            gemini_chain.append(ModelSpec(
+                provider=ModelProviderType.OPENAI,
+                model_name=self.settings.openai_default_model,
+                priority=25,
+            ))
         if gemini_chain:
             self.register_fallback_chain("gemini", gemini_chain)
 
@@ -798,7 +825,13 @@ class ModelProvider:
                 logger.warning(f"Circuit breaker open for {spec}, skipping")
                 last_error = ModelProviderError("Circuit breaker open", spec.provider, spec.model_name)
             except Exception as e:
-                logger.warning(f"Model {spec} failed: {e}")
+                # Same reason as above: the class name is the diagnostic, the
+                # message is where a provider may have echoed the key.
+                logger.warning(
+                    "model %s failed (%s), trying the next one in the chain",
+                    spec,
+                    type(e).__name__,
+                )
                 last_error = e
                 continue
 
