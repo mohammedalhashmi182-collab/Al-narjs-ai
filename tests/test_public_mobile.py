@@ -39,6 +39,28 @@ def context(browser):
         context.close()
 
 
+def wait_for_preloader(page, timeout=15000):
+    """Wait until the landing overlay stops intercepting pointer events.
+
+    The overlay is dismissed by JS on window load +600ms, with a 2400ms timer
+    and a 4s CSS failsafe behind it. Clicking before that is a race: on a slow
+    CI runner Playwright reports `preloader intercepts pointer events` even
+    though the page is correct. Waiting on the computed style rather than on a
+    class name keeps this honest whichever path dismissed it.
+    """
+    page.wait_for_function(
+        """() => {
+            const p = document.getElementById('preloader');
+            if (!p) return true;
+            const s = getComputedStyle(p);
+            return s.visibility === 'hidden'
+                || s.pointerEvents === 'none'
+                || s.opacity === '0';
+        }""",
+        timeout=timeout,
+    )
+
+
 @pytest.mark.parametrize('width', [320, 390])
 @pytest.mark.parametrize('path', ['/home', '/consult', '/portal'])
 def test_mobile_pages_and_language_switch(context, width, path):
@@ -48,6 +70,7 @@ def test_mobile_pages_and_language_switch(context, width, path):
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.goto('http://testserver' + path)
+    wait_for_preloader(page)
     if path == '/portal':
         page.locator('.pkg').first.wait_for()
     for lang in ['ar', 'en']:
@@ -56,7 +79,12 @@ def test_mobile_pages_and_language_switch(context, width, path):
                 page.locator('[data-lang-btn="' + lang + '"]').first.click()
             expect(page).to_have_url('http://testserver/' + lang + path)
         else:
-            page.locator('[data-lang-btn="' + lang + '"]').first.click()
+            # goLang() assigns location.href, so this is a full page load even
+            # though the assertion below is client-side. A fresh document means
+            # a fresh preloader covering the page again.
+            with page.expect_navigation(wait_until='load'):
+                page.locator('[data-lang-btn="' + lang + '"]').first.click()
+        wait_for_preloader(page)
         expect(page.locator('body')).to_be_visible()
         expect(page.locator('body')).to_have_attribute('data-lang', lang)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
