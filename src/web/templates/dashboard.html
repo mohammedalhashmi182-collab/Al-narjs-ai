@@ -1,45 +1,48 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - AI Agent System{% endblock %}
+{% block title %}لوحة التحكم - النرجس للذكاء الاصطناعي{% endblock %}
 
-{% block page_title %}Dashboard{% endblock %}
+{% block page_title %}لوحة التحكم{% endblock %}
 
 {% block content %}
-<section id="agentHealth" class="oc">
-    <div class="oc-head">
-        <div>
-            <h2 class="oc-title">حالة الوكلاء الآن</h2>
-            <p class="oc-sub">من يعمل فعلاً، ومن متوقف، ومن لم يُشغّل بعد — فحص مباشر للمزوّدات وبيانات التشغيل.</p>
-        </div>
-        <div class="oc-providers" id="ocProviders"></div>
+{% block extra_head %}{% endblock %}
+
+<section class="oc-hero">
+    <div class="oc-hero-txt">
+        <h1 class="oc-h1">لوحة التشغيل</h1>
+        <p class="oc-p">حالة الوكلاء والأعمال والمدفوعات — أرقام حقيقية مباشرة من القاعدة.</p>
+    </div>
+    <div class="oc-providers" id="ocProviders"></div>
+</section>
+
+<!-- ============ الوكلاء ============ -->
+<section class="oc-card oc-span">
+    <div class="oc-card-h">
+        <h2 class="oc-h2">حالة الوكلاء</h2>
+        <p class="oc-sub">«مسجَّل» لا تعني «يعمل». الحالة هنا من فحص فعلي للمزوّد وبيانات التشغيل.</p>
     </div>
 
     <div class="oc-kpis">
         <div class="oc-kpi"><span class="oc-kpi-v" id="ocTotal">-</span><span class="oc-kpi-l">إجمالي الوكلاء</span></div>
-        <div class="oc-kpi is-ok"><span class="oc-kpi-v" id="ocHealthy">-</span><span class="oc-kpi-l">يعمل</span></div>
-        <div class="oc-kpi is-bad"><span class="oc-kpi-v" id="ocFailing">-</span><span class="oc-kpi-l">فشل في كل تشغيلاته</span></div>
-        <div class="oc-kpi is-idle"><span class="oc-kpi-v" id="ocIdle">-</span><span class="oc-kpi-l">لم يُشغّل بعد</span></div>
+        <div class="oc-kpi ok"><span class="oc-kpi-v" id="ocHealthy">-</span><span class="oc-kpi-l">يعمل</span></div>
+        <div class="oc-kpi bad"><span class="oc-kpi-v" id="ocFailing">-</span><span class="oc-kpi-l">فشل</span></div>
+        <div class="oc-kpi idle"><span class="oc-kpi-v" id="ocIdle">-</span><span class="oc-kpi-l">لم يُشغّل بعد</span></div>
     </div>
 
-    <div class="oc-filters" id="ocFilters">
-        <button type="button" class="oc-chip is-on" data-state="all">الكل</button>
+    <div class="oc-chips" id="ocFilters">
+        <button type="button" class="oc-chip on" data-state="all">الكل</button>
         <button type="button" class="oc-chip" data-state="healthy">يعمل</button>
         <button type="button" class="oc-chip" data-state="failing">فشل</button>
         <button type="button" class="oc-chip" data-state="idle">لم يُشغّل</button>
-        <button type="button" class="oc-chip" data-state="system">وكلاء النظام</button>
+        <button type="button" class="oc-chip" data-state="down">المزوّد متوقف</button>
     </div>
 
-    <div class="oc-tablewrap">
-        <table class="oc-table">
+    <div class="oc-scroll">
+        <table class="oc-t">
             <thead>
                 <tr>
-                    <th>الوكيل</th>
-                    <th>القسم</th>
-                    <th>المزوّد</th>
-                    <th>الحالة</th>
-                    <th class="oc-num">تشغيلات</th>
-                    <th class="oc-num">أخطاء</th>
-                    <th>آخر تشغيل</th>
+                    <th>الوكيل</th><th>القسم</th><th>المزوّد</th><th>الحالة</th>
+                    <th class="num">تشغيلات</th><th class="num">أخطاء</th><th>آخر تشغيل</th>
                 </tr>
             </thead>
             <tbody id="ocRows"><tr><td colspan="7" class="oc-empty">جارٍ الفحص…</td></tr></tbody>
@@ -47,444 +50,336 @@
     </div>
 </section>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-2xl shadow p-6">
-        <div class="flex items-center">
-            <div class="p-3 bg-blue-100 rounded-full">
-                <i class="fas fa-robot text-blue-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Total Agents</p>
-                <p id="stat-agents" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+<!-- ============ أرقام الأعمال ============ -->
+<section class="oc-grid-4">
+    <div class="oc-card oc-kpi-b">
+        <span class="oc-kpi-l">طلبات واردة</span>
+        <span class="oc-kpi-v big" id="stat-leads">-</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6">
-        <div class="flex items-center">
-            <div class="p-3 bg-green-100 rounded-full">
-                <i class="fas fa-sitemap text-green-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Workflows</p>
-                <p id="stat-workflows" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+    <div class="oc-card oc-kpi-b accent">
+        <span class="oc-kpi-l">الإيراد المؤكد (ر.س)</span>
+        <span class="oc-kpi-v big" id="stat-revenue">-</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6">
-        <div class="flex items-center">
-            <div class="p-3 bg-yellow-100 rounded-full">
-                <i class="fas fa-clock text-yellow-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Schedules</p>
-                <p id="stat-schedules" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+    <div class="oc-card oc-kpi-b">
+        <span class="oc-kpi-l">طلبات مدفوعة</span>
+        <span class="oc-kpi-v big" id="stat-paid">-</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6">
-        <div class="flex items-center">
-            <div class="p-3 bg-purple-100 rounded-full">
-                <i class="fas fa-tasks text-purple-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Queue Size</p>
-                <p id="stat-queue" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+    <div class="oc-card oc-kpi-b">
+        <span class="oc-kpi-l">مشاريع نشطة</span>
+        <span class="oc-kpi-v big" id="stat-projects">-</span>
     </div>
-</div>
+</section>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-emerald-500">
-        <div class="flex items-center">
-            <div class="p-3 bg-emerald-100 rounded-full">
-                <i class="fas fa-coins text-emerald-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Revenue (SAR)</p>
-                <p id="stat-revenue" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+<!-- ============ البنية التحتية ============ -->
+<section class="oc-grid-4">
+    <div class="oc-card oc-kpi-b">
+        <span class="oc-kpi-l">سير العمل</span>
+        <span class="oc-kpi-v" id="stat-workflows">-</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-blue-500">
-        <div class="flex items-center">
-            <div class="p-3 bg-blue-100 rounded-full">
-                <i class="fas fa-users text-blue-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Leads</p>
-                <p id="stat-leads" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+    <div class="oc-card oc-kpi-b">
+        <span class="oc-kpi-l">الجدولة</span>
+        <span class="oc-kpi-v" id="stat-schedules">-</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-green-500">
-        <div class="flex items-center">
-            <div class="p-3 bg-green-100 rounded-full">
-                <i class="fas fa-check-circle text-green-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Paid Orders</p>
-                <p id="stat-paid" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+    <div class="oc-card oc-kpi-b">
+        <span class="oc-kpi-l">قائمة الانتظار</span>
+        <span class="oc-kpi-v" id="stat-queue">-</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-amber-500">
-        <div class="flex items-center">
-            <div class="p-3 bg-amber-100 rounded-full">
-                <i class="fas fa-project-diagram text-amber-600 text-2xl"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">Active Projects</p>
-                <p id="stat-projects" class="text-2xl font-bold text-gray-900">-</p>
-            </div>
-        </div>
+    <div class="oc-card oc-kpi-b">
+        <span class="oc-kpi-l">إجراءات سريعة</span>
+        <span class="oc-quick">
+            <a href="/agents">تشغيل وكيل</a>
+            <a href="/workflows">سير عمل</a>
+            <a href="/schedules">جدولة</a>
+        </span>
     </div>
-</div>
+</section>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="bg-white rounded-2xl shadow">
-        <div class="p-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Recent Executions</h3>
-        </div>
-        <div class="p-4">
-            <table class="w-full">
-                <thead>
-                    <tr class="text-left text-sm text-gray-500">
-                        <th class="pb-2">Workflow</th>
-                        <th class="pb-2">Status</th>
-                        <th class="pb-2">Started</th>
-                        <th class="pb-2">Duration</th>
-                    </tr>
-                </thead>
-                <tbody id="recent-executions" class="text-sm">
-                    <tr><td colspan="4" class="py-4 text-center text-gray-500">Loading...</td></tr>
-                </tbody>
+<!-- ============ آخرActivity ============ -->
+<section class="oc-grid-2">
+    <div class="oc-card">
+        <div class="oc-card-h"><h2 class="oc-h2">آخر الطلبات</h2></div>
+        <div class="oc-scroll">
+            <table class="oc-t">
+                <thead><tr><th>الاسم</th><th>الباقة</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+                <tbody id="recent-leads"><tr><td colspan="4" class="oc-empty">جارٍ التحميل…</td></tr></tbody>
             </table>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow">
-        <div class="p-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
-        </div>
-        <div class="p-4 space-y-3">
-            <a href="/agents" class="block p-4 border border-gray-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-colors">
-                <div class="flex items-center">
-                    <i class="fas fa-robot text-blue-600 text-xl mr-3"></i>
-                    <div>
-                        <p class="font-medium text-gray-900">Run an Agent</p>
-                        <p class="text-sm text-gray-500">Execute a single agent with custom input</p>
-                    </div>
-                </div>
-            </a>
-            <a href="/workflows" class="block p-4 border border-gray-200 rounded-2xl hover:border-green-500 hover:bg-green-50 transition-colors">
-                <div class="flex items-center">
-                    <i class="fas fa-sitemap text-green-600 text-xl mr-3"></i>
-                    <div>
-                        <p class="font-medium text-gray-900">Run a Workflow</p>
-                        <p class="text-sm text-gray-500">Execute a multi-step workflow</p>
-                    </div>
-                </div>
-            </a>
-            <a href="/schedules" class="block p-4 border border-gray-200 rounded-2xl hover:border-yellow-500 hover:bg-yellow-50 transition-colors">
-                <div class="flex items-center">
-                    <i class="fas fa-clock text-yellow-600 text-xl mr-3"></i>
-                    <div>
-                        <p class="font-medium text-gray-900">Create Schedule</p>
-                        <p class="text-sm text-gray-500">Set up recurring agent/workflow runs</p>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-    <div class="bg-white rounded-2xl shadow">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900">Recent Leads</h3>
-            <span class="text-xs text-gray-500">via /api/owner/overview</span>
-        </div>
-        <div class="p-4">
-            <table class="w-full">
-                <thead>
-                    <tr class="text-left text-sm text-gray-500">
-                        <th class="pb-2">Name</th>
-                        <th class="pb-2">Package</th>
-                        <th class="pb-2">Status</th>
-                        <th class="pb-2">Date</th>
-                    </tr>
-                </thead>
-                <tbody id="recent-leads" class="text-sm">
-                    <tr><td colspan="4" class="py-4 text-center text-gray-500">Loading...</td></tr>
-                </tbody>
+    <div class="oc-card">
+        <div class="oc-card-h"><h2 class="oc-h2">آخر المدفوعات</h2></div>
+        <div class="oc-scroll">
+            <table class="oc-t">
+                <thead><tr><th>العميل</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+                <tbody id="recent-payments"><tr><td colspan="4" class="oc-empty">جارٍ التحميل…</td></tr></tbody>
             </table>
         </div>
     </div>
+</section>
 
-    <div class="bg-white rounded-2xl shadow">
-        <div class="p-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Recent Payments</h3>
-        </div>
-        <div class="p-4">
-            <table class="w-full">
-                <thead>
-                    <tr class="text-left text-sm text-gray-500">
-                        <th class="pb-2">Customer</th>
-                        <th class="pb-2">Package</th>
-                        <th class="pb-2">Amount</th>
-                        <th class="pb-2">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="recent-payments" class="text-sm">
-                    <tr><td colspan="4" class="py-4 text-center text-gray-500">Loading...</td></tr>
-                </tbody>
-            </table>
-        </div>
+<section class="oc-card">
+    <div class="oc-card-h">
+        <h2 class="oc-h2">آخر عمليات التشغيل</h2>
+        <p class="oc-sub">سير العمل فقط — تشغيل وكيل واحد لا يُسجَّل هنا.</p>
     </div>
-</div>
+    <div class="oc-scroll">
+        <table class="oc-t">
+            <thead><tr><th>سير العمل</th><th>الحالة</th><th>البداية</th><th>المدة</th></tr></thead>
+            <tbody id="recent-executions"><tr><td colspan="4" class="oc-empty">جارٍ التحميل…</td></tr></tbody>
+        </table>
+    </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <style>
-#agentHealth {
-    --oc-ok: #16a34a; --oc-bad: #dc2626; --oc-idle: #a8a29e;
-    margin: 0 0 32px; padding: 20px; border-radius: 20px;
-    background: var(--n-surface, #fff); border: 1px solid var(--n-line, #e7e5e4);
-    box-shadow: 0 1px 2px rgba(0,0,0,.04);
-}
-.oc-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
-.oc-title { margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--n-ink, #1c1917); }
-.oc-sub { margin: 4px 0 0; font-size: .875rem; color: var(--n-ink-soft, #78716c); }
-.oc-providers { display: flex; gap: 8px; flex-wrap: wrap; }
-.oc-prov { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
-    font-size: .75rem; font-weight: 700; background: var(--n-surface-2, #f5f5f4); color: var(--n-ink-soft, #78716c); }
-.oc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--oc-bad); }
-.oc-prov.is-ok .oc-dot { background: var(--oc-ok); }
-.oc-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.oc-kpi { padding: 14px; border-radius: 14px; background: var(--n-surface-2, #fafaf9); border: 1px solid var(--n-line, #e7e5e4); display: flex; flex-direction: column; gap: 2px; }
-.oc-kpi-v { font-size: 1.75rem; font-weight: 800; line-height: 1.1; color: var(--n-ink, #1c1917); }
-.oc-kpi-l { font-size: .75rem; color: var(--n-ink-soft, #78716c); }
-.oc-kpi.is-ok .oc-kpi-v { color: var(--oc-ok); }
-.oc-kpi.is-bad .oc-kpi-v { color: var(--oc-bad); }
-.oc-kpi.is-idle .oc-kpi-v { color: var(--oc-idle); }
-.oc-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.oc-chip { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--n-line, #e7e5e4);
-    background: transparent; color: var(--n-ink-soft, #78716c); font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; }
-.oc-chip.is-on { background: var(--n-accent, #ff5a36); border-color: var(--n-accent, #ff5a36); color: #fff; }
-.oc-tablewrap { overflow-x: auto; }
-.oc-table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
-.oc-table th { text-align: start; padding: 8px 10px; color: var(--n-ink-soft, #78716c); font-weight: 700;
-    border-bottom: 1px solid var(--n-line, #e7e5e4); white-space: nowrap; }
-.oc-table td { padding: 10px; border-bottom: 1px solid var(--n-line, #e7e5e4); color: var(--n-ink, #1c1917); }
-.oc-num { text-align: end; font-variant-numeric: tabular-nums; }
-.oc-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; }
-.oc-state { background: rgba(22,163,74,.12); color: var(--oc-ok); }
-.oc-state.is-failing { background: rgba(220,38,38,.12); color: var(--oc-bad); }
-.oc-state.is-idle { background: rgba(120,113,108,.14); color: #78716c; }
-.oc-state.is-blocked { background: rgba(220,38,38,.12); color: var(--oc-bad); }
-.oc-empty { padding: 24px; text-align: center; color: var(--n-ink-soft, #78716c); }
-.oc-when { color: var(--n-ink-soft, #78716c); white-space: nowrap; }
+/* The shell ships a light `bg-sand` main and a light sidebar, but this console
+   is dark. Everything below resolves against the admin token set in
+   narjis-dark-admin.css rather than inventing colours. */
+body{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)}
+main.bg-sand{background:var(--ad-sand,#1c1917)}
+aside{background:var(--ad-sand-2,#232020)!important;border-color:var(--ad-line)!important}
+/* The sidebar and header ship light-theme colours; on a dark console they read
+   as near-invisible. Raise them to the admin text tokens. */
+aside .brand{color:var(--ad-text,#fafaf9)!important}
+aside .brand span[data-lang="en"]{display:none}
+aside nav a{color:var(--ad-muted,#a8a29e)!important;transition:.18s}
+aside nav a:hover{background:rgba(250,250,249,.05);color:var(--ad-text,#fafaf9)!important}
+aside nav a.active{color:var(--ad-text,#fafaf9)!important;
+    background:rgba(255,90,54,.14)!important;box-shadow:inset 2px 0 0 var(--odsf-accent,#ff5a36)}
+aside .text-xs{color:var(--ad-faint,#78716c)!important}
+header.n-nav{background:rgba(28,25,23,.92)!important;border-color:var(--ad-line)!important;
+    color:var(--ad-text,#fafaf9)}
+header.n-nav h2{color:var(--ad-text,#fafaf9)!important}
+#content{--oc-ok:#5ea552;--oc-bad:#ff8f8f;--oc-line:var(--ad-line,rgba(250,250,249,.09));
+    --oc-soft:var(--ad-sand-2,#232020);--oc-txt:var(--ad-text,#fafaf9);
+    --oc-txt2:var(--ad-muted,#a8a29e);--oc-faint:var(--ad-faint,#78716c)}
+/* A flex item's default min-width:auto refuses to shrink below its content.
+   The agent table sets a 520px floor, which pushed the whole console to 639px
+   on a 420px screen. Without this the page scrolls sideways. */
+.min-h-screen{min-width:0}
+main{min-width:0}
+.oc-card,.oc-hero{min-width:0}
+.oc-scroll{max-width:100%}
+.oc-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    margin-bottom:22px}
+.oc-h1{margin:0;font-size:1.75rem;font-weight:800;color:var(--oc-txt)}
+.oc-p{margin:6px 0 0;font-size:.9rem;color:var(--oc-txt2);max-width:62ch;line-height:1.7}
+.oc-providers{display:flex;gap:8px;flex-wrap:wrap}
+.oc-prov{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
+    font-size:.75rem;font-weight:700;background:rgba(255,255,255,.04);color:var(--oc-txt2);
+    border:1px solid var(--oc-line)}
+.oc-dot{width:7px;height:7px;border-radius:50%;background:var(--oc-bad);flex:0 0 auto}
+.oc-prov.ok .oc-dot{background:var(--oc-ok);box-shadow:0 0 0 3px rgba(94,165,82,.18)}
+.oc-card{background:var(--oc-soft);border:1px solid var(--oc-line);border-radius:18px;
+    padding:20px;margin-bottom:16px}
+.oc-card-h{margin-bottom:16px}
+.oc-h2{margin:0;font-size:1.05rem;font-weight:800;color:var(--oc-txt)}
+.oc-sub{margin:5px 0 0;font-size:.8rem;color:var(--oc-txt2);line-height:1.7}
+.oc-grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px}
+.oc-grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:16px}
+.oc-kpi-b{display:flex;flex-direction:column;gap:6px}
+.oc-kpi-b.accent{border-color:rgba(255,90,54,.42);background:rgba(255,90,54,.09)}
+.oc-kpi-b.accent .oc-kpi-v{color:var(--odsf-accent,#ff5a36)}
+.oc-kpi-v{font-size:1.5rem;font-weight:800;line-height:1.15;color:var(--oc-txt);
+    font-variant-numeric:tabular-nums}
+.oc-kpi-v.big{font-size:2rem}
+.oc-kpi-l{font-size:.78rem;color:var(--oc-txt2)}
+.oc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.oc-kpi{padding:14px;border-radius:14px;background:rgba(255,255,255,.03);
+    border:1px solid var(--oc-line);display:flex;flex-direction:column;gap:2px}
+.oc-kpi .oc-kpi-v{font-size:1.6rem}
+.oc-kpi.ok .oc-kpi-v{color:var(--oc-ok)}
+.oc-kpi.bad .oc-kpi-v{color:var(--oc-bad)}
+.oc-kpi.idle .oc-kpi-v{color:var(--oc-faint)}
+.oc-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.oc-chip{padding:6px 14px;border-radius:999px;border:1px solid var(--oc-line);background:transparent;
+    color:var(--oc-txt2);font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;transition:.18s}
+.oc-chip:hover{color:var(--oc-txt);border-color:var(--ad-line-2,rgba(250,250,249,.24))}
+.oc-chip.on{background:var(--odsf-accent,#ff5a36);border-color:var(--odsf-accent,#ff5a36);color:#fff}
+.oc-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.oc-t{width:100%;border-collapse:collapse;font-size:.8125rem;min-width:520px}
+.oc-t th{text-align:start;padding:9px 10px;font-weight:700;color:var(--oc-txt2);
+    border-bottom:1px solid var(--oc-line);white-space:nowrap}
+.oc-t td{padding:11px 10px;border-bottom:1px solid rgba(250,250,249,.055);color:var(--oc-txt)}
+.oc-t tbody tr:last-child td{border-bottom:0}
+.oc-t .num{text-align:end;font-variant-numeric:tabular-nums}
+.oc-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;
+    font-size:.72rem;font-weight:700;white-space:nowrap}
+.oc-ok{background:var(--ad-green-soft,rgba(79,121,66,.18));color:#8fbf86}
+.oc-bad{background:var(--ad-red-soft,rgba(255,90,90,.14));color:var(--oc-bad)}
+.oc-idle{background:rgba(250,250,249,.07);color:var(--oc-txt2)}
+.oc-mut{color:var(--oc-txt2);white-space:nowrap}
+.oc-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.oc-quick a{padding:6px 12px;border-radius:10px;border:1px solid var(--oc-line);
+    font-size:.78rem;font-weight:700;color:var(--oc-txt);text-decoration:none;transition:.18s}
+.oc-quick a:hover{border-color:var(--odsf-accent,#ff5a36);color:var(--odsf-accent,#ff5a36)}
+.oc-empty{padding:28px;text-align:center;color:var(--oc-faint)}
 </style>
+
 <script>
-    let ocAgents = [];
-    let ocFilter = 'all';
+let ocAgents = [];
+let ocFilter = 'all';
 
-    function ocStateLabel(a) {
-        if (!a.provider_reachable) return { cls: 'is-blocked', text: 'المزوّد لا يعمل' };
-        if (a.state === 'healthy') return { cls: '', text: 'يعمل' };
-        if (a.state === 'failing') return { cls: 'is-failing', text: 'فشل' };
-        return { cls: 'is-idle', text: 'لم يُشغّل' };
-    }
+function ocState(a) {
+    if (!a.provider_reachable) return { cls: 'oc-bad', text: 'المزوّد متوقف' };
+    if (a.state === 'healthy') return { cls: 'oc-ok', text: 'يعمل' };
+    if (a.state === 'failing') return { cls: 'oc-bad', text: 'فشل' };
+    return { cls: 'oc-idle', text: 'لم يُشغّل' };
+}
 
-    function ocRender() {
-        const rows = ocAgents.filter(a => {
-            if (ocFilter === 'system') return a.is_system;
-            if (ocFilter === 'all') return true;
-            return a.state === ocFilter;
-        });
+function ocTag(cls, text) { return '<span class="oc-tag ' + cls + '">' + text + '</span>'; }
 
-        document.getElementById('ocRows').innerHTML = rows.length ? rows.map(a => {
-            const s = ocStateLabel(a);
-            const when = a.last_at ? new Date(a.last_at).toLocaleString('ar', { dateStyle: 'short', timeStyle: 'short' }) : '—';
-            return `<tr>
-                <td>${escapeHtml(a.title_ar || a.name)}${a.is_system ? ' <span class="oc-badge is-idle">نظام</span>' : ''}</td>
-                <td>${escapeHtml(a.dept || '—')}</td>
-                <td>${escapeHtml(a.provider || '—')}</td>
-                <td><span class="oc-badge oc-state ${s.cls}">${s.text}</span></td>
-                <td class="oc-num">${a.runs}</td>
-                <td class="oc-num">${a.failures}</td>
-                <td class="oc-when">${when}</td>
-            </tr>`;
-        }).join('') : '<tr><td colspan="7" class="oc-empty">لا يوجد وكلاء ضمن هذا التصنيف</td></tr>';
-    }
-
-    async function loadAgentHealth() {
-        const body = document.getElementById('ocRows');
-        try {
-            const r = await fetch('/api/owner/agents/status');
-            if (!r.ok) {
-                body.innerHTML = '<tr><td colspan="7" class="oc-empty">تعذّر الفحص — تحتاج جلسة المالك</td></tr>';
-                return;
-            }
-            const data = await r.json();
-            const s = data.summary;
-            document.getElementById('ocTotal').textContent = s.total;
-            document.getElementById('ocHealthy').textContent = s.healthy;
-            document.getElementById('ocFailing').textContent = s.failing;
-            document.getElementById('ocIdle').textContent = s.idle;
-
-            document.getElementById('ocProviders').innerHTML = (data.providers || []).map(p =>
-                `<span class="oc-prov ${p.reachable ? 'is-ok' : ''}" title="${escapeHtml(p.detail || '')}">
-                   <span class="oc-dot"></span>${escapeHtml(p.provider)}</span>`
-            ).join('');
-
-            ocAgents = data.agents || [];
-            ocRender();
-        } catch (e) {
-            body.innerHTML = '<tr><td colspan="7" class="oc-empty">تعذّر الفحص</td></tr>';
-        }
-    }
-
-    document.getElementById('ocFilters').addEventListener('click', function (e) {
-        const btn = e.target.closest('.oc-chip');
-        if (!btn) return;
-        document.querySelectorAll('#ocFilters .oc-chip').forEach(c => c.classList.remove('is-on'));
-        btn.classList.add('is-on');
-        ocFilter = btn.dataset.state;
-        ocRender();
+function ocRender() {
+    const rows = ocAgents.filter(function (a) {
+        if (ocFilter === 'down') return !a.provider_reachable;
+        if (ocFilter === 'all') return true;
+        return a.state === ocFilter;
     });
+    const body = document.getElementById('ocRows');
+    const EMPTY = ocFilter === 'down'
+        ? 'كل المزوّدات تعمل — لا يوجد وكيل متعطّل'
+        : 'لا يوجد وكلاء ضمن هذا التصنيف';
+    body.innerHTML = rows.length ? rows.map(function (a) {
+        const s = ocState(a);
+        const when = a.last_at
+            ? new Date(a.last_at).toLocaleString('ar', { dateStyle: 'short', timeStyle: 'short' })
+            : '—';
+        return '<tr>'
+            + '<td>' + escapeHtml(a.title_ar || a.name) + '</td>'
+            + '<td class="oc-mut">' + escapeHtml(a.dept || '—') + '</td>'
+            + '<td class="oc-mut">' + escapeHtml(a.provider || '—') + '</td>'
+            + '<td>' + ocTag(s.cls, s.text) + '</td>'
+            + '<td class="num">' + a.runs + '</td>'
+            + '<td class="num">' + a.failures + '</td>'
+            + '<td class="oc-mut">' + when + '</td>'
+            + '</tr>';
+    }).join('') : '<tr><td colspan="7" class="oc-empty">' + EMPTY + '</td></tr>';
+}
 
-    async function loadStats() {
-        try {
-            const [agents, workflows, schedules, queue] = await Promise.all([
-                fetch('/api/agents').then(r => r.json()),
-                fetch('/api/workflows').then(r => r.json()),
-                fetch('/api/schedules').then(r => r.json()),
-                fetch('/api/queue/stats').then(r => r.json()),
-            ]);
-
-            document.getElementById('stat-agents').textContent = agents.agents?.length || 0;
-            document.getElementById('stat-workflows').textContent = workflows.workflows?.length || 0;
-            document.getElementById('stat-schedules').textContent = schedules.schedules?.length || 0;
-            document.getElementById('stat-queue').textContent = queue.queued || 0;
-        } catch (e) {
-            console.error('Failed to load stats:', e);
+async function loadAgentHealth() {
+    const body = document.getElementById('ocRows');
+    try {
+        const r = await fetch('/api/owner/agents/status');
+        if (!r.ok) {
+            body.innerHTML = '<tr><td colspan="7" class="oc-empty">تعذّر الفحص — يلزم دخول المالك</td></tr>';
+            return;
         }
+        const data = await r.json();
+        const s = data.summary;
+        document.getElementById('ocTotal').textContent = s.total;
+        document.getElementById('ocHealthy').textContent = s.healthy;
+        document.getElementById('ocFailing').textContent = s.failing;
+        document.getElementById('ocIdle').textContent = s.idle;
+
+        document.getElementById('ocProviders').innerHTML = (data.providers || []).map(function (p) {
+            return '<span class="oc-prov ' + (p.reachable ? 'ok' : '') + '" title="'
+                + escapeHtml(p.detail || '') + '"><span class="oc-dot"></span>'
+                + escapeHtml(p.provider) + '</span>';
+        }).join('');
+
+        ocAgents = data.agents || [];
+        ocRender();
+    } catch (e) {
+        body.innerHTML = '<tr><td colspan="7" class="oc-empty">تعذّر الفحص</td></tr>';
     }
+}
 
-    async function loadBusinessOverview() {
-        try {
-            const data = await fetch('/api/owner/overview').then(r => r.json());
+document.getElementById('ocFilters').addEventListener('click', function (e) {
+    const btn = e.target.closest('.oc-chip');
+    if (!btn) return;
+    document.querySelectorAll('#ocFilters .oc-chip').forEach(function (c) { c.classList.remove('on'); });
+    btn.classList.add('on');
+    ocFilter = btn.dataset.state;
+    ocRender();
+});
 
-            const paid = data.payments?.by_status?.paid || 0;
-            document.getElementById('stat-revenue').textContent = (data.payments?.revenue_sar ?? 0).toLocaleString() + ' SAR';
-            document.getElementById('stat-leads').textContent = data.leads?.total ?? 0;
-            document.getElementById('stat-paid').textContent = paid;
-            document.getElementById('stat-projects').textContent = data.projects?.active ?? 0;
+function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
 
-            const leadsBody = document.getElementById('recent-leads');
-            if (data.recent_leads && data.recent_leads.length > 0) {
-                leadsBody.innerHTML = data.recent_leads.map(l => `
-                    <tr class="border-t border-gray-100">
-                        <td class="py-2 font-medium">${escapeHtml(l.name)}</td>
-                        <td class="py-2 text-gray-600">${escapeHtml(l.package || '-')}</td>
-                        <td class="py-2">
-                            <span class="px-2 py-1 text-xs rounded-full ${
-                                l.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                                l.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
-                                l.status === 'converted' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
-                            }">${escapeHtml(l.status)}</span>
-                        </td>
-                        <td class="py-2 text-gray-500">${l.created_at ? new Date(l.created_at).toLocaleDateString() : 'N/A'}</td>
-                    </tr>
-                `).join('');
-            } else {
-                leadsBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-gray-500">No leads yet</td></tr>';
-            }
+function when(iso) {
+    return iso ? new Date(iso).toLocaleDateString('ar', { dateStyle: 'medium' }) : '—';
+}
 
-            const payBody = document.getElementById('recent-payments');
-            if (data.recent_payments && data.recent_payments.length > 0) {
-                payBody.innerHTML = data.recent_payments.map(p => `
-                    <tr class="border-t border-gray-100">
-                        <td class="py-2 font-medium">${escapeHtml(p.customer)}</td>
-                        <td class="py-2 text-gray-600">${escapeHtml(p.package || '-')}</td>
-                        <td class="py-2">${p.amount_sar.toLocaleString()} ${p.currency}</td>
-                        <td class="py-2">
-                            <span class="px-2 py-1 text-xs rounded-full ${
-                                p.status === 'paid' ? 'bg-green-100 text-green-800' :
-                                p.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
-                            }">${escapeHtml(p.status)}</span>
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                payBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-gray-500">No payments yet</td></tr>';
-            }
-        } catch (e) {
-            console.error('Failed to load business overview:', e);
-        }
+async function loadBusiness() {
+    try {
+        const d = await (await fetch('/api/owner/overview')).json();
+        document.getElementById('stat-revenue').textContent =
+            ((d.payments && d.payments.revenue_sar) || 0).toLocaleString('en-US');
+        document.getElementById('stat-leads').textContent = (d.leads && d.leads.total) || 0;
+        document.getElementById('stat-paid').textContent =
+            (d.payments && d.payments.by_status && d.payments.by_status.paid) || 0;
+        document.getElementById('stat-projects').textContent = (d.projects && d.projects.active) || 0;
+
+        const leads = document.getElementById('recent-leads');
+        leads.innerHTML = (d.recent_leads && d.recent_leads.length)
+            ? d.recent_leads.map(function (l) {
+                const cls = l.status === 'converted' ? 'oc-ok'
+                    : l.status === 'contacted' ? 'oc-idle' : 'oc-idle';
+                return '<tr><td>' + escapeHtml(l.name) + '</td>'
+                    + '<td class="oc-mut">' + escapeHtml(l.package || '—') + '</td>'
+                    + '<td>' + ocTag(cls, escapeHtml(l.status)) + '</td>'
+                    + '<td class="oc-mut">' + when(l.created_at) + '</td></tr>';
+            }).join('')
+            : '<tr><td colspan="4" class="oc-empty">لا توجد طلبات بعد</td></tr>';
+
+        const pays = document.getElementById('recent-payments');
+        pays.innerHTML = (d.recent_payments && d.recent_payments.length)
+            ? d.recent_payments.map(function (p) {
+                return '<tr><td>' + escapeHtml(p.customer) + '</td>'
+                    + '<td>' + Number(p.amount_sar).toLocaleString('en-US') + ' ' + escapeHtml(p.currency) + '</td>'
+                    + '<td>' + ocTag(p.status === 'paid' ? 'oc-ok' : 'oc-idle', escapeHtml(p.status)) + '</td>'
+                    + '<td class="oc-mut">' + when(p.created_at) + '</td></tr>';
+            }).join('')
+            : '<tr><td colspan="4" class="oc-empty">لا توجد مدفوعات بعد</td></tr>';
+    } catch (e) {
+        document.getElementById('recent-leads').innerHTML =
+            '<tr><td colspan="4" class="oc-empty">تعذّر التحميل</td></tr>';
     }
+}
 
-    function escapeHtml(s) {
-        return String(s ?? '').replace(/[&<>"']/g, c => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[c]));
-    }
+async function loadInfra() {
+    try {
+        const [wf, sc, q] = await Promise.all([
+            fetch('/api/workflows').then(function (r) { return r.json(); }),
+            fetch('/api/schedules').then(function (r) { return r.json(); }),
+            fetch('/api/queue/stats').then(function (r) { return r.json(); }),
+        ]);
+        document.getElementById('stat-workflows').textContent = (wf.workflows || []).length;
+        document.getElementById('stat-schedules').textContent = (sc.schedules || []).length;
+        document.getElementById('stat-queue').textContent = q.queued || 0;
+    } catch (e) { /* the owner sees a dash, not a broken number */ }
+}
 
-    loadStats();
-    loadBusinessOverview();
-    loadRecentExecutions();
+async function loadExecutions() {
+    try {
+        const d = await (await fetch('/api/executions?limit=8')).json();
+        const body = document.getElementById('recent-executions');
+        body.innerHTML = (d.executions && d.executions.length)
+            ? d.executions.map(function (x) {
+                const cls = x.status === 'completed' ? 'oc-ok' : x.status === 'failed' ? 'oc-bad' : 'oc-idle';
+                const dur = x.completed_at && x.started_at
+                    ? Math.round((new Date(x.completed_at) - new Date(x.started_at)) / 1000) + ' ث' : '—';
+                return '<tr><td>' + escapeHtml(x.workflow_id) + '</td>'
+                    + '<td>' + ocTag(cls, escapeHtml(x.status)) + '</td>'
+                    + '<td class="oc-mut">' + when(x.started_at) + '</td>'
+                    + '<td class="oc-mut">' + dur + '</td></tr>';
+            }).join('')
+            : '<tr><td colspan="4" class="oc-empty">لا توجد عمليات بعد</td></tr>';
+    } catch (e) { /* quiet */ }
+}
+
+function loadAll() {
     loadAgentHealth();
-    setInterval(() => {
-        loadStats();
-        loadBusinessOverview();
-        loadRecentExecutions();
-        loadAgentHealth();
-    }, 30000);
+    loadBusiness();
+    loadInfra();
+    loadExecutions();
+}
 
-    async function loadRecentExecutions() {
-        try {
-            const response = await fetch('/api/executions?limit=5');
-            const data = await response.json();
-            const tbody = document.getElementById('recent-executions');
-            
-            if (data.executions && data.executions.length > 0) {
-                tbody.innerHTML = data.executions.map(exec => `
-                    <tr class="border-t border-gray-100">
-                        <td class="py-2 font-medium">${exec.workflow_id}</td>
-                        <td class="py-2">
-                            <span class="px-2 py-1 text-xs rounded-full ${
-                                exec.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                exec.status === 'failed' ? 'bg-red-100 text-red-800' :
-                                exec.status === 'running' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
-                            }">${exec.status}</span>
-                        </td>
-                        <td class="py-2 text-gray-500">${exec.started_at ? new Date(exec.started_at).toLocaleString() : 'N/A'}</td>
-                        <td class="py-2 text-gray-500">${exec.completed_at && exec.started_at ? 
-                            Math.round((new Date(exec.completed_at) - new Date(exec.started_at)) / 1000) + 's' : 'N/A'}</td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-gray-500">No executions yet</td></tr>';
-            }
-        } catch (e) {
-            console.error('Failed to load executions:', e);
-        }
-    }
-
-    loadStats();
-    loadBusinessOverview();
-    loadRecentExecutions();
-    loadAgentHealth();
-    setInterval(() => {
-        loadStats();
-        loadBusinessOverview();
-        loadRecentExecutions();
-        loadAgentHealth();
-    }, 30000);
+loadAll();
+setInterval(loadAll, 30000);
 </script>
 {% endblock %}

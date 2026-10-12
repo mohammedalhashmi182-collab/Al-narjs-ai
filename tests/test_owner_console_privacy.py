@@ -109,3 +109,45 @@ def test_agent_status_never_leaks_a_key_in_a_provider_error(owner: TestClient) -
 def test_pulse_stays_public_for_the_landing_page(anon: TestClient) -> None:
     assert anon.get("/api/pulse").status_code == 200
     assert anon.get("/api/payments/capabilities").status_code == 200
+
+def test_running_an_agent_records_history(owner: TestClient, monkeypatch) -> None:
+    """Without a recorded run the console's per-agent columns are zero forever."""
+    import asyncio
+
+    from src.core.model_provider import ModelResponse
+
+    class StubProvider:
+        async def complete(self, model_spec, request):
+            return ModelResponse(content="ok", model="stub")
+
+    monkeypatch.setattr(app.state, "model_provider", StubProvider())
+
+    before = owner.get("/api/owner/agents/status").json()["summary"]
+    slug = "ad_writer"
+
+    r = owner.post(f"/api/agents/{slug}/run", json={"input_data": {"task": "x"}})
+    assert r.status_code == 200, r.text
+
+    after = owner.get("/api/owner/agents/status").json()
+    assert after["summary"]["total"] == before["total"]
+    entry = next(a for a in after["agents"] if a["slug"] == slug)
+    assert entry["runs"] >= 1, "the run was not recorded"
+    assert entry["state"] in ("healthy", "failing")
+
+
+def test_a_failed_agent_run_is_recorded_as_failed(owner: TestClient, monkeypatch) -> None:
+    from src.core.model_provider import ModelProviderError
+
+    class DeadProvider:
+        async def complete(self, model_spec, request):
+            raise ModelProviderError("no credit")
+
+    monkeypatch.setattr(app.state, "model_provider", DeadProvider())
+    slug = "article_writer"
+
+    with pytest.raises(Exception):
+        owner.post(f"/api/agents/{slug}/run", json={"input_data": {"task": "x"}})
+
+    after = owner.get("/api/owner/agents/status").json()
+    entry = next(a for a in after["agents"] if a["slug"] == slug)
+    assert entry["failures"] >= 1, "a failed run left no trace"
