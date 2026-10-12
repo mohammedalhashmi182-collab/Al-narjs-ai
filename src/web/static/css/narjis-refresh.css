@@ -1,0 +1,165 @@
+/* ==========================================================================
+   Al-Narjis — "Narcissus" refresh layer (design/refresh)
+   Loaded last on landing + portal. Pure presentation: no selectors that JS
+   toggles are redefined, nothing hides or moves forms, CTAs or the cookie bar.
+   Palette from the flower: ivory petals, daffodil gold, vermilion corona
+   (the action colour stays #FF5A36), on a deep night-green canvas tint.
+   Type: Readex Pro for display, Cairo for text.
+   ========================================================================== */
+:root{
+  --nr-petal:#F4EFE3;        /* ivory petal - primary text on dark */
+  --nr-petal-2:#CFC8B8;      /* secondary text */
+  --nr-petal-3:#9A9486;      /* tertiary */
+  --nr-daffodil:#F2C14E;     /* golden trumpet - highlights, never action */
+  --nr-corona:#FF5A36;       /* vermilion corona - the one action colour */
+  --nr-stem:#7FA37A;         /* stem green - structure */
+  --nr-night:#0B0D0B;        /* canvas tint */
+  --nr-card:rgba(244,239,227,.035);
+  --nr-card-2:rgba(244,239,227,.06);
+  --nr-edge:rgba(244,239,227,.10);
+  --nr-edge-2:rgba(242,193,78,.28);
+  --nr-radius:20px;
+  --nr-display:'Readex Pro','Cairo',system-ui,sans-serif;
+  /* type scale (1.25 minor third, fluid) */
+  --nr-fs-xs:.8125rem; --nr-fs-sm:.9375rem; --nr-fs-base:1.0625rem;
+  --nr-fs-lg:clamp(1.15rem,1.4vw,1.3rem);
+  --nr-fs-h3:clamp(1.15rem,1.6vw,1.35rem);
+  --nr-fs-h2:clamp(1.85rem,3.6vw,2.85rem);
+  --nr-fs-h1:clamp(2.35rem,5.6vw,4.6rem);
+  /* re-map the shared tokens so every existing component follows */
+  --ink:var(--nr-petal); --ink-2:var(--nr-petal-2); --ink-3:var(--nr-petal-3);
+  --muted:var(--nr-petal-3);
+  --surface:#121512;
+  --line:var(--nr-edge); --line-soft:rgba(244,239,227,.06);
+  --r-lg:var(--nr-radius); --r-md:16px;
+  --green:var(--nr-stem);
+  --grad-humain:linear-gradient(100deg,#FFF6DA 0%,#F2C14E 45%,#FF5A36 100%);
+  --n-brown:var(--nr-petal); --n-earth:var(--nr-petal-3); --n-line:var(--nr-edge);
+}
+
+body{font-size:var(--nr-fs-base);line-height:1.85;color:var(--nr-petal);
+  background:
+    radial-gradient(1200px 600px at 85% -10%,rgba(242,193,78,.10),transparent 60%),
+    radial-gradient(900px 500px at 0% 30%,rgba(127,163,122,.07),transparent 60%),
+    #060607;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,.sec-title,.price,.stat .num,.n-title{font-family:var(--nr-display);
+  font-weight:600;letter-spacing:-.01em;line-height:1.3}
+h1,h2,h3{text-wrap:balance}
+p{text-wrap:pretty}
+
+/* quieter ambient layers: the old mesh/grid competed with the content */
+.mesh{opacity:.55}
+.grid{opacity:.25}
+
+/* ---------- nav ---------- */
+.nav{background:rgba(8,9,8,.72);backdrop-filter:saturate(140%) blur(16px);
+  -webkit-backdrop-filter:saturate(140%) blur(16px);border-block-end:1px solid var(--nr-edge)}
+.nav-links a{font-size:var(--nr-fs-sm);color:var(--nr-petal-2);transition:color .2s}
+.nav-links a:hover{color:var(--nr-petal)}
+.nav .brand .name b{color:var(--nr-daffodil)}
+
+/* ---------- buttons ---------- */
+.btn{border-radius:14px;font-weight:700;letter-spacing:0;min-height:48px;padding-inline:22px;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s,border-color .2s}
+.btn-gold{background:linear-gradient(180deg,#FF6B4A,var(--nr-corona));color:#141414;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 10px 28px -10px rgba(255,90,54,.65)}
+.btn-gold:hover{background:var(--nr-corona);color:#141414;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 14px 34px -10px rgba(255,90,54,.8)}
+.btn-ghost{background:rgba(244,239,227,.04);border-color:var(--nr-edge);color:var(--nr-petal)}
+.btn-ghost:hover{border-color:var(--nr-edge-2);background:rgba(242,193,78,.08);color:var(--nr-petal)}
+.btn:focus-visible{outline:2px solid var(--nr-daffodil);outline-offset:3px}
+
+/* ---------- hero ---------- */
+.hero{padding-block:clamp(72px,10vw,140px) clamp(56px,8vw,112px)}
+.hero h1{font-size:var(--nr-fs-h1);line-height:1.18;letter-spacing:-.02em;font-weight:700}
+.hero h1 .grad,.grad{background:var(--grad-humain);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{font-size:var(--nr-fs-lg);color:var(--nr-petal-2);line-height:1.9}
+.badge{background:rgba(242,193,78,.08);border:1px solid var(--nr-edge-2);color:var(--nr-petal);
+  border-radius:999px;font-size:var(--nr-fs-xs);font-weight:600}
+.badge .dot{background:var(--nr-daffodil);box-shadow:0 0 0 4px rgba(242,193,78,.18)}
+.hero .cta-row{gap:12px}
+.hero .cta-row .btn{min-height:54px;font-size:1rem;padding-inline:26px}
+.hero .hint{color:var(--nr-petal-3);font-size:var(--nr-fs-xs)}
+.hero .hint i{color:var(--nr-stem)}
+.stats{border:1px solid var(--nr-edge);border-radius:var(--nr-radius);background:var(--nr-card);
+  padding:22px;gap:0}
+.stat{padding-inline:16px;border-inline-start:1px solid var(--nr-edge)}
+.stat:first-child{border-inline-start:0}
+.stat .num{color:var(--nr-daffodil);font-weight:700}
+.console{border-radius:var(--nr-radius);background:linear-gradient(180deg,#141714,#0E100E);
+  border:1px solid var(--nr-edge);box-shadow:0 30px 80px -30px rgba(0,0,0,.8),0 0 0 1px rgba(242,193,78,.05) inset}
+.lux-orb{filter:blur(70px)}
+
+/* ---------- sections ---------- */
+.section{padding-block:clamp(64px,9vw,120px)}
+.eyebrow{color:var(--nr-daffodil);background:rgba(242,193,78,.08);border:1px solid rgba(242,193,78,.2);
+  padding:6px 14px;border-radius:999px;font-size:var(--nr-fs-xs);letter-spacing:.06em}
+.sec-title{font-size:var(--nr-fs-h2);line-height:1.3;margin-block:18px 14px}
+.sec-title .c{color:var(--nr-daffodil)}
+.sec-sub{color:var(--nr-petal-2);font-size:var(--nr-fs-lg);line-height:1.9}
+/* light "petal" band to break the all-dark page: proof + first-week */
+.proof,#first-week{background:linear-gradient(180deg,rgba(244,239,227,.045),rgba(244,239,227,.015));
+  border-block:1px solid var(--nr-edge)}
+
+/* ---------- consistent cards ---------- */
+.feat,.card,.why-card,.how-step,.pc-pick,.need,.nd-card,.n-card{
+  border-radius:var(--nr-radius)!important;border-color:var(--nr-edge)!important;
+  background:var(--nr-card);transition:border-color .25s,transform .25s var(--ease),background .25s}
+.feat:hover,.card:hover,.why-card:hover,.how-step:hover,.pc-pick:hover,.n-card:hover{
+  border-color:var(--nr-edge-2)!important;background:var(--nr-card-2);transform:translateY(-2px)}
+
+/* ---------- pricing ---------- */
+.pricing-grid{gap:20px;align-items:stretch}
+.pc{border-radius:24px;background:linear-gradient(180deg,rgba(244,239,227,.05),rgba(244,239,227,.015));
+  border:1px solid var(--nr-edge);padding:28px 24px}
+.pc.featured{border-color:rgba(255,90,54,.55);
+  background:radial-gradient(120% 60% at 50% 0%,rgba(255,90,54,.12),transparent 60%),
+             linear-gradient(180deg,rgba(244,239,227,.06),rgba(244,239,227,.02));
+  box-shadow:0 30px 70px -30px rgba(255,90,54,.35)}
+.pc .tag{background:var(--nr-daffodil);color:#1A1608;font-weight:700;border-radius:999px;
+  padding:4px 12px;font-size:var(--nr-fs-xs)}
+.pc h3{font-size:var(--nr-fs-h3)}
+.price{font-size:clamp(2.4rem,4vw,3rem);color:var(--nr-petal);padding-block:6px 10px;
+  border-block-end:1px solid var(--nr-edge)}
+.price small{color:var(--nr-petal-3);font-family:'Cairo',sans-serif}
+.pc-out{color:var(--nr-petal);font-weight:600}
+.pc-b h4,.pc-not h4{font-size:var(--nr-fs-xs);letter-spacing:.04em;color:var(--nr-petal-3)}
+.pc-b h4 i{color:var(--nr-daffodil)}
+.pc-list li i.fa-circle-check{color:var(--nr-stem)}
+.pc-team span{border-radius:999px;background:rgba(244,239,227,.05);border:1px solid var(--nr-edge)}
+.pc .actions .btn{min-height:52px}
+
+/* ---------- CTA + footer ---------- */
+.cta-zone{background:radial-gradient(70% 80% at 50% 0%,rgba(242,193,78,.12),transparent 70%)}
+.cta-zone .inner,.cta-zone .box,.cta-card{border-radius:28px}
+.footer{border-block-start:1px solid var(--nr-edge);color:var(--nr-petal-3)}
+.footer a:hover{color:var(--nr-daffodil)}
+
+/* mobile CTA bar: restyled only, positioning and display rules untouched */
+.mob-cta{background:rgba(8,9,8,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-block-start:1px solid var(--nr-edge)}
+#cookieBar{border-color:var(--nr-edge-2)!important;background:#121512!important}
+
+/* ---------- portal ---------- */
+body.luxury .n-nav{background:rgba(8,9,8,.72);backdrop-filter:blur(16px);border-block-end:1px solid var(--nr-edge)}
+body.luxury .n-card{border-radius:var(--nr-radius);border:1px solid var(--nr-edge);
+  background:linear-gradient(180deg,rgba(244,239,227,.05),rgba(244,239,227,.015))}
+body.luxury .n-title{color:var(--nr-petal)}
+body.luxury .n-sub{color:var(--nr-petal-2)}
+body.luxury .gold{color:var(--nr-daffodil)}
+body.luxury .btn-outline{border-radius:14px;border-color:var(--nr-edge);color:var(--nr-petal)}
+body.luxury .btn-outline:hover{border-color:var(--nr-edge-2);background:rgba(242,193,78,.08)}
+.xf-quick{border-radius:var(--nr-radius)}
+.xf-quick-h{background:var(--nr-daffodil);color:#1A1608}
+
+@media (max-width:760px){
+  .stats{grid-template-columns:repeat(2,1fr);gap:14px 0;padding:16px}
+  .stat:nth-child(3){border-inline-start:0}
+  .pc{padding:22px 18px}
+  .hero .cta-row .btn{width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .feat,.card,.pc-pick,.n-card,.btn{transition:none}
+  .feat:hover,.card:hover,.pc-pick:hover,.n-card:hover,.btn:hover{transform:none}
+}
