@@ -2148,16 +2148,11 @@ select option{background:#101014;color:#F6F5F4}
                 if (b) goLang(b.dataset.langBtn);
             });
 
-            window.addEventListener('load', function () {
-                setTimeout(function () {
-                    var p = document.getElementById('preloader');
-                    if (p) p.classList.add('done', 'hide');
-                }, 600);
-            });
-            setTimeout(function () {
-                var p = document.getElementById('preloader');
-                if (p) p.classList.add('done', 'hide');
-            }, 2400);
+            // Do not wait for third-party fonts/pixels: hide on DOM ready, hard cap 900ms.
+            function hidePre(){ var p = document.getElementById('preloader'); if (p) p.classList.add('done', 'hide'); }
+            if (document.readyState !== 'loading') setTimeout(hidePre, 150);
+            else document.addEventListener('DOMContentLoaded', function(){ setTimeout(hidePre, 150); });
+            setTimeout(hidePre, 900);
 
             var prog = document.getElementById('progress'), nav = document.getElementById('nav'), toTop = document.getElementById('toTop');
             function onScroll() {
@@ -2923,7 +2918,7 @@ select option{background:#101014;color:#F6F5F4}
         })();
     </script>
 
-    <div id="cookieBar" style="position:fixed;bottom:16px;inset-inline:16px;max-width:560px;margin-inline:auto;background:#101014;border:1px solid rgba(246,245,244,.12);border-radius:18px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,.55);">
+    <div id="cookieBar" style="position:fixed;bottom:calc(16px + var(--mobcta-h,0px));inset-inline:16px;max-width:560px;margin-inline:auto;background:#101014;border:1px solid rgba(246,245,244,.12);border-radius:18px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,.55);">
         <p style="font-size:.85rem;color:#B9B8C0;margin:0 0 10px;">
             <span data-lang="ar">نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.</span>
             <span data-lang="en" data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>
@@ -2931,9 +2926,19 @@ select option{background:#101014;color:#F6F5F4}
         <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;"><span data-lang="ar">موافق</span><span data-lang="en" data-inline>Got it</span></button>
         <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:#FF5A36;"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
     </div>
+    <style>
+      @media (max-width: 900px){
+        #cookieBar{padding:10px 12px!important;border-radius:14px!important;display:none;align-items:center;gap:10px;inset-inline:10px!important}
+        #cookieBar p{font-size:.78rem!important;margin:0!important;flex:1}
+        #cookieBar.on{display:flex!important}
+      }
+    </style>
     <script>
         (function () {
             var b = document.getElementById('cookieBar');
+            function syncCta(){var m=document.querySelector('.mob-cta');var h=(m&&getComputedStyle(m).display!=='none')?m.offsetHeight:0;document.documentElement.style.setProperty('--mobcta-h',h+'px');}
+            syncCta(); window.addEventListener('resize',syncCta);
+            if (b && !localStorage.getItem('narjis-consent') && window.matchMedia('(max-width:900px)').matches) { setTimeout(function(){ syncCta(); b.classList.add('on'); }, 1200); }
             if (b && !localStorage.getItem('narjis-consent')) setTimeout(function () { b.style.display = 'block'; }, 1200);
         })();
         window.acceptCookies = function () { localStorage.setItem('narjis-consent', '1'); var b = document.getElementById('cookieBar'); if (b) b.style.display = 'none'; };

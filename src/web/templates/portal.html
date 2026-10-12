@@ -714,7 +714,15 @@ note.textContent = msg;
                 $('step-team').classList.remove('hidden');
             });
 
+            let checkoutBusy = false;
             async function startCheckout(method) {
+                // A double tap used to create two orders and two gateway invoices.
+                if (checkoutBusy) return;
+                checkoutBusy = true;
+                const methodBtns = document.querySelectorAll('.co-method');
+                methodBtns.forEach(b => { b.disabled = true; });
+                const release = () => { checkoutBusy = false; methodBtns.forEach(b => { b.disabled = false; }); };
+                const idemKey = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
                 const msg = $('coMsg');
                 msg.style.display = 'block';
                 msg.textContent = txt('جارٍ تجهيز الدفع...', 'Preparing payment...');
@@ -722,7 +730,7 @@ note.textContent = msg;
                 try {
                     const r = await fetch('/api/payments', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idemKey },
                         body: JSON.stringify({
                             package: state.pkg,
                             method: method,
@@ -763,6 +771,7 @@ note.textContent = msg;
                     throw new Error(txt('تعذر إتمام الدفع', 'Payment failed'));
                 } catch (err) {
                     msg.innerHTML = '<span style="color:#b91c1c;">' + txt('خطأ: ', 'Error: ') + err.message + '</span>';
+                    release();
                 }
             }
 

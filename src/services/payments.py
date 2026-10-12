@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
 import time
 from typing import Optional
 from uuid import UUID
@@ -16,6 +17,8 @@ from src.models import Payment
 
 # Single source of truth for package pricing is src/services/catalog.py
 from src.services import catalog
+
+logger = logging.getLogger(__name__)
 
 PACKAGES = catalog.PACKAGES  # compatible alias — amounts live in catalog only
 
@@ -351,6 +354,8 @@ async def initiate_moyasar(
     source: dict,
     callback_url: Optional[str] = None,
     amount_halalas: Optional[int] = None,
+    success_url: Optional[str] = None,
+    back_url: Optional[str] = None,
 ) -> dict:
     settings = get_settings()
     if not settings.moyasar_api_secret:
@@ -366,12 +371,22 @@ async def initiate_moyasar(
 
     # Use the hosted-invoice flow so the customer pays on Moyasar's checkout
     # page without requiring client-side card tokenization.
+    #
+    # For invoices, callback_url is NOT where the buyer returns: it is a
+    # server-to-server POST from Moyasar. It used to point at the GET-only
+    # /payment/success page, so the buyer was never sent back (nothing was
+    # captured or activated) and Moyasar's notification answered 405.
+    # success_url / back_url are the buyer's return; callback_url is the webhook.
     payload = {
         "amount": charge,
         "currency": "SAR",
         "description": payment.description or "النرجس للذكاء الاصطناعي",
-        "callback_url": callback_url or settings.payment_success_url,
+        "success_url": success_url or settings.payment_success_url,
+        "back_url": back_url or settings.payment_failure_url,
+        "metadata": {"order_id": str(payment.id)},
     }
+    if callback_url:
+        payload["callback_url"] = callback_url
 
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
@@ -412,6 +427,9 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
     settings = get_settings()
     if not settings.moyasar_api_secret or not payment.gateway_payment_id:
         return payment
+    if payment.status in ("paid", REVIEW_STATUS):
+        # Idempotent: a settled or flagged order is never re-decided by a poll.
+        return payment
 
     invoice_mode = payment.gateway_source == "invoice" or str(payment.gateway_payment_id).startswith("inv_")
     endpoint = MOYASAR_INVOICES_URL if invoice_mode else MOYASAR_API_URL
@@ -426,24 +444,93 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
         raise PaymentError(f"Moyasar verify error {resp.status_code}: {resp.text}")
 
     data = resp.json()
-    status = data.get("status")
-    if status == "paid":
-        payment.status = "paid"
-    elif status in ("failed", "canceled"):
-        payment.status = "failed"
-    elif status == "authorized":
-        payment.status = "authorized"
-    elif status == "expired":
-        payment.status = "failed"
-    else:
-        payment.status = status or payment.status
-
+    apply_gateway_status(payment, data)
     src = data.get("source", {})
     if isinstance(src, dict):
         payment.gateway_source = src.get("type", payment.gateway_source)
 
     await session.commit()
     return payment
+
+
+REVIEW_STATUS = "review"
+
+
+def expected_charge(payment: Payment) -> int:
+    """Halalas Moyasar must report for this order: the VAT-inclusive total."""
+    return total_with_vat(payment.amount)
+
+
+def gateway_amount_matches(payment: Payment, data: dict) -> bool:
+    """The gateway's amount (halalas) and currency must equal the order's total in SAR."""
+    try:
+        amount = int(data.get("amount"))
+    except (TypeError, ValueError):
+        return False
+    currency = str(data.get("currency") or "").upper()
+    return amount == expected_charge(payment) and currency == "SAR"
+
+
+def apply_gateway_status(payment: Payment, data: dict) -> None:
+    """Map a Moyasar invoice/payment object onto the order.
+
+    A ``paid`` verdict is only trusted when the amount and currency match the
+    order; anything else is parked as ``review`` for the owner and never paid.
+    """
+    if payment.status == "paid":
+        return
+    status = data.get("status")
+    if status == "paid":
+        if gateway_amount_matches(payment, data):
+            payment.status = "paid"
+        else:
+            logger.warning(
+                "moyasar amount mismatch for %s: got %s %s, expected %s SAR",
+                payment.id, data.get("amount"), data.get("currency"), expected_charge(payment),
+            )
+            payment.status = REVIEW_STATUS
+    elif status in ("failed", "canceled", "expired"):
+        payment.status = "failed"
+    elif status == "authorized":
+        payment.status = "authorized"
+    else:
+        payment.status = status or payment.status
+
+
+async def handle_moyasar_webhook(session: AsyncSession, event: dict) -> dict:
+    """Apply a verified Moyasar webhook event. Safe to receive more than once."""
+    event_type = str(event.get("type") or "")
+    if event_type not in ("payment_paid", "payment_failed"):
+        return {"ok": True, "ignored": event_type or "unknown"}
+
+    data = event.get("data") if isinstance(event.get("data"), dict) else {}
+    metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
+
+    payment = None
+    order_id = metadata.get("order_id")
+    if order_id:
+        try:
+            payment = (
+                await session.execute(select(Payment).where(Payment.id == UUID(str(order_id))))
+            ).scalar_one_or_none()
+        except ValueError:
+            payment = None
+    if payment is None:
+        refs = [r for r in (data.get("invoice_id"), data.get("id")) if r]
+        if refs:
+            payment = (
+                await session.execute(select(Payment).where(Payment.gateway_payment_id.in_(refs)))
+            ).scalars().first()
+    if payment is None:
+        return {"ok": True, "ignored": "unknown order"}
+
+    if payment.status == "paid":
+        return {"ok": True, "payment_id": str(payment.id), "status": "paid", "already": True}
+
+    # The body is only a hint: re-fetch the record with the secret key and
+    # decide from Moyasar's own answer (amount + currency checked there).
+    payment = await verify_payment(session, payment.id)
+    return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": False}
 
 
 def source_credit_card() -> dict:
