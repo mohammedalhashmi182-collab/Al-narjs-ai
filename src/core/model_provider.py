@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 import asyncio
 import json
 import time
@@ -620,7 +622,7 @@ class CodeExecutorClient(BaseModelClient):
                 temp_path = f.name
 
             proc = await asyncio.create_subprocess_exec(
-                "python", temp_path,
+                sys.executable or "python3", temp_path,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

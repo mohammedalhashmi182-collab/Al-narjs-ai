@@ -218,3 +218,58 @@ async def ensure_renewal_schedule(scheduler) -> None:
         logger.info("Registered renewal schedule %s (%s)", RENEWAL_SCHEDULE_NAME, RENEWAL_SCHEDULE_CRON)
     except Exception as e:  # pragma: no cover - defensive on startup
         logger.warning("Could not register renewal schedule: %s", e)
+
+
+async def backfill_legacy_subscriptions(
+    session: AsyncSession,
+    *,
+    now: Optional[datetime] = None,
+    dry_run: bool = True,
+) -> dict:
+    """Bring subscribers activated before renewals existed onto the renewal cycle.
+
+    For every ``active`` project with ``current_period_end`` NULL:
+    - ``current_period_end`` = the paid date of its latest paid payment (or the
+      project's creation date) + its billing period; if that is already in the
+      past it is moved to ``now`` + RENEWAL_LEAD_DAYS so the client gets a full
+      renewal window instead of expiring immediately.
+    - the team is topped up to tier + add-ons (``payments.staff_project``).
+
+    ``dry_run`` (default) reports without writing. Sends nothing.
+    """
+    from src.models import ClientProject, Payment
+
+    now = _aware(now) or datetime.now(timezone.utc)
+    projects = (
+        await session.execute(
+            select(ClientProject).where(
+                ClientProject.status == "active",
+                ClientProject.current_period_end.is_(None),
+            )
+        )
+    ).scalars().all()
+    report = []
+    for project in projects:
+        paid = (
+            await session.execute(
+                select(Payment)
+                .where(Payment.project_id == project.id, Payment.status == "paid")
+                .order_by(Payment.created_at.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        anchor = _aware(getattr(paid, "created_at", None)) or _aware(project.created_at) or now
+        period = catalog.resolve_billing_period(project.billing_period)
+        end = payments.add_months(anchor, payments.period_months(period))
+        if end < now:
+            end = now + timedelta(days=RENEWAL_LEAD_DAYS)
+        entry = {"project_id": str(project.id), "current_period_end": end.isoformat(), "staffed": []}
+        if not dry_run:
+            project.current_period_end = end
+            if paid is not None and project.last_payment_id is None:
+                project.last_payment_id = paid.id
+            entry["staffed"] = await payments.staff_project(session, project)
+        report.append(entry)
+    if not dry_run:
+        await session.commit()
+    return {"dry_run": dry_run, "count": len(report), "projects": report}

@@ -75,7 +75,7 @@ def test_build_result_exposes_addons_and_annual():
     assert plan["base_halalas"] == 49900 + 49900
     assert plan["total_halalas"] == pm.total_with_vat(99800)
     assert plan["annual_halalas"] == 99800 * 10
-    assert r["cta"]["subscribe"] == "/portal?pkg=starter&addons=1"
+    assert r["cta"]["subscribe"].startswith("/portal?pkg=starter&addons=1&agents=")
 
 
 # ---------------------------------------------------------------- payments

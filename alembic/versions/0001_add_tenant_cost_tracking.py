@@ -34,7 +34,11 @@ ADDITIVE_COLUMNS = [
 
 
 def upgrade() -> None:
+    # Idempotent: the app's startup self-heal may have added these already.
+    insp = sa.inspect(op.get_bind())
     for table, column, type_, default in ADDITIVE_COLUMNS:
+        if column in {c["name"] for c in insp.get_columns(table)}:
+            continue
         op.add_column(
             table,
             sa.Column(
@@ -45,8 +49,10 @@ def upgrade() -> None:
             ),
         )
     # Indexes mirror the ``index=True`` declarations on the models.
-    op.create_index("ix_workflow_executions_tenant_id", "workflow_executions", ["tenant_id"])
-    op.create_index("ix_step_executions_tenant_id", "step_executions", ["tenant_id"])
+    for name, table in (("ix_workflow_executions_tenant_id", "workflow_executions"),
+                        ("ix_step_executions_tenant_id", "step_executions")):
+        if name not in {i["name"] for i in insp.get_indexes(table)}:
+            op.create_index(name, table, ["tenant_id"])
 
 
 def downgrade() -> None:

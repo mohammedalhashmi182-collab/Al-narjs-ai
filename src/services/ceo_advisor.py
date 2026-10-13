@@ -170,6 +170,9 @@ def _summary(d: Diagnosis) -> tuple[str, str]:
         en_items = ", ".join(n.label_en for n in d.needs[:4])
         ar = f"بعد قراءة وصفك، هذه التحديات الأساسية التي أراها: {ar_items}."
         en = f"I diagnosed {len(d.needs)} core challenge{'s' if len(d.needs) != 1 else ''}: {en_items}."
+    elif d.full_company:
+        ar = "طلبتَ فريقاً يغطي كل أقسام نشاطك."
+        en = "You asked for a team that covers every part of your business."
     else:
         ar = "وصفك عام، فأبدأ معك بخطة تسويق واضحة ووكيل واحد، ثم نوسّع الفريق حسب النتائج."
         en = "Your description is broad, so I start with a clear marketing plan and one agent, then grow the team on results."
@@ -220,6 +223,8 @@ def build_result(d: Diagnosis) -> dict:
         f"({base // 100} ر.س شهرياً). أريد البدء."
     )
     subscribe = f"/portal?pkg={plan_key}" + (f"&addons={addons}" if addons else "")
+    if d.agents:
+        subscribe += "&agents=" + ",".join(d.agents)
     channels = transfer.contact_channels(wa_text)
     ceo = catalog.EMPLOYEES[catalog.CEO_SLUG]
     return {

@@ -8,7 +8,7 @@ parameters:
   top_p: 0.95
 prompts:
   default: |
-    Write a compelling advertisement for a product targeting young adults.
+    Write a compelling advertisement for the product below, aimed at the stated target audience.
     
     Product: {{product_name}}
     Key features: {{features}}

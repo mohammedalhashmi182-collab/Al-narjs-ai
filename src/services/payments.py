@@ -766,6 +766,7 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
     project.current_period_end = add_months(start, period_months(period))
     project.billing_period = period
     project.addon_agents = int(getattr(payment, "addon_agents", 0) or 0)
+    staffed = await staff_project(session, project)
     project.last_payment_id = payment.id
     if project.renewal_payment_id is not None and str(project.renewal_payment_id) == str(payment.id):
         project.renewal_payment_id = None
@@ -782,4 +783,29 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
         "already_active": was_active,
         "project_id": str(project.id),
         "current_period_end": project.current_period_end.isoformat(),
+        "staffed": staffed,
     }
+
+
+async def staff_project(session: AsyncSession, project) -> list[str]:
+    """Make sure the project has CEO + tier allowance + add-on agents.
+
+    Paid add-ons used to be billed but never staffed. This tops the team up
+    (never removes agents, so a downgrade keeps existing work) and returns the
+    slugs that were newly added. Does not commit.
+    """
+    from sqlalchemy import select as _sel
+
+    from src.models import ClientAgent
+
+    rows = (
+        await session.execute(_sel(ClientAgent).where(ClientAgent.project_id == project.id))
+    ).scalars().all()
+    have = [r.slug for r in rows]
+    target = catalog.staff_team(project.package, int(project.addon_agents or 0), preferred=have)
+    added = [slug for slug in target if slug not in have]
+    for slug in added:
+        session.add(ClientAgent(project_id=project.id, slug=slug, status="dormant"))
+    if added:
+        await session.flush()
+    return added

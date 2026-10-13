@@ -1310,6 +1310,9 @@ class PortalProjectCreate(BaseModel):
     phone: str
     email: Optional[str] = None
     package: str
+    # Agents the CEO diagnosis recommended (?agents=a,b) and paid add-ons.
+    agents: Optional[list[str]] = None
+    addons: int = 0
 
 
 @app.post("/api/portal/projects")
@@ -1331,7 +1334,9 @@ async def portal_create_project(request: PortalProjectCreate):
         session.add(project)
         await session.flush()
 
-        for slug in catalog.get_team(request.package):
+        addons = max(0, min(int(request.addons or 0), catalog.MAX_ADDON_AGENTS))
+        project.addon_agents = addons
+        for slug in catalog.staff_team(request.package, addons, preferred=request.agents or []):
             session.add(ClientAgent(project_id=project.id, slug=slug, status="dormant"))
         await session.commit()
         await session.refresh(project)
@@ -1445,7 +1450,13 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
         if not tmpl:
             raise HTTPException(404, "Prompt template not found")
 
-        rendered = app.state.prompt_engine.render(tmpl.template_text, request.answers)
+        from src.services import agent_brief, catalog as _catalog
+
+        variables = agent_brief.build_variables(tmpl.template_text, request.answers, project.client_name)
+        rendered = app.state.prompt_engine.render(tmpl.template_text, variables)
+        brief = agent_brief.brief_block(
+            request.answers, (_catalog.EMPLOYEES.get(slug) or {}).get("questions"), project.client_name
+        )
 
         from src.core.model_provider import ModelRequest
         locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
@@ -1457,10 +1468,12 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
             " structure your answer clearly with headings."
         )
         model_request = ModelRequest(
-            prompt=rendered.user_prompt,
-            system_prompt=(rendered.system_prompt + "\n\n" + lang_instruction).strip(),
+            prompt=rendered.user_prompt + brief,
+            system_prompt=(
+                rendered.system_prompt + "\n\n" + agent_brief.SAUDI_CONTEXT + "\n\n" + lang_instruction
+            ).strip(),
             temperature=agent_def.default_parameters.get("temperature", 0.7),
-            max_tokens=agent_def.default_parameters.get("max_tokens", 2000),
+            max_tokens=max(agent_def.default_parameters.get("max_tokens", 2000), agent_brief.MIN_MAX_TOKENS),
         )
         response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
 
@@ -2581,6 +2594,16 @@ async def owner_run_renewals(request: Request, days_before: Optional[int] = None
     days = renewals.RENEWAL_LEAD_DAYS if days_before is None else max(0, min(int(days_before), 60))
     async with app.state.session_factory() as session:
         return await renewals.run_renewals(session, days_before=days, base_url=_public_base_url(request))
+
+
+@app.post("/api/owner/billing/backfill", dependencies=[Depends(require_owner_api)])
+async def owner_backfill_subscriptions(apply: bool = False):
+    """Owner-only: put legacy active subscribers (no period end) on the renewal
+    cycle and staff paid add-on agents. Dry run unless ``apply=true``."""
+    from src.services import renewals
+
+    async with app.state.session_factory() as session:
+        return await renewals.backfill_legacy_subscriptions(session, dry_run=not apply)
 
 
 class ConfirmReceivedRequest(BaseModel):

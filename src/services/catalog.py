@@ -916,3 +916,36 @@ def _build_package_teams() -> dict[str, list[str]]:
 PACKAGE_TEAMS.update(_build_package_teams())
 for _key, _pkg in PACKAGES.items():
     _pkg["agent_count"] = plan_agent_count(_key)
+
+
+# ---------------------------------------------------------------------------
+#  Staffing: which agents a project actually gets (tier allowance + add-ons).
+# ---------------------------------------------------------------------------
+
+def staffing_pool(package_key: str) -> list[str]:
+    """Specialists in the order they are staffed: the tier's own team first,
+    then the rest of the roster (domain teams, then everyone else)."""
+    tier = resolve_tier(package_key)
+    order: list[str] = []
+    for slug in [*PACKAGE_TEAMS.get(tier, []), *(s for t in DOMAIN_TEAMS.values() for s in t), *EMPLOYEES]:
+        if slug != CEO_SLUG and slug in EMPLOYEES and slug not in order:
+            order.append(slug)
+    return order
+
+
+def staff_team(package_key: str, addons: int = 0, preferred: list[str] | None = None) -> list[str]:
+    """CEO + exactly ``plan_agent_count(tier) + addons`` specialists.
+
+    ``preferred`` (e.g. the agents the CEO diagnosis recommended) are staffed
+    first when they are valid roster slugs; the rest is filled from the tier's
+    default team and then the wider roster.
+    """
+    tier = resolve_tier(package_key)
+    allowance = plan_agent_count(tier) + max(0, int(addons or 0))
+    chosen: list[str] = []
+    for slug in [*(preferred or []), *staffing_pool(tier)]:
+        if len(chosen) >= allowance:
+            break
+        if slug != CEO_SLUG and slug in EMPLOYEES and slug not in chosen:
+            chosen.append(slug)
+    return [CEO_SLUG, *chosen]
