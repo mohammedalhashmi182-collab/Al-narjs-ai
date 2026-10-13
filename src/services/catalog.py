@@ -156,8 +156,8 @@ RECOMMENDED_PACKAGE = "scale"
 ADDON_AGENT = {
     "name": "وكيل إضافي",
     "name_en": "Add-on agent",
-    "amount": 39900,
-    "price": "399",
+    "amount": 49900,
+    "price": "499",
 }
 MAX_ADDON_AGENTS = 12      # checkout cap per order
 MAX_SUGGESTED_ADDONS = 2   # "slightly exceeds": the CEO never suggests more below the top tier

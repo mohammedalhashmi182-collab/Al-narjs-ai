@@ -2199,7 +2199,7 @@ class PaymentCreateRequest(BaseModel):
     lead_id: Optional[str] = None
     project_id: Optional[str] = None
     billing_period: str = "monthly"  # "monthly" | "annual" (pay 10 months, get 12)
-    addons: int = 0                  # extra agents on top of the tier, 399 SAR/month each
+    addons: int = 0                  # extra agents on top of the tier, 499 SAR/month each
 
 
 def _request_locale(request: Request) -> str:

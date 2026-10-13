@@ -34,11 +34,11 @@ def test_ladder_prices_and_agents():
 
 
 def test_addon_and_annual_amounts():
-    assert catalog.ADDON_AGENT["amount"] == 39900 and catalog.ADDON_AGENT["price"] == "399"
-    assert catalog.plan_amount("team", "monthly", 2) == 149900 + 2 * 39900
+    assert catalog.ADDON_AGENT["amount"] == 49900 and catalog.ADDON_AGENT["price"] == "499"
+    assert catalog.plan_amount("team", "monthly", 2) == 149900 + 2 * 49900
     # annual: pay 10 months, get 12
     assert catalog.plan_amount("scale", "annual") == 299900 * 10
-    assert catalog.plan_amount("team", "annual", 1) == (149900 + 39900) * 10
+    assert catalog.plan_amount("team", "annual", 1) == (149900 + 49900) * 10
     assert catalog.BILLING_PERIODS["annual"]["months_granted"] == 12
 
 
@@ -72,9 +72,9 @@ def test_build_result_exposes_addons_and_annual():
     plan = r["plan"]
     assert plan["key"] == "starter" and plan["addons"] == 1
     assert plan["agents_included"] == 2
-    assert plan["base_halalas"] == 49900 + 39900
-    assert plan["total_halalas"] == pm.total_with_vat(89800)
-    assert plan["annual_halalas"] == 89800 * 10
+    assert plan["base_halalas"] == 49900 + 49900
+    assert plan["total_halalas"] == pm.total_with_vat(99800)
+    assert plan["annual_halalas"] == 99800 * 10
     assert r["cta"]["subscribe"] == "/portal?pkg=starter&addons=1"
 
 
@@ -83,7 +83,7 @@ def test_build_result_exposes_addons_and_annual():
 def test_package_amount_validates_period_and_addons():
     assert pm.package_amount("team") == 149900
     assert pm.package_amount("team", "annual") == 1499000
-    assert pm.package_amount("team", "monthly", 3) == 149900 + 3 * 39900
+    assert pm.package_amount("team", "monthly", 3) == 149900 + 3 * 49900
     with pytest.raises(pm.PaymentError):
         pm.package_amount("team", "weekly")
     with pytest.raises(pm.PaymentError):
@@ -109,13 +109,13 @@ async def maker():
 async def test_annual_order_amount_vat_and_gateway_check_agree(maker):
     async with maker() as s:
         p = await pm.create_payment(s, "scale", "x", "0555000000", None, billing_period="annual", addons=1)
-    assert p.amount == (299900 + 39900) * 10
+    assert p.amount == (299900 + 49900) * 10
     assert p.billing_period == "annual" and p.addon_agents == 1
     assert "سنوي" in p.description and "وكيل إضافي" in p.description
     total = pm.total_with_vat(p.amount)
     assert pm.expected_charge(p) == total
     assert pm.gateway_amount_matches(p, {"amount": total, "currency": "SAR"})
-    assert not pm.gateway_amount_matches(p, {"amount": pm.total_with_vat(339900), "currency": "SAR"})
+    assert not pm.gateway_amount_matches(p, {"amount": pm.total_with_vat(349900), "currency": "SAR"})
 
 
 async def test_initiate_moyasar_charges_the_annual_total(maker, monkeypatch):
@@ -189,7 +189,7 @@ async def test_renewal_invoices_once_and_queues_a_draft_reminder(maker):
         pay = (await s.execute(select(Payment).where(Payment.project_id == proj.id))).scalars().all()
         assert len(pay) == 1
         assert pay[0].is_renewal and pay[0].billing_period == "annual" and pay[0].addon_agents == 1
-        assert pay[0].amount == (149900 + 39900) * 10
+        assert pay[0].amount == (149900 + 49900) * 10
         assert pay[0].status == "invoice"
         msgs = (await s.execute(select(OutboundMessage))).scalars().all()
         assert len(msgs) == 1
@@ -261,7 +261,7 @@ async def test_checkout_api_bills_annual_with_addons(maker):
         bad = await c.post("/api/payments", json={"package": "starter", "method": "invoice",
                                                   "billing_period": "weekly"})
     body = r.json()
-    assert body["amount"] == (49900 + 39900) * 10
+    assert body["amount"] == (49900 + 49900) * 10
     assert body["total"] == pm.total_with_vat(body["amount"])
     assert bad.status_code == 400
 
