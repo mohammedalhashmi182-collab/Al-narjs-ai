@@ -115,6 +115,8 @@ async def lifespan(app: FastAPI):
     await ensure_company_loops(scheduler)
     from src.services.renewals import ensure_renewal_schedule
     await ensure_renewal_schedule(scheduler)
+    from src.services.lead_pipeline import ensure_followup_schedule
+    await ensure_followup_schedule(scheduler)
 
     app.state.agent_registry = agent_registry
     app.state.model_provider = model_provider
@@ -379,6 +381,11 @@ app.include_router(whatsapp_router)
 from src.interfaces.botpress_routes import router as botpress_router  # noqa: E402
 
 app.include_router(botpress_router)
+
+# Owner-gated smart replies, lead pipeline, social drafts + the Messenger webhook.
+from src.interfaces.automation_routes import router as automation_router  # noqa: E402
+
+app.include_router(automation_router)
 
 
 async def get_session() -> AsyncSession:

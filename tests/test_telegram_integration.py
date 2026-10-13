@@ -423,7 +423,10 @@ class TestSideEffects:
         monkeypatch.setattr(ts, "send_owner_alert", _rec)
         return alerts
 
-    async def test_welcome_sent_once_and_owner_alerted_per_message(self, maker, api, monkeypatch):
+    async def test_review_mode_drafts_instead_of_sending_and_alerts_owner(self, maker, api, monkeypatch):
+        """Default channel mode is ``review``: the reply waits for the owner."""
+        from src.models.automation import ReplyDraft
+
         alerts = self._capture(monkeypatch)
         with _creds():
             first = await _post(api, _update(60, "مرحبا، كم الأسعار؟"))
@@ -432,19 +435,25 @@ class TestSideEffects:
             assert second.status_code == 200
 
         async with maker() as s:
-            rows = (await s.execute(
+            sent = (await s.execute(
                 select(OutboundMessage).where(OutboundMessage.channel == "telegram")
             )).scalars().all()
-            assert len(rows) == 1
-            assert rows[0].status == "sent"
-            assert rows[0].phone == CHAT
-            assert rows[0].text == WELCOME_TEXT
+            assert sent == []
+            drafts = (await s.execute(select(ReplyDraft))).scalars().all()
+            assert len(drafts) == 1
+            assert drafts[0].status == "pending"
+            assert drafts[0].recipient == CHAT
 
         assert len(alerts) == 2
         assert "كم الأسعار؟" in alerts[0]
         assert str(int(CHAT)) in alerts[0]
 
-    async def test_owner_own_chat_gets_welcome_but_no_self_alert(self, maker, api, monkeypatch):
+    async def test_auto_mode_sends_once_and_owner_chat_gets_no_self_alert(self, maker, api, monkeypatch):
+        from src.services import smart_reply
+
+        async with maker() as s:
+            await smart_reply.set_mode(s, "telegram", "auto")
+            await s.commit()
         alerts = self._capture(monkeypatch)
         with _creds(owner=CHAT):
             r = await _post(api, _update(70, "تجربة من المالك"))
@@ -457,8 +466,11 @@ class TestSideEffects:
             )).scalars().all()
             assert len(rows) == 1
             assert rows[0].status == "sent"
+            assert WELCOME_TEXT  # legacy constant still exported for the deep-link welcome
 
     async def test_duplicate_update_triggers_no_side_effects(self, maker, api, monkeypatch):
+        from src.models.automation import ReplyDraft
+
         alerts = self._capture(monkeypatch)
         payload = _update(80, "أهلاً")
         with _creds():
@@ -469,10 +481,8 @@ class TestSideEffects:
 
         assert alerts == []
         async with maker() as s:
-            rows = (await s.execute(
-                select(OutboundMessage).where(OutboundMessage.channel == "telegram")
-            )).scalars().all()
-            assert len(rows) == 1
+            drafts = (await s.execute(select(ReplyDraft))).scalars().all()
+            assert len(drafts) == 1
 
 
 # ---------------------------------------------------------------------------

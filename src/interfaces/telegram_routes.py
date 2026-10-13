@@ -86,7 +86,7 @@ async def _first_contact_text(session, payload: dict, chat_id: Any) -> str:
     return DEEP_LINK_WELCOME.format(name=lead.company_name, request=request_text[:120])
 
 
-async def _side_effects(session, payload: dict, summary: dict) -> None:
+async def _side_effects(session, payload: dict, summary: dict, request_state=None) -> None:
     """First-contact welcome to the sender + owner push for every new message.
 
     Failures are logged and swallowed: the inbound record is already committed
@@ -99,24 +99,37 @@ async def _side_effects(session, payload: dict, summary: dict) -> None:
     if chat_id is None:
         return
 
-    already_welcomed = (
-        await session.execute(
-            sa_select(OutboundMessage)
-            .where(
-                OutboundMessage.channel == telegram_sender.CHANNEL,
-                OutboundMessage.phone == str(chat_id)[:32],
+    # Every customer-facing reply now goes through the owner-gated smart-reply
+    # queue (mode off / review / auto; default review). The first contact keeps
+    # the personalised deep-link welcome as the draft text.
+    try:
+        from src.services import smart_reply
+
+        override = None
+        if not await smart_reply.has_contacted(session, "telegram", str(chat_id)):
+            first = await _first_contact_text(session, payload, chat_id)
+            if first != WELCOME_TEXT:
+                override = first
+        rec = (
+            await session.execute(
+                sa_select(InboundMessage).where(
+                    InboundMessage.provider_message_id == f"tg:{chat_id}:{message.get('message_id')}"[:255]
+                )
             )
-            .limit(1)
+        ).scalar_one_or_none()
+        await smart_reply.handle_inbound(
+            session,
+            channel="telegram",
+            recipient=chat_id,
+            text=str(message.get("text") or message.get("caption") or ""),
+            lead_id=rec.lead_id if rec is not None else None,
+            provider=getattr(request_state, "model_provider", None),
+            override_text=override,
         )
-    ).scalar_one_or_none()
-    if already_welcomed is None:
-        try:
-            text = await _first_contact_text(session, payload, chat_id)
-            await telegram_sender.send_now(session, lead_id=None, chat_id=chat_id, text=text)
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            log.exception("telegram welcome send failed")
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        log.exception("telegram smart reply failed")
 
     if str(chat_id) == str(settings.telegram_owner_chat_id or ""):
         return
@@ -167,7 +180,7 @@ async def telegram_webhook(request: Request):
 
     async with session_factory() as session:
         try:
-            await _side_effects(session, payload, summary)
+            await _side_effects(session, payload, summary, request.app.state)
         except Exception:
             await session.rollback()
             log.exception("telegram side effects failed")

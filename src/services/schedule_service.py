@@ -32,10 +32,21 @@ async def execute_schedule(session, schedule_id) -> dict:
             return await _run_ceo_loop(sched)
         if target_type == "billing_renewals":
             return await _run_billing_renewals(session, sched)
+        if target_type == "automation_followups":
+            return await _run_automation_followups(session)
         return {"status": "unsupported", "target_type": target_type}
     except Exception as e:
         logger.exception("Schedule %s failed: %s", sched.id, e)
         return {"status": "error", "message": str(e)[:300]}
+
+
+async def _run_automation_followups(session) -> dict:
+    """Hourly lead-pipeline pass: paid detection, follow-up drafts, lost after silence."""
+    from src.services.lead_pipeline import run_followups
+
+    result = await run_followups(session)
+    await session.commit()
+    return {"status": "ok", **result}
 
 
 async def _run_billing_renewals(session, sched) -> dict:
