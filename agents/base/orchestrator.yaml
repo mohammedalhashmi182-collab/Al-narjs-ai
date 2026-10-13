@@ -45,7 +45,7 @@ x_tasami:
   code: EX-01
   dept: EX
   authority: execute_with_approval
-  micro_budget_usd: 0
+  micro_budget_sar: 0
   owner_only: true
   modes: []
   receives_from:

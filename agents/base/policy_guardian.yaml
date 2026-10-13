@@ -21,9 +21,9 @@ prompts:
 
     - Objective: {{objective}}
 
-    - Amount at stake: {{amount_usd}} USD
+    - Amount at stake: {{amount_sar}} ريال (SAR)
 
-    - Agent''s micro-budget: {{micro_budget_usd}} USD
+    - Agent''s micro-budget: {{micro_budget_sar}} ريال (SAR)
 
     - Agent''s authority level: {{authority}}
 
@@ -69,7 +69,7 @@ x_tasami:
   code: EX-03
   dept: EX
   authority: suggest
-  micro_budget_usd: 0
+  micro_budget_sar: 0
   owner_only: false
   modes: []
   receives_from:
