@@ -130,7 +130,7 @@ async def client(maker):
 
 async def _checkout(client, consent=True):
     return await client.post("/api/payments", json={
-        "package": "starter", "method": "paypal", "customer_name": "Buyer",
+        "package": "radd", "method": "paypal", "customer_name": "Buyer",
         "customer_phone": "0555000111", "customer_email": None, "refund_consent": consent,
     }, headers={"idempotency-key": str(id(object()))})
 
@@ -206,7 +206,7 @@ class TestCheckout:
 class TestInvoicePayment:
     async def _invoice(self, maker):
         async with maker() as s:
-            p = Payment(amount=49900, currency="SAR", package="starter", gateway="invoice", status="invoice", customer_phone="0555")
+            p = Payment(amount=49900, currency="SAR", package="radd", gateway="invoice", status="invoice", customer_phone="0555")
             s.add(p)
             await s.commit()
             return str(p.id)
@@ -227,7 +227,7 @@ class TestInvoicePayment:
 
     async def test_paid_invoice_rejected(self, client, maker, paypal):
         async with maker() as s:
-            p = Payment(amount=100, currency="SAR", package="starter", gateway="invoice", status="paid")
+            p = Payment(amount=100, currency="SAR", package="radd", gateway="invoice", status="paid")
             s.add(p)
             await s.commit()
             pid = str(p.id)

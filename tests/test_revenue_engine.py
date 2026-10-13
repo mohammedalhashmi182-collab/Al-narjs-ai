@@ -271,7 +271,7 @@ async def test_wave_sizing_reports_real_metrics(api, maker):
     wave1 = await build_wave(maker())
     metrics1 = wave1["metrics"]
     assert metrics1["gap_sar"] >= 0
-    assert metrics1["potential_sar"] >= 1500
+    assert metrics1["potential_sar"] >= catalog.tier_price_sar("growth")
     assert wave1["wave_size"] >= 1
 
 
@@ -296,7 +296,7 @@ async def test_radar_payloads_have_evidence_and_no_secrets(api, maker):
     payload = wave["wave"][0]
     assert payload["tier"] in ("A", "B")
     assert payload["reference_id"]
-    assert payload["price_sar"] == catalog.tier_price_sar("growth") == 2999
+    assert payload["price_sar"] == catalog.tier_price_sar("growth") == 1499
     assert payload["insight"]
     assert payload["message_draft"]
     assert "C:" not in str(payload)

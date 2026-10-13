@@ -92,8 +92,8 @@ def test_mobile_pages_and_language_switch(context, width, path):
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         assert page.locator('a[href="#"]').count() == 0
     if path == '/home':
-        tag = page.locator('[data-plan="starter"] .tag').bounding_box()
-        card = page.locator('[data-plan="starter"]').bounding_box()
+        tag = page.locator('[data-plan="radd"] .tag').bounding_box()
+        card = page.locator('[data-plan="radd"]').bounding_box()
         assert tag['y'] >= card['y'] and tag['x'] >= card['x']
         assert tag['x'] + tag['width'] <= card['x'] + card['width'] + 1
         assert page.locator('.plans a[href^="/portal?pkg="]').count() == 4
@@ -114,16 +114,16 @@ def test_portal_timeout_and_retry_preserve_plan(context):
     page = context.new_page()
     page.route('**/api/portal/packages', lambda route: None)
     page.clock.install()
-    page.goto('http://testserver/portal?pkg=starter')
+    page.goto('http://testserver/portal?pkg=radd')
     assert page.locator('.package-skeleton').count() == 4
     page.clock.fast_forward(5100)
     page.locator('#retry-packages').wait_for()
     assert page.locator('#pkg-grid').get_attribute('aria-busy') == 'false'
-    assert page.locator('#retry-packages').get_attribute('href') == '/portal?pkg=starter'
+    assert page.locator('#retry-packages').get_attribute('href') == '/portal?pkg=radd'
     page.unroute('**/api/portal/packages')
     page.locator('#retry-packages').click()
     page.locator('.pkg.selected').wait_for()
-    assert page.locator('.pkg.selected').get_attribute('data-pkg') == 'starter'
+    assert page.locator('.pkg.selected').get_attribute('data-pkg') == 'radd'
 
 
 def test_portal_http_failure(context):
