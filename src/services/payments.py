@@ -324,7 +324,7 @@ def readiness(card_state: Optional[str] = None) -> dict:
         "blocking_issues": blocking,
         "env_required": {
             "card": ["MOYASAR_API_SECRET", "MOYASAR_PUBLISHABLE_KEY"],
-            "paypal": ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_MODE=live"],
+            "paypal": ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_MODE=live", "PAYPAL_WEBHOOK_ID"],
         },
     }
 
@@ -616,9 +616,48 @@ def get_publishable_key() -> Optional[str]:
 
 
 # ---------------- PayPal ----------------
+#
+# PayPal cannot settle SAR. Prices are SAR incl. 15% VAT, so the PayPal order is
+# raised in USD at the fixed riyal peg (PAYPAL_SAR_PER_USD, default 3.75). The
+# SAR total stays on ``Payment.amount`` (pre-VAT base, as for Moyasar); the USD
+# cents PayPal must report are stored on ``charge_currency``/``charge_amount``
+# and every capture is checked against them before the order is marked paid.
+
+PAYPAL_CURRENCY = "USD"
+PAYPAL_WEBHOOK_EVENTS = (
+    "CHECKOUT.ORDER.APPROVED",
+    "PAYMENT.CAPTURE.COMPLETED",
+    "PAYMENT.CAPTURE.DENIED",
+    "PAYMENT.CAPTURE.REVERSED",
+    "PAYMENT.CAPTURE.REFUNDED",
+)
+
 
 def _paypal_base_url(settings) -> str:
     return "https://api-m.paypal.com" if settings.paypal_mode == "live" else "https://api-m.sandbox.paypal.com"
+
+
+def sar_halalas_to_usd_cents(halalas: int, sar_per_usd: Optional[float] = None) -> int:
+    """Convert SAR halalas to USD cents at the peg, rounded half-up to the cent."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    rate = Decimal(str(sar_per_usd if sar_per_usd is not None else get_settings().paypal_sar_per_usd))
+    if rate <= 0:
+        raise PaymentError("PAYPAL_SAR_PER_USD must be positive")
+    return int((Decimal(int(halalas)) / rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def paypal_quote(payment: Payment) -> dict:
+    """SAR total (incl. VAT) and the USD amount the buyer will be charged."""
+    sar = expected_charge(payment)
+    usd = sar_halalas_to_usd_cents(sar)
+    return {
+        "total_sar": sar,
+        "amount_usd": usd,
+        "amount_usd_display": f"{usd / 100:.2f}",
+        "currency": PAYPAL_CURRENCY,
+        "sar_per_usd": get_settings().paypal_sar_per_usd,
+    }
 
 
 async def _paypal_token(settings) -> str:
@@ -631,7 +670,7 @@ async def _paypal_token(settings) -> str:
             auth=(settings.paypal_client_id, settings.paypal_client_secret),
         )
     if resp.status_code != 200:
-        raise PaymentError(f"PayPal auth error {resp.status_code}: {resp.text}")
+        raise PaymentError(f"PayPal auth error {resp.status_code}")
     try:
         return resp.json()["access_token"]
     except (KeyError, ValueError):
@@ -641,69 +680,233 @@ async def _paypal_token(settings) -> str:
 async def create_paypal_order(
     session: AsyncSession,
     payment: Payment,
-    amount_halalas: int,
     return_url: str,
     cancel_url: str,
+    amount_halalas: Optional[int] = None,
 ) -> dict:
+    """Create a PayPal Orders v2 order (intent CAPTURE) in USD for this payment.
+
+    ``amount_halalas`` is accepted for compatibility but must equal the
+    VAT-inclusive total; the charge is always derived from the order itself.
+    """
+    if payment.status == "paid":
+        raise PaymentError("Payment already paid")
+    sar_total = expected_charge(payment)
+    if amount_halalas is not None and int(amount_halalas) != sar_total:
+        raise PaymentError("PayPal amount does not match the order total")
     settings = get_settings()
+    usd_cents = sar_halalas_to_usd_cents(sar_total)
     token = await _paypal_token(settings)
-    sar_total = amount_halalas  # halalas of SAR
-    usd_value = sar_total / 100 * settings.paypal_sar_usd_rate
-    if settings.paypal_currency.upper() == "USD":
-        value = f"{usd_value:.2f}"
-    else:
-        value = f"{sar_total / 100:.2f}"
     payload = {
         "intent": "CAPTURE",
         "purchase_units": [{
             "reference_id": str(payment.id),
             "custom_id": str(payment.id),
+            "invoice_id": reference(payment),
             "description": (payment.description or "Al-Narjis AI")[:127],
-            "amount": {
-                "currency_code": settings.paypal_currency,
-                "value": value,
-            },
+            "amount": {"currency_code": PAYPAL_CURRENCY, "value": f"{usd_cents / 100:.2f}"},
         }],
-        "application_context": {
+        "payment_source": {"paypal": {"experience_context": {
             "return_url": return_url,
             "cancel_url": cancel_url,
             "brand_name": "Al-Narjis AI",
             "user_action": "PAY_NOW",
-        },
+            "shipping_preference": "NO_SHIPPING",
+        }}},
     }
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
             f"{_paypal_base_url(settings)}/v2/checkout/orders",
             json=payload,
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+                # Same payment + amount -> PayPal returns the same order on retry.
+                "PayPal-Request-Id": f"create-{payment.id}-{usd_cents}",
+            },
         )
     if resp.status_code not in (200, 201):
-        raise PaymentError(f"PayPal create error {resp.status_code}: {resp.text}")
+        raise PaymentError(f"PayPal create error {resp.status_code}")
 
     data = resp.json()
     payment.gateway = "paypal"
     payment.status = "pending"
     payment.gateway_payment_id = data.get("id")
+    payment.charge_currency = PAYPAL_CURRENCY
+    payment.charge_amount = usd_cents
     await session.commit()
 
-    approval = next((l for l in data.get("links", []) if l.get("rel") == "approve"), None)
+    links = data.get("links") or []
+    approval = next((l for l in links if l.get("rel") in ("payer-action", "approve")), None)
     return {
         "order_id": data.get("id"),
         "approval_url": approval.get("href") if approval else None,
+        "amount_usd": usd_cents,
+        "currency": PAYPAL_CURRENCY,
     }
 
 
-async def capture_paypal_order(order_id: str) -> dict:
+async def _paypal_request(method: str, path: str, *, json_body: Optional[dict] = None, request_id: Optional[str] = None) -> httpx.Response:
     settings = get_settings()
     token = await _paypal_token(settings)
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    if request_id:
+        headers["PayPal-Request-Id"] = request_id
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{_paypal_base_url(settings)}/v2/checkout/orders/{order_id}/capture",
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        )
-    if resp.status_code not in (200, 201):
-        raise PaymentError(f"PayPal capture error {resp.status_code}: {resp.text}")
+        return await client.request(method, f"{_paypal_base_url(settings)}{path}", json=json_body, headers=headers)
+
+
+async def get_paypal_order(order_id: str) -> dict:
+    resp = await _paypal_request("GET", f"/v2/checkout/orders/{order_id}")
+    if resp.status_code != 200:
+        raise PaymentError(f"PayPal order fetch error {resp.status_code}")
     return resp.json()
+
+
+async def capture_paypal_order(order_id: str) -> dict:
+    """Capture an approved order. Already captured -> the current order state."""
+    resp = await _paypal_request(
+        "POST", f"/v2/checkout/orders/{order_id}/capture", request_id=f"capture-{order_id}",
+    )
+    if resp.status_code in (200, 201):
+        return resp.json()
+    if resp.status_code == 422 and "ORDER_ALREADY_CAPTURED" in resp.text:
+        return await get_paypal_order(order_id)
+    raise PaymentError(f"PayPal capture error {resp.status_code}")
+
+
+def _paypal_captures(order: dict) -> list[dict]:
+    out: list[dict] = []
+    for unit in order.get("purchase_units") or []:
+        caps = ((unit.get("payments") or {}).get("captures")) or []
+        out.extend(c for c in caps if isinstance(c, dict))
+    return out
+
+
+def paypal_capture_matches(payment: Payment, order: dict, capture: dict) -> bool:
+    """Captured currency/amount and order ownership must equal what we created."""
+    if order.get("id") and payment.gateway_payment_id and order.get("id") != payment.gateway_payment_id:
+        return False
+    units = order.get("purchase_units") or []
+    custom = next((u.get("custom_id") or u.get("reference_id") for u in units if u.get("custom_id") or u.get("reference_id")), None)
+    if custom is None:
+        custom = capture.get("custom_id")
+    if custom is not None and str(custom) != str(payment.id):
+        return False
+    amount = capture.get("amount") or {}
+    if str(amount.get("currency_code") or "").upper() != PAYPAL_CURRENCY:
+        return False
+    if (payment.charge_currency or "").upper() != PAYPAL_CURRENCY or payment.charge_amount is None:
+        return False
+    try:
+        from decimal import Decimal
+
+        cents = int((Decimal(str(amount.get("value"))) * 100).to_integral_value())
+    except Exception:  # noqa: BLE001
+        return False
+    return cents == int(payment.charge_amount) == sar_halalas_to_usd_cents(expected_charge(payment))
+
+
+def apply_paypal_order(payment: Payment, order: dict) -> None:
+    """Map a PayPal order (after capture or fetch) onto the payment.
+
+    Paid only when a COMPLETED capture matches the stored USD amount; a
+    completed capture that does not match is parked as ``review``.
+    """
+    if payment.status == "paid":
+        return
+    caps = _paypal_captures(order)
+    completed = [c for c in caps if c.get("status") == "COMPLETED"]
+    if completed:
+        if all(paypal_capture_matches(payment, order, c) for c in completed) and len(completed) == 1:
+            payment.status = "paid"
+            payment.gateway_source = "paypal"
+        else:
+            logger.warning("paypal capture mismatch for %s (order %s)", payment.id, order.get("id"))
+            payment.status = REVIEW_STATUS
+        return
+    if any(c.get("status") in ("DECLINED", "FAILED") for c in caps) or order.get("status") == "VOIDED":
+        payment.status = "failed"
+    elif any(c.get("status") == "PENDING" for c in caps):
+        payment.status = "authorized"  # e.g. eCheck / held for review by PayPal
+
+
+async def finalize_paypal_payment(session: AsyncSession, payment: Payment) -> Payment:
+    """Capture (or re-read) the PayPal order and settle the payment. Idempotent."""
+    if payment.status in ("paid", REVIEW_STATUS) or not payment.gateway_payment_id:
+        return payment
+    order = await get_paypal_order(payment.gateway_payment_id)
+    if order.get("status") == "APPROVED":
+        order = await capture_paypal_order(payment.gateway_payment_id)
+    apply_paypal_order(payment, order)
+    await session.commit()
+    return payment
+
+
+async def verify_paypal_webhook(headers, event: dict) -> bool:
+    """Ask PayPal to verify the transmission signature for this webhook id."""
+    settings = get_settings()
+    if not settings.paypal_webhook_id:
+        return False
+    needed = {
+        "auth_algo": "paypal-auth-algo",
+        "cert_url": "paypal-cert-url",
+        "transmission_id": "paypal-transmission-id",
+        "transmission_sig": "paypal-transmission-sig",
+        "transmission_time": "paypal-transmission-time",
+    }
+    body = {k: headers.get(h) for k, h in needed.items()}
+    if not all(body.values()):
+        return False
+    body["webhook_id"] = settings.paypal_webhook_id
+    body["webhook_event"] = event
+    resp = await _paypal_request("POST", "/v1/notifications/verify-webhook-signature", json_body=body)
+    if resp.status_code != 200:
+        raise PaymentError(f"PayPal webhook verify error {resp.status_code}")
+    return (resp.json() or {}).get("verification_status") == "SUCCESS"
+
+
+async def handle_paypal_webhook(session: AsyncSession, event: dict) -> dict:
+    """Apply a verified PayPal event. The body is a hint; the order is re-fetched."""
+    event_type = str(event.get("event_type") or "")
+    if event_type not in PAYPAL_WEBHOOK_EVENTS:
+        return {"ok": True, "ignored": event_type or "unknown"}
+    resource = event.get("resource") if isinstance(event.get("resource"), dict) else {}
+
+    order_id = None
+    payment_ref = None
+    if event_type == "CHECKOUT.ORDER.APPROVED":
+        order_id = resource.get("id")
+        units = resource.get("purchase_units") or []
+        payment_ref = next((u.get("custom_id") for u in units if u.get("custom_id")), None)
+    else:
+        payment_ref = resource.get("custom_id")
+        related = (resource.get("supplementary_data") or {}).get("related_ids") or {}
+        order_id = related.get("order_id")
+
+    payment = None
+    if payment_ref:
+        try:
+            payment = (await session.execute(select(Payment).where(Payment.id == UUID(str(payment_ref))))).scalar_one_or_none()
+        except ValueError:
+            payment = None
+    if payment is None and order_id:
+        payment = (await session.execute(select(Payment).where(Payment.gateway_payment_id == order_id))).scalars().first()
+    if payment is None or payment.gateway != "paypal":
+        return {"ok": True, "ignored": "unknown order"}
+    if order_id and payment.gateway_payment_id and order_id != payment.gateway_payment_id:
+        return {"ok": True, "ignored": "order mismatch"}
+
+    if event_type in ("PAYMENT.CAPTURE.REVERSED", "PAYMENT.CAPTURE.REFUNDED"):
+        # Money left after activation: never auto-deactivate, flag for the owner.
+        logger.warning("paypal %s for payment %s", event_type, payment.id)
+        return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": True, "alert": event_type}
+
+    if payment.status == "paid":
+        return {"ok": True, "payment_id": str(payment.id), "status": "paid", "already": True}
+
+    payment = await finalize_paypal_payment(session, payment)
+    return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": False}
 
 
 async def activate_subscription(session: AsyncSession, payment: Payment) -> dict:
