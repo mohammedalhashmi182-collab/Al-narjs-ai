@@ -58,7 +58,9 @@ def _aware(dt: Optional[datetime]) -> Optional[datetime]:
     return dt
 
 
-def reminder_text(project, payment, period_end: datetime) -> str:
+def reminder_text(project, payment, period_end: datetime, base_url: str = "") -> str:
+    """Customer-facing reminder. It links ONLY to our consent-gated /invoice page,
+    never to a raw Moyasar checkout, so the refund-policy checkbox cannot be skipped."""
     pkg = catalog.PACKAGES.get(project.package) or catalog.get_package(project.package) or {}
     total = payments.total_with_vat(payment.amount) / 100
     period = "سنوي" if payment.billing_period == "annual" else "شهري"
@@ -67,7 +69,7 @@ def reminder_text(project, payment, period_end: datetime) -> str:
         f"مرحباً {project.client_name}، يقترب موعد تجديد اشتراكك ({period}) في باقة "
         f"{pkg.get('name', project.package)} لدى النرجس. ينتهي الاشتراك في {end_riyadh}. "
         f"قيمة التجديد {total:,.2f} ر.س شاملة ضريبة القيمة المضافة. "
-        f"فاتورة التجديد: /invoice/{payment.id} — رقم المرجع {payments.reference(payment)}."
+        f"فاتورة التجديد: {(base_url or '').rstrip('/')}/invoice/{payment.id} — رقم المرجع {payments.reference(payment)}."
     )
 
 
@@ -87,10 +89,9 @@ async def _raise_renewal(session: AsyncSession, project, *, base_url: str, use_g
         is_renewal=True,
     )
     gateway = "invoice"
-    checkout_url = None
     if use_gateway:
         try:
-            data = await payments.initiate_moyasar(
+            await payments.initiate_moyasar(
                 session,
                 payment,
                 payments.source_credit_card(),
@@ -98,17 +99,16 @@ async def _raise_renewal(session: AsyncSession, project, *, base_url: str, use_g
                 back_url=f"{base_url}/payment/failure?id={payment.id}",
                 callback_url=f"{base_url}/webhooks/moyasar",
             )
+            # The Moyasar invoice is reused by /api/payments/<id>/pay-card only
+            # after the customer ticks the refund consent on /invoice/<id>.
             gateway = "moyasar"
-            checkout_url = data.get("checkout_url")
         except payments.PaymentError as exc:
             logger.warning("renewal %s: Moyasar invoice failed, manual invoice instead: %s", payment.id, exc)
     if gateway == "invoice":
         payment.status = "invoice"
 
     project.renewal_payment_id = payment.id
-    text = reminder_text(project, payment, _aware(project.current_period_end))
-    if checkout_url:
-        text += f" رابط الدفع: {checkout_url}"
+    text = reminder_text(project, payment, _aware(project.current_period_end), base_url)
     session.add(OutboundMessage(
         id=uuid4(),
         channel="whatsapp",
