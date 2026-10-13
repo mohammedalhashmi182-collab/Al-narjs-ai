@@ -117,6 +117,12 @@ async def lifespan(app: FastAPI):
     await ensure_renewal_schedule(scheduler)
     from src.services.lead_pipeline import ensure_followup_schedule
     await ensure_followup_schedule(scheduler)
+    try:
+        from src.services.policies import seed_owner_faq
+        async with session_factory() as _s:
+            await seed_owner_faq(_s)
+    except Exception:  # pragma: no cover - seeding must never block startup
+        logger.exception("policy FAQ seed failed")
 
     app.state.agent_registry = agent_registry
     app.state.model_provider = model_provider
@@ -2228,6 +2234,8 @@ class PaymentCreateRequest(BaseModel):
     project_id: Optional[str] = None
     billing_period: str = "monthly"  # "monthly" | "annual" (pay 10 months, get 12)
     addons: int = 0                  # extra agents on top of the tier, 499 SAR/month each
+    # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
+    refund_consent: bool = False
 
 
 def _request_locale(request: Request) -> str:
@@ -2306,6 +2314,19 @@ async def create_payment(request: Request, body: PaymentCreateRequest):
 async def _create_payment(request: Request, body: PaymentCreateRequest):
     from src.services import payments as pm
 
+    from src.services import policies
+
+    from src.core.owner_auth import check_owner
+
+    # The owner dashboard raises bank-transfer invoices for a lead; the buyer is
+    # not present, so that path records no consent (refund_consent_at stays NULL).
+    owner_invoice = body.method.lower() == "invoice" and check_owner(request)
+    if body.refund_consent is not True and not owner_invoice:
+        raise HTTPException(422, {
+            "error": "refund_consent_required",
+            "message_ar": "يجب الموافقة على: " + policies.REFUND_CONSENT_AR,
+            "message_en": "You must agree to: " + policies.REFUND_CONSENT_EN,
+        })
     locale = _request_locale(request)
     include_vat = locale == "ar"
     base = _public_base_url(request)
@@ -2344,6 +2365,12 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             billing_period=body.billing_period,
             addons=body.addons,
         )
+        from datetime import datetime as _dt, timezone as _tz
+
+        if body.refund_consent is True:
+            payment.refund_consent_at = _dt.now(_tz.utc)
+            payment.refund_consent_version = policies.POLICY_VERSION
+            await session.commit()
 
         method = body.method.lower()
 

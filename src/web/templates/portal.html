@@ -193,6 +193,10 @@
                         <span data-lang="ar">تطبيق</span><span data-lang="en" data-inline>Apply</span>
                     </button>
                 </div>
+<label id="refundConsentRow" for="refundConsent" class="flex items-start gap-2 mb-4 text-sm" style="text-align:start;cursor:pointer;">
+                        <input type="checkbox" id="refundConsent" name="refund_consent" required class="mt-0.5">
+                        <span><span data-lang="ar">أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a>)</span><span data-lang="en" data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a>)</span></span>
+                    </label>
 <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
                     <p id="coCardNote" hidden class="mt-4 text-sm" style="color:var(--n-brown-2);"></p>
                     {# Bank transfer, shown before the buyer starts a checkout.
@@ -776,6 +780,13 @@ note.textContent = msg;
                 const idemKey = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
                 const msg = $('coMsg');
                 msg.style.display = 'block';
+                const consentBox = $('refundConsent');
+                if (!consentBox || !consentBox.checked) {
+                    msg.textContent = txt('لازم توافق على أن الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل قبل الدفع.', 'Please tick the non-refundable consent before paying.');
+                    if (consentBox) consentBox.focus();
+                    release();
+                    return;
+                }
                 msg.textContent = txt('جارٍ تجهيز الدفع...', 'Preparing payment...');
                 const client = state.client || { name: null, phone: null, email: null };
                 try {
@@ -792,6 +803,7 @@ note.textContent = msg;
                             project_id: state.projectId,
                             billing_period: coBilling,
                             addons: coAddons,
+                            refund_consent: true,
                         })
                     });
                     const data = await r.json();

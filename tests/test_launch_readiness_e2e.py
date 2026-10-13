@@ -104,7 +104,7 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
         assert slug in staffed, f"diagnosed agent {slug} not staffed"
 
     code, pay = await call("POST", "/api/payments", {
-        "package": tier, "method": "creditcard", "customer_name": "عميل تجريبي",
+        "refund_consent": True, "package": tier, "method": "creditcard", "customer_name": "عميل تجريبي",
         "customer_phone": "0555123456", "project_id": proj["project_id"], "addons": addons})
     assert code == 200, pay
     assert pay["total"] == pm.total_with_vat(catalog.plan_amount(tier, "monthly", addons))

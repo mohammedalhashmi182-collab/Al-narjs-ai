@@ -378,7 +378,7 @@ class TestGatewayFailureFallback:
             with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
                 return await anon.post(
                     "/api/payments",
-                    json={"package": "starter", "method": "mada", "customer_name": "مشتر"},
+                    json={"refund_consent": True, "package": "starter", "method": "mada", "customer_name": "مشتر"},
                 )
         finally:
             monkey.undo()
@@ -528,7 +528,7 @@ class TestVatInclusiveCharging:
 
         anon, _ = api
         with _gateway_config():
-            r = await anon.post("/api/payments", json={"package": "starter", "method": "invoice"})
+            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "starter", "method": "invoice"})
         base = catalog.PACKAGES["starter"]["amount"]
         assert r.json()["invoice_total"] == pm.total_with_vat(base)
         # The bank-transfer quote must match the invoice: total is VAT-inclusive
@@ -752,7 +752,7 @@ class TestPublicSurface:
 
     async def test_an_unknown_package_is_a_client_error_not_a_crash(self, api):
         anon, _ = api
-        r = await anon.post("/api/payments", json={"package": "platinum", "method": "invoice"})
+        r = await anon.post("/api/payments", json={"refund_consent": True, "package": "platinum", "method": "invoice"})
         assert r.status_code == 400
 
     async def test_the_invoice_fallback_carries_the_amount_the_invoice_bills(self, api):
@@ -762,7 +762,7 @@ class TestPublicSurface:
         with _gateway_config():
             r = await anon.post(
                 "/api/payments",
-                json={"package": "starter", "method": "invoice", "customer_name": "-buy-test"},
+                json={"refund_consent": True, "package": "starter", "method": "invoice", "customer_name": "-buy-test"},
             )
         assert r.status_code == 200
         body = r.json()

@@ -24,7 +24,7 @@ import json
 import re
 from dataclasses import dataclass, field
 
-from src.services import catalog, payments
+from src.services import catalog, payments, policies
 
 MAX_PROBLEM_CHARS = 2000
 MIN_PROBLEM_CHARS = 8
@@ -330,7 +330,8 @@ def _llm_prompt(problem: str, rules: Diagnosis, locale: str) -> tuple[str, str]:
         "You are the Virtual CEO of Al-Narjis AI, a Saudi platform of AI agents. "
         "Diagnose the visitor's business problem and staff it with the FEWEST agents "
         "that solve it, chosen ONLY from this roster (use the slug):\n" + roster +
-        "\nNever invent numbers, results or prices. Reply with JSON only: "
+        "\nNever invent numbers, results or prices.\n" + policies.POLICY_PROMPT +
+        "\nReply with JSON only: "
         '{"diagnosis_ar": "...", "diagnosis_en": "...", "agents": ["slug", ...], "full_company": false}'
     )
     hint = ", ".join(rules.agents)
