@@ -283,13 +283,13 @@ body.v2 {
    ===================================================================== */
 .hero {
   background:
-    linear-gradient(90deg, var(--v2-ivory) 0%, rgba(250, 246, 239, .92) 38%, rgba(250, 246, 239, 0) 62%),
+    linear-gradient(270deg, var(--v2-ivory) 0%, var(--v2-ivory) 44%, rgba(250, 246, 239, 0) 60%),
     url("/static/img/hero-riyadh.webp") left bottom / auto 100% no-repeat,
     linear-gradient(180deg, #fbf8fd 0%, var(--v2-lavender-soft) 100%);
   color: var(--v2-ink); padding: 64px 0 80px; position: relative; overflow: hidden;
 }
 [dir="ltr"] .hero { background:
-    linear-gradient(270deg, var(--v2-ivory) 0%, rgba(250, 246, 239, .92) 38%, rgba(250, 246, 239, 0) 62%),
+    linear-gradient(90deg, var(--v2-ivory) 0%, var(--v2-ivory) 44%, rgba(250, 246, 239, 0) 60%),
     url("/static/img/hero-riyadh.webp") right bottom / auto 100% no-repeat,
     linear-gradient(180deg, #fbf8fd 0%, var(--v2-lavender-soft) 100%); }
 .hero .eyebrow, .eyebrow { color: var(--v2-earth); }
