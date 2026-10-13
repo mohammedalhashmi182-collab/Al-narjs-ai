@@ -509,7 +509,43 @@
                 const startIdx = 0;
                 state.qIndex = 0;
                 addMsg('agent', txt(agent.intro_ar || '', agent.intro_en || '') + (agent.recommendation && !isAr() ? '\n\n💡 ' + agent.recommendation : ''));
+                addUploader(agent.slug);
                 askNext();
+            }
+
+            // Agent tools: data files for the analyst, FAQ/knowledge for customer service.
+            const UPLOADERS = {
+                data_analyst: { path: 'files', accept: '.csv,.xlsx', ar: 'ارفع ملف بيانات (CSV أو Excel، حتى 5 ميجابايت)', en: 'Upload a data file (CSV or Excel, up to 5 MB)' },
+                customer_service: { path: 'knowledge', accept: '.txt,.pdf,.md', ar: 'ارفع الأسئلة الشائعة أو سياساتك (TXT أو PDF، حتى 3 ميجابايت)', en: 'Upload your FAQ or policies (TXT or PDF, up to 3 MB)' }
+            };
+            function addUploader(slug) {
+                const cfg = UPLOADERS[slug];
+                if (!cfg) return;
+                const wrap = document.createElement('div');
+                wrap.className = 'msg msg-agent';
+                wrap.style.cssText = 'background:var(--n-sand-2);color:var(--n-brown);border:1px dashed var(--n-gold);border-radius:20px;padding:10px 14px;';
+                const label = document.createElement('div');
+                label.textContent = '📎 ' + txt(cfg.ar, cfg.en);
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = cfg.accept;
+                input.style.marginTop = '6px';
+                const status = document.createElement('div');
+                status.style.fontSize = '0.85em';
+                input.addEventListener('change', async () => {
+                    const f = input.files && input.files[0];
+                    if (!f) return;
+                    const fd = new FormData();
+                    fd.append('file', f);
+                    status.textContent = txt('جارٍ الرفع...', 'Uploading...');
+                    try {
+                        const r = await fetch(`/api/portal/projects/${state.projectId}/${cfg.path}`, { method: 'POST', body: fd });
+                        const d = await r.json();
+                        status.textContent = r.ok ? ('✓ ' + f.name + (d.rows !== undefined ? ' — ' + d.rows + txt(' صف', ' rows') : '')) : ('✗ ' + (d.detail || r.status));
+                    } catch (e) { status.textContent = '✗ ' + txt('تعذّر الرفع', 'Upload failed'); }
+                });
+                wrap.appendChild(label); wrap.appendChild(input); wrap.appendChild(status);
+                $('chatBox').appendChild(wrap);
             }
 
             function askNext() {

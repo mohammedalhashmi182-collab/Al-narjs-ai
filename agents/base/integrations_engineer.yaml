@@ -27,7 +27,7 @@ x_tasami:
   code: PD-05
   dept: PD
   authority: execute_with_approval
-  micro_budget_usd: 0
+  micro_budget_sar: 0
   owner_only: false
   modes: []
   receives_from:

@@ -387,6 +387,11 @@ from src.interfaces.automation_routes import router as automation_router  # noqa
 
 app.include_router(automation_router)
 
+# Agent tools: web search, CSV/XLSX uploads, Salla/Zid read-only, knowledge base.
+from src.interfaces.agent_tools_routes import router as agent_tools_router  # noqa: E402
+
+app.include_router(agent_tools_router)
+
 
 async def get_session() -> AsyncSession:
     async with app.state.session_factory() as session:
@@ -1457,6 +1462,9 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
         brief = agent_brief.brief_block(
             request.answers, (_catalog.EMPLOYEES.get(slug) or {}).get("questions"), project.client_name
         )
+
+        from src.services import agent_tools as _tools
+        brief += await _tools.run_context(session, slug, project, request.answers)
 
         from src.core.model_provider import ModelRequest
         locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")

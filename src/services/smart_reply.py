@@ -296,6 +296,15 @@ async def handle_inbound(
             lead.suggested_package = plan_key
             lead_pipeline.set_stage(pipe, "qualified", "diagnosed")
         else:
+            kb_hits = await _kb_hits(session, text)
+            if kb_hits:
+                body = compose_kb_answer(kb_hits)
+                meta["kb"] = [h["title"] for h in kb_hits]
+                draft = ReplyDraft(
+                    channel=channel, recipient=recipient, lead_id=lead.id, kind=kind,
+                    inbound_text=text[:4000], draft_text=body, plan_key=plan_key, meta=meta, status="pending",
+                )
+                return await queue_or_send(session, draft, base_url=base_url)
             if await _greeted_recently(session, channel, recipient):
                 return None  # do not repeat the greeting for every "ok" / "طيب"
             body = compose_greeting()
@@ -306,6 +315,24 @@ async def handle_inbound(
         inbound_text=text[:4000], draft_text=body, plan_key=plan_key, meta=meta, status="pending",
     )
     return await queue_or_send(session, draft, base_url=base_url)
+
+
+async def _kb_hits(session: AsyncSession, text: str) -> list[dict]:
+    """Owner knowledge-base passages answering this message (empty on any error)."""
+    try:
+        from src.services.agent_tools import knowledge_base
+
+        return await knowledge_base.search(session, text, project_id=None, k=2)
+    except Exception:
+        return []
+
+
+def compose_kb_answer(hits: list[dict]) -> str:
+    """Reply grounded only in the owner's FAQ. Still a draft: review mode applies."""
+    top = hits[0]["text"].strip()
+    if len(top) > 600:
+        top = top[:600].rsplit(" ", 1)[0] + "…"
+    return f"أهلًا بك 🌿\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
 
 
 async def _greeted_recently(session: AsyncSession, channel: str, recipient: str) -> bool:

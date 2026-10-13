@@ -32,7 +32,7 @@ ALIASES: dict[str, tuple[str, ...]] = {
     "directive": ("owner_directive",),
     "goal": ("objective",),
     "action": ("objective",),
-    "amount": ("amount_usd",),
+    "amount": ("amount_sar",),
     "deliverable": ("source_text",),
     "niche": ("industry",),
     "offer": ("package_name_ar",),

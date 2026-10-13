@@ -31,7 +31,7 @@ MIN_PROBLEM_CHARS = 8
 LLM_TIMEOUT_SECONDS = 12.0
 
 # Signal -> agents. Each rule lists Arabic and English stems (lower-cased,
-# matched as substrings) and the agents that solve that kind of problem.
+# matched per token, see ``stem_matches``) and the agents that solve that kind of problem.
 @dataclass(frozen=True)
 class Need:
     key: str
@@ -60,11 +60,11 @@ NEEDS: tuple[Need, ...] = (
           "store", "shop", "salla", "shopify", "product", "cart", "checkout"),
          ("store_manager", "product_describer")),
     Need("support", "ضغط في الرد على العملاء", "customers waiting for replies",
-         ("رد", "ردود", "استفسار", "واتساب", "خدمة العملاء", "شكاوى", "شكوى", "رسائل",
+         ("رد", "ردود", "أرد", "نرد", "يرد", "استفسار", "واتساب", "خدمة العملاء", "شكاوى", "شكوى", "رسائل",
           "support", "reply", "replies", "inquir", "complain", "whatsapp", "messages"),
          ("customer_service", "customer_manager")),
     Need("sales", "عملاء محتملون لا يتحولون إلى مبيعات", "leads that do not turn into sales",
-         ("مبيعات", "بيع", "صفقات", "عروض أسعار", "عرض سعر", "إغلاق", "عملاء محتمل", "ليدز",
+         ("مبيعات", "بيع", "نبيع", "أبيع", "يبيع", "صفقات", "عروض أسعار", "عرض سعر", "إغلاق", "عملاء محتمل", "ليدز",
           "sales", "leads", "deal", "close", "quotation", "pipeline"),
          ("sales_closer", "lead_acquisition", "email_writer")),
     Need("analytics", "قرارات بلا أرقام واضحة", "decisions made without clear numbers",
@@ -113,11 +113,69 @@ def _normalise(text: str) -> str:
     return text.lower()
 
 
+# ---------------------------------------------------------------- matching
+# Word/token matching instead of raw substrings: "محل ورد" (a flower shop) must
+# not trigger the "رد" (reply) need. Each text token is compared with each stem
+# token after peeling common Arabic proclitics (ال، و، ف، ب، ل، ك ...). A
+# proclitic is only peeled when what is left is still a plausible word, so the
+# root letters of "ورد" / "بيع" / "ربح" are never mistaken for a prefix.
+_AR_ARTICLE_PREFIXES = ("وال", "فال", "بال", "كال", "لل", "ال")
+_AR_SINGLE_PREFIXES = ("و", "ف", "ب", "ل", "ك")
+_SHORT_STEM = 3  # stems this short must match a whole token (after prefix peel)
+
+
+def _fold(text: str) -> str:
+    text = _normalise(text)
+    text = re.sub("[\u0623\u0625\u0622]", "\u0627", text)  # أ إ آ -> ا
+    return text.replace("\u0649", "\u064a").replace("\u0629", "\u0647")  # ى->ي, ة->ه
+
+
+def tokenize(text: str) -> list[str]:
+    return re.findall(r"[\w']+", _fold(text))
+
+
+def _variants(token: str) -> set[str]:
+    out = {token}
+    for pre in _AR_ARTICLE_PREFIXES:
+        if token.startswith(pre) and len(token) - len(pre) >= 2:
+            out.add(token[len(pre):])
+    for pre in _AR_SINGLE_PREFIXES:
+        rest = token[len(pre):]
+        if token.startswith(pre) and len(rest) >= 3:
+            out.add(rest)
+            for art in ("ال",):
+                if rest.startswith(art) and len(rest) - 2 >= 2:
+                    out.add(rest[2:])
+    return out
+
+
+def _token_matches(token: str, stem: str) -> bool:
+    for v in _variants(token):
+        if len(stem) <= _SHORT_STEM:
+            if v == stem or (stem.isascii() and v == stem + "s"):
+                return True
+        elif v.startswith(stem):
+            return True
+    return False
+
+
+def stem_matches(tokens: list[str], stem: str) -> bool:
+    """True when ``stem`` (one or more words) appears as whole tokens in order."""
+    parts = tokenize(stem)
+    if not parts:
+        return False
+    n = len(parts)
+    for i in range(len(tokens) - n + 1):
+        if all(_token_matches(tokens[i + j], parts[j]) for j in range(n)):
+            return True
+    return False
+
+
 def diagnose_rules(problem: str) -> Diagnosis:
     """Deterministic diagnosis: no key, no network."""
-    text = _normalise(problem)
-    needs = [n for n in NEEDS if any(stem in text for stem in n.stems)]
-    full = any(stem in text for stem in FULL_COMPANY_STEMS)
+    tokens = tokenize(problem)
+    needs = [n for n in NEEDS if any(stem_matches(tokens, stem) for stem in n.stems)]
+    full = any(stem_matches(tokens, stem) for stem in FULL_COMPANY_STEMS)
 
     agents: list[str] = []
     for need in needs:
