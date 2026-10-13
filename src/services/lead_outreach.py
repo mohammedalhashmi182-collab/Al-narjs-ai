@@ -75,7 +75,7 @@ def determine_variant(lead: Any) -> str:
 
 
 def _package_name(package_key: Optional[str], lang: str) -> str:
-    pkg = catalog.PACKAGES.get(package_key or "")
+    pkg = catalog.DOMAINS.get(package_key or "") or catalog.PACKAGES.get(package_key or "")
     if not pkg:
         return "النرجس" if lang == "ar" else "Al-Narjis"
     return pkg["name"] if lang == "ar" else pkg["name_en"]

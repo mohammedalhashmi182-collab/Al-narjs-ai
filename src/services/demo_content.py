@@ -34,7 +34,7 @@ def clear_cache() -> None:
 
 
 def get_package_demo(package_key: str) -> dict | None:
-    if package_key not in catalog.PACKAGES:
+    if package_key not in catalog.DOMAINS:
         return None
     return _load(package_key)
 
@@ -64,11 +64,16 @@ def get_employee_demo(package_key: str, slug: str) -> dict | None:
 
 
 def get_package_detail(package_key: str) -> dict | None:
-    pkg = catalog.get_package(package_key)
-    if not pkg:
+    if package_key in catalog.DOMAINS:
+        tier = catalog.PACKAGES[catalog.resolve_tier(package_key)]
+        pkg = {**catalog.DOMAINS[package_key], "price": tier["price"], "amount": tier["amount"]}
+        slugs = catalog.DOMAIN_TEAMS[package_key]
+    elif package_key in catalog.PACKAGES:
+        pkg = catalog.PACKAGES[package_key]
+        slugs = catalog.get_team(package_key)
+    else:
         return None
 
-    slugs = catalog.get_team(package_key)
     names = {slug: (catalog.get_employee(slug) or {}).get("title_ar", slug) for slug in slugs}
 
     team = []

@@ -502,6 +502,7 @@ async def owner_entry(request: Request):
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
     from src.services import catalog, transfer
+    from src.services import payments as _pm
     employees = list(catalog.EMPLOYEES.values())
     agent_count = len(employees)
     registry = getattr(app.state, "agent_registry", None)
@@ -530,6 +531,21 @@ async def landing_page(request: Request):
                 {"slug": slug, **emp} for slug, emp in list(catalog.EMPLOYEES.items())[:6]
             ],
             "packages": catalog.PACKAGES,
+            # CEO-advisor rebrand: tiers in display order with VAT-inclusive totals
+            "plans": [
+                {
+                    "key": key,
+                    **catalog.PACKAGES[key],
+                    "total_halalas": _pm.total_with_vat(catalog.PACKAGES[key]["amount"]),
+                    "recommended": key == catalog.RECOMMENDED_PACKAGE,
+                }
+                for key in catalog.PACKAGE_ORDER
+            ],
+            "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
+            "contact_prefilled": transfer.contact_channels(
+                "السلام عليكم، أريد استشارة الرئيس التنفيذي في النرجس لمشروعي."
+            ),
+            "telegram_handle": transfer.TELEGRAM_BOT.rsplit("/", 1)[-1],
         },
     )
 
@@ -624,7 +640,7 @@ async def public_agent_page(slug: str, request: Request):
             if len(related) >= 6:
                 break
 
-    recommended_pkg = "growth"
+    recommended_pkg = "starter"
     for pkg_key, team in catalog.PACKAGE_TEAMS.items():
         if slug in team:
             recommended_pkg = pkg_key
@@ -1242,7 +1258,7 @@ async def delete_workflow(slug: str):
 async def portal_packages():
     from src.services import catalog
 
-    icons = {"social": "fa-hashtag", "ecommerce": "fa-store", "content": "fa-pen-nib", "growth": "fa-chart-line"}
+    icons = {"starter": "fa-seedling", "team": "fa-people-group", "scale": "fa-layer-group", "company": "fa-building"}
     result = []
     for key, p in catalog.PACKAGES.items():
         team = catalog.get_team(key)
@@ -1254,6 +1270,7 @@ async def portal_packages():
             "tagline": p["tagline"],
             "tagline_en": p["tagline_en"],
             "team_size": len(team),
+            "agents": p["agent_count"],
             "icon": icons.get(key, "fa-robot"),
         })
     return {"packages": result}
@@ -1458,7 +1475,7 @@ async def portal_project_payload(session, project) -> dict:
             t["status"] = row.status
             t["done"] = bool(row.result)
 
-    pkg = catalog.PACKAGES.get(project.package, {})
+    pkg = catalog.get_package(project.package) or {}
     return {
         "project_id": str(project.id),
         "package": project.package,
@@ -1482,6 +1499,30 @@ class ConsultRequest(BaseModel):
     messages: list[ConsultMessage]
 
 
+class CeoConsultRequest(BaseModel):
+    problem: str
+    lang: Optional[str] = None
+
+
+@app.post("/api/ceo/consult", dependencies=[Depends(rate_limit_consult)])
+async def ceo_consult(request: CeoConsultRequest, http_request: Request):
+    """The CEO advisor: diagnose, staff with real agents, recommend a tier.
+
+    Works without any API key (deterministic rules); a configured model chain
+    only refines the wording and agent choice, and is validated against the
+    catalog. The plan and its VAT-inclusive total are always computed here.
+    """
+    from src.services import ceo_advisor
+
+    try:
+        problem = ceo_advisor.validate_problem(request.problem)
+    except ValueError:
+        raise HTTPException(400, "Describe the problem in a sentence or two")
+    locale = request.lang or http_request.cookies.get(_LOCALE_COOKIE, "ar")
+    provider = getattr(app.state, "model_provider", None)
+    return await ceo_advisor.diagnose(problem, provider=provider, locale=locale)
+
+
 @app.post("/api/consult", dependencies=[Depends(rate_limit_consult)])
 async def consult_chat(request: ConsultRequest, http_request: Request):
     from src.core.model_provider import ModelRequest
@@ -1499,7 +1540,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     from src.services import catalog as _catalog
 
     _pkgs = ", ".join(
-        f"{p['name']} ({p['price']} SAR/mo)" for p in _catalog.PACKAGES.values()
+        f"{p['name']} ({p['price']} SAR/mo, {p['agent_count']} agents + CEO)" for p in _catalog.PACKAGES.values()
     )
     _emps = ", ".join(
         e["title_ar"] for e in _catalog.EMPLOYEES.values()

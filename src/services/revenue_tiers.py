@@ -25,12 +25,13 @@ from typing import Any, Optional
 from src.config.settings import settings
 from src.models.crm import ACTIVE_STATUSES
 
-# Deal value in SAR/month (keep in sync with catalog.PACKAGES amount//100).
+from src.services import catalog as _catalog
+
+# Deal value in SAR/month, derived from catalog.PACKAGES (pre-VAT). A lead's
+# suggested domain (social/ecommerce/content/growth) is priced at the tier
+# that staffs a full five-agent domain team.
 PRICE_SAR: dict[str, int] = {
-    "social": 1500,
-    "content": 1200,
-    "ecommerce": 1000,
-    "growth": 800,
+    key: _catalog.tier_price_sar(key) for key in (*_catalog.PACKAGES, *_catalog.DOMAINS)
 }
 
 # --- evidence weights ---------------------------------------------------------
@@ -187,7 +188,7 @@ def score_lead(lead_like: Any) -> TierScore:
     score += min(10, _segment_relevance(segment))
 
     package = _field(lead_like, "suggested_package") or "social"
-    deal_value = PRICE_SAR.get(package, 1200)
+    deal_value = PRICE_SAR.get(package) or _catalog.tier_price_sar(package)
     score += min(8, max(1, round(deal_value / WEIGHT_DEAL_STEP)))
 
     score = min(100, max(0, score))

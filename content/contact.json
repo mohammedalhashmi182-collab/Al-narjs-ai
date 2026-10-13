@@ -1,0 +1,5 @@
+{
+  "_comment": "Public contact channels. WhatsApp comes from WHATSAPP_BUSINESS_NUMBER (settings default 0552978753, the number printed on invoices). Telegram is the production bot. messenger_page is the Facebook Page username for m.me/<page>: PLACEHOLDER - no Facebook Page was found in the repo; fill it in to show the Messenger button.",
+  "telegram_handle": "AlNarjs7BOT",
+  "messenger_page": ""
+}

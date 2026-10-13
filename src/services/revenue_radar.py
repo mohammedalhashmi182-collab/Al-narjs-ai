@@ -25,6 +25,7 @@ from .lead_outreach import generate_message
 from .lead_segmentation import SEGMENT_LABELS_AR
 from .revenue_tiers import data_flags, provenance, reference_id, score_lead, tier_counts
 from .catalog import PACKAGES as _CATALOG
+from .catalog import resolve_tier as _resolve_tier
 from .telegram_sender import send_status
 
 # --- sizing assumptions (documented for owner audit) --------------------------
@@ -73,9 +74,9 @@ class WaveMetrics:
 
 
 def _package_price_sar(package: str | None) -> int:
-    pkg = (package or "social").strip()
-    meta = _CATALOG.get(pkg, _CATALOG["social"])
-    return meta["amount"] // 100
+    from .catalog import tier_price_sar
+
+    return tier_price_sar(package or "social")
 
 
 def _interleave(lists: list[list]) -> list:
@@ -192,7 +193,7 @@ async def radar_payload(
         "insight": insight,
         "problem": problem,
         "offer": pkg,
-        "offer_label": _CATALOG.get(pkg, _CATALOG["social"]),
+        "offer_label": _CATALOG[_resolve_tier(pkg)],
         "price_sar": price,
         "vat": vat,
         "total_sar": total,

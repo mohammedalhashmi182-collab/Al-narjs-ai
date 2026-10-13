@@ -220,10 +220,11 @@ class ClosedSale(BaseModel):
         from src.services import catalog
 
         label = _clean(self.chosenPackage, MAX_FREE_TEXT).casefold()
-        for key, meta in catalog.PACKAGES.items():
+        offers = {**catalog.PACKAGES, **catalog.DOMAINS}
+        for key, meta in offers.items():
             if label in (key.casefold(), str(meta.get("price", "")).casefold()):
                 return key
-        for key, meta in catalog.PACKAGES.items():
+        for key, meta in offers.items():
             names = {
                 str(meta.get("name", "")).casefold(),
                 str(meta.get("name_en", "")).casefold(),
@@ -403,7 +404,7 @@ async def _wake_ceo(
     from src.automation.queue_worker import TaskPriority
     from src.services import catalog
 
-    package = catalog.PACKAGES.get(package_key or "") or {}
+    package = catalog.PACKAGES.get(package_key or "") or catalog.DOMAINS.get(package_key or "") or {}
     payload = {
         "origin": SOURCE,
         "manager": MANAGER,
@@ -442,7 +443,7 @@ async def _notify_owner(sale: ClosedSale, package_key: Optional[str]) -> str:
     if package_key:
         from src.services import catalog
 
-        amount = (catalog.PACKAGES.get(package_key) or {}).get("price")
+        amount = catalog.tier_price_sar(package_key)
 
     line = (
         "صفقة مغلقة من وكيل السوشيال ميديا\n"
