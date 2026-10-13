@@ -30,10 +30,25 @@ async def execute_schedule(session, schedule_id) -> dict:
             return await _run_agent(sched)
         if target_type == "ceo_loop":
             return await _run_ceo_loop(sched)
+        if target_type == "billing_renewals":
+            return await _run_billing_renewals(session, sched)
         return {"status": "unsupported", "target_type": target_type}
     except Exception as e:
         logger.exception("Schedule %s failed: %s", sched.id, e)
         return {"status": "error", "message": str(e)[:300]}
+
+
+async def _run_billing_renewals(session, sched) -> dict:
+    """Daily renewal pass: invoice before expiry, expire after the grace period."""
+    from src.services.renewals import RENEWAL_LEAD_DAYS, run_renewals
+
+    days = int((sched.payload or {}).get("days_before", RENEWAL_LEAD_DAYS))
+    result = await run_renewals(session, days_before=days)
+    return {
+        "status": "executed",
+        "invoiced": len(result["invoiced"]),
+        "expired": len(result["expired"]),
+    }
 
 
 async def _run_ceo_loop(sched) -> dict:

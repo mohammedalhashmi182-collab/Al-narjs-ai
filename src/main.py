@@ -113,6 +113,8 @@ async def lifespan(app: FastAPI):
 
     from src.automation.ceo_engine import ensure_company_loops
     await ensure_company_loops(scheduler)
+    from src.services.renewals import ensure_renewal_schedule
+    await ensure_renewal_schedule(scheduler)
 
     app.state.agent_registry = agent_registry
     app.state.model_provider = model_provider
@@ -537,10 +539,14 @@ async def landing_page(request: Request):
                     "key": key,
                     **catalog.PACKAGES[key],
                     "total_halalas": _pm.total_with_vat(catalog.PACKAGES[key]["amount"]),
+                    "annual_halalas": catalog.plan_amount(key, "annual"),
+                    "annual_total_halalas": _pm.total_with_vat(catalog.plan_amount(key, "annual")),
+                    "annual_price": str(catalog.plan_amount(key, "annual") // 100),
                     "recommended": key == catalog.RECOMMENDED_PACKAGE,
                 }
                 for key in catalog.PACKAGE_ORDER
             ],
+            "addon": catalog.ADDON_AGENT,
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
                 "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
@@ -1272,8 +1278,14 @@ async def portal_packages():
             "team_size": len(team),
             "agents": p["agent_count"],
             "icon": icons.get(key, "fa-robot"),
+            "amount": p["amount"],
+            "annual_amount": catalog.plan_amount(key, "annual"),
         })
-    return {"packages": result}
+    return {
+        "packages": result,
+        "addon": {**catalog.ADDON_AGENT, "max": catalog.MAX_ADDON_AGENTS},
+        "billing_periods": catalog.BILLING_PERIODS,
+    }
 
 
 @app.get("/api/portal/packages/{package_key}/demo")
@@ -1484,6 +1496,9 @@ async def portal_project_payload(session, project) -> dict:
         "client_name": project.client_name,
         "status": project.status,
         "requires_payment": project.status != "active",
+        "billing_period": getattr(project, "billing_period", None) or "monthly",
+        "addon_agents": int(getattr(project, "addon_agents", 0) or 0),
+        "current_period_end": project.current_period_end.isoformat() if getattr(project, "current_period_end", None) else None,
         "team": team,
     }
 
@@ -2183,6 +2198,8 @@ class PaymentCreateRequest(BaseModel):
     promo: Optional[str] = None
     lead_id: Optional[str] = None
     project_id: Optional[str] = None
+    billing_period: str = "monthly"  # "monthly" | "annual" (pay 10 months, get 12)
+    addons: int = 0                  # extra agents on top of the tier, 499 SAR/month each
 
 
 def _request_locale(request: Request) -> str:
@@ -2234,7 +2251,7 @@ def _payment_replay_key(request: Request, body: "PaymentCreateRequest") -> Optio
     who = (body.customer_phone or body.customer_email or "").strip().lower()
     if not who:
         return None
-    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or ""))
+    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", body.billing_period.lower(), str(body.addons)))
 
 
 @app.post("/api/payments")
@@ -2265,7 +2282,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     include_vat = locale == "ar"
     base = _public_base_url(request)
     try:
-        base_amount = pm.package_amount(body.package)
+        base_amount = pm.package_amount(body.package, body.billing_period, body.addons)
     except pm.PaymentError as exc:
         raise HTTPException(400, str(exc))
     final_amount, discount_pct = pm.apply_promo(base_amount, body.promo)
@@ -2296,6 +2313,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             promo=body.promo,
             lead_id=lead_uuid,
             project_id=project_uuid,
+            billing_period=body.billing_period,
+            addons=body.addons,
         )
 
         method = body.method.lower()
@@ -2540,6 +2559,21 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
     await session.commit()
     activation = await _pm.activate_subscription(session, payment)
     return {"applied": True, **activation}
+
+
+@app.post("/api/owner/billing/renewals/run", dependencies=[Depends(require_owner_api)])
+async def owner_run_renewals(request: Request, days_before: Optional[int] = None):
+    """Owner-only: run one renewal pass now (the scheduler runs it daily).
+
+    Raises renewal invoices for subscriptions ending within ``days_before``
+    days, records draft reminders (never sent automatically) and expires
+    subscriptions whose 3-day grace has elapsed. Idempotent.
+    """
+    from src.services import renewals
+
+    days = renewals.RENEWAL_LEAD_DAYS if days_before is None else max(0, min(int(days_before), 60))
+    async with app.state.session_factory() as session:
+        return await renewals.run_renewals(session, days_before=days, base_url=_public_base_url(request))
 
 
 class ConfirmReceivedRequest(BaseModel):

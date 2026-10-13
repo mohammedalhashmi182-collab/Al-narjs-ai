@@ -26,6 +26,12 @@ MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
 VAT_RATE = 0.15
 
+from datetime import timedelta as _timedelta
+
+# Access survives this long past ``current_period_end`` before the renewal
+# job expires it (see src/services/renewals.py).
+RENEWAL_GRACE = _timedelta(days=3)
+
 # Methods that are settled by the Moyasar hosted checkout. Every one of them
 # needs MOYASAR_API_SECRET; without it the route silently degrades to a manual
 # invoice, which is why the UI asks capabilities() before offering a button.
@@ -50,15 +56,61 @@ def total_with_vat(halalas: int) -> int:
     return halalas + vat_amount(halalas)
 
 
-def package_amount(package: str) -> int:
+def _validate_addons(addons) -> int:
+    try:
+        addons = int(addons or 0)
+    except (TypeError, ValueError):
+        raise PaymentError("addons must be an integer")
+    if addons < 0 or addons > catalog.MAX_ADDON_AGENTS:
+        raise PaymentError(f"addons must be between 0 and {catalog.MAX_ADDON_AGENTS}")
+    return addons
+
+
+def _validate_period(billing_period: Optional[str]) -> str:
+    period = (billing_period or catalog.DEFAULT_BILLING_PERIOD).strip().lower()
+    if period not in catalog.BILLING_PERIODS:
+        raise PaymentError(f"Unknown billing period: {billing_period}")
+    return period
+
+
+def package_amount(package: str, billing_period: Optional[str] = None, addons: int = 0) -> int:
+    """Pre-VAT halalas for one billing period (monthly, or annual = 10 months)."""
     # A lead's suggested domain (social/ecommerce/content/growth) is billed at
     # the tier that staffs a full domain team; tier keys pass through.
     if package in catalog.DOMAINS:
         package = catalog.resolve_tier(package)
-    pkg = catalog.PACKAGES.get(package)
-    if not pkg:
+    if package not in catalog.PACKAGES:
         raise PaymentError(f"Unknown package: {package}")
-    return pkg["amount"]
+    return catalog.plan_amount(package, _validate_period(billing_period), _validate_addons(addons))
+
+
+def period_months(billing_period: Optional[str]) -> int:
+    """Months of access one paid invoice buys (1 or 12)."""
+    return catalog.BILLING_PERIODS[catalog.resolve_billing_period(billing_period)]["months_granted"]
+
+
+def add_months(dt, months: int):
+    """Calendar-month addition, clamped to the last day (Jan 31 + 1 = Feb 28/29)."""
+    import calendar
+
+    month0 = dt.month - 1 + months
+    year = dt.year + month0 // 12
+    month = month0 % 12 + 1
+    day = min(dt.day, calendar.monthrange(year, month)[1])
+    return dt.replace(year=year, month=month, day=day)
+
+
+def order_description(package: str, billing_period: str, addons: int, discount_pct: int = 0, renewal: bool = False) -> str:
+    pkg = catalog.PACKAGES[package]
+    description = f"باقة {pkg['name']} - النرجس للذكاء الاصطناعي"
+    if addons:
+        description += f" + {addons} وكيل إضافي"
+    description += " (اشتراك سنوي: 12 شهراً بسعر 10)" if billing_period == "annual" else " (اشتراك شهري)"
+    if renewal:
+        description += " - تجديد"
+    if discount_pct:
+        description += f" (خصم الإطلاق {discount_pct}%)"
+    return description
 
 
 def promo_active() -> bool:
@@ -320,25 +372,29 @@ async def create_payment(
     promo: Optional[str] = None,
     lead_id: Optional[UUID] = None,
     project_id: Optional[UUID] = None,
+    billing_period: Optional[str] = None,
+    addons: int = 0,
+    is_renewal: bool = False,
 ) -> Payment:
     if package in catalog.DOMAINS:
         package = catalog.resolve_tier(package)
-    pkg = catalog.PACKAGES.get(package)
-    if not pkg:
+    if package not in catalog.PACKAGES:
         raise PaymentError(f"Unknown package: {package}")
+    period = _validate_period(billing_period)
+    addons = _validate_addons(addons)
 
-    settings = get_settings()
-    amount, discount_pct = apply_promo(pkg["amount"], promo)
-    name = pkg["name"]
-
-    description = f"باقة {name} - النرجس للذكاء الاصطناعي"
-    if discount_pct:
-        description += f" (خصم الإطلاق {discount_pct}%)"
+    # ``amount`` is the whole period's pre-VAT base (annual = 10 x monthly);
+    # VAT, the Moyasar charge and the gateway amount check all derive from it.
+    amount, discount_pct = apply_promo(catalog.plan_amount(package, period, addons), promo)
+    description = order_description(package, period, addons, discount_pct, renewal=is_renewal)
 
     payment = Payment(
         amount=amount,
         currency="SAR",
         package=package,
+        billing_period=period,
+        addon_agents=addons,
+        is_renewal=is_renewal,
         customer_name=customer_name,
         customer_phone=customer_phone,
         customer_email=customer_email,
@@ -695,12 +751,35 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
     if project is None:
         return {"activated": False, "reason": "no matching project"}
 
-    if project.status == "active":
-        return {"activated": True, "already_active": True}
+    # Idempotent: the same paid order never extends the period twice.
+    if project.last_payment_id is not None and str(project.last_payment_id) == str(payment.id):
+        return {"activated": True, "already_active": True, "project_id": str(project.id)}
 
+    now = datetime.now(timezone.utc)
+    period = catalog.resolve_billing_period(getattr(payment, "billing_period", None))
+    current_end = project.current_period_end
+    if current_end is not None and current_end.tzinfo is None:
+        current_end = current_end.replace(tzinfo=timezone.utc)
+    # A renewal paid early (or inside the grace window) extends from the old end
+    # so the client never loses or gains days; a lapsed one restarts from now.
+    start = current_end if (current_end is not None and current_end > now - RENEWAL_GRACE) else now
+    project.current_period_end = add_months(start, period_months(period))
+    project.billing_period = period
+    project.addon_agents = int(getattr(payment, "addon_agents", 0) or 0)
+    project.last_payment_id = payment.id
+    if project.renewal_payment_id is not None and str(project.renewal_payment_id) == str(payment.id):
+        project.renewal_payment_id = None
+    was_active = project.status == "active"
     project.status = "active"
+    verb = "renewed" if was_active or getattr(payment, "is_renewal", False) else "activated"
     project.subscription_note = (
-        f"activated by payment {payment.id} on {datetime.now(timezone.utc).isoformat()}"
+        f"{verb} by payment {payment.id} on {now.isoformat()} "
+        f"({period}) until {project.current_period_end.isoformat()}"
     )
     await session.commit()
-    return {"activated": True, "project_id": str(project.id)}
+    return {
+        "activated": True,
+        "already_active": was_active,
+        "project_id": str(project.id),
+        "current_period_end": project.current_period_end.isoformat(),
+    }

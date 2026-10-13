@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, Numeric, String, Text, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, Numeric, String, Text, func, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -233,6 +233,12 @@ class Payment(Base):
     gateway_payment_id: Mapped[Optional[str]] = mapped_column(String(100))
     gateway_source: Mapped[Optional[str]] = mapped_column(String(50))
     description: Mapped[Optional[str]] = mapped_column(Text)
+    # Billing: "monthly" or "annual" (pay 10, get 12) and extra agents on
+    # top of the tier. ``amount`` is already the whole period's pre-VAT base.
+    billing_period: Mapped[str] = mapped_column(String(10), default="monthly", server_default="monthly")
+    addon_agents: Mapped[int] = mapped_column(default=0, server_default="0")
+    # Set when the order was raised by the renewal job for an existing project.
+    is_renewal: Mapped[bool] = mapped_column(default=False, server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -247,6 +253,13 @@ class ClientProject(Base):
     package: Mapped[str] = mapped_column(String(50), nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
     subscription_note: Mapped[Optional[str]] = mapped_column(Text)
+    # Subscription period: access runs until ``current_period_end`` (+ grace).
+    # NULL = activated before renewals existed (no expiry is enforced).
+    billing_period: Mapped[str] = mapped_column(String(10), default="monthly", server_default="monthly")
+    addon_agents: Mapped[int] = mapped_column(default=0, server_default="0")
+    current_period_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), index=True)
+    last_payment_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True))
+    renewal_payment_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     agents: Mapped[list["ClientAgent"]] = relationship("ClientAgent", back_populates="project", cascade="all, delete-orphan")
