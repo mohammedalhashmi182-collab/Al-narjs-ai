@@ -256,9 +256,9 @@ async def test_checkout_api_bills_annual_with_addons(maker):
     app.state.session_factory = maker
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
-        r = await c.post("/api/payments", json={"package": "starter", "method": "invoice",
+        r = await c.post("/api/payments", json={"refund_consent": True, "package": "starter", "method": "invoice",
                                                 "billing_period": "annual", "addons": 1})
-        bad = await c.post("/api/payments", json={"package": "starter", "method": "invoice",
+        bad = await c.post("/api/payments", json={"refund_consent": True, "package": "starter", "method": "invoice",
                                                   "billing_period": "weekly"})
     body = r.json()
     assert body["amount"] == (49900 + 49900) * 10
