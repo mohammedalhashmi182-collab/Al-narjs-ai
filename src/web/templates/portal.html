@@ -393,7 +393,10 @@
                             client_name: state.client.name,
                             phone: state.client.phone,
                             email: state.client.email,
-                            package: state.pkg
+                            package: state.pkg,
+                            // CEO diagnosis hand-off: staff the recommended agents.
+                            agents: (new URLSearchParams(window.location.search).get('agents') || '').split(',').filter(Boolean),
+                            addons: Math.max(0, Math.min(12, parseInt(new URLSearchParams(window.location.search).get('addons') || '0', 10) || 0))
                         })
                     });
                     const data = await r.json();
