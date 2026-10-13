@@ -261,8 +261,10 @@ async def test_ready_to_buy_drafts_payment_link_created_only_on_approval(maker, 
         assert d.kind == "payment_link" and "{payment_url}" in d.draft_text
         assert created == []  # no invoice until the owner approves
         d = await smart_reply.approve(s, d.id)
-        assert d.status == "sent" and "checkout.moyasar.com/invoices/inv_1" in sent[0]
+        # The buyer gets our consent-gated invoice page, never a raw Moyasar link.
         pipe = await s.get(LeadPipeline, d.lead_id)
+        assert d.status == "sent" and f"/invoice/{pipe.payment_id}" in sent[0]
+        assert "checkout.moyasar.com" not in sent[0] and created == []
         assert pipe.stage == "payment_link_sent" and pipe.payment_url
         pay = await s.get(Payment, pipe.payment_id)
         assert pay.package == pipe.plan_key and pay.lead_id == d.lead_id
@@ -270,15 +272,15 @@ async def test_ready_to_buy_drafts_payment_link_created_only_on_approval(maker, 
 
 async def test_payment_link_failure_is_reported_not_sent(maker, monkeypatch):
     async def _boom(*a, **k):
-        raise payments.PaymentError("Moyasar API secret not configured")
+        raise payments.PaymentError("Unknown package: scale")
 
-    monkeypatch.setattr(payments, "initiate_moyasar", _boom)
+    monkeypatch.setattr(payments, "create_payment", _boom)
     async with maker() as s:
         await smart_reply.handle_inbound(s, channel="telegram", recipient="56", text=PROBLEM)
         pipe = (await s.execute(select(LeadPipeline))).scalars().one()
         d = await lead_pipeline.request_payment_link(s, pipe.lead_id, "scale", billing_period="annual")
         d = await smart_reply.approve(s, d.id)
-        assert d.status == "failed" and "Moyasar" in d.send_result["error"]
+        assert d.status == "failed" and "Unknown package" in d.send_result["error"]
 
 
 async def test_owner_payment_link_endpoint_validates(api, maker):
