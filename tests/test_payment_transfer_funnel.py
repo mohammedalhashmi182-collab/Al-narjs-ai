@@ -640,7 +640,7 @@ class TestTransferReported:
         monkeypatch.setattr("src.services.telegram_sender.send_owner_alert", fake_alert)
         payment = await _insert_payment(maker)
 
-        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported")
+        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
         assert r.status_code == 200
         body = r.json()
         assert body["reference"] == pm.reference(payment)
@@ -656,7 +656,7 @@ class TestTransferReported:
         monkeypatch.setattr("src.services.telegram_sender.send_owner_alert", fake_alert)
         payment = await _insert_payment(maker)
 
-        await anon.post(f"/api/payments/{payment.id}/transfer-reported")
+        await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
         async with maker() as session:
             from sqlalchemy import select
 
@@ -677,8 +677,8 @@ class TestTransferReported:
         monkeypatch.setattr("src.services.telegram_sender.send_owner_alert", fake_alert)
         payment = await _insert_payment(maker)
 
-        await anon.post(f"/api/payments/{payment.id}/transfer-reported")
-        second = await anon.post(f"/api/payments/{payment.id}/transfer-reported")
+        await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
+        second = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
         assert second.status_code == 200
         assert second.json()["already_reported"] is True
         assert len(alerts) == 1
@@ -692,7 +692,7 @@ class TestTransferReported:
         monkeypatch.setattr("src.services.telegram_sender.send_owner_alert", boom)
         payment = await _insert_payment(maker)
 
-        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported")
+        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
         assert r.status_code == 200 and r.json()["notified_owner"] is False
         async with maker() as session:
             from sqlalchemy import select
@@ -706,7 +706,7 @@ class TestTransferReported:
         anon, _ = api
         payment = await _insert_payment(maker, gateway="moyasar", gateway_payment_id="inv_123")
 
-        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported")
+        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
         assert r.status_code == 409
 
     async def test_an_already_paid_invoice_is_left_alone(self, api, maker, monkeypatch):
@@ -720,7 +720,7 @@ class TestTransferReported:
         monkeypatch.setattr("src.services.telegram_sender.send_owner_alert", fake_alert)
         payment = await _insert_payment(maker, status="paid")
 
-        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported")
+        r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
         assert r.status_code == 200
         assert r.json()["awaiting_verification"] is False
         assert alerts == []
