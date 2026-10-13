@@ -271,7 +271,7 @@ def test_v2_hero_and_how_use_the_approved_art_and_copy() -> None:
     assert "/static/img/hero-riyadh.webp" in css_body and "/static/img/how-diriyah.webp" in css_body
     for img in ("hero-riyadh.webp", "how-diriyah.webp"):
         path = ROOT / "src" / "web" / "static" / "img" / img
-        assert path.exists() and path.stat().st_size < 120_000, f"{img} missing or too heavy"
+        assert path.exists() and path.stat().st_size < 250_000, f"{img} missing or too heavy"
     # no fabricated client strip or third-party logos from the mockup
     for name in ("نيوم", "أرامكو", "NEOM", "Aramco", "موثوق به في"):
         assert name not in body

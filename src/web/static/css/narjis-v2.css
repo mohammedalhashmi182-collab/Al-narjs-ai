@@ -352,3 +352,20 @@ body.v2 {
   .sec-how, [dir="ltr"] .sec-how { background: linear-gradient(180deg, var(--v2-beige) 55%, rgba(241, 230, 211, .55)), url("/static/img/how-diriyah.webp") center bottom / cover no-repeat; }
   .steps { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* final "how it works" (howitworks_final): parchment, serif title, dotted step line */
+.sec-how { position: relative; overflow: hidden; }
+.how-title { font: 500 clamp(2.4rem, 5vw, 3.8rem)/1.15 var(--v2-font-serif), var(--v2-font-display); color: var(--v2-ink); margin-bottom: 10px; }
+[lang="ar"] .how-title, .how-title { font-family: var(--v2-font-display); font-weight: 600; }
+.how-line { display: block; width: 72px; height: 3px; border-radius: 2px; background: var(--v2-lavender); margin-bottom: 16px; }
+.lav { color: var(--v2-green-deep); }
+.steps { position: relative; }
+.steps::before { content: ""; position: absolute; top: 42px; inset-inline: 16%; border-top: 2px dotted var(--v2-lavender); opacity: .7; }
+.step { position: relative; }
+.step-ico { position: relative; z-index: 1; background: var(--v2-beige); }
+.step:nth-child(2) .step-ico { border-color: var(--v2-saudi); }
+.step .n::before { content: "◆ "; color: var(--v2-lavender); font-size: .7em; }
+.how-tag { margin: 34px 0 0; font: 600 .95rem var(--v2-font-display); letter-spacing: .25em; color: var(--v2-earth); display: flex; align-items: center; gap: 10px; }
+.how-tag span { color: var(--v2-lavender); letter-spacing: 0; }
+.how-sprig { position: absolute; bottom: -10px; inset-inline-start: 6px; width: 90px; color: var(--v2-sage); pointer-events: none; }
+@media (max-width: 860px) { .steps::before { display: none; } .how-sprig { width: 60px; opacity: .6; } }
