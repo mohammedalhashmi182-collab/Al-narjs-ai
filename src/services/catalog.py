@@ -51,11 +51,11 @@ DOMAIN_TEAMS = {
 CEO_SLUG = "orchestrator"
 
 # ---------------------------------------------------------------------
-#  Subscription tiers (monthly, SAR, VAT 15% added on top at checkout).
-#  ``amount`` is halalas (pre-VAT base) and is the only number payments
-#  read; ``price`` is its display form. ``agents`` is the number of
-#  specialist agents the CEO can staff on the plan (the CEO itself is
-#  always included and is not counted).
+#  Subscription tiers: the feasibility-study ladder (monthly, SAR, VAT 15%
+#  added on top at checkout). ``amount`` is halalas (pre-VAT monthly base)
+#  and is the only number payments read; ``price`` is its display form.
+#  ``agents`` is the number of specialist agents the CEO can staff on the
+#  plan (the CEO itself is always included and is not counted).
 # ---------------------------------------------------------------------
 PACKAGES = {
     "starter": {
@@ -64,8 +64,8 @@ PACKAGES = {
         "amount": 49900,
         "price": "499",
         "agents": 1,
-        "tagline": "استشارة الرئيس التنفيذي + وكيل متخصص واحد",
-        "tagline_en": "A CEO consultation plus one specialist agent",
+        "tagline": "الرئيس التنفيذي + وكيل متخصص واحد",
+        "tagline_en": "The CEO plus one specialist agent",
         "scope": [
             "تشخيص المشكلة وخطة عمل من الرئيس التنفيذي",
             "وكيل متخصص واحد يختاره الرئيس التنفيذي لمهمتك",
@@ -82,41 +82,41 @@ PACKAGES = {
     "team": {
         "name": "فريق",
         "name_en": "Team",
-        "amount": 999900,
-        "price": "9999",
-        "agents": 5,
-        "tagline": "فريق قسم كامل من خمسة وكلاء بقيادة الرئيس التنفيذي",
-        "tagline_en": "A full five-agent department team led by the CEO",
+        "amount": 149900,
+        "price": "1499",
+        "agents": 3,
+        "tagline": "الرئيس التنفيذي + ٣ وكلاء متخصصين",
+        "tagline_en": "The CEO plus three specialist agents",
         "scope": [
             "كل ما في انطلاقة",
-            "حتى ٥ وكلاء متخصصين يعملون كفريق قسم واحد",
-            "قسم كامل: سوشيال، متجر، محتوى أو نمو",
+            "حتى ٣ وكلاء متخصصين يعملون كفريق واحد",
+            "قسم واحد: سوشيال، متجر، محتوى أو نمو",
             "مراجعة أسبوعية من الرئيس التنفيذي",
         ],
         "scope_en": [
             "Everything in Starter",
-            "Up to 5 specialist agents working as one department",
-            "A full department: social, store, content or growth",
+            "Up to 3 specialist agents working as one team",
+            "One department: social, store, content or growth",
             "A weekly review by the CEO",
         ],
     },
     "scale": {
         "name": "توسّع",
         "name_en": "Scale",
-        "amount": 1499900,
-        "price": "14999",
-        "agents": 12,
-        "tagline": "عدة أقسام تعمل معاً — حتى ١٢ وكيلاً",
-        "tagline_en": "Several departments working together — up to 12 agents",
+        "amount": 299900,
+        "price": "2999",
+        "agents": 6,
+        "tagline": "عدة أقسام تعمل معاً — الرئيس التنفيذي + ٦ وكلاء",
+        "tagline_en": "Several departments working together — the CEO plus 6 agents",
         "scope": [
             "كل ما في فريق",
-            "حتى ١٢ وكيلاً عبر أكثر من قسم",
+            "حتى ٦ وكلاء عبر أكثر من قسم",
             "تنسيق بين التسويق والمبيعات وخدمة العملاء",
             "تقارير أداء وتحليلات من قسم التحليلات",
         ],
         "scope_en": [
             "Everything in Team",
-            "Up to 12 agents across several departments",
+            "Up to 6 agents across several departments",
             "Marketing, sales and customer care coordinated",
             "Performance reports from the analytics department",
         ],
@@ -124,20 +124,20 @@ PACKAGES = {
     "company": {
         "name": "الشركة الكاملة",
         "name_en": "Full Company",
-        "amount": 1999900,
-        "price": "19999",
-        "agents": None,  # every agent in the roster (see AGENT_COUNT)
-        "tagline": "كل وكلاء النرجس — شركة رقمية كاملة بقيادة الرئيس التنفيذي",
-        "tagline_en": "Every Al-Narjis agent — a full digital company led by the CEO",
+        "amount": 599900,
+        "price": "5999",
+        "agents": 12,
+        "tagline": "شركة رقمية بقيادة الرئيس التنفيذي — ١٢ وكيلاً عبر الأقسام",
+        "tagline_en": "A digital company led by the CEO — 12 agents across departments",
         "scope": [
             "كل ما في توسّع",
-            "كل الأقسام وكل الوكلاء في الفريق",
+            "حتى ١٢ وكيلاً من أي قسم في الفريق",
             "الهندسة والمنتجات والشؤون المؤسسية والامتثال",
             "أولوية في الدعم وجلسة تخطيط شهرية",
         ],
         "scope_en": [
             "Everything in Scale",
-            "Every department and every agent on the roster",
+            "Up to 12 agents from any department on the roster",
             "Engineering, product, corporate affairs and compliance",
             "Priority support and a monthly planning session",
         ],
@@ -146,6 +146,46 @@ PACKAGES = {
 
 PACKAGE_ORDER = ["starter", "team", "scale", "company"]
 RECOMMENDED_PACKAGE = "scale"
+
+# ---------------------------------------------------------------------
+#  Add-on agents: an extra specialist on top of a tier's allowance, billed
+#  per agent per month (pre-VAT, halalas). The CEO suggests a tier plus
+#  add-ons only when the need slightly exceeds a tier and that is cheaper
+#  than the next tier (see ceo_advisor.recommend_offer).
+# ---------------------------------------------------------------------
+ADDON_AGENT = {
+    "name": "وكيل إضافي",
+    "name_en": "Add-on agent",
+    "amount": 39900,
+    "price": "399",
+}
+MAX_ADDON_AGENTS = 12      # checkout cap per order
+MAX_SUGGESTED_ADDONS = 2   # "slightly exceeds": the CEO never suggests more below the top tier
+
+# ---------------------------------------------------------------------
+#  Billing periods. Annual = pay for 10 months, get 12 (2 months free).
+#  ``months_billed`` multiplies the monthly base; ``months_granted`` is the
+#  access period one paid invoice buys.
+# ---------------------------------------------------------------------
+BILLING_PERIODS = {
+    "monthly": {"months_billed": 1, "months_granted": 1, "label": "شهري", "label_en": "Monthly"},
+    "annual": {"months_billed": 10, "months_granted": 12, "label": "سنوي", "label_en": "Annual"},
+}
+DEFAULT_BILLING_PERIOD = "monthly"
+
+
+def resolve_billing_period(period: str | None) -> str:
+    period = (period or "").strip().lower()
+    return period if period in BILLING_PERIODS else DEFAULT_BILLING_PERIOD
+
+
+def plan_amount(package_key: str, billing_period: str = "monthly", addons: int = 0) -> int:
+    """Pre-VAT halalas for one billing period of a tier plus add-on agents."""
+    pkg = PACKAGES[package_key]
+    addons = max(0, int(addons or 0))
+    monthly = pkg["amount"] + addons * ADDON_AGENT["amount"]
+    return monthly * BILLING_PERIODS[resolve_billing_period(billing_period)]["months_billed"]
+
 
 # Payments recorded before the CEO-advisor rebrand used the four domain keys
 # with their own prices. They stay readable (invoices, activation) but cannot
@@ -157,8 +197,8 @@ LEGACY_PACKAGES = {
     "growth": {**DOMAINS["growth"], "amount": 80000, "price": "800", "legacy": True},
 }
 
-# A five-agent domain team maps to the five-agent tier.
-DOMAIN_TIER = {key: "team" for key in DOMAINS}
+# A five-agent domain team needs a tier that staffs five agents: Scale (6).
+DOMAIN_TIER = {key: "scale" for key in DOMAINS}
 
 # Tier -> member agents. Filled after EMPLOYEES is defined (see bottom).
 PACKAGE_TEAMS: dict[str, list[str]] = {}
@@ -813,6 +853,20 @@ def plan_agent_count(key: str) -> int:
     return AGENT_COUNT - 1 if agents is None else agents
 
 
+def addon_quote(package_key: str, addons: int) -> dict:
+    """Billing figures for a tier plus ``addons`` extra agents (monthly, pre-VAT)."""
+    pkg = PACKAGES[package_key]
+    addons = max(0, int(addons or 0))
+    return {
+        "package": package_key,
+        "addons": addons,
+        "agents": plan_agent_count(package_key) + addons,
+        "tier_halalas": pkg["amount"],
+        "addons_halalas": addons * ADDON_AGENT["amount"],
+        "monthly_halalas": plan_amount(package_key, "monthly", addons),
+    }
+
+
 def get_team(package_key: str) -> list[str]:
     return PACKAGE_TEAMS.get(package_key, [])
 
@@ -853,9 +907,9 @@ def _build_package_teams() -> dict[str, list[str]]:
     growth_first = DOMAIN_TEAMS["growth"] + DOMAIN_TEAMS["social"] + DOMAIN_TEAMS["ecommerce"]
     return {
         "starter": [CEO_SLUG, "marketing_agent"],
-        "team": [CEO_SLUG, *DOMAIN_TEAMS["social"]],
-        "scale": [CEO_SLUG, *[s for s in growth_first if s != "cv_writer"][:12]],
-        "company": [CEO_SLUG, *[s for s in EMPLOYEES if s != CEO_SLUG]],
+        "team": [CEO_SLUG, *DOMAIN_TEAMS["social"][:3]],
+        "scale": [CEO_SLUG, *DOMAIN_TEAMS["social"], "store_manager"],
+        "company": [CEO_SLUG, *[s for s in growth_first if s != "cv_writer"][:12]],
     }
 
 

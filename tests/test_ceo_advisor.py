@@ -8,23 +8,23 @@ from src.services import catalog, ceo_advisor, payments
 
 def test_tiers_are_the_owner_prices_in_halalas():
     assert {k: p["amount"] for k, p in catalog.PACKAGES.items()} == {
-        "starter": 49900, "team": 999900, "scale": 1499900, "company": 1999900,
+        "starter": 49900, "team": 149900, "scale": 299900, "company": 599900,
     }
     for p in catalog.PACKAGES.values():
         assert p["amount"] == int(p["price"]) * 100
 
 
-def test_tier_allowances_grow_and_the_top_tier_is_the_whole_roster():
+def test_tier_allowances_follow_the_feasibility_ladder():
     counts = [catalog.plan_agent_count(k) for k in catalog.PACKAGE_ORDER]
-    assert counts == sorted(counts) and counts[0] == 1
-    assert counts[-1] == len(catalog.EMPLOYEES) - 1  # every agent except the CEO, who leads
+    assert counts == [1, 3, 6, 12]
     for key in catalog.PACKAGE_ORDER:
         team = catalog.PACKAGE_TEAMS[key]
         assert team[0] == catalog.CEO_SLUG
+        assert len(team) - 1 == catalog.plan_agent_count(key)  # the CEO leads on top
         assert set(team) <= set(catalog.EMPLOYEES)
 
 
-@pytest.mark.parametrize("n,expected", [(1, "starter"), (2, "team"), (5, "team"), (6, "scale"), (12, "scale"), (13, "company")])
+@pytest.mark.parametrize("n,expected", [(1, "starter"), (2, "team"), (3, "team"), (4, "scale"), (6, "scale"), (7, "company"), (12, "company"), (13, "company")])
 def test_plan_is_the_smallest_tier_that_covers_the_team(n, expected):
     assert ceo_advisor.recommend_plan(n) == expected
 
@@ -51,11 +51,11 @@ def test_a_single_need_gets_a_small_team_and_vague_text_gets_one_agent():
 def test_result_price_matches_the_payment_vat_logic():
     r = ceo_advisor.build_result(ceo_advisor.diagnose_rules("Instagram engagement is weak"))
     plan = r["plan"]
-    base = catalog.PACKAGES[plan["key"]]["amount"]
+    base = catalog.plan_amount(plan["key"], "monthly", plan["addons"])
     assert plan["base_halalas"] == base
     assert plan["vat_halalas"] == payments.vat_amount(base)
     assert plan["total_halalas"] == payments.total_with_vat(base) == round(base * 1.15)
-    assert r["cta"]["subscribe"] == f"/portal?pkg={plan['key']}"
+    assert r["cta"]["subscribe"].startswith(f"/portal?pkg={plan['key']}")
     assert r["cta"]["telegram"].startswith("https://t.me/AlNarjs7BOT?start=plan_")
     assert r["cta"]["whatsapp"].startswith("https://wa.me/966552978753?text=")
 

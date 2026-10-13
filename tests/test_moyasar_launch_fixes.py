@@ -258,11 +258,11 @@ class TestBankTransferTotal:
         assert data["total"] == data["invoice_total"] == pm.total_with_vat(base)
         assert data["vat"] == pm.vat_amount(base)
 
-    async def test_team_is_11498_85_sar_with_vat(self, anon):
+    async def test_team_is_1723_85_sar_with_vat(self, anon):
         from src.services import catalog
 
-        if catalog.PACKAGES.get("team", {}).get("amount") != 999900:
-            pytest.skip("social package price changed")
+        if catalog.PACKAGES.get("team", {}).get("amount") != 149900:
+            pytest.skip("team package price changed")
         with _settings(moyasar_api_secret=None):
             r = await anon.post("/api/payments", json={"package": "team", "method": "invoice"})
-        assert r.json()["total"] == 1149885  # halalas == 1725.00 SAR, not 999900
+        assert r.json()["total"] == 172385  # halalas == 1,723.85 SAR, not the 149900 base

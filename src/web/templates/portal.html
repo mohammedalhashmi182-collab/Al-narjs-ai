@@ -589,12 +589,20 @@
             window.NARJIS_PROMO = { active: false };
             fetch('/api/promo').then(r => r.json()).then(d => { window.NARJIS_PROMO = d.promo || { active: false }; }).catch(() => {});
             let coPkg = null;
+            // Billing period and add-on agents arrive from the landing page
+            // (?billing=annual, ?addons=N). The server re-prices both; this
+            // summary only mirrors catalog.plan_amount for the buyer.
+            const coQs = new URLSearchParams(window.location.search);
+            const coBilling = coQs.get('billing') === 'annual' ? 'annual' : 'monthly';
+            const coAddons = Math.max(0, Math.min(12, parseInt(coQs.get('addons') || '0', 10) || 0));
             function showCoSummary() {
                 const p = coPkg; if (!p) return;
                 const ar = isAr();
                 const cur = ar ? 'ر.س' : 'SAR';
                 const pct = window.NARJIS_PROMO && window.NARJIS_PROMO.active && window.NARJIS_PROMO.code.toUpperCase() === ($('promoInput') ? $('promoInput').value.trim().toUpperCase() : '') ? window.NARJIS_PROMO.percent : 0;
-                const base = parseFloat(p.price);
+                const addonPrice = (window.NARJIS_ADDON && parseFloat(window.NARJIS_ADDON.price)) || 0;
+                const months = coBilling === 'annual' ? 10 : 1;
+                const base = (parseFloat(p.price) + coAddons * addonPrice) * months;
                 const disc = pct ? Math.round(base * pct / 100) : 0;
                 const after = base - disc;
                 const vat = ar ? Math.round(after * 0.15) : 0;
@@ -603,11 +611,14 @@
                     '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
                     (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:var(--n-green);">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + after.toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt('المبلغ قبل الضريبة: ', 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
                     (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة 15%: ', 'VAT 15%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
-                    '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>';
+                    (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
+                    (coBilling === 'annual' ? '<div style="font-size:.85rem;color:var(--n-green);">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
+                    '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>';
                 window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
             }
             function openCheckout() {
                 fetch('/api/portal/packages').then(r => r.json()).then(d => {
+                    window.NARJIS_ADDON = d.addon || null;
                     coPkg = d.packages.find(x => x.key === state.pkg);
                     if (!coPkg) return;
                     showCoSummary();
@@ -740,6 +751,8 @@ note.textContent = msg;
                             customer_email: client.email,
                             promo: promoInput ? promoInput.value.trim() : '',
                             project_id: state.projectId,
+                            billing_period: coBilling,
+                            addons: coAddons,
                         })
                     });
                     const data = await r.json();

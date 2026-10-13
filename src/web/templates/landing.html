@@ -78,7 +78,13 @@
         "name": "باقات النرجس",
         "itemListElement": [
           {% for plan in plans %}
-          {"@type": "Offer", "name": {{ plan.name | tojson }}, "name_en": {{ plan.name_en | tojson }}, "description": {{ plan.tagline_en | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://karmaai.online/portal?pkg={{ plan.key }}"}{% if not loop.last %},{% endif %}
+          {"@type": "Offer", "name": {{ plan.name | tojson }}, "name_en": {{ plan.name_en | tojson }}, "description": {{ plan.tagline_en | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://karmaai.online/portal?pkg={{ plan.key }}",
+           "priceSpecification": [
+             {"@type": "UnitPriceSpecification", "price": "{{ plan.price }}", "priceCurrency": "SAR", "unitCode": "MON", "billingDuration": "P1M", "valueAddedTaxIncluded": false},
+             {"@type": "UnitPriceSpecification", "price": "{{ plan.annual_price }}", "priceCurrency": "SAR", "unitCode": "ANN", "billingDuration": "P1Y", "valueAddedTaxIncluded": false}
+           ],
+           "addOn": {"@type": "Offer", "name": {{ addon.name | tojson }}, "name_en": {{ addon.name_en | tojson }}, "description": "One extra specialist agent on top of the plan", "price": "{{ addon.price }}", "priceCurrency": "SAR",
+             "priceSpecification": {"@type": "UnitPriceSpecification", "price": "{{ addon.price }}", "priceCurrency": "SAR", "unitCode": "MON", "billingDuration": "P1M", "valueAddedTaxIncluded": false}}}{% if not loop.last %},{% endif %}
           {% endfor %}
         ]
       }
@@ -113,9 +119,9 @@
       "@type": "FAQPage",
       "mainEntity": [
         {"@type": "Question", "name": "What is Al-Narjis AI?", "acceptedAnswer": {"@type": "Answer", "text": "Al-Narjis AI is a Riyadh-based platform where an AI CEO diagnoses your business problem and leads a team of {{ agent_count }} specialized AI agents across {{ division_count }} departments."}},
-        {"@type": "Question", "name": "How much do the plans cost?", "acceptedAnswer": {"@type": "Answer", "text": "{% for plan in plans %}{{ plan.name_en }}: SAR {{ '{:,}'.format(plan.price|int) }}/month{% if not loop.last %}; {% endif %}{% endfor %}. 15% VAT is added at checkout."}},
+        {"@type": "Question", "name": "How much do the plans cost?", "acceptedAnswer": {"@type": "Answer", "text": "{% for plan in plans %}{{ plan.name_en }}: SAR {{ '{:,}'.format(plan.price|int) }}/month{% if not loop.last %}; {% endif %}{% endfor %}. Annual billing: pay for 10 months, get 12. Extra agents: SAR {{ addon.price }} per agent per month. 15% VAT is added at checkout."}},
         {"@type": "Question", "name": "How does the CEO choose my agents?", "acceptedAnswer": {"@type": "Answer", "text": "You describe the problem; the CEO maps it to the departments involved, picks the agents from the live roster and recommends the smallest plan that covers that team."}},
-        {"@type": "Question", "name": "Can I cancel?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Subscriptions are monthly and can be cancelled at any time before renewal. Payments for an elapsed period are not refunded."}},
+        {"@type": "Question", "name": "Can I cancel?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Subscriptions are monthly or annual and can be cancelled at any time before renewal. A renewal invoice is issued a few days before the period ends; unpaid subscriptions pause 3 days after it ends. Payments for an elapsed period are not refunded."}},
         {"@type": "Question", "name": "Is my data safe?", "acceptedAnswer": {"@type": "Answer", "text": "We never sell your data, and you can request deletion at any time via the data deletion page."}}
       ]
     }
@@ -283,33 +289,43 @@
         <div class="sec-head rv">
             <span class="eyebrow">{% if ar %}الباقات{% else %}Plans{% endif %}</span>
             <h2>{% if ar %}ادفع حسب حجم الفريق الذي تحتاجه{% else %}Pay for the size of team you need{% endif %}</h2>
-            <p>{% if ar %}كل باقة يقودها الرئيس التنفيذي. الفرق بينها هو عدد الوكلاء المتخصصين ونطاق العمل. الأسعار شهرية وتُضاف ضريبة القيمة المضافة 15٪ عند الدفع.{% else %}Every plan is led by the CEO. They differ by the number of specialist agents and the scope. Prices are monthly; 15% VAT is added at checkout.{% endif %}</p>
+            <p>{% if ar %}كل باقة يقودها الرئيس التنفيذي. الفرق بينها هو عدد الوكلاء المتخصصين ونطاق العمل. ادفع شهرياً أو سنوياً (شهران مجاناً)، وتُضاف ضريبة القيمة المضافة 15٪ عند الدفع.{% else %}Every plan is led by the CEO. They differ by the number of specialist agents and the scope. Pay monthly or yearly (2 months free); 15% VAT is added at checkout.{% endif %}</p>
         </div>
         {% set _full = plans[-1] %}
-        <p class="anchor rv">{% if ar %}للمقارنة: <b>{{ _full.name }}</b> تفتح لك الرئيس التنفيذي وكل الوكلاء الـ{{ _full.agent_count }} بـ{{ '{:,}'.format(_full.price|int) }} ر.س شهرياً — أي نحو {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} ر.س للوكيل الواحد.{% else %}For reference: <b>{{ _full.name_en }}</b> opens the CEO plus all {{ _full.agent_count }} agents for SAR {{ '{:,}'.format(_full.price|int) }}/month — about SAR {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} per agent.{% endif %}</p>
+        <p class="anchor rv">{% if ar %}للمقارنة: <b>{{ _full.name }}</b> تفتح لك الرئيس التنفيذي و{{ _full.agent_count }} وكيلاً بـ{{ '{:,}'.format(_full.price|int) }} ر.س شهرياً — أي نحو {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} ر.س للوكيل الواحد.{% else %}For reference: <b>{{ _full.name_en }}</b> opens the CEO plus {{ _full.agent_count }} agents for SAR {{ '{:,}'.format(_full.price|int) }}/month — about SAR {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} per agent.{% endif %}</p>
+        <div class="billing-toggle rv" id="billingToggle" role="group" aria-label="{% if ar %}دورة الفوترة{% else %}Billing period{% endif %}">
+            <div class="seg">
+                <button type="button" data-billing="monthly" aria-pressed="true">{% if ar %}شهري{% else %}Monthly{% endif %}</button>
+                <button type="button" data-billing="annual" aria-pressed="false">{% if ar %}سنوي{% else %}Annual{% endif %} <span class="save">{% if ar %}شهران مجاناً{% else %}2 months free{% endif %}</span></button>
+            </div>
+        </div>
         <div class="plans">
             {% for plan in plans %}
             <article class="plan rv{% if plan.recommended %} is-rec{% endif %}" data-plan="{{ plan.key }}">
                 {% if plan.recommended %}<span class="ribbon">{% if ar %}الأكثر توازناً{% else %}Best balance{% endif %}</span>{% endif %}
                 <h3>{% if ar %}{{ plan.name }}{% else %}{{ plan.name_en }}{% endif %}</h3>
                 <p class="tag">{% if ar %}{{ plan.tagline }}{% else %}{{ plan.tagline_en }}{% endif %}</p>
-                <div class="price">{{ '{:,}'.format(plan.price|int) }} <small>{% if ar %}ر.س / شهرياً{% else %}SAR / month{% endif %}</small></div>
-                <div class="vat">{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.total_halalas / 100) }}{% endif %}</div>
+                <div class="price" data-monthly="{{ '{:,}'.format(plan.price|int) }}" data-annual="{{ '{:,}'.format(plan.annual_price|int) }}"><span class="amt">{{ '{:,}'.format(plan.price|int) }}</span> <small data-monthly="{% if ar %}ر.س / شهرياً{% else %}SAR / month{% endif %}" data-annual="{% if ar %}ر.س / سنوياً{% else %}SAR / year{% endif %}">{% if ar %}ر.س / شهرياً{% else %}SAR / month{% endif %}</small></div>
+                <div class="period-note" data-monthly="" data-annual="{% if ar %}تدفع 10 أشهر وتحصل على 12 — توفّر {{ '{:,}'.format(plan.price|int * 2) }} ر.س{% else %}Pay for 10 months, get 12 — save SAR {{ '{:,}'.format(plan.price|int * 2) }}{% endif %}"></div>
+                <div class="vat" data-monthly="{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.total_halalas / 100) }}{% endif %}" data-annual="{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.annual_total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.annual_total_halalas / 100) }}{% endif %}">{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.total_halalas / 100) }}{% endif %}</div>
                 <span class="agents-pill">{% if ar %}الرئيس التنفيذي + {{ plan.agent_count }} {% if plan.agent_count == 1 %}وكيل{% else %}وكيلاً{% endif %}{% else %}CEO + {{ plan.agent_count }} agent{% if plan.agent_count != 1 %}s{% endif %}{% endif %}</span>
                 <ul>
                     {% for line in (plan.scope if ar else plan.scope_en) %}<li>{{ line }}</li>{% endfor %}
                 </ul>
-                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}">{% if ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
+                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}" data-href-monthly="/portal?pkg={{ plan.key }}" data-href-annual="/portal?pkg={{ plan.key }}&amp;billing=annual">{% if ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
             </article>
             {% endfor %}
         </div>
+        <p class="addon-note rv">{% if ar %}تحتاج وكيلاً أكثر من باقتك؟ أضف <b>وكيلاً إضافياً بـ{{ addon.price }} ر.س شهرياً</b> لكل وكيل، والرئيس التنفيذي يقترحه عليك عندما يكون أوفر من الترقية.{% else %}Need one more agent than your plan? Add <b>an extra agent for SAR {{ addon.price }}/month</b> each; the CEO suggests it when it costs less than upgrading.{% endif %}</p>
         <div class="table-scroll rv">
         <table class="compare">
             <thead><tr><th>{% if ar %}المقارنة{% else %}Compare{% endif %}</th>{% for plan in plans %}<th{% if plan.recommended %} class="is-rec"{% endif %}>{% if ar %}{{ plan.name }}{% else %}{{ plan.name_en }}{% endif %}</th>{% endfor %}</tr></thead>
             <tbody>
                 <tr><td>{% if ar %}السعر الشهري (قبل الضريبة){% else %}Monthly price (pre-VAT){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.price|int) }}</td>{% endfor %}</tr>
+                <tr><td>{% if ar %}السعر السنوي (12 شهراً بسعر 10){% else %}Annual price (12 months for 10){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.annual_price|int) }}</td>{% endfor %}</tr>
                 <tr><td>{% if ar %}الرئيس التنفيذي الذكي{% else %}AI CEO{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>✓</td>{% endfor %}</tr>
                 <tr><td>{% if ar %}الوكلاء المتخصصون{% else %}Specialist agents{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ plan.agent_count }}</td>{% endfor %}</tr>
+                <tr><td>{% if ar %}وكيل إضافي (شهرياً){% else %}Extra agent (monthly){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}><span dir="ltr">+{{ addon.price }}</span></td>{% endfor %}</tr>
                 <tr><td>{% if ar %}عدد الأقسام{% else %}Departments{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{% if loop.index == 1 %}{% if ar %}مسار واحد{% else %}1 workstream{% endif %}{% elif loop.index == 2 %}1{% elif loop.last %}{% if ar %}الكل ({{ division_count }}){% else %}All ({{ division_count }}){% endif %}{% else %}{% if ar %}عدة أقسام{% else %}Several{% endif %}{% endif %}</td>{% endfor %}</tr>
                 <tr><td>{% if ar %}إلغاء في أي وقت قبل التجديد{% else %}Cancel any time before renewal{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>✓</td>{% endfor %}</tr>
             </tbody>
@@ -387,8 +403,9 @@
     <div class="wrap">
         <div class="sec-head rv"><span class="eyebrow">{% if ar %}أسئلة شائعة{% else %}FAQ{% endif %}</span><h2>{% if ar %}قبل أن تبدأ{% else %}Before you start{% endif %}</h2></div>
         <div class="faq">
-            <details><summary>{% if ar %}كيف يختار الرئيس التنفيذي الوكلاء؟{% else %}How does the CEO choose the agents?{% endif %}</summary><p>{% if ar %}يربط وصفك بالأقسام المعنية (تسويق، متجر، خدمة عملاء، مبيعات…)، ويختار الوكلاء من فريق النرجس الفعلي، ثم يرشّح أصغر باقة يكفي عدد وكلائها.{% else %}It maps your description to the departments involved (marketing, store, customer care, sales…), picks agents from the actual Al-Narjis roster, then recommends the smallest plan whose allowance covers them.{% endif %}</p></details>
-            <details><summary>{% if ar %}كم الأسعار؟{% else %}What are the prices?{% endif %}</summary><p>{% for plan in plans %}{% if ar %}{{ plan.name }}: {{ '{:,}'.format(plan.price|int) }} ر.س{% else %}{{ plan.name_en }}: SAR {{ '{:,}'.format(plan.price|int) }}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}. {% if ar %}شهرياً، وتُضاف ضريبة القيمة المضافة 15٪.{% else %}per month, plus 15% VAT.{% endif %}</p></details>
+            <details><summary>{% if ar %}كيف يختار الرئيس التنفيذي الوكلاء؟{% else %}How does the CEO choose the agents?{% endif %}</summary><p>{% if ar %}يربط وصفك بالأقسام المعنية (تسويق، متجر، خدمة عملاء، مبيعات…)، ويختار الوكلاء من فريق النرجس الفعلي، ثم يرشّح أصغر باقة يكفي عدد وكلائها، أو باقة أصغر مع وكيل أو وكيلين إضافيين إذا كان ذلك أوفر.{% else %}It maps your description to the departments involved (marketing, store, customer care, sales…), picks agents from the actual Al-Narjis roster, then recommends the smallest plan whose allowance covers them, or a smaller plan plus one or two extra agents when that costs less.{% endif %}</p></details>
+            <details><summary>{% if ar %}كم الأسعار؟{% else %}What are the prices?{% endif %}</summary><p>{% for plan in plans %}{% if ar %}{{ plan.name }}: {{ '{:,}'.format(plan.price|int) }} ر.س{% else %}{{ plan.name_en }}: SAR {{ '{:,}'.format(plan.price|int) }}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}. {% if ar %}شهرياً، وتُضاف ضريبة القيمة المضافة 15٪. في الدفع السنوي تدفع 10 أشهر وتحصل على 12، والوكيل الإضافي بـ{{ addon.price }} ر.س شهرياً.{% else %}per month, plus 15% VAT. Annual billing: pay for 10 months, get 12. An extra agent is SAR {{ addon.price }}/month.{% endif %}</p></details>
+            <details><summary>{% if ar %}كيف يتجدد الاشتراك؟{% else %}How does renewal work?{% endif %}</summary><p>{% if ar %}قبل نهاية الفترة بأيام نرسل لك فاتورة التجديد للفترة نفسها (شهرية أو سنوية). إذا لم تُسدَّد يبقى فريقك يعمل 3 أيام بعد نهاية الفترة ثم يتوقف حتى الدفع.{% else %}A few days before your period ends we issue a renewal invoice for the same period (monthly or annual). If it is not paid, your team keeps working for 3 days after the period ends, then pauses until payment.{% endif %}</p></details>
             <details><summary>{% if ar %}هل أستطيع الإلغاء؟{% else %}Can I cancel?{% endif %}</summary><p>{% if ar %}نعم، في أي وقت قبل التجديد. لا تُرد دفعات الفترة المنقضية، ويُغلق الفريق عند الإلغاء.{% else %}Yes, any time before renewal. Payments for an elapsed period are not refunded, and the team closes on cancellation.{% endif %}</p></details>
             <details><summary>{% if ar %}كيف أدفع؟{% else %}How do I pay?{% endif %}</summary><p>{% if ar %}عبر بوابة الدفع Moyasar عند تفعيلها، أو بفاتورة ضريبية رسمية وتحويل بنكي. يبدأ الفريق بعد تأكيد الدفع.{% else %}Through the Moyasar gateway when enabled, or by official VAT invoice and bank transfer. The team starts once payment is confirmed.{% endif %}</p></details>
             <details><summary>{% if ar %}هل أحتاج خبرة تقنية؟{% else %}Do I need technical skills?{% endif %}</summary><p>{% if ar %}لا. تتعامل مع الفريق عبر بوابة العميل وتيليجرام، ونرافقك في الإعداد.{% else %}No. You work with the team through the client portal and Telegram, and we guide the setup.{% endif %}</p></details>
@@ -476,6 +493,18 @@
         c.addEventListener('click', function () { box.value = c.dataset.example; box.focus(); });
     });
     function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    var billingBtns = document.querySelectorAll('#billingToggle [data-billing]');
+    function setBilling(period) {
+        billingBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.billing === period ? 'true' : 'false'); });
+        document.querySelectorAll('#pricing .plan').forEach(function (card) {
+            var price = card.querySelector('.price');
+            if (price) { price.querySelector('.amt').textContent = price.dataset[period]; var u = price.querySelector('small'); u.textContent = u.dataset[period]; }
+            ['.vat', '.period-note'].forEach(function (sel) { var n = card.querySelector(sel); if (n) n.textContent = n.dataset[period]; });
+            var cta = card.querySelector('a[data-href-monthly]');
+            if (cta) cta.setAttribute('href', period === 'annual' ? cta.dataset.hrefAnnual : cta.dataset.hrefMonthly);
+        });
+    }
+    billingBtns.forEach(function (b) { b.addEventListener('click', function () { setBilling(b.dataset.billing); }); });
     function sar(h) { return (h / 100).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function render(r) {
         document.getElementById('ceoDiag').textContent = AR ? r.diagnosis_ar : r.diagnosis_en;
@@ -489,8 +518,9 @@
             t.appendChild(el('small', null, AR ? a.why_ar : a.why_en)); li.appendChild(t); ul.appendChild(li);
         });
         var p = r.plan;
-        document.getElementById('ceoPlanName').textContent = (AR ? p.name : p.name_en) + (AR ? ' — يشمل ' + p.agents_included + ' وكيلاً' : ' — includes ' + p.agents_included + ' agents');
-        document.getElementById('ceoPlanPrice').textContent = Number(p.price).toLocaleString('en') + (AR ? ' ر.س/شهرياً' : ' SAR/mo');
+        var addonTxt = p.addons ? (AR ? ' + ' + p.addons + ' وكيل إضافي (' + p.addon_price + ' ر.س لكل وكيل)' : ' + ' + p.addons + ' extra agent' + (p.addons === 1 ? '' : 's') + ' (SAR ' + p.addon_price + ' each)') : '';
+        document.getElementById('ceoPlanName').textContent = (AR ? p.name : p.name_en) + addonTxt + (AR ? ' — يشمل ' + p.agents_included + ' وكيلاً' : ' — includes ' + p.agents_included + ' agents');
+        document.getElementById('ceoPlanPrice').textContent = Number(p.monthly_price || p.price).toLocaleString('en') + (AR ? ' ر.س/شهرياً' : ' SAR/mo');
         document.getElementById('ceoPlanVat').textContent = (AR ? 'الإجمالي مع ضريبة 15٪: ' : 'Total with 15% VAT: ') + sar(p.total_halalas);
         document.getElementById('ceoSubscribe').href = r.cta.subscribe;
         document.getElementById('ceoTg').href = r.cta.telegram;

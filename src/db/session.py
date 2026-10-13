@@ -83,6 +83,15 @@ async def init_db():
                 # answered 500 to every buyer.
                 ("payments", "lead_id", "UUID"),
                 ("client_projects", "subscription_note", "TEXT"),
+                # Billing periods, add-on agents and renewals (alembic 0002)
+                ("payments", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
+                ("payments", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
+                ("payments", "is_renewal", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                ("client_projects", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
+                ("client_projects", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "current_period_end", "TIMESTAMPTZ"),
+                ("client_projects", "last_payment_id", "UUID"),
+                ("client_projects", "renewal_payment_id", "UUID"),
             ]
             for table, column, ddl in placeholders:
                 try:
@@ -120,6 +129,15 @@ async def init_db():
                 # Client subscription lifecycle (payment -> project activation)
                 ("payments", "project_id", "CHAR(36)"),
                 ("client_projects", "subscription_note", "TEXT"),
+                # Billing periods, add-on agents and renewals (alembic 0002)
+                ("payments", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
+                ("payments", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
+                ("payments", "is_renewal", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
+                ("client_projects", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "current_period_end", "TIMESTAMP"),
+                ("client_projects", "last_payment_id", "CHAR(36)"),
+                ("client_projects", "renewal_payment_id", "CHAR(36)"),
             ]
             for table, column, ddl in sqlite_placeholders:
                 try:

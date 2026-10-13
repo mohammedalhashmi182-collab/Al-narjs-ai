@@ -177,6 +177,14 @@ body.v2 {
 .plan ul { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 8px; font-size: .92rem; flex: 1; }
 .plan li { display: flex; gap: 8px; }
 .plan li::before { content: "✓"; color: var(--v2-saudi); font-weight: 700; }
+.billing-toggle { display: flex; justify-content: center; margin: -16px auto 32px; }
+.billing-toggle .seg { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--v2-line); border-radius: var(--v2-r-pill); background: var(--v2-paper); }
+.billing-toggle button { border: 0; background: transparent; font: 600 .92rem var(--v2-font-display); color: var(--v2-muted); padding: 8px 18px; border-radius: var(--v2-r-pill); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; }
+.billing-toggle button[aria-pressed="true"] { background: var(--v2-green); color: #ffffff; }
+.billing-toggle button:focus-visible { outline: 2px solid var(--v2-green); outline-offset: 2px; }
+.billing-toggle .save { font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: var(--v2-r-pill); background: var(--v2-saffron-soft); color: var(--v2-ink); }
+.plan .period-note { font-size: .8rem; color: var(--v2-green-deep); margin: -8px 0 12px; min-height: 1.2em; }
+.addon-note { text-align: center; color: var(--v2-muted); font-size: .9rem; margin: 20px auto 0; max-width: 44em; }
 .compare { width: 100%; border-collapse: collapse; margin-top: 40px; background: var(--v2-paper); border-radius: var(--v2-r); overflow: hidden; font-size: .92rem; }
 .compare th, .compare td { padding: 12px 14px; border-bottom: 1px solid var(--v2-line); text-align: center; }
 .compare th:first-child, .compare td:first-child { text-align: start; }

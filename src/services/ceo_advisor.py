@@ -139,6 +139,31 @@ def recommend_plan(agent_count: int, full_company: bool = False) -> str:
     return "company"
 
 
+def recommend_offer(agent_count: int, full_company: bool = False) -> tuple[str, int]:
+    """(tier, add-on agents) that staffs the team at the lowest monthly price.
+
+    Starts from the smallest covering tier, then checks whether a smaller
+    tier plus a few add-on agents (at most ``MAX_SUGGESTED_ADDONS``) is
+    strictly cheaper. Beyond the top tier the gap is filled with add-ons.
+    """
+    if full_company:
+        top = catalog.PACKAGE_ORDER[-1]
+        return top, max(0, agent_count - catalog.plan_agent_count(top))
+    plan = recommend_plan(agent_count)
+    top = catalog.PACKAGE_ORDER[-1]
+    if catalog.plan_agent_count(plan) < agent_count:
+        return top, agent_count - catalog.plan_agent_count(top)
+    best, best_addons = plan, 0
+    best_price = catalog.plan_amount(plan)
+    for key in catalog.PACKAGE_ORDER[: catalog.PACKAGE_ORDER.index(plan)]:
+        gap = agent_count - catalog.plan_agent_count(key)
+        if 0 < gap <= catalog.MAX_SUGGESTED_ADDONS:
+            price = catalog.plan_amount(key, "monthly", gap)
+            if price < best_price:
+                best, best_addons, best_price = key, gap, price
+    return best, best_addons
+
+
 def _summary(d: Diagnosis) -> tuple[str, str]:
     if d.needs:
         ar_items = "، ".join(n.label_ar for n in d.needs[:4])
@@ -171,9 +196,10 @@ def _agent_card(slug: str, need_by_agent: dict[str, Need]) -> dict:
 
 
 def build_result(d: Diagnosis) -> dict:
-    plan_key = recommend_plan(len(d.agents), d.full_company)
+    plan_key, addons = recommend_offer(len(d.agents), d.full_company)
     pkg = catalog.PACKAGES[plan_key]
-    base = pkg["amount"]
+    base = catalog.plan_amount(plan_key, "monthly", addons)
+    annual_base = catalog.plan_amount(plan_key, "annual", addons)
     vat = payments.vat_amount(base)
     total = payments.total_with_vat(base)
 
@@ -188,7 +214,12 @@ def build_result(d: Diagnosis) -> dict:
 
     from src.services import transfer
 
-    wa_text = f"مرحباً، أرشّح لي الرئيس التنفيذي في النرجس باقة {pkg['name']} ({pkg['price']} ر.س). أريد البدء."
+    addon_txt = f" + {addons} وكيل إضافي" if addons else ""
+    wa_text = (
+        f"مرحباً، أرشّح لي الرئيس التنفيذي في النرجس باقة {pkg['name']}{addon_txt} "
+        f"({base // 100} ر.س شهرياً). أريد البدء."
+    )
+    subscribe = f"/portal?pkg={plan_key}" + (f"&addons={addons}" if addons else "")
     channels = transfer.contact_channels(wa_text)
     ceo = catalog.EMPLOYEES[catalog.CEO_SLUG]
     return {
@@ -204,7 +235,15 @@ def build_result(d: Diagnosis) -> dict:
             "name": pkg["name"],
             "name_en": pkg["name_en"],
             "price": pkg["price"],
-            "agents_included": pkg["agent_count"],
+            "agents_included": pkg["agent_count"] + addons,
+            "tier_agents": pkg["agent_count"],
+            "monthly_price": str(base // 100),
+            "addons": addons,
+            "addon_price": catalog.ADDON_AGENT["price"],
+            "addons_halalas": addons * catalog.ADDON_AGENT["amount"],
+            "monthly_halalas": base,
+            "annual_halalas": annual_base,
+            "annual_total_halalas": payments.total_with_vat(annual_base),
             "base_halalas": base,
             "vat_halalas": vat,
             "total_halalas": total,
@@ -212,7 +251,7 @@ def build_result(d: Diagnosis) -> dict:
             "vat_rate": payments.VAT_RATE,
         },
         "cta": {
-            "subscribe": f"/portal?pkg={plan_key}",
+            "subscribe": subscribe,
             "telegram": f"{transfer.TELEGRAM_BOT}?start=plan_{plan_key}",
             "whatsapp": channels.get("whatsapp", ""),
         },
