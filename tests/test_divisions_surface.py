@@ -149,7 +149,7 @@ def test_home_renders_every_division(client: TestClient) -> None:
 
 def test_home_renders_the_division_count_headline(client: TestClient) -> None:
     r = client.get("/home")
-    assert r.text.count('class="dv-card"') == catalog.DIVISION_COUNT
+    assert r.text.count('data-division=') == catalog.DIVISION_COUNT
     assert "أقسام متخصصة" in r.text
 
 

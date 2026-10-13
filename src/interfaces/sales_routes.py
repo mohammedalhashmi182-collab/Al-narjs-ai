@@ -215,7 +215,7 @@ async def sales_lead_proposal_page(request: Request, lead_id: str):
         score_lead,
     )
 
-    price = PRICE_SAR.get(package_key, PRICE_SAR["social"])
+    price = PRICE_SAR.get(package_key) or _catalog.tier_price_sar(package_key)
     vat = round(price * 0.15)
     tier = score_lead(lead_dict)
     return templates.TemplateResponse(
@@ -234,7 +234,7 @@ async def sales_lead_proposal_page(request: Request, lead_id: str):
             "reference_id": reference_id(lead_dict),
             "provenance": provenance(lead_dict),
             "flags": data_flags(lead_dict),
-            "catalog_names": _catalog.PACKAGES,
+            "catalog_names": {**_catalog.DOMAINS, **_catalog.PACKAGES},
         },
     )
 

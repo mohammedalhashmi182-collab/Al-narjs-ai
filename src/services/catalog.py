@@ -7,48 +7,161 @@ from __future__ import annotations
 #  - Onboarding interview questions per agent (fed into its prompt)
 # =====================================================================
 
-PACKAGES = {
+# ---------------------------------------------------------------------
+#  Domains: the four historical specialist teams (five agents each).
+#  They describe *what* a team works on and drive lead segmentation,
+#  outreach copy and demo content. They carry no price of their own:
+#  every price lives in PACKAGES below.
+# ---------------------------------------------------------------------
+DOMAINS = {
     "social": {
         "name": "سوشيال ميديا",
         "name_en": "Social Media",
-        "amount": 150000,
-        "price": "1500",
         "tagline": "حضور قوي ومحتوى متجدد على منصاتك",
         "tagline_en": "Strong presence and fresh content on your platforms",
     },
     "ecommerce": {
         "name": "متاجر إلكترونية",
         "name_en": "E-commerce",
-        "amount": 100000,
-        "price": "1000",
         "tagline": "متجر ينمّي مبيعاتك ويخدم عملاءك",
         "tagline_en": "A store that grows your sales and serves your customers",
     },
     "content": {
         "name": "تسويق محتوى",
         "name_en": "Content Marketing",
-        "amount": 120000,
-        "price": "1200",
         "tagline": "محتوى يصنع قيمة ويثق جمهورك",
         "tagline_en": "Content that creates value and earns trust",
     },
     "growth": {
         "name": "نمو الأعمال",
         "name_en": "Business Growth",
-        "amount": 80000,
-        "price": "800",
         "tagline": "خطط وأدوات تنقل عملك لمرحلة جديدة",
         "tagline_en": "Plans and tools that take your business further",
     },
 }
 
-# Package -> member agents (the "sleeping team")
-PACKAGE_TEAMS = {
+DOMAIN_TEAMS = {
     "social": ["social_media", "ad_writer", "content_ideas", "marketing_agent", "text_improver"],
     "ecommerce": ["product_describer", "store_manager", "customer_service", "customer_manager", "email_writer"],
     "content": ["content_writer", "article_writer", "content_manager", "market_analyst", "competitor_analyst"],
     "growth": ["business_ideas", "project_manager", "time_manager", "data_analyst", "cv_writer"],
 }
+
+# The CEO agent leads every plan: it diagnoses, then staffs the plan.
+CEO_SLUG = "orchestrator"
+
+# ---------------------------------------------------------------------
+#  Subscription tiers (monthly, SAR, VAT 15% added on top at checkout).
+#  ``amount`` is halalas (pre-VAT base) and is the only number payments
+#  read; ``price`` is its display form. ``agents`` is the number of
+#  specialist agents the CEO can staff on the plan (the CEO itself is
+#  always included and is not counted).
+# ---------------------------------------------------------------------
+PACKAGES = {
+    "starter": {
+        "name": "انطلاقة",
+        "name_en": "Starter",
+        "amount": 49900,
+        "price": "499",
+        "agents": 1,
+        "tagline": "استشارة الرئيس التنفيذي + وكيل متخصص واحد",
+        "tagline_en": "A CEO consultation plus one specialist agent",
+        "scope": [
+            "تشخيص المشكلة وخطة عمل من الرئيس التنفيذي",
+            "وكيل متخصص واحد يختاره الرئيس التنفيذي لمهمتك",
+            "مسار عمل واحد (مثلاً: المحتوى أو خدمة العملاء)",
+            "تشغيل عبر تيليجرام ولوحة العميل",
+        ],
+        "scope_en": [
+            "Problem diagnosis and an action plan from the CEO",
+            "One specialist agent chosen by the CEO for your task",
+            "One workstream (e.g. content or customer care)",
+            "Runs on Telegram and the client portal",
+        ],
+    },
+    "team": {
+        "name": "فريق",
+        "name_en": "Team",
+        "amount": 999900,
+        "price": "9999",
+        "agents": 5,
+        "tagline": "فريق قسم كامل من خمسة وكلاء بقيادة الرئيس التنفيذي",
+        "tagline_en": "A full five-agent department team led by the CEO",
+        "scope": [
+            "كل ما في انطلاقة",
+            "حتى ٥ وكلاء متخصصين يعملون كفريق قسم واحد",
+            "قسم كامل: سوشيال، متجر، محتوى أو نمو",
+            "مراجعة أسبوعية من الرئيس التنفيذي",
+        ],
+        "scope_en": [
+            "Everything in Starter",
+            "Up to 5 specialist agents working as one department",
+            "A full department: social, store, content or growth",
+            "A weekly review by the CEO",
+        ],
+    },
+    "scale": {
+        "name": "توسّع",
+        "name_en": "Scale",
+        "amount": 1499900,
+        "price": "14999",
+        "agents": 12,
+        "tagline": "عدة أقسام تعمل معاً — حتى ١٢ وكيلاً",
+        "tagline_en": "Several departments working together — up to 12 agents",
+        "scope": [
+            "كل ما في فريق",
+            "حتى ١٢ وكيلاً عبر أكثر من قسم",
+            "تنسيق بين التسويق والمبيعات وخدمة العملاء",
+            "تقارير أداء وتحليلات من قسم التحليلات",
+        ],
+        "scope_en": [
+            "Everything in Team",
+            "Up to 12 agents across several departments",
+            "Marketing, sales and customer care coordinated",
+            "Performance reports from the analytics department",
+        ],
+    },
+    "company": {
+        "name": "الشركة الكاملة",
+        "name_en": "Full Company",
+        "amount": 1999900,
+        "price": "19999",
+        "agents": None,  # every agent in the roster (see AGENT_COUNT)
+        "tagline": "كل وكلاء النرجس — شركة رقمية كاملة بقيادة الرئيس التنفيذي",
+        "tagline_en": "Every Al-Narjis agent — a full digital company led by the CEO",
+        "scope": [
+            "كل ما في توسّع",
+            "كل الأقسام وكل الوكلاء في الفريق",
+            "الهندسة والمنتجات والشؤون المؤسسية والامتثال",
+            "أولوية في الدعم وجلسة تخطيط شهرية",
+        ],
+        "scope_en": [
+            "Everything in Scale",
+            "Every department and every agent on the roster",
+            "Engineering, product, corporate affairs and compliance",
+            "Priority support and a monthly planning session",
+        ],
+    },
+}
+
+PACKAGE_ORDER = ["starter", "team", "scale", "company"]
+RECOMMENDED_PACKAGE = "scale"
+
+# Payments recorded before the CEO-advisor rebrand used the four domain keys
+# with their own prices. They stay readable (invoices, activation) but cannot
+# be bought any more: checkout only accepts PACKAGES.
+LEGACY_PACKAGES = {
+    "social": {**DOMAINS["social"], "amount": 150000, "price": "1500", "legacy": True},
+    "ecommerce": {**DOMAINS["ecommerce"], "amount": 100000, "price": "1000", "legacy": True},
+    "content": {**DOMAINS["content"], "amount": 120000, "price": "1200", "legacy": True},
+    "growth": {**DOMAINS["growth"], "amount": 80000, "price": "800", "legacy": True},
+}
+
+# A five-agent domain team maps to the five-agent tier.
+DOMAIN_TIER = {key: "team" for key in DOMAINS}
+
+# Tier -> member agents. Filled after EMPLOYEES is defined (see bottom).
+PACKAGE_TEAMS: dict[str, list[str]] = {}
 
 # Welcoming intro text per agent (what the employee does)
 _EMPTY = object()
@@ -677,7 +790,27 @@ def divisions_for_agent(agent_slug: str) -> dict | None:
 
 
 def get_package(package_key: str) -> dict | None:
-    return PACKAGES.get(package_key)
+    """Current tier, or the historical package a stored payment refers to."""
+    return PACKAGES.get(package_key) or LEGACY_PACKAGES.get(package_key)
+
+
+def resolve_tier(key: str | None) -> str:
+    """Tier key for a tier or a domain key; unknown -> the entry tier."""
+    key = (key or "").strip()
+    if key in PACKAGES:
+        return key
+    return DOMAIN_TIER.get(key, "starter")
+
+
+def tier_price_sar(key: str | None) -> int:
+    """Pre-VAT monthly price in SAR for a tier or domain key."""
+    return PACKAGES[resolve_tier(key)]["amount"] // 100
+
+
+def plan_agent_count(key: str) -> int:
+    """Specialist agents a tier staffs; the CEO is on top and not counted."""
+    agents = PACKAGES[key]["agents"]
+    return AGENT_COUNT - 1 if agents is None else agents
 
 
 def get_team(package_key: str) -> list[str]:
@@ -714,3 +847,18 @@ def team_with_identity(agent_slugs: list[str], names: dict[str, str]) -> list[di
             "intro_en": emp.get("intro_en", ""),
         })
     return result
+
+
+def _build_package_teams() -> dict[str, list[str]]:
+    growth_first = DOMAIN_TEAMS["growth"] + DOMAIN_TEAMS["social"] + DOMAIN_TEAMS["ecommerce"]
+    return {
+        "starter": [CEO_SLUG, "marketing_agent"],
+        "team": [CEO_SLUG, *DOMAIN_TEAMS["social"]],
+        "scale": [CEO_SLUG, *[s for s in growth_first if s != "cv_writer"][:12]],
+        "company": [CEO_SLUG, *[s for s in EMPLOYEES if s != CEO_SLUG]],
+    }
+
+
+PACKAGE_TEAMS.update(_build_package_teams())
+for _key, _pkg in PACKAGES.items():
+    _pkg["agent_count"] = plan_agent_count(_key)

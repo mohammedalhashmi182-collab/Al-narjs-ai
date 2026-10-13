@@ -21,7 +21,7 @@ async def _db():
     yield
 
 
-async def _pending_project(package: str = "social", phone: str = "0500000000", created=None) -> ClientProject:
+async def _pending_project(package: str = "team", phone: str = "0500000000", created=None) -> ClientProject:
     from datetime import datetime, timezone
     from src.db.session import async_session_factory
     async with async_session_factory() as session:
@@ -35,11 +35,11 @@ async def _pending_project(package: str = "social", phone: str = "0500000000", c
         return project
 
 
-async def _paid_payment(package: str = "social", project_id=None, phone="0500000000") -> Payment:
+async def _paid_payment(package: str = "team", project_id=None, phone="0500000000") -> Payment:
     from src.db.session import async_session_factory
     async with async_session_factory() as session:
         payment = Payment(
-            amount=150000,
+            amount=999900,
             currency="SAR",
             package=package,
             customer_name="Test Client",
@@ -61,7 +61,7 @@ async def test_payment_carries_project_link():
     async with async_session_factory() as session:
         payment = await pm.create_payment(
             session,
-            "social",
+            "team",
             customer_name="A",
             customer_phone="0500000000",
             customer_email="a@example.com",
@@ -103,7 +103,7 @@ async def test_unpaid_payment_does_not_activate():
     project = await _pending_project()
     async with async_session_factory() as session:
         payment = Payment(
-            amount=150000, currency="SAR", package="social",
+            amount=999900, currency="SAR", package="team",
             customer_phone=project.phone, project_id=project.id,
             status="pending", gateway="invoice",
         )

@@ -242,3 +242,24 @@ Practical, clear, motivating, direct. No filler.
 - Say the price, the deliverable, and the next step. No "revolutionary", "game-changing",
   "unleash", "seamless".
 - Never claim customers, results, or metrics that do not exist.
+
+---
+
+## v2 "Najd Night" — public landing (CEO-advisor rebrand, 2026-10)
+
+The landing page (`/home`) now uses its own layer, `src/web/static/css/narjis-v2.css`.
+App pages (portal, consult, invoices, owner console) keep ODSF v0.2 above until migrated.
+
+| Token | Value | Use |
+|---|---|---|
+| `--v2-canvas` | `#0c0a08` | deep warm black: hero, dark sections, footer, `theme-color` |
+| `--v2-ivory` | `#f6f3ea` | reading canvas |
+| `--v2-ink` | `#10201a` | body text |
+| `--v2-green` | `#c2410c` | **the** action colour (rich orange, white label 5.2:1). Token name kept for API stability |
+| `--v2-saffron` | `#d9a441` | warm gold highlight, never a large field |
+| `--v2-saudi` | `#0f7b53` | Saudi green for confirmations (checks, online dot, trust icons) |
+
+Type: **Alexandria** (display) + **Noto Sans Arabic** (text). One primary button per block.
+The page is rendered in one language server-side (`/ar/...`, `/en/...`), RTL first.
+All motion honours `prefers-reduced-motion`. `tests/test_design_system.py` enforces these tokens,
+the contrast ratios and the font loading.

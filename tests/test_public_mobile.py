@@ -31,7 +31,11 @@ def context(browser):
                                       reduced_motion='reduce')
         def serve(route):
             url = urlsplit(route.request.url)
-            response = client.get(url.path + ('?' + url.query if url.query else ''))
+            target = url.path + ('?' + url.query if url.query else '')
+            req = route.request
+            # forward the real method and body so POST endpoints (the CEO consult) work
+            response = client.request(req.method, target, content=req.post_data_buffer,
+                                      headers={'content-type': req.headers.get('content-type', 'application/json')})
             route.fulfill(status=response.status_code, body=response.content,
                           headers={'content-type': response.headers.get('content-type', 'text/plain')})
         context.route('http://testserver/**', serve)
@@ -79,24 +83,27 @@ def test_mobile_pages_and_language_switch(context, width, path):
                 page.locator('[data-lang-btn="' + lang + '"]').first.click()
             expect(page).to_have_url('http://testserver/' + lang + path)
         else:
-            # goLang() assigns location.href, so this is a full page load even
-            # though the assertion below is client-side. A fresh document means
-            # a fresh preloader covering the page again.
-            with page.expect_navigation(wait_until='load'):
-                page.locator('[data-lang-btn="' + lang + '"]').first.click()
+            # v2 home: the language is server-rendered at /ar/... or /en/...;
+            # the switch for the current language is hidden, so navigate to it.
+            page.goto('http://testserver/' + lang + path)
         wait_for_preloader(page)
         expect(page.locator('body')).to_be_visible()
         expect(page.locator('body')).to_have_attribute('data-lang', lang)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         assert page.locator('a[href="#"]').count() == 0
     if path == '/home':
-        tag = page.locator('#plan-social .tag').bounding_box()
-        card = page.locator('#plan-social').bounding_box()
+        tag = page.locator('[data-plan="starter"] .tag').bounding_box()
+        card = page.locator('[data-plan="starter"]').bounding_box()
         assert tag['y'] >= card['y'] and tag['x'] >= card['x']
         assert tag['x'] + tag['width'] <= card['x'] + card['width'] + 1
-        assert page.locator('.pricing-grid a[href*="?start=plan_"]').count() == 4
-        page.locator('.mob-cta a[href="/consult"]').click()
-        assert urlsplit(page.url).path == '/consult'
+        assert page.locator('.plans a[href^="/portal?pkg="]').count() == 4
+        # the hero CTA opens the CEO consultation and it actually answers
+        page.locator('#heroCeo').click()
+        page.fill('#ceoProblem', 'متجري على سلة والعملاء ينتظرون الرد على الواتساب')
+        page.locator('#ceoSubmit').click()
+        page.locator('#ceoResult').wait_for(state='visible')
+        assert page.locator('#ceoAgents li').count() >= 1
+        assert page.locator('#ceoSubscribe').get_attribute('href').startswith('/portal?pkg=')
     if path == '/portal':
         page.locator('.pkg').first.click()
         assert page.locator('#regForm').is_visible()
@@ -107,16 +114,16 @@ def test_portal_timeout_and_retry_preserve_plan(context):
     page = context.new_page()
     page.route('**/api/portal/packages', lambda route: None)
     page.clock.install()
-    page.goto('http://testserver/portal?pkg=social')
+    page.goto('http://testserver/portal?pkg=starter')
     assert page.locator('.package-skeleton').count() == 4
     page.clock.fast_forward(5100)
     page.locator('#retry-packages').wait_for()
     assert page.locator('#pkg-grid').get_attribute('aria-busy') == 'false'
-    assert page.locator('#retry-packages').get_attribute('href') == '/portal?pkg=social'
+    assert page.locator('#retry-packages').get_attribute('href') == '/portal?pkg=starter'
     page.unroute('**/api/portal/packages')
     page.locator('#retry-packages').click()
     page.locator('.pkg.selected').wait_for()
-    assert page.locator('.pkg.selected').get_attribute('data-pkg') == 'social'
+    assert page.locator('.pkg.selected').get_attribute('data-pkg') == 'starter'
 
 
 def test_portal_http_failure(context):
@@ -138,9 +145,10 @@ def test_home_without_javascript(browser):
                           headers={'content-type': response.headers.get('content-type', 'text/plain')})
         page.route('http://testserver/**', serve)
         page.goto('http://testserver/home')
-        for counter in page.locator('.stats .num').all():
+        for counter in page.locator('.hero-facts b').all():
             assert int(counter.inner_text()) > 0
-        assert page.locator('#agents').is_visible()
+        assert page.locator('#team').is_visible()
         assert page.locator('.dv-card').count() > 0
-        assert page.locator('#agents .reveal').first.evaluate('(el) => getComputedStyle(el).opacity') == '1'
+        assert page.locator('#pricing .plan').count() == 4
+        assert page.locator('#team .rv').first.evaluate('(el) => getComputedStyle(el).opacity') == '1'
         page.close()

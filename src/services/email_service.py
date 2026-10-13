@@ -229,12 +229,10 @@ Al-Narjis AI · Riyadh""",
 
 
 def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: int, locale: str) -> str:
-    package_name = {
-        "social": "سوشيال ميديا / Social Media",
-        "ecommerce": "متاجر إلكترونية / E-commerce",
-        "content": "تسويق محتوى / Content Marketing",
-        "growth": "نمو الأعمال / Business Growth",
-    }.get(payment.package, payment.package or "")
+    from src.services import catalog
+
+    _pkg = catalog.get_package(payment.package or "")
+    package_name = f"{_pkg['name']} / {_pkg['name_en']}" if _pkg else (payment.package or "")
 
     def fmt(halalas: int) -> str:
         return f"{halalas / 100:,.2f} SAR"

@@ -1,4 +1,5 @@
-"""Design-system guards — ODSF v0.2 (see docs/design-system.md).
+"""Design-system guards — ODSF v0.2 for the app pages and the v2 "Najd Night"
+layer for the public landing page (see docs/design-system.md).
 
 The visual identity is the accent (vermilion #FF5A36) for action, green (#4F7942) for
 structure and Telegram, on ivory (#FAFAF9) with Cairo type. These tests fail
@@ -177,7 +178,7 @@ def test_no_template_loads_the_retired_font_pairing(name: str) -> None:
     assert "family=Inter" not in body, f"{name} still loads Inter"
 
 
-@pytest.mark.parametrize("name", PUBLIC_TEMPLATES)
+@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n != "landing.html"])
 def test_public_templates_load_cairo(name: str) -> None:
     body = read(name)
     if "fonts.googleapis.com/css2" not in body:
@@ -185,9 +186,104 @@ def test_public_templates_load_cairo(name: str) -> None:
     assert "family=Cairo" in body, f"{name} does not load Cairo"
 
 
-def test_landing_declares_the_odsf_theme_colour() -> None:
+# --------------------------------------------------------------------------
+# v2 "Najd Night" identity (CEO-advisor rebrand). The landing page moved to
+# its own layer, narjis-v2.css: deep warm black canvas, rich orange action,
+# warm saffron highlight, Saudi green for confirmations, Alexandria + Noto
+# Sans Arabic. The rest of the site keeps ODSF until it is migrated.
+# --------------------------------------------------------------------------
+V2_CSS = CSS_DIR / "narjis-v2.css"
+V2_TOKENS = {
+    "--v2-ivory": "#faf6ef",     # warm white page (theme-color)
+    "--v2-canvas": "#f6f2fb",    # soft lavender section field
+    "--v2-beige": "#f1e6d3",     # Najdi sand ("how it works")
+    "--v2-earth": "#a77b52",     # Najdi soil detail
+    "--v2-ink": "#2b2340",
+    "--v2-muted": "#6b6280",
+    "--v2-green": "#7a5cb8",     # action: lavender (token name kept for the API)
+    "--v2-lavender": "#8a6fc4",  # display serif accent
+    "--v2-saffron": "#c9a35b",   # gold, detail only
+    "--v2-saudi": "#4f6b3f",     # olive/sage
+}
+
+
+def _v2() -> str:
+    return V2_CSS.read_text(encoding="utf-8").lower()
+
+
+def test_landing_declares_the_v2_theme_colour() -> None:
     body = read("landing.html")
-    assert '<meta name="theme-color" content="#060607">' in body
+    assert f'<meta name="theme-color" content="{V2_TOKENS["--v2-ivory"]}">' in body
+
+
+def test_v2_layer_defines_its_tokens_and_type() -> None:
+    body = _v2()
+    for token, value in V2_TOKENS.items():
+        assert f"{token}: {value}" in body, f"missing v2 token {token}"
+    assert '"alexandria"' in body and '"noto sans arabic"' in body
+    assert '"cormorant garamond"' in body, "the Latin 'Your AI CEO' line uses the serif"
+
+
+def test_v2_landing_loads_only_the_v2_layer_and_its_fonts() -> None:
+    body = read("landing.html")
+    assert "/static/css/narjis-v2.css" in body
+    assert '<body class="v2"' in body
+    assert "family=Alexandria" in body and "family=Noto+Sans+Arabic" in body
+    assert "family=Cormorant+Garamond" in body
+    for retired in ("narjis-luxury.css", "narjis-refresh.css", "family=Cairo"):
+        assert retired not in body, f"landing still loads {retired}"
+
+
+def _luminance(hexv: str) -> float:
+    def ch(c: int) -> float:
+        c = c / 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (int(hexv[i:i + 2], 16) for i in (1, 3, 5))
+    return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b)
+
+
+def _contrast(a: str, b: str) -> float:
+    la, lb = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def test_v2_action_button_text_meets_wcag_aa() -> None:
+    assert _contrast(V2_TOKENS["--v2-green"], "#ffffff") >= 4.5
+    assert ".btn-primary { background: var(--v2-green); color: #ffffff; }" in _v2()
+
+
+def test_v2_is_a_light_theme_with_readable_text() -> None:
+    for field in ("--v2-ivory", "--v2-canvas", "--v2-beige"):
+        assert _luminance(V2_TOKENS[field]) > 0.7, f"{field} is not a light surface"
+        assert _contrast(V2_TOKENS["--v2-ink"], V2_TOKENS[field]) >= 7
+        assert _contrast(V2_TOKENS["--v2-muted"], V2_TOKENS[field]) >= 4.5
+    # the lavender serif is display-size only: WCAG large-text threshold
+    assert _contrast(V2_TOKENS["--v2-lavender"], V2_TOKENS["--v2-ivory"]) >= 3
+    assert _contrast(V2_TOKENS["--v2-saudi"], V2_TOKENS["--v2-ivory"]) >= 4.5
+
+
+def test_v2_hero_and_how_use_the_approved_art_and_copy() -> None:
+    body = read("landing.html")
+    assert "رئيسك التنفيذي الذكي" in body and "Your AI CEO" in body
+    assert "يبني لك الفريق المناسب من أول محادثة" in body
+    assert "تحدث مع الرئيس التنفيذي الآن" in body and "استكشف الإمكانات" in body
+    css_body = _v2()
+    assert "/static/img/hero-riyadh.webp" in css_body and "/static/img/how-diriyah.webp" in css_body
+    for img in ("hero-riyadh.webp", "how-diriyah.webp"):
+        path = ROOT / "src" / "web" / "static" / "img" / img
+        assert path.exists() and path.stat().st_size < 250_000, f"{img} missing or too heavy"
+    # no fabricated client strip or third-party logos from the mockup
+    for name in ("نيوم", "أرامكو", "NEOM", "Aramco", "موثوق به في"):
+        assert name not in body
+
+
+def test_v2_layer_respects_reduced_motion_and_has_no_retired_palette() -> None:
+    body = _v2()
+    assert "prefers-reduced-motion: reduce" in body
+    found = [h for h in (BANNED_HEXES | RETIRED_HEXES) if h in body]
+    assert not found, f"v2 layer carries retired colours: {found}"
+    for font in RETIRED_FONTS:
+        assert font.lower() not in body
 
 
 def test_owner_console_keeps_dark_surfaces_on_green() -> None:

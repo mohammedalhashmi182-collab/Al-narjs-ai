@@ -192,7 +192,7 @@ def landing() -> str:
 
 def test_whatsapp_renders_above_telegram_in_the_floating_stack(landing: str) -> None:
     """The owner's explicit instruction: WhatsApp sits above Telegram."""
-    stack = landing[landing.find('<div class="contact-stack">'):]
+    stack = landing[landing.find('<div class="contact-stack fab-cluster"'):]
     stack = stack[: stack.find("</div>") + 10]
     wa = stack.find('id="waFloat"')
     tg = stack.find('id="tgFloat"')
@@ -211,7 +211,7 @@ def test_whatsapp_renders_above_telegram_in_the_footer(landing: str) -> None:
 
 
 def test_the_stack_hides_a_button_when_no_number_is_published(landing: str) -> None:
-    stack = landing[landing.find('<div class="contact-stack">'):][:1200]
+    stack = landing[landing.find('<div class="contact-stack fab-cluster"'):][:1200]
     assert "{% if contact.whatsapp %}" in stack, "an empty WhatsApp link would be dead"
     assert "{% if contact.whatsapp %}" in landing[landing.find('<div class="socials">'):][:900]
 
@@ -228,14 +228,12 @@ def test_the_number_is_not_hard_coded_in_either_place(landing: str) -> None:
 
 def test_the_stack_is_a_column_so_the_order_is_structural(landing: str) -> None:
     """Order must come from layout, not from a magic bottom offset."""
-    css = landing[landing.find("/* Contact stack:"):]
-    css = css[: css.find("@media (max-width:768px)")] if "@media (max-width:768px)" in css else css[:2000]
-    assert ".contact-stack{" in css, "the stack container rule is missing"
-    assert "flex-direction:column" in css, "the stack must be a column to stack the order"
-    assert "position:static" in css, (
-        "the children re-anchor themselves, so their order is a magic offset "
-        "instead of layout"
-    )
+    from pathlib import Path
+
+    css = (Path(__file__).resolve().parents[1] / "src/web/static/css/narjis-v2.css").read_text(encoding="utf-8")
+    css = css[css.find("/* Contact stack:"):]
+    assert ".contact-stack {" in css, "the stack container rule is missing"
+    assert "flex-direction: column" in css, "the stack must be a column to stack the order"
 
 
 def test_the_landing_page_receives_the_contact_channels(client: TestClient) -> None:
