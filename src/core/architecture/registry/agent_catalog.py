@@ -62,7 +62,7 @@ class AgentCapability:
     dept: Optional[str] = None
     authority: Optional[str] = None
     owner_only: bool = False
-    micro_budget_usd: float = 0.0
+    micro_budget_sar: float = 0.0  # Saudi riyal; legacy *_usd values are converted at 3.75
     modes: List[str] = field(default_factory=list)
     receives_from: List[str] = field(default_factory=list)
     delivers_to: List[str] = field(default_factory=list)
@@ -80,7 +80,7 @@ class AgentCapability:
             "dept": self.dept,
             "authority": self.authority,
             "owner_only": self.owner_only,
-            "micro_budget_usd": self.micro_budget_usd,
+            "micro_budget_sar": self.micro_budget_sar,
             "modes": list(self.modes),
             "receives_from": list(self.receives_from),
             "delivers_to": list(self.delivers_to),
@@ -139,7 +139,7 @@ class AgentCatalog:
                 dept=meta.get("dept"),
                 authority=meta.get("authority"),
                 owner_only=bool(meta.get("owner_only")),
-                micro_budget_usd=float(meta.get("micro_budget_usd") or 0.0),
+                micro_budget_sar=_budget_sar(meta),
                 modes=[str(m) for m in (meta.get("modes") or [])],
                 receives_from=[str(x) for x in (meta.get("receives_from") or [])],
                 delivers_to=[str(x) for x in (meta.get("delivers_to") or [])],
@@ -281,3 +281,14 @@ class AgentCatalog:
             category="general",
             default_model=DEFAULT_MODEL,
         )
+
+
+USD_TO_SAR = 3.75
+
+
+def _budget_sar(meta: dict) -> float:
+    """Spending limit in SAR. Accepts the legacy ``micro_budget_usd`` key."""
+    if meta.get("micro_budget_sar") is not None:
+        return float(meta.get("micro_budget_sar") or 0.0)
+    usd = float(meta.get("micro_budget_usd") or 0.0)
+    return float(round(usd * USD_TO_SAR / 50) * 50)  # round to the nearest 50 SAR (250 USD -> 950)

@@ -326,3 +326,4 @@ from src.models.automation import (  # noqa: E402,F401
     ReplyDraft,
     SocialPostDraft,
 )
+from src.models.agent_tools import KnowledgeDoc, ProjectDataFile  # noqa: E402,F401
