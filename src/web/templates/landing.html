@@ -1204,6 +1204,7 @@ select option{background:#101014;color:#F6F5F4}
     #progress{display:none}
 }
 </style>
+<link rel="stylesheet" href="/static/css/narjis-launch.css">
 <noscript><style>.reveal,.lux-reveal{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body class="luxury" data-lang="{{ _lang }}">
@@ -1273,23 +1274,23 @@ select option{background:#101014;color:#F6F5F4}
         <div class="lux-vignette"></div>
         <div class="inner">
             <div>
-                <span class="badge lux-reveal"><span class="dot"></span><span data-lang="ar">للمتاجر وصنّاع المحتوى والمكاتب الخدمية</span><span data-lang="en" data-inline>For stores, creators and service firms</span></span>
+                <span class="badge lux-reveal"><span class="dot"></span><span data-lang="ar">من الرياض · للمنشآت الطموحة</span><span data-lang="en" data-inline>From Riyadh · For ambitious businesses</span></span>
                 <h1 class="lux-reveal">
-                    <span data-lang="ar">فريق تسويق ومحتوى ومبيعات<br>يعمل من <span class="grad">أول شهر</span></span>
-                    <span data-lang="en" data-inline>A marketing, content and sales team<br>working from <span class="grad">month one</span></span>
+                    <span data-lang="ar">طموحك يكبر.<br>وفريقك <span class="grad">جاهز للخطوة التالية.</span></span>
+                    <span data-lang="en" data-inline>Think bigger.<br>Your team is <span class="grad">ready for what’s next.</span></span>
                 </h1>
                 <p class="sub lead lux-reveal">
-                    <span data-lang="ar">تشترك في باقة فيها خمسة وكلاء متخصصون بدل توظيف فريق. يغطّي: </span><span data-lang="en" data-inline>Subscribe to a plan with five specialized agents instead of hiring a team. Covers: </span><span class="rotor" id="rotor">كتابة المحتوى</span>
-                    <span style="display:block;font-size:.86rem;margin-top:12px;"><span data-lang="ar">يتقن: تقويم محتوى وسوشيال ميديا · ردود عملاء فورية · تحسين محركات البحث (SEO) · تحليل السوق والمنافسين · كتابة وصف منتجات.</span><span data-lang="en" data-inline>Mastering: content and social media calendars · instant customer replies · search engine optimization (SEO) · market and competitor analysis · product descriptions.</span></span>
+                    <span data-lang="ar">خمسة وكلاء متخصصون في باقة واحدة. حوّل مهام نشاطك إلى مخرجات واضحة تراجعها وتستخدمها: </span><span data-lang="en" data-inline>Five specialized agents in one plan. Turn business tasks into clear deliverables you can review and use: </span><span class="rotor" id="rotor">كتابة المحتوى</span>
+                    <span style="display:block;font-size:.86rem;margin-top:12px;"><span data-lang="ar">محتوى وتقويم نشر ووصف منتجات وتحليل منافسين. النشر والرد الآلي يعتمدان على ربط قنواتك وتفعيلها.</span><span data-lang="en" data-inline>Content, publishing calendars, product descriptions and competitor analysis. Automated publishing and replies require connected, enabled channels.</span></span>
                 </p>
                 <div class="cta-row lux-reveal">
-                    <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">شاهد ماذا يستطيع فريقك الرقمي أن يفعل</span><span data-lang="en" data-inline>See what your digital team can do</span></a>
+                    <a href="#pricing" class="btn btn-gold"><span data-lang="ar">اختر فريقك وشاهد الباقات</span><span data-lang="en" data-inline>Find your team and plan</span><span aria-hidden="true">↗</span></a>
                     <a href="/consult" class="btn btn-ghost"><span data-lang="ar">ابدأ باستشارة مجانية</span><span data-lang="en" data-inline>Start a free consultation</span></a>
                 </div>
                 <div class="more-links lux-reveal">
                     <a href="/guide"><i class="fas fa-book-open"></i> <span data-lang="ar">دليل مجاني: تشغيل التسويق بالوكلاء</span><span data-lang="en" data-inline>Free guide: running marketing with agents</span></a>
                 </div>
-                <div class="hint lux-reveal"><i class="fas fa-shield-halved"></i><span data-lang="ar">فاتورة رسمية موثقة · بدون عقود طويلة · إلغاء في أي وقت</span><span data-lang="en" data-inline>Official invoiced billing · No long contracts · Cancel anytime</span></div>
+                <div class="hint lux-reveal"><i class="fas fa-shield-halved"></i><span data-lang="ar">فاتورة رسمية · الأسعار تشمل الضريبة · اشتراك شهري</span><span data-lang="en" data-inline>Official invoice · VAT-inclusive prices · Monthly subscription</span></div>
 
                 <div class="stats lux-reveal">
                     <div class="stat"><div class="num" id="c0" data-target="800">800</div><div class="lbl"><span data-lang="ar">ريال شهرياً تبدأ به الباقات</span><span data-lang="en" data-inline>SAR per month to start with</span></div></div>
@@ -1303,7 +1304,7 @@ select option{background:#101014;color:#F6F5F4}
                 <div class="console lux-reveal">
                     <div class="console-bar">
                         <span class="ttl" id="demoTitle"><span data-lang="ar">مقر العمليات — فريقك</span><span data-lang="en" data-inline>Operations — your team</span></span>
-                        <span class="status-pill">LIVE</span>
+                        <span class="status-pill"><span data-lang="ar">تجربة توضيحية</span><span data-lang="en" data-inline>Interactive preview</span></span>
                     </div>
                     <div class="console-body">
                         <div class="emp dormant" data-emp>
@@ -1326,7 +1327,7 @@ select option{background:#101014;color:#F6F5F4}
                         </div>
                     </div>
                     <div class="console-chart">
-                        <div class="ch-lbl"><span data-lang="ar">مخرجات الأسابيع</span><span data-lang="en" data-inline>Weekly output</span></div>
+                        <div class="ch-lbl"><span data-lang="ar">رسم توضيحي — ليس بيانات أداء</span><span data-lang="en" data-inline>Illustration — not performance data</span></div>
                         <svg viewBox="0 0 560 86" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="lgGrad" x1="0" y1="0" x2="1" y2="0">
@@ -1355,6 +1356,12 @@ select option{background:#101014;color:#F6F5F4}
             </div>
         </div>
     </header>
+
+    <aside class="launch-principles" aria-label="مبادئ الخدمة / Service principles">
+        <div><span class="principle-index">01</span><strong><span data-lang="ar">إنتاجية أعلى للمنشآت</span><span data-lang="en" data-inline>More productive businesses</span></strong><p><span data-lang="ar">تقليل العمل المتكرر وإتاحة وقت أكبر لقراراتك.</span><span data-lang="en" data-inline>Less repetitive work. More time for your decisions.</span></p></div>
+        <div><span class="principle-index">02</span><strong><span data-lang="ar">عربية من البداية</span><span data-lang="en" data-inline>Arabic from the start</span></strong><p><span data-lang="ar">تجربة واضحة مصممة لاحتياجات السوق السعودي.</span><span data-lang="en" data-inline>A clear experience designed for the Saudi market.</span></p></div>
+        <div><span class="principle-index">03</span><strong><span data-lang="ar">تحوّل رقمي عملي</span><span data-lang="en" data-inline>Practical digital adoption</span></strong><p><span data-lang="ar">توجّه يدعم طموح رؤية 2030؛ دون ادعاء ارتباط أو اعتماد رسمي.</span><span data-lang="en" data-inline>Supporting the ambition of Vision 2030, without claiming official affiliation or endorsement.</span></p></div>
+    </aside>
 
     <!-- ==================== TRUST ==================== -->
     <div class="trust">
@@ -1431,7 +1438,7 @@ select option{background:#101014;color:#F6F5F4}
                     <p class="demo-brief" id="demoBrief" hidden></p>
                     <div class="demo-tabs" id="demoTabs" role="tablist" hidden></div>
                     <div class="demo-panel" id="demoPanel">
-                        <p class="demo-empty"><i class="fas fa-hand-pointer"></i><span data-lang="ar">اختر نشاطاً من اليسار ثم أبقِ الوكيل — المخرجات الحقيقية تظهر هنا.</span><span data-lang="en" data-inline>Pick a business on the left, then wake the agent — the deliverables appear here.</span></p>
+                        <p class="demo-empty"><i class="fas fa-hand-pointer"></i><span data-lang="ar">اختر نشاطاً تجريبياً ثم أيقظ الوكيل — تظهر العينة التوضيحية هنا.</span><span data-lang="en" data-inline>Pick a sample business, then wake the agent — illustrative output appears here.</span></p>
                     </div>
                 </div>
             </div>
@@ -1442,7 +1449,7 @@ select option{background:#101014;color:#F6F5F4}
             <div class="next-step reveal">
                 <div class="ns-tx">
                     <b><span data-lang="ar">هذه كانت عيّنة. الحقيقية تعمل على نشاطك.</span><span data-lang="en" data-inline>That was a sample. The real one works on your business.</span></b>
-                    <span><span data-lang="ar">ادفع بنفسك: فريقك يسأل عن نشاطك في أسئلة قصيرة، ثم يستلم أول مخرجاته.</span><span data-lang="en" data-inline>You pay for your own: the team asks about your business in short questions, then delivers your first output.</span></span>
+                    <span><span data-lang="ar">ابدأ بنشاطك: يطلب الفريق تفاصيله، ثم تراجع المخرجات قبل استخدامها.</span><span data-lang="en" data-inline>Start with your business details, then review the deliverables before using them.</span></span>
                 </div>
                 <a href="/portal" class="btn btn-gold"><i class="fas fa-bolt"></i><span data-lang="ar">ابدأ باقتك</span><span data-lang="en" data-inline>Start your plan</span></a>
                 <a href="/consult" class="btn btn-ghost"><span data-lang="ar">لست متأكداً؟ استشارة مجانية</span><span data-lang="en" data-inline>Not sure? Free consult</span></a>
@@ -1519,7 +1526,7 @@ select option{background:#101014;color:#F6F5F4}
                         </tr>
                         <tr>
                             <th><span data-lang="ar">العربية أولاً</span><span data-lang="en" data-inline>Arabic first</span></th>
-                            <td><span data-lang="ar">تعمد على لغة النموذج</span><span data-lang="en" data-inline>Depends on the model's language</span></td>
+                            <td><span data-lang="ar">تعتمد على لغة النموذج</span><span data-lang="en" data-inline>Depends on the model's language</span></td>
                             <td><span data-lang="ar">حسب المستقل واللغة</span><span data-lang="en" data-inline>Depends on the person and their language</span></td>
                             <td><span data-lang="ar">حسب إتقان الموظف للغة</span><span data-lang="en" data-inline>Depends on the employee's fluency</span></td>
                             <td class="us"><span data-lang="ar">واجهة ومحتوى ومخرجات بالعربية أولاً</span><span data-lang="en" data-inline>Interface, content and outputs are Arabic first</span></td>
@@ -1749,7 +1756,7 @@ select option{background:#101014;color:#F6F5F4}
 
             <div class="pricing-grid">
                 <div class="pc featured reveal" id="plan-social" data-pkg="social">
-                    <span class="tag"><span data-lang="ar">الأكثر طلباً ★</span><span data-lang="en" data-inline>Most popular ★</span></span>
+                    <span class="tag"><span data-lang="ar">للمحتوى المنتظم</span><span data-lang="en" data-inline>For consistent content</span></span>
                     <div class="pc-head">
                         <h3><span data-lang="ar">{{ packages['social'].name }}</span><span class="en-nm">{{ packages['social'].name_en }}</span></h3>
                     </div>
@@ -1791,7 +1798,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تكتب نص الإعلان ولا تجمّع أرقام التقرير</span><span data-lang="en" data-inline>You no longer write the ad or compile the report numbers</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_social" class="btn btn-gold">{{ tg_plane() }}<span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_social" class="btn btn-gold">{{ tg_plane() }}<span data-lang="ar">اطلب عبر تيليجرام</span><span data-lang="en" data-inline>Request on Telegram</span></a><a href="/portal?pkg=social" class="plan-online"><span data-lang="ar">أو ابدأ من الموقع ←</span><span data-lang="en" data-inline>Or start on the website →</span></a></div>
                 </div>
                 <div class="pc reveal" id="plan-ecommerce" data-pkg="ecommerce">
                     <div class="pc-head">
@@ -1835,7 +1842,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تتابع السلة المتروكة ولا تفكّر فيها</span><span data-lang="en" data-inline>You no longer chase the abandoned cart</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_ecommerce" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_ecommerce" class="btn btn-ghost"><span data-lang="ar">اطلب عبر تيليجرام</span><span data-lang="en" data-inline>Request on Telegram</span></a><a href="/portal?pkg=ecommerce" class="plan-online"><span data-lang="ar">أو ابدأ من الموقع ←</span><span data-lang="en" data-inline>Or start on the website →</span></a></div>
                 </div>
                 <div class="pc reveal" id="plan-content" data-pkg="content">
                     <div class="pc-head">
@@ -1879,7 +1886,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تقرأ تقرير السوق قبل أن تقرر</span><span data-lang="en" data-inline>You no longer read a market report before deciding</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_content" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_content" class="btn btn-ghost"><span data-lang="ar">اطلب عبر تيليجرام</span><span data-lang="en" data-inline>Request on Telegram</span></a><a href="/portal?pkg=content" class="plan-online"><span data-lang="ar">أو ابدأ من الموقع ←</span><span data-lang="en" data-inline>Or start on the website →</span></a></div>
                 </div>
                 <div class="pc reveal" id="plan-growth" data-pkg="growth">
                     <div class="pc-head">
@@ -1923,7 +1930,7 @@ select option{background:#101014;color:#F6F5F4}
                             <li><i class="fas fa-xmark"></i><span data-lang="ar">لا تتابع تنفيذ الخطة بنفسك</span><span data-lang="en" data-inline>You no longer chase the plan yourself</span></li>
                         </ul>
                     </div>
-                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_growth" class="btn btn-ghost"><span data-lang="ar">اطلب الباقة</span><span data-lang="en" data-inline>Request plan</span></a></div>
+                    <div class="actions"><a href="https://t.me/AlNarjs7BOT?start=plan_growth" class="btn btn-ghost"><span data-lang="ar">اطلب عبر تيليجرام</span><span data-lang="en" data-inline>Request on Telegram</span></a><a href="/portal?pkg=growth" class="plan-online"><span data-lang="ar">أو ابدأ من الموقع ←</span><span data-lang="en" data-inline>Or start on the website →</span></a></div>
                 </div>
             </div>
 
@@ -2010,27 +2017,23 @@ select option{background:#101014;color:#F6F5F4}
                 <div class="f-grid">
                     <div class="field">
                         <label for="name"><span data-lang="ar">الاسم الكامل</span><span data-lang="en" data-inline>Full name</span></label>
-                        <input type="text" id="name" name="name" required>
+                        <input type="text" id="name" name="name" autocomplete="name" required>
                     </div>
                     <div class="field">
                         <label for="phone"><span data-lang="ar">رقم الجوال</span><span data-lang="en" data-inline>Phone number</span></label>
-                        <input type="tel" id="phone" name="phone" required>
+                        <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="field">
                         <label for="email"><span data-lang="ar">البريد الإلكتروني</span><span data-lang="en" data-inline>Email</span></label>
-                        <input type="email" id="email" name="email">
+                        <input type="email" id="email" name="email" autocomplete="email">
                     </div>
                     <div class="field">
                         <label for="package"><span data-lang="ar">الباقة المطلوبة</span><span data-lang="en" data-inline>Requested plan</span></label>
                         <select id="package" name="package">
-                            <option value="social" data-lang="ar">سوشيال ميديا — 1,500 ر.س</option>
-                            <option value="social" data-lang="en">Social Media — 1,500 SAR</option>
-                            <option value="ecommerce" data-lang="ar">متاجر إلكترونية — 1,000 ر.س</option>
-                            <option value="ecommerce" data-lang="en">E-commerce — 1,000 SAR</option>
-                            <option value="content" data-lang="ar">تسويق محتوى — 1,200 ر.س</option>
-                            <option value="content" data-lang="en">Content — 1,200 SAR</option>
-                            <option value="growth" data-lang="ar">نمو الأعمال — 800 ر.س</option>
-                            <option value="growth" data-lang="en">Growth — 800 SAR</option>
+                            {% for key, pkg in packages.items() %}
+                            <option value="{{ key }}" data-lang="ar">{{ pkg.name }} — {{ pkg.price }} ر.س</option>
+                            <option value="{{ key }}" data-lang="en">{{ pkg.name_en }} — {{ pkg.price }} SAR</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="field full">
@@ -2042,7 +2045,7 @@ select option{background:#101014;color:#F6F5F4}
                     <button type="submit" class="btn btn-gold">{{ tg_plane() }}<span data-lang="ar">أرسل الطلب</span><span data-lang="en" data-inline>Send request</span></button>
                     <a id="tgDirect" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener" class="btn btn-tg">{{ tg_plane() }}<span data-lang="ar">إطلاق الوكيل عبر Telegram</span><span data-lang="en" data-inline>Launch agent on Telegram</span></a>
                 </div>
-                <div id="formMsg" class="form-msg"></div>
+                <div id="formMsg" class="form-msg" role="status" aria-live="polite"></div>
             </form>
 
             <div class="tg-panel reveal">
@@ -2092,7 +2095,7 @@ select option{background:#101014;color:#F6F5F4}
             <div>
                 <h4><span data-lang="ar">تواصل</span><span data-lang="en" data-inline>Contact</span></h4>
                 <a href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">{{ tg_plane_cls("margin-inline-end:8px") }}@AlNarjs7BOT · Telegram</a>
-                <span style="display:block;padding-block:5px;font-size:.86rem;color:var(--muted);"><i class="fas fa-phone" style="margin-inline-end:8px;color:var(--gold);"></i>+966 55 297 8753</span>
+                <a href="tel:+966552978753" dir="ltr" style="display:block;padding-block:5px;font-size:.86rem;"><i class="fas fa-phone" aria-hidden="true" style="margin-inline-end:8px;"></i>+966 55 297 8753</a>
                 <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
                 <a href="https://www.google.com/maps/search/?api=1&query=Riyadh+Saudi+Arabia" target="_blank" rel="noopener"><span data-lang="ar">الرياض، المملكة العربية السعودية</span><span data-lang="en" data-inline>Riyadh, Saudi Arabia</span></a>
             </div>
@@ -2861,6 +2864,12 @@ select option{background:#101014;color:#F6F5F4}
             var form = document.getElementById('leadForm');
             if (form) form.addEventListener('submit', function (e) {
                 e.preventDefault();
+                if (form.dataset.sending === 'true') return;
+                form.dataset.sending = 'true';
+                var submitButton = form.querySelector('[type=submit]');
+                submitButton.disabled = true;
+                var controller = new AbortController();
+                var timeout = setTimeout(function () { controller.abort(); }, 15000);
                 var msg = document.getElementById('formMsg');
                 var data = Object.fromEntries(new FormData(form).entries());
                 var isAr = document.body.dataset.lang === 'ar';
@@ -2868,7 +2877,7 @@ select option{background:#101014;color:#F6F5F4}
                 msg.className = 'form-msg';
                 msg.textContent = isAr ? 'جارٍ إرسال طلبك…' : 'Sending…';
                 fetch('/api/leads', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: controller.signal
                 }).then(function (r) {
                     if (r.ok) {
                         msg.textContent = isAr ? '✓ تم استلام طلبك! سنتواصل معك قريباً.' : '✓ Received! We will contact you soon.';
@@ -2882,6 +2891,10 @@ select option{background:#101014;color:#F6F5F4}
                 }).catch(function () {
                     msg.textContent = isAr ? 'حدث خطأ — جرّب تيليجرام المباشر.' : 'Something went wrong.';
                     msg.classList.add('err');
+                }).finally(function () {
+                    clearTimeout(timeout);
+                    form.dataset.sending = 'false';
+                    submitButton.disabled = false;
                 });
             });
 
