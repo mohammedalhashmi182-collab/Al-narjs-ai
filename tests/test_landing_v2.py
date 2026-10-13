@@ -55,7 +55,7 @@ def test_every_tier_renders_with_vat_inclusive_total_and_a_checkout_cta(page: st
 
 
 def test_the_price_anchor_uses_real_catalog_numbers(page: str) -> None:
-    full = catalog.PACKAGES["company"]
+    full = catalog.PACKAGES[catalog.PACKAGE_ORDER[-1]]
     per_agent = int(full["price"]) // full["agent_count"]
     assert f"{per_agent:,}" in page
 

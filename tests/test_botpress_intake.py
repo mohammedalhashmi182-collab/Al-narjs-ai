@@ -342,9 +342,9 @@ class TestValidation:
     def test_package_labels_map_in_arabic_too(self):
         from src.services import catalog
 
-        arabic = catalog.PACKAGES["team"]["name"]
+        arabic = catalog.PACKAGES["bay"]["name"]
         sale = bp.ClosedSale.model_validate(_sale(chosenPackage=arabic))
-        assert sale.package_key() == "team"
+        assert sale.package_key() == "bay"
 
 
 # ---------------------------------------------------------------------------
