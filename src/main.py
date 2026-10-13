@@ -2424,6 +2424,10 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "promo_applied": discount_pct > 0,
                     "vat": pm.vat_amount(payment.amount) if include_vat else 0,
                     "total": charge,
+                    # PayPal cannot charge SAR: the buyer pays this USD amount.
+                    "charge_currency": order["currency"],
+                    "charge_amount": order["amount_usd"],
+                    "sar_per_usd": settings.paypal_sar_per_usd,
                 }
             except pm.PaymentError as e:
                 payment.status = "invoice"
@@ -2514,29 +2518,24 @@ async def capture_payment(payment_id: str, request: Request):
     from src.models import Payment
     from src.services import payments as pm
 
-    body = await request.json()
-    order_id = body.get("order_id", "")
     locale = _request_locale(request)
+    try:
+        payment_uuid = UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
 
     async with app.state.session_factory() as session:
-        result = await session.execute(select(Payment).where(Payment.id == UUID(payment_id)))
+        result = await session.execute(select(Payment).where(Payment.id == payment_uuid))
         payment = result.scalar_one_or_none()
         if not payment:
             raise HTTPException(404, "Payment not found")
 
         if payment.gateway == "paypal" and payment.gateway_payment_id:
-            data = await pm.capture_paypal_order(payment.gateway_payment_id)
-            status = data.get("status")
-            if status == "COMPLETED":
-                payment.status = "paid"
-                payment.gateway_source = "paypal"
-                await session.commit()
-            elif status == "VOIDED":
-                payment.status = "failed"
-                await session.commit()
-            else:
-                payment.status = status.lower() if status else payment.status
-                await session.commit()
+            # The order id comes from our own record, never from the request body.
+            try:
+                await pm.finalize_paypal_payment(session, payment)
+            except pm.PaymentError as exc:
+                raise HTTPException(502, f"PayPal: {exc}")
         else:
             payment = (await session.execute(select(Payment).where(Payment.id == UUID(payment_id)))).scalar_one()
             if payment.status != "paid":
@@ -2899,6 +2898,13 @@ async def invoice_page(request: Request, payment_id: str):
                 (payment.gateway == "moyasar" and bool(payment.gateway_payment_id))
                 or (payment.gateway == "invoice" and bool(settings.moyasar_api_secret))
             ),
+            "paypal_enabled": payment.status not in ("paid", pm.REVIEW_STATUS)
+            and payment.gateway in ("invoice", "paypal")
+            and pm.paypal_collects_money(),
+            "paypal_usd": (
+                f"{pm.sar_halalas_to_usd_cents(pm.total_with_vat(payment.amount)) / 100:.2f}"
+                if pm.paypal_collects_money() else None
+            ),
         },
     )
 
@@ -2964,6 +2970,105 @@ async def moyasar_webhook(request: Request):
             from uuid import UUID as _UUID
 
             await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook ميسر")
+    return result
+
+
+@app.post(
+    "/api/payments/{payment_id}/pay-paypal",
+    dependencies=[Depends(rate_limit_transfer_report)],
+)
+async def pay_invoice_with_paypal(payment_id: str, body: InvoiceConsentRequest, request: Request):
+    """Buyer pays an invoice with PayPal (charged in USD at the riyal peg).
+
+    Same refund consent as checkout and /pay-card (422 without it). Returns the
+    PayPal approval URL plus the USD amount that will be charged.
+    """
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _select
+
+    from src.models import Payment as _Payment
+    from src.services import payments as pm
+
+    try:
+        payment_uuid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+    _require_refund_consent(body.refund_consent)
+    if not pm.paypal_collects_money():
+        raise HTTPException(503, "PayPal is not available; use card or bank transfer")
+    base = _public_base_url(request)
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+        ).scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+        if payment.status in ("paid", pm.REVIEW_STATUS):
+            raise HTTPException(409, "This invoice is already paid")
+        if payment.gateway == "moyasar" and payment.gateway_payment_id:
+            raise HTTPException(409, "This invoice is settled through its card gateway")
+        _record_refund_consent(payment)
+        await session.commit()
+        try:
+            order = await pm.create_paypal_order(
+                session,
+                payment,
+                return_url=f"{base}/payment/success?id={payment.id}",
+                cancel_url=f"{base}/invoice/{payment.id}",
+            )
+        except pm.PaymentError as exc:
+            raise HTTPException(502, f"PayPal unavailable: {str(exc)[:200]}")
+        return {
+            "payment_id": str(payment.id),
+            "status": payment.status,
+            "gateway": "paypal",
+            "order_id": order["order_id"],
+            "redirect_url": order["approval_url"],
+            "total": pm.total_with_vat(payment.amount),
+            "charge_currency": order["currency"],
+            "charge_amount": order["amount_usd"],
+            "sar_per_usd": settings.paypal_sar_per_usd,
+        }
+
+
+@app.post("/webhooks/paypal")
+async def paypal_webhook(request: Request):
+    """PayPal webhook. Signature verified with PayPal (PAYPAL_WEBHOOK_ID); the
+    order is then re-fetched and decided server-side. Replays are a 200 no-op."""
+    from src.services import payments as pm
+
+    try:
+        event = await request.json()
+    except Exception:  # noqa: BLE001
+        raise HTTPException(400, "invalid JSON")
+    if not isinstance(event, dict):
+        raise HTTPException(400, "invalid payload")
+    try:
+        verified = await pm.verify_paypal_webhook(request.headers, event)
+    except pm.PaymentError as exc:
+        raise HTTPException(502, f"could not verify with PayPal: {exc}")
+    if not verified:
+        raise HTTPException(401, "invalid PayPal signature")
+
+    async with app.state.session_factory() as session:
+        try:
+            result = await pm.handle_paypal_webhook(session, event)
+        except pm.PaymentError as exc:
+            raise HTTPException(502, f"could not settle with PayPal: {exc}")
+        if result.get("status") == "paid" and not result.get("already"):
+            from uuid import UUID as _UUID
+
+            await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook PayPal")
+        if result.get("alert"):
+            try:
+                from src.services import telegram_sender
+
+                await telegram_sender.send_owner_alert(
+                    f"⚠️ PayPal {result['alert']} — payment {result['payment_id']}. راجع الاسترداد/الإلغاء يدوياً."
+                )
+            except Exception:  # noqa: BLE001
+                pass
     return result
 
 

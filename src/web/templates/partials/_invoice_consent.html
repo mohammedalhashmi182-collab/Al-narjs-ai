@@ -2,7 +2,7 @@
 
    Context: consent_needed, refund_consent_ar/_en (from services/policies.py —
    never copy the wording here), card_enabled, payment. The server enforces the
-   same consent: /api/payments/<id>/pay-card and /transfer-reported answer 422
+   same consent: /api/payments/<id>/pay-card, /pay-paypal and /transfer-reported answer 422
    without it. #}
 {% if payment.status != 'paid' %}
 {% set ic_ar = (_lang | default('ar')) == 'ar' %}
@@ -26,6 +26,9 @@
     {% if card_enabled %}
     <button type="button" class="ic-card" id="invoicePayCard">{% if ic_ar %}ادفع بالبطاقة (مدى / فيزا / ماستركارد){% else %}Pay by card (mada / Visa / Mastercard){% endif %}</button>
     {% endif %}
+    {% if paypal_enabled %}
+    <button type="button" class="ic-card" id="invoicePayPayPal" style="background:#0070ba;">{% if ic_ar %}ادفع عبر PayPal — {{ paypal_usd }} دولار (PayPal لا يدعم الريال){% else %}Pay with PayPal — USD {{ paypal_usd }} (PayPal does not support SAR){% endif %}</button>
+    {% endif %}
     <p class="ic-err" id="invoiceConsentErr" hidden></p>
 </div>
 <script>
@@ -43,6 +46,26 @@
             if (box) box.focus();
             return false;
         };
+        var pp = document.getElementById('invoicePayPayPal');
+        if (pp) pp.addEventListener('click', function () {
+            if (!window.narjisInvoiceConsent()) return;
+            pp.disabled = true;
+            fetch('/api/payments/' + root.dataset.payment + '/pay-paypal', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refund_consent: true })
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (res) {
+                    if (!res.ok || !res.d.redirect_url) throw new Error('pay');
+                    sessionStorage.setItem('narjis-order-' + res.d.payment_id, res.d.order_id);
+                    window.location.href = res.d.redirect_url;
+                })
+                .catch(function () {
+                    pp.disabled = false;
+                    err.hidden = false;
+                    err.textContent = ar ? 'تعذر فتح PayPal. استخدم البطاقة أو التحويل البنكي.' : 'Could not open PayPal. Use card or bank transfer.';
+                });
+        });
         var card = document.getElementById('invoicePayCard');
         if (!card) return;
         card.addEventListener('click', function () {

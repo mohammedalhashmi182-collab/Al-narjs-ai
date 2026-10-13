@@ -813,6 +813,12 @@ note.textContent = msg;
                     }
                     if (data.redirect_url) {
                         msg.textContent = txt('تحويلك إلى بوابة الدفع الآمنة...', 'Redirecting to secure payment...');
+                        if (data.charge_currency === 'USD' && data.charge_amount) {
+                            const usd = (Number(data.charge_amount) / 100).toFixed(2);
+                            msg.textContent = txt('PayPal لا يدعم الريال: سيتم خصم ' + usd + ' دولار (' + data.sar_per_usd + ' ر.س/دولار). جارٍ التحويل...',
+                                'PayPal does not support SAR: you will be charged USD ' + usd + ' (' + data.sar_per_usd + ' SAR/USD). Redirecting...');
+                            await new Promise(res => setTimeout(res, 2500));
+                        }
                         window.location.href = data.redirect_url;
                         return;
                     }

@@ -107,10 +107,10 @@ class Settings(BaseSettings):
     paypal_client_id: str | None = Field(default=None, alias="PAYPAL_CLIENT_ID")
     paypal_client_secret: str | None = Field(default=None, alias="PAYPAL_CLIENT_SECRET")
     paypal_mode: str = Field(default="sandbox", alias="PAYPAL_MODE")  # sandbox | live
-    paypal_currency: str = Field(default="SAR", alias="PAYPAL_CURRENCY")
     paypal_webhook_id: str | None = Field(default=None, alias="PAYPAL_WEBHOOK_ID")
-    # SAR -> USD rate used only for the PayPal (USD) charge; KSA pegs 3.75 SAR/USD
-    paypal_sar_usd_rate: float = Field(default=0.2667, alias="PAYPAL_SAR_USD_RATE")
+    # PayPal does not settle SAR: the VAT-inclusive SAR total is charged in USD
+    # at the fixed riyal peg (3.75 SAR per USD).
+    paypal_sar_per_usd: float = Field(default=3.75, alias="PAYPAL_SAR_PER_USD")
 
     # Launch promo (single code, percentage off first charge) — disabled when PROMO_CODE empty
     promo_code: str | None = Field(default=None, alias="PROMO_CODE")
