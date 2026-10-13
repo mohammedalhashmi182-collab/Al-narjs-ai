@@ -319,3 +319,10 @@ from src.models.company import (  # noqa: E402,F401
     OutboundMessage,
     Task,
 )
+# Owner-gated customer automation (smart replies, pipeline, social drafts).
+from src.models.automation import (  # noqa: E402,F401
+    ChannelSetting,
+    LeadPipeline,
+    ReplyDraft,
+    SocialPostDraft,
+)

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>مركز الأتمتة · النرجس</title>
+<style>
+:root{--bg:#0b0b0d;--card:#15151a;--line:#2a2a31;--gold:#d4af6a;--text:#ece9e2;--muted:#9a968d;--ok:#4fbf8b;--bad:#e06c6c;--warn:#e0b44f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Arabic","Tajawal",system-ui,sans-serif;line-height:1.6}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:20px;color:var(--gold)}
+header small{color:var(--muted)}
+main{max-width:1180px;margin:0 auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card h2{margin:0 0 10px;font-size:15px;color:var(--gold)}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;background:transparent;color:var(--muted);border:0;padding:8px 6px;font:inherit;cursor:pointer}
+.seg button.on{background:var(--gold);color:#111;font-weight:700}
+.tabs{display:flex;gap:8px;margin:22px 0 12px;flex-wrap:wrap}
+.tabs button{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:6px 14px;font:inherit;cursor:pointer}
+.tabs button.on{border-color:var(--gold);color:var(--gold)}
+.draft{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+.pill{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.pill.ch{color:var(--gold);border-color:var(--gold)}
+.in{background:#0f0f13;border-radius:10px;padding:10px;margin-bottom:8px;color:var(--muted);white-space:pre-wrap}
+textarea{width:100%;min-height:150px;background:#0f0f13;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;resize:vertical}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.approve{background:var(--ok);color:#06140d}.reject{background:transparent;color:var(--bad);border:1px solid var(--bad)}.save{background:transparent;color:var(--text);border:1px solid var(--line)}
+.empty{color:var(--muted);text-align:center;padding:40px}
+.stages{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stage b{display:block;font-size:22px;color:var(--gold)}
+.note{font-size:12px;color:var(--muted);margin-top:6px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}.stages{grid-template-columns:repeat(3,1fr)}header{flex-direction:column;align-items:flex-start}main{padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>مركز الأتمتة والردود الذكية</h1><small>لا يصل أي رد للعميل إلا بموافقتك، إلا إذا فعّلت الوضع التلقائي للقناة.</small></div>
+  <small id="stamp"></small>
+</header>
+<main>
+  <section class="grid" id="channels"></section>
+
+  <h2 style="margin:22px 0 8px;font-size:15px;color:var(--gold)">مسار العملاء</h2>
+  <section class="stages" id="stages"></section>
+
+  <div class="tabs" id="tabs">
+    <button data-s="pending" class="on">بانتظار موافقتك</button>
+    <button data-s="sent">تم الإرسال</button>
+    <button data-s="rejected">مرفوضة</button>
+    <button data-s="failed">فشل الإرسال</button>
+  </div>
+  <section id="drafts"><div class="empty">جارٍ التحميل…</div></section>
+</main>
+<script>
+(function () {
+  var API = "/api/owner/automation";
+  var CH = {whatsapp: "واتساب", telegram: "تيليجرام", messenger: "ماسنجر"};
+  var MODES = [["off", "إيقاف"], ["review", "مراجعة"], ["auto", "تلقائي"]];
+  var KIND = {reply: "رد", followup: "متابعة", payment_link: "رابط دفع"};
+  var STAGE = {new: "جديد", qualified: "مؤهل", offer_sent: "أُرسل العرض", payment_link_sent: "أُرسل رابط الدفع", paid: "مدفوع", lost: "مفقود"};
+  var current = "pending";
+
+  function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
+  function req(method, url, body) {
+    return fetch(url, {method: method, credentials: "same-origin", headers: {"Content-Type": "application/json"},
+      body: body ? JSON.stringify(body) : undefined}).then(function (r) {
+      if (r.status === 401) { location.href = "/login"; }
+      return r.json();
+    });
+  }
+
+  function renderChannels(modes) {
+    var box = document.getElementById("channels");
+    box.innerHTML = Object.keys(CH).map(function (ch) {
+      var m = modes[ch] || "review";
+      var hint = m === "auto" ? "يرسل الرد فوراً للعميل" : (m === "review" ? "مسودة تنتظر موافقتك" : "لا مسودات ولا ردود");
+      return '<div class="card"><h2>' + CH[ch] + '</h2><div class="seg" data-ch="' + ch + '">' +
+        MODES.map(function (x) { return '<button data-m="' + x[0] + '" class="' + (x[0] === m ? "on" : "") + '">' + x[1] + "</button>"; }).join("") +
+        '</div><div class="note">' + hint + "</div></div>";
+    }).join("");
+    box.querySelectorAll(".seg button").forEach(function (b) {
+      b.onclick = function () {
+        var ch = b.parentNode.getAttribute("data-ch"), m = b.getAttribute("data-m");
+        if (m === "auto" && !confirm("الوضع التلقائي يرسل الردود للعملاء بدون مراجعتك. متأكد؟")) { return; }
+        req("PUT", API + "/channels/" + ch, {mode: m}).then(loadChannels);
+      };
+    });
+  }
+
+  function renderStages(board) {
+    var c = (board && board.counts) || {};
+    document.getElementById("stages").innerHTML = Object.keys(STAGE).map(function (k) {
+      return '<div class="stage"><b>' + (c[k] || 0) + "</b>" + STAGE[k] + "</div>";
+    }).join("");
+  }
+
+  function renderDrafts(list) {
+    var box = document.getElementById("drafts");
+    if (!list.length) { box.innerHTML = '<div class="empty">لا توجد رسائل هنا.</div>'; return; }
+    box.innerHTML = list.map(function (d) {
+      var text = d.final_text || d.draft_text;
+      var pending = d.status === "pending";
+      return '<article class="draft" data-id="' + d.id + '"><div class="meta">' +
+        '<span class="pill ch">' + esc(CH[d.channel] || d.channel) + "</span>" +
+        '<span class="pill">' + esc(KIND[d.kind] || d.kind) + "</span>" +
+        (d.plan_key ? '<span class="pill">باقة: ' + esc(d.plan_key) + "</span>" : "") +
+        '<span class="pill">إلى: ' + esc(d.recipient) + "</span>" +
+        '<span class="pill">' + esc((d.created_at || "").replace("T", " ").slice(0, 16)) + "</span></div>" +
+        (d.inbound_text ? '<div class="in">العميل: ' + esc(d.inbound_text) + "</div>" : "") +
+        (pending ? "<textarea>" + esc(text) + "</textarea>" : '<div class="in" style="color:var(--text)">' + esc(text) + "</div>") +
+        (pending ? '<div class="actions"><button class="btn approve">موافقة وإرسال</button>' +
+          '<button class="btn save">حفظ التعديل</button><button class="btn reject">رفض</button></div>' : "") +
+        (d.send_result && d.send_result.error ? '<div class="note" style="color:var(--bad)">' + esc(d.send_result.error) + "</div>" : "") +
+        "</article>";
+    }).join("");
+    box.querySelectorAll("article").forEach(function (a) {
+      var id = a.getAttribute("data-id"), ta = a.querySelector("textarea");
+      var ap = a.querySelector(".approve"), sv = a.querySelector(".save"), rj = a.querySelector(".reject");
+      if (ap) { ap.onclick = function () { req("POST", API + "/drafts/" + id + "/approve", {text: ta.value}).then(refresh); }; }
+      if (sv) { sv.onclick = function () { req("POST", API + "/drafts/" + id + "/edit", {text: ta.value}).then(refresh); }; }
+      if (rj) { rj.onclick = function () { req("POST", API + "/drafts/" + id + "/reject", {reason: ""}).then(refresh); }; }
+    });
+  }
+
+  function loadChannels() { return req("GET", API + "/channels").then(function (r) { renderChannels(r.modes || {}); }); }
+  function loadDrafts() { return req("GET", API + "/drafts?status=" + current).then(function (r) { renderDrafts(r.drafts || []); }); }
+  function loadPipeline() { return req("GET", API + "/pipeline").then(renderStages); }
+  function refresh() {
+    document.getElementById("stamp").textContent = "آخر تحديث " + new Date().toLocaleTimeString("ar-SA");
+    return Promise.all([loadChannels(), loadDrafts(), loadPipeline()]);
+  }
+
+  document.querySelectorAll("#tabs button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.remove("on"); });
+      b.classList.add("on"); current = b.getAttribute("data-s"); loadDrafts();
+    };
+  });
+  refresh();
+  setInterval(refresh, 30000);
+})();
+</script>
+</body>
+</html>

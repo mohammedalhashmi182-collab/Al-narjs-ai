@@ -183,6 +183,17 @@ class Settings(BaseSettings):
     telegram_webhook_secret: str | None = Field(default=None, alias="TELEGRAM_WEBHOOK_SECRET")
     telegram_owner_chat_id: str | None = Field(default=None, alias="TELEGRAM_OWNER_CHAT_ID")
 
+    # Facebook Messenger (Meta Page). Inert until all three are set.
+    meta_page_access_token: str | None = Field(default=None, alias="META_PAGE_ACCESS_TOKEN")
+    meta_app_secret: str | None = Field(default=None, alias="META_APP_SECRET")
+    messenger_verify_token: str | None = Field(default=None, alias="MESSENGER_VERIFY_TOKEN")
+    meta_graph_version: str = Field(default="v21.0", alias="META_GRAPH_VERSION")
+
+    # Smart-reply automation. Channel modes live in the DB (owner console);
+    # this only seeds a channel the owner has never touched. Keep it "review".
+    automation_default_mode: str = Field(default="review", alias="AUTOMATION_DEFAULT_MODE")
+    automation_followup_hours: str = Field(default="24,72,168", alias="AUTOMATION_FOLLOWUP_HOURS")
+
 
 @lru_cache
 def get_settings() -> Settings:

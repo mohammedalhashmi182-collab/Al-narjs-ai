@@ -109,6 +109,7 @@ async def whatsapp_webhook(request: Request):
     session_factory = request.app.state.session_factory
     async with session_factory() as session:
         try:
+            seen = await _already_seen(session, payload)
             summary = await process_inbound_payload(session, payload)
             await session.commit()
         except Exception:
@@ -116,7 +117,57 @@ async def whatsapp_webhook(request: Request):
             log.exception("WhatsApp webhook processing failed")
             return JSONResponse({"status": "error"}, status_code=200)
 
+    await _smart_replies(request, payload, seen)
     return JSONResponse({"status": "ok", "summary": summary})
+
+
+def _message_ids(payload: dict) -> list[str]:
+    ids = []
+    for entry in payload.get("entry") or []:
+        for change in entry.get("changes") or []:
+            for message in (change.get("value") or {}).get("messages") or []:
+                if message.get("id"):
+                    ids.append(str(message["id"]))
+    return ids
+
+
+async def _already_seen(session, payload: dict) -> set[str]:
+    ids = _message_ids(payload)
+    if not ids:
+        return set()
+    rows = await session.execute(
+        sa_select(InboundMessage.provider_message_id).where(InboundMessage.provider_message_id.in_(ids))
+    )
+    return {r[0] for r in rows}
+
+
+async def _smart_replies(request: Request, payload: dict, seen: set[str]) -> None:
+    """Draft (or, in auto mode, send) the CEO advisor's reply to each new text message."""
+    from src.services import smart_reply
+
+    session_factory = request.app.state.session_factory
+    for entry in payload.get("entry") or []:
+        for change in entry.get("changes") or []:
+            for message in (change.get("value") or {}).get("messages") or []:
+                text = ((message.get("text") or {}).get("body") or "").strip()
+                sender = message.get("from")
+                if not text or not sender or str(message.get("id")) in seen:
+                    continue
+                async with session_factory() as session:
+                    rec = (
+                        await session.execute(
+                            sa_select(InboundMessage).where(InboundMessage.provider_message_id == str(message.get("id")))
+                        )
+                    ).scalar_one_or_none()
+                    lead_id = rec.lead_id if rec is not None else None
+                await smart_reply.safe_handle_inbound(
+                    session_factory,
+                    channel="whatsapp",
+                    recipient=sender,
+                    text=text,
+                    lead_id=lead_id,
+                    provider=getattr(request.app.state, "model_provider", None),
+                )
 
 
 @router.get("/whatsapp/health")
