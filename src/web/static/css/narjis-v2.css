@@ -1,19 +1,21 @@
 /* =====================================================================
-   Al-Narjis v2 — "Najd Night" identity (CEO-advisor rebrand, 2026)
+   Al-Narjis v2 — "Najd Night (deep black, warm gold, rich orange)" identity (CEO-advisor rebrand, 2026)
    The public landing page's design contract. See docs/design-system.md.
    - Canvas: deep Najd-night green for the hero, ivory paper for reading.
-   - Action: Saudi green. Highlight: narcissus saffron, used sparingly.
+   - Action: rich orange (white label, 5.2:1). Highlight: warm saffron gold.
+   - Saudi green is kept for confirmations (checks, online dot).
    - Type: Alexandria (display) + Noto Sans Arabic (text). RTL first.
    ===================================================================== */
 :root {
-  --v2-canvas: #07120e;
-  --v2-canvas-2: #0d1f18;
+  --v2-canvas: #0c0a08;
+  --v2-canvas-2: #18130d;
   --v2-ivory: #f6f3ea;
   --v2-paper: #ffffff;
   --v2-ink: #10201a;
   --v2-muted: #56665e;
-  --v2-green: #0f7b53;
-  --v2-green-deep: #0a5c3d;
+  --v2-green: #c2410c;
+  --v2-green-deep: #9a3412;
+  --v2-saudi: #0f7b53;
   --v2-saffron: #d9a441;
   --v2-saffron-soft: #f3e3bd;
   --v2-line: rgba(16, 32, 26, .12);
@@ -63,7 +65,7 @@ body.v2 {
 .btn svg { width: 1.15em; height: 1.15em; flex: none; }
 
 /* ---------- nav ---------- */
-.v2-nav { position: sticky; top: 0; z-index: 40; background: rgba(7, 18, 14, .92); backdrop-filter: blur(10px); color: var(--v2-on-dark); }
+.v2-nav { position: sticky; top: 0; z-index: 40; background: rgba(12, 10, 8, .92); backdrop-filter: blur(10px); color: var(--v2-on-dark); }
 .v2-nav .wrap { display: flex; align-items: center; gap: 24px; min-height: 68px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--v2-font-display); font-weight: 700; font-size: 1.15rem; }
 .brand img { width: 36px; height: 36px; border-radius: 50%; }
@@ -77,7 +79,7 @@ body.v2 {
 /* ---------- hero with the CEO consultation ---------- */
 .hero {
   background:
-    radial-gradient(900px 480px at 85% -10%, rgba(15, 123, 83, .35), transparent 60%),
+    radial-gradient(900px 480px at 85% -10%, rgba(194, 65, 12, .30), transparent 60%),
     radial-gradient(600px 400px at 0% 110%, rgba(217, 164, 65, .14), transparent 60%),
     var(--v2-canvas);
   color: var(--v2-on-dark); padding: 72px 0 88px;
@@ -102,7 +104,7 @@ body.v2 {
 .ceo-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--v2-canvas); color: var(--v2-saffron); display: grid; place-items: center; font: 700 1.1rem var(--v2-font-display); flex: none; }
 .ceo-head b { display: block; font-family: var(--v2-font-display); }
 .ceo-head span { font-size: .85rem; color: var(--v2-muted); }
-.ceo-online { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--v2-green); margin-inline-end: 6px; }
+.ceo-online { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--v2-saudi); margin-inline-end: 6px; }
 .ceo-box label { display: block; font-weight: 600; margin-bottom: 8px; }
 .ceo-box textarea {
   width: 100%; min-height: 128px; resize: vertical; padding: 14px 16px; border-radius: var(--v2-r);
@@ -131,7 +133,7 @@ body.v2 {
 .trust .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 36px; padding-block: 20px; }
 .badge { display: inline-flex; align-items: center; gap: 10px; font-size: .92rem; color: var(--v2-muted); }
 .badge b { color: var(--v2-ink); font-weight: 600; }
-.badge svg { width: 22px; height: 22px; color: var(--v2-green); flex: none; }
+.badge svg { width: 22px; height: 22px; color: var(--v2-saudi); flex: none; }
 
 /* ---------- sections ---------- */
 .sec { padding: 96px 0; }
@@ -167,7 +169,7 @@ body.v2 {
 .agents-pill { display: inline-block; background: rgba(15, 123, 83, .1); color: var(--v2-green-deep); border-radius: var(--v2-r-pill); padding: 4px 12px; font-size: .85rem; font-weight: 600; margin-bottom: 16px; }
 .plan ul { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 8px; font-size: .92rem; flex: 1; }
 .plan li { display: flex; gap: 8px; }
-.plan li::before { content: "✓"; color: var(--v2-green); font-weight: 700; }
+.plan li::before { content: "✓"; color: var(--v2-saudi); font-weight: 700; }
 .compare { width: 100%; border-collapse: collapse; margin-top: 40px; background: var(--v2-paper); border-radius: var(--v2-r); overflow: hidden; font-size: .92rem; }
 .compare th, .compare td { padding: 12px 14px; border-bottom: 1px solid var(--v2-line); text-align: center; }
 .compare th:first-child, .compare td:first-child { text-align: start; }

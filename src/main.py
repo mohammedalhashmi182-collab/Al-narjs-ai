@@ -543,7 +543,7 @@ async def landing_page(request: Request):
             ],
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
-                "السلام عليكم، أريد استشارة الرئيس التنفيذي في النرجس لمشروعي."
+                "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
             ),
             "telegram_handle": transfer.TELEGRAM_BOT.rsplit("/", 1)[-1],
         },

@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#07120e">
+    <meta name="theme-color" content="#0c0a08">
     <link rel="icon" href="/static/favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
     {% if ar %}
@@ -168,6 +168,12 @@
                 <li>{% if ar %}وكلاء من فريق حقيقي، لا قوالب عامة{% else %}Agents from a real roster, not generic templates{% endif %}</li>
                 <li>{% if ar %}فاتورة ضريبية رسمية ودفع آمن عبر Moyasar{% else %}Official VAT invoice and secure Moyasar payment{% endif %}</li>
             </ul>
+            <div class="hero-cta" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:28px">
+                <a class="btn btn-primary" href="#ceo">{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Talk to the CEO now{% endif %}</a>
+                <a class="btn btn-ghost" href="#team">{% if ar %}استكشف الإمكانات{% else %}Explore the team{% endif %}</a>
+                <a class="lang" style="align-self:center" href="/guide">{% if ar %}أو حمّل دليل الـ30 يوماً المجاني{% else %}or get the free 30-day guide{% endif %}</a>
+            </div>
+            <p class="muted" style="color:var(--v2-on-dark-muted);font-size:.88rem;margin-top:14px">{% if ar %}منصة سعودية · متوافقة مع مستهدفات رؤية 2030 · فوترة رسمية · إلغاء في أي وقت قبل التجديد{% else %}Saudi platform · aligned with Vision 2030 goals · official invoicing · cancel any time before renewal{% endif %}</p>
             <div class="hero-facts">
                 <div><b>{{ agent_count }}</b><span>{% if ar %}وكيلاً متخصصاً{% else %}specialist agents{% endif %}</span></div>
                 <div><b>{{ division_count }}</b><span>{% if ar %}أقسام{% else %}departments{% endif %}</span></div>
