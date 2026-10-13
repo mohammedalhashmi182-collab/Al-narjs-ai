@@ -31,15 +31,29 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
+def _has_column(table: str, column: str) -> bool:
+    # The app self-heals these columns at startup (src/db/session.py), so a
+    # live DB may already have them: skip instead of failing on duplicates.
+    insp = sa.inspect(op.get_bind())
+    return column in {c["name"] for c in insp.get_columns(table)}
+
+
+def _add(table: str, column: sa.Column) -> None:
+    if not _has_column(table, column.name):
+        op.add_column(table, column)
+
+
 def upgrade() -> None:
     for table in ("payments", "client_projects"):
-        op.add_column(table, sa.Column("billing_period", sa.String(10), nullable=False, server_default="monthly"))
-        op.add_column(table, sa.Column("addon_agents", sa.Integer(), nullable=False, server_default="0"))
-    op.add_column("payments", sa.Column("is_renewal", sa.Boolean(), nullable=False, server_default=sa.false()))
-    op.add_column("client_projects", sa.Column("current_period_end", sa.DateTime(timezone=True), nullable=True))
-    op.add_column("client_projects", sa.Column("last_payment_id", postgresql.UUID(as_uuid=True), nullable=True))
-    op.add_column("client_projects", sa.Column("renewal_payment_id", postgresql.UUID(as_uuid=True), nullable=True))
-    op.create_index("ix_client_projects_current_period_end", "client_projects", ["current_period_end"])
+        _add(table, sa.Column("billing_period", sa.String(10), nullable=False, server_default="monthly"))
+        _add(table, sa.Column("addon_agents", sa.Integer(), nullable=False, server_default="0"))
+    _add("payments", sa.Column("is_renewal", sa.Boolean(), nullable=False, server_default=sa.false()))
+    _add("client_projects", sa.Column("current_period_end", sa.DateTime(timezone=True), nullable=True))
+    _add("client_projects", sa.Column("last_payment_id", postgresql.UUID(as_uuid=True), nullable=True))
+    _add("client_projects", sa.Column("renewal_payment_id", postgresql.UUID(as_uuid=True), nullable=True))
+    insp = sa.inspect(op.get_bind())
+    if "ix_client_projects_current_period_end" not in {i["name"] for i in insp.get_indexes("client_projects")}:
+        op.create_index("ix_client_projects_current_period_end", "client_projects", ["current_period_end"])
 
 
 def downgrade() -> None:

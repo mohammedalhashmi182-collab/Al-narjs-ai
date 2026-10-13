@@ -24,7 +24,19 @@ UUID = postgresql.UUID(as_uuid=True)
 TS = sa.DateTime(timezone=True)
 
 
+_TABLES = {"automation_channel_settings", "automation_reply_drafts", "automation_lead_pipeline", "automation_social_posts"}
+
+
 def upgrade() -> None:
+    # The app creates these with create_all at startup; on a live DB they
+    # already exist, so this revision becomes a no-op instead of failing.
+    existing = set(sa.inspect(op.get_bind()).get_table_names())
+    if _TABLES <= existing:
+        return
+    if _TABLES & existing:
+        raise RuntimeError(
+            f"partial automation schema {sorted(_TABLES & existing)}: inspect manually, then `alembic stamp 0003`"
+        )
     op.create_table(
         "automation_channel_settings",
         sa.Column("channel", sa.String(20), primary_key=True),
