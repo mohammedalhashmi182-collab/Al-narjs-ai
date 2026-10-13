@@ -45,7 +45,7 @@ def test_package_detail_shape(key):
     assert detail is not None
     assert detail["key"] == key
     assert detail["is_demo"] is True
-    assert detail["team_size"] == len(catalog.get_team(key))
+    assert detail["team_size"] == len(catalog.DOMAIN_TEAMS[key])
     assert detail["team_size"] == len(detail["team"])
     for emp in detail["team"]:
         assert emp["no"].startswith("AG-")

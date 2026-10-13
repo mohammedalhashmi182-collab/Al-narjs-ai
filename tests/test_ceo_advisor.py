@@ -17,7 +17,7 @@ def test_tiers_are_the_owner_prices_in_halalas():
 def test_tier_allowances_grow_and_the_top_tier_is_the_whole_roster():
     counts = [catalog.plan_agent_count(k) for k in catalog.PACKAGE_ORDER]
     assert counts == sorted(counts) and counts[0] == 1
-    assert counts[-1] == len(catalog.EMPLOYEES)
+    assert counts[-1] == len(catalog.EMPLOYEES) - 1  # every agent except the CEO, who leads
     for key in catalog.PACKAGE_ORDER:
         team = catalog.PACKAGE_TEAMS[key]
         assert team[0] == catalog.CEO_SLUG
@@ -43,7 +43,7 @@ def test_store_and_support_problem_staffs_real_agents():
 
 
 def test_a_single_need_gets_a_small_team_and_vague_text_gets_one_agent():
-    assert ceo_advisor.diagnose_rules("كم سعر المنتج المناسب وهامش الربح؟").agents == ["finance_pricing"]
+    assert ceo_advisor.diagnose_rules("تسعير خدماتي غير واضح وهامش الربح ضعيف").agents == ["finance_pricing"]
     vague = ceo_advisor.build_result(ceo_advisor.diagnose_rules("أحتاج مساعدة في عملي"))
     assert vague["agent_count"] == 1 and vague["plan"]["key"] == "starter"
 

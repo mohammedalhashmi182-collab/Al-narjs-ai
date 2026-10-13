@@ -179,7 +179,7 @@ def test_suggest_package_is_always_a_known_package() -> None:
     from src.services import catalog
 
     for seg in list(lead_segmentation.SEGMENT_LABELS_AR) + ["made-up"]:
-        assert lead_segmentation.suggest_package(seg) in catalog.PACKAGES
+        assert lead_segmentation.suggest_package(seg) in catalog.DOMAINS  # a domain; payments price it via catalog.resolve_tier
 
 
 def test_priority_rewards_reachable_mobile_quote_and_recency() -> None:

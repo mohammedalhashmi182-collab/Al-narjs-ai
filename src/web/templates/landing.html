@@ -175,9 +175,9 @@
             </div>
             <p class="muted" style="color:var(--v2-on-dark-muted);font-size:.88rem;margin-top:14px">{% if ar %}منصة سعودية · متوافقة مع مستهدفات رؤية 2030 · فوترة رسمية · إلغاء في أي وقت قبل التجديد{% else %}Saudi platform · aligned with Vision 2030 goals · official invoicing · cancel any time before renewal{% endif %}</p>
             <div class="hero-facts">
-                <div><b>{{ agent_count }}</b><span>{% if ar %}وكيلاً متخصصاً{% else %}specialist agents{% endif %}</span></div>
-                <div><b>{{ division_count }}</b><span>{% if ar %}أقسام{% else %}departments{% endif %}</span></div>
-                <div><b>{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
+                <div><b data-target="{{ agent_count }}">{{ agent_count }}</b><span>{% if ar %}وكيلاً متخصصاً{% else %}specialist agents{% endif %}</span></div>
+                <div><b data-target="{{ division_count }}">{{ division_count }}</b><span>{% if ar %}أقسام{% else %}departments{% endif %}</span></div>
+                <div data-pulse="plans"><b>{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
             </div>
         </div>
 
@@ -262,9 +262,10 @@
         </div>
         <div class="grid-3">
             {% for d in divisions %}
-            <div class="card div-card rv">
-                <h3>{% if ar %}{{ d.name_ar }}{% else %}{{ d.name_en }}{% endif %}<span>{{ d.count }} {% if ar %}وكلاء{% else %}agents{% endif %}</span></h3>
+            <div class="card div-card dv-card rv" data-division="{{ d.slug }}">
+                <h3>{% if ar %}{{ d.name_ar }} <small lang="en" dir="ltr" class="muted" style="font-size:.7rem;font-weight:400">{{ d.name_en }}</small>{% else %}{{ d.name_en }}{% endif %}<span>{{ d.count }} {% if ar %}وكلاء{% else %}agents{% endif %}</span></h3>
                 <p>{% if ar %}{{ d.blurb_ar }}{% else %}{{ d.blurb_en }}{% endif %}</p>
+                <ul class="roster">{% for slug in d.agents %}{% set e = catalog_employees[slug] %}<li><a href="/ai-agent/{{ slug }}">{% if ar %}{{ e.title_ar }}{% else %}{{ e.title_en }}{% endif %}</a></li>{% endfor %}</ul>
             </div>
             {% endfor %}
         </div>
@@ -320,11 +321,11 @@
             <h2>{% if ar %}لا نخترع آراء ولا أرقام{% else %}We don't invent reviews or numbers{% endif %}</h2>
             <p>{% if ar %}الأرقام أدناه تُقرأ مباشرة من النظام. آراء العملاء ستُنشر بأسمائهم بعد موافقتهم فقط.{% else %}The numbers below are read live from the system. Client reviews will be published, with names, only after their consent.{% endif %}</p>
         </div>
-        <div class="grid-4">
-            <div class="card proof-num rv"><b>{{ agent_count }}</b><span class="muted">{% if ar %}وكيلاً في الفريق{% else %}agents on the roster{% endif %}</span></div>
-            <div class="card proof-num rv"><b>{{ division_count }}</b><span class="muted">{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
-            <div class="card proof-num rv"><b id="pulseLeads">—</b><span class="muted">{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
-            <div class="card proof-num rv"><b id="pulseProjects">—</b><span class="muted">{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
+        <div class="grid-4" id="pulse-live">
+            <div class="card proof-num rv" data-pulse="agents"><b>{{ agent_count }}</b><span class="muted">{% if ar %}وكيلاً في الفريق{% else %}agents on the roster{% endif %}</span></div>
+            <div class="card proof-num rv" data-pulse="divisions"><b>{{ division_count }}</b><span class="muted">{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
+            <div class="card proof-num rv" data-pulse="leads_received"><b id="pulseLeads">—</b><span class="muted">{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
+            <div class="card proof-num rv" data-pulse="projects"><b id="pulseProjects">—</b><span class="muted">{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
         </div>
         <div class="placeholder rv" style="margin-top:24px" data-placeholder="testimonials">
             {% if ar %}<b>مساحة آراء العملاء</b> — فارغة عمداً حتى تصلنا موافقة مكتوبة من عملاء حقيقيين.{% else %}<b>Client reviews</b> — intentionally empty until real clients give written consent.{% endif %}
@@ -414,6 +415,11 @@
         <div class="cols">
             <div>
                 <a href="/home" class="brand" style="color:var(--v2-on-dark)"><img src="/static/logo.png" alt="" width="36" height="36"><span>{% if ar %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</span></a>
+                <div class="socials">
+                    {% if contact.whatsapp %}<a href="{{ contact_prefilled.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>{% endif %}
+                    <a href="https://t.me/{{ telegram_handle }}" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
+                    {% if contact.messenger %}<a href="{{ contact.messenger }}" target="_blank" rel="noopener" aria-label="Messenger">Messenger</a>{% endif %}
+                </div>
                 <p style="margin-top:14px">{% if ar %}رئيس تنفيذي ذكي وفريق وكلاء يعملون لعملك — من الرياض.{% else %}An AI CEO and an agent team working for your business — from Riyadh.{% endif %}</p>
             </div>
             <div>
@@ -440,7 +446,7 @@
 {# Floating contact cluster: WhatsApp first (the number the invoices print),
    then Telegram, then Messenger only when a Facebook Page is configured in
    content/contact.json. No channel renders without a real link. #}
-<div class="fab-cluster" aria-label="{% if ar %}تواصل سريع{% else %}Quick contact{% endif %}">
+<div class="contact-stack fab-cluster" aria-label="{% if ar %}تواصل سريع{% else %}Quick contact{% endif %}">
     {% if contact.whatsapp %}<a id="waFloat" class="fab fab-wa" href="{{ contact_prefilled.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg></a>{% endif %}
     <a id="tgFloat" class="fab fab-tg" href="https://t.me/{{ telegram_handle }}" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
     {% if contact.messenger %}<a id="msFloat" class="fab fab-ms" href="{{ contact.messenger }}" target="_blank" rel="noopener" aria-label="Messenger"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.4 2 2 6.1 2 11.7c0 2.9 1.2 5.5 3.2 7.2V22l3-1.6c1.2.3 2.5.5 3.8.5 5.6 0 10-4.1 10-9.6S17.6 2 12 2zm1 12.9-2.5-2.7-5 2.7 5.5-5.8 2.6 2.7 4.9-2.7-5.5 5.8z"/></svg></a>{% endif %}

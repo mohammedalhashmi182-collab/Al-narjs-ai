@@ -57,7 +57,7 @@ async def anon(maker):
 async def _insert(maker, **kw) -> Payment:
     async with maker() as session:
         p = Payment(
-            amount=kw.pop("amount", 150000), currency="SAR", package="social",
+            amount=kw.pop("amount", 999900), currency="SAR", package="team",
             gateway="moyasar", gateway_source="invoice",
             gateway_payment_id=kw.pop("gateway_payment_id", "inv_123"),
             status=kw.pop("status", "pending"), **kw,
@@ -105,7 +105,7 @@ class TestReturnUrls:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", _post)
         async with maker() as s:
-            p = await pm.create_payment(s, "growth", "x", None, None)
+            p = await pm.create_payment(s, "starter", "x", None, None)
             with _settings(moyasar_api_secret=LIVE_KEY), pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(
                     s, p, pm.source_mada(),
@@ -126,7 +126,7 @@ class TestReturnUrls:
 
         monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
         with _settings(moyasar_api_secret=LIVE_KEY, public_base_url=None):
-            await anon.post("/api/payments", json={"package": "growth", "method": "mada"},
+            await anon.post("/api/payments", json={"package": "starter", "method": "mada"},
                             headers={"X-Forwarded-Proto": "https"})
         assert captured["success_url"].startswith("https://test/payment/success?id=")
         assert captured["back_url"].startswith("https://test/payment/failure?id=")
@@ -141,7 +141,7 @@ class TestReturnUrls:
 
         monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
         with _settings(moyasar_api_secret=LIVE_KEY, public_base_url="https://alnarjs.example/"):
-            await anon.post("/api/payments", json={"package": "growth", "method": "mada"})
+            await anon.post("/api/payments", json={"package": "starter", "method": "mada"})
         assert captured["callback_url"] == "https://alnarjs.example/webhooks/moyasar"
 
 
@@ -167,7 +167,7 @@ class TestWebhookAuth:
 
     async def test_valid_paid_event_marks_paid_after_refetch(self, anon, maker, monkeypatch):
         p = await _insert(maker)
-        calls = _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 172500, "currency": "SAR"})
+        calls = _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 1149885, "currency": "SAR"})
         with _settings(moyasar_webhook_secret=WEBHOOK_SECRET, moyasar_api_secret=LIVE_KEY):
             r = await anon.post("/webhooks/moyasar", json=_event(p))
         assert r.status_code == 200, r.text
@@ -185,7 +185,7 @@ class TestWebhookAuth:
 
     async def test_failed_event_marks_failed(self, anon, maker, monkeypatch):
         p = await _insert(maker)
-        _fake_moyasar_get(monkeypatch, {"status": "failed", "amount": 172500, "currency": "SAR"})
+        _fake_moyasar_get(monkeypatch, {"status": "failed", "amount": 1149885, "currency": "SAR"})
         with _settings(moyasar_webhook_secret=WEBHOOK_SECRET, moyasar_api_secret=LIVE_KEY):
             r = await anon.post("/webhooks/moyasar", json=_event(p, type_="payment_failed"))
         assert r.status_code == 200
@@ -195,7 +195,7 @@ class TestWebhookAuth:
 class TestAmountMismatch:
     async def test_webhook_wrong_amount_goes_to_review(self, anon, maker, monkeypatch):
         p = await _insert(maker)
-        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 150000, "currency": "SAR"})
+        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 999900, "currency": "SAR"})
         with _settings(moyasar_webhook_secret=WEBHOOK_SECRET, moyasar_api_secret=LIVE_KEY):
             r = await anon.post("/webhooks/moyasar", json=_event(p))
         assert r.status_code == 200
@@ -203,7 +203,7 @@ class TestAmountMismatch:
 
     async def test_success_page_verification_wrong_currency_not_paid(self, maker, monkeypatch):
         p = await _insert(maker)
-        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 172500, "currency": "USD"})
+        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 1149885, "currency": "USD"})
         with _settings(moyasar_api_secret=LIVE_KEY):
             async with maker() as s:
                 got = await pm.verify_payment(s, p.id)
@@ -211,7 +211,7 @@ class TestAmountMismatch:
 
     async def test_success_page_verification_exact_amount_is_paid(self, anon, maker, monkeypatch):
         p = await _insert(maker)
-        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 172500, "currency": "SAR"})
+        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 1149885, "currency": "SAR"})
         with _settings(moyasar_api_secret=LIVE_KEY):
             r = await anon.get(f"/api/payments/{p.id}")
         assert r.json()["status"] == "paid"
@@ -223,15 +223,15 @@ class TestIdempotency:
 
         with _settings(moyasar_api_secret=None):
             h = {"Idempotency-Key": "abc-123"}
-            r1 = await anon.post("/api/payments", json={"package": "growth", "method": "invoice"}, headers=h)
-            r2 = await anon.post("/api/payments", json={"package": "growth", "method": "invoice"}, headers=h)
+            r1 = await anon.post("/api/payments", json={"package": "starter", "method": "invoice"}, headers=h)
+            r2 = await anon.post("/api/payments", json={"package": "starter", "method": "invoice"}, headers=h)
         assert r1.json()["payment_id"] == r2.json()["payment_id"]
         assert r2.json().get("replayed") is True
         async with maker() as s:
             assert (await s.execute(select(func.count()).select_from(Payment))).scalar_one() == 1
 
     async def test_same_customer_double_click_without_key_is_deduped(self, anon):
-        body = {"package": "growth", "method": "invoice", "customer_phone": "0555000000"}
+        body = {"package": "starter", "method": "invoice", "customer_phone": "0555000000"}
         with _settings(moyasar_api_secret=None):
             r1 = await anon.post("/api/payments", json=body)
             r2 = await anon.post("/api/payments", json=body)
@@ -239,8 +239,8 @@ class TestIdempotency:
 
     async def test_different_keys_create_different_orders(self, anon):
         with _settings(moyasar_api_secret=None):
-            r1 = await anon.post("/api/payments", json={"package": "growth", "method": "invoice"}, headers={"Idempotency-Key": "a"})
-            r2 = await anon.post("/api/payments", json={"package": "growth", "method": "invoice"}, headers={"Idempotency-Key": "b"})
+            r1 = await anon.post("/api/payments", json={"package": "starter", "method": "invoice"}, headers={"Idempotency-Key": "a"})
+            r2 = await anon.post("/api/payments", json={"package": "starter", "method": "invoice"}, headers={"Idempotency-Key": "b"})
         assert r1.json()["payment_id"] != r2.json()["payment_id"]
 
     def test_pay_button_is_disabled_and_sends_a_key(self):
@@ -252,17 +252,17 @@ class TestIdempotency:
 class TestBankTransferTotal:
     async def test_bank_transfer_total_matches_invoice(self, anon):
         with _settings(moyasar_api_secret=None):
-            r = await anon.post("/api/payments", json={"package": "social", "method": "invoice"})
+            r = await anon.post("/api/payments", json={"package": "team", "method": "invoice"})
         data = r.json()
         base = data["amount"]
         assert data["total"] == data["invoice_total"] == pm.total_with_vat(base)
         assert data["vat"] == pm.vat_amount(base)
 
-    async def test_social_is_1725_sar(self, anon):
+    async def test_team_is_11498_85_sar_with_vat(self, anon):
         from src.services import catalog
 
-        if catalog.PACKAGES.get("social", {}).get("amount") != 150000:
+        if catalog.PACKAGES.get("team", {}).get("amount") != 999900:
             pytest.skip("social package price changed")
         with _settings(moyasar_api_secret=None):
-            r = await anon.post("/api/payments", json={"package": "social", "method": "invoice"})
-        assert r.json()["total"] == 172500  # halalas == 1725.00 SAR, not 150000
+            r = await anon.post("/api/payments", json={"package": "team", "method": "invoice"})
+        assert r.json()["total"] == 1149885  # halalas == 1725.00 SAR, not 999900

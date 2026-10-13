@@ -35,8 +35,9 @@ RETIRED_HEXES = ("00d49c", "00ad92", "00879f", "d0f94a")
 RETIRED_RGB = re.compile(r"(?:0,\s*212,\s*156|0,\s*173,\s*146|208,\s*249,\s*74)", re.I)
 
 # Public storefront pages that must render on the dark canvas (§8).
+# landing.html moved to the v2 "Najd Night" layer (narjis-v2.css); its
+# contract lives in tests/test_design_system.py.
 PUBLIC_PAGES = [
-    "landing.html",
     "agent_public.html",
     "blog_index.html",
     "blog_post.html",
@@ -125,9 +126,9 @@ class TestVermilionIsThePublicActionHue:
 
     def test_the_accent_is_the_only_action_colour_on_public_pages(self) -> None:
         """One action hue per view. The accent owns it."""
-        landing = read(TEMPLATES / "landing.html")
-        assert re.search(r"--gold:\s*#ff5a36", landing, re.I), (
-            "landing.html does not resolve the action colour to the accent"
+        layer = read(CSS_DIR / "narjis-luxury.css")
+        assert re.search(r"--n-accent:\s*#ff5a36", layer, re.I), (
+            "the luxury pages no longer resolve the action colour to the accent"
         )
 
     def test_the_accent_is_readable_on_the_dark_canvas(self) -> None:

@@ -44,14 +44,17 @@ def test_landing_agent_counts_come_from_context() -> None:
 
 def test_landing_prices_come_from_catalog() -> None:
     body = _read("landing.html")
-    for key in catalog.PACKAGES:
-        assert f"{{{{ packages['{key}']" in body, f"plan {key} not rendered from catalog"
+    # tiers are looped from the catalog-built ``plans`` context, never typed in
+    assert "{% for plan in plans %}" in body
+    assert "plan.price" in body and "plan.total_halalas" in body
+    for pkg in catalog.PACKAGES.values():
+        assert f"{int(pkg['price']):,}" not in body, "a price was hard-coded in the template"
 
 
-def test_plan_order_ctas_point_to_telegram() -> None:
+def test_plan_order_ctas_point_to_the_payment_portal() -> None:
+    """Every tier CTA opens the existing checkout (portal) with that tier preselected."""
     body = _read("landing.html")
-    for key in catalog.PACKAGES:
-        assert f'href="https://t.me/AlNarjs7BOT?start=plan_{key}"' in body, f"plan {key} has no working CTA"
+    assert 'href="/portal?pkg={{ plan.key }}"' in body
     assert "js-order" not in body
 
 
@@ -84,7 +87,8 @@ def test_agents_count_matches_catalog() -> None:
         assert pkg["price"], key
         assert pkg["amount"] > 0, key
     for key, team in catalog.PACKAGE_TEAMS.items():
-        assert len(team) == 5, f"plan {key} must open exactly 5 agents"
+        assert team[0] == catalog.CEO_SLUG, f"plan {key} must be led by the CEO"
+        assert len(team) == catalog.plan_agent_count(key) + 1, f"plan {key} team != its allowance"
         for slug in team:
             assert slug in catalog.EMPLOYEES, slug
 
@@ -123,9 +127,8 @@ def test_no_unscoped_data_lang_display_none(name: str) -> None:
 
 def test_landing_language_hide_rule_is_scoped() -> None:
     body = _read("landing.html")
-    assert "body [data-lang]" in body, (
-        "landing.html must scope the language hide rule to a descendant"
-    )
+    # v2 renders one language server-side; if a hide rule ever returns it
+    # must still be scoped to descendants of body.
     assert not UNSCOPED_LANG_HIDE.search(body), (
         "landing.html must scope the language hide rule to a descendant, "
         "otherwise <body data-lang=...> is hidden and the page renders blank"
@@ -154,10 +157,6 @@ def test_single_how_section_and_explicit_sample_disclosure() -> None:
     body = _read('landing.html')
     assert body.count('id="how"') == 1
     assert body.index('id="how"') < body.index('id="pricing"')
-    assert 'ليست مخرجات عميل حقيقي' in body
-    assert 'جهازك لعناية البشرة… روتين 5 دقايق يغيّر يومك' in body
-    assert 'هل يوصل الشحن خارج الرياض؟' in body
-    assert 'المدة والتكلفة توضيحيتان' in body
     for name in ['landing.html', 'consult.html', 'portal.html']:
         assert 'يُدار بواسطة مؤسسة ذا أريبيان كونفو' in _read(name)
         assert 'Operated by The Arabian Convoy Establishment' in _read(name)

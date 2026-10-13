@@ -808,8 +808,9 @@ def tier_price_sar(key: str | None) -> int:
 
 
 def plan_agent_count(key: str) -> int:
+    """Specialist agents a tier staffs; the CEO is on top and not counted."""
     agents = PACKAGES[key]["agents"]
-    return AGENT_COUNT if agents is None else agents
+    return AGENT_COUNT - 1 if agents is None else agents
 
 
 def get_team(package_key: str) -> list[str]:

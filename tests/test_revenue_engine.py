@@ -13,6 +13,7 @@ from sqlalchemy.pool import StaticPool
 
 from src.core.owner_auth import make_session_token
 from src.db.session import Base
+from src.services import catalog
 from src.services.revenue_tiers import (
     PRICE_SAR,
     TIER_A_MIN,
@@ -295,7 +296,7 @@ async def test_radar_payloads_have_evidence_and_no_secrets(api, maker):
     payload = wave["wave"][0]
     assert payload["tier"] in ("A", "B")
     assert payload["reference_id"]
-    assert payload["price_sar"] == 800
+    assert payload["price_sar"] == catalog.tier_price_sar("growth") == 9999
     assert payload["insight"]
     assert payload["message_draft"]
     assert "C:" not in str(payload)

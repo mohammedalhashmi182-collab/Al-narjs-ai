@@ -51,6 +51,10 @@ def total_with_vat(halalas: int) -> int:
 
 
 def package_amount(package: str) -> int:
+    # A lead's suggested domain (social/ecommerce/content/growth) is billed at
+    # the tier that staffs a full domain team; tier keys pass through.
+    if package in catalog.DOMAINS:
+        package = catalog.resolve_tier(package)
     pkg = catalog.PACKAGES.get(package)
     if not pkg:
         raise PaymentError(f"Unknown package: {package}")
@@ -317,6 +321,8 @@ async def create_payment(
     lead_id: Optional[UUID] = None,
     project_id: Optional[UUID] = None,
 ) -> Payment:
+    if package in catalog.DOMAINS:
+        package = catalog.resolve_tier(package)
     pkg = catalog.PACKAGES.get(package)
     if not pkg:
         raise PaymentError(f"Unknown package: {package}")

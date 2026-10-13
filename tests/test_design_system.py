@@ -1,4 +1,5 @@
-"""Design-system guards — ODSF v0.2 (see docs/design-system.md).
+"""Design-system guards — ODSF v0.2 for the app pages and the v2 "Najd Night"
+layer for the public landing page (see docs/design-system.md).
 
 The visual identity is the accent (vermilion #FF5A36) for action, green (#4F7942) for
 structure and Telegram, on ivory (#FAFAF9) with Cairo type. These tests fail
@@ -177,7 +178,7 @@ def test_no_template_loads_the_retired_font_pairing(name: str) -> None:
     assert "family=Inter" not in body, f"{name} still loads Inter"
 
 
-@pytest.mark.parametrize("name", PUBLIC_TEMPLATES)
+@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n != "landing.html"])
 def test_public_templates_load_cairo(name: str) -> None:
     body = read(name)
     if "fonts.googleapis.com/css2" not in body:
@@ -185,9 +186,79 @@ def test_public_templates_load_cairo(name: str) -> None:
     assert "family=Cairo" in body, f"{name} does not load Cairo"
 
 
-def test_landing_declares_the_odsf_theme_colour() -> None:
+# --------------------------------------------------------------------------
+# v2 "Najd Night" identity (CEO-advisor rebrand). The landing page moved to
+# its own layer, narjis-v2.css: deep warm black canvas, rich orange action,
+# warm saffron highlight, Saudi green for confirmations, Alexandria + Noto
+# Sans Arabic. The rest of the site keeps ODSF until it is migrated.
+# --------------------------------------------------------------------------
+V2_CSS = CSS_DIR / "narjis-v2.css"
+V2_TOKENS = {
+    "--v2-canvas": "#0c0a08",
+    "--v2-ivory": "#f6f3ea",
+    "--v2-ink": "#10201a",
+    "--v2-green": "#c2410c",  # action (name kept for the token API)
+    "--v2-saffron": "#d9a441",
+    "--v2-saudi": "#0f7b53",
+}
+
+
+def _v2() -> str:
+    return V2_CSS.read_text(encoding="utf-8").lower()
+
+
+def test_landing_declares_the_v2_theme_colour() -> None:
     body = read("landing.html")
-    assert '<meta name="theme-color" content="#060607">' in body
+    assert f'<meta name="theme-color" content="{V2_TOKENS["--v2-canvas"]}">' in body
+
+
+def test_v2_layer_defines_its_tokens_and_type() -> None:
+    body = _v2()
+    for token, value in V2_TOKENS.items():
+        assert f"{token}: {value}" in body, f"missing v2 token {token}"
+    assert '"alexandria"' in body and '"noto sans arabic"' in body
+
+
+def test_v2_landing_loads_only_the_v2_layer_and_its_fonts() -> None:
+    body = read("landing.html")
+    assert "/static/css/narjis-v2.css" in body
+    assert '<body class="v2"' in body
+    assert "family=Alexandria" in body and "family=Noto+Sans+Arabic" in body
+    for retired in ("narjis-luxury.css", "narjis-refresh.css", "family=Cairo"):
+        assert retired not in body, f"landing still loads {retired}"
+
+
+def _luminance(hexv: str) -> float:
+    def ch(c: int) -> float:
+        c = c / 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (int(hexv[i:i + 2], 16) for i in (1, 3, 5))
+    return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b)
+
+
+def _contrast(a: str, b: str) -> float:
+    la, lb = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def test_v2_action_button_text_meets_wcag_aa() -> None:
+    assert _contrast(V2_TOKENS["--v2-green"], "#ffffff") >= 4.5
+    assert ".btn-primary { background: var(--v2-green); color: #ffffff; }" in _v2()
+
+
+def test_v2_text_on_canvas_and_paper_is_readable() -> None:
+    assert _contrast(V2_TOKENS["--v2-ink"], V2_TOKENS["--v2-ivory"]) >= 7
+    assert _contrast(V2_TOKENS["--v2-ivory"], V2_TOKENS["--v2-canvas"]) >= 7
+    assert _contrast(V2_TOKENS["--v2-saffron"], V2_TOKENS["--v2-canvas"]) >= 4.5
+
+
+def test_v2_layer_respects_reduced_motion_and_has_no_retired_palette() -> None:
+    body = _v2()
+    assert "prefers-reduced-motion: reduce" in body
+    found = [h for h in (BANNED_HEXES | RETIRED_HEXES) if h in body]
+    assert not found, f"v2 layer carries retired colours: {found}"
+    for font in RETIRED_FONTS:
+        assert font.lower() not in body
 
 
 def test_owner_console_keeps_dark_surfaces_on_green() -> None:

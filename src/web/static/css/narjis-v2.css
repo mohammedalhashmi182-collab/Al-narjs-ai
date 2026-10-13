@@ -259,3 +259,14 @@ body.v2 {
   .v2-nav .btn { display: none; }
   .fab { width: 48px; height: 48px; }
 }
+/* the shared Telegram paper plane carries no intrinsic size */
+.ceo-alt svg { width: 1.1em; height: 1.1em; vertical-align: -.2em; }
+.ceo-alt a { display: inline-flex; align-items: center; gap: 6px; color: var(--v2-green-deep); }
+.roster { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.roster a { display: inline-block; font-size: .78rem; padding: 3px 9px; border-radius: var(--v2-r-pill); border: 1px solid var(--v2-line-dark); color: var(--v2-on-dark-muted); text-decoration: none; }
+.roster a:hover { color: var(--v2-on-dark); border-color: var(--v2-saffron); }
+.socials { display: flex; gap: 10px; margin-top: 14px; }
+.socials a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--v2-line-dark); border-radius: var(--v2-r-pill); }
+.socials svg { width: 1.1em; height: 1.1em; }
+/* Contact stack: a column, WhatsApp first, so order is structural */
+.contact-stack { display: flex; flex-direction: column; }
