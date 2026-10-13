@@ -322,9 +322,18 @@ async def _kb_hits(session: AsyncSession, text: str) -> list[dict]:
     try:
         from src.services.agent_tools import knowledge_base
 
-        return await knowledge_base.search(session, text, project_id=None, k=2)
+        hits = await knowledge_base.search(session, text, project_id=None, k=2)
     except Exception:
-        return []
+        hits = []
+    if hits:
+        return hits
+    # Owner-approved policies answer refund / support / trial / data questions
+    # even before the owner FAQ has been seeded into the database.
+    from src.services import policies
+    from src.services.agent_tools import knowledge_base
+
+    paras = [p for p in policies.OWNER_FAQ_AR.split("\n\n") if p.strip()]
+    return knowledge_base.search_texts([(policies.OWNER_FAQ_TITLE, p) for p in paras], text, k=2)
 
 
 def compose_kb_answer(hits: list[dict]) -> str:
