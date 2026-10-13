@@ -189,12 +189,13 @@ def diagnose_rules(problem: str) -> Diagnosis:
 
 def recommend_plan(agent_count: int, full_company: bool = False) -> str:
     """Smallest tier whose agent allowance covers the team."""
+    top = catalog.PACKAGE_ORDER[-1]
     if full_company:
-        return "company"
+        return top
     for key in catalog.PACKAGE_ORDER:
         if catalog.plan_agent_count(key) >= agent_count:
             return key
-    return "company"
+    return top
 
 
 def recommend_offer(agent_count: int, full_company: bool = False) -> tuple[str, int]:
@@ -235,8 +236,8 @@ def _summary(d: Diagnosis) -> tuple[str, str]:
         ar = "وصفك عام، فأبدأ معك بخطة تسويق واضحة ووكيل واحد، ثم نوسّع الفريق حسب النتائج."
         en = "Your description is broad, so I start with a clear marketing plan and one agent, then grow the team on results."
     if d.full_company:
-        ar += " طلبتَ تغطية كل الأقسام، لذلك أرشّح لك الشركة الكاملة."
-        en += " You asked for every department, so I recommend the full company."
+        ar += " طلبتَ تغطية كل الأقسام، لذلك أرشّح لك باقة تشغيل."
+        en += " You asked for every department, so I recommend the Operate plan."
     return ar, en
 
 

@@ -565,6 +565,10 @@ async def landing_page(request: Request):
                 for key in catalog.PACKAGE_ORDER
             ],
             "addon": catalog.ADDON_AGENT,
+            "usage_addons": catalog.USAGE_ADDONS,
+            "enterprise": catalog.ENTERPRISE,
+            "founding_offer": catalog.FOUNDING_OFFER,
+            "setup_guarantee": catalog.SETUP_GUARANTEE,
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
                 "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
@@ -664,7 +668,7 @@ async def public_agent_page(slug: str, request: Request):
             if len(related) >= 6:
                 break
 
-    recommended_pkg = "starter"
+    recommended_pkg = catalog.PACKAGE_ORDER[0]
     for pkg_key, team in catalog.PACKAGE_TEAMS.items():
         if slug in team:
             recommended_pkg = pkg_key
@@ -1282,7 +1286,7 @@ async def delete_workflow(slug: str):
 async def portal_packages():
     from src.services import catalog
 
-    icons = {"starter": "fa-seedling", "team": "fa-people-group", "scale": "fa-layer-group", "company": "fa-building"}
+    icons = {"radd": "fa-comments", "bay": "fa-cart-shopping", "tashgheel": "fa-building"}
     result = []
     for key, p in catalog.PACKAGES.items():
         team = catalog.get_team(key)
@@ -1298,10 +1302,17 @@ async def portal_packages():
             "icon": icons.get(key, "fa-robot"),
             "amount": p["amount"],
             "annual_amount": catalog.plan_amount(key, "annual"),
+            "setup_fee": p["setup_fee"],
+            "limits": p["limits"],
+            "recommended": key == catalog.RECOMMENDED_PACKAGE,
         })
     return {
         "packages": result,
+        "enterprise": catalog.ENTERPRISE,
         "addon": {**catalog.ADDON_AGENT, "max": catalog.MAX_ADDON_AGENTS},
+        "usage_addons": catalog.USAGE_ADDONS,
+        "founding_offer": catalog.FOUNDING_OFFER,
+        "setup_guarantee": catalog.SETUP_GUARANTEE,
         "billing_periods": catalog.BILLING_PERIODS,
     }
 
@@ -2233,7 +2244,7 @@ class PaymentCreateRequest(BaseModel):
     lead_id: Optional[str] = None
     project_id: Optional[str] = None
     billing_period: str = "monthly"  # "monthly" | "annual" (pay 10 months, get 12)
-    addons: int = 0                  # extra agents on top of the tier, 499 SAR/month each
+    addons: int = 0                  # extra agents on top of the tier, 299 SAR/month each (an integer count)
     # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
     refund_consent: bool = False
 

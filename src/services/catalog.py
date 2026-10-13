@@ -8,7 +8,8 @@ from __future__ import annotations
 # =====================================================================
 
 # ---------------------------------------------------------------------
-#  Domains: the four historical specialist teams (five agents each).
+#  Domains: the four historical specialist teams (five agents each; a
+#  domain team is a staffing template, not what a subscription includes).
 #  They describe *what* a team works on and drive lead segmentation,
 #  outreach copy and demo content. They carry no price of their own:
 #  every price lives in PACKAGES below.
@@ -51,116 +52,173 @@ DOMAIN_TEAMS = {
 CEO_SLUG = "orchestrator"
 
 # ---------------------------------------------------------------------
-#  Subscription tiers: the feasibility-study ladder (monthly, SAR, VAT 15%
-#  added on top at checkout). ``amount`` is halalas (pre-VAT monthly base)
-#  and is the only number payments read; ``price`` is its display form.
-#  ``agents`` is the number of specialist agents the CEO can staff on the
-#  plan (the CEO itself is always included and is not counted).
+#  Subscription tiers (pricing v2, Oct 2026). Monthly, SAR, VAT 15% added on
+#  top at checkout. ``amount`` is halalas (pre-VAT monthly base) and is the
+#  only number payments read; ``price`` is its display form. ``agents`` is
+#  the number of specialist agents the CEO can staff on the plan (the CEO
+#  itself is always included and is not counted). The price per agent falls
+#  as the plan grows: 300 -> 250 -> 233 SAR.
+#
+#  ``limits`` are the monthly usage allowances of the plan:
+#    conversations   - smart conversations (one customer, 24h window, any
+#                      number of messages, answered by an AI agent)
+#    voice_minutes   - voice-agent minutes
+#    meta_cap        - Meta (WhatsApp) conversation fees we cover, halalas;
+#                      anything above is passed through at cost.
+#  ``setup_fee`` is a one-time fee (halalas) charged on the first monthly
+#  order only; it is waived for annual billing and for founding customers.
 # ---------------------------------------------------------------------
 PACKAGES = {
-    "starter": {
-        "name": "انطلاقة",
-        "name_en": "Starter",
-        "amount": 49900,
-        "price": "499",
-        "agents": 1,
-        "tagline": "الرئيس التنفيذي + وكيل متخصص واحد",
-        "tagline_en": "The CEO plus one specialist agent",
+    "radd": {
+        "name": "ردّ",
+        "name_en": "Reply",
+        "amount": 59900,
+        "price": "599",
+        "agents": 2,
+        "setup_fee": 0,
+        "limits": {"conversations": 1000, "voice_minutes": 0, "meta_cap": 10000},
+        "tagline": "ما يضيع عليك ولا عميل يسأل — ردّ بلهجتنا خلال ثوانٍ، ليل نهار",
+        "tagline_en": "Never miss a customer question — replies in Saudi dialect within seconds, day and night",
         "scope": [
-            "تشخيص المشكلة وخطة عمل من الرئيس التنفيذي",
-            "وكيل متخصص واحد يختاره الرئيس التنفيذي لمهمتك",
-            "مسار عمل واحد (مثلاً: المحتوى أو خدمة العملاء)",
-            "تشغيل عبر تيليجرام ولوحة العميل",
+            "وكيلان: ردود ذكية + متابعة الطلب حتى الفاتورة",
+            "قناتان: واتساب + تيليجرام أو ماسنجر",
+            "وضع المراجعة: كل ردّ مسودة تعتمدها حتى تقرّر التشغيل التلقائي",
+            "فواتير ضريبية ورابط دفع ميسّر أو تحويل بنكي",
+            "١٬٠٠٠ محادثة ذكية شهرياً، ورسوم ميتا مشمولة حتى ١٠٠ ريال",
         ],
         "scope_en": [
-            "Problem diagnosis and an action plan from the CEO",
-            "One specialist agent chosen by the CEO for your task",
-            "One workstream (e.g. content or customer care)",
-            "Runs on Telegram and the client portal",
+            "2 agents: smart replies + order follow-up through to the invoice",
+            "2 channels: WhatsApp + Telegram or Messenger",
+            "Review mode: every reply is a draft you approve until you switch on auto-reply",
+            "Tax invoices and a Moyasar payment link or bank transfer",
+            "1,000 smart conversations a month, Meta fees covered up to 100 SAR",
         ],
     },
-    "team": {
-        "name": "فريق",
-        "name_en": "Team",
+    "bay": {
+        "name": "بيع",
+        "name_en": "Sell",
         "amount": 149900,
         "price": "1499",
-        "agents": 3,
-        "tagline": "الرئيس التنفيذي + ٣ وكلاء متخصصين",
-        "tagline_en": "The CEO plus three specialist agents",
-        "scope": [
-            "كل ما في انطلاقة",
-            "حتى ٣ وكلاء متخصصين يعملون كفريق واحد",
-            "قسم واحد: سوشيال، متجر، محتوى أو نمو",
-            "مراجعة أسبوعية من الرئيس التنفيذي",
-        ],
-        "scope_en": [
-            "Everything in Starter",
-            "Up to 3 specialist agents working as one team",
-            "One department: social, store, content or growth",
-            "A weekly review by the CEO",
-        ],
-    },
-    "scale": {
-        "name": "توسّع",
-        "name_en": "Scale",
-        "amount": 299900,
-        "price": "2999",
         "agents": 6,
-        "tagline": "عدة أقسام تعمل معاً — الرئيس التنفيذي + ٦ وكلاء",
-        "tagline_en": "Several departments working together — the CEO plus 6 agents",
+        "setup_fee": 99000,
+        "limits": {"conversations": 4000, "voice_minutes": 150, "meta_cap": 25000},
+        "tagline": "من أول سؤال حتى يصلك المبلغ — والمتابعة تمشي بدون ما تلاحق أحد",
+        "tagline_en": "From the first question to money in your account — follow-ups run without you chasing",
         "scope": [
-            "كل ما في فريق",
-            "حتى ٦ وكلاء عبر أكثر من قسم",
-            "تنسيق بين التسويق والمبيعات وخدمة العملاء",
-            "تقارير أداء وتحليلات من قسم التحليلات",
+            "كل ما في ردّ",
+            "٦ وكلاء: متابعة مبيعات، وكيل سوشال بجدول نشر، ووكيل صوتي بلهجة سعودية",
+            "ربط سلة وزد: الطلبات، تذكير السلات المتروكة، وحالة الشحن",
+            "٣ قنوات + وكيل صوتي",
+            "٤٬٠٠٠ محادثة ذكية، ١٥٠ دقيقة صوت، ورسوم ميتا مشمولة حتى ٢٥٠ ريال",
         ],
         "scope_en": [
-            "Everything in Team",
-            "Up to 6 agents across several departments",
-            "Marketing, sales and customer care coordinated",
-            "Performance reports from the analytics department",
+            "Everything in Reply",
+            "6 agents: sales follow-up, a social agent with a posting schedule, and a Saudi-dialect voice agent",
+            "Salla and Zid integration: orders, abandoned-cart reminders and shipping status",
+            "3 channels + a voice agent",
+            "4,000 smart conversations, 150 voice minutes, Meta fees covered up to 250 SAR",
         ],
     },
-    "company": {
-        "name": "الشركة الكاملة",
-        "name_en": "Full Company",
-        "amount": 599900,
-        "price": "5999",
-        "agents": 12,
-        "tagline": "شركة رقمية بقيادة الرئيس التنفيذي — ١٢ وكيلاً عبر الأقسام",
-        "tagline_en": "A digital company led by the CEO — 12 agents across departments",
+    "tashgheel": {
+        "name": "تشغيل",
+        "name_en": "Operate",
+        "amount": 349900,
+        "price": "3499",
+        "agents": 15,
+        "setup_fee": 199000,
+        "limits": {"conversations": 8000, "voice_minutes": 500, "meta_cap": 50000},
+        "tagline": "المبيعات والسوشال والمكالمات تشتغل عنك — وأنت تعتمد القرارات فقط",
+        "tagline_en": "Sales, social and calls run for you — you only approve the decisions",
         "scope": [
-            "كل ما في توسّع",
-            "حتى ١٢ وكيلاً من أي قسم في الفريق",
-            "الهندسة والمنتجات والشؤون المؤسسية والامتثال",
-            "أولوية في الدعم وجلسة تخطيط شهرية",
+            "كل ما في بيع",
+            "١٥ وكيلاً من أي قسم",
+            "تقارير أسبوعية ومدير حساب",
+            "كل القنوات المتاحة + خط صوت",
+            "٨٬٠٠٠ محادثة ذكية، ٥٠٠ دقيقة صوت، ورسوم ميتا مشمولة حتى ٥٠٠ ريال",
         ],
         "scope_en": [
-            "Everything in Scale",
-            "Up to 12 agents from any department on the roster",
-            "Engineering, product, corporate affairs and compliance",
-            "Priority support and a monthly planning session",
+            "Everything in Sell",
+            "15 agents from any department",
+            "Weekly reports and an account manager",
+            "Every available channel + a voice line",
+            "8,000 smart conversations, 500 voice minutes, Meta fees covered up to 500 SAR",
         ],
     },
 }
 
-PACKAGE_ORDER = ["starter", "team", "scale", "company"]
-RECOMMENDED_PACKAGE = "scale"
+PACKAGE_ORDER = ["radd", "bay", "tashgheel"]
+RECOMMENDED_PACKAGE = "bay"
+
+# Enterprise is sold by quote only: it is shown on the pricing pages but is
+# never a checkout key (payments only accept PACKAGES).
+ENTERPRISE = {
+    "key": "enterprise",
+    "name": "مؤسسات",
+    "name_en": "Enterprise",
+    "price_from": "6000",
+    "amount_from": 600000,
+    "by_quote": True,
+    "tagline": "أكثر من ١٥ وكيلاً، أو أكثر من رقم وفرع، أو متطلبات أمنية وعقد خاص",
+    "tagline_en": "More than 15 agents, several numbers or branches, or security and contract requirements",
+    "scope": [
+        "عرض سعر حسب الحاجة — يبدأ من ٦٬٠٠٠ ريال شهرياً تقريباً",
+        "أكثر من ١٥ وكيلاً وأكثر من رقم وفرع",
+        "متطلبات أمنية وعقد خاص واستضافة وشروط بيانات خاصة",
+    ],
+    "scope_en": [
+        "Quoted to your needs — from about 6,000 SAR a month",
+        "More than 15 agents, several numbers and branches",
+        "Security requirements, a custom contract, hosting and data terms",
+    ],
+}
 
 # ---------------------------------------------------------------------
-#  Add-on agents: an extra specialist on top of a tier's allowance, billed
-#  per agent per month (pre-VAT, halalas). The CEO suggests a tier plus
-#  add-ons only when the need slightly exceeds a tier and that is cheaper
-#  than the next tier (see ceo_advisor.recommend_offer).
+#  Add-ons (monthly, pre-VAT, halalas). The extra agent is priced above the
+#  per-agent price inside the larger plans so upgrading stays worthwhile;
+#  the CEO suggests a tier plus add-on agents only when that is cheaper than
+#  the next tier (see ceo_advisor.recommend_offer).
 # ---------------------------------------------------------------------
 ADDON_AGENT = {
     "name": "وكيل إضافي",
     "name_en": "Add-on agent",
-    "amount": 49900,
-    "price": "499",
+    "amount": 29900,
+    "price": "299",
 }
 MAX_ADDON_AGENTS = 12      # checkout cap per order
 MAX_SUGGESTED_ADDONS = 2   # "slightly exceeds": the CEO never suggests more below the top tier
+
+USAGE_ADDONS = {
+    "conversations": {
+        "name": "١٬٠٠٠ محادثة إضافية",
+        "name_en": "+1,000 conversations",
+        "amount": 9900,
+        "price": "99",
+        "units": 1000,
+        "note": "رسوم ميتا لا تدخل فيها وتُحسب بالتكلفة",
+        "note_en": "Meta fees not included; passed through at cost",
+    },
+    "voice_minutes": {
+        "name": "١٠٠ دقيقة صوت إضافية",
+        "name_en": "+100 voice minutes",
+        "amount": 9900,
+        "price": "99",
+        "units": 100,
+        "note": "",
+        "note_en": "",
+    },
+    "meta_overage": {
+        "name": "رسوم ميتا فوق السقف",
+        "name_en": "Meta fees above the cap",
+        "amount": None,
+        "price": None,
+        "at_cost": True,
+        "note": "بالتكلفة بدون أي زيادة، وتظهر بشفافية في البوابة",
+        "note_en": "Passed through at cost with no markup, shown transparently in the portal",
+    },
+}
+
+# Usage alert threshold: warn the client at 80% of any limit.
+USAGE_ALERT_RATIO = 0.8
 
 # ---------------------------------------------------------------------
 #  Billing periods. Annual = pay for 10 months, get 12 (2 months free).
@@ -173,32 +231,108 @@ BILLING_PERIODS = {
 }
 DEFAULT_BILLING_PERIOD = "monthly"
 
+# ---------------------------------------------------------------------
+#  Launch policies (approved Oct 2026).
+# ---------------------------------------------------------------------
+# Founding customers: the first 15. 30% off annual (locked 12 months) or 20%
+# off monthly with a 3-month commitment; setup fee waived. In exchange the
+# customer agrees to a case study / testimonial after 60 days. Applied by the
+# owner on the order, never automatically.
+FOUNDING_OFFER = {
+    "seats": 15,
+    "annual_pct": 30,
+    "monthly_pct": 20,
+    "monthly_commitment_months": 3,
+    "waives_setup_fee": True,
+    "requires_testimonial": True,
+}
+
+# Setup guarantee: covers the setup fee only. The subscription itself stays
+# non-refundable after activation (see the refund policy).
+SETUP_GUARANTEE = {
+    "business_days": 10,
+    "refunds": "setup_fee",
+    "text": "إذا لم يعمل أول وكيل على قناتك خلال ١٠ أيام عمل من استلامنا للمتطلبات، نعيد لك رسوم الإعداد كاملة. الضمان على رسوم الإعداد فقط؛ الاشتراك غير قابل للاسترداد بعد التفعيل.",
+    "text_en": "If your first agent is not working on your channel within 10 business days of us receiving your requirements, we refund the setup fee in full. The guarantee covers the setup fee only; the subscription is non-refundable after activation.",
+}
+
+# Existing subscribers keep their old price at renewal (grandfathering): a
+# renewal of a legacy tier is priced from LEGACY_TIERS, not PACKAGES.
+GRANDFATHER_RENEWALS = True
+
 
 def resolve_billing_period(period: str | None) -> str:
     period = (period or "").strip().lower()
     return period if period in BILLING_PERIODS else DEFAULT_BILLING_PERIOD
 
 
+# Tiers sold before pricing v2. They can no longer be bought, but existing
+# subscribers renew on them at their original price (grandfathered), with
+# add-on agents at the original 499 SAR.
+LEGACY_ADDON_AMOUNT = 49900
+LEGACY_TIERS = {
+    "starter": {"name": "انطلاقة", "name_en": "Starter", "amount": 49900, "price": "499", "agents": 1, "legacy": True},
+    "team": {"name": "فريق", "name_en": "Team", "amount": 149900, "price": "1499", "agents": 3, "legacy": True},
+    "scale": {"name": "توسّع", "name_en": "Scale", "amount": 299900, "price": "2999", "agents": 6, "legacy": True},
+    "company": {"name": "الشركة الكاملة", "name_en": "Full Company", "amount": 599900, "price": "5999", "agents": 12, "legacy": True},
+}
+
+
+def is_legacy_tier(key: str | None) -> bool:
+    return (key or "") in LEGACY_TIERS
+
+
 def plan_amount(package_key: str, billing_period: str = "monthly", addons: int = 0) -> int:
-    """Pre-VAT halalas for one billing period of a tier plus add-on agents."""
-    pkg = PACKAGES[package_key]
+    """Pre-VAT halalas for one billing period of a tier plus add-on agents.
+
+    Legacy tiers price at their grandfathered amount and add-on rate.
+    """
+    if package_key in PACKAGES:
+        pkg, addon_amount = PACKAGES[package_key], ADDON_AGENT["amount"]
+    else:
+        pkg, addon_amount = LEGACY_TIERS[package_key], LEGACY_ADDON_AMOUNT
     addons = max(0, int(addons or 0))
-    monthly = pkg["amount"] + addons * ADDON_AGENT["amount"]
+    monthly = pkg["amount"] + addons * addon_amount
     return monthly * BILLING_PERIODS[resolve_billing_period(billing_period)]["months_billed"]
 
 
+def setup_fee(package_key: str, billing_period: str = "monthly", *, renewal: bool = False, founding: bool = False) -> int:
+    """One-time setup fee (halalas) for a first order; 0 when waived."""
+    if renewal or founding or resolve_billing_period(billing_period) == "annual":
+        return 0
+    return int(PACKAGES.get(package_key, {}).get("setup_fee", 0) or 0)
+
+
+def founding_amount(package_key: str, billing_period: str = "monthly", addons: int = 0) -> int:
+    """Founding-customer price for one billing period (pre-VAT halalas)."""
+    period = resolve_billing_period(billing_period)
+    pct = FOUNDING_OFFER["annual_pct"] if period == "annual" else FOUNDING_OFFER["monthly_pct"]
+    base = plan_amount(package_key, period, addons)
+    return base - (base * pct) // 100
+
+
+def plan_limits(package_key: str, addon_conversations: int = 0, addon_voice: int = 0) -> dict:
+    """Monthly usage allowance of a tier plus usage add-on packs."""
+    limits = dict(PACKAGES[package_key]["limits"])
+    limits["conversations"] += max(0, int(addon_conversations or 0)) * USAGE_ADDONS["conversations"]["units"]
+    limits["voice_minutes"] += max(0, int(addon_voice or 0)) * USAGE_ADDONS["voice_minutes"]["units"]
+    return limits
+
+
 # Payments recorded before the CEO-advisor rebrand used the four domain keys
-# with their own prices. They stay readable (invoices, activation) but cannot
-# be bought any more: checkout only accepts PACKAGES.
+# with their own prices, and pricing v2 retired the four agent-count tiers.
+# They stay readable (invoices, activation, renewals) but cannot be bought:
+# checkout only accepts PACKAGES.
 LEGACY_PACKAGES = {
     "social": {**DOMAINS["social"], "amount": 150000, "price": "1500", "legacy": True},
     "ecommerce": {**DOMAINS["ecommerce"], "amount": 100000, "price": "1000", "legacy": True},
     "content": {**DOMAINS["content"], "amount": 120000, "price": "1200", "legacy": True},
     "growth": {**DOMAINS["growth"], "amount": 80000, "price": "800", "legacy": True},
+    **LEGACY_TIERS,
 }
 
-# A five-agent domain team needs a tier that staffs five agents: Scale (6).
-DOMAIN_TIER = {key: "scale" for key in DOMAINS}
+# A five-agent domain team needs a tier that staffs five agents: Sell (6).
+DOMAIN_TIER = {key: "bay" for key in DOMAINS}
 
 # Tier -> member agents. Filled after EMPLOYEES is defined (see bottom).
 PACKAGE_TEAMS: dict[str, list[str]] = {}
@@ -835,34 +969,36 @@ def get_package(package_key: str) -> dict | None:
 
 
 def resolve_tier(key: str | None) -> str:
-    """Tier key for a tier or a domain key; unknown -> the entry tier."""
+    """Tier key for a tier, a grandfathered legacy tier or a domain key;
+    unknown -> the entry tier."""
     key = (key or "").strip()
-    if key in PACKAGES:
+    if key in PACKAGES or key in LEGACY_TIERS:
         return key
-    return DOMAIN_TIER.get(key, "starter")
+    return DOMAIN_TIER.get(key, PACKAGE_ORDER[0])
 
 
 def tier_price_sar(key: str | None) -> int:
     """Pre-VAT monthly price in SAR for a tier or domain key."""
-    return PACKAGES[resolve_tier(key)]["amount"] // 100
+    tier = resolve_tier(key)
+    return (PACKAGES.get(tier) or LEGACY_TIERS[tier])["amount"] // 100
 
 
 def plan_agent_count(key: str) -> int:
     """Specialist agents a tier staffs; the CEO is on top and not counted."""
-    agents = PACKAGES[key]["agents"]
+    agents = (PACKAGES.get(key) or LEGACY_TIERS[key])["agents"]
     return AGENT_COUNT - 1 if agents is None else agents
 
 
 def addon_quote(package_key: str, addons: int) -> dict:
     """Billing figures for a tier plus ``addons`` extra agents (monthly, pre-VAT)."""
-    pkg = PACKAGES[package_key]
+    pkg = PACKAGES.get(package_key) or LEGACY_TIERS[package_key]
     addons = max(0, int(addons or 0))
     return {
         "package": package_key,
         "addons": addons,
         "agents": plan_agent_count(package_key) + addons,
         "tier_halalas": pkg["amount"],
-        "addons_halalas": addons * ADDON_AGENT["amount"],
+        "addons_halalas": plan_amount(package_key, "monthly", addons) - pkg["amount"],
         "monthly_halalas": plan_amount(package_key, "monthly", addons),
     }
 
@@ -906,6 +1042,12 @@ def team_with_identity(agent_slugs: list[str], names: dict[str, str]) -> list[di
 def _build_package_teams() -> dict[str, list[str]]:
     growth_first = DOMAIN_TEAMS["growth"] + DOMAIN_TEAMS["social"] + DOMAIN_TEAMS["ecommerce"]
     return {
+        "radd": [CEO_SLUG, "customer_service", "customer_manager"],
+        "bay": [CEO_SLUG, "customer_service", "customer_manager", "sales_closer",
+                "social_media", "store_manager", "marketing_agent"],
+        "tashgheel": [CEO_SLUG, *[s for s in ["customer_service", "customer_manager", "sales_closer",
+                                             "store_manager", *growth_first] if s != "cv_writer"]],
+        # Grandfathered tiers keep their original default teams.
         "starter": [CEO_SLUG, "marketing_agent"],
         "team": [CEO_SLUG, *DOMAIN_TEAMS["social"][:3]],
         "scale": [CEO_SLUG, *DOMAIN_TEAMS["social"], "store_manager"],
@@ -914,8 +1056,19 @@ def _build_package_teams() -> dict[str, list[str]]:
 
 
 PACKAGE_TEAMS.update(_build_package_teams())
-for _key, _pkg in PACKAGES.items():
+def _dedupe_team(team: list[str], size: int) -> list[str]:
+    out: list[str] = []
+    for slug in team:
+        if slug not in out:
+            out.append(slug)
+    return out[: size + 1]
+
+
+for _key in PACKAGES:
+    PACKAGE_TEAMS[_key] = _dedupe_team(PACKAGE_TEAMS[_key], PACKAGES[_key]["agents"])
+for _key, _pkg in [*PACKAGES.items(), *LEGACY_TIERS.items()]:
     _pkg["agent_count"] = plan_agent_count(_key)
+    _pkg["per_agent_price"] = str(round(_pkg["amount"] / 100 / _pkg["agents"]))
 
 
 # ---------------------------------------------------------------------------

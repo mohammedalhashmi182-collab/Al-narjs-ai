@@ -84,6 +84,13 @@ def package_amount(package: str, billing_period: Optional[str] = None, addons: i
     return catalog.plan_amount(package, _validate_period(billing_period), _validate_addons(addons))
 
 
+def setup_fee_amount(package: str, billing_period: Optional[str] = None, renewal: bool = False) -> int:
+    """One-time setup fee (halalas, pre-VAT) a new order adds; 0 when waived."""
+    if package in catalog.DOMAINS:
+        package = catalog.resolve_tier(package)
+    return catalog.setup_fee(package, _validate_period(billing_period), renewal=renewal)
+
+
 def period_months(billing_period: Optional[str]) -> int:
     """Months of access one paid invoice buys (1 or 12)."""
     return catalog.BILLING_PERIODS[catalog.resolve_billing_period(billing_period)]["months_granted"]
@@ -100,8 +107,8 @@ def add_months(dt, months: int):
     return dt.replace(year=year, month=month, day=day)
 
 
-def order_description(package: str, billing_period: str, addons: int, discount_pct: int = 0, renewal: bool = False) -> str:
-    pkg = catalog.PACKAGES[package]
+def order_description(package: str, billing_period: str, addons: int, discount_pct: int = 0, renewal: bool = False, setup_fee: int = 0) -> str:
+    pkg = catalog.PACKAGES.get(package) or catalog.LEGACY_TIERS[package]
     description = f"باقة {pkg['name']} - النرجس للذكاء الاصطناعي"
     if addons:
         description += f" + {addons} وكيل إضافي"
@@ -110,6 +117,8 @@ def order_description(package: str, billing_period: str, addons: int, discount_p
         description += " - تجديد"
     if discount_pct:
         description += f" (خصم الإطلاق {discount_pct}%)"
+    if setup_fee:
+        description += f" + رسوم إعداد لمرة واحدة {setup_fee // 100} ر.س"
     return description
 
 
@@ -378,15 +387,22 @@ async def create_payment(
 ) -> Payment:
     if package in catalog.DOMAINS:
         package = catalog.resolve_tier(package)
-    if package not in catalog.PACKAGES:
+    # Grandfathering: a legacy tier can only be renewed (at its old price),
+    # never bought new.
+    legacy_renewal = is_renewal and catalog.GRANDFATHER_RENEWALS and catalog.is_legacy_tier(package)
+    if package not in catalog.PACKAGES and not legacy_renewal:
         raise PaymentError(f"Unknown package: {package}")
     period = _validate_period(billing_period)
     addons = _validate_addons(addons)
 
-    # ``amount`` is the whole period's pre-VAT base (annual = 10 x monthly);
-    # VAT, the Moyasar charge and the gateway amount check all derive from it.
+    # ``amount`` is the whole period's pre-VAT base (annual = 10 x monthly)
+    # plus the one-time setup fee on a first monthly order (never discounted
+    # by a promo, never on renewals or annual); VAT, the Moyasar charge and
+    # the gateway amount check all derive from it.
     amount, discount_pct = apply_promo(catalog.plan_amount(package, period, addons), promo)
-    description = order_description(package, period, addons, discount_pct, renewal=is_renewal)
+    fee = catalog.setup_fee(package, period, renewal=is_renewal)
+    amount += fee
+    description = order_description(package, period, addons, discount_pct, renewal=is_renewal, setup_fee=fee)
 
     payment = Payment(
         amount=amount,
