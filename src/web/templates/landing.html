@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0c0a08">
+    <meta name="theme-color" content="#faf6ef">
     <link rel="icon" href="/static/favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
     {% if ar %}
@@ -123,11 +123,11 @@
     {% include "partials/_analytics.html" %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis-v2.css">
 </head>
 <body class="v2" data-lang="{{ _lang }}">
-<a class="skip" href="#ceo">{% if ar %}انتقل إلى استشارة الرئيس التنفيذي{% else %}Skip to the CEO consultation{% endif %}</a>
+<a class="skip" href="#consult">{% if ar %}انتقل إلى استشارة الرئيس التنفيذي{% else %}Skip to the CEO consultation{% endif %}</a>
 {% if _promo.active %}
 <div class="promo" id="promoBar">
     {% if ar %}عرض الإطلاق: خصم {{ _promo.percent }}٪ بالكود <code>{{ _promo.code }}</code> حتى {{ _promo.expires }}{% else %}Launch offer: {{ _promo.percent }}% off with code <code>{{ _promo.code }}</code> until {{ _promo.expires }}{% endif %}
@@ -153,34 +153,36 @@
 <main>
 <!-- ==================== HERO + CEO CONSULTATION ==================== -->
 <section class="hero" id="top">
-    <div class="wrap hero-grid">
-        <div>
-            <span class="eyebrow">{% if ar %}منصة سعودية · رئيس تنفيذي ذكي{% else %}Saudi platform · AI CEO{% endif %}</span>
+    <div class="wrap">
+        <div class="hero-copy">
+            <span class="v2-badge" aria-label="{% if ar %}متوافق مع مستهدفات رؤية 2030{% else %}Aligned with Vision 2030 goals{% endif %}"><b>2030</b>{% if ar %}متوافق مع مستهدفات رؤية المملكة{% else %}Aligned with Saudi Vision goals{% endif %}</span>
+            <div class="ornament" aria-hidden="true">✦</div>
+            <h1>رئيسك التنفيذي الذكي</h1>
+            <span class="en-ceo" lang="en" dir="ltr">Your AI CEO</span>
             {% if ar %}
-            <h1>لا تختار وكيلاً بنفسك. <em>رئيسك التنفيذي الذكي</em> يشخّص المشكلة ويبني لك الفريق.</h1>
-            <p class="lead">صف ما يعطّل عملك بكلماتك. يقرأه الرئيس التنفيذي في النرجس، يحدّد التحديات، ويرشّح الوكلاء المتخصصين الذين تحتاجهم والباقة التي تغطيهم — قبل أن تدفع ريالاً.</p>
+            <p class="sub">يبني لك الفريق المناسب من أول محادثة</p>
+            <p class="lead">اطرح مشكلتك. الـ CEO يحلل، يرشح عدد الوكلاء، ويُنشئ اشتراكك المخصص فورًا.</p>
             {% else %}
-            <h1>Don't pick an agent yourself. <em>Your AI CEO</em> diagnoses the problem and builds the team.</h1>
-            <p class="lead">Describe what is holding your business back. The Al-Narjis CEO reads it, names the challenges, and recommends the specialist agents you need and the plan that covers them — before you pay anything.</p>
+            <p class="sub">Builds the right team for you from the first conversation</p>
+            <p class="lead">Describe your problem. The CEO analyses it, recommends how many agents you need, and sets up your tailored subscription instantly.</p>
             {% endif %}
-            <ul class="hero-points">
-                <li>{% if ar %}تشخيص مجاني وفوري، بلا تسجيل{% else %}A free, instant diagnosis with no sign-up{% endif %}</li>
-                <li>{% if ar %}وكلاء من فريق حقيقي، لا قوالب عامة{% else %}Agents from a real roster, not generic templates{% endif %}</li>
-                <li>{% if ar %}فاتورة ضريبية رسمية ودفع آمن عبر Moyasar{% else %}Official VAT invoice and secure Moyasar payment{% endif %}</li>
-            </ul>
-            <div class="hero-cta" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:28px">
-                <a class="btn btn-primary" href="#ceo">{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Talk to the CEO now{% endif %}</a>
-                <a class="btn btn-ghost" href="#team">{% if ar %}استكشف الإمكانات{% else %}Explore the team{% endif %}</a>
-                <a class="lang" style="align-self:center" href="/guide">{% if ar %}أو حمّل دليل الـ30 يوماً المجاني{% else %}or get the free 30-day guide{% endif %}</a>
+            <div class="hero-cta" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:26px">
+                <a class="btn btn-primary" href="#ceo" id="heroCeo">{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Talk to the CEO now{% endif %}</a>
+                <a class="btn btn-ghost" href="#team">{% if ar %}استكشف الإمكانات{% else %}Explore the capabilities{% endif %}</a>
             </div>
-            <p class="muted" style="color:var(--v2-on-dark-muted);font-size:.88rem;margin-top:14px">{% if ar %}منصة سعودية · متوافقة مع مستهدفات رؤية 2030 · فوترة رسمية · إلغاء في أي وقت قبل التجديد{% else %}Saudi platform · aligned with Vision 2030 goals · official invoicing · cancel any time before renewal{% endif %}</p>
+            <p class="muted-line" style="font-size:.86rem;margin-top:16px">{% if ar %}منصة سعودية · فوترة رسمية · إلغاء في أي وقت قبل التجديد{% else %}Saudi platform · official invoicing · cancel any time before renewal{% endif %}</p>
             <div class="hero-facts">
                 <div><b data-target="{{ agent_count }}">{{ agent_count }}</b><span>{% if ar %}وكيلاً متخصصاً{% else %}specialist agents{% endif %}</span></div>
                 <div><b data-target="{{ division_count }}">{{ division_count }}</b><span>{% if ar %}أقسام{% else %}departments{% endif %}</span></div>
                 <div data-pulse="plans"><b>{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
             </div>
         </div>
+    </div>
+</section>
 
+<!-- ==================== CEO CONSULTATION ==================== -->
+<section class="sec sec-dark" id="consult" style="padding-top:56px">
+    <div class="wrap ceo-panel" style="margin-inline:auto">
         <div class="ceo-box" id="ceo">
             <div class="ceo-head">
                 <span class="ceo-avatar" aria-hidden="true">CEO</span>
@@ -237,19 +239,19 @@
 </section>
 
 <!-- ==================== HOW IT WORKS ==================== -->
-<section class="sec" id="how">
-    <div class="wrap">
+<section class="sec sec-how" id="how">
+    <div class="wrap"><div class="how-copy">
         <div class="sec-head rv">
             <span class="eyebrow">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</span>
-            <h2>{% if ar %}ثلاث خطوات من المشكلة إلى فريق يعمل{% else %}Three steps from a problem to a working team{% endif %}</h2>
-            <p>{% if ar %}بدلاً من أن تخمّن أي وكيل يناسب أي مهمة، يقوم الرئيس التنفيذي بالتشخيص والتوزيع والمتابعة.{% else %}Instead of guessing which agent fits which task, the CEO diagnoses, assigns and follows up.{% endif %}</p>
+            <h2>{% if ar %}ثلاث خطوات واضحة{% else %}Three clear steps{% endif %}</h2>
+            <p>{% if ar %}حلول ذكية مستلهمة من قيمنا النجدية.{% else %}Intelligent solutions inspired by Najdi values.{% endif %}</p>
         </div>
-        <div class="grid-3">
-            <div class="card rv"><span class="step-no">١</span><h3>{% if ar %}تصف مشكلتك{% else %}You describe the problem{% endif %}</h3><p class="muted">{% if ar %}بكلماتك العادية، في سطر أو فقرة. لا مصطلحات تقنية.{% else %}In plain words, a line or a paragraph. No jargon.{% endif %}</p></div>
-            <div class="card rv"><span class="step-no">٢</span><h3>{% if ar %}الرئيس التنفيذي يشخّص ويوزّع{% else %}The CEO diagnoses and staffs{% endif %}</h3><p class="muted">{% if ar %}يحدّد التحديات، ويختار عدد الوكلاء وأسماءهم من الفريق، ويرشّح أصغر باقة تغطيهم.{% else %}It names the challenges, picks how many agents and which ones, and recommends the smallest plan that covers them.{% endif %}</p></div>
-            <div class="card rv"><span class="step-no">٣</span><h3>{% if ar %}تشترك ويبدأ الفريق{% else %}You subscribe, the team starts{% endif %}</h3><p class="muted">{% if ar %}تدفع بأمان عبر Moyasar أو بفاتورة، ويتفعّل فريقك في بوابة العميل وعلى تيليجرام.{% else %}Pay securely by Moyasar or invoice, and your team activates in the portal and on Telegram.{% endif %}</p></div>
+        <div class="steps">
+            <div class="step rv"><span class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.8-3.6 3.4-5.5 6.5-5.5 1.6 0 3 .5 4.1 1.4"/><path d="M18 13l.9 2.1 2.1.9-2.1.9L18 19l-.9-2.1-2.1-.9 2.1-.9z"/></svg></span><span class="n">01</span><h3>{% if ar %}تحدث مع الـ CEO{% else %}Talk to the CEO{% endif %}</h3><p>{% if ar %}اشرح مشكلتك بحرية.{% else %}Explain your problem freely.{% endif %}</p></div>
+            <div class="step rv"><span class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 4.5a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.3A3 3 0 0 0 9 18.5h.5V4.5z"/><path d="M15 4.5a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.3 3 3 0 0 1-4.5 5.7h-.5V4.5z"/><path d="M9.5 9H12M12 13h2.5"/></svg></span><span class="n">02</span><h3>{% if ar %}توصية دقيقة بعدد الوكلاء{% else %}A precise agent recommendation{% endif %}</h3><p>{% if ar %}يرشّح الوكلاء المناسبين ويشرح السبب.{% else %}It names the right agents and explains why.{% endif %}</p></div>
+            <div class="step rv"><span class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3l2.2 1.6 2.7-.2.8 2.6 2.2 1.6-.9 2.6.9 2.6-2.2 1.6-.8 2.6-2.7-.2L12 21l-2.2-1.6-2.7.2-.8-2.6-2.2-1.6.9-2.6-.9-2.6 2.2-1.6.8-2.6 2.7.2z"/><path d="M8.5 12l2.4 2.4 4.6-4.8"/></svg></span><span class="n">03</span><h3>{% if ar %}اشتراك مخصص وتنفيذ فوري{% else %}A tailored plan, instant start{% endif %}</h3><p>{% if ar %}يبدأ الفريق العمل فور تأكيد الدفع.{% else %}The team starts as soon as payment is confirmed.{% endif %}</p></div>
         </div>
-    </div>
+    </div></div>
 </section>
 
 <!-- ==================== TEAM (DIVISIONS) ==================== -->
@@ -281,7 +283,7 @@
             <p>{% if ar %}كل باقة يقودها الرئيس التنفيذي. الفرق بينها هو عدد الوكلاء المتخصصين ونطاق العمل. الأسعار شهرية وتُضاف ضريبة القيمة المضافة 15٪ عند الدفع.{% else %}Every plan is led by the CEO. They differ by the number of specialist agents and the scope. Prices are monthly; 15% VAT is added at checkout.{% endif %}</p>
         </div>
         {% set _full = plans[-1] %}
-        <p class="anchor rv">{% if ar %}للمقارنة: <b>{{ _full.name }}</b> تفتح لك كل الوكلاء الـ{{ _full.agent_count }} بـ{{ '{:,}'.format(_full.price|int) }} ر.س شهرياً — أي نحو {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} ر.س للوكيل الواحد.{% else %}For reference: <b>{{ _full.name_en }}</b> opens all {{ _full.agent_count }} agents for SAR {{ '{:,}'.format(_full.price|int) }}/month — about SAR {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} per agent.{% endif %}</p>
+        <p class="anchor rv">{% if ar %}للمقارنة: <b>{{ _full.name }}</b> تفتح لك الرئيس التنفيذي وكل الوكلاء الـ{{ _full.agent_count }} بـ{{ '{:,}'.format(_full.price|int) }} ر.س شهرياً — أي نحو {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} ر.س للوكيل الواحد.{% else %}For reference: <b>{{ _full.name_en }}</b> opens the CEO plus all {{ _full.agent_count }} agents for SAR {{ '{:,}'.format(_full.price|int) }}/month — about SAR {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} per agent.{% endif %}</p>
         <div class="plans">
             {% for plan in plans %}
             <article class="plan rv{% if plan.recommended %} is-rec{% endif %}" data-plan="{{ plan.key }}">
@@ -461,6 +463,8 @@
     }, { threshold: 0.1 }) : null;
     document.querySelectorAll('.rv').forEach(function (el) { io ? io.observe(el) : el.classList.add('in'); });
 
+    var heroCeo = document.getElementById('heroCeo');
+    if (heroCeo) heroCeo.addEventListener('click', function () { setTimeout(function () { var t = document.getElementById('ceoProblem'); if (t) t.focus({ preventScroll: true }); }, 350); });
     var form = document.getElementById('ceoForm');
     var box = document.getElementById('ceoProblem');
     var msg = document.getElementById('ceoMsg');

@@ -83,12 +83,9 @@ def test_trust_badges_and_vision_disclaimer(page: str) -> None:
 
 def test_contact_links_are_real_or_absent(page: str) -> None:
     assert "https://wa.me/966552978753?text=" in page
-    assert "https://t.me/AlNarjs7BOT" in page
-    # no Facebook Page is configured in content/contact.json yet
-    from src.services import transfer
-
-    if not transfer.messenger_page():
-        assert "m.me/" not in page
+    assert "https://t.me/AlNarjs7BOT" in page          # the bot (plan deep links)
+    assert "https://t.me/karma777779" in page          # the owner's Telegram contact
+    assert 'href="https://m.me/Alnarjs-Ai"' in page    # confirmed Facebook Page
     assert 'href="#"' not in page
 
 

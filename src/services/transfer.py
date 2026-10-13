@@ -68,6 +68,15 @@ def messenger_page() -> str:
     return raw if raw and all(c.isalnum() or c in "._-" for c in raw) else ""
 
 
+def telegram_contact_handle() -> str:
+    """The person/channel handle published as the Telegram contact.
+
+    Distinct from TELEGRAM_BOT (the production bot that plan deep links use).
+    """
+    raw = str(_contact_file().get("telegram_handle", "")).strip().lstrip("@")
+    return raw if raw and all(c.isalnum() or c == "_" for c in raw) else TELEGRAM_BOT.rsplit("/", 1)[-1]
+
+
 def contact_channels(message: str = "") -> dict[str, str]:
     """One-tap links a buyer can use instead of guessing how to reach us.
 

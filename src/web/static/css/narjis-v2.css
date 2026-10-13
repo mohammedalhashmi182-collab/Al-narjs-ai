@@ -1,34 +1,41 @@
 /* =====================================================================
-   Al-Narjis v2 — "Najd Night (deep black, warm gold, rich orange)" identity (CEO-advisor rebrand, 2026)
+   Al-Narjis v2 — "Lavender Najd" identity (CEO-advisor rebrand, 2026)
    The public landing page's design contract. See docs/design-system.md.
-   - Canvas: deep Najd-night green for the hero, ivory paper for reading.
-   - Action: rich orange (white label, 5.2:1). Highlight: warm saffron gold.
-   - Saudi green is kept for confirmations (checks, online dot).
-   - Type: Alexandria (display) + Noto Sans Arabic (text). RTL first.
+   - Light theme: lavender action, warm white, Najdi beige and earth,
+     olive/sage accents, a little gold. Alexandria + Noto Sans Arabic,
+     Cormorant Garamond for the Latin "Your AI CEO" line. RTL first.
    ===================================================================== */
 :root {
-  --v2-canvas: #0c0a08;
-  --v2-canvas-2: #18130d;
-  --v2-ivory: #f6f3ea;
+  /* light, airy: lavender primary on warm white and Najdi beige/earth */
+  --v2-canvas: #f6f2fb;          /* soft lavender section field */
+  --v2-canvas-2: #ffffff;        /* cards on lavender */
+  --v2-ivory: #faf6ef;           /* warm white page */
   --v2-paper: #ffffff;
-  --v2-ink: #10201a;
-  --v2-muted: #56665e;
-  --v2-green: #c2410c;
-  --v2-green-deep: #9a3412;
-  --v2-saudi: #0f7b53;
-  --v2-saffron: #d9a441;
-  --v2-saffron-soft: #f3e3bd;
-  --v2-line: rgba(16, 32, 26, .12);
-  --v2-line-dark: rgba(246, 243, 234, .14);
-  --v2-on-dark: #f6f3ea;
-  --v2-on-dark-muted: #b9c7bf;
+  --v2-beige: #f1e6d3;           /* Najdi sand */
+  --v2-earth: #a77b52;           /* Najdi soil, details only */
+  --v2-ink: #2b2340;             /* deep plum ink */
+  --v2-muted: #6b6280;
+  --v2-green: #7a5cb8;           /* THE action colour: lavender (white label 5.2:1) */
+  --v2-green-deep: #5e4a8c;
+  --v2-lavender: #8a6fc4;        /* display accent ("Your AI CEO") */
+  --v2-lavender-soft: #ece5f7;
+  --v2-plum: #3b2d5c;            /* the one dark surface: the recommended-plan bar */
+  --v2-saffron: #c9a35b;         /* a little gold for detail */
+  --v2-saffron-soft: #f5ecd9;
+  --v2-saudi: #4f6b3f;           /* olive/sage: confirmations and leaves */
+  --v2-sage: #a9b98f;
+  --v2-line: rgba(43, 35, 64, .10);
+  --v2-line-dark: rgba(43, 35, 64, .12);
+  --v2-on-dark: #2b2340;
+  --v2-on-dark-muted: #6b6280;
   --v2-font-display: "Alexandria", "Noto Sans Arabic", system-ui, sans-serif;
   --v2-font-text: "Noto Sans Arabic", "Alexandria", system-ui, sans-serif;
-  --v2-r-sm: 10px;
-  --v2-r: 18px;
+  --v2-font-serif: "Cormorant Garamond", Georgia, serif;
+  --v2-r-sm: 12px;
+  --v2-r: 20px;
   --v2-r-lg: 28px;
   --v2-r-pill: 999px;
-  --v2-shadow: 0 1px 2px rgba(7, 18, 14, .06), 0 12px 32px -12px rgba(7, 18, 14, .18);
+  --v2-shadow: 0 1px 2px rgba(43, 35, 64, .04), 0 18px 40px -20px rgba(94, 74, 140, .25);
   --v2-max: 1200px;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -65,7 +72,7 @@ body.v2 {
 .btn svg { width: 1.15em; height: 1.15em; flex: none; }
 
 /* ---------- nav ---------- */
-.v2-nav { position: sticky; top: 0; z-index: 40; background: rgba(12, 10, 8, .92); backdrop-filter: blur(10px); color: var(--v2-on-dark); }
+.v2-nav { position: sticky; top: 0; z-index: 40; background: rgba(250, 246, 239, .88); backdrop-filter: blur(10px); color: var(--v2-ink); border-bottom: 1px solid var(--v2-line); }
 .v2-nav .wrap { display: flex; align-items: center; gap: 24px; min-height: 68px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--v2-font-display); font-weight: 700; font-size: 1.15rem; }
 .brand img { width: 36px; height: 36px; border-radius: 50%; }
@@ -101,7 +108,7 @@ body.v2 {
   padding: 28px; box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .6); position: relative;
 }
 .ceo-head { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
-.ceo-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--v2-canvas); color: var(--v2-saffron); display: grid; place-items: center; font: 700 1.1rem var(--v2-font-display); flex: none; }
+.ceo-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--v2-lavender-soft); color: var(--v2-green-deep); display: grid; place-items: center; font: 700 1.1rem var(--v2-font-display); flex: none; }
 .ceo-head b { display: block; font-family: var(--v2-font-display); }
 .ceo-head span { font-size: .85rem; color: var(--v2-muted); }
 .ceo-online { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--v2-saudi); margin-inline-end: 6px; }
@@ -123,9 +130,9 @@ body.v2 {
 .ceo-agents li { display: flex; gap: 12px; align-items: center; border: 1px solid var(--v2-line); border-radius: var(--v2-r-sm); padding: 10px 12px; }
 .ceo-agents .no { font: 600 .72rem var(--v2-font-display); color: var(--v2-green-deep); background: rgba(15, 123, 83, .1); border-radius: 6px; padding: 3px 6px; flex: none; }
 .ceo-agents small { display: block; color: var(--v2-muted); font-size: .8rem; }
-.ceo-plan { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--v2-canvas); color: var(--v2-on-dark); border-radius: var(--v2-r); padding: 16px 18px; margin-bottom: 12px; }
+.ceo-plan { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--v2-plum); color: #ffffff; border-radius: var(--v2-r); padding: 16px 18px; margin-bottom: 12px; }
 .ceo-plan b { font: 700 1.3rem var(--v2-font-display); color: var(--v2-saffron); }
-.ceo-plan small { display: block; color: var(--v2-on-dark-muted); font-size: .8rem; }
+.ceo-plan small { display: block; color: #d9d0ea; font-size: .8rem; }
 .ceo-alt { display: flex; gap: 10px; justify-content: center; margin-top: 10px; font-size: .9rem; }
 
 /* ---------- trust strip ---------- */
@@ -152,7 +159,7 @@ body.v2 {
 
 /* divisions */
 .div-card h3 { display: flex; justify-content: space-between; gap: 8px; }
-.div-card h3 span { color: var(--v2-saffron); font-size: .9rem; }
+.div-card h3 span { color: var(--v2-earth); font-size: .9rem; }
 .div-card p { color: var(--v2-on-dark-muted); font-size: .92rem; margin: 0; }
 
 /* ---------- pricing ---------- */
@@ -173,7 +180,7 @@ body.v2 {
 .compare { width: 100%; border-collapse: collapse; margin-top: 40px; background: var(--v2-paper); border-radius: var(--v2-r); overflow: hidden; font-size: .92rem; }
 .compare th, .compare td { padding: 12px 14px; border-bottom: 1px solid var(--v2-line); text-align: center; }
 .compare th:first-child, .compare td:first-child { text-align: start; }
-.compare thead th { background: var(--v2-canvas); color: var(--v2-on-dark); font-family: var(--v2-font-display); font-weight: 600; }
+.compare thead th { background: var(--v2-lavender-soft); color: var(--v2-ink); font-family: var(--v2-font-display); font-weight: 600; }
 .compare .is-rec { background: rgba(15, 123, 83, .07); }
 .table-scroll { overflow-x: auto; }
 
@@ -182,7 +189,7 @@ body.v2 {
 .placeholder { border: 2px dashed var(--v2-line); border-radius: var(--v2-r); padding: 24px; color: var(--v2-muted); text-align: center; background: transparent; }
 .placeholder b { color: var(--v2-ink); }
 .vision { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 48px; align-items: center; }
-.vision .big { font: 700 clamp(4rem, 10vw, 8rem)/1 var(--v2-font-display); color: var(--v2-saffron); }
+.vision .big { font: 600 clamp(4rem, 10vw, 7rem)/1 var(--v2-font-serif); color: var(--v2-lavender); }
 .pillars { display: grid; gap: 14px; }
 .pillar { display: flex; gap: 14px; }
 .pillar i { font-style: normal; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(217, 164, 65, .16); color: var(--v2-saffron); flex: none; font-weight: 700; }
@@ -217,11 +224,11 @@ body.v2 {
 
 /* ---------- founder, footer ---------- */
 .founder { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; }
-.founder-disc { width: 56px; height: 56px; border-radius: 50%; background: var(--v2-canvas); color: var(--v2-saffron); display: grid; place-items: center; font: 700 1.3rem var(--v2-font-display); }
+.founder-disc { width: 56px; height: 56px; border-radius: 50%; background: var(--v2-lavender-soft); color: var(--v2-green-deep); display: grid; place-items: center; font: 700 1.3rem var(--v2-font-display); }
 .founder-name { display: block; font-family: var(--v2-font-display); font-size: 1.1rem; }
 .founder-role { color: var(--v2-muted); font-size: .9rem; }
 .founder-story { color: var(--v2-muted); }
-.v2-footer { background: var(--v2-canvas); color: var(--v2-on-dark-muted); padding: 56px 0 96px; font-size: .9rem; }
+.v2-footer { background: var(--v2-beige); color: var(--v2-on-dark-muted); padding: 56px 0 96px; font-size: .9rem; }
 .v2-footer .cols { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 32px; }
 .v2-footer a { display: block; text-decoration: none; padding-block: 4px; }
 .v2-footer a:hover { color: var(--v2-on-dark); }
@@ -270,3 +277,78 @@ body.v2 {
 .socials svg { width: 1.1em; height: 1.1em; }
 /* Contact stack: a column, WhatsApp first, so order is structural */
 .contact-stack { display: flex; flex-direction: column; }
+
+/* =====================================================================
+   Approved mockup treatment (hero1/hero2, howitworks)
+   ===================================================================== */
+.hero {
+  background:
+    linear-gradient(90deg, var(--v2-ivory) 0%, rgba(250, 246, 239, .92) 38%, rgba(250, 246, 239, 0) 62%),
+    url("/static/img/hero-riyadh.webp") left bottom / auto 100% no-repeat,
+    linear-gradient(180deg, #fbf8fd 0%, var(--v2-lavender-soft) 100%);
+  color: var(--v2-ink); padding: 64px 0 80px; position: relative; overflow: hidden;
+}
+[dir="ltr"] .hero { background:
+    linear-gradient(270deg, var(--v2-ivory) 0%, rgba(250, 246, 239, .92) 38%, rgba(250, 246, 239, 0) 62%),
+    url("/static/img/hero-riyadh.webp") right bottom / auto 100% no-repeat,
+    linear-gradient(180deg, #fbf8fd 0%, var(--v2-lavender-soft) 100%); }
+.hero .eyebrow, .eyebrow { color: var(--v2-earth); }
+.hero h1 { font-size: clamp(2.4rem, 5vw, 4rem); color: var(--v2-ink); margin-bottom: .1em; }
+.hero h1 em { color: var(--v2-ink); }
+.hero .en-ceo { display: block; font: 500 clamp(2.4rem, 5.2vw, 4.4rem)/1.05 var(--v2-font-serif); color: var(--v2-lavender); letter-spacing: .01em; margin-bottom: 14px; }
+.hero .ornament { display: flex; align-items: center; gap: 10px; color: var(--v2-saffron); margin: 6px 0 14px; max-width: 420px; }
+.hero .ornament::before, .hero .ornament::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, var(--v2-saffron), transparent); }
+.hero .sub { font: 600 1.35rem/1.6 var(--v2-font-display); color: var(--v2-ink); margin-bottom: 8px; }
+.hero .lead { color: var(--v2-muted); font-size: 1.08rem; }
+.hero-copy { max-width: 560px; }
+.hero-cta .btn-primary { min-height: 56px; padding: 0 2em; box-shadow: 0 14px 30px -14px rgba(122, 92, 184, .7); }
+.hero-cta .btn-ghost { border-color: var(--v2-saffron); color: var(--v2-ink); background: rgba(255, 255, 255, .7); }
+.hero-points li { color: var(--v2-ink); }
+.hero-points li::before { background: var(--v2-sage); }
+.hero-facts b { color: var(--v2-green-deep); }
+.hero-facts span, .hero .muted-line { color: var(--v2-muted); }
+.v2-badge { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--v2-line); background: rgba(255, 255, 255, .85); border-radius: 14px; padding: 6px 12px; font-size: .78rem; color: var(--v2-muted); }
+.v2-badge b { font: 700 1.15rem/1 var(--v2-font-display); color: var(--v2-saudi); letter-spacing: .02em; }
+.ceo-panel { margin-top: 36px; max-width: 560px; }
+.ceo-box { box-shadow: var(--v2-shadow); border: 1px solid var(--v2-line); }
+
+/* how it works on Najdi beige, Diriyah art on one side */
+.sec-how {
+  background:
+    linear-gradient(90deg, rgba(241, 230, 211, 0) 30%, var(--v2-beige) 58%),
+    url("/static/img/how-diriyah.webp") left center / auto 100% no-repeat,
+    var(--v2-beige);
+}
+[dir="ltr"] .sec-how { background:
+    linear-gradient(270deg, rgba(241, 230, 211, 0) 30%, var(--v2-beige) 58%),
+    url("/static/img/how-diriyah.webp") right center / auto 100% no-repeat,
+    var(--v2-beige); }
+.sec-how .wrap { min-height: 460px; }
+.sec-how .how-copy { max-width: 600px; }
+.sec-how .sec-head { text-align: start; margin-inline: 0; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.step { text-align: center; }
+.step-ico { width: 84px; height: 84px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .75); border: 1.5px solid var(--v2-lavender); color: var(--v2-green-deep); }
+.step:nth-child(2) .step-ico { border-color: var(--v2-saudi); color: var(--v2-saudi); }
+.step-ico svg { width: 36px; height: 36px; }
+.step h3 { font-size: 1.02rem; }
+.step p { font-size: .9rem; color: var(--v2-muted); margin: 0; }
+.step .n { display: block; font: 600 .85rem var(--v2-font-serif); color: var(--v2-earth); letter-spacing: .1em; }
+
+.sec-dark { background: var(--v2-canvas); color: var(--v2-ink); }
+.sec-dark .card { background: var(--v2-paper); border-color: var(--v2-line); box-shadow: var(--v2-shadow); }
+.div-card p { color: var(--v2-muted); }
+.roster a { border-color: var(--v2-line); color: var(--v2-muted); }
+.channel { background: var(--v2-paper); border-color: var(--v2-line); color: var(--v2-ink); }
+.channel small { color: var(--v2-muted); }
+.plan.is-rec { border-color: var(--v2-green); box-shadow: 0 24px 60px -28px rgba(122, 92, 184, .55); }
+.plan .tag { min-height: 0; }
+.plans { gap: 24px; }
+.pillar i { background: rgba(79, 107, 63, .12); color: var(--v2-saudi); }
+.anchor { background: var(--v2-lavender-soft); }
+
+@media (max-width: 860px) {
+  .hero, [dir="ltr"] .hero { background: linear-gradient(180deg, rgba(250, 246, 239, .96) 0%, rgba(250, 246, 239, .9) 55%, rgba(250, 246, 239, .2) 100%), url("/static/img/hero-riyadh.webp") center bottom / cover no-repeat; }
+  .sec-how, [dir="ltr"] .sec-how { background: linear-gradient(180deg, var(--v2-beige) 55%, rgba(241, 230, 211, .55)), url("/static/img/how-diriyah.webp") center bottom / cover no-repeat; }
+  .steps { grid-template-columns: minmax(0, 1fr); }
+}

@@ -545,7 +545,7 @@ async def landing_page(request: Request):
             "contact_prefilled": transfer.contact_channels(
                 "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
             ),
-            "telegram_handle": transfer.TELEGRAM_BOT.rsplit("/", 1)[-1],
+            "telegram_handle": transfer.telegram_contact_handle(),
         },
     )
 

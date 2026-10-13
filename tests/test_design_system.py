@@ -194,12 +194,16 @@ def test_public_templates_load_cairo(name: str) -> None:
 # --------------------------------------------------------------------------
 V2_CSS = CSS_DIR / "narjis-v2.css"
 V2_TOKENS = {
-    "--v2-canvas": "#0c0a08",
-    "--v2-ivory": "#f6f3ea",
-    "--v2-ink": "#10201a",
-    "--v2-green": "#c2410c",  # action (name kept for the token API)
-    "--v2-saffron": "#d9a441",
-    "--v2-saudi": "#0f7b53",
+    "--v2-ivory": "#faf6ef",     # warm white page (theme-color)
+    "--v2-canvas": "#f6f2fb",    # soft lavender section field
+    "--v2-beige": "#f1e6d3",     # Najdi sand ("how it works")
+    "--v2-earth": "#a77b52",     # Najdi soil detail
+    "--v2-ink": "#2b2340",
+    "--v2-muted": "#6b6280",
+    "--v2-green": "#7a5cb8",     # action: lavender (token name kept for the API)
+    "--v2-lavender": "#8a6fc4",  # display serif accent
+    "--v2-saffron": "#c9a35b",   # gold, detail only
+    "--v2-saudi": "#4f6b3f",     # olive/sage
 }
 
 
@@ -209,7 +213,7 @@ def _v2() -> str:
 
 def test_landing_declares_the_v2_theme_colour() -> None:
     body = read("landing.html")
-    assert f'<meta name="theme-color" content="{V2_TOKENS["--v2-canvas"]}">' in body
+    assert f'<meta name="theme-color" content="{V2_TOKENS["--v2-ivory"]}">' in body
 
 
 def test_v2_layer_defines_its_tokens_and_type() -> None:
@@ -217,6 +221,7 @@ def test_v2_layer_defines_its_tokens_and_type() -> None:
     for token, value in V2_TOKENS.items():
         assert f"{token}: {value}" in body, f"missing v2 token {token}"
     assert '"alexandria"' in body and '"noto sans arabic"' in body
+    assert '"cormorant garamond"' in body, "the Latin 'Your AI CEO' line uses the serif"
 
 
 def test_v2_landing_loads_only_the_v2_layer_and_its_fonts() -> None:
@@ -224,6 +229,7 @@ def test_v2_landing_loads_only_the_v2_layer_and_its_fonts() -> None:
     assert "/static/css/narjis-v2.css" in body
     assert '<body class="v2"' in body
     assert "family=Alexandria" in body and "family=Noto+Sans+Arabic" in body
+    assert "family=Cormorant+Garamond" in body
     for retired in ("narjis-luxury.css", "narjis-refresh.css", "family=Cairo"):
         assert retired not in body, f"landing still loads {retired}"
 
@@ -246,10 +252,29 @@ def test_v2_action_button_text_meets_wcag_aa() -> None:
     assert ".btn-primary { background: var(--v2-green); color: #ffffff; }" in _v2()
 
 
-def test_v2_text_on_canvas_and_paper_is_readable() -> None:
-    assert _contrast(V2_TOKENS["--v2-ink"], V2_TOKENS["--v2-ivory"]) >= 7
-    assert _contrast(V2_TOKENS["--v2-ivory"], V2_TOKENS["--v2-canvas"]) >= 7
-    assert _contrast(V2_TOKENS["--v2-saffron"], V2_TOKENS["--v2-canvas"]) >= 4.5
+def test_v2_is_a_light_theme_with_readable_text() -> None:
+    for field in ("--v2-ivory", "--v2-canvas", "--v2-beige"):
+        assert _luminance(V2_TOKENS[field]) > 0.7, f"{field} is not a light surface"
+        assert _contrast(V2_TOKENS["--v2-ink"], V2_TOKENS[field]) >= 7
+        assert _contrast(V2_TOKENS["--v2-muted"], V2_TOKENS[field]) >= 4.5
+    # the lavender serif is display-size only: WCAG large-text threshold
+    assert _contrast(V2_TOKENS["--v2-lavender"], V2_TOKENS["--v2-ivory"]) >= 3
+    assert _contrast(V2_TOKENS["--v2-saudi"], V2_TOKENS["--v2-ivory"]) >= 4.5
+
+
+def test_v2_hero_and_how_use_the_approved_art_and_copy() -> None:
+    body = read("landing.html")
+    assert "رئيسك التنفيذي الذكي" in body and "Your AI CEO" in body
+    assert "يبني لك الفريق المناسب من أول محادثة" in body
+    assert "تحدث مع الرئيس التنفيذي الآن" in body and "استكشف الإمكانات" in body
+    css_body = _v2()
+    assert "/static/img/hero-riyadh.webp" in css_body and "/static/img/how-diriyah.webp" in css_body
+    for img in ("hero-riyadh.webp", "how-diriyah.webp"):
+        path = ROOT / "src" / "web" / "static" / "img" / img
+        assert path.exists() and path.stat().st_size < 120_000, f"{img} missing or too heavy"
+    # no fabricated client strip or third-party logos from the mockup
+    for name in ("نيوم", "أرامكو", "NEOM", "Aramco", "موثوق به في"):
+        assert name not in body
 
 
 def test_v2_layer_respects_reduced_motion_and_has_no_retired_palette() -> None:
