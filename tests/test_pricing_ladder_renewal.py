@@ -225,6 +225,28 @@ async def test_renewal_uses_moyasar_when_configured(maker, monkeypatch):
     assert seen["callback"] == "https://karmaai.online/webhooks/moyasar"
 
 
+async def test_renewal_reminder_links_only_to_consent_gated_invoice(maker, monkeypatch):
+    from sqlalchemy import select
+    from src.models.company import OutboundMessage
+
+    async def _initiate(session, payment, source, **kw):
+        payment.gateway = "moyasar"
+        payment.gateway_payment_id = "inv_r2"
+        await session.commit()
+        return {"id": "inv_r2", "checkout_url": "https://checkout.moyasar.com/invoices/inv_r2"}
+
+    monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
+    async with maker() as s:
+        await _project(s, end=NOW + timedelta(days=1))
+        out = await renewals.run_renewals(s, now=NOW, use_gateway=True, base_url="https://karmaai.online")
+        pid = out["invoiced"][0]["payment_id"]
+        msgs = (await s.execute(select(OutboundMessage))).scalars().all()
+    assert msgs
+    for m in msgs:
+        assert "moyasar.com" not in m.text and "inv_r2" not in m.text
+        assert f"https://karmaai.online/invoice/{pid}" in m.text
+
+
 async def test_access_expires_only_after_the_grace_period(maker):
     async with maker() as s:
         in_grace = await _project(s, end=NOW - timedelta(days=2))
