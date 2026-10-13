@@ -1,0 +1,68 @@
+{# Refund consent + card payment for an invoice link (owner-raised invoices).
+
+   Context: consent_needed, refund_consent_ar/_en (from services/policies.py —
+   never copy the wording here), card_enabled, payment. The server enforces the
+   same consent: /api/payments/<id>/pay-card and /transfer-reported answer 422
+   without it. #}
+{% if payment.status != 'paid' %}
+{% set ic_ar = (_lang | default('ar')) == 'ar' %}
+<style>
+    .icons { margin-top:22px; border:1px solid #E7E5E4; border-radius:16px; padding:16px; }
+    .icons label { display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.9; cursor:pointer; }
+    .icons input { margin-top:6px; width:18px; height:18px; }
+    .icons .ic-err { color:#b91c1c; font-size:13px; font-weight:700; margin:10px 0 0; }
+    .icons .ic-card { display:flex; width:100%; justify-content:center; margin-top:14px; min-height:46px; border:none; border-radius:12px; background:#292524; color:#fff; font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; cursor:pointer; }
+    .icons .ic-card:disabled { opacity:.6; cursor:default; }
+    @media print { .icons { display:none; } }
+</style>
+<div class="icons" id="invoiceConsent" data-payment="{{ payment.id }}" data-needed="{{ '1' if consent_needed else '0' }}">
+    {% if consent_needed %}
+    <label for="refundConsent">
+        <input type="checkbox" id="refundConsent" name="refund_consent" required>
+        <span>{% if ic_ar %}أوافق على أن: «{{ refund_consent_ar }}». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a>)
+        {% else %}I agree that: “{{ refund_consent_en }}.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a>){% endif %}</span>
+    </label>
+    {% endif %}
+    {% if card_enabled %}
+    <button type="button" class="ic-card" id="invoicePayCard">{% if ic_ar %}ادفع بالبطاقة (مدى / فيزا / ماستركارد){% else %}Pay by card (mada / Visa / Mastercard){% endif %}</button>
+    {% endif %}
+    <p class="ic-err" id="invoiceConsentErr" hidden></p>
+</div>
+<script>
+    (function () {
+        var root = document.getElementById('invoiceConsent');
+        if (!root) return;
+        var ar = document.documentElement.lang === 'ar';
+        var err = document.getElementById('invoiceConsentErr');
+        window.narjisInvoiceConsent = function () {
+            if (root.dataset.needed !== '1') return true;
+            var box = document.getElementById('refundConsent');
+            if (box && box.checked) { err.hidden = true; return true; }
+            err.hidden = false;
+            err.textContent = ar ? 'لازم توافق على أن الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل قبل الدفع.' : 'Please tick the non-refundable consent before paying.';
+            if (box) box.focus();
+            return false;
+        };
+        var card = document.getElementById('invoicePayCard');
+        if (!card) return;
+        card.addEventListener('click', function () {
+            if (!window.narjisInvoiceConsent()) return;
+            card.disabled = true;
+            fetch('/api/payments/' + root.dataset.payment + '/pay-card', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refund_consent: true })
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (res) {
+                    if (!res.ok || !res.d.redirect_url) throw new Error('pay');
+                    window.location.href = res.d.redirect_url;
+                })
+                .catch(function () {
+                    card.disabled = false;
+                    err.hidden = false;
+                    err.textContent = ar ? 'تعذر فتح صفحة الدفع بالبطاقة. استخدم التحويل البنكي أو تواصل معنا.' : 'Could not open card payment. Use bank transfer or contact us.';
+                });
+        });
+    })();
+</script>
+{% endif %}

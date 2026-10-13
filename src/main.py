@@ -2238,6 +2238,34 @@ class PaymentCreateRequest(BaseModel):
     refund_consent: bool = False
 
 
+def _require_refund_consent(consent) -> None:
+    """422 unless the buyer ticked policies.REFUND_CONSENT_AR (checkout and invoice links)."""
+    from src.services import policies
+
+    if consent is not True:
+        raise HTTPException(422, {
+            "error": "refund_consent_required",
+            "message_ar": "يجب الموافقة على: " + policies.REFUND_CONSENT_AR,
+            "message_en": "You must agree to: " + policies.REFUND_CONSENT_EN,
+        })
+
+
+def _record_refund_consent(payment) -> None:
+    """Stamp consent time + policy version once; the first acceptance is the record."""
+    from datetime import datetime as _dt, timezone as _tz
+
+    from src.services import policies
+
+    if payment.refund_consent_at is None:
+        payment.refund_consent_at = _dt.now(_tz.utc)
+        payment.refund_consent_version = policies.POLICY_VERSION
+
+
+class InvoiceConsentRequest(BaseModel):
+    # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
+    refund_consent: bool = False
+
+
 def _request_locale(request: Request) -> str:
     return request.cookies.get("narjis_lang") or "ar"
 
@@ -2321,12 +2349,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     # The owner dashboard raises bank-transfer invoices for a lead; the buyer is
     # not present, so that path records no consent (refund_consent_at stays NULL).
     owner_invoice = body.method.lower() == "invoice" and check_owner(request)
-    if body.refund_consent is not True and not owner_invoice:
-        raise HTTPException(422, {
-            "error": "refund_consent_required",
-            "message_ar": "يجب الموافقة على: " + policies.REFUND_CONSENT_AR,
-            "message_en": "You must agree to: " + policies.REFUND_CONSENT_EN,
-        })
+    if not owner_invoice:
+        _require_refund_consent(body.refund_consent)
     locale = _request_locale(request)
     include_vat = locale == "ar"
     base = _public_base_url(request)
@@ -2694,7 +2718,7 @@ async def confirm_payment_received(payment_id: str, body: ConfirmReceivedRequest
     "/api/payments/{payment_id}/transfer-reported",
     dependencies=[Depends(rate_limit_transfer_report)],
 )
-async def report_transfer_sent(payment_id: str):
+async def report_transfer_sent(payment_id: str, request: Request):
     """The buyer says they sent the money: record it and alert the owner.
 
     This never marks the payment paid. Only the owner does that, through
@@ -2720,6 +2744,16 @@ async def report_transfer_sent(payment_id: str):
             raise HTTPException(404, "Payment not found")
         if payment.gateway in ("moyasar", "paypal") and payment.gateway_payment_id:
             raise HTTPException(409, "This invoice is settled through its payment gateway")
+        if payment.status != "paid" and payment.refund_consent_at is None:
+            # Owner-raised invoices reach the buyer without checkout, so the
+            # non-refundable consent is collected here, on the invoice page.
+            try:
+                body = await request.json()
+            except Exception:  # noqa: BLE001 - empty / non-JSON body = no consent
+                body = {}
+            _require_refund_consent(body.get("refund_consent") if isinstance(body, dict) else None)
+            _record_refund_consent(payment)
+            await session.commit()
         already = payment.gateway_source == "transfer_reported"
         if not already and payment.status != "paid":
             payment.gateway_source = "transfer_reported"
@@ -2752,6 +2786,69 @@ async def report_transfer_sent(payment_id: str):
     }
 
 
+@app.post(
+    "/api/payments/{payment_id}/pay-card",
+    dependencies=[Depends(rate_limit_transfer_report)],
+)
+async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, request: Request):
+    """Buyer pays an owner-raised invoice by card (Moyasar) from /invoice/<id>.
+
+    Requires the same refund consent as portal checkout (422 without it) and
+    stores its timestamp + policy version on the payment before any charge.
+    """
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _select
+
+    from src.models import Payment as _Payment
+    from src.services import payments as _pm
+
+    try:
+        payment_uuid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+    _require_refund_consent(body.refund_consent)
+
+    base = _public_base_url(request)
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+        ).scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+        if payment.status == "paid":
+            raise HTTPException(409, "This invoice is already paid")
+        _record_refund_consent(payment)
+        await session.commit()
+
+        if payment.gateway == "moyasar" and payment.gateway_payment_id:
+            return {
+                "payment_id": str(payment.id),
+                "gateway": "moyasar",
+                "redirect_url": f"https://checkout.moyasar.com/invoices/{payment.gateway_payment_id}?lang=ar",
+            }
+        if payment.gateway == "paypal" and payment.gateway_payment_id:
+            raise HTTPException(409, "This invoice is settled through PayPal")
+        if not settings.moyasar_api_secret:
+            raise HTTPException(503, "Card payment is not available; use bank transfer")
+        try:
+            data = await _pm.initiate_moyasar(
+                session,
+                payment,
+                _pm.source_credit_card(),
+                success_url=f"{base}/payment/success?id={payment.id}",
+                back_url=f"{base}/invoice/{payment.id}",
+                callback_url=f"{base}/webhooks/moyasar",
+            )
+        except _pm.PaymentError as e:
+            raise HTTPException(502, f"card payment unavailable: {str(e)[:200]}")
+        return {
+            "payment_id": str(payment.id),
+            "gateway": "moyasar",
+            "redirect_url": data["checkout_url"],
+        }
+
+
 @app.get("/invoice/{payment_id}")
 async def invoice_page(request: Request, payment_id: str):
     from uuid import UUID
@@ -2760,6 +2857,7 @@ async def invoice_page(request: Request, payment_id: str):
 
     from src.models import Payment
     from src.services import payments as pm
+    from src.services import policies
 
     locale = _request_locale(request)
 
@@ -2794,6 +2892,13 @@ async def invoice_page(request: Request, payment_id: str):
             "vat": pm.vat_amount(payment.amount),
             "total": pm.total_with_vat(payment.amount),
             "xfer": pm.transfer_instructions(payment) if payment.status != "paid" else None,
+            "consent_needed": payment.status != "paid" and payment.refund_consent_at is None,
+            "refund_consent_ar": policies.REFUND_CONSENT_AR,
+            "refund_consent_en": policies.REFUND_CONSENT_EN,
+            "card_enabled": payment.status != "paid" and (
+                (payment.gateway == "moyasar" and bool(payment.gateway_payment_id))
+                or (payment.gateway == "invoice" and bool(settings.moyasar_api_secret))
+            ),
         },
     )
 

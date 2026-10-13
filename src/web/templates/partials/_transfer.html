@@ -131,9 +131,14 @@
         var report = document.getElementById('xferReport');
         if (!report) return;
         report.addEventListener('click', function () {
+            // Refund consent (partials/_invoice_consent.html) gates the transfer too.
+            if (window.narjisInvoiceConsent && !window.narjisInvoiceConsent()) return;
             report.disabled = true;
             report.textContent = ar ? 'جارٍ الإشعار...' : 'Notifying...';
-            fetch('/api/payments/' + root.dataset.payment + '/transfer-reported', { method: 'POST' })
+            fetch('/api/payments/' + root.dataset.payment + '/transfer-reported', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refund_consent: true })
+            })
                 .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
                 .then(function (res) {
                     if (!res.ok) throw new Error((res.d.detail && res.d.detail.error) || 'error');

@@ -102,7 +102,7 @@ def _base_url(base_url: str | None) -> str:
 
 
 async def ensure_payment_link(session: AsyncSession, draft: ReplyDraft, *, base_url: str | None = None) -> str:
-    """Create (once) a Moyasar hosted invoice for the draft's plan and return its URL."""
+    """Create (once) an invoice for the draft's plan and return its consent-gated /invoice URL."""
     from src.services import payments
 
     pipe = await session.get(LeadPipeline, draft.lead_id) if draft.lead_id else None
@@ -119,18 +119,16 @@ async def ensure_payment_link(session: AsyncSession, draft: ReplyDraft, *, base_
         customer_phone=lead.phone if lead else None, customer_email=lead.email if lead else None,
         lead_id=draft.lead_id, billing_period=period, addons=addons,
     )
-    root = _base_url(base_url)
-    data = await payments.initiate_moyasar(
-        session, payment, payments.source_credit_card(),
-        success_url=f"{root}/payment/success?id={payment.id}",
-        back_url=f"{root}/payment/failure?id={payment.id}",
-        callback_url=f"{root}/webhooks/moyasar",
-    )
+    # The link is our invoice page, not a raw Moyasar checkout: the buyer must
+    # tick the refund consent there before card or bank transfer (see
+    # /api/payments/<id>/pay-card and /transfer-reported).
+    payment.status = "invoice"
+    url = f"{_base_url(base_url)}/invoice/{payment.id}"
     if pipe is not None:
         pipe.payment_id = payment.id
-        pipe.payment_url = data["checkout_url"]
+        pipe.payment_url = url
         pipe.plan_key = plan_key
-    return data["checkout_url"]
+    return url
 
 
 async def request_payment_link(session: AsyncSession, lead_id: Any, plan_key: str, *, billing_period: str = "monthly",
