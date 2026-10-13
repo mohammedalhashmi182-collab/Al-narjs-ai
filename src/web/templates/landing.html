@@ -145,7 +145,7 @@
             <a href="#faq">{% if ar %}الأسئلة{% else %}FAQ{% endif %}</a>
             <a href="#contact">{% if ar %}تواصل{% else %}Contact{% endif %}</a>
         </nav>
-        <a class="lang" href="{{ '/en' if ar else '/ar' }}{{ _base_path }}">{{ 'English' if ar else 'العربية' }}</a>
+        <a class="lang" data-lang-btn="ar" href="/ar{{ _base_path }}"{% if ar %} aria-current="true" hidden{% endif %}>العربية</a><a class="lang" data-lang-btn="en" href="/en{{ _base_path }}"{% if not ar %} aria-current="true" hidden{% endif %}>English</a>
         <a class="btn btn-ghost" href="#ceo">{% if ar %}استشر الرئيس التنفيذي{% else %}Ask the CEO{% endif %}</a>
     </div>
 </header>
