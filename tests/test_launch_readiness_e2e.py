@@ -60,12 +60,12 @@ def mock_moyasar(monkeypatch):
 
 CASES = [
     # problem, expected tier, addons on top
-    ("عندي محل عطور في الرياض وأحتاج تسويق", "starter", 0),
-    ("صالون نسائي في الرياض: السوشيال ضعيف والإعلانات ما تجيب نتائج", "team", 0),
-    ("مطعم في جدة: سوشيال ضعيف، إعلانات بلا نتائج، ضغط ردود واتساب، ومتجر إلكتروني", "scale", 0),
-    ("أبي شركة كاملة تغطي كل شي", "company", 0),
-    ("عيادة أسنان في الدمام تحتاج تسويق", "starter", 2),
-    ("شركة مقاولات: أبي شركة كاملة", "company", 3),
+    ("عندي محل عطور في الرياض وأحتاج تسويق", "radd", 0),
+    ("صالون نسائي في الرياض: السوشيال ضعيف والإعلانات ما تجيب نتائج", "radd", 0),
+    ("مطعم في جدة: سوشيال ضعيف، إعلانات بلا نتائج، ضغط ردود واتساب، ومتجر إلكتروني", "bay", 0),
+    ("أبي شركة كاملة تغطي كل شي", "tashgheel", 0),
+    ("عيادة أسنان في الدمام تحتاج تسويق", "radd", 2),
+    ("شركة مقاولات: أبي شركة كاملة", "tashgheel", 3),
 ]
 
 
@@ -107,7 +107,8 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
         "refund_consent": True, "package": tier, "method": "creditcard", "customer_name": "عميل تجريبي",
         "customer_phone": "0555123456", "project_id": proj["project_id"], "addons": addons})
     assert code == 200, pay
-    assert pay["total"] == pm.total_with_vat(catalog.plan_amount(tier, "monthly", addons))
+    # a first monthly order carries the tier's one-time setup fee
+    assert pay["total"] == pm.total_with_vat(catalog.plan_amount(tier, "monthly", addons) + catalog.setup_fee(tier))
 
     code, hook = await call("POST", "/webhooks/moyasar", {
         "type": "payment_paid", "secret_token": SECRET,
@@ -126,19 +127,19 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
 async def test_addons_bought_at_checkout_are_staffed_on_activation(maker):
     """Project created with the bare tier, add-ons only on the payment."""
     async with maker() as s:
-        proj = ClientProject(client_name="c", phone="0555000009", package="team", status="pending")
+        proj = ClientProject(client_name="c", phone="0555000009", package="radd", status="pending")
         s.add(proj)
         await s.flush()
-        for slug in catalog.get_team("team"):
+        for slug in catalog.get_team("radd"):
             s.add(ClientAgent(project_id=proj.id, slug=slug, status="dormant"))
         await s.commit()
-        pay = await pm.create_payment(s, "team", "c", "0555000009", None, project_id=proj.id, addons=2)
+        pay = await pm.create_payment(s, "radd", "c", "0555000009", None, project_id=proj.id, addons=2)
         pay.status = "paid"
         await s.commit()
         out = await pm.activate_subscription(s, pay)
         rows = (await s.execute(select(ClientAgent).where(ClientAgent.project_id == proj.id))).scalars().all()
     assert len(out["staffed"]) == 2
-    assert len(rows) == 1 + 3 + 2
+    assert len(rows) == 1 + 2 + 2
 
 
 def test_staff_team_sizes():
@@ -148,14 +149,14 @@ def test_staff_team_sizes():
             assert team[0] == catalog.CEO_SLUG
             assert len(team) == 1 + catalog.plan_agent_count(key) + addons
             assert len(set(team)) == len(team)
-    assert catalog.staff_team("starter", 0, ["customer_service"]) == [catalog.CEO_SLUG, "customer_service"]
-    assert catalog.staff_team("starter", 0, ["nope"])[1] == "marketing_agent"
+    assert catalog.staff_team("radd", 0, ["sales_closer"]) == [catalog.CEO_SLUG, "sales_closer", "customer_service"]
+    assert catalog.staff_team("radd", 0, ["nope"])[1] == "customer_service"
 
 
 async def test_backfill_puts_legacy_subscribers_on_the_cycle(maker):
     now = datetime(2026, 10, 13, tzinfo=timezone.utc)
     async with maker() as s:
-        old = ClientProject(client_name="a", phone="1", package="scale", status="active", addon_agents=1)
+        old = ClientProject(client_name="a", phone="1", package="bay", status="active", addon_agents=1)
         s.add(old)
         await s.commit()
         dry = await renewals.backfill_legacy_subscriptions(s, now=now)

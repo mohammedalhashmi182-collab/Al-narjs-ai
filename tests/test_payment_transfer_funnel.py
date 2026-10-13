@@ -125,7 +125,7 @@ async def _insert_payment(maker, **kw) -> Payment:
         payment = Payment(
             amount=kw.pop("amount", 49900),
             currency="SAR",
-            package=kw.pop("package", "starter"),
+            package=kw.pop("package", "radd"),
             customer_name=kw.pop("customer_name", "مؤسسة الاختبار"),
             customer_phone=kw.pop("customer_phone", "0555555555"),
             gateway=kw.pop("gateway", "invoice"),
@@ -378,7 +378,7 @@ class TestGatewayFailureFallback:
             with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
                 return await anon.post(
                     "/api/payments",
-                    json={"refund_consent": True, "package": "starter", "method": "mada", "customer_name": "مشتر"},
+                    json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
                 )
         finally:
             monkey.undo()
@@ -485,14 +485,14 @@ class TestVatInclusiveCharging:
         monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
         from src.services import catalog
 
-        base = catalog.PACKAGES["starter"]["amount"]
+        base = catalog.PACKAGES["radd"]["amount"]
         async with maker() as session:
-            payment = await pm.create_payment(session, "starter", "عميل", None, None)
+            payment = await pm.create_payment(session, "radd", "عميل", None, None)
             with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(session, payment, pm.source_mada())
 
         assert captured["amount"] == pm.total_with_vat(base)
-        assert captured["amount"] == 57385
+        assert captured["amount"] == 68885  # 599 + 15% VAT
         assert captured["amount"] != base, "charging the pre-VAT base under-collects 15%"
 
     async def test_an_explicit_charge_amount_is_honoured(self, maker, monkeypatch):
@@ -504,14 +504,14 @@ class TestVatInclusiveCharging:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
         async with maker() as session:
-            payment = await pm.create_payment(session, "starter", "عميل", None, None)
+            payment = await pm.create_payment(session, "radd", "عميل", None, None)
             with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=99900)
         assert captured["amount"] == 99900
 
     async def test_a_charge_below_the_recorded_base_is_refused(self, maker):
         async with maker() as session:
-            payment = await pm.create_payment(session, "starter", "عميل", None, None)
+            payment = await pm.create_payment(session, "radd", "عميل", None, None)
             with pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=1)
 
@@ -528,8 +528,8 @@ class TestVatInclusiveCharging:
 
         anon, _ = api
         with _gateway_config():
-            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "starter", "method": "invoice"})
-        base = catalog.PACKAGES["starter"]["amount"]
+            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"})
+        base = catalog.PACKAGES["radd"]["amount"]
         assert r.json()["invoice_total"] == pm.total_with_vat(base)
         # The bank-transfer quote must match the invoice: total is VAT-inclusive
         # halalas, and the pre-VAT base stays available as "amount".
@@ -762,12 +762,12 @@ class TestPublicSurface:
         with _gateway_config():
             r = await anon.post(
                 "/api/payments",
-                json={"refund_consent": True, "package": "starter", "method": "invoice", "customer_name": "-buy-test"},
+                json={"refund_consent": True, "package": "radd", "method": "invoice", "customer_name": "-buy-test"},
             )
         assert r.status_code == 200
         body = r.json()
         assert body["gateway"] == "invoice"
-        assert body["invoice_total"] == pm.total_with_vat(catalog.PACKAGES["starter"]["amount"])
+        assert body["invoice_total"] == pm.total_with_vat(catalog.PACKAGES["radd"]["amount"])
         assert body["invoice_url"] == f"/invoice/{body['payment_id']}"
 
     async def test_the_capabilities_route_is_not_shadowed_by_the_payment_id_route(self, api):
