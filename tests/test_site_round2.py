@@ -76,11 +76,33 @@ def test_scripted_demo_replaces_fake_clinic(client):
     assert 'id="live-demo"' not in html and "/api/live-demo/chat" not in html
 
 
-def test_internal_tests_section_labelled(client):
+def test_internal_tests_section_hidden_by_default(client, monkeypatch):
+    monkeypatch.delenv("INTERNAL_TESTS_ENABLED", raising=False)
+    for path in ("/ar/home", "/en/home"):
+        html = client.get(path).text
+        assert 'id="tested"' not in html and "جرّبناها بأنفسنا" not in html
+
+
+def test_internal_tests_section_labelled_when_enabled(client, monkeypatch):
+    monkeypatch.setenv("INTERNAL_TESTS_ENABLED", "1")
     html = client.get("/ar/home").text
+    assert 'id="tested"' in html
     assert "اختبارات داخلية من فريق النرجس — ليست آراء عملاء" in html
     assert 'id="tryAssistant"' in html
     assert "Internal tests by the Al-Narjis team — not customer reviews" in client.get("/en/home").text
+
+
+def test_deleted_sample_clinic_name_gone_everywhere(client, monkeypatch):
+    import pathlib as _p
+    from src.services import internal_tests, live_demo
+    monkeypatch.setenv("INTERNAL_TESTS_ENABLED", "1")
+    data = _p.Path(internal_tests._PATH).read_text(encoding="utf-8")
+    assert "الياسمين" not in data and "Yasmin" not in data
+    assert "الياسمين" not in live_demo.DEMO_NAME and "Yasmin" not in live_demo.DEMO_NAME_EN
+    assert all("الياسمين" not in a for _, a in live_demo.KB)
+    for path in ("/ar/home", "/en/home"):
+        t = client.get(path).text
+        assert "الياسمين" not in t and "Yasmin" not in t
 
 
 def test_no_zatca_phase2_claim(client):
@@ -120,6 +142,25 @@ def test_ticket_endpoint_reference_and_owner_list(client, monkeypatch):
     assert client.get("/api/owner/tickets").status_code == 401
 
 
+def test_ticket_language_follows_page_not_stale_cookie(client, monkeypatch):
+    from src.utils import rate_limit
+    rate_limit.ticket_limiter._hits.clear() if hasattr(rate_limit.ticket_limiter, "_hits") else None
+
+    async def fake_notify(t):
+        return {"telegram": False, "email": False}
+
+    monkeypatch.setattr(tickets, "_notify", fake_notify)
+    client.get("/en/home")  # leaves an English locale cookie behind
+    r = client.post("/api/support/ticket", json={"name": "سارة", "email": "sara@example.com",
+                                                 "question": "سؤال", "consent": True, "page": "/ar/pricing"})
+    assert r.json()["response_time"] == "خلال يوم عمل"
+    r = client.post("/api/support/ticket", json={"name": "Sara", "email": "sara@example.com",
+                                                 "question": "Question", "consent": True, "page": "/en/pricing"})
+    assert r.json()["response_time"] == "within one business day"
+    if hasattr(rate_limit.ticket_limiter, "_hits"):
+        rate_limit.ticket_limiter._hits.clear()
+
+
 def test_ticket_rate_limited(client, monkeypatch):
     async def fake_notify(t):
         return {}
@@ -128,3 +169,21 @@ def test_ticket_rate_limited(client, monkeypatch):
     codes = [client.post("/api/support/ticket", json={"name": "علي", "email": "ali@example.com", "question": "سؤال",
                                                        "consent": True}).status_code for _ in range(5)]
     assert 429 in codes
+
+
+def test_ticket_reference_is_bidi_isolated_in_rtl(client):
+    # "NRJ-000123" inside Arabic text wrapped/split into "-NRJ" + "000123"
+    html = client.get("/ar/home").text
+    assert ".sa-ref{white-space:nowrap;unicode-bidi:isolate" in html
+    assert "r.className = 'sa-ref'; r.dir = 'ltr'; r.textContent = d.reference;" in html
+    assert "' + d.reference + '" not in html
+
+
+def test_about_service_cards_set_dark_text_on_light_background(client):
+    # cards had background #fffaf2 but inherited the dark page's light text -> unreadable
+    import re as _re
+    for path in ("/ar/about", "/en/about"):
+        html = client.get(path).text
+        rule = _re.search(r"\.ab-card\{[^}]*\}", html).group(0)
+        assert "background:#fffaf2" in rule and "color:#1b1712" in rule
+        assert _re.search(r"\.ab-card p\{[^}]*color:#", html)

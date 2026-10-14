@@ -222,3 +222,11 @@ async def test_a_limited_session_dies_when_the_project_expires(maker):
     async with _client(maker, {portal_auth.COOKIE_NAME: limited}) as c:
         assert (await c.get(f"/api/portal/projects/{p.id}/contacts")).status_code == 401
         assert (await c.get(f"/api/portal/projects/{p.id}")).status_code == 401
+
+
+async def test_session_probe_anonymous_is_200_not_console_error(maker):
+    # checkout (/portal) probes the session on every load; anonymous must not be a 401
+    async with _client(maker) as c:
+        r = await c.get("/api/portal/session?probe=1")
+        assert r.status_code == 200 and r.json() == {"authenticated": False}
+        assert (await c.get("/api/portal/session")).status_code == 401
