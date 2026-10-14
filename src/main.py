@@ -117,6 +117,17 @@ async def lifespan(app: FastAPI):
     await ensure_renewal_schedule(scheduler)
     from src.services.lead_pipeline import ensure_followup_schedule
     await ensure_followup_schedule(scheduler)
+    from src.services.ops_monitor import ensure_uptime_schedule
+    await ensure_uptime_schedule(scheduler)
+    from src.services.weekly_reports import ensure_schedule as ensure_weekly_report_schedule
+    await ensure_weekly_report_schedule(scheduler)
+    try:
+        from src.services import wa_templates
+        async with session_factory() as _s:
+            await wa_templates.seed_defaults(_s)
+            await _s.commit()
+    except Exception:  # pragma: no cover - seeding must never block startup
+        logger.exception("WhatsApp template seed failed")
     try:
         from src.services.policies import seed_owner_faq
         async with session_factory() as _s:
@@ -287,6 +298,10 @@ class LocaleMiddleware:
 
 app.add_middleware(LocaleMiddleware)
 
+from src.services.ops_monitor import OpsAlertMiddleware  # noqa: E402
+
+app.add_middleware(OpsAlertMiddleware)
+
 try:
     from src.core.architecture.middleware import TenantMiddleware
 
@@ -393,14 +408,19 @@ from src.interfaces.automation_routes import router as automation_router  # noqa
 
 app.include_router(automation_router)
 
+from src.interfaces.portal_routes import router as portal_router  # noqa: E402
+
+app.include_router(portal_router)
+
 # Agent tools: web search, CSV/XLSX uploads, Salla/Zid read-only, knowledge base.
 from src.interfaces.agent_tools_routes import router as agent_tools_router  # noqa: E402
 
 app.include_router(agent_tools_router)
 
-from src.interfaces.portal_routes import router as portal_router  # noqa: E402
+from src.interfaces.ops_routes import api as ops_api, router as ops_router  # noqa: E402
 
-app.include_router(portal_router)
+app.include_router(ops_router)
+app.include_router(ops_api)
 
 
 async def get_session() -> AsyncSession:
@@ -2249,8 +2269,20 @@ async def update_lead_status(lead_id: str, request: Request):
 
 
 @app.get("/health")
-async def health():
-    return {"status": "healthy", "version": "0.1.0"}
+async def health(deep: bool = False):
+    """Liveness for Render (cheap). ``?deep=1`` adds db + external checks (see /health/deep)."""
+    if not deep:
+        return {"status": "healthy", "version": "0.1.0"}
+    from src.services import ops_monitor
+
+    result = await ops_monitor.deep_health(app.state.session_factory)
+    result["version"] = "0.1.0"
+    return JSONResponse(result, status_code=503 if result["status"] == "unhealthy" else 200)
+
+
+@app.get("/health/deep")
+async def health_deep():
+    return await health(deep=True)
 
 
 # ---------------- Payments (Moyasar) ----------------
@@ -2700,6 +2732,59 @@ async def owner_run_renewals(request: Request, days_before: Optional[int] = None
         return await renewals.run_renewals(session, days_before=days, base_url=_public_base_url(request))
 
 
+@app.post("/api/owner/billing/collections/run", dependencies=[Depends(require_owner_api)])
+async def owner_run_collections(request: Request):
+    """Owner-only: reminder sequence (D-5/D-1/D0/D+3), failed-payment recovery
+    links and overage invoices. Customer messages stay drafts unless
+    BILLING_AUTO_SEND is enabled; owner Telegram alerts are always sent."""
+    from src.services import collections
+
+    async with app.state.session_factory() as session:
+        return await collections.run_collections(session, base_url=_public_base_url(request))
+
+
+@app.get("/api/owner/billing/zatca/status", dependencies=[Depends(require_owner_api)])
+async def owner_zatca_status():
+    """Owner-only: which seller details are still missing for ZATCA phase 1."""
+    from src.services import zatca
+
+    async with app.state.session_factory() as session:
+        return {**zatca.readiness(), "issued": await zatca.count_issued(session)}
+
+
+@app.post("/api/owner/billing/invoices/{payment_id}/credit-note", dependencies=[Depends(require_owner_api)])
+async def owner_credit_note(payment_id: str, request: Request):
+    """Owner-only: issue a credit note (إشعار دائن) for a refund. Body:
+    ``{"amount": <pre-VAT halalas, optional = full>, "reason": "..."}``."""
+    from uuid import UUID
+
+    from sqlalchemy import select
+
+    from src.models import Payment
+    from src.services import zatca
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    body = body if isinstance(body, dict) else {}
+    try:
+        pid = UUID(payment_id)
+    except ValueError:
+        raise HTTPException(404, "payment not found")
+    async with app.state.session_factory() as session:
+        payment = (await session.execute(select(Payment).where(Payment.id == pid))).scalar_one_or_none()
+        if payment is None:
+            raise HTTPException(404, "payment not found")
+        try:
+            note = await zatca.issue_credit_note(
+                session, payment, amount=body.get("amount"), reason=str(body.get("reason") or "استرداد")[:500]
+            )
+        except (zatca.ZatcaError, TypeError, ValueError) as exc:
+            raise HTTPException(422, str(exc))
+        return zatca.to_dict(note)
+
+
 # ---------------------------------------------------------------------------
 #  Usage metering (per subscription, monthly) and the founding offer
 # ---------------------------------------------------------------------------
@@ -2825,6 +2910,29 @@ async def owner_revoke_founding(project_id: str):
         if not result["revoked"]:
             raise HTTPException(409, result["reason"])
         return result
+
+
+@app.get("/api/owner/summary", dependencies=[Depends(require_owner_api)])
+async def owner_summary():
+    """Owner-only, read-only snapshot for the command center and assistant bots:
+    revenue/MRR, plans, renewals due in 7 days, unpaid orders and bank transfers
+    awaiting confirmation, founding seats, usage flags (80/100%), review queue,
+    leads pipeline and site health. No secrets, no writes."""
+    from src.services import owner_summary as _os
+
+    async with app.state.session_factory() as session:
+        data = await _os.build_summary(session)
+        await session.rollback()
+    return data
+
+
+@app.get("/owner/command", response_class=HTMLResponse)
+async def owner_command_center(request: Request):
+    from src.core.owner_auth import check_owner
+
+    if not check_owner(request):
+        return RedirectResponse("/login")
+    return templates.TemplateResponse(request, "owner_command.html", {})
 
 
 @app.post("/api/owner/billing/backfill", dependencies=[Depends(require_owner_api)])
@@ -3037,6 +3145,7 @@ async def invoice_page(request: Request, payment_id: str):
     # not a resolvable invoice lands on the recovery page below instead, because
     # this URL is handed to a buyer at the exact moment they decide to pay.
     payment = None
+    tax_invoice, credit_notes = None, []
     try:
         parsed = UUID(payment_id)
     except (ValueError, AttributeError, TypeError):
@@ -3045,6 +3154,13 @@ async def invoice_page(request: Request, payment_id: str):
         async with app.state.session_factory() as session:
             result = await session.execute(select(Payment).where(Payment.id == parsed))
             payment = result.scalar_one_or_none()
+            if payment is not None:
+                # ZATCA phase 1: a paid order gets its numbered simplified tax
+                # invoice (issued once); unpaid orders render as a pro-forma.
+                from src.services import zatca
+
+                tax_invoice = await zatca.ensure_invoice(session, payment)
+                credit_notes = await zatca.credit_notes_for(session, payment.id) if tax_invoice else []
 
     if not payment:
         return templates.TemplateResponse(
@@ -3054,12 +3170,24 @@ async def invoice_page(request: Request, payment_id: str):
             status_code=404,
         )
 
+    from datetime import timedelta as _td
+
+    from src.services import zatca
+
+    zp = zatca.preview(payment)
     template = "invoice.html" if locale == "ar" else "invoice_en.html"
     return templates.TemplateResponse(
         request,
         template,
         {
             "payment": payment,
+            "tax_invoice": tax_invoice,
+            "credit_notes": credit_notes,
+            "seller": tax_invoice.seller if tax_invoice else zatca.seller(),
+            "lines": tax_invoice.lines if tax_invoice else zp["lines"],
+            "qr_svg": zatca.qr_svg(tax_invoice.qr_tlv) if tax_invoice else None,
+            "issued_riyadh": (tax_invoice.issued_at + _td(hours=3)).strftime("%Y-%m-%d %H:%M")
+            if tax_invoice and tax_invoice.issued_at else None,
             "base": payment.amount,
             "vat": pm.vat_amount(payment.amount),
             "total": pm.total_with_vat(payment.amount),
@@ -3090,8 +3218,13 @@ async def get_payment(payment_id: str):
     async with app.state.session_factory() as session:
         try:
             payment = await pm.verify_payment(session, UUID(payment_id))
-        except pm.PaymentError as e:
+        except ValueError:
+            raise HTTPException(404, "Payment not found")
+        except pm.PaymentNotFound as e:
             raise HTTPException(404, str(e))
+        except pm.PaymentError as e:
+            # Gateway unreachable/erroring: report it, never as "not found".
+            raise HTTPException(502, str(e))
 
         if payment.status == "paid":
             await _apply_paid_outcome(session, payment.id, note="مؤكد عبر بوابة الدفع")

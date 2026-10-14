@@ -108,7 +108,7 @@ async def init_db():
                 ("client_projects", "founding_commitment_until", "TIMESTAMPTZ"),
                 ("client_projects", "founding_revoked_at", "TIMESTAMPTZ"),
                 ("client_projects", "wa_phone_number_id", "VARCHAR(64)"),
-                # Tenant Reply Agent + portal login (alembic 0008)
+                # Tenant Reply Agent + portal login (alembic 0009)
                 ("client_projects", "reply_mode", "VARCHAR(10) NOT NULL DEFAULT 'review'"),
                 ("client_projects", "wa_access_token_enc", "TEXT"),
                 ("client_projects", "portal_token_version", "INTEGER NOT NULL DEFAULT 0"),
@@ -176,7 +176,7 @@ async def init_db():
                 ("client_projects", "founding_commitment_until", "TIMESTAMP"),
                 ("client_projects", "founding_revoked_at", "TIMESTAMP"),
                 ("client_projects", "wa_phone_number_id", "VARCHAR(64)"),
-                # Tenant Reply Agent + portal login (alembic 0008)
+                # Tenant Reply Agent + portal login (alembic 0009)
                 ("client_projects", "reply_mode", "VARCHAR(10) NOT NULL DEFAULT 'review'"),
                 ("client_projects", "wa_access_token_enc", "TEXT"),
                 ("client_projects", "portal_token_version", "INTEGER NOT NULL DEFAULT 0"),
