@@ -191,13 +191,43 @@ async def test_founding_stops_at_15_seats_and_revoke_frees_one(maker):
         assert nxt.founding
 
 
-async def test_unpaid_founding_orders_hold_a_seat_for_72h(maker, monkeypatch):
+async def test_unpaid_founding_orders_do_not_consume_seats(maker, monkeypatch):
     monkeypatch.setitem(catalog.FOUNDING_OFFER, "seats", 1)
     async with maker() as s:
         first = await pm.create_payment(s, "radd", "a", "0555000400", None, founding=None)
         second = await pm.create_payment(s, "radd", "b", "0555000401", None, founding=None)
-        assert first.founding and not second.founding
-        assert await founding.seats_remaining(s, now=datetime.now(timezone.utc) + timedelta(hours=73)) == 1
+        # Both unpaid orders are shown the founding price; neither takes the seat.
+        assert first.founding and second.founding
+        assert await founding.seats_remaining(s) == 1
+
+
+async def test_paid_founding_order_consumes_a_seat(maker):
+    async with maker() as s:
+        proj = await _project(s, package="radd", status="pending")
+        pay = await pm.create_payment(s, "radd", "x", "0555000410", None, project_id=proj.id, founding=None)
+        assert await founding.seats_remaining(s) == 15
+        pay.status = "paid"
+        await s.commit()
+        await pm.activate_subscription(s, pay)
+        assert proj.founding and await founding.seats_remaining(s) == 14
+
+
+async def test_seats_rechecked_at_activation_price_honoured_without_exceeding(maker, monkeypatch):
+    monkeypatch.setitem(catalog.FOUNDING_OFFER, "seats", 1)
+    async with maker() as s:
+        p1 = await _project(s, package="radd", status="pending")
+        p2 = await _project(s, package="radd", status="pending")
+        pay1 = await pm.create_payment(s, "radd", "a", "0555000420", None, project_id=p1.id, founding=None)
+        pay2 = await pm.create_payment(s, "radd", "b", "0555000421", None, project_id=p2.id, founding=None)
+        assert pay1.founding and pay2.founding
+        for pay in (pay1, pay2):
+            pay.status = "paid"
+            await s.commit()
+            await pm.activate_subscription(s, pay)
+        assert p1.founding and not p2.founding  # never more than the seat count
+        assert pay2.founding and pay2.amount == 59900 - 59900 * 20 // 100  # price honoured
+        assert p2.status == "active"
+        assert await founding.seats_remaining(s) == 0
 
 
 async def test_founding_renewal_keeps_price_until_locked_and_not_after_revoke(maker):
@@ -256,7 +286,7 @@ async def test_checkout_api_applies_founding_and_packs(maker):
     assert body["founding_applied"] is True
     assert body["amount"] == 59900 - 59900 * 20 // 100 + 9900
     assert body["discount"] == 59900 * 20 // 100
-    assert seats["seats_total"] == 15 and seats["seats_remaining"] == 14
+    assert seats["seats_total"] == 15 and seats["seats_remaining"] == 15
     assert bad.status_code == 400
 
 
