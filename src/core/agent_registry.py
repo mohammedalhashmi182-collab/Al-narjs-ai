@@ -186,6 +186,49 @@ class AgentRegistry:
 
         return agents
 
+    async def prime_cache_from_yaml(self) -> int:
+        """Load base agent definitions into the in-memory cache (no DB).
+
+        Cheap (YAML parsing only), so startup can serve agents immediately
+        while the DB upsert runs in the background.
+        """
+        base_path = self.base_path / "base"
+        if not base_path.exists():
+            return 0
+        n = 0
+        for yaml_file in base_path.glob("*.yaml"):
+            try:
+                defn = await self.load_from_yaml(yaml_file)
+                self._cache.setdefault(defn.slug, defn)
+                n += 1
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"Failed to load agent {yaml_file}: {e}")
+        return n
+
+    def start_background_sync(self) -> "asyncio.Task":
+        """Upsert base agents into the DB without blocking startup."""
+        async def _run():
+            started = time.monotonic()
+            try:
+                agents = await self.sync_base_agents()
+                logger.info(f"Background agent sync finished: {len(agents)} agents in {time.monotonic() - started:.1f}s")
+            except asyncio.CancelledError:
+                raise
+            except Exception:  # noqa: BLE001 - never crash the app
+                logger.exception("Background agent sync failed")
+
+        self._sync_task = asyncio.create_task(_run(), name="agent-sync")
+        return self._sync_task
+
+    async def stop_background_sync(self) -> None:
+        task = getattr(self, "_sync_task", None)
+        if task is not None and not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                pass
+
     async def get_agent(self, slug: str) -> AgentDefinition | None:
         if slug in self._cache:
             return self._cache[slug]
