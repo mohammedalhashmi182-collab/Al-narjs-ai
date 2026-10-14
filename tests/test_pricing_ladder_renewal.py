@@ -275,6 +275,7 @@ async def test_owner_endpoint_runs_renewals_and_is_owner_only(maker):
     assert r.json()["grace_days"] == 3
 
 
+@pytest.mark.usefixtures("founding_full")
 async def test_checkout_api_bills_annual_with_addons(maker):
     from src.main import app
 
