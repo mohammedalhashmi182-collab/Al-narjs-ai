@@ -429,6 +429,8 @@ async def create_payment(
     addons = _validate_addons(addons)
     conversation_packs = _validate_packs(conversation_packs, "conversation_packs")
     voice_packs = _validate_packs(voice_packs, "voice_packs")
+    if voice_packs and not is_renewal and not catalog.USAGE_ADDONS["voice_minutes"].get("purchasable", True):
+        raise PaymentError("Voice-minute packs are not available yet (voice agent coming soon)")
 
     # Founding offer (first 15 customers): founding=None auto-applies it while
     # a seat is free (checkout, owner payment links, renewals of a founding

@@ -39,13 +39,17 @@ PRIVATE_PREFIXES = (
 # Public, indexable pages: (path, changefreq, priority)
 CORE_PAGES: list[tuple[str, str, float]] = [
     ("/home", "weekly", 1.0),
+    ("/pricing", "weekly", 0.9),
     ("/consult", "monthly", 0.9),
+    ("/about", "monthly", 0.6),
+    ("/contact", "monthly", 0.5),
     ("/guide", "monthly", 0.8),
     ("/early-access", "monthly", 0.7),
     ("/ai-agents-saudi-businesses", "weekly", 0.9),
     ("/blog", "weekly", 0.8),
     ("/privacy", "yearly", 0.2),
     ("/terms", "yearly", 0.2),
+    ("/refund-policy", "yearly", 0.2),
     ("/data-deletion", "yearly", 0.2),
 ]
 
