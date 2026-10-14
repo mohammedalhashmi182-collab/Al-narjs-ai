@@ -1,0 +1,1742 @@
+[
+ {
+  "id": "clinic-001",
+  "business": "clinic",
+  "question": "متى تفتح العيادة؟",
+  "expect": "answer",
+  "facts": [
+   "9 صباحًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "clinic-002",
+  "business": "clinic",
+  "question": "وش أوقات دوامكم؟",
+  "expect": "answer",
+  "facts": [
+   "9 صباحًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "clinic-003",
+  "business": "clinic",
+  "question": "دوامكم يوم السبت متى",
+  "expect": "answer",
+  "facts": [
+   "9 صباحًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "clinic-004",
+  "business": "clinic",
+  "question": "what are your opening hours",
+  "expect": "answer",
+  "facts": [
+   "9 صباحًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "clinic-005",
+  "business": "clinic",
+  "question": "كم سعر تنظيف الأسنان؟",
+  "expect": "answer",
+  "facts": [
+   "250"
+  ]
+ },
+ {
+  "id": "clinic-006",
+  "business": "clinic",
+  "question": "بكم تنظيف الاسنان عندكم",
+  "expect": "answer",
+  "facts": [
+   "250"
+  ]
+ },
+ {
+  "id": "clinic-007",
+  "business": "clinic",
+  "question": "ابغى انظف اسناني كم يكلف",
+  "expect": "answer",
+  "facts": [
+   "250"
+  ]
+ },
+ {
+  "id": "clinic-008",
+  "business": "clinic",
+  "question": "تنظيف جير الاسنان بكم",
+  "expect": "answer",
+  "facts": [
+   "250"
+  ]
+ },
+ {
+  "id": "clinic-009",
+  "business": "clinic",
+  "question": "كم سعر تبييض الأسنان؟",
+  "expect": "answer",
+  "facts": [
+   "1200"
+  ]
+ },
+ {
+  "id": "clinic-010",
+  "business": "clinic",
+  "question": "بكم التبييض بالليزر",
+  "expect": "answer",
+  "facts": [
+   "1200"
+  ]
+ },
+ {
+  "id": "clinic-011",
+  "business": "clinic",
+  "question": "ابي ابيض اسناني بكم الجلسه",
+  "expect": "answer",
+  "facts": [
+   "1200"
+  ]
+ },
+ {
+  "id": "clinic-012",
+  "business": "clinic",
+  "question": "سعر تبييض الاسنان",
+  "expect": "answer",
+  "facts": [
+   "1200"
+  ]
+ },
+ {
+  "id": "clinic-013",
+  "business": "clinic",
+  "question": "كم رسوم الكشف؟",
+  "expect": "answer",
+  "facts": [
+   "150"
+  ]
+ },
+ {
+  "id": "clinic-014",
+  "business": "clinic",
+  "question": "الكشف بكم عندكم",
+  "expect": "answer",
+  "facts": [
+   "150"
+  ]
+ },
+ {
+  "id": "clinic-015",
+  "business": "clinic",
+  "question": "الاستشارة بفلوس ولا مجانية؟",
+  "expect": "answer",
+  "facts": [
+   "150"
+  ]
+ },
+ {
+  "id": "clinic-016",
+  "business": "clinic",
+  "question": "كم تاخذون على الكشف",
+  "expect": "answer",
+  "facts": [
+   "150"
+  ]
+ },
+ {
+  "id": "clinic-017",
+  "business": "clinic",
+  "question": "كيف ألغي موعدي؟",
+  "expect": "answer",
+  "facts": [
+   "24 ساعة"
+  ]
+ },
+ {
+  "id": "clinic-018",
+  "business": "clinic",
+  "question": "ابغى اكنسل الموعد",
+  "expect": "answer",
+  "facts": [
+   "24 ساعة"
+  ]
+ },
+ {
+  "id": "clinic-019",
+  "business": "clinic",
+  "question": "اقدر اغير موعدي؟",
+  "expect": "answer",
+  "facts": [
+   "24 ساعة"
+  ]
+ },
+ {
+  "id": "clinic-020",
+  "business": "clinic",
+  "question": "هل فيه رسوم على الغاء الحجز",
+  "expect": "answer",
+  "facts": [
+   "24 ساعة"
+  ]
+ },
+ {
+  "id": "clinic-021",
+  "business": "clinic",
+  "question": "هل تقبلون التأمين الطبي؟",
+  "expect": "answer",
+  "facts": [
+   "بوبا",
+   "التعاونية"
+  ]
+ },
+ {
+  "id": "clinic-022",
+  "business": "clinic",
+  "question": "عندكم تأمين؟",
+  "expect": "answer",
+  "facts": [
+   "بوبا",
+   "التعاونية"
+  ]
+ },
+ {
+  "id": "clinic-023",
+  "business": "clinic",
+  "question": "تقبلون بوبا",
+  "expect": "answer",
+  "facts": [
+   "بوبا",
+   "التعاونية"
+  ]
+ },
+ {
+  "id": "clinic-024",
+  "business": "clinic",
+  "question": "وش شركات التأمين اللي تتعاملون معها",
+  "expect": "answer",
+  "facts": [
+   "بوبا",
+   "التعاونية"
+  ]
+ },
+ {
+  "id": "clinic-025",
+  "business": "clinic",
+  "question": "وين موقع العيادة؟",
+  "expect": "answer",
+  "facts": [
+   "حي النخيل"
+  ]
+ },
+ {
+  "id": "clinic-026",
+  "business": "clinic",
+  "question": "وين مكانكم",
+  "expect": "answer",
+  "facts": [
+   "حي النخيل"
+  ]
+ },
+ {
+  "id": "clinic-027",
+  "business": "clinic",
+  "question": "عنوان العيادة",
+  "expect": "answer",
+  "facts": [
+   "حي النخيل"
+  ]
+ },
+ {
+  "id": "clinic-028",
+  "business": "clinic",
+  "question": "فيه مواقف سيارات عندكم؟",
+  "expect": "answer",
+  "facts": [
+   "حي النخيل"
+  ]
+ },
+ {
+  "id": "clinic-029",
+  "business": "clinic",
+  "question": "هل تعالجون الأطفال؟",
+  "expect": "answer",
+  "facts": [
+   "4 سنوات"
+  ]
+ },
+ {
+  "id": "clinic-030",
+  "business": "clinic",
+  "question": "عندكم دكتورة اطفال",
+  "expect": "answer",
+  "facts": [
+   "4 سنوات"
+  ]
+ },
+ {
+  "id": "clinic-031",
+  "business": "clinic",
+  "question": "ولدي عمره 5 سنين تستقبلونه؟",
+  "expect": "answer",
+  "facts": [
+   "4 سنوات"
+  ]
+ },
+ {
+  "id": "clinic-032",
+  "business": "clinic",
+  "question": "من كم عمر تستقبلون الاطفال",
+  "expect": "answer",
+  "facts": [
+   "4 سنوات"
+  ]
+ },
+ {
+  "id": "clinic-033",
+  "business": "clinic",
+  "question": "هل تسوون زراعة أسنان؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-034",
+  "business": "clinic",
+  "question": "كم سعر تقويم الأسنان؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-035",
+  "business": "clinic",
+  "question": "عندكم عروض أو خصومات؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-036",
+  "business": "clinic",
+  "question": "تقبلون تابي؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-037",
+  "business": "clinic",
+  "question": "ابغى اكلم الدكتور",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-038",
+  "business": "clinic",
+  "question": "هل الدكتور سعودي؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-039",
+  "business": "clinic",
+  "question": "عندي ألم شديد وش أسوي؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-040",
+  "business": "clinic",
+  "question": "تقبلون تأمين ميدغلف؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-041",
+  "business": "clinic",
+  "question": "كم سعر الحشوة العصبية؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-042",
+  "business": "clinic",
+  "question": "عندكم فرع في جدة؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-043",
+  "business": "clinic",
+  "question": "تفتحون في العيد؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-044",
+  "business": "clinic",
+  "question": "هل التخدير مؤلم؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-045",
+  "business": "clinic",
+  "question": "كم مدة جلسة التبييض؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-046",
+  "business": "clinic",
+  "question": "عندكم ابتعاث او وظائف؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-047",
+  "business": "clinic",
+  "question": "ابي فاتورة ضريبية لزيارتي الماضية",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-048",
+  "business": "clinic",
+  "question": "وش رأيك في الدكتور فلان؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-049",
+  "business": "clinic",
+  "question": "هل تعالجون اللثة؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-050",
+  "business": "clinic",
+  "question": "كم سعر التركيبات؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-051",
+  "business": "clinic",
+  "question": "تقبلون الدفع بالتقسيط؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "clinic-052",
+  "business": "clinic",
+  "question": "اشتكي من موظف الاستقبال",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-001",
+  "business": "salon",
+  "question": "متى يفتح الصالون؟",
+  "expect": "answer",
+  "facts": [
+   "1 ظهرًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "salon-002",
+  "business": "salon",
+  "question": "وش أوقات دوامكم",
+  "expect": "answer",
+  "facts": [
+   "1 ظهرًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "salon-003",
+  "business": "salon",
+  "question": "تفتحون يوم الجمعة؟",
+  "expect": "answer",
+  "facts": [
+   "1 ظهرًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "salon-004",
+  "business": "salon",
+  "question": "دوام الصالون",
+  "expect": "answer",
+  "facts": [
+   "1 ظهرًا",
+   "الجمعة"
+  ]
+ },
+ {
+  "id": "salon-005",
+  "business": "salon",
+  "question": "كم سعر قص الشعر؟",
+  "expect": "answer",
+  "facts": [
+   "80"
+  ]
+ },
+ {
+  "id": "salon-006",
+  "business": "salon",
+  "question": "بكم القص",
+  "expect": "answer",
+  "facts": [
+   "80"
+  ]
+ },
+ {
+  "id": "salon-007",
+  "business": "salon",
+  "question": "قص شعر بكم عندكم",
+  "expect": "answer",
+  "facts": [
+   "80"
+  ]
+ },
+ {
+  "id": "salon-008",
+  "business": "salon",
+  "question": "ابغى اقص شعري كم السعر",
+  "expect": "answer",
+  "facts": [
+   "80"
+  ]
+ },
+ {
+  "id": "salon-009",
+  "business": "salon",
+  "question": "كم سعر صبغة الشعر؟",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "salon-010",
+  "business": "salon",
+  "question": "بكم الصبغة",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "salon-011",
+  "business": "salon",
+  "question": "ابي اصبغ شعري كم يكلف",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "salon-012",
+  "business": "salon",
+  "question": "الصبغه بكم",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "salon-013",
+  "business": "salon",
+  "question": "كم سعر البروتين؟",
+  "expect": "answer",
+  "facts": [
+   "450",
+   "900"
+  ]
+ },
+ {
+  "id": "salon-014",
+  "business": "salon",
+  "question": "بكم الكيراتين عندكم",
+  "expect": "answer",
+  "facts": [
+   "450",
+   "900"
+  ]
+ },
+ {
+  "id": "salon-015",
+  "business": "salon",
+  "question": "ابغى بروتين لشعري كم السعر",
+  "expect": "answer",
+  "facts": [
+   "450",
+   "900"
+  ]
+ },
+ {
+  "id": "salon-016",
+  "business": "salon",
+  "question": "سعر الكيراتين",
+  "expect": "answer",
+  "facts": [
+   "450",
+   "900"
+  ]
+ },
+ {
+  "id": "salon-017",
+  "business": "salon",
+  "question": "كم سعر مكياج العروس؟",
+  "expect": "answer",
+  "facts": [
+   "1500"
+  ]
+ },
+ {
+  "id": "salon-018",
+  "business": "salon",
+  "question": "بكم مكياج العرايس",
+  "expect": "answer",
+  "facts": [
+   "1500"
+  ]
+ },
+ {
+  "id": "salon-019",
+  "business": "salon",
+  "question": "مكياج عروس مع تسريحة بكم",
+  "expect": "answer",
+  "facts": [
+   "1500"
+  ]
+ },
+ {
+  "id": "salon-020",
+  "business": "salon",
+  "question": "ابي مكياج لعرسي كم",
+  "expect": "answer",
+  "facts": [
+   "1500"
+  ]
+ },
+ {
+  "id": "salon-021",
+  "business": "salon",
+  "question": "هل عندكم خدمة منزلية؟",
+  "expect": "answer",
+  "facts": [
+   "200"
+  ]
+ },
+ {
+  "id": "salon-022",
+  "business": "salon",
+  "question": "تجون البيت؟",
+  "expect": "answer",
+  "facts": [
+   "200"
+  ]
+ },
+ {
+  "id": "salon-023",
+  "business": "salon",
+  "question": "فيه خدمه منزليه",
+  "expect": "answer",
+  "facts": [
+   "200"
+  ]
+ },
+ {
+  "id": "salon-024",
+  "business": "salon",
+  "question": "كم رسوم الخدمة المنزلية",
+  "expect": "answer",
+  "facts": [
+   "200"
+  ]
+ },
+ {
+  "id": "salon-025",
+  "business": "salon",
+  "question": "كيف أحجز موعد؟",
+  "expect": "answer",
+  "facts": [
+   "50"
+  ]
+ },
+ {
+  "id": "salon-026",
+  "business": "salon",
+  "question": "ابغى احجز مكياج",
+  "expect": "answer",
+  "facts": [
+   "50"
+  ]
+ },
+ {
+  "id": "salon-027",
+  "business": "salon",
+  "question": "فيه عربون للحجز؟",
+  "expect": "answer",
+  "facts": [
+   "50"
+  ]
+ },
+ {
+  "id": "salon-028",
+  "business": "salon",
+  "question": "كم العربون",
+  "expect": "answer",
+  "facts": [
+   "50"
+  ]
+ },
+ {
+  "id": "salon-029",
+  "business": "salon",
+  "question": "هل الصالون للرجال؟",
+  "expect": "answer",
+  "facts": [
+   "للسيدات فقط"
+  ]
+ },
+ {
+  "id": "salon-030",
+  "business": "salon",
+  "question": "تستقبلون رجال؟",
+  "expect": "answer",
+  "facts": [
+   "للسيدات فقط"
+  ]
+ },
+ {
+  "id": "salon-031",
+  "business": "salon",
+  "question": "الصالون نسائي؟",
+  "expect": "answer",
+  "facts": [
+   "للسيدات فقط"
+  ]
+ },
+ {
+  "id": "salon-032",
+  "business": "salon",
+  "question": "اقدر اجيب بنتي عمرها 4 سنين؟",
+  "expect": "answer",
+  "facts": [
+   "للسيدات فقط"
+  ]
+ },
+ {
+  "id": "salon-033",
+  "business": "salon",
+  "question": "عندكم عروض؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-034",
+  "business": "salon",
+  "question": "كم سعر الحناء؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-035",
+  "business": "salon",
+  "question": "تسوون رموش؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-036",
+  "business": "salon",
+  "question": "كم سعر المناكير والبديكير؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-037",
+  "business": "salon",
+  "question": "عندكم فرع في الدمام؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-038",
+  "business": "salon",
+  "question": "ابغى اكلم المديرة",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-039",
+  "business": "salon",
+  "question": "تقبلون تابي وتمارا؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-040",
+  "business": "salon",
+  "question": "كم سعر تنظيف البشرة؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-041",
+  "business": "salon",
+  "question": "مين أفضل مصففة عندكم؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-042",
+  "business": "salon",
+  "question": "هل الصبغة خالية من الأمونيا؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-043",
+  "business": "salon",
+  "question": "عندكم ليزر لإزالة الشعر؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-044",
+  "business": "salon",
+  "question": "تفتحون في رمضان متى؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-045",
+  "business": "salon",
+  "question": "عندي حساسية من الصبغة وش أسوي؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-046",
+  "business": "salon",
+  "question": "تبيعون منتجات شعر؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-047",
+  "business": "salon",
+  "question": "كم مدة جلسة الكيراتين؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-048",
+  "business": "salon",
+  "question": "ابغى استرجع العربون",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-049",
+  "business": "salon",
+  "question": "فيه مواقف سيارات؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-050",
+  "business": "salon",
+  "question": "تسوون تسريحات للأطفال؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-051",
+  "business": "salon",
+  "question": "اشتكي من الخدمة",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "salon-052",
+  "business": "salon",
+  "question": "عندكم بطاقات هدايا؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-001",
+  "business": "store",
+  "question": "كم يأخذ التوصيل؟",
+  "expect": "answer",
+  "facts": [
+   "3 إلى 5"
+  ]
+ },
+ {
+  "id": "store-002",
+  "business": "store",
+  "question": "متى يوصل الطلب لجدة",
+  "expect": "answer",
+  "facts": [
+   "3 إلى 5"
+  ]
+ },
+ {
+  "id": "store-003",
+  "business": "store",
+  "question": "كم يوم الشحن",
+  "expect": "answer",
+  "facts": [
+   "3 إلى 5"
+  ]
+ },
+ {
+  "id": "store-004",
+  "business": "store",
+  "question": "التوصيل للدمام كم ياخذ",
+  "expect": "answer",
+  "facts": [
+   "3 إلى 5"
+  ]
+ },
+ {
+  "id": "store-005",
+  "business": "store",
+  "question": "كم رسوم الشحن؟",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "store-006",
+  "business": "store",
+  "question": "الشحن مجاني؟",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "store-007",
+  "business": "store",
+  "question": "بكم التوصيل",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "store-008",
+  "business": "store",
+  "question": "متى يصير الشحن ببلاش",
+  "expect": "answer",
+  "facts": [
+   "300"
+  ]
+ },
+ {
+  "id": "store-009",
+  "business": "store",
+  "question": "وش طرق الدفع؟",
+  "expect": "answer",
+  "facts": [
+   "مدى"
+  ]
+ },
+ {
+  "id": "store-010",
+  "business": "store",
+  "question": "تقبلون مدى؟",
+  "expect": "answer",
+  "facts": [
+   "مدى"
+  ]
+ },
+ {
+  "id": "store-011",
+  "business": "store",
+  "question": "اقدر ادفع ابل باي",
+  "expect": "answer",
+  "facts": [
+   "مدى"
+  ]
+ },
+ {
+  "id": "store-012",
+  "business": "store",
+  "question": "فيه دفع عند الاستلام؟",
+  "expect": "answer",
+  "facts": [
+   "مدى"
+  ]
+ },
+ {
+  "id": "store-013",
+  "business": "store",
+  "question": "كيف أرجع المنتج؟",
+  "expect": "answer",
+  "facts": [
+   "7 أيام"
+  ]
+ },
+ {
+  "id": "store-014",
+  "business": "store",
+  "question": "ابغى استرجع عطر",
+  "expect": "answer",
+  "facts": [
+   "7 أيام"
+  ]
+ },
+ {
+  "id": "store-015",
+  "business": "store",
+  "question": "سياسة الاسترجاع",
+  "expect": "answer",
+  "facts": [
+   "7 أيام"
+  ]
+ },
+ {
+  "id": "store-016",
+  "business": "store",
+  "question": "اقدر ابدل العطر؟",
+  "expect": "answer",
+  "facts": [
+   "7 أيام"
+  ]
+ },
+ {
+  "id": "store-017",
+  "business": "store",
+  "question": "كيف أتتبع طلبي؟",
+  "expect": "answer",
+  "facts": [
+   "رقم التتبع"
+  ]
+ },
+ {
+  "id": "store-018",
+  "business": "store",
+  "question": "وين طلبي",
+  "expect": "answer",
+  "facts": [
+   "رقم التتبع"
+  ]
+ },
+ {
+  "id": "store-019",
+  "business": "store",
+  "question": "ابغى رقم التتبع",
+  "expect": "answer",
+  "facts": [
+   "رقم التتبع"
+  ]
+ },
+ {
+  "id": "store-020",
+  "business": "store",
+  "question": "كيف اعرف وين وصلت الشحنه",
+  "expect": "answer",
+  "facts": [
+   "رقم التتبع"
+  ]
+ },
+ {
+  "id": "store-021",
+  "business": "store",
+  "question": "هل العطور أصلية؟",
+  "expect": "answer",
+  "facts": [
+   "أصلية"
+  ]
+ },
+ {
+  "id": "store-022",
+  "business": "store",
+  "question": "العطور اصليه ولا تقليد",
+  "expect": "answer",
+  "facts": [
+   "أصلية"
+  ]
+ },
+ {
+  "id": "store-023",
+  "business": "store",
+  "question": "منتجاتكم أصلية؟",
+  "expect": "answer",
+  "facts": [
+   "أصلية"
+  ]
+ },
+ {
+  "id": "store-024",
+  "business": "store",
+  "question": "are your perfumes original",
+  "expect": "answer",
+  "facts": [
+   "أصلية"
+  ]
+ },
+ {
+  "id": "store-025",
+  "business": "store",
+  "question": "هل عندكم عينات؟",
+  "expect": "answer",
+  "facts": [
+   "5 مل",
+   "20"
+  ]
+ },
+ {
+  "id": "store-026",
+  "business": "store",
+  "question": "ابغى عينة قبل اشتري",
+  "expect": "answer",
+  "facts": [
+   "5 مل",
+   "20"
+  ]
+ },
+ {
+  "id": "store-027",
+  "business": "store",
+  "question": "بكم العينه",
+  "expect": "answer",
+  "facts": [
+   "5 مل",
+   "20"
+  ]
+ },
+ {
+  "id": "store-028",
+  "business": "store",
+  "question": "تبيعون تستر",
+  "expect": "answer",
+  "facts": [
+   "5 مل",
+   "20"
+  ]
+ },
+ {
+  "id": "store-029",
+  "business": "store",
+  "question": "متى خدمة العملاء متاحة؟",
+  "expect": "answer",
+  "facts": [
+   "10 صباحًا"
+  ]
+ },
+ {
+  "id": "store-030",
+  "business": "store",
+  "question": "دوام خدمة العملاء",
+  "expect": "answer",
+  "facts": [
+   "10 صباحًا"
+  ]
+ },
+ {
+  "id": "store-031",
+  "business": "store",
+  "question": "متى اقدر اكلمكم",
+  "expect": "answer",
+  "facts": [
+   "10 صباحًا"
+  ]
+ },
+ {
+  "id": "store-032",
+  "business": "store",
+  "question": "اوقات الرد على العملاء",
+  "expect": "answer",
+  "facts": [
+   "10 صباحًا"
+  ]
+ },
+ {
+  "id": "store-033",
+  "business": "store",
+  "question": "عندكم كود خصم؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-034",
+  "business": "store",
+  "question": "تشحنون للكويت؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-035",
+  "business": "store",
+  "question": "عندكم عطر ديور سوفاج؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-036",
+  "business": "store",
+  "question": "متى ينزل التخفيض؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-037",
+  "business": "store",
+  "question": "طلبي وصل مكسور",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-038",
+  "business": "store",
+  "question": "ابغى اكلم موظف",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-039",
+  "business": "store",
+  "question": "تقبلون تابي؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-040",
+  "business": "store",
+  "question": "عندكم فرع اقدر ازوره؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-041",
+  "business": "store",
+  "question": "هل العطر يناسب الصيف؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-042",
+  "business": "store",
+  "question": "كم يثبت العطر؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-043",
+  "business": "store",
+  "question": "تسوون تغليف هدايا؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-044",
+  "business": "store",
+  "question": "طلبي متأخر أسبوعين",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-045",
+  "business": "store",
+  "question": "ابغى فاتورة ضريبية",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-046",
+  "business": "store",
+  "question": "تبيعون بالجملة؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-047",
+  "business": "store",
+  "question": "عندكم بخور ودهن عود؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-048",
+  "business": "store",
+  "question": "كم سعر عطر شانيل؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-049",
+  "business": "store",
+  "question": "ابي اغير عنوان الشحن بعد الطلب",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-050",
+  "business": "store",
+  "question": "هل تبيعون عطور رجالية؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-051",
+  "business": "store",
+  "question": "عندكم برنامج نقاط؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "store-052",
+  "business": "store",
+  "question": "اشتكي من المندوب",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-001",
+  "business": "restaurant",
+  "question": "متى يفتح المطعم؟",
+  "expect": "answer",
+  "facts": [
+   "12 ظهرًا",
+   "1 بعد منتصف الليل"
+  ]
+ },
+ {
+  "id": "restaurant-002",
+  "business": "restaurant",
+  "question": "وش أوقات دوامكم",
+  "expect": "answer",
+  "facts": [
+   "12 ظهرًا",
+   "1 بعد منتصف الليل"
+  ]
+ },
+ {
+  "id": "restaurant-003",
+  "business": "restaurant",
+  "question": "لين متى فاتحين",
+  "expect": "answer",
+  "facts": [
+   "12 ظهرًا",
+   "1 بعد منتصف الليل"
+  ]
+ },
+ {
+  "id": "restaurant-004",
+  "business": "restaurant",
+  "question": "تسكرون الساعة كم",
+  "expect": "answer",
+  "facts": [
+   "12 ظهرًا",
+   "1 بعد منتصف الليل"
+  ]
+ },
+ {
+  "id": "restaurant-005",
+  "business": "restaurant",
+  "question": "هل عندكم توصيل؟",
+  "expect": "answer",
+  "facts": [
+   "60",
+   "10"
+  ]
+ },
+ {
+  "id": "restaurant-006",
+  "business": "restaurant",
+  "question": "توصلون للعليا؟",
+  "expect": "answer",
+  "facts": [
+   "60",
+   "10"
+  ]
+ },
+ {
+  "id": "restaurant-007",
+  "business": "restaurant",
+  "question": "كم رسوم التوصيل",
+  "expect": "answer",
+  "facts": [
+   "60",
+   "10"
+  ]
+ },
+ {
+  "id": "restaurant-008",
+  "business": "restaurant",
+  "question": "كم الحد الأدنى للطلب",
+  "expect": "answer",
+  "facts": [
+   "60",
+   "10"
+  ]
+ },
+ {
+  "id": "restaurant-009",
+  "business": "restaurant",
+  "question": "هل يمكن حجز طاولة؟",
+  "expect": "answer",
+  "facts": [
+   "6 أشخاص"
+  ]
+ },
+ {
+  "id": "restaurant-010",
+  "business": "restaurant",
+  "question": "ابغى احجز طاوله",
+  "expect": "answer",
+  "facts": [
+   "6 أشخاص"
+  ]
+ },
+ {
+  "id": "restaurant-011",
+  "business": "restaurant",
+  "question": "نقدر نحجز لعشرة اشخاص؟",
+  "expect": "answer",
+  "facts": [
+   "6 أشخاص"
+  ]
+ },
+ {
+  "id": "restaurant-012",
+  "business": "restaurant",
+  "question": "الحجز كيف",
+  "expect": "answer",
+  "facts": [
+   "6 أشخاص"
+  ]
+ },
+ {
+  "id": "restaurant-013",
+  "business": "restaurant",
+  "question": "هل يوجد قسم عائلات؟",
+  "expect": "answer",
+  "facts": [
+   "قسم عائلات"
+  ]
+ },
+ {
+  "id": "restaurant-014",
+  "business": "restaurant",
+  "question": "فيه قسم عوايل",
+  "expect": "answer",
+  "facts": [
+   "قسم عائلات"
+  ]
+ },
+ {
+  "id": "restaurant-015",
+  "business": "restaurant",
+  "question": "عندكم جلسات عائلية",
+  "expect": "answer",
+  "facts": [
+   "قسم عائلات"
+  ]
+ },
+ {
+  "id": "restaurant-016",
+  "business": "restaurant",
+  "question": "فيه جلسات خارجية؟",
+  "expect": "answer",
+  "facts": [
+   "قسم عائلات"
+  ]
+ },
+ {
+  "id": "restaurant-017",
+  "business": "restaurant",
+  "question": "هل عندكم أطباق نباتية؟",
+  "expect": "answer",
+  "facts": [
+   "الفلافل"
+  ]
+ },
+ {
+  "id": "restaurant-018",
+  "business": "restaurant",
+  "question": "فيه اكل نباتي",
+  "expect": "answer",
+  "facts": [
+   "الفلافل"
+  ]
+ },
+ {
+  "id": "restaurant-019",
+  "business": "restaurant",
+  "question": "انا نباتي وش عندكم",
+  "expect": "answer",
+  "facts": [
+   "الفلافل"
+  ]
+ },
+ {
+  "id": "restaurant-020",
+  "business": "restaurant",
+  "question": "vegetarian options",
+  "expect": "answer",
+  "facts": [
+   "الفلافل"
+  ]
+ },
+ {
+  "id": "restaurant-021",
+  "business": "restaurant",
+  "question": "عندي حساسية مكسرات هل الأكل آمن؟",
+  "expect": "answer",
+  "facts": [
+   "المكسرات"
+  ]
+ },
+ {
+  "id": "restaurant-022",
+  "business": "restaurant",
+  "question": "الاكل فيه مكسرات؟",
+  "expect": "answer",
+  "facts": [
+   "المكسرات"
+  ]
+ },
+ {
+  "id": "restaurant-023",
+  "business": "restaurant",
+  "question": "فيه قمح في الاطباق",
+  "expect": "answer",
+  "facts": [
+   "المكسرات"
+  ]
+ },
+ {
+  "id": "restaurant-024",
+  "business": "restaurant",
+  "question": "حساسية الجلوتين",
+  "expect": "answer",
+  "facts": [
+   "المكسرات"
+  ]
+ },
+ {
+  "id": "restaurant-025",
+  "business": "restaurant",
+  "question": "كم سعر البوفيه؟",
+  "expect": "answer",
+  "facts": [
+   "95"
+  ]
+ },
+ {
+  "id": "restaurant-026",
+  "business": "restaurant",
+  "question": "بوفيه الجمعة بكم",
+  "expect": "answer",
+  "facts": [
+   "95"
+  ]
+ },
+ {
+  "id": "restaurant-027",
+  "business": "restaurant",
+  "question": "عندكم بوفيه غداء",
+  "expect": "answer",
+  "facts": [
+   "95"
+  ]
+ },
+ {
+  "id": "restaurant-028",
+  "business": "restaurant",
+  "question": "متى البوفيه",
+  "expect": "answer",
+  "facts": [
+   "95"
+  ]
+ },
+ {
+  "id": "restaurant-029",
+  "business": "restaurant",
+  "question": "هل تستقبلون طلبات المناسبات؟",
+  "expect": "answer",
+  "facts": [
+   "48 ساعة"
+  ]
+ },
+ {
+  "id": "restaurant-030",
+  "business": "restaurant",
+  "question": "ابغى عزيمة لثلاثين شخص",
+  "expect": "answer",
+  "facts": [
+   "48 ساعة"
+  ]
+ },
+ {
+  "id": "restaurant-031",
+  "business": "restaurant",
+  "question": "تسوون ولايم؟",
+  "expect": "answer",
+  "facts": [
+   "48 ساعة"
+  ]
+ },
+ {
+  "id": "restaurant-032",
+  "business": "restaurant",
+  "question": "طلب مناسبة كم قبل لازم اطلب",
+  "expect": "answer",
+  "facts": [
+   "48 ساعة"
+  ]
+ },
+ {
+  "id": "restaurant-033",
+  "business": "restaurant",
+  "question": "عندكم عروض؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-034",
+  "business": "restaurant",
+  "question": "كم سعر الشاورما؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-035",
+  "business": "restaurant",
+  "question": "تقبلون تابي؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-036",
+  "business": "restaurant",
+  "question": "عندكم فرع في مكة؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-037",
+  "business": "restaurant",
+  "question": "ابغى اكلم المدير",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-038",
+  "business": "restaurant",
+  "question": "الطلب وصل بارد",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-039",
+  "business": "restaurant",
+  "question": "عندكم وظائف؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-040",
+  "business": "restaurant",
+  "question": "هل اللحم حلال ومستورد من وين؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-041",
+  "business": "restaurant",
+  "question": "كم سعر الكبسة؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-042",
+  "business": "restaurant",
+  "question": "عندكم منيو للأطفال؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-043",
+  "business": "restaurant",
+  "question": "فيه شيشة؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-044",
+  "business": "restaurant",
+  "question": "توصلون للملقا؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-045",
+  "business": "restaurant",
+  "question": "عندكم أكل كيتو؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-046",
+  "business": "restaurant",
+  "question": "كم السعرات في البرجر؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-047",
+  "business": "restaurant",
+  "question": "تقبلون الكاش؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-048",
+  "business": "restaurant",
+  "question": "تفتحون في العيد؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-049",
+  "business": "restaurant",
+  "question": "ابغى استرجع فلوسي",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-050",
+  "business": "restaurant",
+  "question": "فيه موسيقى حية؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-051",
+  "business": "restaurant",
+  "question": "عندكم واي فاي؟",
+  "expect": "handoff",
+  "facts": []
+ },
+ {
+  "id": "restaurant-052",
+  "business": "restaurant",
+  "question": "اشتكي من النظافة",
+  "expect": "handoff",
+  "facts": []
+ }
+]
