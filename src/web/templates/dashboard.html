@@ -11,6 +11,7 @@
     <div class="oc-hero-txt">
         <h1 class="oc-h1">لوحة التشغيل</h1>
         <p class="oc-p">حالة الوكلاء والأعمال والمدفوعات — أرقام حقيقية مباشرة من القاعدة.</p>
+        <p class="oc-p"><a href="/owner/command" style="color:var(--odsf-accent,#ff5a36);font-weight:700">مركز القيادة ← نظرة شاملة على الإيرادات والتجديدات والطلبات</a></p>
     </div>
     <div class="oc-providers" id="ocProviders"></div>
 </section>
@@ -209,6 +210,13 @@ main{min-width:0}
 .oc-chip{padding:6px 14px;border-radius:999px;border:1px solid var(--oc-line);background:transparent;
     color:var(--oc-txt2);font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;transition:.18s}
 .oc-chip:hover{color:var(--oc-txt);border-color:var(--ad-line-2,rgba(250,250,249,.24))}
+/* Action buttons inside tables (e.g. revoke founding seat) were unstyled. */
+.oc-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12.5px;
+    font-weight:600;white-space:nowrap;cursor:pointer;background:transparent;color:var(--oc-bad);
+    border:1px solid color-mix(in srgb,var(--oc-bad) 45%,transparent);transition:.18s}
+.oc-btn:hover{background:color-mix(in srgb,var(--oc-bad) 14%,transparent)}
+.oc-btn:focus-visible{outline:2px solid var(--oc-bad);outline-offset:2px}
+.oc-btn:disabled{opacity:.5;cursor:default}
 .oc-chip.on{background:var(--odsf-accent,#ff5a36);border-color:var(--odsf-accent,#ff5a36);color:#fff}
 .oc-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px}
 .oc-t{width:100%;border-collapse:collapse;font-size:.8125rem;min-width:520px}
