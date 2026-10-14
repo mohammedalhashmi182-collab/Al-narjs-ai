@@ -217,8 +217,24 @@ USAGE_ADDONS = {
     },
 }
 
-# Usage alert threshold: warn the client at 80% of any limit.
+# Usage alert thresholds: the owner is alerted once per window at 80% and at
+# 100% of any limit. Going over never cuts service: the excess is recorded as
+# overage for add-on billing (services.usage).
 USAGE_ALERT_RATIO = 0.8
+USAGE_ALERT_THRESHOLDS = (80, 100)
+MAX_USAGE_PACKS = 20  # checkout cap per pack type per order
+
+# Meta (WhatsApp Cloud API) per-message fees we cover up to ``meta_cap``,
+# halalas per billable message by pricing category. ESTIMATES for Saudi
+# Arabia (Meta publishes USD rates; reconcile against the Meta invoice).
+# Service (customer-initiated) conversations are free.
+META_FEE_RATES = {
+    "marketing": 17,
+    "utility": 4,
+    "authentication": 4,
+    "authentication_international": 4,
+    "service": 0,
+}
 
 # ---------------------------------------------------------------------
 #  Billing periods. Annual = pay for 10 months, get 12 (2 months free).
@@ -236,13 +252,15 @@ DEFAULT_BILLING_PERIOD = "monthly"
 # ---------------------------------------------------------------------
 # Founding customers: the first 15. 30% off annual (locked 12 months) or 20%
 # off monthly with a 3-month commitment; setup fee waived. In exchange the
-# customer agrees to a case study / testimonial after 60 days. Applied by the
-# owner on the order, never automatically.
+# customer agrees to a case study / testimonial after 60 days. Auto-applied at
+# checkout to new orders while seats remain (services.founding); the price
+# holds for ``locked_months`` from activation, the owner can revoke a seat.
 FOUNDING_OFFER = {
     "seats": 15,
     "annual_pct": 30,
     "monthly_pct": 20,
     "monthly_commitment_months": 3,
+    "locked_months": 12,
     "waives_setup_fee": True,
     "requires_testimonial": True,
 }
@@ -311,9 +329,29 @@ def founding_amount(package_key: str, billing_period: str = "monthly", addons: i
     return base - (base * pct) // 100
 
 
+def limits_tier(package_key: str | None) -> str:
+    """Pricing-v2 tier whose usage limits apply. Legacy and domain keys map to
+    the smallest v2 tier with at least as many agents."""
+    tier = resolve_tier(package_key)
+    if tier in PACKAGES:
+        return tier
+    agents = int(LEGACY_TIERS.get(tier, {}).get("agents", 0) or 0)
+    for key in PACKAGE_ORDER:
+        if PACKAGES[key]["agents"] >= agents:
+            return key
+    return PACKAGE_ORDER[-1]
+
+
+def usage_packs_amount(conversation_packs: int = 0, voice_packs: int = 0, billing_period: str = "monthly") -> int:
+    """Pre-VAT halalas for usage add-on packs over one billing period."""
+    monthly = (max(0, int(conversation_packs or 0)) * USAGE_ADDONS["conversations"]["amount"]
+               + max(0, int(voice_packs or 0)) * USAGE_ADDONS["voice_minutes"]["amount"])
+    return monthly * BILLING_PERIODS[resolve_billing_period(billing_period)]["months_billed"]
+
+
 def plan_limits(package_key: str, addon_conversations: int = 0, addon_voice: int = 0) -> dict:
     """Monthly usage allowance of a tier plus usage add-on packs."""
-    limits = dict(PACKAGES[package_key]["limits"])
+    limits = dict(PACKAGES[limits_tier(package_key)]["limits"])
     limits["conversations"] += max(0, int(addon_conversations or 0)) * USAGE_ADDONS["conversations"]["units"]
     limits["voice_minutes"] += max(0, int(addon_voice or 0)) * USAGE_ADDONS["voice_minutes"]["units"]
     return limits
