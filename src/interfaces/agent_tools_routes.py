@@ -1,6 +1,6 @@
 """Agent tools API.
 
-Portal (the project id is the client's capability, same as the other portal routes;
+Portal (a portal session for the project is required, see src/core/portal_auth.py;
 the subscription must be active):
   POST   /api/portal/projects/{pid}/files           multipart CSV/XLSX -> data_analyst
   GET    /api/portal/projects/{pid}/files
@@ -42,10 +42,10 @@ def _uuid(value: str) -> UUID:
         raise HTTPException(404, "Not found")
 
 
-async def _active_project(session, pid: str) -> ClientProject:
-    project = await session.get(ClientProject, _uuid(pid))
-    if not project:
-        raise HTTPException(404, "Project not found")
+async def _active_project(session, pid: str, request: Request) -> ClientProject:
+    from src.core.portal_auth import require_portal_project
+
+    project = await require_portal_project(session, request, pid)
     if project.status != "active":
         raise HTTPException(402, "Subscription not active — activate your plan first")
     return project
@@ -72,7 +72,7 @@ async def upload_data_file(pid: str, request: Request, file: UploadFile = File(.
     except data_files.UploadError as exc:
         raise HTTPException(400, str(exc))
     async with _factory(request)() as session:
-        project = await _active_project(session, pid)
+        project = await _active_project(session, pid, request)
         row = ProjectDataFile(project_id=project.id, filename=(file.filename or "data")[:255],
                               kind=summary["kind"], size_bytes=len(data), summary=summary)
         session.add(row)
@@ -84,7 +84,7 @@ async def upload_data_file(pid: str, request: Request, file: UploadFile = File(.
 @router.get("/api/portal/projects/{pid}/files")
 async def list_data_files(pid: str, request: Request):
     async with _factory(request)() as session:
-        project = await _active_project(session, pid)
+        project = await _active_project(session, pid, request)
         rows = (await session.execute(select(ProjectDataFile).where(ProjectDataFile.project_id == project.id)
                                       .order_by(ProjectDataFile.created_at))).scalars().all()
         return {"files": [{"id": str(r.id), "filename": r.filename, "kind": r.kind, "size_bytes": r.size_bytes,
@@ -110,7 +110,7 @@ async def portal_add_knowledge(pid: str, request: Request, file: UploadFile | No
                                text: str | None = Form(None), title: str | None = Form(None)):
     t, content, source = await _kb_payload(file, text, title)
     async with _factory(request)() as session:
-        project = await _active_project(session, pid)
+        project = await _active_project(session, pid, request)
         try:
             doc = await knowledge_base.add_doc(session, t, content, project_id=project.id, source=source)
         except knowledge_base.KBError as exc:
@@ -121,14 +121,14 @@ async def portal_add_knowledge(pid: str, request: Request, file: UploadFile | No
 @router.get("/api/portal/projects/{pid}/knowledge")
 async def portal_list_knowledge(pid: str, request: Request):
     async with _factory(request)() as session:
-        project = await _active_project(session, pid)
+        project = await _active_project(session, pid, request)
         return {"docs": [_doc(d) for d in await knowledge_base.list_docs(session, project.id)]}
 
 
 @router.delete("/api/portal/projects/{pid}/knowledge/{doc_id}")
 async def portal_delete_knowledge(pid: str, doc_id: str, request: Request):
     async with _factory(request)() as session:
-        project = await _active_project(session, pid)
+        project = await _active_project(session, pid, request)
         if not await knowledge_base.delete_doc(session, _uuid(doc_id), project.id):
             raise HTTPException(404, "Not found")
         return {"deleted": True}

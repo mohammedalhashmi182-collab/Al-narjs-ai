@@ -398,6 +398,10 @@ from src.interfaces.agent_tools_routes import router as agent_tools_router  # no
 
 app.include_router(agent_tools_router)
 
+from src.interfaces.portal_routes import router as portal_router  # noqa: E402
+
+app.include_router(portal_router)
+
 
 async def get_session() -> AsyncSession:
     async with app.state.session_factory() as session:
@@ -1378,22 +1382,20 @@ async def portal_create_project(request: PortalProjectCreate):
         await session.commit()
         await session.refresh(project)
 
-        return await portal_project_payload(session, project)
+        payload = await portal_project_payload(session, project)
+    # The creator gets the portal session for this project (the UUID alone is no
+    # longer a credential; see src/core/portal_auth.py).
+    from src.core import portal_auth
+
+    return portal_auth.set_session_cookie(JSONResponse(payload), project)
 
 
 @app.get("/api/portal/projects/{project_id}")
-async def portal_get_project(project_id: str):
-    from src.models import ClientProject
-    from sqlalchemy import select
-    from uuid import UUID
+async def portal_get_project(project_id: str, http_request: Request):
+    from src.core.portal_auth import require_portal_project
 
     async with app.state.session_factory() as session:
-        result = await session.execute(
-            select(ClientProject).where(ClientProject.id == UUID(project_id))
-        )
-        project = result.scalar_one_or_none()
-        if not project:
-            raise HTTPException(404, "Project not found")
+        project = await require_portal_project(session, http_request, project_id)
         return await portal_project_payload(session, project)
 
 
@@ -1402,13 +1404,15 @@ class PortalAnswers(BaseModel):
 
 
 @app.post("/api/portal/projects/{project_id}/agents/{slug}/wake")
-async def portal_wake_agent(project_id: str, slug: str):
+async def portal_wake_agent(project_id: str, slug: str, http_request: Request):
     from src.services import catalog
     from src.models import ClientAgent, ClientProject
     from sqlalchemy import select
     from uuid import UUID
+    from src.core.portal_auth import require_portal_project
 
     async with app.state.session_factory() as session:
+        await require_portal_project(session, http_request, project_id)
         result = await session.execute(
             select(ClientAgent).where(
                 ClientAgent.project_id == UUID(project_id),
@@ -1455,8 +1459,10 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
     from src.models import ClientAgent, ClientProject
     from sqlalchemy import select
     from uuid import UUID
+    from src.core.portal_auth import require_portal_project
 
     async with app.state.session_factory() as session:
+        await require_portal_project(session, http_request, project_id)
         result = await session.execute(
             select(ClientAgent).where(
                 ClientAgent.project_id == UUID(project_id),

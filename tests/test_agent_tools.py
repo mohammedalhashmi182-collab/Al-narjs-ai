@@ -38,12 +38,15 @@ async def maker():
     await engine.dispose()
 
 
-def _client(maker, owner=False):
+def _client(maker, owner=False, project=None):
+    from src.core import portal_auth
     from src.main import app
 
     app.state.session_factory = maker
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test",
-                             cookies={"narjis_owner": make_session_token()} if owner else {})
+    cookies = {"narjis_owner": make_session_token()} if owner else {}
+    if project is not None:  # the customer's portal session for that project
+        cookies[portal_auth.COOKIE_NAME] = portal_auth.make_session_token(project)
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test", cookies=cookies)
 
 
 async def _project(maker, status="active"):
@@ -160,7 +163,7 @@ def test_upload_limits_and_types(monkeypatch):
 
 async def test_portal_upload_endpoint_and_run_context(maker):
     p = await _project(maker)
-    async with _client(maker) as c:
+    async with _client(maker, project=p) as c:
         r = await c.post(f"/api/portal/projects/{p.id}/files",
                          files={"file": ("s.csv", "a,b\n1,2\n3,4\n".encode(), "text/csv")})
         assert r.status_code == 200, r.text
@@ -175,7 +178,7 @@ async def test_portal_upload_endpoint_and_run_context(maker):
 
 async def test_portal_upload_requires_active_subscription(maker):
     p = await _project(maker, status="pending")
-    async with _client(maker) as c:
+    async with _client(maker, project=p) as c:
         r = await c.post(f"/api/portal/projects/{p.id}/files", files={"file": ("s.csv", b"a\n1\n", "text/csv")})
     assert r.status_code == 402
 
@@ -278,7 +281,7 @@ def test_kb_pdf_and_limits(monkeypatch):
 
 async def test_kb_portal_and_customer_service_context(maker):
     p = await _project(maker)
-    async with _client(maker) as c:
+    async with _client(maker, project=p) as c:
         r = await c.post(f"/api/portal/projects/{p.id}/knowledge",
                          files={"file": ("faq.txt", FAQ.encode(), "text/plain")})
         assert r.status_code == 200, r.text
