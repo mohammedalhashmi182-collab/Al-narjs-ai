@@ -270,7 +270,9 @@ async def test_legacy_renewal_never_gets_founding(maker):
 
 # ---------------------------------------------------------------- packs
 
-async def test_usage_packs_are_billed_and_carried_to_the_project(maker):
+async def test_usage_packs_are_billed_and_carried_to_the_project(maker, monkeypatch):
+    from src.services import catalog as _c
+    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when voice launches
     async with maker() as s:
         proj = await _project(s, package="bay", status="pending")
         pay = await pm.create_payment(s, "bay", "x", "0555000500", None, project_id=proj.id,
@@ -361,3 +363,13 @@ def test_migration_0007_follows_0006():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     assert mod.revision == "0007" and mod.down_revision == "0006"
+
+
+async def test_voice_minute_packs_cannot_be_bought_yet(maker):
+    """Audit: the voice agent is 'coming soon', so its +100 minutes pack must not be sold."""
+    from src.services import catalog, payments as pm
+
+    assert catalog.USAGE_ADDONS["voice_minutes"]["purchasable"] is False
+    async with maker() as s:
+        with pytest.raises(pm.PaymentError):
+            await pm.create_payment(s, "bay", "x", "0555000501", None, voice_packs=1)
