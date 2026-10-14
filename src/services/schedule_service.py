@@ -34,10 +34,31 @@ async def execute_schedule(session, schedule_id) -> dict:
             return await _run_billing_renewals(session, sched)
         if target_type == "automation_followups":
             return await _run_automation_followups(session)
+        if target_type == "ops_uptime":
+            return await _run_ops_uptime()
+        if target_type == "weekly_reports":
+            return await _run_weekly_reports(session)
         return {"status": "unsupported", "target_type": target_type}
     except Exception as e:
         logger.exception("Schedule %s failed: %s", sched.id, e)
         return {"status": "error", "message": str(e)[:300]}
+
+
+async def _run_ops_uptime() -> dict:
+    """5-minute self-check: db + external providers + public /health; alerts the owner."""
+    from src.db.session import get_session_factory
+    from src.services import ops_monitor
+
+    result = await ops_monitor.run_uptime_check(await get_session_factory())
+    return {"status": result["status"]}
+
+
+async def _run_weekly_reports(session) -> dict:
+    """Weekly: draft one report per Operate project for owner review (nothing is sent)."""
+    from src.services import weekly_reports
+
+    reports = await weekly_reports.generate_all(session)
+    return {"status": "ok", "drafted": len(reports)}
 
 
 async def _run_automation_followups(session) -> dict:
