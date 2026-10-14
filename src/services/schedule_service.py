@@ -38,6 +38,12 @@ async def execute_schedule(session, schedule_id) -> dict:
             return await _run_ops_uptime()
         if target_type == "weekly_reports":
             return await _run_weekly_reports(session)
+        if target_type == "demo_purge":
+            from src.services import live_demo
+
+            purged = await live_demo.purge_expired(session)
+            await session.commit()
+            return {"status": "ok", "purged": purged}
         return {"status": "unsupported", "target_type": target_type}
     except Exception as e:
         logger.exception("Schedule %s failed: %s", sched.id, e)

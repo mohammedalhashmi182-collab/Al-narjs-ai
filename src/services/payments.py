@@ -434,6 +434,12 @@ async def create_payment(
     # a seat is free (checkout, owner payment links, renewals of a founding
     # project); True/False force it. It replaces any promo
     # code (no stacking) and waives the setup fee.
+    if project_id is not None:
+        from src.models import ClientProject as _CP
+
+        _status = (await session.execute(select(_CP.status).where(_CP.id == project_id))).scalar_one_or_none()
+        if _status == "demo":
+            raise PaymentError("the live demo never takes payments")
     if founding is None:
         from src.services import founding as _founding
 
