@@ -345,7 +345,7 @@ def test_founding_offer_and_guarantee():
 
 
 def test_per_agent_price_falls_with_the_plan():
-    assert [catalog.PACKAGES[k]["per_agent_price"] for k in catalog.PACKAGE_ORDER] == ["300", "250", "233"]
+    assert [catalog.PACKAGES[k]["per_agent_price"] for k in catalog.PACKAGE_ORDER] == ["299", "249", "233"]
 
 
 async def test_first_monthly_order_adds_setup_fee_outside_promo(maker):
