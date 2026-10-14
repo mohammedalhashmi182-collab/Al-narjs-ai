@@ -117,6 +117,17 @@ async def lifespan(app: FastAPI):
     await ensure_renewal_schedule(scheduler)
     from src.services.lead_pipeline import ensure_followup_schedule
     await ensure_followup_schedule(scheduler)
+    from src.services.ops_monitor import ensure_uptime_schedule
+    await ensure_uptime_schedule(scheduler)
+    from src.services.weekly_reports import ensure_schedule as ensure_weekly_report_schedule
+    await ensure_weekly_report_schedule(scheduler)
+    try:
+        from src.services import wa_templates
+        async with session_factory() as _s:
+            await wa_templates.seed_defaults(_s)
+            await _s.commit()
+    except Exception:  # pragma: no cover - seeding must never block startup
+        logger.exception("WhatsApp template seed failed")
     try:
         from src.services.policies import seed_owner_faq
         async with session_factory() as _s:
@@ -287,6 +298,10 @@ class LocaleMiddleware:
 
 app.add_middleware(LocaleMiddleware)
 
+from src.services.ops_monitor import OpsAlertMiddleware  # noqa: E402
+
+app.add_middleware(OpsAlertMiddleware)
+
 try:
     from src.core.architecture.middleware import TenantMiddleware
 
@@ -397,6 +412,11 @@ app.include_router(automation_router)
 from src.interfaces.agent_tools_routes import router as agent_tools_router  # noqa: E402
 
 app.include_router(agent_tools_router)
+
+from src.interfaces.ops_routes import api as ops_api, router as ops_router  # noqa: E402
+
+app.include_router(ops_router)
+app.include_router(ops_api)
 
 
 async def get_session() -> AsyncSession:
@@ -2243,8 +2263,20 @@ async def update_lead_status(lead_id: str, request: Request):
 
 
 @app.get("/health")
-async def health():
-    return {"status": "healthy", "version": "0.1.0"}
+async def health(deep: bool = False):
+    """Liveness for Render (cheap). ``?deep=1`` adds db + external checks (see /health/deep)."""
+    if not deep:
+        return {"status": "healthy", "version": "0.1.0"}
+    from src.services import ops_monitor
+
+    result = await ops_monitor.deep_health(app.state.session_factory)
+    result["version"] = "0.1.0"
+    return JSONResponse(result, status_code=503 if result["status"] == "unhealthy" else 200)
+
+
+@app.get("/health/deep")
+async def health_deep():
+    return await health(deep=True)
 
 
 # ---------------- Payments (Moyasar) ----------------
