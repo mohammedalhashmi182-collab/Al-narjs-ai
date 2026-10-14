@@ -94,7 +94,7 @@
             </div>
 
             <div id="pkg-status" role="status" aria-live="polite"><span data-lang="ar">جارٍ تحميل الباقات…</span><span data-lang="en" data-inline>Loading plans…</span></div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10" id="pkg-grid" aria-busy="true">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10" id="pkg-grid" aria-busy="true">
                 {% for _ in range(4) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
             <noscript><p>فعّل JavaScript لاختيار الباقة، أو <a href="https://t.me/AlNarjs7BOT">{{ tg_plane() }}تواصل عبر تيليجرام</a>.</p></noscript>
@@ -346,8 +346,18 @@
                             <span data-lang="ar">${p.team_size} موظفين • ${p.tagline}</span>
                             <span data-lang="en" data-inline>${p.team_size} employees • ${p.tagline_en}</span>
                         </div>
+                        ${p.limits ? `<div class="text-xs mt-2" style="color:var(--n-brown-2);">
+                            <span data-lang="ar">${p.limits.conversations.toLocaleString('en')} محادثة • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' دقيقة صوت • ' : ''}ميتا مشمولة حتى ${p.limits.meta_cap / 100} ر.س</span>
+                            <span data-lang="en" data-inline>${p.limits.conversations.toLocaleString('en')} conversations • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' voice min • ' : ''}Meta fees covered up to SAR ${p.limits.meta_cap / 100}</span>
+                        </div>` : ''}
+                        ${p.recommended ? '<div class="text-xs mt-2" style="color:var(--n-gold-2);font-weight:700;"><span data-lang="ar">ننصح بها</span><span data-lang="en" data-inline>Recommended</span></div>' : ''}
                     </div>
-                `).join('');
+                `).join('') + (data.enterprise ? `
+                    <a class="n-card text-center" href="/consult" style="display:block;">
+                        <h3 class="n-title text-lg"><span data-lang="ar">${data.enterprise.name}</span><span data-lang="en" data-inline>${data.enterprise.name_en}</span></h3>
+                        <div class="price mt-1"><span data-lang="ar">بعرض سعر — من نحو ${Number(data.enterprise.price_from).toLocaleString('en')} ريال/شهر</span><span data-lang="en" data-inline>By quote — from about SAR ${Number(data.enterprise.price_from).toLocaleString('en')}/mo</span></div>
+                        <div class="text-xs mt-2" style="color:var(--n-brown-2);"><span data-lang="ar">${data.enterprise.tagline}</span><span data-lang="en" data-inline>${data.enterprise.tagline_en}</span></div>
+                    </a>` : '');
                 document.querySelectorAll('.pkg').forEach(c => {
                     c.addEventListener('click', () => {
                         document.querySelectorAll('.pkg').forEach(x => x.classList.remove('selected'));
@@ -427,7 +437,7 @@
                     const pc = $('pendingCta');
                     if (pc) pc.addEventListener('click', () => openCheckout());
                 }
-                const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال' };
+                const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال', radd: 'ردّ', bay: 'بيع', tashgheel: 'تشغيل' };
             const DEPT_EN = {
                 'التسويق الرقمي': 'Digital Marketing',
                 'المحتوى': 'Content',
@@ -647,13 +657,17 @@
                 const months = coBilling === 'annual' ? 10 : 1;
                 const base = (parseFloat(p.price) + coAddons * addonPrice) * months;
                 const disc = pct ? Math.round(base * pct / 100) : 0;
-                const after = base - disc;
+                // One-time setup fee on a first monthly order (waived on annual);
+                // the server adds the same catalog.setup_fee, outside the promo.
+                const setup = coBilling === 'annual' ? 0 : (Number(p.setup_fee) || 0) / 100;
+                const after = base - disc + setup;
                 const vat = ar ? Math.round(after * 0.15) : 0;
                 const total = after + vat;
                 $('coSummary').innerHTML =
                     '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
-                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:var(--n-green);">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + after.toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt('المبلغ قبل الضريبة: ', 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
+                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:var(--n-green);">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt('المبلغ قبل الضريبة: ', 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
                     (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة 15%: ', 'VAT 15%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
+                    (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة (تُلغى مع السنوي): ', 'One-time setup fee (waived on annual): ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
                     (coBilling === 'annual' ? '<div style="font-size:.85rem;color:var(--n-green);">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
                     '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>';

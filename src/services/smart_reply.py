@@ -87,6 +87,9 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
     return (
         f"باقة «{pkg['name']}»: {agents} {unit} ذكاء اصطناعي{extra} بـ {_sar(monthly)} ريال شهرياً، "
         f"أو {_sar(annual)} ريال سنوياً (تدفع 10 أشهر وتاخذ 12). "
+        f"تشمل {pkg['limits']['conversations']:,} محادثة ذكية شهرياً"
+        + (f" و{pkg['limits']['voice_minutes']} دقيقة صوت" if pkg['limits']['voice_minutes'] else "")
+        + f"، ورسوم ميتا مشمولة حتى {_sar(pkg['limits']['meta_cap'])} ريال. "
         f"وتقدر تضيف أي وكيل إضافي بـ {_sar(catalog.ADDON_AGENT['amount'])} ريال شهرياً. "
         "ضريبة القيمة المضافة موضّحة في الفاتورة."
     )
@@ -96,7 +99,9 @@ def ladder_text() -> str:
     rows = []
     for key, pkg in catalog.PACKAGES.items():
         rows.append(f"• {pkg['name']}: {pkg['agent_count']} {'وكيل' if pkg['agent_count'] == 1 else 'وكلاء'} – "
-                    f"{_sar(pkg['amount'])} ريال/شهر")
+                    f"{_sar(pkg['amount'])} ريال/شهر – {pkg['limits']['conversations']:,} محادثة")
+    ent = catalog.ENTERPRISE
+    rows.append(f"• {ent['name']}: بعرض سعر، يبدأ من نحو {int(ent['price_from']):,} ريال/شهر")
     return "\n".join(rows)
 
 

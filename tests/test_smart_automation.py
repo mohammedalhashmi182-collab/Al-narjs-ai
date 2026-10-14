@@ -109,18 +109,18 @@ PROBLEM = "عندي متجر إلكتروني والمبيعات ضعيفة وا
 # --------------------------------------------------------------------------- wording
 
 def test_offer_quotes_only_catalog_prices():
-    text = smart_reply.plan_lines("team")
-    assert "1,499" in text and "14,990" in text and "499" in text
+    text = smart_reply.plan_lines("bay")
+    assert "1,499" in text and "14,990" in text and "299" in text and "4,000" in text
     assert "رؤية 2030" in smart_reply.VISION_LINE
     for key, pkg in catalog.PACKAGES.items():
         assert f"{pkg['amount'] // 100:,}" in smart_reply.ladder_text()
-    assert catalog.ADDON_AGENT["amount"] == 49900
+    assert catalog.ADDON_AGENT["amount"] == 29900
 
 
 def test_ladder_matches_owner_pricing():
     got = {k: (p["amount"] // 100, p["agent_count"]) for k, p in catalog.PACKAGES.items()}
-    assert got == {"starter": (499, 1), "team": (1499, 3), "scale": (2999, 6), "company": (5999, 12)}
-    assert catalog.plan_amount("starter", "annual") == 10 * catalog.plan_amount("starter", "monthly")
+    assert got == {"radd": (599, 2), "bay": (1499, 6), "tashgheel": (3499, 15)}
+    assert catalog.plan_amount("radd", "annual") == 10 * catalog.plan_amount("radd", "monthly")
 
 
 # --------------------------------------------------------------------------- modes
@@ -234,7 +234,7 @@ async def test_opt_out_creates_no_reply_and_marks_lost(maker):
 async def test_short_hello_gets_one_greeting_not_spam(maker):
     async with maker() as s:
         first = await smart_reply.handle_inbound(s, channel="messenger", recipient="psid1", text="السلام عليكم")
-        assert first is not None and "انطلاقة" in first.draft_text
+        assert first is not None and "ردّ" in first.draft_text
         assert await smart_reply.handle_inbound(s, channel="messenger", recipient="psid1", text="هلا") is None
 
 
@@ -278,7 +278,7 @@ async def test_payment_link_failure_is_reported_not_sent(maker, monkeypatch):
     async with maker() as s:
         await smart_reply.handle_inbound(s, channel="telegram", recipient="56", text=PROBLEM)
         pipe = (await s.execute(select(LeadPipeline))).scalars().one()
-        d = await lead_pipeline.request_payment_link(s, pipe.lead_id, "scale", billing_period="annual")
+        d = await lead_pipeline.request_payment_link(s, pipe.lead_id, "bay", billing_period="annual")
         d = await smart_reply.approve(s, d.id)
         assert d.status == "failed" and "Unknown package" in d.send_result["error"]
 
@@ -290,7 +290,7 @@ async def test_owner_payment_link_endpoint_validates(api, maker):
         lead_id = (await s.execute(select(LeadPipeline))).scalars().one().lead_id
     r = await api.post(f"/api/owner/automation/pipeline/{lead_id}/payment-link", json={"plan_key": "nope"})
     assert r.status_code == 400
-    r = await api.post(f"/api/owner/automation/pipeline/{lead_id}/payment-link", json={"plan_key": "team"})
+    r = await api.post(f"/api/owner/automation/pipeline/{lead_id}/payment-link", json={"plan_key": "bay"})
     assert r.status_code == 200 and r.json()["kind"] == "payment_link" and r.json()["status"] == "pending"
 
 
@@ -322,7 +322,7 @@ async def test_followups_draft_then_lost_and_paid_detection(maker, monkeypatch):
         # A paid invoice moves another lead to paid.
         d2 = await smart_reply.handle_inbound(s, channel="telegram", recipient="89", text=PROBLEM)
         p2 = await s.get(LeadPipeline, d2.lead_id)
-        pay = Payment(amount=49900, currency="SAR", package="starter", status="paid", gateway="moyasar")
+        pay = Payment(amount=49900, currency="SAR", package="radd", status="paid", gateway="moyasar")
         s.add(pay)
         await s.flush()
         lead_pipeline.set_stage(p2, "payment_link_sent")
@@ -390,7 +390,7 @@ def test_weekly_schedule_has_seven_real_posts():
     assert len({w["scheduled_for"].date() for w in week}) == 7
     assert any("رؤية 2030" in w["text"] for w in week)
     joined = "\n".join(w["text"] for w in week)
-    for key in ("team", "scale", "company"):
+    for key in ("radd", "bay", "tashgheel"):
         assert f"{catalog.PACKAGES[key]['amount'] // 100:,}" in joined
     assert "%" not in joined  # no invented performance percentages
 

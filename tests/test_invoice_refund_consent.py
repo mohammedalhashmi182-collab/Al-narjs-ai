@@ -56,7 +56,7 @@ async def anon(maker):
 async def _owner_invoice(maker) -> Payment:
     """What the owner dashboard raises: no buyer present, so no consent yet."""
     async with maker() as s:
-        p = await pm.create_payment(s, "starter", customer_name="عميل")
+        p = await pm.create_payment(s, "radd", customer_name="عميل")
         p.status = "invoice"
         await s.commit()
         return p

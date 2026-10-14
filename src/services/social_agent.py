@@ -21,13 +21,13 @@ BASE_TAGS = ["#النرجس_للذكاء_الاصطناعي", "#رؤية_2030", 
 
 # (weekday 0=Mon, local hour, platform, theme, plan) — Saudi evening peak, Fri lighter.
 WEEKLY_SLOTS: tuple[tuple[int, int, str, str, str | None], ...] = (
-    (6, 20, "instagram", "problem_solution", "starter"),   # Sunday
+    (6, 20, "instagram", "problem_solution", "radd"),   # Sunday
     (0, 21, "linkedin", "vision2030", None),               # Monday
-    (1, 20, "x", "plan_spotlight", "team"),                # Tuesday
+    (1, 20, "x", "plan_spotlight", "radd"),                # Tuesday
     (2, 21, "instagram", "how_it_works", None),            # Wednesday
-    (3, 20, "tiktok", "plan_spotlight", "scale"),          # Thursday
+    (3, 20, "tiktok", "plan_spotlight", "bay"),          # Thursday
     (4, 16, "x", "addon", None),                           # Friday (after prayers)
-    (5, 21, "linkedin", "plan_spotlight", "company"),      # Saturday
+    (5, 21, "linkedin", "plan_spotlight", "tashgheel"),      # Saturday
 )
 
 
@@ -48,14 +48,14 @@ def compose_post(theme: str, plan_key: str | None = None) -> str:
                 f"{_sar(pkg['amount'])} ريال شهرياً، أو {_sar(catalog.plan_amount(plan_key, 'annual'))} ريال سنوياً "
                 f"(ادفع 10 أشهر واحصل على 12).\nاكتب لنا مشكلتك ويرشّح لك المدير التنفيذي الافتراضي الفريق المناسب.\n{link}")
     if theme == "problem_solution":
-        pkg = catalog.PACKAGES[plan_key or "starter"]
+        pkg = catalog.PACKAGES[plan_key or catalog.PACKAGE_ORDER[0]]
         return ("ردود العملاء متأخرة؟ المحتوى متقطّع؟ الإعلانات ما تجيب نتيجة؟ 🤔\n"
-                f"ابدأ بباقة «{pkg['name']}» بـ {_sar(pkg['amount'])} ريال شهرياً، ووكيل ذكاء اصطناعي متخصص يتولّى المهمة.\n"
+                f"ابدأ بباقة «{pkg['name']}» بـ {_sar(pkg['amount'])} ريال شهرياً، ووكيلان ذكيان يردّان على عملائك ويتابعون الطلب حتى الفاتورة.\n"
                 f"وصف مشكلتك بكلماتك على {link}")
     if theme == "vision2030":
         return ("التحول الرقمي من مستهدفات رؤية 2030 🇸🇦\n"
                 "في «النرجس» نوفّر للمنشآت الصغيرة والمتوسطة فريق وكلاء ذكاء اصطناعي بالعربي: تسويق، مبيعات، خدمة عملاء، محتوى وتحليل.\n"
-                f"اختر حجم الفريق اللي يناسبك من وكيل واحد إلى 12 وكيل.\n{link}")
+                f"اختر حجم الفريق اللي يناسبك من وكيلين إلى 15 وكيل.\n{link}")
     if theme == "how_it_works":
         return ("كيف نشتغل؟ 3 خطوات:\n1️⃣ تكتب مشكلتك بكلماتك\n2️⃣ المدير التنفيذي الافتراضي يشخّصها ويرشّح الفريق\n"
                 f"3️⃣ تشترك ونبدأ تجهيز وكلائك\nجرّبها الحين على {link}")

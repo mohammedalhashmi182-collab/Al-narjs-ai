@@ -8,7 +8,7 @@ from src.services import catalog, ceo_advisor, payments
 
 def test_tiers_are_the_owner_prices_in_halalas():
     assert {k: p["amount"] for k, p in catalog.PACKAGES.items()} == {
-        "starter": 49900, "team": 149900, "scale": 299900, "company": 599900,
+        "radd": 59900, "bay": 149900, "tashgheel": 349900,
     }
     for p in catalog.PACKAGES.values():
         assert p["amount"] == int(p["price"]) * 100
@@ -16,7 +16,7 @@ def test_tiers_are_the_owner_prices_in_halalas():
 
 def test_tier_allowances_follow_the_feasibility_ladder():
     counts = [catalog.plan_agent_count(k) for k in catalog.PACKAGE_ORDER]
-    assert counts == [1, 3, 6, 12]
+    assert counts == [2, 6, 15]
     for key in catalog.PACKAGE_ORDER:
         team = catalog.PACKAGE_TEAMS[key]
         assert team[0] == catalog.CEO_SLUG
@@ -24,15 +24,15 @@ def test_tier_allowances_follow_the_feasibility_ladder():
         assert set(team) <= set(catalog.EMPLOYEES)
 
 
-@pytest.mark.parametrize("n,expected", [(1, "starter"), (2, "team"), (3, "team"), (4, "scale"), (6, "scale"), (7, "company"), (12, "company"), (13, "company")])
+@pytest.mark.parametrize("n,expected", [(1, "radd"), (2, "radd"), (3, "bay"), (4, "bay"), (6, "bay"), (7, "tashgheel"), (15, "tashgheel"), (16, "tashgheel")])
 def test_plan_is_the_smallest_tier_that_covers_the_team(n, expected):
     assert ceo_advisor.recommend_plan(n) == expected
 
 
 def test_full_company_request_wins():
-    assert ceo_advisor.recommend_plan(1, full_company=True) == "company"
+    assert ceo_advisor.recommend_plan(1, full_company=True) == "tashgheel"
     d = ceo_advisor.diagnose_rules("أريد شركة كاملة تدير كل شيء")
-    assert ceo_advisor.build_result(d)["plan"]["key"] == "company"
+    assert ceo_advisor.build_result(d)["plan"]["key"] == "tashgheel"
 
 
 def test_store_and_support_problem_staffs_real_agents():
@@ -45,7 +45,7 @@ def test_store_and_support_problem_staffs_real_agents():
 def test_a_single_need_gets_a_small_team_and_vague_text_gets_one_agent():
     assert ceo_advisor.diagnose_rules("تسعير خدماتي غير واضح وهامش الربح ضعيف").agents == ["finance_pricing"]
     vague = ceo_advisor.build_result(ceo_advisor.diagnose_rules("أحتاج مساعدة في عملي"))
-    assert vague["agent_count"] == 1 and vague["plan"]["key"] == "starter"
+    assert vague["agent_count"] == 1 and vague["plan"]["key"] == "radd"
 
 
 def test_result_price_matches_the_payment_vat_logic():
@@ -88,7 +88,7 @@ async def test_model_output_is_validated_against_the_catalog():
     r = await ceo_advisor.diagnose("نحتاج تقارير", provider=_GoodProvider())
     assert r["source"] == "llm"
     assert [a["slug"] for a in r["agents"]] == ["data_analyst"]
-    assert r["plan"]["key"] == "starter"
+    assert r["plan"]["key"] == "radd"
 
 
 async def test_no_cloud_key_means_rules_only():

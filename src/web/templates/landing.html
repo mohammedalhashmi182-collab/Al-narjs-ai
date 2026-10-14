@@ -289,7 +289,7 @@
         <div class="sec-head rv">
             <span class="eyebrow">{% if ar %}الباقات{% else %}Plans{% endif %}</span>
             <h2>{% if ar %}ادفع حسب حجم الفريق الذي تحتاجه{% else %}Pay for the size of team you need{% endif %}</h2>
-            <p>{% if ar %}كل باقة يقودها الرئيس التنفيذي. الفرق بينها هو عدد الوكلاء المتخصصين ونطاق العمل. ادفع شهرياً أو سنوياً (شهران مجاناً)، وتُضاف ضريبة القيمة المضافة 15٪ عند الدفع.{% else %}Every plan is led by the CEO. They differ by the number of specialist agents and the scope. Pay monthly or yearly (2 months free); 15% VAT is added at checkout.{% endif %}</p>
+            <p>{% if ar %}كل باقة يقودها الرئيس التنفيذي. الفرق بينها هو عدد الوكلاء وحدود الاستخدام الشهرية (المحادثات، دقائق الصوت، ورسوم ميتا المشمولة). ادفع شهرياً أو سنوياً (شهران مجاناً)، وتُضاف ضريبة القيمة المضافة 15٪ عند الدفع.{% else %}Every plan is led by the CEO. They differ by the number of agents and the monthly usage limits (conversations, voice minutes and the Meta fees we cover). Pay monthly or yearly (2 months free); 15% VAT is added at checkout.{% endif %}</p>
         </div>
         {% set _full = plans[-1] %}
         <p class="anchor rv">{% if ar %}للمقارنة: <b>{{ _full.name }}</b> تفتح لك الرئيس التنفيذي و{{ _full.agent_count }} وكيلاً بـ{{ '{:,}'.format(_full.price|int) }} ر.س شهرياً — أي نحو {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} ر.س للوكيل الواحد.{% else %}For reference: <b>{{ _full.name_en }}</b> opens the CEO plus {{ _full.agent_count }} agents for SAR {{ '{:,}'.format(_full.price|int) }}/month — about SAR {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} per agent.{% endif %}</p>
@@ -302,7 +302,7 @@
         <div class="plans">
             {% for plan in plans %}
             <article class="plan rv{% if plan.recommended %} is-rec{% endif %}" data-plan="{{ plan.key }}">
-                {% if plan.recommended %}<span class="ribbon">{% if ar %}الأكثر توازناً{% else %}Best balance{% endif %}</span>{% endif %}
+                {% if plan.recommended %}<span class="ribbon">{% if ar %}ننصح بها{% else %}Recommended{% endif %}</span>{% endif %}
                 <h3>{% if ar %}{{ plan.name }}{% else %}{{ plan.name_en }}{% endif %}</h3>
                 <p class="tag">{% if ar %}{{ plan.tagline }}{% else %}{{ plan.tagline_en }}{% endif %}</p>
                 <div class="price" data-monthly="{{ '{:,}'.format(plan.price|int) }}" data-annual="{{ '{:,}'.format(plan.annual_price|int) }}"><span class="amt">{{ '{:,}'.format(plan.price|int) }}</span> <small data-monthly="{% if ar %}ر.س / شهرياً{% else %}SAR / month{% endif %}" data-annual="{% if ar %}ر.س / سنوياً{% else %}SAR / year{% endif %}">{% if ar %}ر.س / شهرياً{% else %}SAR / month{% endif %}</small></div>
@@ -316,7 +316,16 @@
             </article>
             {% endfor %}
         </div>
-        <p class="addon-note rv">{% if ar %}تحتاج وكيلاً أكثر من باقتك؟ أضف <b>وكيلاً إضافياً بـ{{ addon.price }} ر.س شهرياً</b> لكل وكيل، والرئيس التنفيذي يقترحه عليك عندما يكون أوفر من الترقية.{% else %}Need one more agent than your plan? Add <b>an extra agent for SAR {{ addon.price }}/month</b> each; the CEO suggests it when it costs less than upgrading.{% endif %}</p>
+        <article class="plan plan-enterprise rv" data-plan="{{ enterprise.key }}">
+            <h3>{% if ar %}{{ enterprise.name }}{% else %}{{ enterprise.name_en }}{% endif %}</h3>
+            <p class="tag">{% if ar %}{{ enterprise.tagline }}{% else %}{{ enterprise.tagline_en }}{% endif %}</p>
+            <div class="price"><span class="amt">{% if ar %}بعرض سعر{% else %}By quote{% endif %}</span> <small>{% if ar %}يبدأ من نحو {{ '{:,}'.format(enterprise.price_from|int) }} ر.س شهرياً{% else %}from about SAR {{ '{:,}'.format(enterprise.price_from|int) }}/month{% endif %}</small></div>
+            <ul>{% for line in (enterprise.scope if ar else enterprise.scope_en) %}<li>{{ line }}</li>{% endfor %}</ul>
+            <a class="btn btn-ghost btn-block" href="/consult">{% if ar %}اطلب عرض سعر{% else %}Request a quote{% endif %}</a>
+        </article>
+        <p class="addon-note rv">{% if ar %}تحتاج أكثر من باقتك؟ <b>وكيل إضافي بـ{{ addon.price }} ر.س</b> شهرياً، و<b>١٬٠٠٠ محادثة إضافية بـ{{ usage_addons.conversations.price }} ر.س</b>، و<b>١٠٠ دقيقة صوت بـ{{ usage_addons.voice_minutes.price }} ر.س</b>. رسوم ميتا فوق السقف تُحسب بالتكلفة بدون أي زيادة. الرئيس التنفيذي يقترح الإضافة عندما تكون أوفر من الترقية.{% else %}Need more than your plan? <b>An extra agent is SAR {{ addon.price }}</b>/month, <b>+1,000 conversations SAR {{ usage_addons.conversations.price }}</b>, <b>+100 voice minutes SAR {{ usage_addons.voice_minutes.price }}</b>. Meta fees above the cap are passed through at cost with no markup. The CEO suggests an add-on when it costs less than upgrading.{% endif %}</p>
+        <p class="addon-note rv">{% if ar %}<b>رسوم الإعداد لمرة واحدة:</b> {% for plan in plans %}{{ plan.name }} {% if plan.setup_fee %}{{ '{:,}'.format(plan.setup_fee // 100) }} ر.س{% else %}بدون رسوم{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — وتُلغى مع الاشتراك السنوي. <b>ضمان الإعداد:</b> {{ setup_guarantee.text }}{% else %}<b>One-time setup fee:</b> {% for plan in plans %}{{ plan.name_en }} {% if plan.setup_fee %}SAR {{ '{:,}'.format(plan.setup_fee // 100) }}{% else %}free{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — waived on annual billing. <b>Setup guarantee:</b> {{ setup_guarantee.text_en }}{% endif %}</p>
+        <p class="addon-note rv">{% if ar %}<b>عرض العملاء المؤسسين (أول {{ founding_offer.seats }} عميلاً):</b> خصم {{ founding_offer.annual_pct }}٪ على السنوي، أو {{ founding_offer.monthly_pct }}٪ على الشهري مع التزام {{ founding_offer.monthly_commitment_months }} أشهر، وبدون رسوم إعداد — مقابل تقييم أو دراسة حالة بعد 60 يوماً.{% else %}<b>Founding customers (first {{ founding_offer.seats }}):</b> {{ founding_offer.annual_pct }}% off annual, or {{ founding_offer.monthly_pct }}% off monthly with a {{ founding_offer.monthly_commitment_months }}-month commitment, and no setup fee — in exchange for a testimonial or case study after 60 days.{% endif %}</p>
         <div class="table-scroll rv">
         <table class="compare">
             <thead><tr><th>{% if ar %}المقارنة{% else %}Compare{% endif %}</th>{% for plan in plans %}<th{% if plan.recommended %} class="is-rec"{% endif %}>{% if ar %}{{ plan.name }}{% else %}{{ plan.name_en }}{% endif %}</th>{% endfor %}</tr></thead>
@@ -326,7 +335,11 @@
                 <tr><td>{% if ar %}الرئيس التنفيذي الذكي{% else %}AI CEO{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>✓</td>{% endfor %}</tr>
                 <tr><td>{% if ar %}الوكلاء المتخصصون{% else %}Specialist agents{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ plan.agent_count }}</td>{% endfor %}</tr>
                 <tr><td>{% if ar %}وكيل إضافي (شهرياً){% else %}Extra agent (monthly){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}><span dir="ltr">+{{ addon.price }}</span></td>{% endfor %}</tr>
-                <tr><td>{% if ar %}عدد الأقسام{% else %}Departments{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{% if loop.index == 1 %}{% if ar %}مسار واحد{% else %}1 workstream{% endif %}{% elif loop.index == 2 %}1{% elif loop.last %}{% if ar %}الكل ({{ division_count }}){% else %}All ({{ division_count }}){% endif %}{% else %}{% if ar %}عدة أقسام{% else %}Several{% endif %}{% endif %}</td>{% endfor %}</tr>
+                <tr><td>{% if ar %}المحادثات الذكية شهرياً{% else %}Smart conversations / month{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.limits.conversations) }}</td>{% endfor %}</tr>
+                <tr><td>{% if ar %}دقائق الصوت شهرياً{% else %}Voice minutes / month{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{% if plan.limits.voice_minutes %}{{ plan.limits.voice_minutes }}{% else %}—{% endif %}</td>{% endfor %}</tr>
+                <tr><td>{% if ar %}رسوم ميتا المشمولة (ر.س){% else %}Meta fees covered (SAR){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ plan.limits.meta_cap // 100 }}</td>{% endfor %}</tr>
+                <tr><td>{% if ar %}سعر الوكيل الواحد{% else %}Price per agent{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ plan.per_agent_price }}</td>{% endfor %}</tr>
+                <tr><td>{% if ar %}رسوم الإعداد (تُلغى مع السنوي){% else %}Setup fee (waived on annual){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.setup_fee // 100) if plan.setup_fee else '0' }}</td>{% endfor %}</tr>
                 <tr><td>{% if ar %}إلغاء في أي وقت قبل التجديد{% else %}Cancel any time before renewal{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>✓</td>{% endfor %}</tr>
             </tbody>
         </table>
