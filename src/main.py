@@ -1845,6 +1845,20 @@ class SupportTicketRequest(BaseModel):
     question: str = ""
     consent: bool = False
     page: Optional[str] = None
+    lang: Optional[str] = None
+
+
+def _ticket_lang(body: "SupportTicketRequest", request: Request) -> str:
+    # The page the visitor wrote from decides the reply language; a stale
+    # locale cookie from another tab must not flip an Arabic visitor to English.
+    if body.lang in ("ar", "en"):
+        return body.lang
+    page = (body.page or "").lower()
+    if page == "/en" or page.startswith("/en/"):
+        return "en"
+    if page == "/ar" or page.startswith("/ar/"):
+        return "ar"
+    return "en" if request.cookies.get(_LOCALE_COOKIE) == "en" else "ar"
 
 
 @app.post("/api/support/ticket", dependencies=[Depends(rate_limit_ticket)])
@@ -1852,7 +1866,7 @@ async def create_support_ticket(body: SupportTicketRequest, request: Request):
     """Human handoff from the site assistant: store a ticket, notify the owner."""
     from src.services import tickets
 
-    lang = request.cookies.get(_LOCALE_COOKIE, "ar")
+    lang = _ticket_lang(body, request)
     try:
         async with app.state.session_factory() as session:
             t = await tickets.create(session, name=body.name, email=body.email, question=body.question,
