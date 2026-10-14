@@ -56,9 +56,11 @@ async def seats_remaining(session: AsyncSession, now: Optional[datetime] = None)
 
 
 async def status(session: AsyncSession, now: Optional[datetime] = None) -> dict:
+    if not catalog.founding_enabled():
+        return {"enabled": False, "seats_total": 0, "seats_used": 0, "seats_remaining": 0, "available": False}
     used = await seats_used(session, now)
     total = int(catalog.FOUNDING_OFFER["seats"])
-    return {**catalog.FOUNDING_OFFER, "seats_total": total, "seats_used": min(used, total),
+    return {**catalog.FOUNDING_OFFER, "enabled": True, "seats_total": total, "seats_used": min(used, total),
             "seats_remaining": max(0, total - used), "available": used < total}
 
 
@@ -73,6 +75,8 @@ async def project_has_founding_price(project, now: Optional[datetime] = None) ->
 async def eligible_for_order(session: AsyncSession, package: str, *, is_renewal: bool, project=None,
                              now: Optional[datetime] = None) -> bool:
     """Should this order be priced at the founding rate?"""
+    if not catalog.founding_enabled():
+        return False  # offer removed by the owner: no founding discount anywhere
     if package not in catalog.PACKAGES:
         return False  # legacy renewals stay on their grandfathered price
     if project is not None and getattr(project, "founding", False):

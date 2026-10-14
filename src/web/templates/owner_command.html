@@ -55,7 +55,7 @@
             </table></div>
         </section>
 
-        <section class="cc-card">
+        <section class="cc-card" id="fCard" hidden>
             <h2 class="cc-h2">مقاعد العملاء المؤسسين</h2>
             <div class="cc-bar"><span id="fBar"></span></div>
             <p class="cc-mut" id="fText"></p>
@@ -175,10 +175,13 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
             + '</td><td>' + (r.renewal_invoice_raised ? tag('ok', 'صدرت') : tag('mut', 'لم تصدر')) + '</td></tr>').join('') || empty(4, 'لا تجديدات خلال 7 أيام');
 
         const f = d.founding;
+        $('fCard').hidden = !(f && f.enabled);
+        if (f && f.enabled) {
         $('fBar').style.width = (f.seats_total ? Math.round(f.seats_used * 100 / f.seats_total) : 0) + '%';
         $('fText').textContent = 'مستخدم ' + f.seats_used + ' من ' + f.seats_total + ' — متبقٍ ' + f.seats_remaining;
         $('fList').innerHTML = f.customers.map(c => '<li><span>' + esc(c.client_name) + ' <span class="cc-mut">' + esc(c.package) + '</span></span>'
             + (c.revoked_at ? tag('mut', 'أُلغي') : '<button type="button" class="cc-qa" data-revoke="' + esc(c.project_id) + '">إلغاء سعر المؤسس</button>') + '</li>').join('') || '<li class="cc-mut">لا يوجد مؤسسون بعد</li>';
+        }
 
         const p = d.leads.pipeline, max = Math.max(1, ...Object.values(p));
         $('leads').innerHTML = Object.keys(p).map(k => '<div><b>' + p[k] + '</b><i style="width:' + Math.round(p[k] * 70 / max) + '%"></i><span class="cc-mut">' + esc(STAGES[k] || k) + '</span></div>').join('')

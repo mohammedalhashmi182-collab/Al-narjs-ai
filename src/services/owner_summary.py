@@ -236,8 +236,10 @@ async def build_summary(session: AsyncSession, now: Optional[datetime] = None) -
         "subscriptions": subs,
         "renewals_due": {"window_days": RENEWAL_WINDOW_DAYS, "count": len(renewals), "items": renewals},
         "orders": await _orders(session),
-        "founding": {k: fstatus[k] for k in ("seats_total", "seats_used", "seats_remaining", "available")}
-        | {"customers": await founding.founding_projects(session)},
+        "founding": {k: fstatus[k] for k in ("enabled", "seats_total", "seats_used", "seats_remaining", "available")
+                     if k in fstatus}
+        | {"enabled": bool(fstatus.get("enabled", True)),
+           "customers": await founding.founding_projects(session) if fstatus.get("enabled", True) else []},
         "usage": await _usage(session, now),
         "review_queue": await _review_queue(session),
         "leads": await _leads(session),

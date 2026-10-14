@@ -255,6 +255,15 @@ DEFAULT_BILLING_PERIOD = "monthly"
 # customer agrees to a case study / testimonial after 60 days. Auto-applied at
 # checkout to new orders while seats remain (services.founding); the price
 # holds for ``locked_months`` from activation, the owner can revoke a seat.
+# Removed by the owner on 14 Oct 2026: the founding offer is OFF. Kept as a
+# switch (env FOUNDING_ENABLED, default false) so historical rows still read
+# correctly; nothing auto-applies a founding discount while it is off.
+def founding_enabled() -> bool:
+    import os
+
+    return os.getenv("FOUNDING_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on")
+
+
 FOUNDING_OFFER = {
     "seats": 15,
     "annual_pct": 30,
