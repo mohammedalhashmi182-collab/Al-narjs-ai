@@ -167,7 +167,7 @@ async def _contact(session: AsyncSession, project_id: UUID, contact: str) -> Opt
 async def handle_inbound(session: AsyncSession, *, project: ClientProject, contact: Any, text: str) -> ReplyDraft | None:
     """Draft (and in auto mode send) this project's reply to one inbound text."""
     text = (text or "").strip()
-    if not text or project is None or project.status != "active":
+    if not text or project is None or project.status not in ("active", "demo"):
         return None
     mode = mode_of(project)
     if mode == "off":
