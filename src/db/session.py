@@ -48,6 +48,24 @@ async_session_factory = async_sessionmaker(
 )
 
 
+async def ensure_pgvector() -> bool:
+    """Best effort: enable pgvector and add agent_knowledge_chunks.embedding_vec (alembic 0010).
+
+    Own transaction, so a database without the extension never breaks startup;
+    RAG then uses in-process cosine over the JSON embedding column.
+    """
+    if engine.dialect.name != "postgresql":
+        return False
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            await conn.execute(text(
+                "ALTER TABLE agent_knowledge_chunks ADD COLUMN IF NOT EXISTS embedding_vec vector"))
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
 async def init_db():
     import src.models  # noqa: F401  register all models on Base.metadata
     async with engine.begin() as conn:

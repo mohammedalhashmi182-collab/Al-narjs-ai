@@ -5,7 +5,15 @@ Inbound traffic on a subscriber's own linked number
 sales pipeline. Rules:
 
 * Answers come only from that project's own knowledge base (``KnowledgeDoc``
-  rows with ``project_id``). No answer → polite human handoff, never a guess.
+  rows with ``project_id``), retrieved by ``src.services.rag`` (Arabic-normalized
+  embeddings, pgvector on Postgres, filtered by ``project_id``). The reply is
+  written in Saudi dialect by the LLM strictly from the retrieved sources and
+  rejected if ungrounded; below the confidence threshold → polite human
+  handoff, never a guess.
+* AI usage follows the project's monthly conversation counter
+  (``usage.current_usage``): over the limit, no paid model/embedding call is
+  made (``RAG_OVER_LIMIT``: ``extractive`` = verbatim KB answer from local
+  retrieval, default; ``handoff`` = straight to the human queue).
 * Never pitches Al-Narjis plans or payment links (``contains_pitch`` guard).
 * Never creates ``AcquisitionLead`` / ``LeadPipeline`` rows. The end-customer
   is a ``TenantContact`` of the project.
@@ -89,6 +97,51 @@ def compose_handoff(project: ClientProject, reason: str) -> str:
     if reason == "requested":
         return f"أبشر 🙏 حوّلت محادثتك إلى {team} وبيتواصلون معك في أقرب وقت."
     return f"شكرًا لسؤالك 🙏 حوّلته إلى {team} للتأكد من الإجابة الصحيحة، وبيردّون عليك قريبًا."
+
+
+# --------------------------------------------------------------------------- RAG reply
+
+async def over_ai_limit(session: AsyncSession, project: ClientProject) -> bool:
+    """True when this window's conversations exceed the plan (+packs) limit."""
+    try:
+        from src.services import usage
+
+        row = await usage.current_usage(session, project)
+        return int(row.conversations or 0) > int(row.limit_conversations or 0) > 0
+    except Exception:  # noqa: BLE001 - metering must never break replies
+        log.warning("usage check failed", exc_info=True)
+        return False
+
+
+async def _rag_reply(session: AsyncSession, project: ClientProject, text: str, meta: dict) -> tuple[str | None, str | None]:
+    """(body, handoff_reason). Retrieval is always scoped to ``project.id``."""
+    import os
+
+    from src.services import rag
+    from src.services.rag import embeddings
+
+    limited = await over_ai_limit(session, project)
+    if limited:
+        meta["usage_limit"] = True
+        if (os.getenv("RAG_OVER_LIMIT") or "extractive").strip().lower() == "handoff":
+            return None, "usage_limit"
+    try:
+        emb = embeddings.HashEmbedder() if limited else None
+        hits = await rag.retrieve(session, text, project_id=project.id, k=3, embedder=emb)
+    except Exception:
+        log.warning("tenant RAG retrieval failed", exc_info=True)
+        hits = []
+    ans = await rag.answer(text, hits, name=(project.client_name or "").strip(), allow_llm=not limited,
+                           guard=contains_pitch)
+    meta["kb"] = ans.sources[:2]
+    meta["answer_source"] = ans.source
+    meta["confidence"] = round(ans.confidence, 3)
+    if ans.handoff or not ans.text:
+        meta["rag_handoff"] = ans.handoff or "empty"
+        return None, "no_answer"
+    if contains_pitch(ans.text):
+        return None, "guard"
+    return ans.text, None
 
 
 # --------------------------------------------------------------------------- per-project token
@@ -188,19 +241,7 @@ async def handle_inbound(session: AsyncSession, *, project: ClientProject, conta
     if wants_human(text):
         reason = "requested"
     else:
-        from src.services.agent_tools import knowledge_base
-
-        try:
-            hits = await knowledge_base.search(session, text, project_id=project.id, k=2)
-        except Exception:
-            log.warning("tenant KB search failed", exc_info=True)
-            hits = []
-        reason = None if hits else "no_answer"
-        if hits:
-            body = compose_answer(hits)
-            meta["kb"] = [h["title"] for h in hits]
-            if contains_pitch(body):
-                reason = "guard"
+        body, reason = await _rag_reply(session, project, text, meta)
     if reason:
         kind = "handoff"
         body = compose_handoff(project, reason)
