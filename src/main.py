@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -83,7 +84,18 @@ async def lifespan(app: FastAPI):
     from src.automation.ceo_engine import CompanyBrain
 
     agent_registry = AgentRegistry(session_factory)
-    await agent_registry.sync_base_agents()
+    # Fast startup: agents are served from YAML immediately; the DB upsert
+    # (~35 agents, serialized) runs in the background so the port binds
+    # quickly. Set SYNC_AGENTS_BLOCKING=true to restore the old behaviour.
+    await agent_registry.prime_cache_from_yaml()
+    from src.db.session import engine as _engine
+
+    # SQLite (local/tests) keeps the blocking sync: its single-writer file lock
+    # plus APScheduler's synchronous jobstore would deadlock the event loop.
+    background_sync = _engine.dialect.name != "sqlite" and os.getenv(
+        "SYNC_AGENTS_BLOCKING", "false").strip().lower() not in ("1", "true", "yes")
+    if not background_sync:
+        await agent_registry.sync_base_agents()
 
     model_provider = ModelProvider(settings)
     prompt_engine = PromptEngine()
@@ -152,8 +164,14 @@ async def lifespan(app: FastAPI):
     app.state.dynamic_router = dynamic_router
     app.state.self_correction = self_correction_loop
 
+    if background_sync:
+        # Started last, after every other startup DB write, so the port binds
+        # right away and the upsert never contends with boot-time work.
+        agent_registry.start_background_sync()
+
     yield
 
+    await agent_registry.stop_background_sync()
     await model_provider.close()
     await queue_worker.stop()
     await scheduler.stop()
