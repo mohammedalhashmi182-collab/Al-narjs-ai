@@ -244,7 +244,12 @@ META_FEE_RATES = {
 BILLING_PERIODS = {
     "monthly": {"months_billed": 1, "months_granted": 1, "label": "شهري", "label_en": "Monthly"},
     "annual": {"months_billed": 10, "months_granted": 12, "label": "سنوي", "label_en": "Annual"},
+    # Founding customers only: the 3-month commitment paid upfront at the
+    # monthly founding price (20% off). Renews monthly afterwards.
+    "quarterly": {"months_billed": 3, "months_granted": 3, "label": "٣ أشهر مقدماً", "label_en": "3 months upfront",
+                  "founding_only": True},
 }
+FOUNDING_UPFRONT_PERIOD = "quarterly"
 DEFAULT_BILLING_PERIOD = "monthly"
 
 # ---------------------------------------------------------------------

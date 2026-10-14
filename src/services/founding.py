@@ -59,7 +59,8 @@ async def status(session: AsyncSession, now: Optional[datetime] = None) -> dict:
     used = await seats_used(session, now)
     total = int(catalog.FOUNDING_OFFER["seats"])
     return {**catalog.FOUNDING_OFFER, "seats_total": total, "seats_used": min(used, total),
-            "seats_remaining": max(0, total - used), "available": used < total}
+            "seats_remaining": max(0, total - used), "available": used < total,
+            "commitment_terms_ar": commitment_terms_ar(), "commitment_terms_en": commitment_terms_en()}
 
 
 async def project_has_founding_price(project, now: Optional[datetime] = None) -> bool:
@@ -131,3 +132,89 @@ async def founding_projects(session: AsyncSession) -> list[dict]:
         "commitment_until": _utc(p.founding_commitment_until).isoformat() if p.founding_commitment_until else None,
         "revoked_at": _utc(p.founding_revoked_at).isoformat() if p.founding_revoked_at else None,
     } for p in rows]
+
+
+# --------------------------------------------------------------------------- commitment
+
+CLAWBACK_STATUS = "clawback_draft"   # never payable, never picked up by renewals/collections
+
+
+def commitment_terms_ar() -> str:
+    o = catalog.FOUNDING_OFFER
+    return (f"عرض المؤسسين الشهري (خصم {o['monthly_pct']}٪) مشروط بالتزام {o['monthly_commitment_months']} أشهر: "
+            f"إما تدفع الأشهر الـ{o['monthly_commitment_months']} مقدماً وتحتفظ بالخصم، أو تدفع شهرياً، "
+            "وإذا ألغيت قبل نهاية مدة الالتزام نصدر فاتورة بفرق الخصم عن الأشهر التي دفعتها بسعر المؤسسين.")
+
+
+def commitment_terms_en() -> str:
+    o = catalog.FOUNDING_OFFER
+    return (f"The monthly founding price ({o['monthly_pct']}% off) requires a {o['monthly_commitment_months']}-month commitment: "
+            f"either pay the {o['monthly_commitment_months']} months upfront and keep the discount, or pay monthly, and if you "
+            "cancel before the commitment ends we invoice the discount difference for the months you paid at the founding price.")
+
+
+def in_commitment(project, now: Optional[datetime] = None) -> bool:
+    now = _utc(now) or datetime.now(timezone.utc)
+    until = _utc(getattr(project, "founding_commitment_until", None))
+    return bool(getattr(project, "founding", False) and until is not None and now < until)
+
+
+async def clawback_amount(session: AsyncSession, project) -> tuple[int, int]:
+    """(pre-VAT halalas, months) of founding discount received on monthly founding payments."""
+    from src.models import Payment
+
+    package = catalog.resolve_tier(project.package)
+    if package not in catalog.PACKAGES:
+        return 0, 0
+    paid = (await session.execute(
+        select(Payment).where(Payment.project_id == project.id, Payment.status == "paid",
+                              Payment.founding.is_(True), Payment.billing_period == "monthly")
+    )).scalars().all()
+    total = 0
+    for p in paid:
+        addons = int(p.addon_agents or 0)
+        total += catalog.plan_amount(package, "monthly", addons) - catalog.founding_amount(package, "monthly", addons)
+    return total, len(paid)
+
+
+async def early_cancellation(session: AsyncSession, project, now: Optional[datetime] = None) -> dict:
+    """Owner-initiated early cancellation of a monthly founding subscription.
+
+    Inside the commitment: create (once) a clawback invoice **draft** for the
+    discount difference. The draft is not payable until the owner approves it.
+    """
+    from src.models import Payment
+
+    now = _utc(now) or datetime.now(timezone.utc)
+    if not in_commitment(project, now):
+        return {"clawback": False, "reason": "no active founding commitment"}
+    existing = (await session.execute(
+        select(Payment).where(Payment.project_id == project.id, Payment.status == CLAWBACK_STATUS)
+    )).scalar_one_or_none()
+    if existing is not None:
+        return {"clawback": True, "payment_id": str(existing.id), "amount": existing.amount, "already": True}
+    amount, months = await clawback_amount(session, project)
+    if amount <= 0:
+        return {"clawback": False, "reason": "no discounted monthly payments"}
+    until = _utc(project.founding_commitment_until)
+    pay = Payment(
+        amount=amount, currency="SAR", package=catalog.resolve_tier(project.package), billing_period="monthly",
+        status=CLAWBACK_STATUS, gateway="invoice", founding=False, is_renewal=False,
+        customer_name=project.client_name, customer_phone=project.phone, customer_email=project.email,
+        project_id=project.id,
+        description=(f"فرق خصم العملاء المؤسسين عن {months} شهر — إلغاء قبل نهاية التزام "
+                     f"{catalog.FOUNDING_OFFER['monthly_commitment_months']} أشهر (ينتهي {until.date().isoformat()})"),
+    )
+    session.add(pay)
+    project.subscription_note = ((project.subscription_note or "") + f"\nطلب إلغاء مبكر {now.date().isoformat()} — مسودة فاتورة فرق الخصم بانتظار المراجعة").strip()
+    await session.commit()
+    return {"clawback": True, "payment_id": str(pay.id), "amount": amount, "months": months, "already": False}
+
+
+async def approve_clawback(session: AsyncSession, payment) -> dict:
+    """Owner approval: the draft becomes a normal payable invoice (``invoice``)."""
+    if payment.status != CLAWBACK_STATUS:
+        return {"approved": False, "reason": "not a clawback draft"}
+    payment.status = "invoice"
+    await session.commit()
+    return {"approved": True, "payment_id": str(payment.id), "status": payment.status}

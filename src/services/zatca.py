@@ -155,7 +155,8 @@ def build_lines(payment) -> list[dict]:
     """Invoice lines (pre-VAT halalas) reconciling exactly to ``payment.amount``."""
     period = catalog.resolve_billing_period(getattr(payment, "billing_period", None) or "monthly")
     months = catalog.BILLING_PERIODS[period]["months_billed"]
-    period_ar = "سنوي (12 شهراً بسعر 10)" if period == "annual" else "شهري"
+    period_ar = ("سنوي (12 شهراً بسعر 10)" if period == "annual"
+                 else "٣ أشهر مقدماً" if period == catalog.FOUNDING_UPFRONT_PERIOD else "شهري")
     conv = int(getattr(payment, "addon_conversation_packs", 0) or 0)
     voice = int(getattr(payment, "addon_voice_packs", 0) or 0)
     conv_unit = catalog.USAGE_ADDONS["conversations"]["amount"]

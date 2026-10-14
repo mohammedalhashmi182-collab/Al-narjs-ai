@@ -136,7 +136,12 @@ def order_description(package: str, billing_period: str, addons: int, discount_p
         description += f" + {conversation_packs} × باقة ١٬٠٠٠ محادثة إضافية"
     if voice_packs:
         description += f" + {voice_packs} × باقة ١٠٠ دقيقة صوت إضافية"
-    description += " (اشتراك سنوي: 12 شهراً بسعر 10)" if billing_period == "annual" else " (اشتراك شهري)"
+    if billing_period == "annual":
+        description += " (اشتراك سنوي: 12 شهراً بسعر 10)"
+    elif billing_period == catalog.FOUNDING_UPFRONT_PERIOD:
+        description += " (التزام ٣ أشهر مدفوع مقدماً)"
+    else:
+        description += " (اشتراك شهري)"
     if renewal:
         description += " - تجديد"
     if founding:
@@ -446,6 +451,8 @@ async def create_payment(
             )).scalar_one_or_none()
         founding = await _founding.eligible_for_order(session, package, is_renewal=is_renewal, project=project)
     founding = bool(founding) and package in catalog.PACKAGES
+    if catalog.BILLING_PERIODS[period].get("founding_only") and not founding:
+        raise PaymentError("3 months upfront is only available with the founding offer")
 
     # ``amount`` is the whole period's pre-VAT base (annual = 10 x monthly)
     # plus usage add-on packs (never discounted) plus the one-time setup fee
@@ -1077,7 +1084,8 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
     # so the client never loses or gains days; a lapsed one restarts from now.
     start = current_end if (current_end is not None and current_end > now - RENEWAL_GRACE) else now
     project.current_period_end = add_months(start, period_months(period))
-    project.billing_period = period
+    # 3 months upfront (founding) covers the commitment; renewals then run monthly.
+    project.billing_period = "monthly" if period == catalog.FOUNDING_UPFRONT_PERIOD else period
     project.addon_agents = int(getattr(payment, "addon_agents", 0) or 0)
     project.addon_conversation_packs = int(getattr(payment, "addon_conversation_packs", 0) or 0)
     project.addon_voice_packs = int(getattr(payment, "addon_voice_packs", 0) or 0)
