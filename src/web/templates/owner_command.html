@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}مركز القيادة - النرجس للذكاء الاصطناعي{% endblock %}
+{% block page_title %}مركز القيادة{% endblock %}
+
+{% block content %}
+<div class="cc" dir="rtl" id="cc">
+    <section class="cc-hero">
+        <div>
+            <h1 class="cc-h1">مركز القيادة</h1>
+            <p class="cc-mut">كل ما يحتاجه المالك في شاشة واحدة — أرقام حيّة من القاعدة. <span id="ccStamp"></span></p>
+        </div>
+        <div class="cc-actions" aria-label="إجراءات سريعة">
+            <button type="button" class="cc-qa" id="ccRefresh">تحديث</button>
+            <button type="button" class="cc-qa" id="ccRenewals">تشغيل دورة التجديد</button>
+            <a class="cc-qa" href="/owner/automation">طابور المراجعة</a>
+            <a class="cc-qa" href="/">لوحة التشغيل</a>
+            <a class="cc-qa" href="/api/owner/summary" target="_blank" rel="noopener">JSON</a>
+        </div>
+    </section>
+
+    <section class="cc-kpis">
+        <div class="cc-kpi"><span class="cc-v" id="kMrr">-</span><span class="cc-l">الإيراد الشهري المتكرر (MRR)</span></div>
+        <div class="cc-kpi"><span class="cc-v" id="kRev">-</span><span class="cc-l">المحصّل هذا الشهر</span></div>
+        <div class="cc-kpi"><span class="cc-v" id="kSubs">-</span><span class="cc-l">اشتراكات نشطة</span></div>
+        <div class="cc-kpi warn"><span class="cc-v" id="kRenew">-</span><span class="cc-l">تجديدات خلال 7 أيام</span></div>
+        <div class="cc-kpi warn"><span class="cc-v" id="kTransfers">-</span><span class="cc-l">تحويلات بانتظار التأكيد</span></div>
+        <div class="cc-kpi"><span class="cc-v" id="kReview">-</span><span class="cc-l">ردود بانتظار المراجعة</span></div>
+        <div class="cc-kpi" id="kHealthBox"><span class="cc-v" id="kHealth">-</span><span class="cc-l">صحة الموقع</span></div>
+    </section>
+
+    <div class="cc-grid">
+        <section class="cc-card cc-wide">
+            <h2 class="cc-h2">تحويلات بنكية وطلبات غير مدفوعة</h2>
+            <p class="cc-mut" id="ordersNote"></p>
+            <div class="cc-scroll"><table class="cc-t">
+                <thead><tr><th>العميل</th><th>الباقة</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th></th></tr></thead>
+                <tbody id="tOrders"><tr><td colspan="6" class="cc-empty">جارٍ التحميل…</td></tr></tbody>
+            </table></div>
+        </section>
+
+        <section class="cc-card">
+            <h2 class="cc-h2">الاشتراكات حسب الباقة</h2>
+            <div class="cc-scroll"><table class="cc-t">
+                <thead><tr><th>الباقة</th><th>العدد</th><th>MRR</th></tr></thead>
+                <tbody id="tPlans"></tbody>
+            </table></div>
+        </section>
+
+        <section class="cc-card">
+            <h2 class="cc-h2">تجديدات مستحقة (7 أيام)</h2>
+            <div class="cc-scroll"><table class="cc-t">
+                <thead><tr><th>العميل</th><th>الباقة</th><th>ينتهي</th><th>الفاتورة</th></tr></thead>
+                <tbody id="tRenew"></tbody>
+            </table></div>
+        </section>
+
+        <section class="cc-card">
+            <h2 class="cc-h2">مقاعد العملاء المؤسسين</h2>
+            <div class="cc-bar"><span id="fBar"></span></div>
+            <p class="cc-mut" id="fText"></p>
+            <ul class="cc-list" id="fList"></ul>
+        </section>
+
+        <section class="cc-card">
+            <h2 class="cc-h2">مسار العملاء المحتملين</h2>
+            <div class="cc-funnel" id="leads"></div>
+        </section>
+
+        <section class="cc-card cc-wide">
+            <h2 class="cc-h2">الاستهلاك لكل عميل</h2>
+            <p class="cc-mut">تنبيه عند 80٪ وتجاوز عند 100٪ من حدود الباقة.</p>
+            <div class="cc-scroll"><table class="cc-t">
+                <thead><tr><th>العميل</th><th>الباقة</th><th>المحادثات</th><th>دقائق الصوت</th><th>رسوم Meta</th><th>الحالة</th></tr></thead>
+                <tbody id="tUsage"></tbody>
+            </table></div>
+        </section>
+
+        <section class="cc-card">
+            <h2 class="cc-h2">طابور مراجعة الوكلاء</h2>
+            <ul class="cc-list" id="review"></ul>
+        </section>
+
+        <section class="cc-card">
+            <h2 class="cc-h2">صحة الموقع وآخر الأخطاء</h2>
+            <p id="healthLine"></p>
+            <ul class="cc-list" id="errors"></ul>
+        </section>
+    </div>
+</div>
+
+<style>
+body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)}
+.cc{--ok:#5ea552;--warn:#e8b14a;--bad:#ff8f8f;--line:var(--ad-line,rgba(250,250,249,.09));
+    --soft:var(--ad-sand-2,#232020);--txt:var(--ad-text,#fafaf9);--mut:var(--ad-muted,#a8a29e);
+    --acc:var(--odsf-accent,#ff5a36);color:var(--txt);min-width:0;display:flex;flex-direction:column;gap:16px}
+.min-h-screen,main{min-width:0}
+.cc-hero{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end}
+.cc-h1{font-size:24px;font-weight:800;margin:0}
+.cc-h2{font-size:15px;font-weight:700;margin:0 0 10px}
+.cc-mut{color:var(--mut);font-size:13px;margin:2px 0 8px}
+.cc-actions{display:flex;flex-wrap:wrap;gap:8px}
+.cc-qa,.cc-btn{display:inline-flex;align-items:center;padding:7px 13px;border-radius:9px;font-size:13px;font-weight:600;
+    border:1px solid var(--line);background:var(--soft);color:var(--txt);cursor:pointer;text-decoration:none;white-space:nowrap}
+.cc-qa:hover{border-color:var(--acc)}
+.cc-btn{background:var(--acc);border-color:var(--acc);color:#fff;padding:5px 11px;font-size:12.5px}
+.cc-btn:disabled{opacity:.5;cursor:default}
+.cc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.cc-kpi{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px}
+.cc-kpi.warn .cc-v{color:var(--warn)} .cc-kpi.bad .cc-v{color:var(--bad)} .cc-kpi.ok .cc-v{color:var(--ok)}
+.cc-v{font-size:22px;font-weight:800} .cc-l{font-size:12px;color:var(--mut)}
+.cc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.cc-card{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.cc-wide{grid-column:1/-1}
+.cc-scroll{overflow-x:auto}
+.cc-t{width:100%;border-collapse:collapse;font-size:13px}
+.cc-t th{color:var(--mut);font-weight:600;text-align:start;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.cc-t td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.cc-empty{color:var(--mut);text-align:center}
+.cc-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid currentColor}
+.cc-tag.ok{color:var(--ok)} .cc-tag.warn{color:var(--warn)} .cc-tag.bad{color:var(--bad)} .cc-tag.mut{color:var(--mut)}
+.cc-bar{height:10px;border-radius:99px;background:rgba(250,250,249,.08);overflow:hidden}
+.cc-bar span{display:block;height:100%;background:var(--acc);width:0}
+.cc-list{list-style:none;margin:0;padding:0;font-size:13px}
+.cc-list li{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.cc-funnel{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.cc-funnel div{display:flex;align-items:center;gap:8px}
+.cc-funnel i{display:block;height:8px;border-radius:99px;background:var(--acc);min-width:2px}
+.cc-funnel b{min-width:28px}
+@media (max-width:760px){.cc-grid{grid-template-columns:1fr}.cc-v{font-size:19px}.cc-h1{font-size:20px}}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const sar = v => Number(v || 0).toLocaleString('en-US', {maximumFractionDigits: 0}) + ' ر.س';
+    const day = iso => iso ? new Date(iso).toLocaleDateString('ar-SA-u-nu-latn', {timeZone: 'Asia/Riyadh', day: 'numeric', month: 'short'}) : '—';
+    const tag = (cls, t) => '<span class="cc-tag ' + cls + '">' + esc(t) + '</span>';
+    const empty = (n, t) => '<tr><td colspan="' + n + '" class="cc-empty">' + esc(t) + '</td></tr>';
+    const STAGES = {new: 'جديد', qualified: 'مؤهَّل', offer_sent: 'عرض مُرسل', payment_link_sent: 'رابط دفع مُرسل', paid: 'مدفوع', lost: 'خسارة'};
+    const PAY = {pending: 'بانتظار الدفع', initiated: 'بدأ', authorized: 'معلّق'};
+
+    function usageCell(m, money) {
+        if (!m) return '—';
+        const used = money ? sar(m.used / 100) : m.used;
+        const lim = m.limit ? (money ? sar(m.limit / 100) : m.limit) : '∞';
+        const cls = m.pct >= 100 ? 'bad' : m.pct >= 80 ? 'warn' : 'mut';
+        return used + ' / ' + lim + ' ' + tag(cls, Math.round(m.pct) + '٪');
+    }
+
+    function render(d) {
+        $('ccStamp').textContent = '· آخر تحديث ' + new Date(d.generated_at).toLocaleTimeString('ar-SA-u-nu-latn', {timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit'});
+        $('kMrr').textContent = sar(d.subscriptions.mrr_sar);
+        $('kRev').textContent = sar(d.revenue.revenue_sar);
+        $('kSubs').textContent = d.subscriptions.active;
+        $('kRenew').textContent = d.renewals_due.count;
+        $('kTransfers').textContent = d.orders.awaiting_transfer_confirmation.length;
+        $('kReview').textContent = d.review_queue.pending_total;
+        const h = d.health.status;
+        $('kHealth').textContent = {ok: 'سليم', degraded: 'أخطاء', down: 'متوقف'}[h] || h;
+        $('kHealthBox').className = 'cc-kpi ' + (h === 'ok' ? 'ok' : h === 'down' ? 'bad' : 'warn');
+
+        const o = d.orders;
+        $('ordersNote').textContent = o.unpaid_count + ' طلب غير مدفوع بإجمالي ' + sar(o.unpaid_sar) + ' (قبل الضريبة).';
+        const rows = o.awaiting_transfer_confirmation.map(p => '<tr><td>' + esc(p.customer) + (p.is_renewal ? ' ' + tag('mut', 'تجديد') : '') + '</td><td>' + esc(p.plan || '-') + '</td><td>' + sar(p.amount_sar)
+            + '</td><td>' + tag('warn', 'تحويل بنكي') + '</td><td>' + day(p.created_at) + '</td><td><button type="button" class="cc-btn" data-confirm="' + esc(p.payment_id) + '">تأكيد الاستلام</button> <a class="cc-mut" href="' + esc(p.invoice_url) + '">الفاتورة</a></td></tr>')
+            .concat(o.pending_gateway.map(p => '<tr><td>' + esc(p.customer) + '</td><td>' + esc(p.plan || '-') + '</td><td>' + sar(p.amount_sar) + '</td><td>' + tag('mut', (PAY[p.status] || p.status) + ' · ' + p.gateway) + '</td><td>' + day(p.created_at) + '</td><td></td></tr>'));
+        $('tOrders').innerHTML = rows.join('') || empty(6, 'لا توجد طلبات معلّقة');
+
+        $('tPlans').innerHTML = d.subscriptions.by_plan.map(b => '<tr><td>' + esc(b.name) + '</td><td>' + b.count + '</td><td>' + sar(b.mrr_sar) + '</td></tr>').join('') || empty(3, 'لا اشتراكات نشطة');
+        $('tRenew').innerHTML = d.renewals_due.items.map(r => '<tr><td>' + esc(r.client_name) + '</td><td>' + esc(r.plan) + '</td><td>' + day(r.period_end) + ' ' + (r.overdue ? tag('bad', 'متأخر') : tag('warn', r.days_left + ' يوم'))
+            + '</td><td>' + (r.renewal_invoice_raised ? tag('ok', 'صدرت') : tag('mut', 'لم تصدر')) + '</td></tr>').join('') || empty(4, 'لا تجديدات خلال 7 أيام');
+
+        const f = d.founding;
+        $('fBar').style.width = (f.seats_total ? Math.round(f.seats_used * 100 / f.seats_total) : 0) + '%';
+        $('fText').textContent = 'مستخدم ' + f.seats_used + ' من ' + f.seats_total + ' — متبقٍ ' + f.seats_remaining;
+        $('fList').innerHTML = f.customers.map(c => '<li><span>' + esc(c.client_name) + ' <span class="cc-mut">' + esc(c.package) + '</span></span>'
+            + (c.revoked_at ? tag('mut', 'أُلغي') : '<button type="button" class="cc-qa" data-revoke="' + esc(c.project_id) + '">إلغاء سعر المؤسس</button>') + '</li>').join('') || '<li class="cc-mut">لا يوجد مؤسسون بعد</li>';
+
+        const p = d.leads.pipeline, max = Math.max(1, ...Object.values(p));
+        $('leads').innerHTML = Object.keys(p).map(k => '<div><b>' + p[k] + '</b><i style="width:' + Math.round(p[k] * 70 / max) + '%"></i><span class="cc-mut">' + esc(STAGES[k] || k) + '</span></div>').join('')
+            + '<p class="cc-mut">إجمالي العملاء المحتملين: ' + d.leads.total_leads + '</p>';
+
+        $('tUsage').innerHTML = d.usage.customers.map(c => '<tr><td>' + esc(c.client_name) + '</td><td>' + esc(c.plan) + '</td><td>' + usageCell(c.metrics.conversations) + '</td><td>' + usageCell(c.metrics.voice_minutes)
+            + '</td><td>' + usageCell(c.metrics.meta_fees, true) + '</td><td>' + (c.flag === 'over' ? tag('bad', 'تجاوز 100٪') : c.flag === 'warn' ? tag('warn', 'تجاوز 80٪') : tag('ok', 'ضمن الحد')) + '</td></tr>').join('') || empty(6, 'لا يوجد استهلاك بعد');
+
+        const rq = d.review_queue.by_project;
+        $('review').innerHTML = Object.keys(rq).map(k => '<li><span>' + (k === 'karma' ? 'صندوق مبيعات كارما' : esc(k)) + '</span><b>' + rq[k] + '</b></li>').join('') || '<li class="cc-mut">لا شيء بانتظار المراجعة</li>';
+
+        const hl = d.health;
+        $('healthLine').innerHTML = 'قاعدة البيانات: ' + (hl.database ? tag('ok', 'متصلة') : tag('bad', 'متوقفة')) + ' · أخطاء آخر 24 ساعة: <b>' + hl.errors_24h + '</b> · الدفع بالبطاقة: '
+            + (hl.payment_methods.creditcard ? tag('ok', 'مفعّل') : tag('mut', 'غير مفعّل'));
+        $('errors').innerHTML = hl.recent_errors.map(e => '<li><span>' + esc(e.message || 'فشل غير موصوف') + '</span><span class="cc-mut">' + day(e.at) + '</span></li>').join('') || '<li class="cc-mut">لا أخطاء حديثة</li>';
+    }
+
+    async function load() {
+        try {
+            const r = await fetch('/api/owner/summary', {credentials: 'same-origin'});
+            if (r.status === 401 || r.status === 403) { location.href = '/login'; return; }
+            render(await r.json());
+        } catch (e) {
+            $('tOrders').innerHTML = empty(6, 'تعذّر التحميل');
+        }
+    }
+
+    document.addEventListener('click', async function (e) {
+        const t = e.target;
+        if (!t || !t.getAttribute) return;
+        const pid = t.getAttribute('data-confirm');
+        const rid = t.getAttribute('data-revoke');
+        if (pid) {
+            if (!confirm('تأكيد استلام التحويل البنكي وتفعيل الاشتراك؟')) return;
+            t.disabled = true;
+            const r = await fetch('/api/payments/' + encodeURIComponent(pid) + '/confirm-received', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({confirmed_by: 'owner'})});
+            if (!r.ok) { alert('تعذّر التأكيد (' + r.status + ')'); t.disabled = false; return; }
+            load();
+        } else if (rid) {
+            if (!confirm('إلغاء سعر العميل المؤسس؟ يتحرر المقعد ولا يُطبّق الخصم على التجديدات القادمة.')) return;
+            t.disabled = true;
+            await fetch('/api/owner/founding/' + encodeURIComponent(rid) + '/revoke', {method: 'POST'});
+            load();
+        }
+    });
+    $('ccRefresh').addEventListener('click', load);
+    $('ccRenewals').addEventListener('click', async function () {
+        if (!confirm('تشغيل دورة التجديد الآن؟ تصدر فواتير التجديد ومسودات التذكير (لا يُرسل شيء تلقائياً).')) return;
+        const r = await fetch('/api/owner/billing/renewals/run', {method: 'POST'});
+        alert(r.ok ? 'تمّت دورة التجديد' : 'تعذّر التشغيل (' + r.status + ')');
+        load();
+    });
+    load();
+})();
+</script>
+{% endblock %}
