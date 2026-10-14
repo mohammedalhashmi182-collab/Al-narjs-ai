@@ -66,13 +66,13 @@ def test_catalog_no_longer_sells_unbuilt_features_as_live():
     text = "\n".join(line for p in catalog.PACKAGES.values() for line in p["scope"] + p["scope_en"])
     for claim in UNBUILT_LIVE_CLAIMS:
         assert claim not in text
-    for line in catalog.PACKAGES["bay"]["scope"] + catalog.PACKAGES["tashgheel"]["scope"]:
-        if any(w in line for w in ("صوت", "سلة", "زد")):
-            assert "قريباً" in line or "عند إطلاق" in line, line
-    for line in catalog.PACKAGES["bay"]["scope_en"] + catalog.PACKAGES["tashgheel"]["scope_en"]:
-        if any(w in line.lower() for w in ("voice", "salla", "zid")):
-            assert "coming soon" in line or "once the voice" in line, line
-    assert "قريباً" in catalog.PACKAGES["tashgheel"]["tagline"]
+    # Unbuilt features are never in the "available now" scope; they sit in "coming".
+    for key in ("bay", "tashgheel"):
+        for line in catalog.PACKAGES[key]["scope"]:
+            assert not any(w in line for w in ("صوت", "سلة", "زد")), line
+        for line in catalog.PACKAGES[key]["scope_en"]:
+            assert not any(w in line.lower() for w in ("voice", "salla", "zid")), line
+        assert any("صوت" in line or "صوتي" in line for line in catalog.PACKAGES[key]["coming"])
 
 
 def test_prices_and_limits_unchanged():

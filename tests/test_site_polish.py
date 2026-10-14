@@ -133,7 +133,8 @@ def test_plan_wording(client):
 
     radd = catalog.PACKAGES["radd"]
     assert not any("ميسّر" in line or "ميسر" in line for line in radd["scope"])
-    assert any("تيليجرام" in line and "قريباً" in line for line in radd["scope"])
+    assert not any("تيليجرام" in line for line in radd["scope"])  # coming items live in "coming"
+    assert any("تيليجرام" in line for line in radd["coming"])
 
 
 def test_support_handoff_is_env_configured(monkeypatch):
