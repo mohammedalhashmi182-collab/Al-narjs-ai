@@ -6,6 +6,11 @@ sales pipeline. Rules:
 
 * Answers come only from that project's own knowledge base (``KnowledgeDoc``
   rows with ``project_id``). No answer → polite human handoff, never a guess.
+* The reply is written by the LLM (``compose_llm_answer``) grounded ONLY in the
+  retrieved snippets. It is rejected and the safe verbatim-snippet reply is used
+  instead when the LLM is unavailable/errors, the reply is empty or too long,
+  pitches Al-Narjis, or contains a number or link that is not in the snippets.
+  If the LLM says the snippets do not answer the question → human handoff.
 * Never pitches Al-Narjis plans or payment links (``contains_pitch`` guard).
 * Never creates ``AcquisitionLead`` / ``LeadPipeline`` rows. The end-customer
   is a ``TenantContact`` of the project.
@@ -81,6 +86,69 @@ def compose_answer(hits: list[dict]) -> str:
     if len(top) > 700:
         top = top[:700].rsplit(" ", 1)[0] + "…"
     return f"أهلًا بك 🌿\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
+
+
+LLM_NO_ANSWER = "NO_ANSWER"
+LLM_MAX_CHARS = 900
+LLM_TIMEOUT = 12.0
+
+_SYSTEM = (
+    "أنت موظف خدمة عملاء لدى {name} وترد على عملائه في واتساب باللغة العربية بأسلوب ودود ومختصر. "
+    "أجب فقط من المقتطفات المرفقة من قاعدة معرفة {name}. لا تضف أي معلومة أو سعر أو رقم أو رابط غير موجود فيها. "
+    "لا تذكر أنك ذكاء اصطناعي ولا تذكر أي شركة أخرى. "
+    "إذا كانت المقتطفات لا تجيب عن السؤال فاكتب فقط: " + LLM_NO_ANSWER
+)
+
+
+async def _llm_complete(system: str, prompt: str) -> Optional[str]:
+    """One LLM call through the app's fallback chain (seam for tests). Never raises."""
+    import asyncio
+
+    from src.config.settings import get_settings
+
+    st = get_settings()
+    if not (st.gemini_api_key or st.moonshot_api_key or getattr(st, "openrouter_api_key", None)):
+        return None
+    try:
+        from src.core.model_provider import ModelProvider, ModelRequest
+
+        req = ModelRequest(prompt=prompt, system_prompt=system, temperature=0.2, max_tokens=400)
+        res = await asyncio.wait_for(ModelProvider(st).complete_with_fallback("gemini", req), LLM_TIMEOUT)
+        return (res.content or "").strip() or None
+    except Exception as exc:  # noqa: BLE001 - fall back to the verbatim snippet
+        log.warning("tenant LLM reply failed: %s", type(exc).__name__)
+        return None
+
+
+_NUM = re.compile(r"\d+(?:[.,]\d+)?")
+_URL = re.compile(r"https?://\S+|www\.\S+", re.I)
+_AR_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+
+
+def grounded(reply: str, hits: list[dict]) -> bool:
+    """Every number and link in the reply must appear in the snippets."""
+    source = " ".join(str(h.get("text") or "") for h in hits).translate(_AR_DIGITS)
+    out = (reply or "").translate(_AR_DIGITS)
+    src_nums = set(_NUM.findall(source))
+    if any(n not in src_nums for n in _NUM.findall(out)):
+        return False
+    return all(u.rstrip(".,)") in source for u in _URL.findall(out))
+
+
+async def compose_llm_answer(project: ClientProject, question: str, hits: list[dict]) -> tuple[Optional[str], str]:
+    """(body, source). source: ``llm`` | ``kb_fallback`` | ``no_answer`` (body None)."""
+    name = (project.client_name or "").strip() or "المتجر"
+    snippets = "\n\n".join(f"[{i + 1}] {h.get('title') or ''}\n{str(h.get('text') or '')[:1500]}"
+                            for i, h in enumerate(hits))
+    prompt = f"المقتطفات:\n{snippets}\n\nسؤال العميل:\n{question[:1000]}\n\nالرد:"
+    reply = await _llm_complete(_SYSTEM.format(name=name), prompt)
+    if reply is None:
+        return compose_answer(hits), "kb_fallback"
+    if LLM_NO_ANSWER in reply.upper():
+        return None, "no_answer"
+    if len(reply) > LLM_MAX_CHARS or contains_pitch(reply) or not grounded(reply, hits):
+        return compose_answer(hits), "kb_fallback"
+    return reply, "llm"
 
 
 def compose_handoff(project: ClientProject, reason: str) -> str:
@@ -197,9 +265,12 @@ async def handle_inbound(session: AsyncSession, *, project: ClientProject, conta
             hits = []
         reason = None if hits else "no_answer"
         if hits:
-            body = compose_answer(hits)
+            body, source = await compose_llm_answer(project, text, hits)
             meta["kb"] = [h["title"] for h in hits]
-            if contains_pitch(body):
+            meta["answer_source"] = source
+            if body is None:
+                reason = "no_answer"
+            elif contains_pitch(body):
                 reason = "guard"
     if reason:
         kind = "handoff"
