@@ -55,8 +55,23 @@ async def add_doc(session: AsyncSession, title: str, content: str, *, project_id
         raise KBError("المحتوى قصير جدًا")
     doc = KnowledgeDoc(project_id=project_id, title=(title or "FAQ").strip()[:255], content=content, source=source)
     session.add(doc)
+    await session.flush()
+    await _index(session, doc)
     await session.commit()
     return doc
+
+
+async def _index(session: AsyncSession, doc: KnowledgeDoc) -> None:
+    """Build RAG vectors now (best effort: retrieval also backfills lazily)."""
+    try:
+        from src.services.rag import store
+
+        async with session.begin_nested():
+            await store.index_doc(session, doc)
+    except Exception:  # noqa: BLE001
+        import logging
+
+        logging.getLogger(__name__).warning("RAG indexing deferred for doc %s", doc.id, exc_info=True)
 
 
 async def list_docs(session: AsyncSession, project_id: UUID | None = None) -> list[KnowledgeDoc]:
@@ -68,6 +83,9 @@ async def delete_doc(session: AsyncSession, doc_id: UUID, project_id: UUID | Non
     doc = await session.get(KnowledgeDoc, doc_id)
     if not doc or doc.project_id != project_id:
         return False
+    from src.services.rag import store
+
+    await store.delete_doc_chunks(session, doc.id)
     await session.delete(doc)
     await session.commit()
     return True
