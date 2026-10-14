@@ -1048,7 +1048,7 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
     if getattr(payment, "founding", False):
         from src.services import founding as _founding
 
-        _founding.mark_project(project, payment, now)
+        await _founding.mark_project(session, project, payment, now)
     staffed = await staff_project(session, project)
     project.last_payment_id = payment.id
     if project.renewal_payment_id is not None and str(project.renewal_payment_id) == str(payment.id):

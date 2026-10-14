@@ -1,9 +1,9 @@
 """Founding-customer offer: the first ``catalog.FOUNDING_OFFER["seats"]`` (15).
 
-Seats are held by
-  * activated founding projects that were not revoked, and
-  * founding orders still awaiting payment (created within ``HOLD``), so a
-    burst of checkouts cannot sell more than 15 discounted seats.
+Seats are held ONLY by activated (paid/confirmed) founding projects that were
+not revoked. Unpaid orders are shown the founding price while a seat is free,
+and availability is re-checked at activation: if the seats ran out meanwhile
+the order's price is honoured but no seat is granted (never more than 15).
 New (non-renewal) orders get the founding price automatically while a seat is
 free: 30% off annual or 20% off monthly with a 3-month commitment, setup fee
 waived. A founding project keeps the price on renewals until
@@ -13,6 +13,8 @@ revoke a seat; that frees it and stops the discount on future renewals.
 
 from __future__ import annotations
 
+import logging
+
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -21,7 +23,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services import catalog
 
-HOLD = timedelta(hours=72)
+logger = logging.getLogger(__name__)
+
+HOLD = timedelta(hours=72)  # kept for backwards compatibility; no longer holds seats
 UNPAID_STATUSES = ("pending", "invoice", "initiated")
 
 
@@ -32,30 +36,19 @@ def _utc(dt):
 
 
 async def seats_used(session: AsyncSession, now: Optional[datetime] = None) -> int:
-    from src.models import ClientProject, Payment
+    """Seats are taken only by activated (paid/confirmed) founding projects.
 
-    now = _utc(now) or datetime.now(timezone.utc)
-    projects = (await session.execute(
-        select(ClientProject.id).where(ClientProject.founding.is_(True), ClientProject.founding_revoked_at.is_(None))
-    )).scalars().all()
-    held = set(str(p) for p in projects)
-    pending = (await session.execute(
-        select(Payment.project_id, Payment.id, Payment.created_at).where(
-            Payment.founding.is_(True), Payment.is_renewal.is_(False), Payment.status.in_(UNPAID_STATUSES),
-        )
-    )).all()
-    extra = 0
-    seen = set()
-    for project_id, payment_id, created in pending:
-        created = _utc(created)
-        if created is not None and now - created > HOLD:
-            continue
-        key = str(project_id) if project_id else f"pay:{payment_id}"
-        if key in held or key in seen:
-            continue
-        seen.add(key)
-        extra += 1
-    return len(held) + extra
+    Unpaid orders (pending/invoice/initiated) never hold a seat, so abandoned
+    or spam checkouts cannot exhaust the offer.
+    """
+    from sqlalchemy import func
+
+    from src.models import ClientProject
+
+    return int((await session.execute(
+        select(func.count(ClientProject.id)).where(
+            ClientProject.founding.is_(True), ClientProject.founding_revoked_at.is_(None))
+    )).scalar() or 0)
 
 
 async def seats_remaining(session: AsyncSession, now: Optional[datetime] = None) -> int:
@@ -91,17 +84,26 @@ async def eligible_for_order(session: AsyncSession, package: str, *, is_renewal:
     return await seats_remaining(session, now) > 0
 
 
-def mark_project(project, payment, now: datetime) -> None:
-    """On activation of a founding order: take the seat and stamp the terms."""
+async def mark_project(session: AsyncSession, project, payment, now: datetime) -> bool:
+    """On activation of a founding order: take a seat (if one is free) and stamp the terms.
+
+    Returns True when a seat was granted. If all seats were taken between the
+    order and its payment, the paid price is honoured but no seat is taken.
+    """
     from src.services.payments import add_months
 
     if getattr(project, "founding", False) or project.founding_revoked_at is not None:
-        return
+        return False
+    if await seats_remaining(session, now) <= 0:
+        logger.warning("founding seats full at activation; honouring price without seat "
+                       "(project=%s payment=%s)", getattr(project, "id", None), getattr(payment, "id", None))
+        return False
     project.founding = True
     project.founding_at = now
     project.founding_locked_until = add_months(now, int(catalog.FOUNDING_OFFER.get("locked_months", 12)))
     if catalog.resolve_billing_period(payment.billing_period) == "monthly":
         project.founding_commitment_until = add_months(now, int(catalog.FOUNDING_OFFER["monthly_commitment_months"]))
+    return True
 
 
 async def revoke(session: AsyncSession, project, now: Optional[datetime] = None) -> dict:
