@@ -1,0 +1,53 @@
+{#- Shared shell for single-language content pages (refund policy, about,
+    contact). The page renders ONE language server-side, so lang/dir always
+    match the visible text and crawlers never see the other language. -#}
+{% set _lang = page_lang(request) %}
+{% set _path = request.url.path %}
+{% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if ar else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index,follow">
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="description" content="{% block description %}{% endblock %}">
+    <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
+    <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online{{ _base_path }}">
+    <meta property="og:title" content="{{ self.title() }}">
+    <meta property="og:description" content="{{ self.description() }}">
+    <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <link rel="stylesheet" href="/static/css/narjis-luxury.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include "partials/_analytics.html" %}
+    <style>.sp p,.sp li{font-size:.95rem}.sp h2{margin-top:20px}.sp ul{padding-inline-start:20px;list-style:disc}.sp a{color:var(--n-gold)}</style>
+</head>
+<body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
+    <div class="n-hero" style="padding:56px 20px 40px;">
+        <div class="max-w-3xl mx-auto">
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">{% if ar %}&rarr; العودة للرئيسية{% else %}&larr; Back to home{% endif %}</a>
+            · <a href="/{{ 'en' if ar else 'ar' }}{{ _base_path }}" style="color:var(--n-brown-2);font-size:0.9rem;">{% if ar %}English{% else %}العربية{% endif %}</a>
+            <h1 class="n-title text-3xl mt-4">{% block h1 %}{% endblock %}</h1>
+            <div class="n-card sp mt-6" style="padding:28px;line-height:1.9;">
+                {% block body %}{% endblock %}
+            </div>
+            <p class="n-sub mt-6" style="font-size:0.85rem;">
+                {% if ar %}يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 · الرياض{% else %}Operated by The Arabian Convoy Establishment · CR 31332495263 · Riyadh{% endif %}
+                · <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a><br>
+                <a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a> ·
+                <a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a> ·
+                <a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a> ·
+                <a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a> ·
+                <a href="/pricing">{% if ar %}الباقات والأسعار{% else %}Pricing{% endif %}</a> ·
+                <a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a> ·
+                <a href="/contact">{% if ar %}تواصل{% else %}Contact{% endif %}</a>
+            </p>
+        </div>
+    </div>
+    {% include "partials/_site_assistant.html" %}
+</body>
+</html>

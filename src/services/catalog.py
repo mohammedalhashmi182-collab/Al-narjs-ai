@@ -81,16 +81,16 @@ PACKAGES = {
         "tagline_en": "Never miss a customer question — replies in Saudi dialect within seconds, day and night",
         "scope": [
             "وكيلان: ردود ذكية + متابعة الطلب حتى الفاتورة",
-            "قناتان: واتساب + تيليجرام أو ماسنجر",
+            "قناتان: واتساب + تيليجرام أو ماسنجر (قريباً)",
             "وضع المراجعة: كل ردّ مسودة تعتمدها حتى تقرّر التشغيل التلقائي",
-            "فواتير ضريبية ورابط دفع ميسّر أو تحويل بنكي",
+            "فواتير ضريبية ورابط دفع أو تحويل بنكي",
             "١٬٠٠٠ محادثة ذكية شهرياً، ورسوم ميتا مشمولة حتى ١٠٠ ريال",
         ],
         "scope_en": [
             "2 agents: smart replies + order follow-up through to the invoice",
-            "2 channels: WhatsApp + Telegram or Messenger",
+            "2 channels: WhatsApp + Telegram or Messenger (coming soon)",
             "Review mode: every reply is a draft you approve until you switch on auto-reply",
-            "Tax invoices and a Moyasar payment link or bank transfer",
+            "Tax invoices and a payment link or bank transfer",
             "1,000 smart conversations a month, Meta fees covered up to 100 SAR",
         ],
     },
@@ -203,6 +203,9 @@ USAGE_ADDONS = {
         "amount": 9900,
         "price": "99",
         "units": 100,
+        # Not sold until the voice agent launches: checkout and the payments
+        # API refuse new voice packs while this is False.
+        "purchasable": False,
         "note": "",
         "note_en": "",
     },

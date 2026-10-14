@@ -28,41 +28,37 @@
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
     <div class="n-hero" style="padding:56px 20px 40px;">
         <div class="max-w-3xl mx-auto">
-            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; <span data-lang="ar">العودة للرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
-            <h1 class="n-title text-3xl mt-4"><span data-lang="ar">المعالجون الفرعيون</span><span data-lang="en" data-inline>Subprocessors</span></h1>
-            <p class="n-sub mt-2" style="color:var(--n-brown-2);"><span data-lang="ar">آخر تحديث: 14 أكتوبر 2026</span><span data-lang="en" data-inline>Last updated: 14 October 2026</span></p>
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; <span data-lang="ar" lang="ar" dir="rtl">العودة للرئيسية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back to home</span></a>
+            <h1 class="n-title text-3xl mt-4"><span data-lang="ar" lang="ar" dir="rtl">المعالجون الفرعيون</span><span data-lang="en" lang="en" dir="ltr" data-inline>Subprocessors</span></h1>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">آخر تحديث: 14 أكتوبر 2026</span><span data-lang="en" lang="en" dir="ltr" data-inline>Last updated: 14 October 2026</span></p>
 
             <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
-                <h2 class="n-title text-lg" data-lang="ar">من يعالج البيانات نيابة عنا</h2>
-                <h2 class="n-title text-lg" data-lang="en" data-inline>Who processes data on our behalf</h2>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">هذه الجهات تعالج بيانات الخدمة لغرض محدد فقط. تفاصيل الالتزامات في <a href="/dpa">اتفاقية معالجة البيانات</a>.</p>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>These providers process service data for a specific purpose only. Obligations are set out in the <a href="/dpa">Data Processing Agreement</a>.</p>
+                <h2 class="n-title text-lg" data-lang="ar" lang="ar" dir="rtl">من يعالج البيانات نيابة عنا</h2>
+                <h2 class="n-title text-lg" data-lang="en" lang="en" dir="ltr" data-inline>Who processes data on our behalf</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar" lang="ar" dir="rtl">هذه الجهات تعالج بيانات الخدمة لغرض محدد فقط. تفاصيل الالتزامات في <a href="/dpa">اتفاقية معالجة البيانات</a>.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" lang="en" dir="ltr" data-inline>These providers process service data for a specific purpose only. Obligations are set out in the <a href="/dpa">Data Processing Agreement</a>.</p>
                 <table class="ops-table mt-3">
                     <thead><tr><th>{% if _lang == 'ar' %}المزوّد{% else %}Provider{% endif %}</th><th>{% if _lang == 'ar' %}الغرض{% else %}Purpose{% endif %}</th><th>{% if _lang == 'ar' %}الموقع{% else %}Location{% endif %}</th></tr></thead>
                     <tbody>{% for s in subprocessors %}<tr><td dir="ltr">{{ s.name }}</td><td>{% if _lang == 'ar' %}{{ s.purpose_ar }}{% else %}{{ s.purpose_en }}{% endif %}</td><td>{% if _lang == 'ar' %}{{ s.region_ar }}{% else %}{{ s.region_en }}{% endif %}</td></tr>{% endfor %}</tbody>
                 </table>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar"><b>نقل البيانات خارج المملكة:</b> ننقل البيانات الشخصية خارج المملكة فقط بالقدر اللازم لتقديم الخدمة ووفق نظام حماية البيانات الشخصية ولائحة نقل البيانات خارج المملكة. الضمانات: (1) تقليل البيانات، إذ نحجب أرقام الجوال والبريد الإلكتروني وأرقام الهوية والإقامة والآيبان آلياً قبل إرسال أي نص إلى مزودي الذكاء الاصطناعي ونعيدها محلياً في الرد؛ (2) تشفير الاتصال (TLS) أثناء النقل؛ (3) اتفاقيات معالجة مع المزودين تمنع استخدام البيانات لأغراضهم الخاصة وفق شروطهم التجارية؛ (4) مدد احتفاظ محددة. الأساس النظامي: تنفيذ العقد معك ومصلحتنا المشروعة في تشغيل الخدمة، وتُجرى المعالجة بموافقتك عند الحاجة. قيّمنا مخاطر كل نقل ونراجع التقييم دورياً.</p>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline><b>Transfers outside the Kingdom:</b> we transfer personal data outside KSA only as needed to provide the service and in line with the PDPL and its Regulation on Personal Data Transfer outside the Kingdom. Safeguards: (1) minimisation, as phone numbers, emails, national/iqama IDs and IBANs are automatically masked before any text is sent to AI providers and restored locally in the reply; (2) encryption in transit (TLS); (3) processing terms with providers that bar use of the data for their own purposes under their business terms; (4) defined retention periods. Legal basis: performance of our contract with you and our legitimate interest in operating the service, with consent where required. We assessed the risk of each transfer and review it periodically.</p>
-                <h2 class="n-title text-lg mt-5" data-lang="ar">سياسة الاحتفاظ</h2>
-                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>Retention policy</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar" lang="ar" dir="rtl"><b>نقل البيانات خارج المملكة:</b> ننقل البيانات الشخصية خارج المملكة فقط بالقدر اللازم لتقديم الخدمة ووفق نظام حماية البيانات الشخصية ولائحة نقل البيانات خارج المملكة. الضمانات: (1) تقليل البيانات، إذ نحجب أرقام الجوال والبريد الإلكتروني وأرقام الهوية والإقامة والآيبان آلياً قبل إرسال أي نص إلى مزودي الذكاء الاصطناعي ونعيدها محلياً في الرد؛ (2) تشفير الاتصال (TLS) أثناء النقل؛ (3) اتفاقيات معالجة مع المزودين تمنع استخدام البيانات لأغراضهم الخاصة وفق شروطهم التجارية؛ (4) مدد احتفاظ محددة. الأساس النظامي: تنفيذ العقد معك ومصلحتنا المشروعة في تشغيل الخدمة، وتُجرى المعالجة بموافقتك عند الحاجة. قيّمنا مخاطر كل نقل ونراجع التقييم دورياً.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" lang="en" dir="ltr" data-inline><b>Transfers outside the Kingdom:</b> we transfer personal data outside KSA only as needed to provide the service and in line with the PDPL and its Regulation on Personal Data Transfer outside the Kingdom. Safeguards: (1) minimisation, as phone numbers, emails, national/iqama IDs and IBANs are automatically masked before any text is sent to AI providers and restored locally in the reply; (2) encryption in transit (TLS); (3) processing terms with providers that bar use of the data for their own purposes under their business terms; (4) defined retention periods. Legal basis: performance of our contract with you and our legitimate interest in operating the service, with consent where required. We assessed the risk of each transfer and review it periodically.</p>
+                <h2 class="n-title text-lg mt-5" data-lang="ar" lang="ar" dir="rtl">سياسة الاحتفاظ</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" lang="en" dir="ltr" data-inline>Retention policy</h2>
                 <table class="ops-table mt-3">
                     <thead><tr><th>{% if _lang == 'ar' %}البيانات{% else %}Data{% endif %}</th><th>{% if _lang == 'ar' %}مدة الاحتفاظ{% else %}Retention{% endif %}</th></tr></thead>
                     <tbody>{% for r in retention %}<tr><td>{% if _lang == 'ar' %}{{ r.data_ar }}{% else %}{{ r.data_en }}{% endif %}</td><td>{% if _lang == 'ar' %}{{ r.period_ar }}{% else %}{{ r.period_en }}{% endif %}</td></tr>{% endfor %}</tbody>
                 </table>
             </div>
 
-            <div class="n-card mt-6" style="padding:24px;" id="telegram-connect">
-                <h2 class="n-title text-lg" data-lang="ar">{{ tg_plane_cls("width:1em;height:1em;vertical-align:-.15em") }} تواصل معنا فوراً عبر تيليجرام</h2>
-                <h2 class="n-title text-lg" data-lang="en" data-inline>{{ tg_plane_cls("width:1em;height:1em;vertical-align:-.15em") }} Reach us instantly on Telegram</h2>
-                <div class="ops-cta">
-                    <a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">{{ tg_plane_cls("width:1.1em;height:1.1em") }} @AlNarjs7BOT</a>
-                    {% if contact.whatsapp %}<a href="{{ contact.whatsapp }}" target="_blank" rel="noopener"><span data-lang="ar">واتساب</span><span data-lang="en" data-inline>WhatsApp</span></a>{% endif %}
-                    <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
-                </div>
+            <div class="n-card mt-6" style="padding:24px;" id="contact-email">
+                <h2 class="n-title text-lg">{% if _lang == 'ar' %}تواصل معنا{% else %}Contact us{% endif %}</h2>
+                <p class="n-sub">{% if _lang == 'ar' %}اسأل مساعد النرجس من الزر أسفل الصفحة أو راسلنا على{% else %}Ask the Al-Narjis assistant from the button below or email{% endif %} <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a></p>
             </div>
             <p class="n-sub mt-6" style="font-size:0.85rem;">
                 <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·
                 <a href="/terms">{% if _lang == 'ar' %}الشروط{% else %}Terms{% endif %}</a> ·
+                <a href="/refund-policy">{% if _lang == 'ar' %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a> · <a href="/about">{% if _lang == 'ar' %}من نحن{% else %}About{% endif %}</a> ·
                 <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a> ·
                 <a href="/dpa">{% if _lang == 'ar' %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a> ·
                 <a href="/subprocessors">{% if _lang == 'ar' %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a> ·
@@ -70,6 +66,6 @@
             </p>
         </div>
     </div>
-    <a class="ops-mobile-cta" href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">{% if _lang == 'ar' %}راسلنا على تيليجرام{% else %}Message us on Telegram{% endif %}</a>
+    {% include "partials/_site_assistant.html" %}
 </body>
 </html>

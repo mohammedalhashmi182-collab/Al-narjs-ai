@@ -138,31 +138,12 @@ def test_the_copy_target_has_no_dead_hash_placeholder(portal: str) -> None:
 # --------------------------------------------------------------------------
 
 
-def test_the_checkout_offers_a_whatsapp_way_out(portal: str) -> None:
-    assert 'id="xfWa"' in portal, "no WhatsApp route out of the checkout"
-    assert "fab fa-whatsapp" in portal
 
 
-def test_the_whatsapp_button_is_conditional_on_a_published_number(portal: str) -> None:
-    """No number, no button -- otherwise it renders as a dead link."""
-    block = portal[portal.find('id="coXfer"'): portal.find('id="coXfer"') + 4200]
-    assert "{% if contact.whatsapp %}" in block
-    assert "fa-whatsapp" in block
 
 
-def test_the_whatsapp_number_is_not_hard_coded(portal: str) -> None:
-    """It must come from the published contact source, like the IBAN does."""
-    assert 'href="{{ contact.whatsapp }}"' in portal
-    if re.search(r'href="https://wa\.me/[0-9]{9,}"', portal):
-        raise AssertionError("the WhatsApp number is hard-coded in the template")
 
 
-def test_the_server_passes_the_contact_to_the_portal(client: TestClient) -> None:
-    r = client.get("/portal")
-    assert r.status_code == 200
-    body = r.json() if r.headers.get("content-type", "").startswith("application/json") else r.text
-    if isinstance(body, str) and "xfWa" in body:
-        assert "wa.me" in body, "the WhatsApp block rendered without a usable link"
 
 
 def test_after_the_invoice_is_created_whatsapp_carries_the_reference(portal: str) -> None:
@@ -190,40 +171,12 @@ def landing() -> str:
     return LANDING.read_text(encoding="utf-8")
 
 
-def test_whatsapp_renders_above_telegram_in_the_floating_stack(landing: str) -> None:
-    """The owner's explicit instruction: WhatsApp sits above Telegram."""
-    stack = landing[landing.find('<div class="contact-stack fab-cluster"'):]
-    stack = stack[: stack.find("</div>") + 10]
-    wa = stack.find('id="waFloat"')
-    tg = stack.find('id="tgFloat"')
-    assert wa > 0, "no WhatsApp floating button"
-    assert tg > 0, "no Telegram floating button"
-    assert wa < tg, "WhatsApp must come before Telegram in the stack"
 
 
-def test_whatsapp_renders_above_telegram_in_the_footer(landing: str) -> None:
-    socials = landing[landing.find('<div class="socials">'):]
-    socials = socials[: socials.find("</div>")]
-    wa = socials.find('aria-label="WhatsApp"')
-    tg = socials.find('aria-label="Telegram"')
-    assert wa > 0 and tg > 0, "both channels must be present in the footer"
-    assert wa < tg, "WhatsApp must come before Telegram in the footer"
 
 
-def test_the_stack_hides_a_button_when_no_number_is_published(landing: str) -> None:
-    stack = landing[landing.find('<div class="contact-stack fab-cluster"'):][:1200]
-    assert "{% if contact.whatsapp %}" in stack, "an empty WhatsApp link would be dead"
-    assert "{% if contact.whatsapp %}" in landing[landing.find('<div class="socials">'):][:900]
 
 
-def test_the_number_is_not_hard_coded_in_either_place(landing: str) -> None:
-    assert 'href="{{ contact.whatsapp }}"' in landing
-    for match in re.finditer(r'class="wa-float"[^>]*href="([^"]+)"', landing):
-        assert "{{" in match.group(1) or match.group(1).startswith("#"), (
-            "the floating WhatsApp button has a literal URL"
-        )
-    if re.search(r'class="wa-float"[^>]*href="https://wa\.me/[0-9]', landing):
-        raise AssertionError("the WhatsApp number is hard-coded")
 
 
 def test_the_stack_is_a_column_so_the_order_is_structural(landing: str) -> None:
@@ -236,11 +189,20 @@ def test_the_stack_is_a_column_so_the_order_is_structural(landing: str) -> None:
     assert "flex-direction: column" in css, "the stack must be a column to stack the order"
 
 
-def test_the_landing_page_receives_the_contact_channels(client: TestClient) -> None:
+# --------------------------------------------------------------------------
+# Owner decision (Oct 2026): the public site's contact is the Al-Narjis
+# assistant + email only. No floating WhatsApp/Telegram/Messenger buttons.
+# --------------------------------------------------------------------------
+
+
+def test_the_checkout_has_no_direct_channel_links(portal: str) -> None:
+    assert 'id="xfWa"' not in portal
+    assert "t.me/" not in portal and "wa.me/" not in portal
+
+
+def test_the_landing_page_has_no_floating_channel_buttons(client: TestClient) -> None:
     body = client.get("/home").text
-    assert 'id="waFloat"' in body, "the WhatsApp button did not render"
-    assert 'id="tgFloat"' in body
-    assert body.index('id="waFloat"') < body.index('id="tgFloat"'), (
-        "WhatsApp must render above Telegram on the live page"
-    )
-    assert "wa.me" in body, "the WhatsApp link is empty"
+    for marker in ('id="waFloat"', 'id="tgFloat"', 'id="msFloat"', "wa.me/", "t.me/", "m.me/"):
+        assert marker not in body, marker
+    assert 'id="siteAssistant"' in body
+    assert "mailto:Al-Narjis@karmaai.online" in body

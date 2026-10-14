@@ -2,9 +2,9 @@
     <section class="section agents" id="agents">
         <div class="sec-inner">
             <div class="reveal" style="text-align:center;">
-                <span class="eyebrow"><span data-lang="ar">فريق العمل</span><span data-lang="en" data-inline>The team</span></span>
-                <h2 class="sec-title"><span data-lang="ar">‏{{ division_count }} أقسام متخصصة</span><span data-lang="en" data-inline>{{ division_count }} specialised divisions</span> <span class="c"><span data-lang="ar">تعمل كوحدة واحدة</span><span data-lang="en" data-inline>working as one</span></span></h2>
-                <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar">لا تبحث عن وكيل واحد. نحن {{ division_count }} أقسام يغطيها {{ agent_count }} متخصصاً، ومدير تنفيذي واحد يوزّع المهمة على الأقسام المناسبة ثم يراجع النتيجة قبل أن تصل إليك.</span><span data-lang="en" data-inline>You do not hire a single agent. You get {{ division_count }} divisions staffed by {{ agent_count }} specialists, and one executive office that routes your task to the right division and reviews the result before it reaches you.</span></p>
+                <span class="eyebrow"><span data-lang="ar" lang="ar" dir="rtl">فريق العمل</span><span data-lang="en" lang="en" dir="ltr" data-inline>The team</span></span>
+                <h2 class="sec-title"><span data-lang="ar" lang="ar" dir="rtl">‏{{ division_count }} أقسام متخصصة</span><span data-lang="en" lang="en" dir="ltr" data-inline>{{ division_count }} specialised divisions</span> <span class="c"><span data-lang="ar" lang="ar" dir="rtl">تعمل كوحدة واحدة</span><span data-lang="en" lang="en" dir="ltr" data-inline>working as one</span></span></h2>
+                <p class="sec-sub" style="margin-inline:auto;"><span data-lang="ar" lang="ar" dir="rtl">لا تبحث عن وكيل واحد. نحن {{ division_count }} أقسام يغطيها {{ agent_count }} متخصصاً، ومدير تنفيذي واحد يوزّع المهمة على الأقسام المناسبة ثم يراجع النتيجة قبل أن تصل إليك.</span><span data-lang="en" lang="en" dir="ltr" data-inline>You do not hire a single agent. You get {{ division_count }} divisions staffed by {{ agent_count }} specialists, and one executive office that routes your task to the right division and reviews the result before it reaches you.</span></p>
             </div>
 
             <div class="dv-grid reveal" id="divisions-grid">
@@ -13,16 +13,16 @@
                     <div class="dv-head">
                         <div class="role-tile">{{ role_icon(d.name_ar) }}</div>
                         <div class="dv-title">
-                            <h3><span data-lang="ar">{{ d.name_ar }}</span><span data-lang="en" data-inline>{{ d.name_en }}</span></h3>
-                            <span class="dv-count"><i class="fas fa-user-tie"></i>{{ d.count }} <span data-lang="ar">متخصص</span><span data-lang="en" data-inline>specialists</span></span>
+                            <h3><span data-lang="ar" lang="ar" dir="rtl">{{ d.name_ar }}</span><span data-lang="en" lang="en" dir="ltr" data-inline>{{ d.name_en }}</span></h3>
+                            <span class="dv-count"><i class="fas fa-user-tie"></i>{{ d.count }} <span data-lang="ar" lang="ar" dir="rtl">متخصص</span><span data-lang="en" lang="en" dir="ltr" data-inline>specialists</span></span>
                         </div>
                     </div>
-                    <p class="dv-blurb"><span data-lang="ar">{{ d.blurb_ar }}</span><span data-lang="en" data-inline>{{ d.blurb_en }}</span></p>
+                    <p class="dv-blurb"><span data-lang="ar" lang="ar" dir="rtl">{{ d.blurb_ar }}</span><span data-lang="en" lang="en" dir="ltr" data-inline>{{ d.blurb_en }}</span></p>
                     <details class="dv-roster">
-                        <summary><span data-lang="ar">من يعمل هنا</span><span data-lang="en" data-inline>Who works here</span> <i class="fas fa-chevron-down"></i></summary>
+                        <summary><span data-lang="ar" lang="ar" dir="rtl">من يعمل هنا</span><span data-lang="en" lang="en" dir="ltr" data-inline>Who works here</span> <i class="fas fa-chevron-down"></i></summary>
                         <ul class="dv-list">
                             {% for slug in d.agents %}
-                            <li><a href="/ai-agent/{{ slug }}"><i class="fas fa-circle"></i><span data-lang="ar">{{ catalog_employees[slug].title_ar }}</span><span data-lang="en" data-inline>{{ catalog_employees[slug].title_en }}</span></a></li>
+                            <li><a href="/ai-agent/{{ slug }}"><i class="fas fa-circle"></i><span data-lang="ar" lang="ar" dir="rtl">{{ catalog_employees[slug].title_ar }}</span><span data-lang="en" lang="en" dir="ltr" data-inline>{{ catalog_employees[slug].title_en }}</span></a></li>
                             {% endfor %}
                         </ul>
                     </details>
@@ -31,8 +31,8 @@
             </div>
 
             <div class="dv-cta reveal">
-                <a class="btn btn-gold" href="/consult"><span data-lang="ar">ابدأطلب — نوجّهك للقسم المناسب</span><span data-lang="en" data-inline>Start a request — we route you</span></a>
-                <a class="btn btn-ghost" href="/#pricing"><span data-lang="ar">قارن الباقات</span><span data-lang="en" data-inline>Compare plans</span></a>
+                <a class="btn btn-gold" href="/consult"><span data-lang="ar" lang="ar" dir="rtl">ابدأطلب — نوجّهك للقسم المناسب</span><span data-lang="en" lang="en" dir="ltr" data-inline>Start a request — we route you</span></a>
+                <a class="btn btn-ghost" href="/#pricing"><span data-lang="ar" lang="ar" dir="rtl">قارن الباقات</span><span data-lang="en" lang="en" dir="ltr" data-inline>Compare plans</span></a>
             </div>
         </div>
     </section>

@@ -53,7 +53,7 @@ def test_owner_api_is_closed_to_anonymous_callers(anon: TestClient, method, path
 @pytest.mark.parametrize("path", OWNER_ONLY_PAGES)
 def test_owner_pages_redirect_anonymous_visitors_away(anon: TestClient, path) -> None:
     r = anon.get(path, follow_redirects=False)
-    assert r.status_code in (302, 303, 307), f"{path} answered {r.status_code}"
+    assert r.status_code in (301, 302, 303, 307), f"{path} answered {r.status_code}"
     assert r.headers.get("location") in ("/home", "/login"), path
 
 

@@ -39,10 +39,9 @@
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "النرجس للذكاء الاصطناعي | Al-Narjis AI",
+      "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
       "alternateName": "The Arabian Convoy Establishment",
       "url": "https://karmaai.online",
-      "sameAs": ["https://t.me/AlNarjs7BOT"],
       "legalName": "Arabian Convoy Establishment",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": "Riyadh", "addressCountry": "SA"}
@@ -58,32 +57,32 @@
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
       "@id": "https://karmaai.online/#business",
-      "name": "النرجس للذكاء الاصطناعي",
-      "alternateName": "Al-Narjis AI",
+      "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
+      "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
       "legalName": "Arabian Convoy Establishment",
       "url": "https://karmaai.online",
-      "description": "رئيس تنفيذي ذكي يشخّص مشكلة عملك ويقود فريقاً من {{ agent_count }} وكيلاً في {{ division_count }} أقسام متخصصة.",
-      "inLanguage": ["ar", "en"],
+      "description": {% if ar %}"رئيس تنفيذي ذكي يشخّص مشكلة عملك ويقود فريقاً من {{ agent_count }} وكيلاً في {{ division_count }} أقسام متخصصة."{% else %}"An AI CEO that diagnoses your business problem and leads a team of {{ agent_count }} agents across {{ division_count }} specialist departments."{% endif %},
+      "inLanguage": "{{ _lang }}",
       "image": "https://karmaai.online/static/og-image.png",
       "logo": "https://karmaai.online/static/logo.png",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "currenciesAccepted": "SAR",
-      "paymentAccepted": "Moyasar, تحويل بنكي, فاتورة ضريبية",
+      "paymentAccepted": {{ ("PayPal، تحويل بنكي، فاتورة ضريبية" if ar else "PayPal, bank transfer, VAT invoice") | tojson }},
       "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": "Riyadh", "addressRegion": "Riyadh", "addressCountry": "SA"},
       "geo": {"@type": "GeoCoordinates", "latitude": 24.7136, "longitude": 46.6753},
       "areaServed": [{"@type": "Country", "name": "Saudi Arabia"}, {"@type": "AdministrativeArea", "name": "Riyadh"}],
       "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], "opens": "00:00", "closes": "23:59"}],
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
-        "name": "باقات النرجس",
+        "name": {{ ("باقات النرجس" if ar else "Al-Narjis plans") | tojson }},
         "itemListElement": [
           {% for plan in plans %}
-          {"@type": "Offer", "name": {{ plan.name | tojson }}, "name_en": {{ plan.name_en | tojson }}, "description": {{ plan.tagline_en | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://karmaai.online/portal?pkg={{ plan.key }}",
+          {"@type": "Offer", "name": {{ (plan.name if ar else plan.name_en) | tojson }}, "description": {{ (plan.tagline if ar else plan.tagline_en) | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://karmaai.online/portal?pkg={{ plan.key }}",
            "priceSpecification": [
              {"@type": "UnitPriceSpecification", "price": "{{ plan.price }}", "priceCurrency": "SAR", "unitCode": "MON", "billingDuration": "P1M", "valueAddedTaxIncluded": false},
              {"@type": "UnitPriceSpecification", "price": "{{ plan.annual_price }}", "priceCurrency": "SAR", "unitCode": "ANN", "billingDuration": "P1Y", "valueAddedTaxIncluded": false}
            ],
-           "addOn": {"@type": "Offer", "name": {{ addon.name | tojson }}, "name_en": {{ addon.name_en | tojson }}, "description": "One extra specialist agent on top of the plan", "price": "{{ addon.price }}", "priceCurrency": "SAR",
+           "addOn": {"@type": "Offer", "name": {{ (addon.name if ar else addon.name_en) | tojson }}, "description": {{ ("وكيل متخصص إضافي فوق الباقة" if ar else "One extra specialist agent on top of the plan") | tojson }}, "price": "{{ addon.price }}", "priceCurrency": "SAR",
              "priceSpecification": {"@type": "UnitPriceSpecification", "price": "{{ addon.price }}", "priceCurrency": "SAR", "unitCode": "MON", "billingDuration": "P1M", "valueAddedTaxIncluded": false}}}{% if not loop.last %},{% endif %}
           {% endfor %}
         ]
@@ -91,7 +90,7 @@
     }
     </script>
     <script type="application/ld+json">
-    {"@context": "https://schema.org", "@type": "WebSite", "name": "Al-Narjis AI", "url": "https://karmaai.online", "inLanguage": ["ar", "en"]}
+    {"@context": "https://schema.org", "@type": "WebSite", "name": "Al-Narjis AI", "url": "https://karmaai.online", "inLanguage": "{{ _lang }}"}
     </script>
     <script type="application/ld+json">
     {#
@@ -102,14 +101,11 @@
       "@context": "https://schema.org",
       "@type": "Person",
       "@id": "https://karmaai.online/#founder",
-      "name": "كريم",
-      "name_en": "Karim",
-      "jobTitle": "مؤسس المنصة",
-      "jobTitle_en": "Founder",
-      "description": "بدأ الفكرة على سيرفر محلي واحد بهدف جعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها، وطوّرها إلى منصة باشتراكات شهرية وفاتورة رسمية.",
-      "description_en": "Started the idea on a single local server with the aim of making AI assistance available to whoever needs it, and developed it into a platform with monthly subscriptions and official invoicing.",
+      "name": {{ ("كريم" if ar else "Karim") | tojson }},
+      "jobTitle": {{ ("مؤسس المنصة" if ar else "Founder") | tojson }},
+      "description": {% if ar %}"بدأ الفكرة على سيرفر محلي واحد بهدف جعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها، وطوّرها إلى منصة باشتراكات شهرية وفاتورة رسمية."{% else %}"Started the idea on a single local server with the aim of making AI assistance available to whoever needs it, and developed it into a platform with monthly subscriptions and official invoicing."{% endif %},
       "worksFor": {"@id": "https://karmaai.online/#business"},
-      "knowsAbout": ["الذكاء الاصطناعي التطبيقي", "أتمتة التسويق", "تجارة إلكترونية", "باقة وكلاء ذكاء اصطناعي"],
+      "knowsAbout": {% if ar %}["الذكاء الاصطناعي التطبيقي", "أتمتة التسويق", "تجارة إلكترونية", "باقة وكلاء ذكاء اصطناعي"]{% else %}["Applied AI", "Marketing automation", "E-commerce", "AI agent teams"]{% endif %},
       "foundingLocation": "Riyadh, Saudi Arabia"
     }
     </script>
@@ -142,7 +138,7 @@
 
 <header class="v2-nav">
     <div class="wrap">
-        <a href="/home" class="brand"><img src="/static/logo.png" alt="" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
+        <a href="/home" class="brand"><img src="/static/logo.png" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
         <nav aria-label="{% if ar %}التنقل{% else %}Navigation{% endif %}">
             <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
             <a href="#team">{% if ar %}الفريق{% else %}The team{% endif %}</a>
@@ -163,11 +159,10 @@
         <div class="hero-copy">
             <span class="v2-badge" aria-label="{% if ar %}متوافق مع مستهدفات رؤية 2030{% else %}Aligned with Vision 2030 goals{% endif %}"><b>2030</b>{% if ar %}متوافق مع مستهدفات رؤية المملكة{% else %}Aligned with Saudi Vision goals{% endif %}</span>
             <div class="ornament" aria-hidden="true">✦</div>
-            <h1>رئيسك التنفيذي الذكي</h1>
-            <span class="en-ceo" lang="en" dir="ltr">Your AI CEO</span>
+            <h1>{% if ar %}رئيسك التنفيذي الذكي{% else %}Your AI CEO{% endif %}</h1>
             {% if ar %}
             <p class="sub">يبني لك الفريق المناسب من أول محادثة</p>
-            <p class="lead">اطرح مشكلتك. الـ CEO يحلل، يرشح عدد الوكلاء، ويُنشئ اشتراكك المخصص فورًا.</p>
+            <p class="lead">اطرح مشكلتك. الرئيس التنفيذي يحلل، يرشح عدد الوكلاء، ويُنشئ اشتراكك المخصص فورًا.</p>
             {% else %}
             <p class="sub">Builds the right team for you from the first conversation</p>
             <p class="lead">Describe your problem. The CEO analyses it, recommends how many agents you need, and sets up your tailored subscription instantly.</p>
@@ -191,7 +186,7 @@
     <div class="wrap ceo-panel" style="margin-inline:auto">
         <div class="ceo-box" id="ceo">
             <div class="ceo-head">
-                <span class="ceo-avatar" aria-hidden="true">CEO</span>
+                <span class="ceo-avatar" aria-hidden="true">{% if ar %}ر.ت{% else %}CEO{% endif %}</span>
                 <div>
                     <b>{% if ar %}{{ ceo.title_ar }}{% else %}{{ ceo.title_en }}{% endif %} · {{ ceo.no }}</b>
                     <span><span class="ceo-online"></span>{% if ar %}المستشار الرسمي للزوار{% else %}The official advisor for visitors{% endif %}</span>
@@ -225,10 +220,7 @@
                     <div style="text-align:end"><b id="ceoPlanPrice"></b><small id="ceoPlanVat"></small></div>
                 </div>
                 <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}</a>
-                <div class="ceo-alt">
-                    <a id="ceoTg" href="https://t.me/AlNarjs7BOT" target="_blank" rel="noopener">{{ tg_plane() }} {% if ar %}ناقش التوصية على تيليجرام{% else %}Discuss on Telegram{% endif %}</a>
-                    {% if contact.whatsapp %}<a id="ceoWa" href="{{ contact_prefilled.whatsapp }}" target="_blank" rel="noopener">{% if ar %}أو واتساب{% else %}or WhatsApp{% endif %}</a>{% endif %}
-                </div>
+                <p class="ceo-alt" style="font-size:.88rem">{% if ar %}سؤال عن التوصية؟ اسأل مساعد النرجس أسفل الصفحة أو راسلنا على <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a>{% else %}Questions about the recommendation? Ask the Al-Narjis assistant at the bottom of the page or email <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>{% endif %}</p>
             </div>
         </div>
     </div>
@@ -254,7 +246,7 @@
             <p>{% if ar %}ثلاث خطوات بسيطة. حلول ذكية مستلهمة من <b class="lav">قيمنا النجدية</b>.{% else %}Three simple steps. Intelligent solutions inspired by <b class="lav">Najdi values</b>.{% endif %}</p>
         </div>
         <div class="steps">
-            <div class="step rv"><span class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.8-3.6 3.4-5.5 6.5-5.5 1.6 0 3 .5 4.1 1.4"/><path d="M18 13l.9 2.1 2.1.9-2.1.9L18 19l-.9-2.1-2.1-.9 2.1-.9z"/></svg></span><span class="n">01</span><h3>{% if ar %}تحدث مع الـ CEO{% else %}Talk to the CEO{% endif %}</h3><p>{% if ar %}اشرح مشكلتك بحرية.{% else %}Explain your problem freely.{% endif %}</p></div>
+            <div class="step rv"><span class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.8-3.6 3.4-5.5 6.5-5.5 1.6 0 3 .5 4.1 1.4"/><path d="M18 13l.9 2.1 2.1.9-2.1.9L18 19l-.9-2.1-2.1-.9 2.1-.9z"/></svg></span><span class="n">01</span><h3>{% if ar %}تحدث مع الرئيس التنفيذي{% else %}Talk to the CEO{% endif %}</h3><p>{% if ar %}اشرح مشكلتك بحرية.{% else %}Explain your problem freely.{% endif %}</p></div>
             <div class="step rv"><span class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 4.5a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.3A3 3 0 0 0 9 18.5h.5V4.5z"/><path d="M15 4.5a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.3 3 3 0 0 1-4.5 5.7h-.5V4.5z"/><path d="M9.5 9H12M12 13h2.5"/></svg></span><span class="n">02</span><h3>{% if ar %}يحلل ويرشّح الفريق{% else %}Analyses and staffs the team{% endif %}</h3><p>{% if ar %}يحدد عدد الوكلاء المناسبين ويشرح السبب.{% else %}It sets how many agents you need, and why.{% endif %}</p></div>
             <div class="step rv"><span class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3l2.2 1.6 2.7-.2.8 2.6 2.2 1.6-.9 2.6.9 2.6-2.2 1.6-.8 2.6-2.7-.2L12 21l-2.2-1.6-2.7.2-.8-2.6-2.2-1.6.9-2.6-.9-2.6 2.2-1.6.8-2.6 2.7.2z"/><path d="M8.5 12l2.4 2.4 4.6-4.8"/></svg></span><span class="n">03</span><h3>{% if ar %}اشتراك مخصص وتنفيذ فوري{% else %}A tailored plan, instant start{% endif %}</h3><p>{% if ar %}يبدأ الفريق العمل فور تأكيد الدفع.{% else %}The team starts as soon as payment is confirmed.{% endif %}</p></div>
         </div>
@@ -283,68 +275,7 @@
     </div>
 </section>
 
-<!-- ==================== PRICING ==================== -->
-<section class="sec" id="pricing">
-    <div class="wrap">
-        <div class="sec-head rv">
-            <span class="eyebrow">{% if ar %}الباقات{% else %}Plans{% endif %}</span>
-            <h2>{% if ar %}ادفع حسب حجم الفريق الذي تحتاجه{% else %}Pay for the size of team you need{% endif %}</h2>
-            <p>{% if ar %}كل باقة يقودها الرئيس التنفيذي. الفرق بينها هو عدد الوكلاء وحدود الاستخدام الشهرية (المحادثات، دقائق الصوت، ورسوم ميتا المشمولة). ادفع شهرياً أو سنوياً (شهران مجاناً)، وتُضاف ضريبة القيمة المضافة 15٪ عند الدفع.{% else %}Every plan is led by the CEO. They differ by the number of agents and the monthly usage limits (conversations, voice minutes and the Meta fees we cover). Pay monthly or yearly (2 months free); 15% VAT is added at checkout.{% endif %}</p>
-        </div>
-        {% set _full = plans[-1] %}
-        <p class="anchor rv">{% if ar %}للمقارنة: <b>{{ _full.name }}</b> تفتح لك الرئيس التنفيذي و{{ _full.agent_count }} وكيلاً بـ{{ '{:,}'.format(_full.price|int) }} ر.س شهرياً — أي نحو {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} ر.س للوكيل الواحد.{% else %}For reference: <b>{{ _full.name_en }}</b> opens the CEO plus {{ _full.agent_count }} agents for SAR {{ '{:,}'.format(_full.price|int) }}/month — about SAR {{ '{:,}'.format((_full.price|int // _full.agent_count)) }} per agent.{% endif %}</p>
-        <div class="billing-toggle rv" id="billingToggle" role="group" aria-label="{% if ar %}دورة الفوترة{% else %}Billing period{% endif %}">
-            <div class="seg">
-                <button type="button" data-billing="monthly" aria-pressed="true">{% if ar %}شهري{% else %}Monthly{% endif %}</button>
-                <button type="button" data-billing="annual" aria-pressed="false">{% if ar %}سنوي{% else %}Annual{% endif %} <span class="save">{% if ar %}شهران مجاناً{% else %}2 months free{% endif %}</span></button>
-            </div>
-        </div>
-        <div class="plans">
-            {% for plan in plans %}
-            <article class="plan rv{% if plan.recommended %} is-rec{% endif %}" data-plan="{{ plan.key }}">
-                {% if plan.recommended %}<span class="ribbon">{% if ar %}ننصح بها{% else %}Recommended{% endif %}</span>{% endif %}
-                <h3>{% if ar %}{{ plan.name }}{% else %}{{ plan.name_en }}{% endif %}</h3>
-                <p class="tag">{% if ar %}{{ plan.tagline }}{% else %}{{ plan.tagline_en }}{% endif %}</p>
-                <div class="price" data-monthly="{{ '{:,}'.format(plan.price|int) }}" data-annual="{{ '{:,}'.format(plan.annual_price|int) }}"><span class="amt">{{ '{:,}'.format(plan.price|int) }}</span> <small data-monthly="{% if ar %}ر.س / شهرياً{% else %}SAR / month{% endif %}" data-annual="{% if ar %}ر.س / سنوياً{% else %}SAR / year{% endif %}">{% if ar %}ر.س / شهرياً{% else %}SAR / month{% endif %}</small></div>
-                <div class="period-note" data-monthly="" data-annual="{% if ar %}تدفع 10 أشهر وتحصل على 12 — توفّر {{ '{:,}'.format(plan.price|int * 2) }} ر.س{% else %}Pay for 10 months, get 12 — save SAR {{ '{:,}'.format(plan.price|int * 2) }}{% endif %}"></div>
-                <div class="vat" data-monthly="{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.total_halalas / 100) }}{% endif %}" data-annual="{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.annual_total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.annual_total_halalas / 100) }}{% endif %}">{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.total_halalas / 100) }}{% endif %}</div>
-                <span class="agents-pill">{% if ar %}الرئيس التنفيذي + {{ plan.agent_count }} {% if plan.agent_count == 1 %}وكيل{% else %}وكيلاً{% endif %}{% else %}CEO + {{ plan.agent_count }} agent{% if plan.agent_count != 1 %}s{% endif %}{% endif %}</span>
-                <ul>
-                    {% for line in (plan.scope if ar else plan.scope_en) %}<li>{{ line }}</li>{% endfor %}
-                </ul>
-                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}" data-href-monthly="/portal?pkg={{ plan.key }}" data-href-annual="/portal?pkg={{ plan.key }}&amp;billing=annual">{% if ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
-            </article>
-            {% endfor %}
-        </div>
-        <article class="plan plan-enterprise rv" data-plan="{{ enterprise.key }}">
-            <h3>{% if ar %}{{ enterprise.name }}{% else %}{{ enterprise.name_en }}{% endif %}</h3>
-            <p class="tag">{% if ar %}{{ enterprise.tagline }}{% else %}{{ enterprise.tagline_en }}{% endif %}</p>
-            <div class="price"><span class="amt">{% if ar %}بعرض سعر{% else %}By quote{% endif %}</span> <small>{% if ar %}يبدأ من نحو {{ '{:,}'.format(enterprise.price_from|int) }} ر.س شهرياً{% else %}from about SAR {{ '{:,}'.format(enterprise.price_from|int) }}/month{% endif %}</small></div>
-            <ul>{% for line in (enterprise.scope if ar else enterprise.scope_en) %}<li>{{ line }}</li>{% endfor %}</ul>
-            <a class="btn btn-ghost btn-block" href="/consult">{% if ar %}اطلب عرض سعر{% else %}Request a quote{% endif %}</a>
-        </article>
-        <p class="addon-note rv">{% if ar %}تحتاج أكثر من باقتك؟ <b>وكيل إضافي بـ{{ addon.price }} ر.س</b> شهرياً، و<b>١٬٠٠٠ محادثة إضافية بـ{{ usage_addons.conversations.price }} ر.س</b>، و<b>١٠٠ دقيقة صوت بـ{{ usage_addons.voice_minutes.price }} ر.س</b> (قريباً). رسوم ميتا فوق السقف تُحسب بالتكلفة بدون أي زيادة. الرئيس التنفيذي يقترح الإضافة عندما تكون أوفر من الترقية.{% else %}Need more than your plan? <b>An extra agent is SAR {{ addon.price }}</b>/month, <b>+1,000 conversations SAR {{ usage_addons.conversations.price }}</b>, <b>+100 voice minutes SAR {{ usage_addons.voice_minutes.price }}</b> (coming soon). Meta fees above the cap are passed through at cost with no markup. The CEO suggests an add-on when it costs less than upgrading.{% endif %}</p>
-        <p class="addon-note rv">{% if ar %}<b>رسوم الإعداد لمرة واحدة:</b> {% for plan in plans %}{{ plan.name }} {% if plan.setup_fee %}{{ '{:,}'.format(plan.setup_fee // 100) }} ر.س{% else %}بدون رسوم{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — وتُلغى مع الاشتراك السنوي. <b>ضمان الإعداد:</b> {{ setup_guarantee.text }}{% else %}<b>One-time setup fee:</b> {% for plan in plans %}{{ plan.name_en }} {% if plan.setup_fee %}SAR {{ '{:,}'.format(plan.setup_fee // 100) }}{% else %}free{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — waived on annual billing. <b>Setup guarantee:</b> {{ setup_guarantee.text_en }}{% endif %}</p>
-        <div class="table-scroll rv">
-        <table class="compare">
-            <thead><tr><th>{% if ar %}المقارنة{% else %}Compare{% endif %}</th>{% for plan in plans %}<th{% if plan.recommended %} class="is-rec"{% endif %}>{% if ar %}{{ plan.name }}{% else %}{{ plan.name_en }}{% endif %}</th>{% endfor %}</tr></thead>
-            <tbody>
-                <tr><td>{% if ar %}السعر الشهري (قبل الضريبة){% else %}Monthly price (pre-VAT){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.price|int) }}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}السعر السنوي (12 شهراً بسعر 10){% else %}Annual price (12 months for 10){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.annual_price|int) }}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}الرئيس التنفيذي الذكي{% else %}AI CEO{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>✓</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}الوكلاء المتخصصون{% else %}Specialist agents{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ plan.agent_count }}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}وكيل إضافي (شهرياً){% else %}Extra agent (monthly){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}><span dir="ltr">+{{ addon.price }}</span></td>{% endfor %}</tr>
-                <tr><td>{% if ar %}المحادثات الذكية شهرياً{% else %}Smart conversations / month{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.limits.conversations) }}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}دقائق الصوت شهرياً (قريباً){% else %}Voice minutes / month (coming soon){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{% if plan.limits.voice_minutes %}{{ plan.limits.voice_minutes }}{% else %}—{% endif %}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}رسوم ميتا المشمولة (ر.س){% else %}Meta fees covered (SAR){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ plan.limits.meta_cap // 100 }}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}سعر الوكيل الواحد{% else %}Price per agent{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ plan.per_agent_price }}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}رسوم الإعداد (تُلغى مع السنوي){% else %}Setup fee (waived on annual){% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>{{ '{:,}'.format(plan.setup_fee // 100) if plan.setup_fee else '0' }}</td>{% endfor %}</tr>
-                <tr><td>{% if ar %}إلغاء في أي وقت قبل التجديد{% else %}Cancel any time before renewal{% endif %}</td>{% for plan in plans %}<td{% if plan.recommended %} class="is-rec"{% endif %}>✓</td>{% endfor %}</tr>
-            </tbody>
-        </table>
-        </div>
-    </div>
-</section>
+{% include "partials/_pricing_section.html" %}
 
 <!-- ==================== PROOF (real data only) ==================== -->
 <section class="sec sec-paper" id="proof">
@@ -410,6 +341,7 @@
     </div>
 </section>
 
+{% if testimonials %}<section class="sec"><div class="wrap">{% include "partials/_testimonials.html" %}</div></section>{% endif %}
 <!-- ==================== FAQ ==================== -->
 <section class="sec sec-paper" id="faq">
     <div class="wrap">
@@ -420,7 +352,7 @@
             <details><summary>{% if ar %}كيف يتجدد الاشتراك؟{% else %}How does renewal work?{% endif %}</summary><p>{% if ar %}قبل نهاية الفترة بأيام نرسل لك فاتورة التجديد للفترة نفسها (شهرية أو سنوية). إذا لم تُسدَّد يبقى فريقك يعمل 3 أيام بعد نهاية الفترة ثم يتوقف حتى الدفع.{% else %}A few days before your period ends we issue a renewal invoice for the same period (monthly or annual). If it is not paid, your team keeps working for 3 days after the period ends, then pauses until payment.{% endif %}</p></details>
             <details><summary>{% if ar %}هل أستطيع الإلغاء؟{% else %}Can I cancel?{% endif %}</summary><p>{% if ar %}نعم، في أي وقت قبل التجديد. لا تُرد دفعات الفترة المنقضية، ويُغلق الفريق عند الإلغاء.{% else %}Yes, any time before renewal. Payments for an elapsed period are not refunded, and the team closes on cancellation.{% endif %}</p></details>
             <details><summary>{% if ar %}كيف أدفع؟{% else %}How do I pay?{% endif %}</summary><p>{% if ar %}عبر بوابة الدفع Moyasar عند تفعيلها، أو بفاتورة ضريبية رسمية وتحويل بنكي. يبدأ الفريق بعد تأكيد الدفع.{% else %}Through the Moyasar gateway when enabled, or by official VAT invoice and bank transfer. The team starts once payment is confirmed.{% endif %}</p></details>
-            <details><summary>{% if ar %}هل أحتاج خبرة تقنية؟{% else %}Do I need technical skills?{% endif %}</summary><p>{% if ar %}لا. تتعامل مع الفريق عبر بوابة العميل وتيليجرام، ونرافقك في الإعداد.{% else %}No. You work with the team through the client portal and Telegram, and we guide the setup.{% endif %}</p></details>
+            <details><summary>{% if ar %}هل أحتاج خبرة تقنية؟{% else %}Do I need technical skills?{% endif %}</summary><p>{% if ar %}لا. تتعامل مع الفريق عبر بوابة العميل، ونرافقك في الإعداد.{% else %}No. You work with the team through the client portal, and we guide the setup.{% endif %}</p></details>
             <details><summary>{% if ar %}هل بياناتي آمنة؟{% else %}Is my data safe?{% endif %}</summary><p>{% if ar %}لا نبيع بياناتك، ويمكنك طلب حذفها في أي وقت من <a href="/data-deletion">صفحة حذف البيانات</a>.{% else %}We never sell your data, and you can request deletion any time on the <a href="/data-deletion">data deletion page</a>.{% endif %}</p></details>
         </div>
     </div>
@@ -429,17 +361,9 @@
 <!-- ==================== CONTACT ==================== -->
 <section class="sec sec-dark" id="contact">
     <div class="wrap">
-        <div class="sec-head rv"><span class="eyebrow">{% if ar %}تواصل مباشر{% else %}Talk to us{% endif %}</span><h2>{% if ar %}نحن على القناة التي تفضّلها{% else %}We're on the channel you prefer{% endif %}</h2></div>
-        <div class="channels">
-            {% if contact.whatsapp %}
-            <a class="channel ch-wa" id="chWa" href="{{ contact_prefilled.whatsapp }}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg><span><b>{% if ar %}واتساب{% else %}WhatsApp{% endif %}</b><small dir="ltr">+966 55 297 8753</small></span></a>
-            {% endif %}
-            <a class="channel ch-tg" id="chTg" href="https://t.me/{{ telegram_handle }}" target="_blank" rel="noopener">{{ tg_plane() }}<span><b>{% if ar %}تيليجرام{% else %}Telegram{% endif %}</b><small dir="ltr">@{{ telegram_handle }}</small></span></a>
-            {% if contact.messenger %}
-            <a class="channel ch-ms" id="chMs" href="{{ contact.messenger }}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.4 2 2 6.1 2 11.7c0 2.9 1.2 5.5 3.2 7.2V22l3-1.6c1.2.3 2.5.5 3.8.5 5.6 0 10-4.1 10-9.6S17.6 2 12 2zm1 12.9-2.5-2.7-5 2.7 5.5-5.8 2.6 2.7 4.9-2.7-5.5 5.8z"/></svg><span><b>{% if ar %}ماسنجر{% else %}Messenger{% endif %}</b><small>Facebook</small></span></a>
-            {% endif %}
-        </div>
-        <p class="muted" style="text-align:center;margin-top:24px"><a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a> · {% if ar %}الرياض، المملكة العربية السعودية{% else %}Riyadh, Saudi Arabia{% endif %}</p>
+        <div class="sec-head rv"><span class="eyebrow">{% if ar %}تواصل{% else %}Talk to us{% endif %}</span><h2>{% if ar %}اسأل مساعد النرجس أو راسلنا بالبريد{% else %}Ask the Al-Narjis assistant or email us{% endif %}</h2></div>
+        <p class="muted" style="text-align:center">{% if ar %}مساعد النرجس الذكي يجيبك فوراً من الزر أسفل الصفحة، وإذا لم يستطع الإجابة يحوّلك إلى البريد.{% else %}The Al-Narjis assistant answers instantly from the button at the bottom of the page; if it can't answer, it hands you to email.{% endif %}</p>
+        <p class="muted" style="text-align:center;margin-top:16px"><a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a> · {% if ar %}الرياض، المملكة العربية السعودية{% else %}Riyadh, Saudi Arabia{% endif %}</p>
     </div>
 </section>
 <section id="live-demo" class="section" aria-label="live demo">
@@ -491,12 +415,7 @@
     <div class="wrap">
         <div class="cols">
             <div>
-                <a href="/home" class="brand" style="color:var(--v2-on-dark)"><img src="/static/logo.png" alt="" width="36" height="36"><span>{% if ar %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</span></a>
-                <div class="socials">
-                    {% if contact.whatsapp %}<a href="{{ contact_prefilled.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>{% endif %}
-                    <a href="https://t.me/{{ telegram_handle }}" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
-                    {% if contact.messenger %}<a href="{{ contact.messenger }}" target="_blank" rel="noopener" aria-label="Messenger">Messenger</a>{% endif %}
-                </div>
+                <a href="/home" class="brand" style="color:var(--v2-on-dark)"><img src="/static/logo.png" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</span></a>
                 <p style="margin-top:14px">{% if ar %}رئيس تنفيذي ذكي وفريق وكلاء يعملون لعملك — من الرياض.{% else %}An AI CEO and an agent team working for your business — from Riyadh.{% endif %}</p>
             </div>
             <div>
@@ -508,26 +427,17 @@
             </div>
             <div>
                 <h4>{% if ar %}تواصل{% else %}Contact{% endif %}</h4>
-                <a href="https://t.me/{{ telegram_handle }}" target="_blank" rel="noopener">{{ tg_plane_cls("width:1em;height:1em;margin-inline-end:6px;vertical-align:-.15em") }}@{{ telegram_handle }}</a>
-                {% if contact.whatsapp %}<a href="{{ contact.whatsapp }}" target="_blank" rel="noopener" dir="ltr">+966 55 297 8753</a>{% endif %}
                 <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
             </div>
         </div>
         <div class="legal">
             <span>{% if ar %}يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 · الرياض{% else %}Operated by The Arabian Convoy Establishment · Commercial Reg. 31332495263 · Riyadh{% endif %}</span>
-            <span><a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a> · <a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a> · <a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a> · <a href="/dpa">{% if ar %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a> · <a href="/subprocessors">{% if ar %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a> · <a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a></span>
+            <span><a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a> · <a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a> · <a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a> · <a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a> · <a href="/pricing">{% if ar %}الباقات والأسعار{% else %}Pricing{% endif %}</a> · <a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a> · <a href="/dpa">{% if ar %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a> · <a href="/subprocessors">{% if ar %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a> · <a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a></span>
         </div>
     </div>
 </footer>
 
-{# Floating contact cluster: WhatsApp first (the number the invoices print),
-   then Telegram, then Messenger only when a Facebook Page is configured in
-   content/contact.json. No channel renders without a real link. #}
-<div class="contact-stack fab-cluster" aria-label="{% if ar %}تواصل سريع{% else %}Quick contact{% endif %}">
-    {% if contact.whatsapp %}<a id="waFloat" class="fab fab-wa" href="{{ contact_prefilled.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg></a>{% endif %}
-    <a id="tgFloat" class="fab fab-tg" href="https://t.me/{{ telegram_handle }}" target="_blank" rel="noopener" aria-label="Telegram">{{ tg_plane() }}</a>
-    {% if contact.messenger %}<a id="msFloat" class="fab fab-ms" href="{{ contact.messenger }}" target="_blank" rel="noopener" aria-label="Messenger"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.4 2 2 6.1 2 11.7c0 2.9 1.2 5.5 3.2 7.2V22l3-1.6c1.2.3 2.5.5 3.8.5 5.6 0 10-4.1 10-9.6S17.6 2 12 2zm1 12.9-2.5-2.7-5 2.7 5.5-5.8 2.6 2.7 4.9-2.7-5.5 5.8z"/></svg></a>{% endif %}
-</div>
+{% include "partials/_site_assistant.html" %}
 
 <script>
 (function () {
@@ -578,8 +488,6 @@
         document.getElementById('ceoPlanPrice').textContent = Number(p.monthly_price || p.price).toLocaleString('en') + (AR ? ' ر.س/شهرياً' : ' SAR/mo');
         document.getElementById('ceoPlanVat').textContent = (AR ? 'الإجمالي مع ضريبة 15٪: ' : 'Total with 15% VAT: ') + sar(p.total_halalas);
         document.getElementById('ceoSubscribe').href = r.cta.subscribe;
-        document.getElementById('ceoTg').href = r.cta.telegram;
-        var wa = document.getElementById('ceoWa'); if (wa && r.cta.whatsapp) wa.href = r.cta.whatsapp;
         var res = document.getElementById('ceoResult'); res.hidden = false;
         res.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
         if (window.fbq) fbq('track', 'Lead', { content_name: 'ceo_consult', content_category: p.key });
@@ -593,7 +501,7 @@
         fetch('/api/ceo/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem: text, lang: AR ? 'ar' : 'en' }) })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(render)
-            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على تيليجرام.' : 'Could not reach the CEO — try again or message us on Telegram.'; msg.hidden = false; })
+            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على Al-Narjis@karmaai.online.' : 'Could not reach the CEO — try again or email Al-Narjis@karmaai.online.'; msg.hidden = false; })
             .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
 

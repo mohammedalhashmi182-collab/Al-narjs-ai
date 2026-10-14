@@ -1,0 +1,34 @@
+{% extends "partials/_simple_page.html" %}
+{#- Only facts the owner stated: operator, CR, city, founder, mission.
+    Testimonials render only from real records (see partials/_testimonials). -#}
+{% block title %}{% if ar %}من نحن | النرجس للذكاء الاصطناعي{% else %}About us | Al-Narjis AI{% endif %}{% endblock %}
+{% block description %}{% if ar %}النرجس للذكاء الاصطناعي منصة سعودية من الرياض تديرها مؤسسة ذا أريبيان كونفو. رسالتنا: الذكاء الاصطناعي يساعد الناس ولا يستبدلهم.{% else %}Al-Narjis AI is a Saudi platform from Riyadh operated by The Arabian Convoy Establishment. Our mission: AI helps people, it doesn't replace them.{% endif %}{% endblock %}
+{% block h1 %}{% if ar %}من نحن{% else %}About us{% endif %}{% endblock %}
+{% block body %}
+{% if ar %}
+<h2 class="n-title text-lg">رسالتنا</h2>
+<p><b>الذكاء الاصطناعي يساعد الناس، ولا يستبدلهم.</b> النرجس للذكاء الاصطناعي يبني لأصحاب الأعمال فريقاً من الوكلاء الأذكياء بقيادة الرئيس التنفيذي الذكي، وتبقى القرارات بيدك.</p>
+<h2 class="n-title text-lg">الجهة المشغّلة</h2>
+<ul>
+<li>مؤسسة ذا أريبيان كونفو</li>
+<li>سجل تجاري: <span dir="ltr">31332495263</span></li>
+<li>الرياض، المملكة العربية السعودية</li>
+<li>المؤسس: محمد</li>
+</ul>
+<h2 class="n-title text-lg">تواصل</h2>
+<p>اسأل مساعد النرجس من الزر أسفل الصفحة، أو راسلنا على <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a>.</p>
+{% else %}
+<h2 class="n-title text-lg">Our mission</h2>
+<p><b>AI helps people, it doesn't replace them.</b> Al-Narjis AI builds business owners a team of AI agents led by an AI CEO, and the decisions stay with you.</p>
+<h2 class="n-title text-lg">Operator</h2>
+<ul>
+<li>The Arabian Convoy Establishment</li>
+<li>Commercial Registration: 31332495263</li>
+<li>Riyadh, Saudi Arabia</li>
+<li>Founder: Mohammed</li>
+</ul>
+<h2 class="n-title text-lg">Contact</h2>
+<p>Ask the Al-Narjis assistant from the button at the bottom of the page, or email <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p>
+{% endif %}
+{% include "partials/_testimonials.html" %}
+{% endblock %}

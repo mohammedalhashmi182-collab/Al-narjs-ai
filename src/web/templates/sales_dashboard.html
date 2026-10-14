@@ -8,34 +8,34 @@
 <div class="max-w-7xl mx-auto">
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-amber-500">
-            <p class="text-xs text-gray-500" data-lang="ar">متابعات اليوم</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Follow-ups due</p>
+            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">متابعات اليوم</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Follow-ups due</p>
             <p id="today-followups" class="text-3xl font-bold text-amber-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-blue-500">
-            <p class="text-xs text-gray-500" data-lang="ar">عملاء جدد</p><p class="text-xs text-gray-500" data-lang="en" data-inline>New leads</p>
+            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">عملاء جدد</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>New leads</p>
             <p id="today-new" class="text-3xl font-bold text-blue-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-purple-500">
-            <p class="text-xs text-gray-500" data-lang="ar">ردود تنتظر الإجابة</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Replies</p>
+            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">ردود تنتظر الإجابة</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Replies</p>
             <p id="today-replies" class="text-3xl font-bold text-purple-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-emerald-500">
-            <p class="text-xs text-gray-500" data-lang="ar">عروض تجريبية</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Demos</p>
+            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">عروض تجريبية</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Demos</p>
             <p id="today-demos" class="text-3xl font-bold text-emerald-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-indigo-500">
-            <p class="text-xs text-gray-500" data-lang="ar">عروض أسعار</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Proposals</p>
+            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">عروض أسعار</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Proposals</p>
             <p id="today-proposals" class="text-3xl font-bold text-indigo-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-green-600">
-            <p class="text-xs text-gray-500" data-lang="ar">تم الفوز</p><p class="text-xs text-gray-500" data-lang="en" data-inline>Won</p>
+            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">تم الفوز</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Won</p>
             <p id="today-won" class="text-3xl font-bold text-green-700">-</p>
         </div>
     </div>
 
     <div class="bg-white rounded-2xl shadow p-5 mb-8">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-stream text-amber-600 me-2"></i><span data-lang="ar">مسار البيع</span><span data-lang="en" data-inline>Pipeline</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-stream text-amber-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">مسار البيع</span><span data-lang="en" lang="en" dir="ltr" data-inline>Pipeline</span></h3>
             <div id="conversion" class="text-xs text-gray-500"></div>
         </div>
         <div id="pipeline" class="flex flex-wrap gap-3 text-sm"></div>
@@ -43,7 +43,7 @@
 
     <div class="bg-white rounded-2xl shadow mb-8">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-users text-blue-600 me-2"></i><span data-lang="ar">أولويات التواصل</span><span data-lang="en" data-inline>Contact priorities</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-users text-blue-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">أولويات التواصل</span><span data-lang="en" lang="en" dir="ltr" data-inline>Contact priorities</span></h3>
             <div class="flex flex-wrap gap-2 text-sm">
                 <select id="filter-priority" class="border rounded px-2 py-1"><option value="">كل الأولويات</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select>
                 <select id="filter-status" class="border rounded px-2 py-1">
@@ -76,10 +76,10 @@
 
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-file-import text-indigo-600 me-2"></i><span data-lang="ar">استيراد قاعدة العملاء (الشيت)</span><span data-lang="en" data-inline>Import lead sheet</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-file-import text-indigo-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">استيراد قاعدة العملاء (الشيت)</span><span data-lang="en" lang="en" dir="ltr" data-inline>Import lead sheet</span></h3>
             <form id="import-form" class="flex items-center gap-2 text-sm" enctype="multipart/form-data">
                 <input type="file" id="import-file" name="file" accept=".xlsx,.xlsm,.csv,.txt" class="max-w-[240px] text-xs border rounded px-2 py-1">
-                <input type="number" id="import-campaign" name="campaign" value="200" min="0" max="500" class="border rounded px-2 py-1 w-20" title="حجم الدفعة (0 = بدون)"><label for="import-campaign" class="text-xs text-gray-400" data-lang="ar">دفعة</label><label data-lang="en" data-inline>batch</label>
+                <input type="number" id="import-campaign" name="campaign" value="200" min="0" max="500" class="border rounded px-2 py-1 w-20" title="حجم الدفعة (0 = بدون)"><label for="import-campaign" class="text-xs text-gray-400" data-lang="ar" lang="ar" dir="rtl">دفعة</label><label data-lang="en" lang="en" dir="ltr" data-inline>batch</label>
                 <button type="submit" class="px-3 py-1 rounded bg-indigo-600 text-white">رفع واستيراد</button>
             </form>
         </div>
@@ -88,7 +88,7 @@
 
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900">{{ tg_plane() }}<span data-lang="ar">حملات التواصل</span><span data-lang="en" data-inline>Campaign batches</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900">{{ tg_plane() }}<span data-lang="ar" lang="ar" dir="rtl">حملات التواصل</span><span data-lang="en" lang="en" dir="ltr" data-inline>Campaign batches</span></h3>
             <div class="flex items-center gap-2 text-sm">
                 <input id="campaign-size" type="number" value="200" min="20" max="500" class="border rounded px-2 py-1 w-24">
                 <button id="btn-campaign" class="px-3 py-1 rounded bg-emerald-600 text-white">تجهيز دفعة</button>

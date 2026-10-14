@@ -170,11 +170,13 @@ def test_the_person_carries_no_invented_credentials(client: TestClient) -> None:
 
 def test_the_origin_story_is_visible_on_the_page(client: TestClient) -> None:
     """The person must be visible to a reader, not only to a crawler."""
-    html = client.get("/home").text
-    assert "كريم" in html
-    assert "Karim" in html
-    assert "سيرفر محلي" in html, "the local-server origin is not stated in Arabic"
-    assert "single local server" in html, "the local-server origin is not stated in English"
+    # Each language page carries its own language only (no hidden mixed SEO text).
+    ar_html = client.get("/ar/home").text
+    en_html = client.get("/en/home").text
+    assert "كريم" in ar_html
+    assert "Karim" in en_html
+    assert "سيرفر محلي" in ar_html, "the local-server origin is not stated in Arabic"
+    assert "single local server" in en_html, "the local-server origin is not stated in English"
 
 
 def test_the_faq_answer_matches_the_live_roster(client: TestClient) -> None:

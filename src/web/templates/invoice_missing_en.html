@@ -53,8 +53,7 @@
                 <b>{{ _ref }}</b>
             </span>
             {% set _msg = 'Hello, I would like to complete invoice ' + _ref %}
-            <a class="btn wa" href="https://wa.me/966552978753?text={{ _msg|urlencode }}" target="_blank" rel="noopener">Send the reference on WhatsApp</a>
-            <a class="btn tg" href="https://t.me/AlNarjs7BOT?start={{ _ref }}" target="_blank" rel="noopener">Send the reference on Telegram</a>
+            <a class="btn" href="mailto:Al-Narjis@karmaai.online?subject={{ ('Invoice ' ~ _ref)|urlencode }}&amp;body={{ _msg|urlencode }}">Email the reference</a>
             <p class="note">This reference is all we need — there is nothing else to send.</p>
         </div>
         <div class="foot">Thank you for trusting Al-Narjis AI ✺ · www.karmaai.online</div>

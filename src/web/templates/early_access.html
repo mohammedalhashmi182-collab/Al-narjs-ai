@@ -136,12 +136,8 @@
                 <button type="submit" class="submit" id="eaSubmit">{% if _lang == 'ar' %}تفعيل الوصول المبكر الفوري{% else %}Start Early Access Now{% endif %}</button>
             </form>
             <div class="msg" id="eaMsg"></div>
-            <div class="tg-cta" id="eaTg">
-                <p>{% if _lang == 'ar' %}لتفعيل أسرع، افتح محادثة تليجرام الآن — سيُربط رقمك بحسابك مباشرة{% else %}Activate faster: open Telegram now and your account links instantly{% endif %}</p>
-                <a id="eaTgLink" href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">{{ tg_plane() }} Telegram</a>
-            </div>
             <p class="note">{% if _lang == 'ar' %}بالتسجيل أنت توافق على <a href="/privacy">سياسة الخصوصية</a> وحقك في <a href="/data-deletion">حذف بياناتك</a>{% else %}By registering you agree to our <a href="/privacy">Privacy Policy</a> and your <a href="/data-deletion">data-deletion rights</a>{% endif %}</p>
-            <div class="tg-line"><span class="dot">{{ tg_plane() }}</span><span>{% if _lang == 'ar' %}أو تواصل مباشرة{% else %}Or contact us directly{% endif %}</span><a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">Telegram</a></div>
+            <p class="note">{% if _lang == 'ar' %}أو راسلنا على{% else %}Or email us at{% endif %} <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a></p>
         </div>
 
         <div class="foot">
@@ -149,6 +145,8 @@
             <div class="links">
                 <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a>
                 <a href="/terms">{% if _lang == 'ar' %}الشروط{% else %}Terms{% endif %}</a>
+                <a href="/refund-policy">{% if _lang == 'ar' %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a>
+                <a href="/about">{% if _lang == 'ar' %}من نحن{% else %}About{% endif %}</a>
                 <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a>
             </div>
         </div>
@@ -220,11 +218,6 @@
             if (window.fbq) fbq('track', 'Lead');
             msg.className = 'msg ok';
             msg.textContent = 'تم تفعيل وصولك المبكر! نرسل لك ترحيب وتفاصيل الفريق على بريدك.';
-            if (res.lead_id) {
-                document.getElementById('eaTgLink').href =
-                    'https://t.me/AlNarjs7BOT?start=lead_' + res.lead_id;
-                document.getElementById('eaTg').classList.add('on');
-            }
             form.remove();
             btn.remove();
         }).catch(function () {

@@ -1,0 +1,14 @@
+{#- Renders ONLY when real, owner-approved testimonials exist
+    (content/testimonials.json -> services/testimonials.py). Empty list = no
+    section at all. Never add placeholder or invented testimonials. -#}
+{% if testimonials %}
+<section class="testimonials" aria-label="{% if ar %}آراء العملاء{% else %}Customer testimonials{% endif %}">
+    <h2 class="n-title text-lg">{% if ar %}آراء عملائنا{% else %}What our customers say{% endif %}</h2>
+    {% for t in testimonials %}
+    <blockquote style="margin:12px 0;padding:12px 16px;border-inline-start:3px solid var(--n-gold,#c9a45c)">
+        <p>“{{ t.quote_ar if ar and t.quote_ar else t.quote }}”</p>
+        <footer style="font-size:.85rem">— {{ t.name }}{% if t.company %}، {{ t.company }}{% endif %}</footer>
+    </blockquote>
+    {% endfor %}
+</section>
+{% endif %}

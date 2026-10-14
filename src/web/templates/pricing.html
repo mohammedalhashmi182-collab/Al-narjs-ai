@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+{% set _lang = page_lang(request) %}
+{% set _path = request.url.path %}
+{% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if ar else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#faf6ef">
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    {% set _from = plans[0].price|int %}
+    {% if ar %}
+    <title>الباقات والأسعار | النرجس للذكاء الاصطناعي — وكلاء ذكاء اصطناعي لعملك</title>
+    <meta name="description" content="أسعار النرجس للذكاء الاصطناعي: {% for p in plans %}{{ p.name }} {{ '{:,}'.format(p.price|int) }} ر.س شهرياً{% if not loop.last %}، {% endif %}{% endfor %}، وباقة المؤسسات بعرض سعر. رسوم إعداد واضحة، إضافات حسب الحاجة، وضريبة 15٪ عند الدفع.">
+    {% else %}
+    <title>Pricing | Al-Narjis AI — AI agent teams for your business</title>
+    <meta name="description" content="Al-Narjis AI pricing: {% for p in plans %}{{ p.name_en }} SAR {{ '{:,}'.format(p.price|int) }}/month{% if not loop.last %}, {% endif %}{% endfor %}, and Enterprise by quote. Clear setup fees, add-ons as you need them, 15% VAT at checkout.">
+    {% endif %}
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
+    <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online{{ _base_path }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Al-Narjis AI">
+    <meta property="og:title" content="{% if ar %}باقات النرجس للذكاء الاصطناعي — تبدأ من {{ _from }} ر.س شهرياً{% else %}Al-Narjis AI plans — from SAR {{ _from }}/month{% endif %}">
+    <meta property="og:description" content="{% if ar %}فريق وكلاء ذكاء اصطناعي بقيادة الرئيس التنفيذي الذكي، بفاتورة ضريبية رسمية وإلغاء في أي وقت قبل التجديد.{% else %}An AI agent team led by an AI CEO, with official VAT invoices and cancel any time before renewal.{% endif %}">
+    <meta property="og:url" content="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+    <meta property="og:image" content="https://karmaai.online/static/og-image.png">
+    <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": {{ ("باقات النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI plans") | tojson }},
+      "brand": {"@type": "Brand", "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }}},
+      "image": "https://karmaai.online/static/og-image.png",
+      "offers": [
+        {% for plan in plans %}{"@type": "Offer", "name": {{ (plan.name if ar else plan.name_en) | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://karmaai.online/portal?pkg={{ plan.key }}", "availability": "https://schema.org/InStock"}{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+    </script>
+    {% include "partials/_analytics.html" %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis-v2.css">
+    <style>.rv{opacity:1;transform:none}</style>
+</head>
+<body class="v2" data-lang="{{ _lang }}">
+<header class="v2-nav">
+    <div class="wrap">
+        <a href="/home" class="brand"><img src="/static/logo.png" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
+        <nav aria-label="{% if ar %}التنقل{% else %}Navigation{% endif %}">
+            <a href="/home">{% if ar %}الرئيسية{% else %}Home{% endif %}</a>
+            <a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a>
+            <a href="/contact">{% if ar %}تواصل{% else %}Contact{% endif %}</a>
+        </nav>
+        <a class="lang" href="/{{ 'en' if ar else 'ar' }}{{ _base_path }}">{% if ar %}English{% else %}العربية{% endif %}</a>
+    </div>
+</header>
+<main>
+<section class="sec" style="padding-bottom:0"><div class="wrap"><h1 style="text-align:center">{% if ar %}الباقات والأسعار{% else %}Plans and pricing{% endif %}</h1></div></section>
+{% include "partials/_pricing_section.html" %}
+<section class="sec" style="padding-top:0"><div class="wrap">
+    <p class="addon-note">{% if ar %}الأسعار قبل ضريبة القيمة المضافة 15٪. لا استرداد بعد التفعيل، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — راجع <a href="/refund-policy">سياسة الاسترداد</a> و<a href="/terms">الشروط</a>.{% else %}Prices exclude 15% VAT. No refunds after activation; duplicate charges and technical billing errors are always refunded — see the <a href="/refund-policy">refund policy</a> and <a href="/terms">terms</a>.{% endif %}</p>
+</div></section>
+</main>
+<footer class="v2-footer">
+    <div class="wrap">
+        <div class="legal">
+            <span>{% if ar %}يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 · الرياض{% else %}Operated by The Arabian Convoy Establishment · Commercial Reg. 31332495263 · Riyadh{% endif %} · <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a></span>
+            <span><a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a> · <a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a> · <a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a> · <a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a> · <a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a></span>
+        </div>
+    </div>
+</footer>
+{% include "partials/_site_assistant.html" %}
+<script>
+(function () {
+    var btns = document.querySelectorAll('#billingToggle [data-billing]');
+    function setBilling(period) {
+        btns.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.billing === period ? 'true' : 'false'); });
+        document.querySelectorAll('#pricing .plan').forEach(function (card) {
+            var price = card.querySelector('.price[data-monthly]');
+            if (price) { price.querySelector('.amt').textContent = price.dataset[period]; var u = price.querySelector('small'); u.textContent = u.dataset[period]; }
+            ['.vat', '.period-note'].forEach(function (sel) { var n = card.querySelector(sel); if (n) n.textContent = n.dataset[period]; });
+            var cta = card.querySelector('a[data-href-monthly]');
+            if (cta) cta.setAttribute('href', period === 'annual' ? cta.dataset.hrefAnnual : cta.dataset.hrefMonthly);
+        });
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { setBilling(b.dataset.billing); }); });
+})();
+</script>
+</body>
+</html>

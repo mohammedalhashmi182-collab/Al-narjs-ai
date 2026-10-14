@@ -81,7 +81,7 @@ def test_prices_and_limits_unchanged():
 
 
 def test_landing_marks_voice_as_coming_soon():
-    html = (TPL / "landing.html").read_text(encoding="utf-8")
+    html = (TPL / "landing.html").read_text(encoding="utf-8") + (TPL / "partials" / "_pricing_section.html").read_text(encoding="utf-8")
     assert "دقائق الصوت شهرياً (قريباً)" in html and "Voice minutes / month (coming soon)" in html
 
 
@@ -353,8 +353,9 @@ async def test_public_compliance_pages_render(maker, path, needle):
         r = await c.get(path)
     assert r.status_code == 200 and needle in r.text
     assert 'href="#"' not in r.text
-    assert "t.me/AlNarjs7BOT" in r.text  # Telegram quick-connect
-    assert "ops-mobile-cta" in r.text
+    # site contact = the Al-Narjis assistant + email; no direct channels
+    assert "t.me/" not in r.text and "wa.me/" not in r.text
+    assert 'id="siteAssistant"' in r.text
     for link in ("/privacy", "/terms", "/data-deletion"):
         assert f'href="{link}"' in r.text
 

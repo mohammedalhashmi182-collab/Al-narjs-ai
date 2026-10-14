@@ -409,6 +409,47 @@ async def static_cache_headers(request: Request, call_next):
     return response
 
 
+# Security headers on every response. The CSP allow-list is exactly what the
+# public pages load: Google Fonts, cdnjs (Font Awesome), the Tailwind CDN on the
+# pages that still use it, the consent-gated Meta pixel and Google tag, and
+# PayPal for checkout. Inline scripts/styles are still used by the templates, so
+# 'unsafe-inline' stays until they are moved to files. frame-ancestors 'none'
+# (plus X-Frame-Options for old browsers) stops clickjacking.
+CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com "
+        "https://connect.facebook.net https://www.googletagmanager.com https://www.paypal.com https://*.paypal.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+        "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self' https://www.facebook.com https://connect.facebook.net "
+        "https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com "
+        "https://www.paypal.com https://*.paypal.com",
+        "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.facebook.com",
+        "form-action 'self' https://www.paypal.com https://*.paypal.com",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "object-src 'none'",
+    ]
+)
+SECURITY_HEADERS = {
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Frame-Options": "DENY",
+}
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    for name, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(name, value)
+    return response
+
+
 templates = Jinja2Templates(directory="src/web/templates")
 
 
@@ -417,6 +458,9 @@ def _page_lang(request: Request) -> str:
 
 
 templates.env.globals["page_lang"] = _page_lang
+from src.services.support import support_contact as _support_contact  # noqa: E402
+
+templates.env.globals["support_contact"] = _support_contact
 templates.env.globals["settings"] = get_settings()
 
 
@@ -548,7 +592,10 @@ class ScheduleCreateRequest(BaseModel):
 async def dashboard(request: Request):
     from src.core.owner_auth import check_owner
     if not check_owner(request):
-        return RedirectResponse("/home")
+        # permanent: the public root is /home for every visitor
+        # no-store so a browser never caches the 301 for the owner, who gets
+        # the dashboard on "/" once signed in
+        return RedirectResponse("/home", status_code=301, headers={"Cache-Control": "no-store"})
     return templates.TemplateResponse(request, "dashboard.html")
 
 
@@ -594,9 +641,39 @@ async def owner_entry(request: Request):
     return RedirectResponse("/")
 
 
+async def _pricing_context() -> dict:
+    """Plans, enterprise, add-ons and setup fees: shared by /home and /pricing."""
+    from src.services import catalog
+    from src.services import payments as _pm
+
+    return {
+        "packages": catalog.PACKAGES,
+        # CEO-advisor rebrand: tiers in display order with VAT-inclusive totals
+        "plans": [
+            {
+                "key": key,
+                **catalog.PACKAGES[key],
+                "total_halalas": _pm.total_with_vat(catalog.PACKAGES[key]["amount"]),
+                "annual_halalas": catalog.plan_amount(key, "annual"),
+                "annual_total_halalas": _pm.total_with_vat(catalog.plan_amount(key, "annual")),
+                "annual_price": str(catalog.plan_amount(key, "annual") // 100),
+                "recommended": key == catalog.RECOMMENDED_PACKAGE,
+            }
+            for key in catalog.PACKAGE_ORDER
+        ],
+        "addon": catalog.ADDON_AGENT,
+        "usage_addons": catalog.USAGE_ADDONS,
+        "enterprise": catalog.ENTERPRISE,
+        "founding_offer": catalog.FOUNDING_OFFER if catalog.founding_enabled() else None,
+        "founding": await _founding_status_safe() if catalog.founding_enabled() else None,
+        "setup_guarantee": catalog.SETUP_GUARANTEE,
+    }
+
+
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
     from src.services import catalog, transfer
+    from src.services import testimonials as _testimonials
     from src.services import payments as _pm
     employees = list(catalog.EMPLOYEES.values())
     agent_count = len(employees)
@@ -625,26 +702,8 @@ async def landing_page(request: Request):
             "orch_team": [
                 {"slug": slug, **emp} for slug, emp in list(catalog.EMPLOYEES.items())[:6]
             ],
-            "packages": catalog.PACKAGES,
-            # CEO-advisor rebrand: tiers in display order with VAT-inclusive totals
-            "plans": [
-                {
-                    "key": key,
-                    **catalog.PACKAGES[key],
-                    "total_halalas": _pm.total_with_vat(catalog.PACKAGES[key]["amount"]),
-                    "annual_halalas": catalog.plan_amount(key, "annual"),
-                    "annual_total_halalas": _pm.total_with_vat(catalog.plan_amount(key, "annual")),
-                    "annual_price": str(catalog.plan_amount(key, "annual") // 100),
-                    "recommended": key == catalog.RECOMMENDED_PACKAGE,
-                }
-                for key in catalog.PACKAGE_ORDER
-            ],
-            "addon": catalog.ADDON_AGENT,
-            "usage_addons": catalog.USAGE_ADDONS,
-            "enterprise": catalog.ENTERPRISE,
-            "founding_offer": catalog.FOUNDING_OFFER if catalog.founding_enabled() else None,
-            "founding": await _founding_status_safe() if catalog.founding_enabled() else None,
-            "setup_guarantee": catalog.SETUP_GUARANTEE,
+            **(await _pricing_context()),
+            "testimonials": _testimonials.load(),
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
                 "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
@@ -838,8 +897,50 @@ async def terms_page(request: Request):
 
 @app.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse("/home#pricing")
+    """A real pricing page (SEO/ads landing): plans, enterprise, setup fees, add-ons."""
+    return templates.TemplateResponse(
+        request,
+        "pricing.html",
+        {**(await _pricing_context()), "ar": _page_lang(request) == "ar"},
+    )
+
+
+@app.get("/refund-policy", response_class=HTMLResponse)
+async def refund_policy_page(request: Request):
+    from src.services import catalog, policies
+
+    return templates.TemplateResponse(
+        request,
+        "refund_policy.html",
+        {
+            "ar": _page_lang(request) == "ar",
+            "refund_consent_ar": policies.REFUND_CONSENT_AR,
+            "refund_consent_en": policies.REFUND_CONSENT_EN,
+            "setup_guarantee": catalog.SETUP_GUARANTEE,
+        },
+    )
+
+
+@app.get("/about", response_class=HTMLResponse)
+async def about_page(request: Request):
+    from src.services import testimonials as _testimonials
+
+    return templates.TemplateResponse(
+        request,
+        "about.html",
+        {"ar": _page_lang(request) == "ar", "testimonials": _testimonials.load()},
+    )
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    from fastapi.responses import FileResponse
+
+    return FileResponse(
+        "src/web/static/favicon.png",
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
 
 
 @app.get("/packages/{package_key}", response_class=HTMLResponse)
@@ -1771,13 +1872,12 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
             status_code=503,
             content={
                 "reply": (
-                    "المستشار الذكي غير متاح الآن. فريقنا يرد عليك مباشرة — "
-                    "راسلنا على تيليجرام أو ابدأ طلبك وسنكمل لك."
+                    "المستشار الذكي غير متاح الآن. راسل فريقنا على "
+                    "Al-Narjis@karmaai.online وسيرد عليك بالبريد."
                     if locale == "ar"
                     else
-                    "The smart consultant is temporarily unavailable. Our team "
-                    "can still help — message us on Telegram or send your "
-                    "request and we will take it from there."
+                    "The smart consultant is temporarily unavailable. Email our "
+                    "team at Al-Narjis@karmaai.online and they will reply by email."
                 ),
                 "error": "consult_unavailable",
                 "retryable": True,
@@ -2497,6 +2597,10 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     locale = _request_locale(request)
     include_vat = locale == "ar"
     base = _public_base_url(request)
+    from src.services import catalog as _cat_vp
+
+    if body.voice_packs and not _cat_vp.USAGE_ADDONS["voice_minutes"].get("purchasable", True):
+        raise HTTPException(400, "Voice-minute packs are not available yet (voice agent coming soon)")
     try:
         base_amount = pm.package_amount(body.package, body.billing_period, body.addons)
         packs_amount = pm.usage_packs_amount(body.conversation_packs, body.voice_packs, body.billing_period)

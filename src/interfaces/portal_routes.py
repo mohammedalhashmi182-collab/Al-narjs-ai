@@ -4,7 +4,7 @@ Reply Agent review queue, contacts and human handoff.
   POST /api/portal/login/request              {identifier: email|phone}  -> OTP (always 200)
   POST /api/portal/login/verify               {identifier, code}         -> session cookie
   GET  /portal/login?token=...                single-use magic link      -> cookie + redirect
-  POST /api/portal/session/legacy             {project_id} (unpaid projects only, limited session)
+  POST /api/portal/session/legacy             {project_id} (never-paid projects only, limited session)
   GET  /api/portal/session | POST /api/portal/logout
   GET  /api/portal/projects/{pid}/replies?status=pending
   POST /api/portal/projects/{pid}/replies/{draft_id}/approve|reject
@@ -193,7 +193,7 @@ async def legacy_exchange(body: LegacyBody, request: Request):
             project = await session.get(ClientProject, UUID(body.project_id))
         except ValueError:
             project = None
-    if project is None or project.status == "active":
+    if not portal_auth.legacy_allowed(project):
         raise HTTPException(401, "Portal login required")
     return portal_auth.set_session_cookie(JSONResponse({"project_id": str(project.id), "limited": True}),
                                           project, limited=True)

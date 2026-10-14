@@ -29,40 +29,39 @@
         </div>
         {% if result == "success" %}
         <h1 class="n-title text-2xl mb-2">
-            <span data-lang="ar">تم استلام الدفع بنجاح ✓</span>
-            <span data-lang="en" data-inline>Payment Received ✓</span>
+            <span data-lang="ar" lang="ar" dir="rtl">تم استلام الدفع بنجاح ✓</span>
+            <span data-lang="en" lang="en" dir="ltr" data-inline>Payment Received ✓</span>
         </h1>
         <p class="n-sub mb-4">
-            <span data-lang="ar">تم تفعيل باقتك فعلياً — فريقك جاهز الآن ويستطيع العمل. افتح بوابتك وابدأ.</span>
-            <span data-lang="en" data-inline>Your plan is now active — your team is awake and ready. Open your portal and start.</span>
+            <span data-lang="ar" lang="ar" dir="rtl">تم تفعيل باقتك فعلياً — فريقك جاهز الآن ويستطيع العمل. افتح بوابتك وابدأ.</span>
+            <span data-lang="en" lang="en" dir="ltr" data-inline>Your plan is now active — your team is awake and ready. Open your portal and start.</span>
         </p>
         {% else %}
         <h1 class="n-title text-2xl mb-2">
-            <span data-lang="ar">تعذر إتمام الدفع</span>
-            <span data-lang="en" data-inline>Payment Failed</span>
+            <span data-lang="ar" lang="ar" dir="rtl">تعذر إتمام الدفع</span>
+            <span data-lang="en" lang="en" dir="ltr" data-inline>Payment Failed</span>
         </h1>
         <p class="n-sub mb-4">
-            <span data-lang="ar">حدث خطأ أثناء العملية. يمكنك المحاولة مرة أخرى أو التواصل معنا.</span>
-            <span data-lang="en" data-inline>Something went wrong. Please try again or contact us.</span>
+            <span data-lang="ar" lang="ar" dir="rtl">حدث خطأ أثناء العملية. يمكنك المحاولة مرة أخرى أو التواصل معنا.</span>
+            <span data-lang="en" lang="en" dir="ltr" data-inline>Something went wrong. Please try again or contact us.</span>
         </p>
         {% endif %}
         {% if payment_id %}
-        <p class="text-xs mb-4" style="color:var(--n-brown-2);"><span data-lang="ar">رقم العملية: {{ payment_id }}</span><span data-lang="en" data-inline>Payment ID: {{ payment_id }}</span></p>
+        <p class="text-xs mb-4" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">رقم العملية: {{ payment_id }}</span><span data-lang="en" lang="en" dir="ltr" data-inline>Payment ID: {{ payment_id }}</span></p>
         {% endif %}
         <div class="flex flex-col gap-3 mt-2">
             <a id="portalGo" href="/portal" class="btn btn-gold w-full" {% if result != "success" %}style="display:none;"{% endif %}>
                 <i class="fas fa-bolt"></i>
-                <span data-lang="ar">افتح بوابة فريقك — أيقظ موظفيك</span>
-                <span data-lang="en" data-inline>Open Your Team Portal — Wake Your Employees</span>
+                <span data-lang="ar" lang="ar" dir="rtl">افتح بوابة فريقك — أيقظ موظفيك</span>
+                <span data-lang="en" lang="en" dir="ltr" data-inline>Open Your Team Portal — Wake Your Employees</span>
             </a>
             <a href="/home#pricing" class="btn btn-green w-full">
-                <span data-lang="ar">العودة إلى الأسعار</span>
-                <span data-lang="en" data-inline>Back to Pricing</span>
+                <span data-lang="ar" lang="ar" dir="rtl">العودة إلى الأسعار</span>
+                <span data-lang="en" lang="en" dir="ltr" data-inline>Back to Pricing</span>
             </a>
-            <a id="tgContact" href="https://t.me/AlNarjs7BOT" class="btn btn-outline w-full" target="_blank" rel="noopener">
-                {{ tg_plane() }}
-                <span data-lang="ar">تواصل معنا تيليجرام</span>
-                <span data-lang="en" data-inline>Contact us on Telegram</span>
+            <a id="emailContact" href="mailto:Al-Narjis@karmaai.online" class="btn btn-outline w-full">
+                <span data-lang="ar" lang="ar" dir="rtl">راسلنا بالبريد</span>
+                <span data-lang="en" lang="en" dir="ltr" data-inline>Email us</span>
             </a>
         </div>
     </div>

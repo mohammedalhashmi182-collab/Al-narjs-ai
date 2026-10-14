@@ -79,7 +79,9 @@ def test_plan_names_are_human_arabic():
 
 # ------------------------------------------------------------------ lines
 
-async def test_lines_reconcile_with_setup_addons_packs(maker):
+async def test_lines_reconcile_with_setup_addons_packs(maker, monkeypatch):
+    from src.services import catalog as _c
+    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when voice launches
     async with maker() as s:
         p = await pm.create_payment(s, "bay", "x", "0555000000", None, addons=2,
                                     conversation_packs=1, voice_packs=1, founding=False)

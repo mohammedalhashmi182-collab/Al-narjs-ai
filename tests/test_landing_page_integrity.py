@@ -20,7 +20,9 @@ PUBLIC_PAGES = [str(p.relative_to(TEMPLATES)) for p in TEMPLATES.rglob("*.html")
 
 
 def _read(name: str) -> str:
-    return (TEMPLATES / name).read_text(encoding="utf-8")
+    body = (TEMPLATES / name).read_text(encoding="utf-8")
+    # the pricing section is shared with /pricing as a partial
+    return body.replace('{% include "partials/_pricing_section.html" %}', (TEMPLATES / "partials" / "_pricing_section.html").read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)
@@ -149,7 +151,7 @@ def test_public_contact_identity_is_consistent() -> None:
         body = path.read_text(encoding='utf-8')
         assert 'Al-Narjs AI' not in body, path
         assert 'aimerchantvault.77@gmail.com' not in body, path
-        for address in re.findall(r'mailto:([^"\s]+)', body):
+        for address in re.findall(r'mailto:([^"\s?]+)', body):
             assert address == 'Al-Narjis@karmaai.online', path
 
 

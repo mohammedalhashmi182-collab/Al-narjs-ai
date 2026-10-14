@@ -1,0 +1,73 @@
+{#
+  Site assistant: the only floating contact on public pages. It talks to the
+  Al-Narjis consultant (/api/consult) and hands off to email whenever it cannot
+  answer (model unavailable, rate-limited, or network error). One small button,
+  so on mobile it never covers content; pages reserve bottom space for it.
+#}
+{% set _sa_ar = (page_lang(request) == 'ar') %}
+{% set _sup = support_contact() %}
+<style>
+#siteAssistant{position:fixed;bottom:16px;inset-inline-end:16px;z-index:60;font:15px/1.6 inherit}
+#saToggle{width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;background:#2f4a2a;color:#fff;display:grid;place-items:center;box-shadow:0 10px 24px -8px rgba(0,0,0,.45)}
+#saToggle svg{width:26px;height:26px}
+#saPanel{position:absolute;bottom:64px;inset-inline-end:0;width:min(360px,calc(100vw - 32px));background:#fffaf2;color:#2b2118;border:1px solid rgba(0,0,0,.1);border-radius:16px;box-shadow:0 18px 40px -12px rgba(0,0,0,.35);display:none;flex-direction:column;overflow:hidden}
+#siteAssistant.open #saPanel{display:flex}
+#saPanel header{padding:12px 14px;background:#2f4a2a;color:#fff;font-weight:700}
+#saPanel header small{display:block;font-weight:400;opacity:.85}
+#saLog{padding:12px;max-height:46vh;min-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+#saLog .m{padding:8px 11px;border-radius:12px;white-space:pre-wrap;max-width:90%}
+#saLog .bot{background:#efe6d6;align-self:flex-start}
+#saLog .me{background:#2f4a2a;color:#fff;align-self:flex-end}
+#saForm{display:flex;gap:6px;padding:10px;border-top:1px solid rgba(0,0,0,.08)}
+#saForm input{flex:1;min-width:0;border:1px solid rgba(0,0,0,.18);border-radius:10px;padding:8px 10px;font:inherit}
+#saForm button{border:0;border-radius:10px;padding:8px 12px;background:#2f4a2a;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+#saHandoff{display:none;margin:0 12px 8px;text-align:center;padding:8px 12px;border-radius:10px;background:#8a3b12;color:#fff;font-weight:700;text-decoration:none}
+#saHandoff.show{display:block}
+#saPanel .sa-mail{padding:0 12px 10px;font-size:.82rem}
+#saPanel .sa-mail a{color:#2f4a2a}
+@media (max-width:640px){
+  body{padding-bottom:84px}
+  body.has-consent-banner #siteAssistant{bottom:150px}
+  #saToggle{width:48px;height:48px}
+}
+</style>
+<div id="siteAssistant" lang="{{ 'ar' if _sa_ar else 'en' }}" dir="{{ 'rtl' if _sa_ar else 'ltr' }}">
+    <div id="saPanel" role="dialog" aria-label="{% if _sa_ar %}مساعد النرجس{% else %}Al-Narjis assistant{% endif %}">
+        <header>{% if _sa_ar %}مساعد النرجس الذكي{% else %}Al-Narjis AI assistant{% endif %}<small>{% if _sa_ar %}اسأل عن الباقات والخدمة. إن لم أستطع الإجابة أحوّلك للبريد.{% else %}Ask about plans and the service. If I can't answer, I'll hand you to email.{% endif %}</small></header>
+        <div id="saLog" aria-live="polite"><div class="m bot">{% if _sa_ar %}أهلاً! كيف أقدر أساعدك في عملك؟{% else %}Hi! How can I help with your business?{% endif %}</div></div>
+        <a id="saHandoff" href="{{ _sup.href }}" data-channel="{{ _sup.channel }}"{% if _sup.channel == 'whatsapp' %} target="_blank" rel="noopener"{% endif %}>{% if _sa_ar %}تحويل لخدمة العملاء{% else %}Transfer to customer service{% endif %}{% if _sup.channel == 'email' %} ({% if _sa_ar %}البريد{% else %}email{% endif %}){% elif _sup.channel == 'whatsapp' %} ({% if _sa_ar %}واتساب{% else %}WhatsApp{% endif %}){% else %} ({% if _sa_ar %}اتصال{% else %}call{% endif %}){% endif %}</a>
+        <form id="saForm"><input id="saInput" maxlength="800" autocomplete="off" aria-label="{% if _sa_ar %}رسالتك{% else %}Your message{% endif %}" placeholder="{% if _sa_ar %}اكتب سؤالك…{% else %}Type your question…{% endif %}"><button type="submit">{% if _sa_ar %}إرسال{% else %}Send{% endif %}</button></form>
+        <p class="sa-mail">{% if _sa_ar %}أو راسلنا على{% else %}Or email us at{% endif %} <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a></p>
+    </div>
+    <button type="button" id="saToggle" aria-expanded="false" aria-controls="saPanel" aria-label="{% if _sa_ar %}افتح مساعد النرجس{% else %}Open the Al-Narjis assistant{% endif %}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm3 6.5a1.5 1.5 0 1 0 0 .01zm5 0a1.5 1.5 0 1 0 0 .01zm5 0a1.5 1.5 0 1 0 0 .01z"/></svg></button>
+</div>
+<script>
+(function () {
+    var root = document.getElementById('siteAssistant'); if (!root) return;
+    var AR = {{ 'true' if _sa_ar else 'false' }};
+    var HANDOFF = AR
+        ? 'لا أستطيع الإجابة على هذا الآن. راسل فريقنا على Al-Narjis@karmaai.online وسيرد عليك بالبريد.'
+        : "I can't answer that right now. Email our team at Al-Narjis@karmaai.online and they will reply by email.";
+    var log = document.getElementById('saLog'), form = document.getElementById('saForm'), inp = document.getElementById('saInput');
+    var tg = document.getElementById('saToggle'), history = [];
+    var ho = document.getElementById('saHandoff');
+    var COMPLAINT = /(مشكل|شكو|شكي|اشتكي|ما يشتغل|لا يعمل|متوقف|خطأ|تعطل|عطل|سيئ|استرداد|complain|problem|issue|not working|broken|error|refund)/i;
+    function offerHandoff() { ho.classList.add('show'); }
+    tg.addEventListener('click', function () {
+        var o = root.classList.toggle('open'); tg.setAttribute('aria-expanded', o ? 'true' : 'false'); if (o) inp.focus();
+    });
+    function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+    form.addEventListener('submit', function (e) {
+        e.preventDefault(); var t = inp.value.trim(); if (!t) return;
+        inp.value = ''; add('me', t); if (COMPLAINT.test(t)) offerHandoff(); history.push({ role: 'user', content: t });
+        fetch('/api/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-12) }) })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+                if (!d || !d.reply) { add('bot', HANDOFF); offerHandoff(); return; }
+                if (d.reply.indexOf('خدمة العملاء') !== -1 || /customer service/i.test(d.reply)) offerHandoff();
+                history.push({ role: 'assistant', content: d.reply }); add('bot', d.reply);
+            })
+            .catch(function () { add('bot', HANDOFF); offerHandoff(); });
+    });
+})();
+</script>

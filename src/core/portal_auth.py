@@ -106,13 +106,28 @@ def session_claims(request: Request) -> Optional[dict]:
     return _decode(request.cookies.get(COOKIE_NAME), "session")
 
 
+LEGACY_STATUSES = ("pending", "draft")
+
+
+def legacy_allowed(project) -> bool:
+    """The UUID-only legacy exchange is for checkouts in flight: a project that
+    has never been paid. Anything that was ever activated (active, expired,
+    cancelled, demo, or with a recorded payment/period) must log in properly,
+    because its portal exposes contacts, drafts and replies."""
+    if project is None or project.status not in LEGACY_STATUSES:
+        return False
+    if getattr(project, "last_payment_id", None) or getattr(project, "current_period_end", None):
+        return False
+    return True
+
+
 def session_valid_for(claims: Optional[dict], project) -> bool:
     if not claims or project is None or claims.get("p") != str(project.id):
         return False
     if int(claims.get("v", -1)) != int(getattr(project, "portal_token_version", 0) or 0):
         return False
-    if claims.get("lg") and project.status == "active":
-        return False  # legacy UUID session: unpaid projects only
+    if claims.get("lg") and not legacy_allowed(project):
+        return False  # legacy UUID session: never-paid projects only
     return True
 
 
