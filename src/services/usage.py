@@ -349,3 +349,54 @@ async def owner_usage_report(session: AsyncSession, now: Optional[datetime] = No
         out.append(usage_summary(project, row))
     out.sort(key=lambda r: (not r["over_limit"], -max(m["pct"] for m in r["metrics"].values())))
     return out
+
+
+# --------------------------------------------------------------------------- media understanding (voice notes / images)
+
+MEDIA_KINDS = {"voice": "media_voice", "image": "media_image"}
+
+
+async def record_media(session: AsyncSession, project_or_id, kind: str, *, provider: Optional[str] = None,
+                       seconds: int = 0, contact: Optional[str] = None, ref: Optional[str] = None,
+                       now: Optional[datetime] = None) -> dict:
+    """Count one transcribed voice note / described image for this tenant.
+
+    Recorded as a ``UsageEvent`` (``media_voice`` quantity = seconds reported by
+    the provider, at least 1; ``media_image`` quantity = 1). It does not consume
+    the plan's voice-agent minutes: whether media processing is billed is an
+    owner pricing decision, so the counter only records it. A ``ref`` (WhatsApp
+    message id) is counted once.
+    """
+    from src.models.usage import UsageEvent
+
+    ekind = MEDIA_KINDS.get(kind)
+    project = await _project(session, project_or_id)
+    if project is None or ekind is None:
+        return {"counted": False, "reason": "no project" if project is None else "unknown kind"}
+    if ref and await _seen(session, project.id, ekind, ref):
+        return {"counted": False, "reason": "duplicate"}
+    now = _utc(now) or datetime.now(timezone.utc)
+    qty = max(1, int(seconds or 0)) if ekind == "media_voice" else 1
+    session.add(UsageEvent(project_id=project.id, kind=ekind, channel="whatsapp", contact_key=(contact or None),
+                           ref=(ref or None) and str(ref)[:255], quantity=qty, occurred_at=now,
+                           meta={"provider": provider} if provider else None))
+    await session.flush()
+    return {"counted": True, "kind": ekind, "quantity": qty}
+
+
+async def media_usage(session: AsyncSession, project, now: Optional[datetime] = None) -> dict:
+    """This window's voice notes (count + seconds) and images processed for one tenant."""
+    from sqlalchemy import func as _f
+
+    from src.models.usage import UsageEvent
+
+    start, end = usage_window(project, now)
+    rows = (await session.execute(
+        select(UsageEvent.kind, _f.count(), _f.coalesce(_f.sum(UsageEvent.quantity), 0)).where(
+            UsageEvent.project_id == project.id, UsageEvent.kind.in_(tuple(MEDIA_KINDS.values())),
+            UsageEvent.occurred_at >= start, UsageEvent.occurred_at < end,
+        ).group_by(UsageEvent.kind)
+    )).all()
+    got = {k: (int(n), int(q)) for k, n, q in rows}
+    return {"voice_notes": got.get("media_voice", (0, 0))[0], "voice_seconds": got.get("media_voice", (0, 0))[1],
+            "images": got.get("media_image", (0, 0))[0]}

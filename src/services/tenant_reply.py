@@ -94,6 +94,8 @@ def compose_answer(hits: list[dict]) -> str:
 def compose_handoff(project: ClientProject, reason: str) -> str:
     name = (project.client_name or "").strip()
     team = f"فريق {name}" if name else "فريقنا"
+    if reason.startswith("media"):
+        return f"وصلتنا رسالتك 🙏 حوّلتها إلى {team} عشان يطّلعون عليها ويردّون عليك قريبًا."
     if reason == "requested":
         return f"أبشر 🙏 حوّلت محادثتك إلى {team} وبيتواصلون معك في أقرب وقت."
     return f"شكرًا لسؤالك 🙏 حوّلته إلى {team} للتأكد من الإجابة الصحيحة، وبيردّون عليك قريبًا."
@@ -217,7 +219,8 @@ async def _contact(session: AsyncSession, project_id: UUID, contact: str) -> Opt
     ))).scalar_one_or_none()
 
 
-async def handle_inbound(session: AsyncSession, *, project: ClientProject, contact: Any, text: str) -> ReplyDraft | None:
+async def handle_inbound(session: AsyncSession, *, project: ClientProject, contact: Any, text: str,
+                         extra_meta: dict | None = None) -> ReplyDraft | None:
     """Draft (and in auto mode send) this project's reply to one inbound text."""
     text = (text or "").strip()
     if not text or project is None or project.status not in ("active", "demo"):
@@ -236,7 +239,7 @@ async def handle_inbound(session: AsyncSession, *, project: ClientProject, conta
     if c.opt_out or c.handoff_at is not None:
         return None  # opted out, or a human of the customer's team owns this chat
 
-    meta: dict = {"intent": intent, "tenant": True}
+    meta: dict = {"intent": intent, "tenant": True, **(extra_meta or {})}
     kind = "reply"
     if wants_human(text):
         reason = "requested"
@@ -256,6 +259,81 @@ async def handle_inbound(session: AsyncSession, *, project: ClientProject, conta
     if mode == "auto":
         await send_draft(session, draft, project)
     return draft
+
+
+async def handle_media_inbound(session: AsyncSession, *, project: ClientProject, contact: Any, message: dict,
+                               ) -> ReplyDraft | None:
+    """A voice note or image: transcribe/describe it, then answer like a typed message.
+
+    No provider, no customer token, over the AI limit, or a provider failure ->
+    graceful handoff to the customer's team (never a guess). Each processed item
+    is counted on the tenant's usage (``usage.record_media``).
+    """
+    from src.services import media_understanding as mu
+
+    media = mu.media_of(message)
+    if media is None or project is None or project.status not in ("active", "demo") or mode_of(project) == "off":
+        return None
+    recipient = _norm(contact)
+    c = await _contact(session, project.id, recipient) or await touch_contact(session, project, recipient)
+    if c.opt_out or c.handoff_at is not None:
+        return None
+    msg_id = str(message.get("id") or "") or None
+    if await over_ai_limit(session, project):
+        result = mu.MediaText(kind=media["kind"], error="over_limit")  # no paid call over the plan limit
+    else:
+        token = decrypt_token(project.wa_access_token_enc) if project.wa_phone_number_id else None
+        result = await mu.understand(media, token)
+    meta = {"media": media["kind"], "media_provider": result.provider}
+    if result.ok:
+        try:
+            from src.services import usage
+
+            async with session.begin_nested():
+                await usage.record_media(session, project, media["kind"], provider=result.provider,
+                                         seconds=result.seconds, contact=recipient, ref=msg_id)
+        except Exception:  # noqa: BLE001 - metering never blocks a reply
+            log.warning("media usage metering failed", exc_info=True)
+        text = mu.compose_text(media, result)
+        await _store_inbound_text(session, msg_id, text)
+        return await handle_inbound(session, project=project, contact=recipient, text=text,
+                                    extra_meta={**meta, "media_text": text[:1000]})
+    meta["media_error"] = result.error
+    reason = f"media_{result.error}"[:50]
+    c.handoff_at = datetime.now(UTC)
+    c.handoff_reason = reason
+    draft = ReplyDraft(project_id=project.id, channel=CHANNEL, recipient=recipient[:64], lead_id=None, kind="handoff",
+                       inbound_text=(media.get("caption") or f"[{media['kind']}]")[:4000],
+                       draft_text=compose_handoff(project, reason), meta={**meta, "tenant": True, "handoff": reason},
+                       status="pending")
+    session.add(draft)
+    await session.flush()
+    if mode_of(project) == "auto":
+        await send_draft(session, draft, project)
+    return draft
+
+
+async def _store_inbound_text(session: AsyncSession, msg_id: str | None, text: str) -> None:
+    if not msg_id:
+        return
+    from src.models import InboundMessage
+
+    rec = (await session.execute(select(InboundMessage).where(InboundMessage.provider_message_id == msg_id))
+           ).scalar_one_or_none()
+    if rec is not None and not rec.text:
+        rec.text = text[:4000]
+        await session.flush()
+
+
+async def safe_handle_media(session_factory, *, project_id: UUID, contact: Any, message: dict) -> None:
+    """Webhook hook for voice notes / images: own session, never raises."""
+    try:
+        async with session_factory() as session:
+            project = await session.get(ClientProject, project_id)
+            await handle_media_inbound(session, project=project, contact=contact, message=message)
+            await session.commit()
+    except Exception:  # noqa: BLE001
+        log.exception("tenant media reply failed for project %s", project_id)
 
 
 async def safe_handle_inbound(session_factory, *, project_id: UUID, contact: Any, text: str) -> None:
