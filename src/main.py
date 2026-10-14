@@ -20,6 +20,7 @@ from src.config.settings import get_settings, settings
 from src.utils.logger import configure_logging, get_logger
 from src.utils.rate_limit import (
     rate_limit_consult,
+    rate_limit_ticket,
     rate_limit_login,
     rate_limit_transfer_report,
 )
@@ -413,24 +414,27 @@ async def static_cache_headers(request: Request, call_next):
 
 
 # Security headers on every response. The CSP allow-list is exactly what the
-# public pages load: Google Fonts, cdnjs (Font Awesome), the Tailwind CDN on the
-# pages that still use it, the consent-gated Meta pixel and Google tag, and
-# PayPal for checkout. Inline scripts/styles are still used by the templates, so
+# public pages load: Google Fonts, cdnjs (Font Awesome), the consent-gated Meta
+# pixel and Google tag, and Moyasar/PayPal for checkout. Tailwind is served as
+# compiled static CSS (no CDN). Inline scripts/styles are still used by the templates, so
 # 'unsafe-inline' stays until they are moved to files. frame-ancestors 'none'
 # (plus X-Frame-Options for old browsers) stops clickjacking.
 CONTENT_SECURITY_POLICY = "; ".join(
     [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com "
-        "https://connect.facebook.net https://www.googletagmanager.com https://www.paypal.com https://*.paypal.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
+        "https://connect.facebook.net https://www.googletagmanager.com https://www.paypal.com https://*.paypal.com "
+        "https://cdn.moyasar.com https://*.moyasar.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com "
+        "https://cdn.moyasar.com https://*.moyasar.com",
         "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
         "img-src 'self' data: blob: https:",
         "connect-src 'self' https://www.facebook.com https://connect.facebook.net "
         "https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com "
-        "https://www.paypal.com https://*.paypal.com",
-        "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.facebook.com",
-        "form-action 'self' https://www.paypal.com https://*.paypal.com",
+        "https://www.paypal.com https://*.paypal.com https://api.moyasar.com https://*.moyasar.com",
+        "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.facebook.com "
+        "https://*.moyasar.com",
+        "form-action 'self' https://www.paypal.com https://*.paypal.com https://api.moyasar.com https://*.moyasar.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "object-src 'none'",
@@ -707,6 +711,7 @@ async def landing_page(request: Request):
             ],
             **(await _pricing_context()),
             "testimonials": _testimonials.load(),
+            "internal_tests": __import__("src.services.internal_tests", fromlist=["load"]).load(),
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
                 "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
@@ -1510,6 +1515,10 @@ async def portal_packages():
             "setup_fee": p["setup_fee"],
             "limits": p["limits"],
             "recommended": key == catalog.RECOMMENDED_PACKAGE,
+            "features": p["scope"],
+            "features_en": p["scope_en"],
+            "coming": p.get("coming", []),
+            "coming_en": p.get("coming_en", []),
         })
     return {
         "packages": result,
@@ -1828,6 +1837,55 @@ async def ceo_consult(request: CeoConsultRequest, http_request: Request):
     locale = request.lang or http_request.cookies.get(_LOCALE_COOKIE, "ar")
     provider = getattr(app.state, "model_provider", None)
     return await ceo_advisor.diagnose(problem, provider=provider, locale=locale)
+
+
+class SupportTicketRequest(BaseModel):
+    name: str = ""
+    email: str = ""
+    question: str = ""
+    consent: bool = False
+    page: Optional[str] = None
+    lang: Optional[str] = None
+
+
+def _ticket_lang(body: "SupportTicketRequest", request: Request) -> str:
+    # The page the visitor wrote from decides the reply language; a stale
+    # locale cookie from another tab must not flip an Arabic visitor to English.
+    if body.lang in ("ar", "en"):
+        return body.lang
+    page = (body.page or "").lower()
+    if page == "/en" or page.startswith("/en/"):
+        return "en"
+    if page == "/ar" or page.startswith("/ar/"):
+        return "ar"
+    return "en" if request.cookies.get(_LOCALE_COOKIE) == "en" else "ar"
+
+
+@app.post("/api/support/ticket", dependencies=[Depends(rate_limit_ticket)])
+async def create_support_ticket(body: SupportTicketRequest, request: Request):
+    """Human handoff from the site assistant: store a ticket, notify the owner."""
+    from src.services import tickets
+
+    lang = _ticket_lang(body, request)
+    try:
+        async with app.state.session_factory() as session:
+            t = await tickets.create(session, name=body.name, email=body.email, question=body.question,
+                                     consent=body.consent, lang=lang, page=body.page)
+    except tickets.TicketError as exc:
+        return JSONResponse(status_code=422, content={"ok": False, "field": exc.field})
+    return {"ok": True, "reference": t.reference,
+            "response_time": tickets.RESPONSE_TIME_EN if lang == "en" else tickets.RESPONSE_TIME_AR}
+
+
+@app.get("/api/owner/tickets")
+async def owner_list_tickets(request: Request):
+    from src.core.owner_auth import check_owner
+    from src.services import tickets
+
+    if not check_owner(request):
+        raise HTTPException(401, "owner only")
+    async with app.state.session_factory() as session:
+        return {"tickets": await tickets.list_recent(session)}
 
 
 @app.post("/api/consult", dependencies=[Depends(rate_limit_consult)])

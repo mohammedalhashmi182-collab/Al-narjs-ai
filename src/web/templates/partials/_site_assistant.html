@@ -25,9 +25,21 @@
 #saHandoff.show{display:block}
 #saPanel .sa-mail{padding:0 12px 10px;font-size:.82rem}
 #saPanel .sa-mail a{color:#2f4a2a}
+#saTicket{display:none;margin:0 12px 8px;padding:10px;border-radius:12px;background:#f4ead8;font-size:.88rem}
+#saTicket.show{display:block}
+#saTicket input,#saTicket textarea{width:100%;box-sizing:border-box;margin:3px 0;border:1px solid rgba(0,0,0,.18);border-radius:8px;padding:6px 8px;font:inherit}
+#saTicket textarea{min-height:56px;resize:vertical}
+#saTicket label.c{display:flex;gap:6px;align-items:flex-start;font-size:.78rem;margin:4px 0}
+#saTicket label.c input{width:auto;margin-top:3px}
+#saTicket button{border:0;border-radius:8px;padding:7px 12px;background:#2f4a2a;color:#fff;font:inherit;font-weight:700;cursor:pointer;width:100%}
+#saTicket .err{color:#8a1d12;font-size:.8rem;min-height:1em;margin:2px 0}
+#saOpenTicket{display:none;margin:0 12px 8px;width:calc(100% - 24px);border:1px solid #2f4a2a;background:transparent;color:#2f4a2a;border-radius:10px;padding:7px;font:inherit;font-weight:700;cursor:pointer}
+#saOpenTicket.show{display:block}
+#siteAssistant .sa-ref{white-space:nowrap;unicode-bidi:isolate;font-weight:700}
 @media (max-width:640px){
   body{padding-bottom:84px}
-  body.has-consent-banner #siteAssistant{bottom:150px}
+  body.has-consent-banner #siteAssistant{bottom:62px}
+  #saPanel{max-height:calc(100vh - 150px)}
   #saToggle{width:48px;height:48px}
 }
 </style>
@@ -36,6 +48,16 @@
         <header>{% if _sa_ar %}مساعد النرجس الذكي{% else %}Al-Narjis AI assistant{% endif %}<small>{% if _sa_ar %}اسأل عن الباقات والخدمة. إن لم أستطع الإجابة أحوّلك للبريد.{% else %}Ask about plans and the service. If I can't answer, I'll hand you to email.{% endif %}</small></header>
         <div id="saLog" aria-live="polite"><div class="m bot">{% if _sa_ar %}أهلاً! كيف أقدر أساعدك في عملك؟{% else %}Hi! How can I help with your business?{% endif %}</div></div>
         <a id="saHandoff" href="{{ _sup.href }}" data-channel="{{ _sup.channel }}"{% if _sup.channel == 'whatsapp' %} target="_blank" rel="noopener"{% endif %}>{% if _sa_ar %}تحويل لخدمة العملاء{% else %}Transfer to customer service{% endif %}{% if _sup.channel == 'email' %} ({% if _sa_ar %}البريد{% else %}email{% endif %}){% elif _sup.channel == 'whatsapp' %} ({% if _sa_ar %}واتساب{% else %}WhatsApp{% endif %}){% else %} ({% if _sa_ar %}اتصال{% else %}call{% endif %}){% endif %}</a>
+        <button type="button" id="saOpenTicket">{% if _sa_ar %}اطلب تواصل موظف (تذكرة){% else %}Ask a person to contact me (ticket){% endif %}</button>
+        <form id="saTicket" novalidate>
+            <b>{% if _sa_ar %}نحوّلك لفريقنا{% else %}We'll pass you to our team{% endif %}</b>
+            <input id="stName" maxlength="120" autocomplete="name" placeholder="{% if _sa_ar %}الاسم{% else %}Name{% endif %}" aria-label="{% if _sa_ar %}الاسم{% else %}Name{% endif %}">
+            <input id="stEmail" type="email" maxlength="254" autocomplete="email" dir="ltr" placeholder="{% if _sa_ar %}البريد الإلكتروني{% else %}Email{% endif %}" aria-label="{% if _sa_ar %}البريد الإلكتروني{% else %}Email{% endif %}">
+            <textarea id="stQ" maxlength="2000" placeholder="{% if _sa_ar %}سؤالك{% else %}Your question{% endif %}" aria-label="{% if _sa_ar %}سؤالك{% else %}Your question{% endif %}"></textarea>
+            <label class="c"><input type="checkbox" id="stConsent"><span>{% if _sa_ar %}أوافق على استخدام اسمي وبريدي للرد على استفساري فقط، وفق نظام حماية البيانات الشخصية و<a href="/privacy">سياسة الخصوصية</a>.{% else %}I agree my name and email are used only to answer this request, under the PDPL and our <a href="/privacy">privacy policy</a>.{% endif %}</span></label>
+            <p class="err" id="stErr" aria-live="polite"></p>
+            <button type="submit">{% if _sa_ar %}أرسل التذكرة{% else %}Send ticket{% endif %}</button>
+        </form>
         <form id="saForm"><input id="saInput" maxlength="800" autocomplete="off" aria-label="{% if _sa_ar %}رسالتك{% else %}Your message{% endif %}" placeholder="{% if _sa_ar %}اكتب سؤالك…{% else %}Type your question…{% endif %}"><button type="submit">{% if _sa_ar %}إرسال{% else %}Send{% endif %}</button></form>
         <p class="sa-mail">{% if _sa_ar %}أو راسلنا على{% else %}Or email us at{% endif %} <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a></p>
     </div>
@@ -52,14 +74,50 @@
     var tg = document.getElementById('saToggle'), history = [];
     var ho = document.getElementById('saHandoff');
     var COMPLAINT = /(مشكل|شكو|شكي|اشتكي|ما يشتغل|لا يعمل|متوقف|خطأ|تعطل|عطل|سيئ|استرداد|complain|problem|issue|not working|broken|error|refund)/i;
-    function offerHandoff() { ho.classList.add('show'); }
+    var ot = document.getElementById('saOpenTicket'), tk = document.getElementById('saTicket'), lastQ = '';
+    function offerHandoff() { ho.classList.add('show'); ot.classList.add('show'); }
+    var HUMAN = /(موظف|انسان|إنسان|بشري|شخص حقيقي|خدمة العملاء|كلم أحد|اكلم احد|أكلم أحد|human|person|agent|representative|real person)/i;
+    ot.addEventListener('click', function () {
+        tk.classList.add('show'); ot.classList.remove('show');
+        var q = document.getElementById('stQ'); if (!q.value) q.value = lastQ; document.getElementById('stName').focus();
+    });
+    tk.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var err = document.getElementById('stErr'), name = document.getElementById('stName').value.trim(),
+            email = document.getElementById('stEmail').value.trim(), q = document.getElementById('stQ').value.trim(),
+            consent = document.getElementById('stConsent').checked;
+        var M = AR ? {name: 'اكتب اسمك.', email: 'اكتب بريداً إلكترونياً صحيحاً.', question: 'اكتب سؤالك.', consent: 'الموافقة مطلوبة لنتمكن من الرد.', rate: 'أرسلت طلبات كثيرة، حاول بعد قليل.', fail: 'تعذّر الإرسال. راسلنا على Al-Narjis@karmaai.online'}
+                   : {name: 'Enter your name.', email: 'Enter a valid email.', question: 'Enter your question.', consent: 'Consent is required so we can reply.', rate: 'Too many requests, try again shortly.', fail: 'Could not send. Email Al-Narjis@karmaai.online'};
+        if (name.length < 2) { err.textContent = M.name; return; }
+        if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(email)) { err.textContent = M.email; return; }
+        if (q.length < 3) { err.textContent = M.question; return; }
+        if (!consent) { err.textContent = M.consent; return; }
+        err.textContent = '';
+        fetch('/api/support/ticket', {method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: name, email: email, question: q, consent: true, page: location.pathname})})
+            .then(function (r) { return r.json().then(function (d) { return [r.status, d]; }); })
+            .then(function (x) {
+                var st = x[0], d = x[1];
+                if (st === 429) { err.textContent = M.rate; return; }
+                if (!d.ok) { err.textContent = M[d.field] || M.fail; return; }
+                tk.classList.remove('show'); tk.reset();
+                // the reference sits in its own <bdi> that never wraps, so RTL text and
+                // line breaks cannot split "NRJ-000123" into "-NRJ" / "000123"
+                var b = add('bot', AR ? 'تم استلام طلبك ✅ رقم التذكرة: ' : 'Got it ✅ Ticket number: ');
+                var r = document.createElement('bdi'); r.className = 'sa-ref'; r.dir = 'ltr'; r.textContent = d.reference;
+                b.appendChild(r);
+                b.appendChild(document.createTextNode(AR ? ('. سيرد عليك فريقنا بالبريد ' + d.response_time + '.')
+                                                         : ('. Our team will reply by email ' + d.response_time + '.')));
+            })
+            .catch(function () { err.textContent = M.fail; });
+    });
     tg.addEventListener('click', function () {
         var o = root.classList.toggle('open'); tg.setAttribute('aria-expanded', o ? 'true' : 'false'); if (o) inp.focus();
     });
-    function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+    function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
     form.addEventListener('submit', function (e) {
         e.preventDefault(); var t = inp.value.trim(); if (!t) return;
-        inp.value = ''; add('me', t); if (COMPLAINT.test(t)) offerHandoff(); history.push({ role: 'user', content: t });
+        inp.value = ''; add('me', t); lastQ = t; if (COMPLAINT.test(t) || HUMAN.test(t)) offerHandoff(); history.push({ role: 'user', content: t });
         fetch('/api/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-12) }) })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (d) {

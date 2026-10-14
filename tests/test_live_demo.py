@@ -48,8 +48,8 @@ async def test_handoff_then_visitor_can_continue(maker):
     async with maker() as s:
         r1 = await live_demo.chat(s, "x", "أبي أكلم موظف")
         assert r1["kind"] == "handoff"
-        r2 = await live_demo.chat(s, "x", "وين موقعكم؟")
-        assert "الياسمين" in r2["reply"]
+        r2 = await live_demo.chat(s, "x", "وين موقع العيادة؟")
+        assert "شمال الرياض" in r2["reply"]
 
 
 async def test_never_takes_payments(maker):
@@ -111,4 +111,4 @@ def test_landing_has_labelled_widget():
     from src.main import app
 
     html = TestClient(app).get("/").text
-    assert 'id="live-demo"' in html and "/api/live-demo/chat" in html and "تجريبية" in html
+    assert 'id="chat-demo"' in html and "مثال توضيحي" in html and "/api/live-demo/chat" not in html

@@ -102,3 +102,16 @@ def rate_limit_botpress(request: Request) -> None:
             detail={"error": "Too many requests", "retry_after_seconds": retry_after},
             headers={"Retry-After": str(retry_after)},
         )
+
+# Support tickets from the site assistant notify the owner, so keep them tight.
+ticket_limiter = SlidingWindowLimiter(max_requests=3, window_seconds=600)
+
+
+def rate_limit_ticket(request: Request) -> None:
+    ok, retry_after = ticket_limiter.check(f"{client_ip(request)}:/api/support/ticket")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )

@@ -10,7 +10,7 @@
     <link rel="manifest" href="/static/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if _lang == 'ar' %}بوابة العميل | النرجس للذكاء الاصطناعي{% else %}Client Portal | Al-Narjis AI{% endif %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/app-tw.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Readex+Pro:wght@500;600;700&display=swap" rel="stylesheet">
@@ -368,8 +368,16 @@
                             <span data-lang="en" lang="en" dir="ltr" data-inline>${p.team_size} employees • ${p.tagline_en}</span>
                         </div>
                         ${p.limits ? `<div class="text-xs mt-2" style="color:var(--n-brown-2);">
-                            <span data-lang="ar" lang="ar" dir="rtl">${p.limits.conversations.toLocaleString('en')} محادثة • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' دقيقة صوت (قريباً) • ' : ''}ميتا مشمولة حتى ${p.limits.meta_cap / 100} ر.س</span>
-                            <span data-lang="en" lang="en" dir="ltr" data-inline>${p.limits.conversations.toLocaleString('en')} conversations • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' voice min (coming soon) • ' : ''}Meta fees covered up to SAR ${p.limits.meta_cap / 100}</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">${p.limits.conversations.toLocaleString('en')} محادثة • ميتا مشمولة حتى ${p.limits.meta_cap / 100} ر.س</span>
+                            <span data-lang="en" lang="en" dir="ltr" data-inline>${p.limits.conversations.toLocaleString('en')} conversations • Meta fees covered up to SAR ${p.limits.meta_cap / 100}</span>
+                        </div>` : ''}
+                        ${(p.features||[]).length ? `<div class="pkg-feat text-xs mt-3" style="text-align:start">
+                            <div data-lang="ar" lang="ar" dir="rtl"><b>متاح الآن</b><ul>${p.features.map(f=>`<li>✓ ${f}</li>`).join('')}</ul></div>
+                            <div data-lang="en" lang="en" dir="ltr"><b>Available now</b><ul>${p.features_en.map(f=>`<li>✓ ${f}</li>`).join('')}</ul></div>
+                        </div>` : ''}
+                        ${(p.coming||[]).length ? `<div class="pkg-coming text-xs mt-2" style="text-align:start;opacity:.6">
+                            <div data-lang="ar" lang="ar" dir="rtl"><b>قادم قريباً (غير مشمول حالياً)</b><ul>${p.coming.map(f=>`<li>◦ ${f}</li>`).join('')}</ul></div>
+                            <div data-lang="en" lang="en" dir="ltr"><b>Coming soon (not included yet)</b><ul>${p.coming_en.map(f=>`<li>◦ ${f}</li>`).join('')}</ul></div>
                         </div>` : ''}
                         ${p.recommended ? '<div class="text-xs mt-2" style="color:var(--n-gold-2);font-weight:700;"><span data-lang="ar" lang="ar" dir="rtl">ننصح بها</span><span data-lang="en" lang="en" dir="ltr" data-inline>Recommended</span></div>' : ''}
                     </div>
@@ -957,8 +965,8 @@ note.textContent = msg;
             });
             const pid = localStorage.getItem('narjis-project');
             const wantsLogin = new URLSearchParams(location.search).has('login');
-            fetch('/api/portal/session').then(r => r.ok ? r.json() : null).then(sess => {
-                if (sess) return resume(sess.project_id);
+            fetch('/api/portal/session?probe=1').then(r => r.ok ? r.json() : null).then(sess => {
+                if (sess && sess.authenticated) return resume(sess.project_id);
                 if (!pid) { if (wantsLogin) showLogin(); return; }
                 return fetch('/api/portal/session/legacy', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ project_id: pid }) }).then(r => r.ok ? resume(pid) : (showLogin(), false));
