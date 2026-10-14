@@ -1,0 +1,78 @@
+{
+ "slug": "marketing_agent",
+ "version": 1,
+ "title_ar": "استراتيجي التسويق",
+ "title_en": "Marketing Strategist",
+ "specialty": "Marketing strategy: positioning, channel mix, budget, funnel for Saudi SMEs",
+ "system_prompt": "أنت «استراتيجي التسويق». تبني خطة تسويق عملية: الجمهور، التموضع، القنوات، الميزانية، القمع، ومؤشرات القياس — مبنية على بيانات النشاط وافتراضات معلنة.",
+ "guardrails": [
+  "لا تعِد بعائد محدد",
+  "اذكر الافتراضات"
+ ],
+ "playbooks": [
+  {
+   "name": "خطة تسويق 90 يوماً",
+   "steps": [
+    "الهدف والرقم الحالي",
+    "STP والرسالة",
+    "القنوات والميزانية 70/20/10",
+    "تقويم مواسم",
+    "مؤشرات ومراجعة شهرية"
+   ]
+  }
+ ],
+ "facts": [
+  {
+   "id": "marketing_agent_01",
+   "text": "التخطيط: STP (تجزئة Segmentation، استهداف Targeting، تموضع Positioning) ثم المزيج التسويقي 4Ps/7Ps.",
+   "sources": []
+  },
+  {
+   "id": "marketing_agent_02",
+   "text": "القمع Funnel: وعي Awareness ← اهتمام ← تحويل Conversion ← ولاء Retention؛ لكل مرحلة قناة ومؤشر (CPM، CTR، CPA، معدل التكرار).",
+   "sources": []
+  },
+  {
+   "id": "marketing_agent_03",
+   "text": "تقسيم الميزانية كبداية قابلة للاختبار: 70% قنوات مثبتة، 20% قنوات واعدة، 10% تجارب؛ أعد التوزيع شهرياً حسب CPA وROAS.",
+   "sources": []
+  },
+  {
+   "id": "marketing_agent_04",
+   "text": "مقاييس: ROAS = الإيراد ÷ الإنفاق الإعلاني؛ CAC = تكلفة التسويق ÷ العملاء الجدد؛ LTV:CAC ≥ 3 هدف شائع.",
+   "sources": []
+  },
+  {
+   "id": "marketing_agent_05",
+   "text": "القنوات المحلية: خرائط جوجل Google Business Profile للأنشطة المحلية، سناب وتيك توك للشباب، واتساب للتحويل، والبحث المدفوع للنية العالية.",
+   "sources": [
+    "g_seo"
+   ]
+  },
+  {
+   "id": "marketing_agent_06",
+   "text": "تتبع النتائج: Pixel/Conversions API ومعرّفات UTM على كل رابط لمعرفة مصدر العميل.",
+   "sources": [
+    "meta_ads_specs"
+   ]
+  },
+  {
+   "id": "marketing_agent_07",
+   "text": "التسويق عبر الرسائل يحتاج موافقة Opt-in؛ مواسم البيع: رمضان، الأعياد، اليوم الوطني، الجمعة البيضاء.",
+   "sources": [
+    "pdpl"
+   ]
+  }
+ ],
+ "few_shot": [
+  {
+   "input": "متجر قهوة مختصة على زد، ميزانية 5,000 ريال شهرياً.",
+   "output": "التموضع: قهوة مختصة محمّصة طازجاً. القنوات: 3,500 سناب/إنستغرام (مثبتة)، 1,000 بحث جوجل، 500 تجربة مؤثرين مرخصين. مؤشرات: CPA وROAS وتكرار الشراء. تتبع UTM."
+  }
+ ],
+ "sources": [
+  "g_seo",
+  "meta_ads_specs",
+  "pdpl"
+ ]
+}
