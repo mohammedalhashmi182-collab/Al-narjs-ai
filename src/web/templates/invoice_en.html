@@ -43,27 +43,38 @@
         </div>
         <div class="inv-body">
             <div class="row">
-                <span>Invoice</span>
-                <span class="no">No. {{ payment.id|string|truncate(8, true, '')|upper }}</span>
+                <span>{% if tax_invoice %}Simplified Tax Invoice<br><small>فاتورة ضريبية مبسطة</small>{% else %}Pro-forma invoice<br><small>The tax invoice is issued on payment</small>{% endif %}</span>
+                <span class="no">{% if tax_invoice %}No. {{ tax_invoice.invoice_number }}{% else %}Ref {{ payment.id|string|truncate(8, true, '')|upper }}{% endif %}</span>
             </div>
             <div class="org">
-                <b>The Arabian Convoy Establishment</b><br>
-                Commercial Reg. 31332495263<br>
-                Riyadh, Kingdom of Saudi Arabia<br>
-                Building 2371 Muhammad Al Amri, Al Rimal Dist 7369, Postal 13263
+                <b>{{ seller.name_en }}</b> ({{ seller.name_ar }})<br>
+                VAT No.: {{ seller.vat_number }}{% if seller.vat_placeholder %} <span style="color:#B91C1C">(not configured yet)</span>{% endif %}<br>
+                Commercial Reg.: {{ seller.cr_number }}<br>
+                {{ seller.address_ar }}
             </div>
             <div class="meta">
-                Date: {{ payment.created_at.strftime('%Y-%m-%d') if payment.created_at else '-' }}
+                {% if tax_invoice %}Issued: {{ issued_riyadh }} (Riyadh){% else %}Date: {{ payment.created_at.strftime('%Y-%m-%d') if payment.created_at else '-' }}{% endif %}
                 {% if payment.customer_name %} · Customer: {{ payment.customer_name }}{% endif %}
                 {% if payment.customer_email %} · {{ payment.customer_email }}{% endif %}
             </div>
-            {% set names = {'social':'Social Media','ecommerce':'E-commerce','content':'Content Marketing','growth':'Business Growth'} %}
             <table>
-                <tr><th>Package</th><th>Subtotal</th></tr>
-                <tr><td>{{ names.get(payment.package, payment.package or '-') }}</td><td>{{ "%.2f"|format(base / 100) }} SAR</td></tr>
-                <tr><td>VAT 15%</td><td>{{ "%.2f"|format(vat / 100) }} SAR</td></tr>
-                <tr class="tot"><td>Total</td><td>{{ "%.2f"|format(total / 100) }} SAR</td></tr>
+                <tr><th>Item</th><th>Qty</th><th>Net</th><th>VAT 15%</th><th>Total</th></tr>
+                {% for l in lines %}
+                <tr><td>{{ l.name }}</td><td>{{ l.qty }}</td><td>{{ "%.2f"|format(l.net / 100) }}</td><td>{{ "%.2f"|format(l.vat / 100) }}</td><td>{{ "%.2f"|format(l.gross / 100) }}</td></tr>
+                {% endfor %}
+                <tr class="tot"><td colspan="2">Subtotal (excl. VAT)</td><td colspan="3">{{ "%.2f"|format(base / 100) }} SAR</td></tr>
+                <tr><td colspan="2">VAT 15%</td><td colspan="3">{{ "%.2f"|format(vat / 100) }} SAR</td></tr>
+                <tr class="tot"><td colspan="2">Total (incl. VAT)</td><td colspan="3">{{ "%.2f"|format(total / 100) }} SAR</td></tr>
             </table>
+            {% if tax_invoice %}
+            <div class="qr" style="text-align:center;margin-top:14px;">
+                {% if qr_svg %}{{ qr_svg|safe }}{% endif %}
+                <div class="meta" style="word-break:break-all;">QR (ZATCA TLV): {{ tax_invoice.qr_tlv }}</div>
+            </div>
+            {% endif %}
+            {% for cn in credit_notes %}
+            <div class="meta">Credit note {{ cn.invoice_number }} on {{ cn.issued_at.strftime('%Y-%m-%d') }}: {{ "%.2f"|format(cn.total / 100) }} SAR incl. VAT{% if cn.reason %} — {{ cn.reason }}{% endif %}</div>
+            {% endfor %}
             <div class="meta" style="margin-top:16px;">Paid via {{ 'PayPal' if payment.gateway == 'paypal' else ('Moyasar' if payment.gateway == 'moyasar' else 'Bank transfer') }}</div>
             {% include "partials/_invoice_consent.html" %}
             {% include "partials/_transfer.html" %}

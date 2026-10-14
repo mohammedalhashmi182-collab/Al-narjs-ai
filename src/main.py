@@ -2726,6 +2726,59 @@ async def owner_run_renewals(request: Request, days_before: Optional[int] = None
         return await renewals.run_renewals(session, days_before=days, base_url=_public_base_url(request))
 
 
+@app.post("/api/owner/billing/collections/run", dependencies=[Depends(require_owner_api)])
+async def owner_run_collections(request: Request):
+    """Owner-only: reminder sequence (D-5/D-1/D0/D+3), failed-payment recovery
+    links and overage invoices. Customer messages stay drafts unless
+    BILLING_AUTO_SEND is enabled; owner Telegram alerts are always sent."""
+    from src.services import collections
+
+    async with app.state.session_factory() as session:
+        return await collections.run_collections(session, base_url=_public_base_url(request))
+
+
+@app.get("/api/owner/billing/zatca/status", dependencies=[Depends(require_owner_api)])
+async def owner_zatca_status():
+    """Owner-only: which seller details are still missing for ZATCA phase 1."""
+    from src.services import zatca
+
+    async with app.state.session_factory() as session:
+        return {**zatca.readiness(), "issued": await zatca.count_issued(session)}
+
+
+@app.post("/api/owner/billing/invoices/{payment_id}/credit-note", dependencies=[Depends(require_owner_api)])
+async def owner_credit_note(payment_id: str, request: Request):
+    """Owner-only: issue a credit note (إشعار دائن) for a refund. Body:
+    ``{"amount": <pre-VAT halalas, optional = full>, "reason": "..."}``."""
+    from uuid import UUID
+
+    from sqlalchemy import select
+
+    from src.models import Payment
+    from src.services import zatca
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    body = body if isinstance(body, dict) else {}
+    try:
+        pid = UUID(payment_id)
+    except ValueError:
+        raise HTTPException(404, "payment not found")
+    async with app.state.session_factory() as session:
+        payment = (await session.execute(select(Payment).where(Payment.id == pid))).scalar_one_or_none()
+        if payment is None:
+            raise HTTPException(404, "payment not found")
+        try:
+            note = await zatca.issue_credit_note(
+                session, payment, amount=body.get("amount"), reason=str(body.get("reason") or "استرداد")[:500]
+            )
+        except (zatca.ZatcaError, TypeError, ValueError) as exc:
+            raise HTTPException(422, str(exc))
+        return zatca.to_dict(note)
+
+
 # ---------------------------------------------------------------------------
 #  Usage metering (per subscription, monthly) and the founding offer
 # ---------------------------------------------------------------------------
@@ -3086,6 +3139,7 @@ async def invoice_page(request: Request, payment_id: str):
     # not a resolvable invoice lands on the recovery page below instead, because
     # this URL is handed to a buyer at the exact moment they decide to pay.
     payment = None
+    tax_invoice, credit_notes = None, []
     try:
         parsed = UUID(payment_id)
     except (ValueError, AttributeError, TypeError):
@@ -3094,6 +3148,13 @@ async def invoice_page(request: Request, payment_id: str):
         async with app.state.session_factory() as session:
             result = await session.execute(select(Payment).where(Payment.id == parsed))
             payment = result.scalar_one_or_none()
+            if payment is not None:
+                # ZATCA phase 1: a paid order gets its numbered simplified tax
+                # invoice (issued once); unpaid orders render as a pro-forma.
+                from src.services import zatca
+
+                tax_invoice = await zatca.ensure_invoice(session, payment)
+                credit_notes = await zatca.credit_notes_for(session, payment.id) if tax_invoice else []
 
     if not payment:
         return templates.TemplateResponse(
@@ -3103,12 +3164,24 @@ async def invoice_page(request: Request, payment_id: str):
             status_code=404,
         )
 
+    from datetime import timedelta as _td
+
+    from src.services import zatca
+
+    zp = zatca.preview(payment)
     template = "invoice.html" if locale == "ar" else "invoice_en.html"
     return templates.TemplateResponse(
         request,
         template,
         {
             "payment": payment,
+            "tax_invoice": tax_invoice,
+            "credit_notes": credit_notes,
+            "seller": tax_invoice.seller if tax_invoice else zatca.seller(),
+            "lines": tax_invoice.lines if tax_invoice else zp["lines"],
+            "qr_svg": zatca.qr_svg(tax_invoice.qr_tlv) if tax_invoice else None,
+            "issued_riyadh": (tax_invoice.issued_at + _td(hours=3)).strftime("%Y-%m-%d %H:%M")
+            if tax_invoice and tax_invoice.issued_at else None,
             "base": payment.amount,
             "vat": pm.vat_amount(payment.amount),
             "total": pm.total_with_vat(payment.amount),
