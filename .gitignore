@@ -20,3 +20,5 @@ Thumbs.db
 _*.png
 _*.log
 collected_session_assets/
+evals/rag/results/
+rag_eval_unused.db

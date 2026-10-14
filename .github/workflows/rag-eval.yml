@@ -1,0 +1,71 @@
+# RAG quality gate: RAG unit tests + the fixed 208-question eval.
+# - mocked eval (hash embeddings, no model) always runs: must have 0 wrong answers,
+#   0 hallucinations and stay above its floor (tests/test_rag_eval.py).
+# - live eval (real embeddings + LLM) runs only when a model key secret exists;
+#   target: >= 90% correct-or-correct-handoff, 0 wrong, 0 hallucinations.
+# No secret value is ever printed; the runner prints key NAMES only.
+name: rag-eval
+
+on:
+  pull_request:
+    paths:
+      - "src/services/rag/**"
+      - "src/services/tenant_reply.py"
+      - "src/services/agent_tools/knowledge_base.py"
+      - "evals/rag/**"
+      - "scripts/run_rag_eval.py"
+      - "tests/test_rag*.py"
+      - ".github/workflows/rag-eval.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: rag-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HAS_MODEL_KEY: ${{ secrets.OPENAI_API_KEY != '' || secrets.GEMINI_API_KEY != '' || secrets.GROQ_API_KEY != '' || secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install dependencies from pyproject.toml
+        run: |
+          python -m pip install --upgrade pip
+          python - <<'PY'
+          import subprocess, sys, tomllib
+          with open("pyproject.toml", "rb") as fh:
+              project = tomllib.load(fh)["project"]
+          deps = list(project["dependencies"]) + list(project.get("optional-dependencies", {}).get("dev", []))
+          subprocess.check_call([sys.executable, "-m", "pip", "install", *deps])
+          PY
+
+      - name: RAG tests + mocked eval gate
+        run: python -m pytest -q tests/test_rag.py tests/test_rag_site_assistant.py tests/test_rag_eval.py --disable-socket --allow-unix-socket
+
+      - name: Mocked eval report
+        run: python scripts/run_rag_eval.py --mode mocked || true
+
+      - name: Live eval (only when a model key secret exists)
+        if: env.HAS_MODEL_KEY == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/run_rag_eval.py --mode live
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rag-eval-results
+          path: evals/rag/results/
+          if-no-files-found: ignore
