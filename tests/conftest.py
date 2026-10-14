@@ -19,3 +19,16 @@ def founding_full(monkeypatch):
     from src.services import catalog
 
     monkeypatch.setitem(catalog.FOUNDING_OFFER, "seats", 0)
+
+
+@_pytest.fixture(autouse=True)
+def _reset_payment_idempotency_cache():
+    """The /api/payments replay cache is process-global; never let one test's
+    response be replayed into another test (that caused the flaky PayPal tests)."""
+    from src import main
+
+    main._payment_replays.clear()
+    main._payment_locks.clear()
+    yield
+    main._payment_replays.clear()
+    main._payment_locks.clear()
