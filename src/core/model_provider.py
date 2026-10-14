@@ -801,7 +801,23 @@ class ModelProvider:
         if not client:
             raise ModelProviderError(f"Provider {model_spec.provider} not configured", model_spec.provider, model_spec.model_name)
 
-        return await client.complete(request)
+        return await self._complete_masked(client, model_spec.provider, request)
+
+    async def _complete_masked(self, client, provider, request: ModelRequest) -> ModelResponse:
+        """PDPL minimisation: mask PII before an external provider sees it, restore it locally."""
+        from src.core import pii_mask
+
+        if not pii_mask.should_mask(getattr(provider, "value", str(provider)), request.metadata):
+            return await client.complete(request)
+        original = (request.prompt, request.system_prompt)
+        mapping = pii_mask.mask_request(request)
+        try:
+            response = await client.complete(request)
+        finally:
+            request.prompt, request.system_prompt = original
+        if mapping and response is not None:
+            response.content = pii_mask.unmask(response.content, mapping)
+        return response
 
     async def complete_with_fallback(
         self,
@@ -822,7 +838,7 @@ class ModelProvider:
                     logger.warning(f"Provider {spec.provider} not available, skipping")
                     continue
 
-                return await client.complete(request)
+                return await self._complete_masked(client, spec.provider, request)
             except CircuitBreakerOpen:
                 logger.warning(f"Circuit breaker open for {spec}, skipping")
                 last_error = ModelProviderError("Circuit breaker open", spec.provider, spec.model_name)
@@ -857,8 +873,17 @@ class ModelProvider:
         if not client:
             raise ModelProviderError(f"Provider {model_spec.provider} not configured", model_spec.provider, model_spec.model_name)
 
-        async for chunk in client.stream(request):
-            yield chunk
+        from src.core import pii_mask
+
+        mapping: dict[str, str] = {}
+        original = (request.prompt, request.system_prompt)
+        if pii_mask.should_mask(getattr(model_spec.provider, "value", str(model_spec.provider)), request.metadata):
+            mapping = pii_mask.mask_request(request)
+        try:
+            async for chunk in client.stream(request):
+                yield pii_mask.unmask(chunk, mapping) if mapping else chunk
+        finally:
+            request.prompt, request.system_prompt = original
 
     async def close(self):
         for client in self._clients.values():
