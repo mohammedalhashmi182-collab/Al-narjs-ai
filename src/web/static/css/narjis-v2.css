@@ -377,3 +377,6 @@ body.v2 {
 .how-tag span { color: var(--v2-lavender); letter-spacing: 0; }
 .how-sprig { position: absolute; bottom: -10px; inset-inline-start: 6px; width: 90px; color: var(--v2-sage); pointer-events: none; }
 @media (max-width: 860px) { .steps::before { display: none; } .how-sprig { width: 60px; opacity: .6; } }
+
+/* cookie consent banner open: keep page content clear of it */
+body.has-consent-banner { padding-bottom: 140px; }

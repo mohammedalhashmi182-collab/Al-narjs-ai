@@ -550,3 +550,6 @@ select option { background: #ffffff; color: var(--n-brown); }
     .n-hero .edge { height: 34px; }
   }
   
+
+/* cookie consent banner open: keep page content clear of it */
+body.has-consent-banner { padding-bottom: 140px; }
