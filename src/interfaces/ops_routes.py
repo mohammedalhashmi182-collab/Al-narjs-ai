@@ -229,7 +229,11 @@ async def send_renewal_reminder(outbound_id: str, request: Request):
             params = [project.client_name, pkg.get("name", project.package), end, link]
         res = await wa_templates.send_business_initiated(s, phone=msg.phone, purpose="renewal", text=msg.text,
                                                          params=params, lead_id=msg.lead_id)
-        msg.status = "dispatched"
+        # Only a provider ack is "dispatched". On the fallback path (no approved
+        # template, WhatsApp off, send failed) a wa.me row was queued for the owner.
+        msg.status = "dispatched" if res.get("ok") else "fallback"
+        if not res.get("ok"):
+            msg.error = str(res.get("reason") or "fallback")[:500]
         await s.commit()
         return res
 

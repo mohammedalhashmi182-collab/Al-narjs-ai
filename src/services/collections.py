@@ -14,10 +14,15 @@ Channels per step:
 - **Customer email**: sent through ``email_service`` only when
   ``BILLING_AUTO_SEND=true`` and SMTP/Brevo is configured; otherwise recorded
   as a ``draft`` ``OutboundMessage`` (channel ``email``) for owner review.
-- **Customer WhatsApp**: the sender only supports free text, which Meta
-  rejects outside the 24h window, so there is no approved-template mechanism
-  yet. Each reminder is queued as a ``draft`` with ``error_code
-  'needs_template'`` and flagged in the result (``whatsapp_template_missing``).
+- **Customer WhatsApp**: renewal stages (D-1, D0, D+3) go through
+  ``wa_templates.send_business_initiated(purpose="renewal")`` (24h session text
+  or the approved ``renewal_reminder_ar`` template) only when
+  ``BILLING_AUTO_SEND=true``. A stage counts as ``sent`` only on a Meta ack; the
+  fallback path (no approved template / not configured / send failed) is
+  recorded as ``fallback:awaiting_manual`` and flagged
+  (``whatsapp_template_missing``), never as sent. Without auto-send it is a
+  ``draft`` (``needs_template``) the owner sends from
+  ``POST /api/owner/ops/wa/renewal/<id>``. Recovery and overage stay drafts.
   D-5 is skipped here because the renewal job already drafts that one.
 
 Every customer link points at our consent-gated ``/invoice/<id>`` page (it
@@ -123,7 +128,8 @@ async def _draft(session, channel: str, to: Optional[str], text: str, message_ty
 
 
 async def _deliver(session, *, project_phone, email, subject: str, text: str, message_type: str,
-                   owner_note: str, whatsapp: bool = True) -> dict:
+                   owner_note: str, whatsapp: bool = True,
+                   wa_purpose: Optional[str] = None, wa_params: Optional[list] = None) -> dict:
     """Owner alert always; customer email sent only in auto mode; WhatsApp drafted."""
     from src.services import email_service, telegram_sender
 
@@ -147,8 +153,17 @@ async def _deliver(session, *, project_phone, email, subject: str, text: str, me
         channels["email"] = "skipped:no_email"
 
     if whatsapp and project_phone:
-        await _draft(session, "whatsapp", project_phone, text, message_type, WHATSAPP_FLAG)
-        channels["whatsapp"] = "draft:needs_template"
+        if wa_purpose and _auto_send():
+            from src.services import wa_templates
+
+            res = await wa_templates.send_business_initiated(
+                session, phone=project_phone, purpose=wa_purpose, text=text, params=list(wa_params or []))
+            # Only a provider ack counts as sent; the fallback path is NOT dispatched.
+            channels["whatsapp"] = (f"sent:{res.get('path')}" if res.get("ok")
+                                    else f"fallback:{wa_templates.FALLBACK_STATUS}")
+        else:
+            await _draft(session, "whatsapp", project_phone, text, message_type, WHATSAPP_FLAG)
+            channels["whatsapp"] = "draft:needs_template"
     return channels
 
 
@@ -190,6 +205,11 @@ async def run_reminders(session: AsyncSession, now: datetime, base_url: str) -> 
             subject="تذكير تجديد الاشتراك — النرجس للذكاء الاصطناعي", text=text, message_type="renewal",
             owner_note=f"💳 تحصيل {stage}: {project.client_name} — {pm.total_with_vat(int(payment.amount)) / 100:,.2f} ر.س غير مسددة ({pm.reference(payment)})",
             whatsapp=stage != "d-5",
+            wa_purpose="renewal",
+            wa_params=[project.client_name,
+                       catalog.PACKAGES.get(project.package, {}).get("name", project.package),
+                       (end + timedelta(hours=3)).strftime("%Y-%m-%d"),
+                       f"{base_url}/invoice/{payment.id}"],
         )
         await _mark(session, project.id, payment.id, stage, channels)
         await session.commit()
@@ -285,7 +305,8 @@ async def run_collections(session: AsyncSession, *, now: Optional[datetime] = No
     reminders = await run_reminders(session, now, base)
     recovery = await run_recovery(session, now, base)
     overage = await bill_overage(session, now, base)
-    template_missing = any("whatsapp" in r["channels"] for r in reminders + recovery + overage)
+    template_missing = any(not str(r["channels"].get("whatsapp", "sent")).startswith("sent")
+                           for r in reminders + recovery + overage)
     return {
         "ran_at": now.isoformat(),
         "auto_send": _auto_send(),
