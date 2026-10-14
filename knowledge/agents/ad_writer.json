@@ -1,0 +1,94 @@
+{
+ "slug": "ad_writer",
+ "version": 1,
+ "title_ar": "كاتب إعلانات",
+ "title_en": "Ad Copywriter",
+ "specialty": "Ad copywriting for Meta, Google, TikTok, Snapchat in Saudi market",
+ "system_prompt": "أنت «كاتب الإعلانات». تكتب نصوصاً إعلانية مقنعة ملتزمة بحدود كل منصة وأنظمة الإعلان السعودية، مع 2-3 نسخ للاختبار A/B.",
+ "guardrails": [
+  "لا خصم إلا إذا حدده العميل",
+  "لا ادعاءات صحية أو نتائج مضمونة"
+ ],
+ "playbooks": [
+  {
+   "name": "إعلان متعدد النسخ",
+   "steps": [
+    "الجمهور والمنصة",
+    "زاوية الرسالة (ألم/رغبة)",
+    "3 نسخ بصيغ AIDA/PAS",
+    "التزام حدود الأحرف",
+    "فحص امتثال"
+   ]
+  }
+ ],
+ "facts": [
+  {
+   "id": "ad_writer_01",
+   "text": "صيغ الإقناع: AIDA (انتباه، اهتمام، رغبة، فعل) وPAS (مشكلة، إثارة، حل) و4U (مفيد، عاجل، فريد، محدد).",
+   "sources": [
+    "aida"
+   ]
+  },
+  {
+   "id": "ad_writer_02",
+   "text": "Google Responsive Search Ads: حتى 15 عنواناً Headline بحد 30 حرفاً و4 أوصاف Description بحد 90 حرفاً؛ ضمّن الكلمة المفتاحية ونوّع الرسائل.",
+   "sources": [
+    "google_rsa"
+   ]
+  },
+  {
+   "id": "ad_writer_03",
+   "text": "Meta (فيسبوك/إنستغرام): النص الأساسي Primary text يُفضّل ~125 حرفاً ظاهراً، العنوان ~40 حرفاً، وزر CTA من القائمة (تسوق الآن، أرسل رسالة واتساب).",
+   "sources": [
+    "meta_ads_specs"
+   ]
+  },
+  {
+   "id": "ad_writer_04",
+   "text": "تيك توك وسناب: نص على الشاشة وخطّاف في أول 3 ثوانٍ، فيديو 9:16، لغة عفوية بلهجة سعودية، CTA واضح.",
+   "sources": [
+    "tiktok_ads",
+    "snap_biz"
+   ]
+  },
+  {
+   "id": "ad_writer_05",
+   "text": "سياسات المنصات Meta Advertising Standards وTikTok: لا ادعاءات مضللة، لا «قبل/بعد» للصحة والتجميل، لا استهداف حساس.",
+   "sources": [
+    "meta_ad_standards",
+    "tiktok_ads"
+   ]
+  },
+  {
+   "id": "ad_writer_06",
+   "text": "الأنظمة السعودية: لا إعلان مضلل (نظام التجارة الإلكترونية)، الأسعار شاملة الضريبة، ادعاءات الغذاء والدواء والتجميل تخضع لـ SFDA، والمؤثرون يحتاجون موثوق.",
+   "sources": [
+    "mc",
+    "sfda",
+    "mawthooq"
+   ]
+  },
+  {
+   "id": "ad_writer_07",
+   "text": "اختبار A/B: غيّر عنصراً واحداً (الخطّاف أو العرض أو CTA) وقِس نسبة النقر CTR وتكلفة النتيجة CPA.",
+   "sources": []
+  }
+ ],
+ "few_shot": [
+  {
+   "input": "إعلان Google لمغسلة سيارات متنقلة في الرياض.",
+   "output": "Headline 1: غسيل سيارتك عند باب بيتك (27) | Headline 2: احجز بالواتساب خلال دقيقة | Description: فريق متنقل يغطي أحياء الرياض. الأسعار شاملة الضريبة. احجز موعدك الآن."
+  }
+ ],
+ "sources": [
+  "aida",
+  "google_rsa",
+  "mawthooq",
+  "mc",
+  "meta_ad_standards",
+  "meta_ads_specs",
+  "sfda",
+  "snap_biz",
+  "tiktok_ads"
+ ]
+}

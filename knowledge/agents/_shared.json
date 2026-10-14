@@ -1,0 +1,268 @@
+{
+ "version": 1,
+ "sources": {
+  "zatca_einv": {
+   "title": "ZATCA — E-Invoicing (Fatoora)",
+   "url": "https://zatca.gov.sa/en/E-Invoicing/Pages/default.aspx"
+  },
+  "zatca_tax": {
+   "title": "ZATCA — Taxes rules & regulations (VAT, Zakat)",
+   "url": "https://zatca.gov.sa/en/RulesRegulations/Taxes/Pages/default.aspx"
+  },
+  "pdpl": {
+   "title": "SDAIA — Personal Data Protection (PDPL) portal",
+   "url": "https://dgp.sdaia.gov.sa/wps/portal/pdp/home"
+  },
+  "mc": {
+   "title": "Ministry of Commerce — Laws & regulations (E-Commerce Law, Consumer protection)",
+   "url": "https://mc.gov.sa/en/Regulations/Pages/default.aspx"
+  },
+  "gamr": {
+   "title": "General Authority for Media Regulation (GAMR)",
+   "url": "https://gmedia.gov.sa/"
+  },
+  "mawthooq": {
+   "title": "GAMR — Mawthooq advertiser licence",
+   "url": "https://mawthooq.gmedia.gov.sa/"
+  },
+  "wa_policy": {
+   "title": "WhatsApp Business Messaging Policy",
+   "url": "https://business.whatsapp.com/policy"
+  },
+  "wa_optin": {
+   "title": "Meta — WhatsApp: getting opt-in",
+   "url": "https://developers.facebook.com/docs/whatsapp/overview/getting-opt-in"
+  },
+  "wa_pricing": {
+   "title": "Meta — WhatsApp pricing & conversation windows",
+   "url": "https://developers.facebook.com/docs/whatsapp/pricing"
+  },
+  "wa_templates": {
+   "title": "Meta — WhatsApp message templates",
+   "url": "https://developers.facebook.com/docs/whatsapp/cloud-api/guides/send-message-templates"
+  },
+  "wa_limits": {
+   "title": "Meta — WhatsApp messaging limits & quality",
+   "url": "https://developers.facebook.com/docs/whatsapp/messaging-limits"
+  },
+  "meta_ads_specs": {
+   "title": "Meta Business Help — ad specs/guide",
+   "url": "https://www.facebook.com/business/help/980593475366490"
+  },
+  "meta_ad_standards": {
+   "title": "Meta Advertising Standards",
+   "url": "https://transparency.meta.com/policies/ad-standards/"
+  },
+  "google_rsa": {
+   "title": "Google Ads Help — Responsive search ads",
+   "url": "https://support.google.com/google-ads/answer/7684791"
+  },
+  "tiktok_ads": {
+   "title": "TikTok Ads policies",
+   "url": "https://ads.tiktok.com/help/article/tiktok-ads-policies"
+  },
+  "snap_biz": {
+   "title": "Snapchat for Business / Business Help",
+   "url": "https://businesshelp.snapchat.com/"
+  },
+  "g_seo": {
+   "title": "Google Search Central — SEO Starter Guide",
+   "url": "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
+  },
+  "g_helpful": {
+   "title": "Google Search Central — Creating helpful, reliable, people-first content",
+   "url": "https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+  },
+  "g_hreflang": {
+   "title": "Google Search Central — Localized versions (hreflang)",
+   "url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+  },
+  "cwv": {
+   "title": "web.dev — Core Web Vitals",
+   "url": "https://web.dev/articles/vitals"
+  },
+  "merchant": {
+   "title": "Google Merchant Center — Product data specification",
+   "url": "https://support.google.com/merchants/answer/7052112"
+  },
+  "gmail_senders": {
+   "title": "Google Workspace — Email sender guidelines",
+   "url": "https://support.google.com/a/answer/81126"
+  },
+  "salla": {
+   "title": "Salla developer docs",
+   "url": "https://docs.salla.dev/"
+  },
+  "zid": {
+   "title": "Zid developer docs",
+   "url": "https://docs.zid.sa/"
+  },
+  "owasp": {
+   "title": "OWASP Top 10",
+   "url": "https://owasp.org/Top10/"
+  },
+  "asvs": {
+   "title": "OWASP ASVS",
+   "url": "https://owasp.org/www-project-application-security-verification-standard/"
+  },
+  "nca_ecc": {
+   "title": "NCA — Essential Cybersecurity Controls (ECC)",
+   "url": "https://nca.gov.sa/en/regulatory-documents/controls-list/ecc/"
+  },
+  "wcag": {
+   "title": "W3C — WCAG 2.2",
+   "url": "https://www.w3.org/TR/WCAG22/"
+  },
+  "w3c_i18n": {
+   "title": "W3C Internationalization — scripts & RTL",
+   "url": "https://www.w3.org/International/questions/qa-scripts"
+  },
+  "scrum": {
+   "title": "The Scrum Guide (2020)",
+   "url": "https://scrumguides.org/scrum-guide.html"
+  },
+  "12factor": {
+   "title": "The Twelve-Factor App",
+   "url": "https://12factor.net/"
+  },
+  "oauth": {
+   "title": "RFC 6749 — OAuth 2.0",
+   "url": "https://www.rfc-editor.org/rfc/rfc6749"
+  },
+  "gastat": {
+   "title": "GASTAT — General Authority for Statistics",
+   "url": "https://www.stats.gov.sa/en"
+  },
+  "monshaat": {
+   "title": "Monsha'at — SME General Authority",
+   "url": "https://www.monshaat.gov.sa/en"
+  },
+  "sbc": {
+   "title": "Saudi Business Center (business.sa)",
+   "url": "https://business.sa/"
+  },
+  "cst": {
+   "title": "Communications, Space & Technology Commission (CST)",
+   "url": "https://www.cst.gov.sa/en/"
+  },
+  "freelance": {
+   "title": "Freelance document platform (freelance.sa)",
+   "url": "https://freelance.sa/"
+  },
+  "sfda": {
+   "title": "Saudi Food & Drug Authority (SFDA)",
+   "url": "https://www.sfda.gov.sa/en"
+  },
+  "hrsd": {
+   "title": "Ministry of Human Resources & Social Development",
+   "url": "https://www.hrsd.gov.sa/en"
+  },
+  "istqb": {
+   "title": "ISTQB — testing glossary & syllabi",
+   "url": "https://www.istqb.org/"
+  },
+  "pomodoro": {
+   "title": "Francesco Cirillo — The Pomodoro Technique",
+   "url": "https://www.pomodorotechnique.com/"
+  },
+  "aida": {
+   "title": "AIDA model (overview)",
+   "url": "https://en.wikipedia.org/wiki/AIDA_(marketing)"
+  },
+  "leancanvas": {
+   "title": "Lean Canvas (Ash Maurya)",
+   "url": "https://www.leancanvas.com/"
+  },
+  "rfm": {
+   "title": "RFM analysis (overview)",
+   "url": "https://en.wikipedia.org/wiki/RFM_(market_research)"
+  },
+  "spin": {
+   "title": "Neil Rackham — SPIN Selling (book, 1988; summarised)",
+   "url": ""
+  },
+  "alnarjs": {
+   "title": "Al-Narjs internal facts (ALNARJS.md, pricing v2, lessons)",
+   "url": ""
+  }
+ },
+ "facts": [
+  {
+   "id": "sh_vat",
+   "text": "ضريبة القيمة المضافة VAT في السعودية 15% منذ يوليو 2020، تشرف عليها هيئة الزكاة والضريبة والجمارك ZATCA. الأسعار المعلنة للمستهلك يجب أن تكون شاملة الضريبة VAT-inclusive، والفاتورة تُظهر المبلغ قبل الضريبة ومبلغ الضريبة والإجمالي.",
+   "sources": [
+    "zatca_tax"
+   ]
+  },
+  {
+   "id": "sh_einv",
+   "text": "الفوترة الإلكترونية (فاتورة Fatoora) إلزامية: المرحلة الأولى (الإصدار Generation) من 4 ديسمبر 2021، والمرحلة الثانية (الربط والتكامل Integration) على موجات حسب الإيرادات. الفاتورة الضريبية المبسطة Simplified tax invoice (B2C) تحتاج رمز QR، والفاتورة الضريبية Standard (B2B) تحتاج الرقم الضريبي للمشتري. يلزم الرقم الضريبي للبائع VAT number وتسلسل الفواتير.",
+   "sources": [
+    "zatca_einv"
+   ]
+  },
+  {
+   "id": "sh_pdpl",
+   "text": "نظام حماية البيانات الشخصية PDPL (تشرف عليه سدايا SDAIA) نافذ منذ 14 سبتمبر 2023 مع مهلة امتثال حتى 14 سبتمبر 2024. حقوق صاحب البيانات: العلم، الوصول، التصحيح، الإتلاف. يلزم أساس نظامي/موافقة Consent، سياسة خصوصية واضحة، حد أدنى من البيانات Data minimization، وإبلاغ سدايا عن تسرب البيانات خلال 72 ساعة. نقل البيانات خارج المملكة له ضوابط.",
+   "sources": [
+    "pdpl"
+   ]
+  },
+  {
+   "id": "sh_pdpl_mkt",
+   "text": "التسويق المباشر برسائل للأفراد يتطلب موافقة مسبقة Opt-in وآلية سهلة لإلغاء الاشتراك Opt-out وفق PDPL ولوائحه، وأنظمة هيئة الاتصالات والفضاء والتقنية CST تمنع الرسائل الدعائية غير المرغوبة Spam دون موافقة.",
+   "sources": [
+    "pdpl",
+    "cst"
+   ]
+  },
+  {
+   "id": "sh_ecom",
+   "text": "نظام التجارة الإلكترونية (وزارة التجارة) يلزم المتجر بالإفصاح عن هويته وسجله التجاري CR ووسائل التواصل وشروط البيع والأسعار الكاملة، ويمنع الإعلان المضلل. للمستهلك حق فسخ العقد (الإرجاع) خلال 7 أيام من الاستلام ما لم يكن المنتج من الاستثناءات (مثل المنتجات المصنوعة حسب الطلب أو القابلة للتلف) ولم يُستخدم.",
+   "sources": [
+    "mc"
+   ]
+  },
+  {
+   "id": "sh_gamr",
+   "text": "الإعلان عبر المؤثرين في السعودية يتطلب ترخيص «موثوق» Mawthooq من الهيئة العامة لتنظيم الإعلام GAMR، ويجب الإفصاح الواضح بأن المحتوى إعلان. الإعلانات الصحية/الغذائية/التجميلية تخضع لاشتراطات هيئة الغذاء والدواء SFDA ولا يجوز ادعاء علاج أو نتائج مضمونة.",
+   "sources": [
+    "gamr",
+    "mawthooq",
+    "sfda"
+   ]
+  },
+  {
+   "id": "sh_wa",
+   "text": "واتساب للأعمال WhatsApp Business: لا مراسلة إلا بعد موافقة Opt-in من العميل. نافذة خدمة العملاء 24 ساعة 24-hour customer service window من آخر رسالة للعميل: داخلها رد حر، وخارجها فقط رسائل قوالب معتمدة Approved templates بفئات Marketing / Utility / Authentication. جودة الرقم Quality rating تنخفض بالحظر والبلاغات فتقل حدود الإرسال Messaging limits.",
+   "sources": [
+    "wa_policy",
+    "wa_optin",
+    "wa_pricing",
+    "wa_templates",
+    "wa_limits"
+   ]
+  },
+  {
+   "id": "sh_seasons",
+   "text": "مواسم السوق السعودي: يوم التأسيس 22 فبراير، يوم العلم 11 مارس، رمضان وعيد الفطر وعيد الأضحى (تتغير ميلادياً حسب التقويم الهجري أم القرى Umm al-Qura)، اليوم الوطني 23 سبتمبر، الجمعة البيضاء White Friday (نوفمبر)، العودة للمدارس، موسم الرياض. راعِ أوقات الصلاة وعطلة نهاية الأسبوع الجمعة والسبت.",
+   "sources": []
+  },
+  {
+   "id": "sh_platforms",
+   "text": "المنصات الأكثر استخداماً في السعودية: واتساب، سناب شات Snapchat (انتشار مرتفع جداً)، تيك توك TikTok، إنستغرام، X (تويتر)، يوتيوب، وخرائط جوجل Google Maps للأنشطة المحلية. المتاجر الإلكترونية غالباً على سلة Salla أو زد Zid. الدفع الشائع: مدى mada، Apple Pay، STC Pay، والتقسيط (تابي Tabby/تمارا Tamara).",
+   "sources": [
+    "snap_biz",
+    "salla",
+    "zid"
+   ]
+  },
+  {
+   "id": "sh_honesty",
+   "text": "قاعدة الصدق: لا تخترع أرقاماً أو عملاء أو شهادات Testimonials أو نتائج. إذا نقصت معلومة اذكر افتراضك صراحة واطلبها. لا تعرض خصماً أو عرضاً Offer/Discount لم يحدده صاحب النشاط كتابةً.",
+   "sources": [
+    "alnarjs"
+   ]
+  }
+ ]
+}
