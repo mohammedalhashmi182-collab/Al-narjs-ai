@@ -4,7 +4,10 @@
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+    <link rel="manifest" href="/static/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if _lang == 'ar' %}حالة الدفع | النرجس للذكاء الاصطناعي{% else %}Payment Status | Al-Narjis AI{% endif %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,7 +21,7 @@
 </head>
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen flex items-center justify-center p-6 n-geo">
     <div class="n-card w-full max-w-md text-center">
-        <img src="/static/logo.png" alt="Al-Narjis AI" class="mx-auto mb-3" style="height:40px;width:auto;object-fit:contain;border-radius:8px;">
+        <img src="/static/logo.svg" alt="Al-Narjis AI" class="mx-auto mb-3" style="height:40px;width:auto;object-fit:contain;border-radius:8px;">
         <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">النرجس للذكاء الاصطناعي · AL-NARJIS AI · SMART AGENT PLATFORM</div>
         <div class="text-5xl mb-5">
             {% if result == "success" %}
