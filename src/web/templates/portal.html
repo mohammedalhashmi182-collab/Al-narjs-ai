@@ -84,6 +84,19 @@
     </nav>
 
     <!-- Step 1: register / choose package -->
+    <!-- Portal login: OTP to the project's email / phone (the project id alone is no longer a credential) -->
+    <section id="step-login" class="py-12 hidden">
+        <div class="max-w-md mx-auto px-6 text-center">
+            <h2 class="n-title text-2xl"><span data-lang="ar">الدخول إلى بوابتك</span><span data-lang="en" data-inline>Sign in to your portal</span></h2>
+            <p class="n-sub mt-3"><span data-lang="ar">أدخل البريد أو الجوال المسجّل في اشتراكك وسنرسل لك رمز دخول.</span><span data-lang="en" data-inline>Enter the email or phone on your subscription and we will send a sign-in code.</span></p>
+            <input id="loginIdent" class="w-full mt-4" autocomplete="username" placeholder="email / 05xxxxxxxx">
+            <button id="loginSend" class="btn btn-gold mt-3" type="button"><span data-lang="ar">أرسل الرمز</span><span data-lang="en" data-inline>Send code</span></button>
+            <input id="loginCode" class="w-full mt-4 hidden" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+            <button id="loginVerify" class="btn btn-gold mt-3 hidden" type="button"><span data-lang="ar">دخول</span><span data-lang="en" data-inline>Sign in</span></button>
+            <p id="loginMsg" class="text-sm mt-3" aria-live="polite"></p>
+        </div>
+    </section>
+
     <section id="step-register" class="py-12">
         <div class="max-w-5xl mx-auto px-6">
             <div class="text-center mb-10">
@@ -177,6 +190,14 @@
                 <span data-lang="en" data-inline>Launch offer <b>{{ _promo.percent }}%</b> with code <b>{{ _promo.code }}</b></span>
             </div>
             {% endif %}
+        </div>
+    </section>
+
+    <!-- Tenant Reply Agent: this project's review queue (replies to your own customers) -->
+    <section id="step-inbox" class="py-8 hidden">
+        <div class="max-w-4xl mx-auto px-6">
+            <h3 class="n-title text-xl"><span data-lang="ar">ردود بانتظار مراجعتك</span><span data-lang="en" data-inline>Replies awaiting your review</span></h3>
+            <div id="inboxList" class="mt-4"></div>
         </div>
     </section>
 
@@ -889,13 +910,67 @@ note.textContent = msg;
                 }
             }
 
-            // Resume existing project if present
-            const pid = localStorage.getItem('narjis-project');
-            if (pid) {
-                fetch('/api/portal/projects/' + pid).then(r => r.json()).then(d => {
-                    if (d.team) { state.projectId = d.project_id; state.pkg = d.package; state.client = { name: d.client_name, phone: null, email: null }; renderTeam(d.team, d.status); }
+            // Resume: the HttpOnly portal session decides access. Old browsers that only
+            // kept the project id trade it for a limited session (unpaid projects only);
+            // an active subscription signs in with a one-time code.
+            function resume(pid) {
+                return fetch('/api/portal/projects/' + pid).then(r => {
+                    if (r.status === 401) return null;
+                    return r.json();
+                }).then(d => {
+                    if (!d || !d.team) return false;
+                    state.projectId = d.project_id; state.pkg = d.package; state.client = { name: d.client_name, phone: null, email: null };
+                    localStorage.setItem('narjis-project', d.project_id);
+                    renderTeam(d.team, d.status); loadInbox(); return true;
+                });
+            }
+            function showLogin() {
+                $('step-register').classList.add('hidden');
+                $('step-login').classList.remove('hidden');
+            }
+            function esc(v) { const e = document.createElement('div'); e.textContent = v == null ? '' : String(v); return e.innerHTML; }
+            function loadInbox() {
+                if (!state.projectId) return;
+                fetch('/api/portal/projects/' + state.projectId + '/replies').then(r => r.ok ? r.json() : null).then(d => {
+                    if (!d || !d.drafts || !d.drafts.length) return;
+                    $('step-inbox').classList.remove('hidden');
+                    $('inboxList').innerHTML = d.drafts.map(x => '<div class="n-card p-4 mb-3" data-id="' + esc(x.id) + '">'
+                        + '<p class="text-sm">' + esc(x.recipient) + ': ' + esc(x.inbound_text) + '</p>'
+                        + '<textarea class="w-full mt-2" rows="3">' + esc(x.final_text || x.draft_text) + '</textarea>'
+                        + '<button class="btn btn-gold mt-2" data-act="approve" type="button">' + txt('اعتماد وإرسال', 'Approve & send') + '</button> '
+                        + '<button class="btn mt-2" data-act="reject" type="button">' + txt('رفض', 'Reject') + '</button></div>').join('');
                 }).catch(() => {});
             }
+            $('inboxList').addEventListener('click', e => {
+                const b = e.target.closest('button[data-act]'); if (!b) return;
+                const card = b.closest('[data-id]');
+                const body = b.dataset.act === 'approve' ? JSON.stringify({ text: card.querySelector('textarea').value }) : '{}';
+                fetch('/api/portal/projects/' + state.projectId + '/replies/' + card.dataset.id + '/' + b.dataset.act,
+                      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).then(() => loadInbox());
+            });
+            $('loginSend').addEventListener('click', () => {
+                fetch('/api/portal/login/request', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: $('loginIdent').value }) }).then(() => {
+                    $('loginCode').classList.remove('hidden'); $('loginVerify').classList.remove('hidden');
+                    $('loginMsg').textContent = txt('إذا كان مسجّلًا لدينا فستصلك رسالة بالرمز.', 'If it is on file, a code is on its way.');
+                });
+            });
+            $('loginVerify').addEventListener('click', () => {
+                fetch('/api/portal/login/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: $('loginIdent').value, code: $('loginCode').value }) })
+                    .then(r => r.ok ? r.json() : null).then(d => {
+                        if (!d) { $('loginMsg').textContent = txt('الرمز غير صالح أو منتهي.', 'Invalid or expired code.'); return; }
+                        $('step-login').classList.add('hidden'); resume(d.project_id);
+                    });
+            });
+            const pid = localStorage.getItem('narjis-project');
+            const wantsLogin = new URLSearchParams(location.search).has('login');
+            fetch('/api/portal/session').then(r => r.ok ? r.json() : null).then(sess => {
+                if (sess) return resume(sess.project_id);
+                if (!pid) { if (wantsLogin) showLogin(); return; }
+                return fetch('/api/portal/session/legacy', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_id: pid }) }).then(r => r.ok ? resume(pid) : (showLogin(), false));
+            }).catch(() => {});
         })();
     </script>
 

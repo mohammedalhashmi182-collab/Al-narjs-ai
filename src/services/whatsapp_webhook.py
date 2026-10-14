@@ -210,6 +210,28 @@ async def _meter_meta_fee(session: AsyncSession, project, status_row: dict) -> N
         log.warning("usage: Meta fee metering failed", exc_info=True)
 
 
+def _is_tenant(project) -> bool:
+    from src.services import tenant_reply
+
+    return tenant_reply.is_tenant_number(project)
+
+
+async def _route_to_tenant(session: AsyncSession, project, rec: InboundMessage, contact, value: dict) -> None:
+    from src.services import tenant_reply
+
+    rec.project_id = project.id
+    rec.processing_status = "tenant"
+    name = None
+    for c in value.get("contacts") or []:
+        name = ((c or {}).get("profile") or {}).get("name") or name
+    try:
+        async with session.begin_nested():
+            await tenant_reply.touch_contact(session, project, contact, text=rec.text, name=name, now=rec.occurred_at)
+    except Exception:
+        log.warning("tenant contact update failed", exc_info=True)
+    await session.flush()
+
+
 async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
     """Process one webhook body: status updates and inbound messages."""
     summary: dict = {"messages_processed": 0, "duplicates_skipped": 0, "status_updates": 0, "mapped_leads": 0, "unmatched": 0}
@@ -270,6 +292,13 @@ async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
                 summary["messages_processed"] += 1
                 if client_project is not None:
                     await _meter_conversation(session, client_project, sender or wa_id, msg_id, occurred=rec.occurred_at)
+
+                # Tenant Reply Agent: a message to a customer's own number belongs
+                # to that project, never to Al-Narjis's lead CRM.
+                if _is_tenant(client_project):
+                    await _route_to_tenant(session, client_project, rec, sender or wa_id, value)
+                    summary["tenant_messages"] = summary.get("tenant_messages", 0) + 1
+                    continue
 
                 lead = await _map_sender_to_lead(session, sender, wa_id)
                 if lead is None:
