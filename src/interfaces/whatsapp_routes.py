@@ -159,6 +159,12 @@ async def _smart_replies(request: Request, payload: dict, seen: set[str]) -> Non
             for message in value.get("messages") or []:
                 text = ((message.get("text") or {}).get("body") or "").strip()
                 sender = message.get("from")
+                if tenant_id is not None and not text and sender and str(message.get("id")) not in seen \
+                        and message.get("type") in ("audio", "voice", "image"):
+                    # Voice note / photo to a customer's number: transcribe/describe, then answer.
+                    await tenant_reply.safe_handle_media(session_factory, project_id=tenant_id, contact=sender,
+                                                         message=message)
+                    continue
                 if not text or not sender or str(message.get("id")) in seen:
                     continue
                 if tenant_id is not None:
