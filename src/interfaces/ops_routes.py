@@ -63,7 +63,14 @@ def _render(request: Request, name: str, ctx: dict | None = None):
     from src.main import templates
     from src.services import transfer
 
-    base = {"contact": transfer.contact_channels(), "subprocessors": SUBPROCESSORS, "retention": RETENTION}
+    from src.main import _page_lang
+
+    base = {
+        "contact": transfer.contact_channels(),
+        "subprocessors": SUBPROCESSORS,
+        "retention": RETENTION,
+        "ar": _page_lang(request) == "ar",
+    }
     return templates.TemplateResponse(request, name, {**base, **(ctx or {})})
 
 
