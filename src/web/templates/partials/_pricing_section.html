@@ -2,6 +2,13 @@
     /home and /pricing. Needs: ar, plans, enterprise, addon, usage_addons,
     setup_guarantee. -#}
 <!-- ==================== PRICING ==================== -->
+<style>
+.plan .feat-h{font-size:.78rem;font-weight:700;margin:12px 0 4px;color:var(--v2-ink,#2a2234)}
+.plan .feat-coming{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(0,0,0,.12);opacity:.62}
+.plan .feat-coming .feat-h{color:inherit;font-weight:600}
+.plan .feat-coming ul li{font-size:.82rem}
+.plan .feat-coming ul li::before{content:"◦ "}
+</style>
 <section class="sec" id="pricing">
     <div class="wrap">
         <div class="sec-head rv">
@@ -27,9 +34,17 @@
                 <div class="period-note" data-monthly="" data-annual="{% if ar %}تدفع 10 أشهر وتحصل على 12 — توفّر {{ '{:,}'.format(plan.price|int * 2) }} ر.س{% else %}Pay for 10 months, get 12 — save SAR {{ '{:,}'.format(plan.price|int * 2) }}{% endif %}"></div>
                 <div class="vat" data-monthly="{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.total_halalas / 100) }}{% endif %}" data-annual="{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.annual_total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.annual_total_halalas / 100) }}{% endif %}">{% if ar %}الإجمالي مع الضريبة: {{ '{:,.2f}'.format(plan.total_halalas / 100) }} ر.س{% else %}Total incl. VAT: SAR {{ '{:,.2f}'.format(plan.total_halalas / 100) }}{% endif %}</div>
                 <span class="agents-pill">{% if ar %}الرئيس التنفيذي + {{ plan.agent_count }} {% if plan.agent_count == 1 %}وكيل{% else %}وكيلاً{% endif %}{% else %}CEO + {{ plan.agent_count }} agent{% if plan.agent_count != 1 %}s{% endif %}{% endif %}</span>
-                <ul>
+                <p class="feat-h">{% if ar %}متاح الآن{% else %}Available now{% endif %}</p>
+                <ul class="feat-now">
                     {% for line in (plan.scope if ar else plan.scope_en) %}<li>{{ line }}</li>{% endfor %}
                 </ul>
+                {% set _coming = plan.coming if ar else plan.coming_en %}
+                {% if _coming %}
+                <div class="feat-coming">
+                    <p class="feat-h">{% if ar %}قادم قريباً — غير مشمول حالياً{% else %}Coming soon — not included yet{% endif %}</p>
+                    <ul>{% for line in _coming %}<li>{{ line }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
                 <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}" data-href-monthly="/portal?pkg={{ plan.key }}" data-href-annual="/portal?pkg={{ plan.key }}&amp;billing=annual">{% if ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
             </article>
             {% endfor %}
@@ -41,7 +56,7 @@
             <ul>{% for line in (enterprise.scope if ar else enterprise.scope_en) %}<li>{{ line }}</li>{% endfor %}</ul>
             <a class="btn btn-ghost btn-block" href="/consult">{% if ar %}اطلب عرض سعر{% else %}Request a quote{% endif %}</a>
         </article>
-        <p class="addon-note rv">{% if ar %}تحتاج أكثر من باقتك؟ <b>وكيل إضافي بـ{{ addon.price }} ر.س</b> شهرياً، و<b>١٬٠٠٠ محادثة إضافية بـ{{ usage_addons.conversations.price }} ر.س</b>، و<b>١٠٠ دقيقة صوت بـ{{ usage_addons.voice_minutes.price }} ر.س</b> (قريباً). رسوم ميتا فوق السقف تُحسب بالتكلفة بدون أي زيادة. الرئيس التنفيذي يقترح الإضافة عندما تكون أوفر من الترقية.{% else %}Need more than your plan? <b>An extra agent is SAR {{ addon.price }}</b>/month, <b>+1,000 conversations SAR {{ usage_addons.conversations.price }}</b>, <b>+100 voice minutes SAR {{ usage_addons.voice_minutes.price }}</b> (coming soon). Meta fees above the cap are passed through at cost with no markup. The CEO suggests an add-on when it costs less than upgrading.{% endif %}</p>
+        <p class="addon-note rv">{% if ar %}تحتاج أكثر من باقتك؟ <b>وكيل إضافي بـ{{ addon.price }} ر.س</b> شهرياً، و<b>١٬٠٠٠ محادثة إضافية بـ{{ usage_addons.conversations.price }} ر.س</b>، و<b>١٠٠ دقيقة صوت بـ{{ usage_addons.voice_minutes.price }} ر.س</b> (قادم قريباً، غير متاح للشراء الآن). رسوم ميتا فوق السقف تُحسب بالتكلفة بدون أي زيادة. الرئيس التنفيذي يقترح الإضافة عندما تكون أوفر من الترقية.{% else %}Need more than your plan? <b>An extra agent is SAR {{ addon.price }}</b>/month, <b>+1,000 conversations SAR {{ usage_addons.conversations.price }}</b>, <b>+100 voice minutes SAR {{ usage_addons.voice_minutes.price }}</b> (coming soon, not on sale yet). Meta fees above the cap are passed through at cost with no markup. The CEO suggests an add-on when it costs less than upgrading.{% endif %}</p>
         <p class="addon-note rv">{% if ar %}<b>رسوم الإعداد لمرة واحدة:</b> {% for plan in plans %}{{ plan.name }} {% if plan.setup_fee %}{{ '{:,}'.format(plan.setup_fee // 100) }} ر.س{% else %}بدون رسوم{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — وتُلغى مع الاشتراك السنوي. <b>ضمان الإعداد:</b> {{ setup_guarantee.text }}{% else %}<b>One-time setup fee:</b> {% for plan in plans %}{{ plan.name_en }} {% if plan.setup_fee %}SAR {{ '{:,}'.format(plan.setup_fee // 100) }}{% else %}free{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — waived on annual billing. <b>Setup guarantee:</b> {{ setup_guarantee.text_en }}{% endif %}</p>
         <div class="table-scroll rv">
         <table class="compare">
