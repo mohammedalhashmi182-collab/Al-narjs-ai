@@ -7,7 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#faf6ef">
-    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+    <link rel="manifest" href="/static/site.webmanifest">
     {% set _from = plans[0].price|int %}
     {% if ar %}
     <title>الباقات والأسعار | النرجس للذكاء الاصطناعي — وكلاء ذكاء اصطناعي لعملك</title>
@@ -26,7 +29,7 @@
     <meta property="og:title" content="{% if ar %}باقات النرجس للذكاء الاصطناعي — تبدأ من {{ _from }} ر.س شهرياً{% else %}Al-Narjis AI plans — from SAR {{ _from }}/month{% endif %}">
     <meta property="og:description" content="{% if ar %}فريق وكلاء ذكاء اصطناعي بقيادة الرئيس التنفيذي الذكي، بفاتورة ضريبية رسمية وإلغاء في أي وقت قبل التجديد.{% else %}An AI agent team led by an AI CEO, with official VAT invoices and cancel any time before renewal.{% endif %}">
     <meta property="og:url" content="https://karmaai.online/{{ _lang }}{{ _base_path }}">
-    <meta property="og:image" content="https://karmaai.online/static/og-image.png">
+    <meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
     <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
     <meta name="twitter:card" content="summary_large_image">
     <script type="application/ld+json">
@@ -35,7 +38,7 @@
       "@type": "Product",
       "name": {{ ("باقات النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI plans") | tojson }},
       "brand": {"@type": "Brand", "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }}},
-      "image": "https://karmaai.online/static/og-image.png",
+      "image": "https://karmaai.online/brand/og-image.jpg",
       "offers": [
         {% for plan in plans %}{"@type": "Offer", "name": {{ (plan.name if ar else plan.name_en) | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://karmaai.online/portal?pkg={{ plan.key }}", "availability": "https://schema.org/InStock"}{% if not loop.last %},{% endif %}
         {% endfor %}
@@ -52,7 +55,7 @@
 <body class="v2" data-lang="{{ _lang }}">
 <header class="v2-nav">
     <div class="wrap">
-        <a href="/home" class="brand"><img src="/static/logo.png" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
+        <a href="/home" class="brand"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
         <nav aria-label="{% if ar %}التنقل{% else %}Navigation{% endif %}">
             <a href="/home">{% if ar %}الرئيسية{% else %}Home{% endif %}</a>
             <a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a>

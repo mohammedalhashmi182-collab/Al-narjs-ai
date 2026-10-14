@@ -3,7 +3,10 @@
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+    <link rel="manifest" href="/static/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}النرجس للذكاء الاصطناعي{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +36,7 @@
         <aside id="sidebar" class="sidebar n-sidebar fixed inset-y-0 start-0 z-50 w-64 transform lg:relative lg:translate-x-0">
             <div class="flex flex-col h-full">
                 <div class="p-4 border-b" style="border-color: rgba(230,198,101,0.2);">
-                    <div class="brand"><img src="/static/logo.png" alt="Al-Narjis AI" style="height:32px;width:auto;border-radius:8px;object-fit:contain;flex:0 0 auto;"><span data-lang="ar" lang="ar" dir="rtl">النرجس للذكاء الاصطناعي</span><span data-lang="en" lang="en" dir="ltr" data-inline>Al-Narjis AI</span></div>
+                    <div class="brand"><img src="/static/logo.svg" alt="Al-Narjis AI" style="height:32px;width:auto;border-radius:8px;object-fit:contain;flex:0 0 auto;"><span data-lang="ar" lang="ar" dir="rtl">النرجس للذكاء الاصطناعي</span><span data-lang="en" lang="en" dir="ltr" data-inline>Al-Narjis AI</span></div>
                     <div class="text-xs mt-1" style="color: rgba(251,248,241,0.6);" data-lang="ar" lang="ar" dir="rtl">منصة وكلاء ذكية</div>
                     <div class="text-xs mt-1" style="color: rgba(251,248,241,0.6);" data-lang="en" lang="en" dir="ltr" data-inline>Smart Agent Platform</div>
                 </div>

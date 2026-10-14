@@ -8,8 +8,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#faf6ef">
-    <link rel="icon" href="/static/favicon.png" type="image/png">
-    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+    <link rel="manifest" href="/static/site.webmanifest">
     {% if ar %}
     <title>النرجس للذكاء الاصطناعي | رئيسك التنفيذي الذكي وفريق وكلائك</title>
     <meta name="description" content="صف مشكلة عملك، ويشخّصها الرئيس التنفيذي الذكي في النرجس ويرشّح لك الوكلاء المتخصصين والباقة المناسبة. منصة سعودية من الرياض، باقات من {{ plans[0].price }} ر.س شهرياً.">
@@ -30,11 +32,11 @@
     <meta property="og:title" content="{% if ar %}النرجس — رئيس تنفيذي ذكي يبني لك فريق الوكلاء{% else %}Al-Narjis — an AI CEO that builds your agent team{% endif %}">
     <meta property="og:description" content="{% if ar %}صف مشكلتك، واحصل على تشخيص وفريق وكلاء وباقة مناسبة خلال ثوانٍ.{% else %}Describe your problem and get a diagnosis, an agent team and the right plan in seconds.{% endif %}">
     <meta property="og:url" content="https://karmaai.online{{ _canon_path }}">
-    <meta property="og:image" content="https://karmaai.online/static/og-image.png">
+    <meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
     <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
     <meta property="og:locale:alternate" content="{{ 'en_US' if ar else 'ar_SA' }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://karmaai.online/static/og-image.png">
+    <meta name="twitter:image" content="https://karmaai.online/brand/og-image.jpg">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -63,8 +65,8 @@
       "url": "https://karmaai.online",
       "description": {% if ar %}"رئيس تنفيذي ذكي يشخّص مشكلة عملك ويقود فريقاً من {{ agent_count }} وكيلاً في {{ division_count }} أقسام متخصصة."{% else %}"An AI CEO that diagnoses your business problem and leads a team of {{ agent_count }} agents across {{ division_count }} specialist departments."{% endif %},
       "inLanguage": "{{ _lang }}",
-      "image": "https://karmaai.online/static/og-image.png",
-      "logo": "https://karmaai.online/static/logo.png",
+      "image": "https://karmaai.online/brand/og-image.jpg",
+      "logo": "https://karmaai.online/brand/logo.png",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "currenciesAccepted": "SAR",
       "paymentAccepted": {{ ("PayPal، تحويل بنكي، فاتورة ضريبية" if ar else "PayPal, bank transfer, VAT invoice") | tojson }},
@@ -138,7 +140,7 @@
 
 <header class="v2-nav">
     <div class="wrap">
-        <a href="/home" class="brand"><img src="/static/logo.png" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
+        <a href="/home" class="brand"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
         <nav aria-label="{% if ar %}التنقل{% else %}Navigation{% endif %}">
             <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
             <a href="#team">{% if ar %}الفريق{% else %}The team{% endif %}</a>
@@ -411,11 +413,11 @@
 </script>
 </main>
 
-<footer class="v2-footer">
+<footer class="v2-footer" id="site-footer">
     <div class="wrap">
         <div class="cols">
             <div>
-                <a href="/home" class="brand" style="color:var(--v2-on-dark)"><img src="/static/logo.png" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</span></a>
+                <a href="/home" class="brand" style="color:var(--v2-on-dark)"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</span></a>
                 <p style="margin-top:14px">{% if ar %}رئيس تنفيذي ذكي وفريق وكلاء يعملون لعملك — من الرياض.{% else %}An AI CEO and an agent team working for your business — from Riyadh.{% endif %}</p>
             </div>
             <div>

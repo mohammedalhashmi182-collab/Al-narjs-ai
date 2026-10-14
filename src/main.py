@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import os
+from functools import lru_cache
+from pathlib import Path
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
 
 from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -312,6 +314,7 @@ class LocaleMiddleware:
 
         is_html = not (
             path.startswith("/static")
+            or path.startswith("/brand/")
             or path.startswith("/api")
             or path.startswith("/webhooks")
             or path in ("/robots.txt", "/sitemap.xml", "/favicon.ico")
@@ -932,15 +935,40 @@ async def about_page(request: Request):
     )
 
 
-@app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
-    from fastapi.responses import FileResponse
+_BRAND_DIR = Path(__file__).resolve().parent / "web" / "brand"
+_BRAND_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".ico": "image/x-icon"}
 
-    return FileResponse(
-        "src/web/static/favicon.png",
-        media_type="image/png",
+
+@lru_cache(maxsize=16)
+def _brand_bytes(name: str) -> bytes | None:
+    """Raster brand assets are stored base64-encoded (text) in src/web/brand."""
+    import base64
+
+    path = _BRAND_DIR / f"{name}.b64"
+    if "/" in name or not path.is_file():
+        return None
+    return base64.b64decode(path.read_text(encoding="ascii"))
+
+
+def _brand_response(name: str):
+    data = _brand_bytes(name)
+    if data is None:
+        raise HTTPException(status_code=404)
+    return Response(
+        content=data,
+        media_type=_BRAND_TYPES.get(Path(name).suffix, "application/octet-stream"),
         headers={"Cache-Control": "public, max-age=86400"},
     )
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return _brand_response("favicon.ico")
+
+
+@app.get("/brand/{name}", include_in_schema=False)
+async def brand_asset(name: str):
+    return _brand_response(name)
 
 
 @app.get("/packages/{package_key}", response_class=HTMLResponse)
