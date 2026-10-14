@@ -43,7 +43,8 @@ def test_refund_policy_quotes_the_terms_and_is_linked(client):
 
 def test_about_has_operator_facts_and_no_invented_testimonials(client):
     html = client.get("/ar/about").text
-    assert "31332495263" in html and "ذا أريبيان كونفو" in html and "محمد" in html
+    assert "31332495263" in html and "ذا أريبيان كونفو" in html and "المؤسس: كريم" in html and "محمد" not in html
+    assert "Founder: Karim" in client.get("/en/about").text
     assert "testimonials" not in html  # empty list -> no section
 
 
