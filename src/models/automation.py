@@ -49,6 +49,11 @@ class ReplyDraft(Base):
     lead_id: Mapped[Optional[UUID]] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("acquisition_leads.id", ondelete="SET NULL"), index=True
     )
+    # Set = a Tenant Reply Agent draft for this customer project (its own review
+    # queue in the portal). NULL = Al-Narjis's own sales conversation.
+    project_id: Mapped[Optional[UUID]] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="CASCADE"), index=True
+    )
     kind: Mapped[str] = mapped_column(String(20), nullable=False, default="reply")
     inbound_text: Mapped[Optional[str]] = mapped_column(Text)
     draft_text: Mapped[str] = mapped_column(Text, nullable=False)

@@ -322,6 +322,8 @@ class InboundMessage(Base):
     __tablename__ = "inbound_messages"
 
     id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    # Set when the message arrived on a customer's linked number (Tenant Reply Agent).
+    project_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), index=True)
     lead_id: Mapped[Optional[UUID]] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("acquisition_leads.id", ondelete="SET NULL"), index=True, nullable=True
     )

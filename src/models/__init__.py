@@ -283,6 +283,14 @@ class ClientProject(Base):
     # Meta WhatsApp Cloud phone_number_id of the client's own number: routes
     # webhook traffic for that number to this subscription's usage meter.
     wa_phone_number_id: Mapped[Optional[str]] = mapped_column(String(64), index=True)
+    # Tenant Reply Agent: how replies to this customer's own customers go out.
+    # off | review (default: every draft waits in the customer's portal queue) | auto.
+    reply_mode: Mapped[str] = mapped_column(String(10), default="review", server_default="review")
+    # The customer's own Meta Cloud API token, Fernet-encrypted with a key derived
+    # from SECRET_KEY. Never returned by any endpoint. NULL = replies are queued.
+    wa_access_token_enc: Mapped[Optional[str]] = mapped_column(Text)
+    # Bumped to revoke every portal session of this project.
+    portal_token_version: Mapped[int] = mapped_column(default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     agents: Mapped[list["ClientAgent"]] = relationship("ClientAgent", back_populates="project", cascade="all, delete-orphan")
@@ -351,3 +359,4 @@ from src.models.automation import (  # noqa: E402,F401
 )
 from src.models.agent_tools import KnowledgeDoc, ProjectDataFile  # noqa: E402,F401
 from src.models.usage import SubscriptionUsage, UsageEvent  # noqa: E402,F401
+from src.models.tenant import PortalLoginCode, TenantContact  # noqa: E402,F401
