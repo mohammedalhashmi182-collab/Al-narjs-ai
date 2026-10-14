@@ -6,6 +6,7 @@ PayPal is fully mocked here; no request leaves the process.
 from __future__ import annotations
 
 import json
+import uuid
 from contextlib import contextmanager
 
 import httpx
@@ -132,7 +133,7 @@ async def _checkout(client, consent=True):
     return await client.post("/api/payments", json={
         "package": "radd", "method": "paypal", "customer_name": "Buyer",
         "customer_phone": "0555000111", "customer_email": None, "refund_consent": consent,
-    }, headers={"idempotency-key": str(id(object()))})
+    }, headers={"idempotency-key": uuid.uuid4().hex})
 
 
 async def _payment(maker, pid) -> Payment:
