@@ -55,10 +55,20 @@ async def _run_billing_renewals(session, sched) -> dict:
 
     days = int((sched.payload or {}).get("days_before", RENEWAL_LEAD_DAYS))
     result = await run_renewals(session, days_before=days)
+    from src.services.collections import run_collections
+
+    try:
+        coll = await run_collections(session)
+    except Exception as e:  # collections must never block renewals
+        logger.exception("collections pass failed: %s", e)
+        coll = {"reminders": [], "recovery": [], "overage": [], "error": str(e)[:200]}
     return {
         "status": "executed",
         "invoiced": len(result["invoiced"]),
         "expired": len(result["expired"]),
+        "reminders": len(coll["reminders"]),
+        "recovery": len(coll["recovery"]),
+        "overage": len(coll["overage"]),
     }
 
 
