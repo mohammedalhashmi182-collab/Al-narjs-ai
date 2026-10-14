@@ -57,7 +57,7 @@ CEO_SLUG = "orchestrator"
 #  only number payments read; ``price`` is its display form. ``agents`` is
 #  the number of specialist agents the CEO can staff on the plan (the CEO
 #  itself is always included and is not counted). The price per agent falls
-#  as the plan grows: 300 -> 250 -> 233 SAR.
+#  as the plan grows: 299 -> 249 -> 233 SAR (see per_agent_price).
 #
 #  ``limits`` are the monthly usage allowances of the plan:
 #    conversations   - smart conversations (one customer, 24h window, any
@@ -191,9 +191,24 @@ ENTERPRISE = {
 ADDON_AGENT = {
     "name": "وكيل إضافي",
     "name_en": "Add-on agent",
-    "amount": 29900,
-    "price": "299",
+    "amount": 29900,   # the ONLY place the extra-agent price is written
 }
+ADDON_AGENT["price"] = str(ADDON_AGENT["amount"] // 100)   # display form, derived
+VAT_RATE_PERCENT = 15
+
+
+def with_vat(halalas: int) -> int:
+    """VAT-inclusive halalas (15%), rounded half-up to the halala."""
+    return (int(halalas) * (100 + VAT_RATE_PERCENT) + 50) // 100
+
+
+def per_agent_price(halalas: int, agents: int) -> str:
+    """Average monthly price of one agent included in a plan, whole SAR,
+    rounded DOWN so it never shows more than the real share (599/2 = 299.5
+    must read 299, not 300 - never above the 299 extra-agent price)."""
+    return str(int(halalas) // int(agents) // 100)
+
+
 MAX_ADDON_AGENTS = 12      # checkout cap per order
 MAX_SUGGESTED_ADDONS = 2   # "slightly exceeds": the CEO never suggests more below the top tier
 
@@ -1128,7 +1143,7 @@ for _key in PACKAGES:
     PACKAGE_TEAMS[_key] = _dedupe_team(PACKAGE_TEAMS[_key], PACKAGES[_key]["agents"])
 for _key, _pkg in [*PACKAGES.items(), *LEGACY_TIERS.items()]:
     _pkg["agent_count"] = plan_agent_count(_key)
-    _pkg["per_agent_price"] = str(round(_pkg["amount"] / 100 / _pkg["agents"]))
+    _pkg["per_agent_price"] = per_agent_price(_pkg["amount"], _pkg["agents"])
 
 
 # ---------------------------------------------------------------------------

@@ -2560,7 +2560,7 @@ class PaymentCreateRequest(BaseModel):
     lead_id: Optional[str] = None
     project_id: Optional[str] = None
     billing_period: str = "monthly"  # "monthly" | "annual" (pay 10 months, get 12)
-    addons: int = 0                  # extra agents on top of the tier, 299 SAR/month each (an integer count)
+    addons: int = 0                  # extra agents on top of the tier, catalog.ADDON_AGENT each (an integer count)
     conversation_packs: int = 0      # +1,000 conversations / month, 99 SAR each
     voice_packs: int = 0             # +100 voice minutes / month, 99 SAR each
     # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
