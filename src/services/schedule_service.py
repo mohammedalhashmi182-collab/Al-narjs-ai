@@ -38,6 +38,11 @@ async def execute_schedule(session, schedule_id) -> dict:
             return await _run_ops_uptime()
         if target_type == "weekly_reports":
             return await _run_weekly_reports(session)
+        if target_type == "dpa_retention":
+            from src.services import data_retention
+
+            res = await data_retention.purge_ended_projects(session, dry_run=not data_retention.live_enabled())
+            return {"status": "ok", "dry_run": res["dry_run"], "projects": res["count"]}
         if target_type == "demo_purge":
             from src.services import live_demo
 
