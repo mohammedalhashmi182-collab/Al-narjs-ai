@@ -63,15 +63,21 @@ async def check_db(session_factory) -> dict:
         return {"ok": False, "error": type(exc).__name__}
 
 
-async def _probe(url: str) -> dict:
-    """GET a public endpoint (no credentials) and report reachability."""
+def _status_ok(code: int) -> bool:
+    """A dependency is healthy only on 2xx/3xx. 400/401/403/404 mean a bad token,
+    a wrong id or a missing model: that is a failure, not "reachable"."""
+    return 200 <= int(code) < 400
+
+
+async def _probe(url: str, headers: dict | None = None) -> dict:
+    """GET an endpoint and report health. Headers (credentials) never enter the result."""
     import httpx
 
     started = time.perf_counter()
     try:
         async with httpx.AsyncClient(timeout=EXTERNAL_TIMEOUT) as c:
-            r = await c.get(url)
-        return {"ok": r.status_code < 500, "status_code": r.status_code,
+            r = await c.get(url, headers=headers or None)
+        return {"ok": _status_ok(r.status_code), "status_code": r.status_code,
                 "latency_ms": round((time.perf_counter() - started) * 1000, 1)}
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": type(exc).__name__}
@@ -95,38 +101,118 @@ EXTERNAL_PROBES = {
 }
 
 
+# Moyasar is out of scope for now (owner): keep its old reachability-only check.
+REACHABILITY_ONLY = {"moyasar"}
+
+
+def _verify_target(name: str) -> tuple[str, dict] | None:
+    """Read-only, credentialed endpoint that proves the integration really works.
+
+    Telegram ``getMe``, WhatsApp ``GET /{phone_number_id}`` and the configured
+    Gemini model. The returned URL/headers are used for the request only and are
+    never logged or put in a result.
+    """
+    if name == "telegram":
+        return f"https://api.telegram.org/bot{settings.telegram_token}/getMe", {}
+    if name == "whatsapp":
+        from src.services import whatsapp_sender
+
+        return (f"{whatsapp_sender.API_URL}/{settings.whatsapp_phone_number_id}?fields=id",
+                {"Authorization": f"Bearer {settings.whatsapp_token}"})
+    if name == "gemini":
+        model = getattr(settings, "gemini_default_model", None) or "gemini-3.6-flash"
+        model = str(model).split("/")[-1]
+        return (f"https://generativelanguage.googleapis.com/v1beta/models/{model}",
+                {"x-goog-api-key": str(settings.gemini_api_key)})
+    return None
+
+
 async def check_external(probe=None) -> dict:
-    """Reachability of each configured provider's public API host."""
-    probe = probe or _probe
+    """Health of each configured provider. 4xx is unhealthy (except Moyasar, ignored for now)."""
+    custom = probe is not None
     out = {}
     for name, configured in configured_externals().items():
         if not configured:
             out[name] = {"ok": None, "configured": False}
             continue
-        out[name] = {"configured": True, **(await probe(EXTERNAL_PROBES[name]))}
+        target = None if custom or name in REACHABILITY_ONLY else _verify_target(name)
+        if target is not None:
+            res = await _probe(*target)
+        else:
+            res = await (probe or _probe)(EXTERNAL_PROBES[name])
+        res = dict(res)
+        code = res.get("status_code")
+        if isinstance(code, int):
+            res["ok"] = code < 500 if name in REACHABILITY_ONLY else (bool(res.get("ok")) and _status_ok(code))
+        out[name] = {"configured": True, **res}
     return out
 
 
-async def deep_health(session_factory, probe=None) -> dict:
+def expected_schedules() -> list[str]:
+    from src.services import lead_pipeline, live_demo, renewals, weekly_reports
+
+    return [renewals.RENEWAL_SCHEDULE_NAME, lead_pipeline.FOLLOWUP_SCHEDULE_NAME, UPTIME_SCHEDULE_NAME,
+            weekly_reports.SCHEDULE_NAME, live_demo.SCHEDULE_NAME]
+
+
+def _app_scheduler():
+    try:
+        from src.main import app
+
+        sched = getattr(app.state, "scheduler", None)
+        # A stopped scheduler is a shut-down app (or a finished test lifespan).
+        return sched if getattr(sched, "_running", False) else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+async def check_scheduler(session_factory, scheduler=None) -> dict:
+    """Scheduler running and every expected job registered (DB row + live job).
+
+    ``ok`` is None when no scheduler is attached (tests / one-off scripts)."""
+    scheduler = scheduler if scheduler is not None else _app_scheduler()
+    if scheduler is None:
+        return {"ok": None, "attached": False}
+    expected = expected_schedules()
+    try:
+        from src.models import Schedule
+
+        async with session_factory() as s:
+            names = set((await s.execute(select(Schedule.name).where(Schedule.name.in_(expected)))).scalars().all())
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": type(exc).__name__}
+    missing = [n for n in expected if n not in names]
+    running = bool(getattr(scheduler, "_running", False))
+    jobs = scheduler.job_count() if hasattr(scheduler, "job_count") else -1
+    ok = running and not missing and jobs >= len(expected)
+    return {"ok": ok, "running": running, "job_count": jobs, "expected": len(expected), "missing": missing}
+
+
+async def deep_health(session_factory, probe=None, scheduler=None) -> dict:
     db = await check_db(session_factory)
     external = await check_external(probe)
+    sched = await check_scheduler(session_factory, scheduler)
     degraded = [k for k, v in external.items() if v.get("ok") is False]
+    if sched.get("ok") is False:
+        degraded.append("scheduler")
     status = "unhealthy" if not db["ok"] else ("degraded" if degraded else "healthy")
     return {
         "status": status,
         "checked_at": datetime.now(UTC).isoformat(),
         "db": db,
         "external": external,
+        "scheduler": sched,
         "degraded": degraded,
     }
 
 
 # --------------------------------------------------------------------------- uptime job
 
-async def run_uptime_check(session_factory, *, base_url: str | None = None, probe=None) -> dict:
-    """Self-check: deep health + the public site answering. Alerts the owner on failure."""
+async def run_uptime_check(session_factory, *, base_url: str | None = None, probe=None, scheduler=None) -> dict:
+    """Self-check: deep health + the public site answering. Alerts the owner on failure
+    (including a scheduler whose job registration failed)."""
+    result = await deep_health(session_factory, probe, scheduler)
     probe = probe or _probe
-    result = await deep_health(session_factory, probe)
     base = (base_url or settings.public_base_url or "").rstrip("/")
     if base:
         result["site"] = await probe(f"{base}/health")
@@ -138,6 +224,9 @@ async def run_uptime_check(session_factory, *, base_url: str | None = None, prob
             parts.append("قاعدة البيانات لا تستجيب")
         if result.get("site") and not result["site"].get("ok"):
             parts.append("الموقع لا يرد على /health")
+        if result.get("scheduler", {}).get("ok") is False:
+            missing = result["scheduler"].get("missing") or []
+            parts.append("المجدول: تسجيل المهام فشل" + (f" ({'، '.join(missing)})" if missing else ""))
         if result["degraded"]:
             parts.append("خدمات خارجية: " + "، ".join(result["degraded"]))
         await alert_owner(f"uptime:{result['status']}",
