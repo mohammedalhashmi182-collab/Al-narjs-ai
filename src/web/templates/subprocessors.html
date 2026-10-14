@@ -1,0 +1,73 @@
+{% set _lang = page_lang(request) %}
+<!DOCTYPE html>
+{% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index,follow">
+    <title>{% if _lang == 'ar' %}المعالجون الفرعيون | النرجس للذكاء الاصطناعي{% else %}Subprocessors | Al-Narjis AI{% endif %}</title>
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <link rel="stylesheet" href="/static/css/narjis-luxury.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body[data-lang="ar"] [data-lang="en"] { display: none; }
+        body[data-lang="en"] [data-lang="ar"] { display: none; }
+        .ops-table { width:100%; border-collapse:collapse; font-size:0.92rem; }
+        .ops-table th, .ops-table td { padding:8px 6px; border-bottom:1px solid rgba(0,0,0,.08); text-align:start; vertical-align:top; }
+        .ops-cta { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
+        .ops-cta a { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:12px; text-decoration:none; font-weight:700; border:1px solid currentColor; color:var(--n-brown-2); }
+        .ops-mobile-cta { display:none; }
+        @media (max-width: 640px) {
+            .ops-mobile-cta { display:block; position:fixed; inset-inline:12px; bottom:12px; padding:14px; border-radius:14px; text-align:center; font-weight:800; text-decoration:none; background:var(--green, #4F7942); color:#fff; z-index:50; }
+            body { padding-bottom:72px; }
+        }
+    </style>
+</head>
+<body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
+    <div class="n-hero" style="padding:56px 20px 40px;">
+        <div class="max-w-3xl mx-auto">
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; <span data-lang="ar">العودة للرئيسية</span><span data-lang="en" data-inline>Back to home</span></a>
+            <h1 class="n-title text-3xl mt-4"><span data-lang="ar">المعالجون الفرعيون</span><span data-lang="en" data-inline>Subprocessors</span></h1>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);"><span data-lang="ar">آخر تحديث: 14 أكتوبر 2026</span><span data-lang="en" data-inline>Last updated: 14 October 2026</span></p>
+
+            <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
+                <h2 class="n-title text-lg" data-lang="ar">من يعالج البيانات نيابة عنا</h2>
+                <h2 class="n-title text-lg" data-lang="en" data-inline>Who processes data on our behalf</h2>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar">هذه الجهات تعالج بيانات الخدمة لغرض محدد فقط. تفاصيل الالتزامات في <a href="/dpa">اتفاقية معالجة البيانات</a>.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" data-inline>These providers process service data for a specific purpose only. Obligations are set out in the <a href="/dpa">Data Processing Agreement</a>.</p>
+                <table class="ops-table mt-3">
+                    <thead><tr><th>{% if _lang == 'ar' %}المزوّد{% else %}Provider{% endif %}</th><th>{% if _lang == 'ar' %}الغرض{% else %}Purpose{% endif %}</th><th>{% if _lang == 'ar' %}الموقع{% else %}Location{% endif %}</th></tr></thead>
+                    <tbody>{% for s in subprocessors %}<tr><td dir="ltr">{{ s.name }}</td><td>{% if _lang == 'ar' %}{{ s.purpose_ar }}{% else %}{{ s.purpose_en }}{% endif %}</td><td>{% if _lang == 'ar' %}{{ s.region_ar }}{% else %}{{ s.region_en }}{% endif %}</td></tr>{% endfor %}</tbody>
+                </table>
+                <h2 class="n-title text-lg mt-5" data-lang="ar">سياسة الاحتفاظ</h2>
+                <h2 class="n-title text-lg mt-5" data-lang="en" data-inline>Retention policy</h2>
+                <table class="ops-table mt-3">
+                    <thead><tr><th>{% if _lang == 'ar' %}البيانات{% else %}Data{% endif %}</th><th>{% if _lang == 'ar' %}مدة الاحتفاظ{% else %}Retention{% endif %}</th></tr></thead>
+                    <tbody>{% for r in retention %}<tr><td>{% if _lang == 'ar' %}{{ r.data_ar }}{% else %}{{ r.data_en }}{% endif %}</td><td>{% if _lang == 'ar' %}{{ r.period_ar }}{% else %}{{ r.period_en }}{% endif %}</td></tr>{% endfor %}</tbody>
+                </table>
+            </div>
+
+            <div class="n-card mt-6" style="padding:24px;" id="telegram-connect">
+                <h2 class="n-title text-lg" data-lang="ar">{{ tg_plane_cls("width:1em;height:1em;vertical-align:-.15em") }} تواصل معنا فوراً عبر تيليجرام</h2>
+                <h2 class="n-title text-lg" data-lang="en" data-inline>{{ tg_plane_cls("width:1em;height:1em;vertical-align:-.15em") }} Reach us instantly on Telegram</h2>
+                <div class="ops-cta">
+                    <a href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">{{ tg_plane_cls("width:1.1em;height:1.1em") }} @AlNarjs7BOT</a>
+                    {% if contact.whatsapp %}<a href="{{ contact.whatsapp }}" target="_blank" rel="noopener"><span data-lang="ar">واتساب</span><span data-lang="en" data-inline>WhatsApp</span></a>{% endif %}
+                    <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
+                </div>
+            </div>
+            <p class="n-sub mt-6" style="font-size:0.85rem;">
+                <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·
+                <a href="/terms">{% if _lang == 'ar' %}الشروط{% else %}Terms{% endif %}</a> ·
+                <a href="/data-deletion">{% if _lang == 'ar' %}حذف البيانات{% else %}Data deletion{% endif %}</a> ·
+                <a href="/dpa">{% if _lang == 'ar' %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a> ·
+                <a href="/subprocessors">{% if _lang == 'ar' %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a> ·
+                <a href="/contact">{% if _lang == 'ar' %}تواصل{% else %}Contact{% endif %}</a>
+            </p>
+        </div>
+    </div>
+    <a class="ops-mobile-cta" href="https://t.me/AlNarjs7BOT?start=support" target="_blank" rel="noopener">{% if _lang == 'ar' %}راسلنا على تيليجرام{% else %}Message us on Telegram{% endif %}</a>
+</body>
+</html>
