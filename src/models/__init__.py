@@ -245,6 +245,11 @@ class Payment(Base):
     # What the gateway actually charged when it is not SAR (PayPal: USD cents).
     charge_currency: Mapped[Optional[str]] = mapped_column(String(3), nullable=True)
     charge_amount: Mapped[Optional[int]] = mapped_column(nullable=True)
+    # Usage add-on packs bought with the order (+1000 conversations / +100 voice min each).
+    addon_conversation_packs: Mapped[int] = mapped_column(default=0, server_default="0")
+    addon_voice_packs: Mapped[int] = mapped_column(default=0, server_default="0")
+    # Founding-customer price auto-applied at checkout (catalog.FOUNDING_OFFER).
+    founding: Mapped[bool] = mapped_column(default=False, server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -266,6 +271,18 @@ class ClientProject(Base):
     current_period_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), index=True)
     last_payment_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True))
     renewal_payment_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True))
+    # Usage add-on packs on top of the plan allowance (renewed with the plan).
+    addon_conversation_packs: Mapped[int] = mapped_column(default=0, server_default="0")
+    addon_voice_packs: Mapped[int] = mapped_column(default=0, server_default="0")
+    # Founding customer (one of catalog.FOUNDING_OFFER["seats"]). Revoking frees the seat.
+    founding: Mapped[bool] = mapped_column(default=False, server_default=text("false"))
+    founding_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    founding_locked_until: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    founding_commitment_until: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    founding_revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    # Meta WhatsApp Cloud phone_number_id of the client's own number: routes
+    # webhook traffic for that number to this subscription's usage meter.
+    wa_phone_number_id: Mapped[Optional[str]] = mapped_column(String(64), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     agents: Mapped[list["ClientAgent"]] = relationship("ClientAgent", back_populates="project", cascade="all, delete-orphan")
@@ -333,3 +350,4 @@ from src.models.automation import (  # noqa: E402,F401
     SocialPostDraft,
 )
 from src.models.agent_tools import KnowledgeDoc, ProjectDataFile  # noqa: E402,F401
+from src.models.usage import SubscriptionUsage, UsageEvent  # noqa: E402,F401

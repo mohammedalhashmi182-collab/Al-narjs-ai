@@ -70,6 +70,7 @@ CASES = [
 
 
 @pytest.mark.parametrize("problem,tier,extra", CASES)
+@pytest.mark.usefixtures("founding_full")
 async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
     from src.main import app
 

@@ -66,6 +66,16 @@ def _validate_addons(addons) -> int:
     return addons
 
 
+def _validate_packs(packs, name: str) -> int:
+    try:
+        packs = int(packs or 0)
+    except (TypeError, ValueError):
+        raise PaymentError(f"{name} must be an integer")
+    if packs < 0 or packs > catalog.MAX_USAGE_PACKS:
+        raise PaymentError(f"{name} must be between 0 and {catalog.MAX_USAGE_PACKS}")
+    return packs
+
+
 def _validate_period(billing_period: Optional[str]) -> str:
     period = (billing_period or catalog.DEFAULT_BILLING_PERIOD).strip().lower()
     if period not in catalog.BILLING_PERIODS:
@@ -84,11 +94,20 @@ def package_amount(package: str, billing_period: Optional[str] = None, addons: i
     return catalog.plan_amount(package, _validate_period(billing_period), _validate_addons(addons))
 
 
-def setup_fee_amount(package: str, billing_period: Optional[str] = None, renewal: bool = False) -> int:
+def setup_fee_amount(package: str, billing_period: Optional[str] = None, renewal: bool = False, founding: bool = False) -> int:
     """One-time setup fee (halalas, pre-VAT) a new order adds; 0 when waived."""
     if package in catalog.DOMAINS:
         package = catalog.resolve_tier(package)
-    return catalog.setup_fee(package, _validate_period(billing_period), renewal=renewal)
+    return catalog.setup_fee(package, _validate_period(billing_period), renewal=renewal, founding=founding)
+
+
+def usage_packs_amount(conversation_packs: int = 0, voice_packs: int = 0, billing_period: Optional[str] = None) -> int:
+    """Pre-VAT halalas for usage add-on packs over one billing period (validated)."""
+    return catalog.usage_packs_amount(
+        _validate_packs(conversation_packs, "conversation_packs"),
+        _validate_packs(voice_packs, "voice_packs"),
+        _validate_period(billing_period),
+    )
 
 
 def period_months(billing_period: Optional[str]) -> int:
@@ -107,15 +126,22 @@ def add_months(dt, months: int):
     return dt.replace(year=year, month=month, day=day)
 
 
-def order_description(package: str, billing_period: str, addons: int, discount_pct: int = 0, renewal: bool = False, setup_fee: int = 0) -> str:
+def order_description(package: str, billing_period: str, addons: int, discount_pct: int = 0, renewal: bool = False, setup_fee: int = 0,
+                      conversation_packs: int = 0, voice_packs: int = 0, founding: bool = False) -> str:
     pkg = catalog.PACKAGES.get(package) or catalog.LEGACY_TIERS[package]
     description = f"باقة {pkg['name']} - النرجس للذكاء الاصطناعي"
     if addons:
         description += f" + {addons} وكيل إضافي"
+    if conversation_packs:
+        description += f" + {conversation_packs} × باقة ١٬٠٠٠ محادثة إضافية"
+    if voice_packs:
+        description += f" + {voice_packs} × باقة ١٠٠ دقيقة صوت إضافية"
     description += " (اشتراك سنوي: 12 شهراً بسعر 10)" if billing_period == "annual" else " (اشتراك شهري)"
     if renewal:
         description += " - تجديد"
-    if discount_pct:
+    if founding:
+        description += f" (سعر العملاء المؤسسين: خصم {discount_pct}%، بدون رسوم إعداد)"
+    elif discount_pct:
         description += f" (خصم الإطلاق {discount_pct}%)"
     if setup_fee:
         description += f" + رسوم إعداد لمرة واحدة {setup_fee // 100} ر.س"
@@ -384,6 +410,9 @@ async def create_payment(
     billing_period: Optional[str] = None,
     addons: int = 0,
     is_renewal: bool = False,
+    conversation_packs: int = 0,
+    voice_packs: int = 0,
+    founding: Optional[bool] = False,
 ) -> Payment:
     if package in catalog.DOMAINS:
         package = catalog.resolve_tier(package)
@@ -394,15 +423,41 @@ async def create_payment(
         raise PaymentError(f"Unknown package: {package}")
     period = _validate_period(billing_period)
     addons = _validate_addons(addons)
+    conversation_packs = _validate_packs(conversation_packs, "conversation_packs")
+    voice_packs = _validate_packs(voice_packs, "voice_packs")
+
+    # Founding offer (first 15 customers): founding=None auto-applies it while
+    # a seat is free (checkout, owner payment links, renewals of a founding
+    # project); True/False force it. It replaces any promo
+    # code (no stacking) and waives the setup fee.
+    if founding is None:
+        from src.services import founding as _founding
+
+        project = None
+        if project_id is not None:
+            from src.models import ClientProject
+
+            project = (await session.execute(
+                select(ClientProject).where(ClientProject.id == project_id)
+            )).scalar_one_or_none()
+        founding = await _founding.eligible_for_order(session, package, is_renewal=is_renewal, project=project)
+    founding = bool(founding) and package in catalog.PACKAGES
 
     # ``amount`` is the whole period's pre-VAT base (annual = 10 x monthly)
-    # plus the one-time setup fee on a first monthly order (never discounted
-    # by a promo, never on renewals or annual); VAT, the Moyasar charge and
-    # the gateway amount check all derive from it.
-    amount, discount_pct = apply_promo(catalog.plan_amount(package, period, addons), promo)
-    fee = catalog.setup_fee(package, period, renewal=is_renewal)
+    # plus usage add-on packs (never discounted) plus the one-time setup fee
+    # on a first monthly order (never discounted by a promo, never on
+    # renewals, annual or founding); VAT, the Moyasar charge and the gateway
+    # amount check all derive from it.
+    if founding:
+        amount = catalog.founding_amount(package, period, addons)
+        discount_pct = catalog.FOUNDING_OFFER["annual_pct" if period == "annual" else "monthly_pct"]
+    else:
+        amount, discount_pct = apply_promo(catalog.plan_amount(package, period, addons), promo)
+    amount += catalog.usage_packs_amount(conversation_packs, voice_packs, period)
+    fee = catalog.setup_fee(package, period, renewal=is_renewal, founding=founding)
     amount += fee
-    description = order_description(package, period, addons, discount_pct, renewal=is_renewal, setup_fee=fee)
+    description = order_description(package, period, addons, discount_pct, renewal=is_renewal, setup_fee=fee,
+                                    conversation_packs=conversation_packs, voice_packs=voice_packs, founding=founding)
 
     payment = Payment(
         amount=amount,
@@ -410,6 +465,9 @@ async def create_payment(
         package=package,
         billing_period=period,
         addon_agents=addons,
+        addon_conversation_packs=conversation_packs,
+        addon_voice_packs=voice_packs,
+        founding=founding,
         is_renewal=is_renewal,
         customer_name=customer_name,
         customer_phone=customer_phone,
@@ -985,6 +1043,12 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
     project.current_period_end = add_months(start, period_months(period))
     project.billing_period = period
     project.addon_agents = int(getattr(payment, "addon_agents", 0) or 0)
+    project.addon_conversation_packs = int(getattr(payment, "addon_conversation_packs", 0) or 0)
+    project.addon_voice_packs = int(getattr(payment, "addon_voice_packs", 0) or 0)
+    if getattr(payment, "founding", False):
+        from src.services import founding as _founding
+
+        _founding.mark_project(project, payment, now)
     staffed = await staff_project(session, project)
     project.last_payment_id = payment.id
     if project.renewal_payment_id is not None and str(project.renewal_payment_id) == str(payment.id):

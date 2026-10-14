@@ -523,6 +523,7 @@ class TestVatInclusiveCharging:
             assert pm.total_with_vat(base) == pm.total_with_vat(base)
             assert pm.total_with_vat(base) > base, key
 
+    @pytest.mark.usefixtures("founding_full")
     async def test_the_api_reports_the_vat_inclusive_total_to_the_checkout(self, api):
         from src.services import catalog
 
@@ -755,6 +756,7 @@ class TestPublicSurface:
         r = await anon.post("/api/payments", json={"refund_consent": True, "package": "platinum", "method": "invoice"})
         assert r.status_code == 400
 
+    @pytest.mark.usefixtures("founding_full")
     async def test_the_invoice_fallback_carries_the_amount_the_invoice_bills(self, api):
         anon, _ = api
         from src.services import catalog

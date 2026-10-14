@@ -118,6 +118,9 @@ async def ensure_payment_link(session: AsyncSession, draft: ReplyDraft, *, base_
         session, plan_key, customer_name=lead.contact_name or lead.company_name if lead else None,
         customer_phone=lead.phone if lead else None, customer_email=lead.email if lead else None,
         lead_id=draft.lead_id, billing_period=period, addons=addons,
+        conversation_packs=int((draft.meta or {}).get("conversation_packs") or 0),
+        voice_packs=int((draft.meta or {}).get("voice_packs") or 0),
+        founding=None,  # founding price auto-applies while seats remain
     )
     # The link is our invoice page, not a raw Moyasar checkout: the buyer must
     # tick the refund consent there before card or bank transfer (see

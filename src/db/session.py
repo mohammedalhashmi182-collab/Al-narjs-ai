@@ -96,6 +96,18 @@ async def init_db():
                 ("client_projects", "current_period_end", "TIMESTAMPTZ"),
                 ("client_projects", "last_payment_id", "UUID"),
                 ("client_projects", "renewal_payment_id", "UUID"),
+                # Usage metering + founding offer (alembic 0007)
+                ("payments", "addon_conversation_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("payments", "addon_voice_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("payments", "founding", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                ("client_projects", "addon_conversation_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "addon_voice_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "founding", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                ("client_projects", "founding_at", "TIMESTAMPTZ"),
+                ("client_projects", "founding_locked_until", "TIMESTAMPTZ"),
+                ("client_projects", "founding_commitment_until", "TIMESTAMPTZ"),
+                ("client_projects", "founding_revoked_at", "TIMESTAMPTZ"),
+                ("client_projects", "wa_phone_number_id", "VARCHAR(64)"),
             ]
             for table, column, ddl in placeholders:
                 try:
@@ -146,6 +158,18 @@ async def init_db():
                 ("client_projects", "current_period_end", "TIMESTAMP"),
                 ("client_projects", "last_payment_id", "CHAR(36)"),
                 ("client_projects", "renewal_payment_id", "CHAR(36)"),
+                # Usage metering + founding offer (alembic 0007)
+                ("payments", "addon_conversation_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("payments", "addon_voice_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("payments", "founding", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "addon_conversation_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "addon_voice_packs", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "founding", "INTEGER NOT NULL DEFAULT 0"),
+                ("client_projects", "founding_at", "TIMESTAMP"),
+                ("client_projects", "founding_locked_until", "TIMESTAMP"),
+                ("client_projects", "founding_commitment_until", "TIMESTAMP"),
+                ("client_projects", "founding_revoked_at", "TIMESTAMP"),
+                ("client_projects", "wa_phone_number_id", "VARCHAR(64)"),
             ]
             for table, column, ddl in sqlite_placeholders:
                 try:

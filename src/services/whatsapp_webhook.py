@@ -1,4 +1,4 @@
-﻿"""WhatsApp Business Cloud API inbound webhook handler.
+"""WhatsApp Business Cloud API inbound webhook handler.
 
 Pipeline per inbound message:
 
@@ -178,6 +178,38 @@ async def _record_message(session: AsyncSession, *, sender: Any, wa_id: Any, mes
 
 
 
+async def _metered_project(session: AsyncSession, value: dict):
+    try:
+        from src.services import usage
+
+        return await usage.project_for_whatsapp_number(session, (value.get("metadata") or {}).get("phone_number_id"))
+    except Exception:
+        log.warning("usage: project lookup failed", exc_info=True)
+        return None
+
+
+async def _meter_conversation(session: AsyncSession, project, contact, msg_id, occurred=None) -> None:
+    try:
+        from src.services import usage
+
+        async with session.begin_nested():
+            await usage.record_conversation(session, project, str(contact or ""), "whatsapp", ref=msg_id or None, now=occurred)
+    except Exception:
+        log.warning("usage: conversation metering failed", exc_info=True)
+
+
+async def _meter_meta_fee(session: AsyncSession, project, status_row: dict) -> None:
+    try:
+        from src.services import usage
+
+        fee, category = usage.meta_fee_for_status(status_row)
+        if fee:
+            async with session.begin_nested():
+                await usage.record_meta_fee(session, project, fee, ref=str(status_row.get("id") or "") or None, category=category)
+    except Exception:
+        log.warning("usage: Meta fee metering failed", exc_info=True)
+
+
 async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
     """Process one webhook body: status updates and inbound messages."""
     summary: dict = {"messages_processed": 0, "duplicates_skipped": 0, "status_updates": 0, "mapped_leads": 0, "unmatched": 0}
@@ -186,6 +218,10 @@ async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
     for entry in payload.get("entry") or []:
         for change in entry.get("changes") or []:
             value = change.get("value") or {}
+            # Traffic on a subscriber's own WhatsApp number is metered against
+            # that subscription (smart conversations + Meta fees). Best-effort:
+            # metering never blocks webhook processing.
+            client_project = await _metered_project(session, value)
 
             # Delivery/read status updates on our outbound messages.
             for status_row in value.get("statuses") or []:
@@ -199,6 +235,8 @@ async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
                     if isinstance(errors, list) and errors:
                         err = str(errors[0].get("code") or errors[0].get("title") or "")[:50]
                     rec = await acknowledge_status(session, str(mid), str(state), error_code=err)
+                    if client_project is not None:
+                        await _meter_meta_fee(session, client_project, status_row)
                     if rec is not None:
                         summary["status_updates"] += 1
 
@@ -230,6 +268,8 @@ async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
                     session, sender=sender, wa_id=wa_id, message=message, entry_hash=entry_hash
                 )
                 summary["messages_processed"] += 1
+                if client_project is not None:
+                    await _meter_conversation(session, client_project, sender or wa_id, msg_id, occurred=rec.occurred_at)
 
                 lead = await _map_sender_to_lead(session, sender, wa_id)
                 if lead is None:
