@@ -965,8 +965,8 @@ note.textContent = msg;
             });
             const pid = localStorage.getItem('narjis-project');
             const wantsLogin = new URLSearchParams(location.search).has('login');
-            fetch('/api/portal/session').then(r => r.ok ? r.json() : null).then(sess => {
-                if (sess) return resume(sess.project_id);
+            fetch('/api/portal/session?probe=1').then(r => r.ok ? r.json() : null).then(sess => {
+                if (sess && sess.authenticated) return resume(sess.project_id);
                 if (!pid) { if (wantsLogin) showLogin(); return; }
                 return fetch('/api/portal/session/legacy', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ project_id: pid }) }).then(r => r.ok ? resume(pid) : (showLogin(), false));

@@ -200,15 +200,23 @@ async def legacy_exchange(body: LegacyBody, request: Request):
 
 
 @router.get("/api/portal/session")
-async def current_session(request: Request):
+async def current_session(request: Request, probe: bool = False):
+    # ?probe=1 is the portal's on-load "am I signed in?" check: an anonymous
+    # visitor is the normal case there, so it answers 200 {"authenticated": false}
+    # instead of a 401 that every browser logs as a console error on checkout.
+    def _anon():
+        if probe:
+            return {"authenticated": False}
+        raise HTTPException(401, "Portal login required")
+
     claims = portal_auth.session_claims(request)
     if not claims:
-        raise HTTPException(401, "Portal login required")
+        return _anon()
     async with _factory(request)() as session:
         project = await session.get(ClientProject, _uuid(claims["p"]))
     if not portal_auth.session_valid_for(claims, project):
-        raise HTTPException(401, "Portal login required")
-    return {"project_id": str(project.id), "status": project.status}
+        return _anon()
+    return {"authenticated": True, "project_id": str(project.id), "status": project.status}
 
 
 @router.post("/api/portal/logout")
