@@ -87,6 +87,9 @@ async def _raise_renewal(session: AsyncSession, project, *, base_url: str, use_g
         billing_period=project.billing_period or "monthly",
         addons=int(project.addon_agents or 0),
         is_renewal=True,
+        conversation_packs=int(getattr(project, "addon_conversation_packs", 0) or 0),
+        voice_packs=int(getattr(project, "addon_voice_packs", 0) or 0),
+        founding=None,  # a founding project keeps its price until founding_locked_until
     )
     gateway = "invoice"
     if use_gateway:

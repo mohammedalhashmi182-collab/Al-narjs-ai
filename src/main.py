@@ -568,6 +568,7 @@ async def landing_page(request: Request):
             "usage_addons": catalog.USAGE_ADDONS,
             "enterprise": catalog.ENTERPRISE,
             "founding_offer": catalog.FOUNDING_OFFER,
+            "founding": await _founding_status_safe(),
             "setup_guarantee": catalog.SETUP_GUARANTEE,
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
@@ -1312,9 +1313,23 @@ async def portal_packages():
         "addon": {**catalog.ADDON_AGENT, "max": catalog.MAX_ADDON_AGENTS},
         "usage_addons": catalog.USAGE_ADDONS,
         "founding_offer": catalog.FOUNDING_OFFER,
+        "founding": await _founding_status_safe(),
+        "usage_packs_max": catalog.MAX_USAGE_PACKS,
         "setup_guarantee": catalog.SETUP_GUARANTEE,
         "billing_periods": catalog.BILLING_PERIODS,
     }
+
+
+async def _founding_status_safe() -> dict:
+    """Founding seats for public pages; falls back to "unknown" without a DB."""
+    from src.services import catalog, founding
+
+    try:
+        async with app.state.session_factory() as session:
+            return await founding.status(session)
+    except Exception:
+        return {**catalog.FOUNDING_OFFER, "seats_total": catalog.FOUNDING_OFFER["seats"],
+                "seats_used": None, "seats_remaining": None, "available": False}
 
 
 @app.get("/api/portal/packages/{package_key}/demo")
@@ -2245,6 +2260,8 @@ class PaymentCreateRequest(BaseModel):
     project_id: Optional[str] = None
     billing_period: str = "monthly"  # "monthly" | "annual" (pay 10 months, get 12)
     addons: int = 0                  # extra agents on top of the tier, 299 SAR/month each (an integer count)
+    conversation_packs: int = 0      # +1,000 conversations / month, 99 SAR each
+    voice_packs: int = 0             # +100 voice minutes / month, 99 SAR each
     # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
     refund_consent: bool = False
 
@@ -2326,7 +2343,7 @@ def _payment_replay_key(request: Request, body: "PaymentCreateRequest") -> Optio
     who = (body.customer_phone or body.customer_email or "").strip().lower()
     if not who:
         return None
-    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", body.billing_period.lower(), str(body.addons)))
+    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", body.billing_period.lower(), str(body.addons), str(body.conversation_packs), str(body.voice_packs)))
 
 
 @app.post("/api/payments")
@@ -2367,10 +2384,9 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     base = _public_base_url(request)
     try:
         base_amount = pm.package_amount(body.package, body.billing_period, body.addons)
+        packs_amount = pm.usage_packs_amount(body.conversation_packs, body.voice_packs, body.billing_period)
     except pm.PaymentError as exc:
         raise HTTPException(400, str(exc))
-    final_amount, discount_pct = pm.apply_promo(base_amount, body.promo)
-    discount_halalas = base_amount - final_amount
     async with app.state.session_factory() as session:
         from uuid import UUID as _UUID
 
@@ -2399,7 +2415,15 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             project_id=project_uuid,
             billing_period=body.billing_period,
             addons=body.addons,
+            conversation_packs=body.conversation_packs,
+            voice_packs=body.voice_packs,
+            founding=None,  # founding price auto-applies while seats remain
         )
+        # The order decides the price (promo or founding, never both).
+        setup_halalas = pm.setup_fee_amount(body.package, body.billing_period, founding=payment.founding)
+        discount_halalas = max(0, base_amount + packs_amount + setup_halalas - payment.amount)
+        discount_pct = 1 if discount_halalas else 0
+        founding_info = {"founding_applied": bool(payment.founding)}
         from datetime import datetime as _dt, timezone as _tz
 
         if body.refund_consent is True:
@@ -2432,7 +2456,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "redirect_url": order["approval_url"],
                     "amount": payment.amount,
                     "discount": discount_halalas,
-                    "promo_applied": discount_pct > 0,
+                    "promo_applied": discount_pct > 0 and not payment.founding,
+                    **founding_info,
                     "vat": pm.vat_amount(payment.amount) if include_vat else 0,
                     "total": charge,
                     # PayPal cannot charge SAR: the buyer pays this USD amount.
@@ -2450,7 +2475,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "message": str(e),
                     "amount": payment.amount,
                     "discount": discount_halalas,
-                    "promo_applied": discount_pct > 0,
+                    "promo_applied": discount_pct > 0 and not payment.founding,
+                    **founding_info,
                     "vat": pm.vat_amount(payment.amount),
                     "total": pm.total_with_vat(payment.amount),
                     "invoice_total": pm.total_with_vat(payment.amount),
@@ -2486,7 +2512,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "publishable_key": pm.get_publishable_key(),
                     "amount": payment.amount,
                     "discount": discount_halalas,
-                    "promo_applied": discount_pct > 0,
+                    "promo_applied": discount_pct > 0 and not payment.founding,
+                    **founding_info,
                     "vat": pm.vat_amount(payment.amount),
                     "total": pm.total_with_vat(payment.amount),
                 }
@@ -2500,7 +2527,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "message": str(e),
                     "amount": payment.amount,
                     "discount": discount_halalas,
-                    "promo_applied": discount_pct > 0,
+                    "promo_applied": discount_pct > 0 and not payment.founding,
+                    **founding_info,
                     "invoice_total": pm.total_with_vat(payment.amount),
                     "invoice_url": f"/invoice/{payment.id}",
                 }
@@ -2514,7 +2542,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             "gateway": "invoice",
             "amount": payment.amount,
             "discount": discount_halalas,
-            "promo_applied": discount_pct > 0,
+            "promo_applied": discount_pct > 0 and not payment.founding,
+            **founding_info,
             "vat": pm.vat_amount(payment.amount),
             "total": pm.total_with_vat(payment.amount),
             "invoice_total": pm.total_with_vat(payment.amount),
@@ -2663,6 +2692,133 @@ async def owner_run_renewals(request: Request, days_before: Optional[int] = None
     days = renewals.RENEWAL_LEAD_DAYS if days_before is None else max(0, min(int(days_before), 60))
     async with app.state.session_factory() as session:
         return await renewals.run_renewals(session, days_before=days, base_url=_public_base_url(request))
+
+
+# ---------------------------------------------------------------------------
+#  Usage metering (per subscription, monthly) and the founding offer
+# ---------------------------------------------------------------------------
+
+def _project_uuid(project_id: str):
+    from uuid import UUID as _UUID
+
+    try:
+        return _UUID(project_id)
+    except (TypeError, ValueError):
+        raise HTTPException(422, "project_id must be a valid UUID")
+
+
+async def _load_project(session, project_id: str):
+    from sqlalchemy import select as _sel
+
+    from src.models import ClientProject
+
+    project = (await session.execute(
+        _sel(ClientProject).where(ClientProject.id == _project_uuid(project_id))
+    )).scalar_one_or_none()
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    return project
+
+
+@app.get("/api/owner/usage", dependencies=[Depends(require_owner_api)])
+async def owner_usage(include_inactive: bool = False):
+    """Owner console: current-window usage for every subscription (over-limit first)."""
+    from src.services import catalog, usage
+
+    async with app.state.session_factory() as session:
+        rows = await usage.owner_usage_report(session, include_inactive=include_inactive)
+        await session.commit()
+    return {"customers": rows, "over_limit": sum(1 for r in rows if r["over_limit"]),
+            "alert_thresholds": list(catalog.USAGE_ALERT_THRESHOLDS)}
+
+
+@app.get("/api/owner/usage/{project_id}", dependencies=[Depends(require_owner_api)])
+async def owner_usage_project(project_id: str):
+    from src.services import usage
+
+    async with app.state.session_factory() as session:
+        project = await _load_project(session, project_id)
+        row = await usage.current_usage(session, project)
+        await session.commit()
+        return usage.usage_summary(project, row)
+
+
+class UsageEventRequest(BaseModel):
+    kind: str                      # "conversation" | "voice" | "meta_fee"
+    quantity: int = 1              # conversation: ignored; voice: seconds; meta_fee: halalas
+    contact: Optional[str] = None  # conversation: the customer's handle/number
+    channel: str = "whatsapp"
+    ref: Optional[str] = None      # call id / message id: counted once
+
+
+@app.post("/api/owner/usage/{project_id}/events", dependencies=[Depends(require_owner_api)])
+async def owner_record_usage(project_id: str, body: UsageEventRequest):
+    """Record usage from a channel that is not wired to a webhook yet (e.g. the
+    voice provider's call log) or a manual correction. Never cuts service."""
+    from src.services import usage
+
+    async with app.state.session_factory() as session:
+        project = await _load_project(session, project_id)
+        if body.kind == "conversation":
+            result = await usage.record_conversation(session, project, body.contact or "", body.channel, ref=body.ref)
+        elif body.kind == "voice":
+            result = await usage.record_voice(session, project, body.quantity, contact=body.contact, ref=body.ref)
+        elif body.kind == "meta_fee":
+            result = await usage.record_meta_fee(session, project, body.quantity, ref=body.ref)
+        else:
+            raise HTTPException(422, "kind must be conversation, voice or meta_fee")
+        await session.commit()
+        return result
+
+
+class WhatsAppNumberRequest(BaseModel):
+    phone_number_id: Optional[str] = None
+
+
+@app.post("/api/owner/projects/{project_id}/whatsapp-number", dependencies=[Depends(require_owner_api)])
+async def owner_link_whatsapp_number(project_id: str, body: WhatsAppNumberRequest):
+    """Link the subscriber's own WhatsApp Cloud number (Meta phone_number_id) so
+    its webhook traffic is metered against this subscription. Empty unlinks."""
+    async with app.state.session_factory() as session:
+        project = await _load_project(session, project_id)
+        value = (body.phone_number_id or "").strip()[:64] or None
+        if value and not value.isdigit():
+            raise HTTPException(422, "phone_number_id must be digits")
+        project.wa_phone_number_id = value
+        await session.commit()
+        return {"project_id": str(project.id), "wa_phone_number_id": value}
+
+
+@app.get("/api/founding")
+async def founding_public():
+    """Public: founding seats left (pricing page / portal)."""
+    from src.services import founding
+
+    async with app.state.session_factory() as session:
+        st = await founding.status(session)
+    return {k: st[k] for k in ("seats_total", "seats_remaining", "available", "annual_pct", "monthly_pct",
+                               "monthly_commitment_months", "waives_setup_fee")}
+
+
+@app.get("/api/owner/founding", dependencies=[Depends(require_owner_api)])
+async def owner_founding():
+    from src.services import founding
+
+    async with app.state.session_factory() as session:
+        return {"status": await founding.status(session), "customers": await founding.founding_projects(session)}
+
+
+@app.post("/api/owner/founding/{project_id}/revoke", dependencies=[Depends(require_owner_api)])
+async def owner_revoke_founding(project_id: str):
+    """Revoke a founding seat: frees it and ends the discount on future renewals."""
+    from src.services import founding
+
+    async with app.state.session_factory() as session:
+        project = await _load_project(session, project_id)
+        result = await founding.revoke(session, project)
+        if not result["revoked"]:
+            raise HTTPException(409, result["reason"])
+        return result
 
 
 @app.post("/api/owner/billing/backfill", dependencies=[Depends(require_owner_api)])
