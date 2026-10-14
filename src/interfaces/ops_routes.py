@@ -30,7 +30,7 @@ api = APIRouter(prefix="/api/owner/ops", dependencies=[Depends(require_owner)], 
 # docs/runbooks.md and the privacy policy. Only services the code actually calls.
 SUBPROCESSORS = [
     {"name": "Render", "purpose_ar": "استضافة التطبيق وقاعدة البيانات", "purpose_en": "Application and database hosting",
-     "region_ar": "خارج المملكة (حسب منطقة الخدمة)", "region_en": "Outside KSA (service region)"},
+     "region_ar": "الولايات المتحدة (منطقة Render الافتراضية: أوريغون)", "region_en": "USA (Render default region: Oregon)"},
     {"name": "Google (Gemini API)", "purpose_ar": "توليد ردود الذكاء الاصطناعي", "purpose_en": "AI response generation",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Moonshot AI (Kimi)", "purpose_ar": "مزود ذكاء اصطناعي احتياطي", "purpose_en": "Fallback AI provider",
