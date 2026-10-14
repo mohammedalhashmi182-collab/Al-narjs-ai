@@ -35,6 +35,7 @@
 #saTicket .err{color:#8a1d12;font-size:.8rem;min-height:1em;margin:2px 0}
 #saOpenTicket{display:none;margin:0 12px 8px;width:calc(100% - 24px);border:1px solid #2f4a2a;background:transparent;color:#2f4a2a;border-radius:10px;padding:7px;font:inherit;font-weight:700;cursor:pointer}
 #saOpenTicket.show{display:block}
+#siteAssistant .sa-ref{white-space:nowrap;unicode-bidi:isolate;font-weight:700}
 @media (max-width:640px){
   body{padding-bottom:84px}
   body.has-consent-banner #siteAssistant{bottom:62px}
@@ -100,15 +101,20 @@
                 if (st === 429) { err.textContent = M.rate; return; }
                 if (!d.ok) { err.textContent = M[d.field] || M.fail; return; }
                 tk.classList.remove('show'); tk.reset();
-                add('bot', AR ? ('تم استلام طلبك ✅ رقم التذكرة: ' + d.reference + '. سيرد عليك فريقنا بالبريد ' + d.response_time + '.')
-                              : ('Got it ✅ Ticket number: ' + d.reference + '. Our team will reply by email ' + d.response_time + '.'));
+                // the reference sits in its own <bdi> that never wraps, so RTL text and
+                // line breaks cannot split "NRJ-000123" into "-NRJ" / "000123"
+                var b = add('bot', AR ? 'تم استلام طلبك ✅ رقم التذكرة: ' : 'Got it ✅ Ticket number: ');
+                var r = document.createElement('bdi'); r.className = 'sa-ref'; r.dir = 'ltr'; r.textContent = d.reference;
+                b.appendChild(r);
+                b.appendChild(document.createTextNode(AR ? ('. سيرد عليك فريقنا بالبريد ' + d.response_time + '.')
+                                                         : ('. Our team will reply by email ' + d.response_time + '.')));
             })
             .catch(function () { err.textContent = M.fail; });
     });
     tg.addEventListener('click', function () {
         var o = root.classList.toggle('open'); tg.setAttribute('aria-expanded', o ? 'true' : 'false'); if (o) inp.focus();
     });
-    function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+    function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
     form.addEventListener('submit', function (e) {
         e.preventDefault(); var t = inp.value.trim(); if (!t) return;
         inp.value = ''; add('me', t); lastQ = t; if (COMPLAINT.test(t) || HUMAN.test(t)) offerHandoff(); history.push({ role: 'user', content: t });
