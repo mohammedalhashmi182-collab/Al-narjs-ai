@@ -88,7 +88,7 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
         f"باقة «{pkg['name']}»: {agents} {unit} ذكاء اصطناعي{extra} بـ {_sar(monthly)} ريال شهرياً، "
         f"أو {_sar(annual)} ريال سنوياً (تدفع 10 أشهر وتاخذ 12). "
         f"تشمل {pkg['limits']['conversations']:,} محادثة ذكية شهرياً"
-        + (f" و{pkg['limits']['voice_minutes']} دقيقة صوت" if pkg['limits']['voice_minutes'] else "")
+        + (f" و{pkg['limits']['voice_minutes']} دقيقة صوت عند إطلاق الوكيل الصوتي (قريباً)" if pkg['limits']['voice_minutes'] else "")
         + f"، ورسوم ميتا مشمولة حتى {_sar(pkg['limits']['meta_cap'])} ريال. "
         f"وتقدر تضيف أي وكيل إضافي بـ {_sar(catalog.ADDON_AGENT['amount'])} ريال شهرياً. "
         "ضريبة القيمة المضافة موضّحة في الفاتورة."
@@ -194,6 +194,21 @@ async def deliver(session: AsyncSession, channel: str, recipient: str, text: str
     return {"ok": False, "error": f"unknown channel {channel}"}
 
 
+async def _deliver_outside_window(session: AsyncSession, draft: ReplyDraft, text: str) -> dict | None:
+    """A WhatsApp follow-up / payment link outside the 24h customer window goes
+    through ``wa_templates`` (approved Meta template, else a manual fallback).
+    Returns None when the normal path applies."""
+    if draft.channel != "whatsapp" or draft.kind not in ("followup", "payment_link"):
+        return None
+    from src.services import wa_templates, whatsapp_sender
+
+    if not whatsapp_sender.is_enabled() or await wa_templates.within_window(session, draft.recipient):
+        return None
+    return await wa_templates.send_business_initiated(
+        session, phone=draft.recipient, purpose=draft.kind, text=text, lead_id=draft.lead_id,
+        params=wa_templates.params_from_text(draft.kind, text))
+
+
 def _sent_ok(result: dict) -> bool:
     return bool(result.get("ok") is True or result.get("status") == "sent")
 
@@ -213,7 +228,9 @@ async def _send_draft(session: AsyncSession, draft: ReplyDraft, *, base_url: str
             return draft
         text = text.replace("{payment_url}", url)
         draft.final_text = text
-    result = await deliver(session, draft.channel, draft.recipient, text, draft.lead_id)
+    result = await _deliver_outside_window(session, draft, text)
+    if result is None:
+        result = await deliver(session, draft.channel, draft.recipient, text, draft.lead_id)
     draft.send_result = {k: v for k, v in result.items() if k in ("ok", "error", "error_code", "message_id", "provider_message_id", "status", "id")}
     draft.status = "sent" if _sent_ok(result) else "failed"
     draft.decided_at = datetime.now(UTC)
@@ -229,8 +246,17 @@ async def _send_draft(session: AsyncSession, draft: ReplyDraft, *, base_url: str
 
 
 async def queue_or_send(session: AsyncSession, draft: ReplyDraft, *, base_url: str | None = None) -> ReplyDraft:
+    qa = {"flagged": False}
+    try:
+        from src.services import draft_qa
+
+        qa = await draft_qa.score_and_tag(session, draft)
+    except Exception:  # noqa: BLE001 - QA must never block a reply
+        log.warning("draft QA failed", exc_info=True)
     session.add(draft)
     await session.flush()
+    if qa.get("flagged"):
+        return draft  # low QA score: stays pending in the review queue even in auto mode
     if await get_mode(session, draft.channel) == "auto":
         await _send_draft(session, draft, base_url=base_url)
     return draft
@@ -411,6 +437,12 @@ async def edit(session: AsyncSession, draft_id: UUID, text: str) -> ReplyDraft:
     if not (text or "").strip():
         raise ValueError("empty text")
     draft.final_text = text.strip()[:4000]
+    try:
+        from src.services import draft_qa
+
+        await draft_qa.score_and_tag(session, draft)
+    except Exception:  # noqa: BLE001
+        log.warning("draft QA failed", exc_info=True)
     await session.flush()
     return draft
 
@@ -430,6 +462,8 @@ def draft_to_dict(d: ReplyDraft) -> dict:
         "lead_id": str(d.lead_id) if d.lead_id else None, "kind": d.kind,
         "inbound_text": d.inbound_text, "draft_text": d.draft_text, "final_text": d.final_text,
         "status": d.status, "plan_key": d.plan_key, "meta": d.meta or {}, "send_result": d.send_result,
+        "qa_score": ((d.meta or {}).get("qa") or {}).get("score"),
+        "qa_flagged": bool(((d.meta or {}).get("qa") or {}).get("flagged")),
         "created_at": d.created_at.isoformat() if d.created_at else None,
         "decided_at": d.decided_at.isoformat() if d.decided_at else None,
     }
