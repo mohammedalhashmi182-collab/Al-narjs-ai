@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.settings import get_settings, settings
@@ -121,6 +121,8 @@ async def lifespan(app: FastAPI):
     await ensure_uptime_schedule(scheduler)
     from src.services.weekly_reports import ensure_schedule as ensure_weekly_report_schedule
     await ensure_weekly_report_schedule(scheduler)
+    from src.services.live_demo import ensure_schedule as ensure_demo_purge_schedule
+    await ensure_demo_purge_schedule(scheduler)
     try:
         from src.services import wa_templates
         async with session_factory() as _s:
@@ -1354,6 +1356,32 @@ async def _founding_status_safe() -> dict:
     except Exception:
         return {**catalog.FOUNDING_OFFER, "seats_total": catalog.FOUNDING_OFFER["seats"],
                 "seats_used": None, "seats_remaining": None, "available": False}
+
+
+class LiveDemoChatRequest(BaseModel):
+    session_id: str = Field(default="", max_length=64)
+    text: str = Field(..., min_length=1, max_length=1000)
+
+
+@app.get("/api/live-demo")
+async def live_demo_info():
+    from src.services import live_demo
+
+    return live_demo.info()
+
+
+@app.post("/api/live-demo/chat")
+async def live_demo_chat(request: Request, body: LiveDemoChatRequest):
+    """Public «جرّب الوكيل الآن» chat: fictional clinic, tenant reply agent, no payments, 24h retention."""
+    from src.services import live_demo
+    from src.utils.rate_limit import client_ip
+
+    ok, retry = live_demo.check_rate(client_ip(request))
+    if not ok:
+        raise HTTPException(429, detail={"error": "Too many demo messages", "retry_after_seconds": retry},
+                            headers={"Retry-After": str(retry)})
+    async with app.state.session_factory() as session:
+        return await live_demo.chat(session, body.session_id, body.text)
 
 
 @app.get("/api/portal/packages/{package_key}/demo")
