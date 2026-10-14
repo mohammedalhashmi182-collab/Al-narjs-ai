@@ -158,8 +158,27 @@ async def test_whatsapp_webhook_meters_a_linked_client_number(maker, alerts):
 
 
 # ---------------------------------------------------------------- founding
+# The offer was removed by the owner (14 Oct 2026); FOUNDING_ENABLED defaults
+# to false. The mechanics below are kept behind the switch and tested with it on.
 
-async def test_founding_auto_applies_and_waives_setup(maker):
+@pytest.fixture
+def founding_on(monkeypatch):
+    monkeypatch.setenv("FOUNDING_ENABLED", "true")
+
+
+async def test_founding_disabled_by_default_no_discount_full_setup(maker, monkeypatch):
+    monkeypatch.delenv("FOUNDING_ENABLED", raising=False)
+    async with maker() as s:
+        for key, setup in (("radd", 0), ("bay", 99000), ("tashgheel", 199000)):
+            m = await pm.create_payment(s, key, "a", "0555000150", None, founding=None)
+            assert not m.founding and m.amount == catalog.PACKAGES[key]["amount"] + setup
+            assert "المؤسسين" not in m.description
+            a = await pm.create_payment(s, key, "b", "0555000151", None, billing_period="annual", founding=None)
+            assert not a.founding and a.amount == catalog.plan_amount(key, "annual")
+        assert not await founding.eligible_for_order(s, "radd", is_renewal=False)
+        assert (await founding.status(s))["enabled"] is False
+
+async def test_founding_auto_applies_and_waives_setup(maker, founding_on):
     async with maker() as s:
         monthly = await pm.create_payment(s, "bay", "a", "0555000100", None, founding=None)
         annual = await pm.create_payment(s, "bay", "b", "0555000101", None, billing_period="annual", founding=None)
@@ -170,7 +189,7 @@ async def test_founding_auto_applies_and_waives_setup(maker):
     assert not regular.founding and regular.amount == 149900 + 99000
 
 
-async def test_founding_stops_at_15_seats_and_revoke_frees_one(maker):
+async def test_founding_stops_at_15_seats_and_revoke_frees_one(maker, founding_on):
     async with maker() as s:
         projects = []
         for i in range(15):
@@ -191,7 +210,7 @@ async def test_founding_stops_at_15_seats_and_revoke_frees_one(maker):
         assert nxt.founding
 
 
-async def test_unpaid_founding_orders_do_not_consume_seats(maker, monkeypatch):
+async def test_unpaid_founding_orders_do_not_consume_seats(maker, monkeypatch, founding_on):
     monkeypatch.setitem(catalog.FOUNDING_OFFER, "seats", 1)
     async with maker() as s:
         first = await pm.create_payment(s, "radd", "a", "0555000400", None, founding=None)
@@ -201,7 +220,7 @@ async def test_unpaid_founding_orders_do_not_consume_seats(maker, monkeypatch):
         assert await founding.seats_remaining(s) == 1
 
 
-async def test_paid_founding_order_consumes_a_seat(maker):
+async def test_paid_founding_order_consumes_a_seat(maker, founding_on):
     async with maker() as s:
         proj = await _project(s, package="radd", status="pending")
         pay = await pm.create_payment(s, "radd", "x", "0555000410", None, project_id=proj.id, founding=None)
@@ -212,7 +231,7 @@ async def test_paid_founding_order_consumes_a_seat(maker):
         assert proj.founding and await founding.seats_remaining(s) == 14
 
 
-async def test_seats_rechecked_at_activation_price_honoured_without_exceeding(maker, monkeypatch):
+async def test_seats_rechecked_at_activation_price_honoured_without_exceeding(maker, monkeypatch, founding_on):
     monkeypatch.setitem(catalog.FOUNDING_OFFER, "seats", 1)
     async with maker() as s:
         p1 = await _project(s, package="radd", status="pending")
@@ -230,7 +249,7 @@ async def test_seats_rechecked_at_activation_price_honoured_without_exceeding(ma
         assert await founding.seats_remaining(s) == 0
 
 
-async def test_founding_renewal_keeps_price_until_locked_and_not_after_revoke(maker):
+async def test_founding_renewal_keeps_price_until_locked_and_not_after_revoke(maker, founding_on):
     async with maker() as s:
         proj = await _project(s, package="bay", end=NOW + timedelta(days=2), founding=True,
                               founding_at=NOW - timedelta(days=28), founding_locked_until=NOW + timedelta(days=300))
@@ -271,26 +290,26 @@ async def test_usage_packs_are_billed_and_carried_to_the_project(maker):
 
 # ---------------------------------------------------------------- API
 
-async def test_checkout_api_applies_founding_and_packs(maker):
+async def test_checkout_api_has_no_founding_and_bills_packs(maker, monkeypatch):
     from src.main import app
 
+    monkeypatch.delenv("FOUNDING_ENABLED", raising=False)
     app.state.session_factory = maker
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
-        r = await c.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice",
+        r = await c.post("/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice",
                                                 "conversation_packs": 1})
-        seats = (await c.get("/api/founding")).json()
+        fnd = (await c.get("/api/founding")).json()
         bad = await c.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice",
                                                   "voice_packs": 99})
     body = r.json()
-    assert body["founding_applied"] is True
-    assert body["amount"] == 59900 - 59900 * 20 // 100 + 9900
-    assert body["discount"] == 59900 * 20 // 100
-    assert seats["seats_total"] == 15 and seats["seats_remaining"] == 15
+    assert body["founding_applied"] is False and body["discount"] == 0
+    assert body["amount"] == 149900 + 99000 + 9900  # plan + normal setup fee + pack
+    assert fnd == {"enabled": False}
     assert bad.status_code == 400
 
 
-async def test_owner_usage_and_founding_endpoints_are_owner_only(maker, alerts):
+async def test_owner_usage_and_founding_endpoints_are_owner_only(maker, alerts, founding_on):
     from src.main import app
 
     async with maker() as s:
@@ -315,17 +334,22 @@ async def test_owner_usage_and_founding_endpoints_are_owner_only(maker, alerts):
     assert rev.status_code == 200 and rev2.status_code == 409
 
 
-def test_landing_and_portal_show_founding_seats():
+def test_landing_and_portal_have_no_founding_offer(monkeypatch):
     from fastapi.testclient import TestClient
 
     from src.main import app
 
+    monkeypatch.delenv("FOUNDING_ENABLED", raising=False)
     with TestClient(app) as c:
         page = c.get("/home").text
+        portal = c.get("/portal").text
         pkgs = c.get("/api/portal/packages").json()
-    assert "founding" in pkgs and pkgs["usage_packs_max"] == catalog.MAX_USAGE_PACKS
-    if pkgs["founding"]["seats_remaining"] is not None:
-        assert "data-founding-remaining" in page
+    assert "founding" not in pkgs and "founding_offer" not in pkgs
+    assert pkgs["usage_packs_max"] == catalog.MAX_USAGE_PACKS
+    assert [p["setup_fee"] for p in pkgs["packages"]] == [0, 99000, 199000]
+    for html in (page, portal):
+        assert "data-founding-remaining" not in html
+        assert "العملاء المؤسسين" not in html and "Founding customers" not in html
 
 
 def test_migration_0007_follows_0006():
