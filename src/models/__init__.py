@@ -362,3 +362,4 @@ from src.models.agent_tools import KnowledgeDoc, ProjectDataFile  # noqa: E402,F
 from src.models.tenant import PortalLoginCode, TenantContact  # noqa: E402,F401
 from src.models.usage import SubscriptionUsage, UsageEvent  # noqa: E402,F401
 from src.models.ops import WeeklyReport, WhatsAppTemplate  # noqa: E402,F401
+from src.models.support import SupportTicket  # noqa: E402,F401
