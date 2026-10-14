@@ -13,9 +13,10 @@
 .ab-hero .t b{display:block;font-size:1.35rem;color:#1b1712}
 .ab-hero .t span{color:#7a5e22}
 .ab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:10px 0 6px}
-.ab-card{padding:14px;border-radius:14px;background:#fffaf2;border:1px solid rgba(0,0,0,.08)}
-.ab-card h3{margin:0 0 6px;font-size:1rem}
-.ab-card p{margin:0;font-size:.92rem}
+/* light card on a dark page: set the text colour too, never inherit the page's light text */
+.ab-card{padding:14px;border-radius:14px;background:#fffaf2;border:1px solid rgba(0,0,0,.08);color:#1b1712}
+.ab-card h3{margin:0 0 6px;font-size:1rem;color:#1b1712}
+.ab-card p{margin:0;font-size:.92rem;color:#4a3f2e}
 </style>
 <figure class="ab-hero" data-slot="brand-illustration">
     <img src="/static/logo.svg" alt="{% if ar %}شعار النرجس: نجمة ثمانية بتلات سوداء وذهبية{% else %}Al-Narjis logo: a black and gold eight-point star{% endif %}" width="112" height="112">
