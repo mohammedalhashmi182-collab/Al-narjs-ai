@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 import time
@@ -24,7 +25,7 @@ from src.utils.rate_limit import (
     rate_limit_login,
     rate_limit_transfer_report,
 )
-from src.db.session import init_db, get_session_factory, close_db
+from src.db.session import close_db, ensure_pgvector, get_session_factory, init_db
 
 configure_logging(settings.log_level, settings.log_json)
 
@@ -72,6 +73,7 @@ def _log_database_target() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await ensure_pgvector()  # RAG: pgvector when available, else in-process cosine
     _log_database_target()
     session_factory = await get_session_factory()
 
@@ -1939,6 +1941,48 @@ async def owner_list_tickets(request: Request):
         return {"tickets": await tickets.list_recent(session)}
 
 
+_CONSULT_HANDOFF_AR = ("ما أقدر أأكد هذه المعلومة من مصادرنا الآن. أقدر أحوّلك لخدمة العملاء "
+                       "ويرد عليك فريقنا بالبريد.")
+_CONSULT_HANDOFF_EN = ("I can't confirm that from our sources right now. I can transfer you to customer service "
+                       "and our team will reply by email.")
+
+
+async def _consult_sources(history: list[dict]) -> list[dict]:
+    """Top KB chunks of Al-Narjis's own KB for the latest visitor message (best effort)."""
+    q = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
+    if not q.strip():
+        return []
+    try:
+        from src.services import rag
+
+        from src.services.rag import site_kb
+
+        async with app.state.session_factory() as session:
+            hits = await rag.retrieve(session, q, project_id=None, k=3)
+            await session.commit()  # lazy index backfill
+        hits += await site_kb.retrieve(q, k=3)  # catalog facts (prices etc.), generated from catalog.py
+        hits.sort(key=lambda h: -h["score"])
+        return [h for h in hits if h["score"] >= rag.min_confidence()][:4]
+    except Exception as exc:  # noqa: BLE001
+        from src.utils.logger import get_logger
+
+        get_logger(__name__).warning("consult: RAG retrieval failed (%s)", type(exc).__name__)
+        return []
+
+
+def _consult_grounded(reply: str, hits: list[dict], packages_text: str) -> bool:
+    from src.services import catalog as _cat
+    from src.services.rag.generate import grounded
+    from src.services.support import SUPPORT_EMAIL
+
+    facts = " ".join([packages_text, SUPPORT_EMAIL, "https://karmaai.online", "/portal", "15",
+                      repr(_cat.PACKAGES), repr(_cat.ENTERPRISE), repr(_cat.ADDON_AGENT), repr(_cat.USAGE_ADDONS),
+                      repr(_cat.SETUP_GUARANTEE), str(_cat.MAX_ADDON_AGENTS)])
+    # Markdown list markers ("1." / "2)") at line start are not facts.
+    reply = re.sub(r"(?m)^\s*\d{1,2}[.)]\s", "- ", reply)
+    return grounded(reply, hits, extra_facts=facts)
+
+
 @app.post("/api/consult", dependencies=[Depends(rate_limit_consult)])
 async def consult_chat(request: ConsultRequest, http_request: Request):
     from src.core.model_provider import ModelRequest
@@ -1968,10 +2012,20 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         employees_text=_emps,
     )
 
+    # RAG: ground the assistant in Al-Narjis's own KB (project_id NULL only; never a tenant's docs).
+    rag_hits = await _consult_sources(history)
+    if rag_hits:
+        system_prompt += (
+            "\n\nSOURCES (Al-Narjis knowledge base; state facts, numbers, policies and links ONLY from these "
+            "sources or the REAL PRODUCT list above; if they do not cover the question, say so and offer "
+            "«تحويل لخدمة العملاء»):\n"
+            + "\n".join(f"[{i + 1}] {h['title']}: {h['text']}" for i, h in enumerate(rag_hits))
+        )
+
     model_request = ModelRequest(
         prompt="\n".join(f"{m['role']}: {m['content']}" for m in history) + "\n\nassistant:",
         system_prompt=system_prompt,
-        temperature=0.6,
+        temperature=0.3,
         max_tokens=1200,
     )
 
@@ -1986,6 +2040,13 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
                 _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
             )
         content = reply or response.content.strip()
+        if content and not _consult_grounded(content, rag_hits, _pkgs):
+            # A number or link that is in neither the KB sources nor the real
+            # price list is a hallucination: never show it, hand off instead.
+            from src.utils.logger import get_logger
+
+            get_logger(__name__).warning("consult: ungrounded number/link in reply; handing off")
+            return {"reply": _CONSULT_HANDOFF_AR if locale == "ar" else _CONSULT_HANDOFF_EN, "handoff": "ungrounded"}
         if not content:
             # A model that answered with nothing usable is a failure, not a
             # success with an empty bubble in the transcript.
