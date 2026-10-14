@@ -2442,21 +2442,24 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             except ValueError:
                 raise HTTPException(422, "project_id must be a valid UUID")
 
-        payment = await pm.create_payment(
-            session,
-            body.package,
-            body.customer_name,
-            body.customer_phone,
-            body.customer_email,
-            promo=body.promo,
-            lead_id=lead_uuid,
-            project_id=project_uuid,
-            billing_period=body.billing_period,
-            addons=body.addons,
-            conversation_packs=body.conversation_packs,
-            voice_packs=body.voice_packs,
-            founding=None,  # founding price auto-applies while seats remain
-        )
+        try:
+            payment = await pm.create_payment(
+                session,
+                body.package,
+                body.customer_name,
+                body.customer_phone,
+                body.customer_email,
+                promo=body.promo,
+                lead_id=lead_uuid,
+                project_id=project_uuid,
+                billing_period=body.billing_period,
+                addons=body.addons,
+                conversation_packs=body.conversation_packs,
+                voice_packs=body.voice_packs,
+                founding=None,  # founding price auto-applies while seats remain
+            )
+        except pm.PaymentError as exc:
+            raise HTTPException(400, str(exc))
         # The order decides the price (promo or founding, never both).
         setup_halalas = pm.setup_fee_amount(body.package, body.billing_period, founding=payment.founding)
         discount_halalas = max(0, base_amount + packs_amount + setup_halalas - payment.amount)
@@ -2887,8 +2890,11 @@ async def founding_public():
 
     async with app.state.session_factory() as session:
         st = await founding.status(session)
-    return {k: st[k] for k in ("seats_total", "seats_remaining", "available", "annual_pct", "monthly_pct",
-                               "monthly_commitment_months", "waives_setup_fee")}
+    out = {k: st[k] for k in ("seats_total", "seats_remaining", "available", "annual_pct", "monthly_pct",
+                              "monthly_commitment_months", "waives_setup_fee")}
+    out["commitment_terms_ar"] = founding.commitment_terms_ar()
+    out["commitment_terms_en"] = founding.commitment_terms_en()
+    return out
 
 
 @app.get("/api/owner/founding", dependencies=[Depends(require_owner_api)])
@@ -2908,6 +2914,41 @@ async def owner_revoke_founding(project_id: str):
         project = await _load_project(session, project_id)
         result = await founding.revoke(session, project)
         if not result["revoked"]:
+            raise HTTPException(409, result["reason"])
+        return result
+
+
+@app.post("/api/owner/founding/{project_id}/early-cancel", dependencies=[Depends(require_owner_api)])
+async def owner_founding_early_cancel(project_id: str):
+    """Customer cancels a monthly founding plan inside the 3-month commitment:
+    drafts the discount clawback invoice for owner review (nothing is sent or charged)."""
+    from src.services import founding
+
+    async with app.state.session_factory() as session:
+        project = await _load_project(session, project_id)
+        result = await founding.early_cancellation(session, project)
+        if not result["clawback"]:
+            raise HTTPException(409, result["reason"])
+        return result
+
+
+@app.post("/api/owner/founding/clawbacks/{payment_id}/approve", dependencies=[Depends(require_owner_api)])
+async def owner_approve_clawback(payment_id: str):
+    from uuid import UUID as _UUID
+
+    from src.models import Payment as _Payment
+    from src.services import founding
+
+    try:
+        pid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+    async with app.state.session_factory() as session:
+        payment = await session.get(_Payment, pid)
+        if payment is None:
+            raise HTTPException(404, "Payment not found")
+        result = await founding.approve_clawback(session, payment)
+        if not result["approved"]:
             raise HTTPException(409, result["reason"])
         return result
 

@@ -675,9 +675,18 @@
             const coPackClamp = v => Math.max(0, Math.min(20, parseInt(v || '0', 10) || 0));
             let coConvPacks = coPackClamp(coQs.get('conv_packs'));
             let coVoicePacks = coPackClamp(coQs.get('voice_packs'));
+            // Founding monthly buyers choose: 3 months upfront ('quarterly') or
+            // monthly with a 3-month commitment (early cancellation bills back the discount).
+            let coFoundingPlan = 'upfront';
+            function coPeriod() {
+                const fo = window.NARJIS_FOUNDING;
+                if (coBilling === 'monthly' && fo && fo.available && coFoundingPlan === 'upfront') return 'quarterly';
+                return coBilling;
+            }
             document.addEventListener('change', e => {
                 if (e.target && e.target.id === 'coConvPacks') { coConvPacks = coPackClamp(e.target.value); showCoSummary(); }
                 if (e.target && e.target.id === 'coVoicePacks') { coVoicePacks = coPackClamp(e.target.value); showCoSummary(); }
+                if (e.target && e.target.name === 'coFoundingPlan') { coFoundingPlan = e.target.value === 'monthly' ? 'monthly' : 'upfront'; showCoSummary(); }
             });
             function showCoSummary() {
                 const p = coPkg; if (!p) return;
@@ -685,7 +694,8 @@
                 const cur = ar ? 'ر.س' : 'SAR';
                 const pct = window.NARJIS_PROMO && window.NARJIS_PROMO.active && window.NARJIS_PROMO.code.toUpperCase() === ($('promoInput') ? $('promoInput').value.trim().toUpperCase() : '') ? window.NARJIS_PROMO.percent : 0;
                 const addonPrice = (window.NARJIS_ADDON && parseFloat(window.NARJIS_ADDON.price)) || 0;
-                const months = coBilling === 'annual' ? 10 : 1;
+                const period = coPeriod();
+                const months = period === 'annual' ? 10 : (period === 'quarterly' ? 3 : 1);
                 const planBase = (parseFloat(p.price) + coAddons * addonPrice) * months;
                 const ua = window.NARJIS_USAGE || {};
                 const convPrice = (ua.conversations && parseFloat(ua.conversations.price)) || 0;
@@ -715,8 +725,13 @@
                         '<label>' + txt('باقات ١٬٠٠٠ محادثة (' + convPrice + ' ر.س): ', '+1,000 conversations (' + convPrice + ' SAR): ') + '<input id="coConvPacks" type="number" min="0" max="20" value="' + coConvPacks + '" style="width:56px;"></label>' +
                         '<label>' + txt('باقات ١٠٠ دقيقة صوت (' + voicePrice + ' ر.س): ', '+100 voice minutes (' + voicePrice + ' SAR): ') + '<input id="coVoicePacks" type="number" min="0" max="20" value="' + coVoicePacks + '" style="width:56px;"></label>' +
                     '</div>' +
+                    (founding && coBilling === 'monthly' ? '<div id="coFoundingChoice" class="mb-1" style="font-size:.9rem;border:1px solid var(--n-green);border-radius:8px;padding:8px;">' +
+                        '<label style="display:block;"><input type="radio" name="coFoundingPlan" value="upfront"' + (coFoundingPlan === 'upfront' ? ' checked' : '') + '> ' + txt('ادفع ٣ أشهر مقدماً (يبقى خصم ' + fo.monthly_pct + '%)', 'Pay 3 months upfront (keeps ' + fo.monthly_pct + '% off)') + '</label>' +
+                        '<label style="display:block;"><input type="radio" name="coFoundingPlan" value="monthly"' + (coFoundingPlan === 'monthly' ? ' checked' : '') + '> ' + txt('ادفع شهرياً مع التزام ' + fo.monthly_commitment_months + ' أشهر', 'Pay monthly with a ' + fo.monthly_commitment_months + '-month commitment') + '</label>' +
+                        '<div style="font-size:.8rem;opacity:.8;margin-top:4px;">' + (ar ? (fo.commitment_terms_ar || '') : (fo.commitment_terms_en || '')) + ' <a href="/terms#founding-commitment" target="_blank">' + txt('الشروط', 'Terms') + '</a></div>' +
+                    '</div>' : '') +
                     (coBilling === 'annual' ? '<div style="font-size:.85rem;color:var(--n-green);">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
-                    '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>';
+                    '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (period === 'annual' ? txt('سنة', 'yr') : (period === 'quarterly' ? txt('٣ أشهر', '3 mo') : txt('شهر', 'mo'))) + '</div>';
                 window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
             }
             function openCheckout() {
@@ -863,7 +878,7 @@ note.textContent = msg;
                             customer_email: client.email,
                             promo: promoInput ? promoInput.value.trim() : '',
                             project_id: state.projectId,
-                            billing_period: coBilling,
+                            billing_period: coPeriod(),
                             addons: coAddons,
                             conversation_packs: coConvPacks,
                             voice_packs: coVoicePacks,
