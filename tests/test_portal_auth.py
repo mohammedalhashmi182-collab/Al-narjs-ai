@@ -186,3 +186,39 @@ async def test_codes_are_stored_hashed(maker, otps):
     async with maker() as s:
         row = (await s.execute(select(PortalLoginCode))).scalar_one()
         assert otps[0] not in row.code_hash
+
+
+@pytest.mark.parametrize("status", ["expired", "demo", "cancelled", "active"])
+async def test_legacy_exchange_refuses_projects_that_were_ever_live(maker, status):
+    """Regression (audit C3): an expired project opened by UUID alone leaked
+    contacts and reply drafts. Only never-paid projects may use the exchange."""
+    from datetime import datetime, timedelta, timezone
+
+    p = await _project(maker, status=status, current_period_end=datetime.now(timezone.utc) - timedelta(days=3))
+    async with _client(maker) as c:
+        r = await c.post("/api/portal/session/legacy", json={"project_id": str(p.id)})
+        assert r.status_code == 401
+        assert (await c.get(f"/api/portal/projects/{p.id}/contacts")).status_code == 401
+        assert (await c.get(f"/api/portal/projects/{p.id}/replies")).status_code == 401
+
+
+async def test_legacy_exchange_refuses_a_pending_project_that_was_paid_before(maker):
+    from uuid import uuid4
+
+    p = await _project(maker, status="pending", last_payment_id=uuid4())
+    async with _client(maker) as c:
+        assert (await c.post("/api/portal/session/legacy", json={"project_id": str(p.id)})).status_code == 401
+
+
+async def test_a_limited_session_dies_when_the_project_expires(maker):
+    p = await _project(maker, status="pending")
+    async with _client(maker) as c:
+        r = await c.post("/api/portal/session/legacy", json={"project_id": str(p.id)})
+        limited = r.cookies[portal_auth.COOKIE_NAME]
+    async with maker() as s:
+        row = await s.get(ClientProject, p.id)
+        row.status = "expired"
+        await s.commit()
+    async with _client(maker, {portal_auth.COOKIE_NAME: limited}) as c:
+        assert (await c.get(f"/api/portal/projects/{p.id}/contacts")).status_code == 401
+        assert (await c.get(f"/api/portal/projects/{p.id}")).status_code == 401
