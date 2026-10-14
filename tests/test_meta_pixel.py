@@ -9,7 +9,7 @@ silently disabling attribution:
   inside ``<head>`` (not deferred into ``<body>``) on /home and /early-access
 - the snippet is loaded exactly once per page (a second include would double-fire
   init and inflate every PageView)
-- the ``<noscript>`` image fallback matches the configured ID
+- no ``<noscript>`` pixel (it would bypass cookie consent)
 - a configured ID never leaks a token-like value into the HTML
 """
 
@@ -76,11 +76,11 @@ class TestPixelInHead:
         assert len(TRACK_RE.findall(html)) == 1, f"PageView tracked twice on {path}"
 
     @pytest.mark.parametrize("path", PUBLIC_PAGES)
-    def test_noscript_fallback_matches_id(self, client: TestClient, path: str, pixel_configured):
+    def test_no_noscript_pixel_without_consent(self, client: TestClient, path: str, pixel_configured):
+        """A <noscript> image would fire the pixel with no way to consent, so the
+        consent-gated setup must not render one."""
         html = client.get(path).text
-        found = NOSCRIPT_RE.search(html)
-        assert found, f"missing <noscript> PageView fallback on {path}"
-        assert found.group(1) == pixel_configured, path
+        assert not NOSCRIPT_RE.search(html), f"<noscript> pixel bypasses consent on {path}"
 
 
 class TestPixelHardening:

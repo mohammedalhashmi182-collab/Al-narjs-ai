@@ -82,10 +82,13 @@ def test_trust_badges_and_vision_disclaimer(page: str) -> None:
 
 
 def test_contact_links_are_real_or_absent(page: str) -> None:
-    assert "https://wa.me/966552978753?text=" in page
-    assert "https://t.me/AlNarjs7BOT" in page          # the bot (plan deep links)
-    assert "https://t.me/karma777779" in page          # the owner's Telegram contact
-    assert 'href="https://m.me/Alnarjs-Ai"' in page    # confirmed Facebook Page
+    # Owner decision (Oct 2026): the site's contact is the Al-Narjis assistant
+    # and email only; no direct WhatsApp/Telegram/Messenger links.
+    assert "wa.me/" not in page
+    assert "t.me/" not in page
+    assert "m.me/" not in page
+    assert 'id="siteAssistant"' in page
+    assert "mailto:Al-Narjis@karmaai.online" in page
     assert 'href="#"' not in page
 
 
@@ -110,6 +113,6 @@ def test_english_page_has_no_arabic_plan_names_in_cards(page_en: str) -> None:
 
 
 def test_one_primary_button_per_plan_card() -> None:
-    body = LANDING.read_text(encoding="utf-8")
+    body = LANDING.read_text(encoding="utf-8").replace('{% include "partials/_pricing_section.html" %}', (LANDING.parent / "partials" / "_pricing_section.html").read_text(encoding="utf-8"))
     card = body[body.index('<article class="plan'):body.index("</article>")]
     assert card.count("btn-primary") == 1  # only the recommended tier's branch
