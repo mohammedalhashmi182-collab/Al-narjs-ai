@@ -335,6 +335,15 @@ def _llm_prompt(problem: str, rules: Diagnosis, locale: str) -> tuple[str, str]:
         "\nReply with JSON only: "
         '{"diagnosis_ar": "...", "diagnosis_en": "...", "agents": ["slug", ...], "full_company": false}'
     )
+    try:  # Virtual CEO knowledge pack: staffing map, prioritisation, governance.
+        from src.services import agent_knowledge
+
+        facts = agent_knowledge.relevant_facts(catalog.CEO_SLUG, problem, k=4)
+        if facts:
+            system += "\nCEO playbook (" + agent_knowledge.MARKER + " orchestrator]):\n" + "\n".join(
+                "- " + f["text"] for f in facts)
+    except Exception:  # noqa: BLE001
+        pass
     hint = ", ".join(rules.agents)
     prompt = f"Visitor problem ({locale}):\n{problem}\n\nA keyword pre-screen suggested: {hint}\nJSON:"
     return system, prompt

@@ -6,10 +6,12 @@ message instead of failing the agent run."""
 from src.services.agent_tools import data_files, knowledge_base, store_connectors, web_search  # noqa: F401
 
 # Which agents get which tool context injected into their run.
-WEB_SEARCH_AGENTS = frozenset({"market_analyst", "competitor_analyst", "data_analyst", "search_discovery", "business_ideas"})
+WEB_SEARCH_AGENTS = frozenset({"market_analyst", "competitor_analyst", "data_analyst", "search_discovery", "business_ideas",
+                               "marketing_agent", "lead_acquisition"})
 DATA_FILE_AGENTS = frozenset({"data_analyst"})
 STORE_AGENTS = frozenset({"store_manager"})
-KNOWLEDGE_AGENTS = frozenset({"customer_service", "customer_manager"})
+# sales_closer reads the client's own KB (catalog, prices, approved offers) so it never invents a discount.
+KNOWLEDGE_AGENTS = frozenset({"customer_service", "customer_manager", "sales_closer"})
 
 
 def status() -> dict:
@@ -35,6 +37,13 @@ async def run_context(session, slug: str, project, answers: dict | None) -> str:
     from src.models.agent_tools import ProjectDataFile
 
     out = ""
+    try:
+        # Curated expert knowledge pack for this agent (knowledge/agents/<slug>.json).
+        from src.services import agent_knowledge
+
+        out += agent_knowledge.expert_block(slug, _query_from(answers, ""))
+    except Exception:
+        out = ""
     try:
         if slug in WEB_SEARCH_AGENTS:
             q = _query_from(answers, getattr(project, "client_name", ""))
