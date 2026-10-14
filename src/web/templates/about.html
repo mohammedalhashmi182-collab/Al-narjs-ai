@@ -1,30 +1,66 @@
 {% extends "partials/_simple_page.html" %}
-{#- Only facts the owner stated: operator, CR, city, founder, mission.
+{#- Only facts the owner stated: operator, CR, city/district, founder, mission,
+    services. No invented numbers, clients or stock photos of people.
     Testimonials render only from real records (see partials/_testimonials). -#}
 {% block title %}{% if ar %}من نحن | النرجس للذكاء الاصطناعي{% else %}About us | Al-Narjis AI{% endif %}{% endblock %}
-{% block description %}{% if ar %}النرجس للذكاء الاصطناعي منصة سعودية من الرياض تديرها مؤسسة ذا أريبيان كونفو. رسالتنا: الذكاء الاصطناعي يساعد الناس ولا يستبدلهم.{% else %}Al-Narjis AI is a Saudi platform from Riyadh operated by The Arabian Convoy Establishment. Our mission: AI helps people, it doesn't replace them.{% endif %}{% endblock %}
+{% block description %}{% if ar %}النرجس للذكاء الاصطناعي منصة سعودية من الرياض أسسها كريم وتديرها مؤسسة ذا أريبيان كونفو. رسالتنا: الذكاء الاصطناعي يساعد الناس ولا يستبدلهم.{% else %}Al-Narjis AI is a Saudi platform from Riyadh, founded by Karim and operated by The Arabian Convoy Establishment. Our mission: AI helps people, it doesn't replace them.{% endif %}{% endblock %}
 {% block h1 %}{% if ar %}من نحن{% else %}About us{% endif %}{% endblock %}
 {% block body %}
+<style>
+.ab-hero{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin:6px 0 18px;padding:20px;border-radius:18px;background:linear-gradient(135deg,#fbf6ec,#f1e6cf);border:1px solid rgba(176,138,53,.25)}
+.ab-hero img{width:112px;height:112px;flex:none}
+.ab-hero .t{flex:1;min-width:220px}
+.ab-hero .t b{display:block;font-size:1.35rem;color:#1b1712}
+.ab-hero .t span{color:#7a5e22}
+.ab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:10px 0 6px}
+.ab-card{padding:14px;border-radius:14px;background:#fffaf2;border:1px solid rgba(0,0,0,.08)}
+.ab-card h3{margin:0 0 6px;font-size:1rem}
+.ab-card p{margin:0;font-size:.92rem}
+</style>
+<figure class="ab-hero" data-slot="brand-illustration">
+    <img src="/static/logo.svg" alt="{% if ar %}شعار النرجس: نجمة ثمانية بتلات سوداء وذهبية{% else %}Al-Narjis logo: a black and gold eight-point star{% endif %}" width="112" height="112">
+    <figcaption class="t">{% if ar %}<b>النرجس للذكاء الاصطناعي</b><span>صُنع في السعودية، من الرياض.</span>{% else %}<b>Al-Narjis AI</b><span>Built in Saudi Arabia, from Riyadh.</span>{% endif %}</figcaption>
+</figure>
 {% if ar %}
+<h2 class="n-title text-lg">قصتنا</h2>
+<p>أسّس <b>كريم</b> النرجس للذكاء الاصطناعي في الرياض بفكرة بسيطة: صاحب العمل السعودي يستحق أدوات ذكاء اصطناعي تفهم لهجته وسوقه، وتخدمه هو وفريقه بدل أن تحلّ محلّهم. بدأنا من سيرفر محلي واحد، وكل ما نبنيه اليوم يمشي على نفس المبدأ: نبني لك الفريق الذي تحتاجه فعلاً، وتبقى القرارات بيدك.</p>
 <h2 class="n-title text-lg">رسالتنا</h2>
-<p><b>الذكاء الاصطناعي يساعد الناس، ولا يستبدلهم.</b> النرجس للذكاء الاصطناعي يبني لأصحاب الأعمال فريقاً من الوكلاء الأذكياء بقيادة الرئيس التنفيذي الذكي، وتبقى القرارات بيدك.</p>
+<p><b>الذكاء الاصطناعي يساعد الناس، ولا يستبدلهم.</b> الوكلاء يتولّون المهام المتكررة — الردود، المتابعة، المسودات — وأنت وفريقك تعتمدون وتقررون.</p>
+<h2 class="n-title text-lg">ماذا نقدّم</h2>
+<div class="ab-grid">
+    <div class="ab-card"><h3>وكلاء ذكاء اصطناعي وأتمتة</h3><p>فريق وكلاء بقيادة الرئيس التنفيذي الذكي: ردود العملاء، متابعة الطلبات، والأتمتة بين أنظمتك.</p></div>
+    <div class="ab-card"><h3>التصميم</h3><p>هوية ومواد بصرية لعملك وحساباتك.</p></div>
+    <div class="ab-card"><h3>المحتوى والترجمة</h3><p>كتابة محتوى وترجمة بين العربية والإنجليزية والفرنسية.</p></div>
+</div>
+<h2 class="n-title text-lg">سعودي الصنع، ومتوافق مع رؤية 2030</h2>
+<p>نحن فريق سعودي يبني من الرياض، ونعمل بما يتماشى مع مستهدفات رؤية المملكة 2030 في التحول الرقمي: تمكين المنشآت الصغيرة والمتوسطة من أدوات رقمية بلغتها، مع احترام نظام حماية البيانات الشخصية.</p>
 <h2 class="n-title text-lg">الجهة المشغّلة</h2>
 <ul>
 <li>مؤسسة ذا أريبيان كونفو</li>
 <li>سجل تجاري: <span dir="ltr">31332495263</span></li>
-<li>الرياض، المملكة العربية السعودية</li>
+<li>العنوان: الرياض، حي الرمال، المملكة العربية السعودية</li>
 <li>المؤسس: كريم</li>
 </ul>
 <h2 class="n-title text-lg">تواصل</h2>
 <p>اسأل مساعد النرجس من الزر أسفل الصفحة، أو راسلنا على <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a>.</p>
 {% else %}
+<h2 class="n-title text-lg">Our story</h2>
+<p><b>Karim</b> founded Al-Narjis AI in Riyadh with a simple idea: Saudi business owners deserve AI tools that understand their dialect and their market, and that serve them and their teams instead of replacing them. We started on a single local server, and everything we build today follows the same principle: we build the team you actually need, and the decisions stay with you.</p>
 <h2 class="n-title text-lg">Our mission</h2>
-<p><b>AI helps people, it doesn't replace them.</b> Al-Narjis AI builds business owners a team of AI agents led by an AI CEO, and the decisions stay with you.</p>
+<p><b>AI helps people, it doesn't replace them.</b> Agents handle the repetitive work — replies, follow-ups, drafts — while you and your team approve and decide.</p>
+<h2 class="n-title text-lg">What we do</h2>
+<div class="ab-grid">
+    <div class="ab-card"><h3>AI agents &amp; automation</h3><p>A team of agents led by an AI CEO: customer replies, order follow-up and automation between your systems.</p></div>
+    <div class="ab-card"><h3>Design</h3><p>Brand identity and visual material for your business and accounts.</p></div>
+    <div class="ab-card"><h3>Content &amp; translation</h3><p>Content writing and translation between Arabic, English and French.</p></div>
+</div>
+<h2 class="n-title text-lg">Saudi-built, aligned with Vision 2030</h2>
+<p>We are a Saudi team building from Riyadh, working in line with Saudi Vision 2030's digital-transformation goals: giving small and medium businesses digital tools in their own language, while respecting the Personal Data Protection Law (PDPL).</p>
 <h2 class="n-title text-lg">Operator</h2>
 <ul>
-<li>The Arabian Convoy Establishment</li>
+<li>The Arabian Convoy Establishment (مؤسسة ذا أريبيان كونفو)</li>
 <li>Commercial Registration: 31332495263</li>
-<li>Riyadh, Saudi Arabia</li>
+<li>Address: Al-Rimal district, Riyadh, Saudi Arabia</li>
 <li>Founder: Karim</li>
 </ul>
 <h2 class="n-title text-lg">Contact</h2>
