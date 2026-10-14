@@ -3084,8 +3084,13 @@ async def get_payment(payment_id: str):
     async with app.state.session_factory() as session:
         try:
             payment = await pm.verify_payment(session, UUID(payment_id))
-        except pm.PaymentError as e:
+        except ValueError:
+            raise HTTPException(404, "Payment not found")
+        except pm.PaymentNotFound as e:
             raise HTTPException(404, str(e))
+        except pm.PaymentError as e:
+            # Gateway unreachable/erroring: report it, never as "not found".
+            raise HTTPException(502, str(e))
 
         if payment.status == "paid":
             await _apply_paid_outcome(session, payment.id, note="مؤكد عبر بوابة الدفع")
