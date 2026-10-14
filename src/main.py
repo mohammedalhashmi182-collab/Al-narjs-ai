@@ -2853,6 +2853,29 @@ async def owner_revoke_founding(project_id: str):
         return result
 
 
+@app.get("/api/owner/summary", dependencies=[Depends(require_owner_api)])
+async def owner_summary():
+    """Owner-only, read-only snapshot for the command center and assistant bots:
+    revenue/MRR, plans, renewals due in 7 days, unpaid orders and bank transfers
+    awaiting confirmation, founding seats, usage flags (80/100%), review queue,
+    leads pipeline and site health. No secrets, no writes."""
+    from src.services import owner_summary as _os
+
+    async with app.state.session_factory() as session:
+        data = await _os.build_summary(session)
+        await session.rollback()
+    return data
+
+
+@app.get("/owner/command", response_class=HTMLResponse)
+async def owner_command_center(request: Request):
+    from src.core.owner_auth import check_owner
+
+    if not check_owner(request):
+        return RedirectResponse("/login")
+    return templates.TemplateResponse(request, "owner_command.html", {})
+
+
 @app.post("/api/owner/billing/backfill", dependencies=[Depends(require_owner_api)])
 async def owner_backfill_subscriptions(apply: bool = False):
     """Owner-only: put legacy active subscribers (no period end) on the renewal
@@ -3116,8 +3139,13 @@ async def get_payment(payment_id: str):
     async with app.state.session_factory() as session:
         try:
             payment = await pm.verify_payment(session, UUID(payment_id))
-        except pm.PaymentError as e:
+        except ValueError:
+            raise HTTPException(404, "Payment not found")
+        except pm.PaymentNotFound as e:
             raise HTTPException(404, str(e))
+        except pm.PaymentError as e:
+            # Gateway unreachable/erroring: report it, never as "not found".
+            raise HTTPException(502, str(e))
 
         if payment.status == "paid":
             await _apply_paid_outcome(session, payment.id, note="مؤكد عبر بوابة الدفع")

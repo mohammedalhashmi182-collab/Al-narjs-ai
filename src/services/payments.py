@@ -178,6 +178,10 @@ class PaymentError(Exception):
     pass
 
 
+class PaymentNotFound(PaymentError):
+    pass
+
+
 def paypal_ready() -> bool:
     settings = get_settings()
     return bool(settings.paypal_client_id and settings.paypal_client_secret)
@@ -554,17 +558,39 @@ async def initiate_moyasar(
     }
 
 
+def payment_provider(payment: Payment) -> str:
+    """Which gateway owns this record: ``paypal``, ``moyasar`` or ``none``."""
+    gw = (payment.gateway or "").strip().lower()
+    if gw == "paypal":
+        return "paypal"
+    if gw == "moyasar":
+        return "moyasar"
+    if gw in ("", "none") and payment.gateway_payment_id:
+        return "moyasar"  # legacy rows created before ``gateway`` was stored
+    return "none"
+
+
 async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
     result = await session.execute(select(Payment).where(Payment.id == payment_id))
     payment = result.scalar_one_or_none()
     if not payment:
-        raise PaymentError("Payment not found")
-
-    settings = get_settings()
-    if not settings.moyasar_api_secret or not payment.gateway_payment_id:
-        return payment
+        raise PaymentNotFound("Payment not found")
     if payment.status in ("paid", REVIEW_STATUS):
         # Idempotent: a settled or flagged order is never re-decided by a poll.
+        return payment
+    if not payment.gateway_payment_id:
+        return payment
+
+    # Route by provider: each gateway's record is only ever checked against
+    # that gateway's own API.
+    provider = payment_provider(payment)
+    if provider == "paypal":
+        return await verify_paypal_payment(session, payment)
+    if provider != "moyasar":
+        return payment  # invoice / bank transfer: settled by the owner, no gateway
+
+    settings = get_settings()
+    if not settings.moyasar_api_secret:
         return payment
 
     invoice_mode = payment.gateway_source == "invoice" or str(payment.gateway_payment_id).startswith("inv_")
@@ -912,6 +938,16 @@ async def finalize_paypal_payment(session: AsyncSession, payment: Payment) -> Pa
     order = await get_paypal_order(payment.gateway_payment_id)
     if order.get("status") == "APPROVED":
         order = await capture_paypal_order(payment.gateway_payment_id)
+    apply_paypal_order(payment, order)
+    await session.commit()
+    return payment
+
+
+async def verify_paypal_payment(session: AsyncSession, payment: Payment) -> Payment:
+    """Read-only status check against PayPal's Orders API (never captures)."""
+    if payment.status in ("paid", REVIEW_STATUS) or not payment.gateway_payment_id:
+        return payment
+    order = await get_paypal_order(payment.gateway_payment_id)
     apply_paypal_order(payment, order)
     await session.commit()
     return payment
