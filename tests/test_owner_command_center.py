@@ -87,8 +87,8 @@ async def test_summary_shape_and_numbers(maker):
     transfers = d["orders"]["awaiting_transfer_confirmation"]
     assert len(transfers) == 1 and transfers[0]["customer"] == "عميل تحويل"
     assert len(d["orders"]["pending_gateway"]) == 1
-    assert {"seats_total", "seats_used", "seats_remaining", "customers"} <= set(d["founding"])
-    assert d["founding"]["seats_used"] == 1 and d["founding"]["customers"][0]["client_name"] == "مقهى"
+    # Founding offer removed by the owner: the panel reports it as disabled.
+    assert d["founding"]["enabled"] is False and d["founding"]["customers"] == []
     assert d["review_queue"]["pending_total"] == 1
     assert d["leads"]["pipeline"]["qualified"] == 1 and d["leads"]["total_leads"] == 1
     assert d["health"]["database"] is True and d["health"]["status"] in ("ok", "degraded")

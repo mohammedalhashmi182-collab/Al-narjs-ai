@@ -338,7 +338,7 @@ async function loadUsage() {
             fetch('/api/owner/usage').then(r => r.json()),
             fetch('/api/owner/founding').then(r => r.json()),
         ]);
-        if (f && f.status) {
+        if (f && f.status && f.status.enabled) {
             document.getElementById('founding-seats').textContent =
                 'مقاعد العملاء المؤسسين: ' + f.status.seats_used + ' / ' + f.status.seats_total;
         }

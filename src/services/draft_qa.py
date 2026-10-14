@@ -71,7 +71,7 @@ def allowed_amounts() -> set[int]:
             for addons in range(0, catalog.MAX_ADDON_AGENTS + 1):
                 for amt in (catalog.plan_amount(key, period, addons),):
                     hal.update({amt, payments.total_with_vat(amt)})
-                if key in catalog.PACKAGES:
+                if key in catalog.PACKAGES and catalog.founding_enabled():
                     f = catalog.founding_amount(key, period, addons)
                     hal.update({f, payments.total_with_vat(f)})
     for pkg in catalog.PACKAGES.values():
