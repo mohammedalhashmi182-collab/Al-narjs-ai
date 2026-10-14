@@ -111,4 +111,4 @@ def test_landing_has_labelled_widget():
     from src.main import app
 
     html = TestClient(app).get("/").text
-    assert 'id="live-demo"' in html and "/api/live-demo/chat" in html and "تجريبية" in html
+    assert 'id="chat-demo"' in html and "مثال توضيحي" in html and "/api/live-demo/chat" not in html
