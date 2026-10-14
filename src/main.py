@@ -119,22 +119,46 @@ async def lifespan(app: FastAPI):
         dynamic_router, OutputValidator(), max_corrections=2
     )
 
-    await scheduler.start()
+    # Fast boot (Postgres): the scheduler starts empty and its ~25 DB-backed
+    # jobs are registered in the background after the port binds. SQLite
+    # (local/tests) keeps the blocking path (single-writer file lock).
+    scheduler.offload_jobstore = background_sync
+    await scheduler.start(load_schedules=not background_sync)
     await trigger_engine.start()
     await queue_worker.start()
 
-    from src.automation.ceo_engine import ensure_company_loops
-    await ensure_company_loops(scheduler)
-    from src.services.renewals import ensure_renewal_schedule
-    await ensure_renewal_schedule(scheduler)
-    from src.services.lead_pipeline import ensure_followup_schedule
-    await ensure_followup_schedule(scheduler)
-    from src.services.ops_monitor import ensure_uptime_schedule
-    await ensure_uptime_schedule(scheduler)
-    from src.services.weekly_reports import ensure_schedule as ensure_weekly_report_schedule
-    await ensure_weekly_report_schedule(scheduler)
-    from src.services.live_demo import ensure_schedule as ensure_demo_purge_schedule
-    await ensure_demo_purge_schedule(scheduler)
+    async def _register_scheduler_jobs(threaded: bool) -> None:
+        started = time.monotonic()
+        if threaded:
+            await scheduler._load_schedules_from_db(threaded=True)
+        steps = []
+        from src.automation.ceo_engine import ensure_company_loops
+        steps.append(ensure_company_loops)
+        from src.services.renewals import ensure_renewal_schedule
+        steps.append(ensure_renewal_schedule)
+        from src.services.lead_pipeline import ensure_followup_schedule
+        steps.append(ensure_followup_schedule)
+        from src.services.ops_monitor import ensure_uptime_schedule
+        steps.append(ensure_uptime_schedule)
+        from src.services.weekly_reports import ensure_schedule as ensure_weekly_report_schedule
+        steps.append(ensure_weekly_report_schedule)
+        from src.services.live_demo import ensure_schedule as ensure_demo_purge_schedule
+        steps.append(ensure_demo_purge_schedule)
+        for step in steps:
+            if threaded:
+                try:
+                    await step(scheduler)
+                except asyncio.CancelledError:
+                    raise
+                except Exception:  # noqa: BLE001 - never crash the app
+                    logger.exception("scheduler job registration step failed: %s", getattr(step, "__name__", step))
+            else:
+                await step(scheduler)
+        logger.info("Scheduler jobs registered: %s jobs in %.1fs", scheduler.job_count(), time.monotonic() - started)
+
+    scheduler_task = None
+    if not background_sync:
+        await _register_scheduler_jobs(threaded=False)
     try:
         from src.services import wa_templates
         async with session_factory() as _s:
@@ -165,12 +189,19 @@ async def lifespan(app: FastAPI):
     app.state.self_correction = self_correction_loop
 
     if background_sync:
+        scheduler_task = asyncio.create_task(_register_scheduler_jobs(threaded=True), name="scheduler-jobs")
         # Started last, after every other startup DB write, so the port binds
         # right away and the upsert never contends with boot-time work.
         agent_registry.start_background_sync()
 
     yield
 
+    if scheduler_task is not None and not scheduler_task.done():
+        scheduler_task.cancel()
+        try:
+            await scheduler_task
+        except (asyncio.CancelledError, Exception):  # noqa: BLE001
+            pass
     await agent_registry.stop_background_sync()
     await model_provider.close()
     await queue_worker.stop()

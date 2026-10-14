@@ -53,14 +53,35 @@ class AgentScheduler:
         self.scheduler = AsyncIOScheduler(jobstores=jobstores, timezone="UTC")
         self._job_callbacks: dict[str, Callable] = {}
         self._running = False
+        # When True (Postgres in production), synchronous jobstore writes run in
+        # a worker thread so they never block the event loop.
+        self.offload_jobstore = False
 
-    async def start(self):
+    async def _jobstore(self, fn, *args):
+        if self.offload_jobstore:
+            return await asyncio.to_thread(fn, *args)
+        return fn(*args)
+
+    def _remove_job_quiet(self, job_id: str) -> None:
+        try:
+            self.scheduler.remove_job(job_id)
+        except Exception:  # noqa: BLE001 - missing job is fine
+            pass
+
+    async def start(self, load_schedules: bool = True):
         if self._running:
             return
         self.scheduler.start()
         self._running = True
-        await self._load_schedules_from_db()
+        if load_schedules:
+            await self._load_schedules_from_db()
         logger.info("Scheduler started")
+
+    def job_count(self) -> int:
+        try:
+            return len(self.scheduler.get_jobs())
+        except Exception:  # noqa: BLE001
+            return -1
 
     async def stop(self):
         if not self._running:
@@ -69,7 +90,12 @@ class AgentScheduler:
         self._running = False
         logger.info("Scheduler stopped")
 
-    async def _load_schedules_from_db(self):
+    async def _load_schedules_from_db(self, threaded: bool = False):
+        """Register every active schedule as a job (replace_existing => no duplicates).
+
+        ``threaded`` runs each (synchronous, DB-backed) jobstore write in a worker
+        thread so a background registration never blocks the event loop.
+        """
         try:
             async with self.session_factory() as session:
                 from src.models import Schedule
@@ -78,7 +104,10 @@ class AgentScheduler:
                 result = await session.execute(select(Schedule).where(Schedule.is_active == True))
                 for schedule in result.scalars():
                     try:
-                        self._add_schedule_job(schedule)
+                        if threaded or self.offload_jobstore:
+                            await asyncio.to_thread(self._add_schedule_job, schedule)
+                        else:
+                            self._add_schedule_job(schedule)
                     except Exception as e:
                         logger.warning(f"Skipping malformed schedule {getattr(schedule, 'id', '?')}: {e}")
         except Exception as e:
@@ -151,15 +180,12 @@ class AgentScheduler:
             await session.refresh(schedule)
 
             if config.is_active:
-                self._add_schedule_job(schedule)
+                await self._jobstore(self._add_schedule_job, schedule)
 
             return schedule.id
 
     async def remove_schedule(self, schedule_id: UUID) -> bool:
-        try:
-            self.scheduler.remove_job(str(schedule_id))
-        except Exception:
-            pass
+        await self._jobstore(self._remove_job_quiet, str(schedule_id))
 
         async with self.session_factory() as session:
             from src.models import Schedule
@@ -181,15 +207,12 @@ class AgentScheduler:
             if schedule:
                 schedule.is_active = True
                 await session.commit()
-                self._add_schedule_job(schedule)
+                await self._jobstore(self._add_schedule_job, schedule)
                 return True
         return False
 
     async def disable_schedule(self, schedule_id: UUID) -> bool:
-        try:
-            self.scheduler.remove_job(str(schedule_id))
-        except Exception:
-            pass
+        await self._jobstore(self._remove_job_quiet, str(schedule_id))
 
         async with self.session_factory() as session:
             from src.models import Schedule
