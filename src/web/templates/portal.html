@@ -77,7 +77,7 @@
                     <button data-lang-btn="en" class="english">EN</button>
                 </div>
                 <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
-                    <span data-lang="ar">الرئيسية</span><span data-lang="en" data-inline>Home</span>
+                    <span data-lang="ar" lang="ar" dir="rtl">الرئيسية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Home</span>
                 </a>
             </div>
         </div>
@@ -87,12 +87,12 @@
     <!-- Portal login: OTP to the project's email / phone (the project id alone is no longer a credential) -->
     <section id="step-login" class="py-12 hidden">
         <div class="max-w-md mx-auto px-6 text-center">
-            <h2 class="n-title text-2xl"><span data-lang="ar">الدخول إلى بوابتك</span><span data-lang="en" data-inline>Sign in to your portal</span></h2>
-            <p class="n-sub mt-3"><span data-lang="ar">أدخل البريد أو الجوال المسجّل في اشتراكك وسنرسل لك رمز دخول.</span><span data-lang="en" data-inline>Enter the email or phone on your subscription and we will send a sign-in code.</span></p>
+            <h2 class="n-title text-2xl"><span data-lang="ar" lang="ar" dir="rtl">الدخول إلى بوابتك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Sign in to your portal</span></h2>
+            <p class="n-sub mt-3"><span data-lang="ar" lang="ar" dir="rtl">أدخل البريد أو الجوال المسجّل في اشتراكك وسنرسل لك رمز دخول.</span><span data-lang="en" lang="en" dir="ltr" data-inline>Enter the email or phone on your subscription and we will send a sign-in code.</span></p>
             <input id="loginIdent" class="w-full mt-4" autocomplete="username" placeholder="email / 05xxxxxxxx">
-            <button id="loginSend" class="btn btn-gold mt-3" type="button"><span data-lang="ar">أرسل الرمز</span><span data-lang="en" data-inline>Send code</span></button>
+            <button id="loginSend" class="btn btn-gold mt-3" type="button"><span data-lang="ar" lang="ar" dir="rtl">أرسل الرمز</span><span data-lang="en" lang="en" dir="ltr" data-inline>Send code</span></button>
             <input id="loginCode" class="w-full mt-4 hidden" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
-            <button id="loginVerify" class="btn btn-gold mt-3 hidden" type="button"><span data-lang="ar">دخول</span><span data-lang="en" data-inline>Sign in</span></button>
+            <button id="loginVerify" class="btn btn-gold mt-3 hidden" type="button"><span data-lang="ar" lang="ar" dir="rtl">دخول</span><span data-lang="en" lang="en" dir="ltr" data-inline>Sign in</span></button>
             <p id="loginMsg" class="text-sm mt-3" aria-live="polite"></p>
         </div>
     </section>
@@ -101,31 +101,31 @@
         <div class="max-w-5xl mx-auto px-6">
             <div class="text-center mb-10">
                 <div class="n-divider mb-4">✺</div>
-                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar">فعّل فريقك <span class="gold">الذكي</span></span><span data-lang="en" data-inline>Wake Up Your <span class="gold">Smart</span> Team</span></h1>
-                <p class="n-sub mt-3" data-lang="ar">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>
-                <p class="n-sub mt-3" data-lang="en" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>
+                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar" lang="ar" dir="rtl">فعّل فريقك <span class="gold">الذكي</span></span><span data-lang="en" lang="en" dir="ltr" data-inline>Wake Up Your <span class="gold">Smart</span> Team</span></h1>
+                <p class="n-sub mt-3" data-lang="ar" lang="ar" dir="rtl">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>
+                <p class="n-sub mt-3" data-lang="en" lang="en" dir="ltr" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>
             </div>
 
-            <div id="pkg-status" role="status" aria-live="polite"><span data-lang="ar">جارٍ تحميل الباقات…</span><span data-lang="en" data-inline>Loading plans…</span></div>
+            <div id="pkg-status" role="status" aria-live="polite"><span data-lang="ar" lang="ar" dir="rtl">جارٍ تحميل الباقات…</span><span data-lang="en" lang="en" dir="ltr" data-inline>Loading plans…</span></div>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10" id="pkg-grid" aria-busy="true">
                 {% for _ in range(4) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
-            <noscript><p>فعّل JavaScript لاختيار الباقة، أو <a href="https://t.me/AlNarjs7BOT">{{ tg_plane() }}تواصل عبر تيليجرام</a>.</p></noscript>
+            <noscript><p>فعّل JavaScript لاختيار الباقة، أو راسلنا على <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p></noscript>
 
             <form id="regForm" class="n-form max-w-2xl mx-auto gap-5 hidden">
                 <div class="grid sm:grid-cols-2 gap-5">
                     <div>
-                        <label for="cname" data-lang="ar">الاسم الكامل</label><label for="cname" data-lang="en" data-inline>Full name</label>
+                        <label for="cname" data-lang="ar" lang="ar" dir="rtl">الاسم الكامل</label><label for="cname" data-lang="en" lang="en" dir="ltr" data-inline>Full name</label>
                         <input type="text" id="cname" required>
                     </div>
                     <div>
-                        <label for="cphone" data-lang="ar">رقم الجوال</label><label for="cphone" data-lang="en" data-inline>Phone number</label>
+                        <label for="cphone" data-lang="ar" lang="ar" dir="rtl">رقم الجوال</label><label for="cphone" data-lang="en" lang="en" dir="ltr" data-inline>Phone number</label>
                         <input type="tel" id="cphone" required>
                     </div>
                 </div>
                 <div class="grid sm:grid-cols-2 gap-5 items-end">
                     <div>
-                        <label for="cemail" data-lang="ar">البريد الإلكتروني</label><label for="cemail" data-lang="en" data-inline>Email</label>
+                        <label for="cemail" data-lang="ar" lang="ar" dir="rtl">البريد الإلكتروني</label><label for="cemail" data-lang="en" lang="en" dir="ltr" data-inline>Email</label>
                         <input type="email" id="cemail">
                     </div>
                     <div>
@@ -136,10 +136,10 @@
                     <div class="w-full max-w-sm text-start">
                         <label class="flex items-start gap-2" style="font-size:.8rem;color:var(--n-brown-2);cursor:pointer;">
                             <input type="checkbox" id="consent" required class="mt-0.5">
-                            <span><span data-lang="ar">أوافق على معالجة بياناتي وفق <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span><span data-lang="en" data-inline>I agree to my data being processed per the <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span></span>
+                            <span><span data-lang="ar" lang="ar" dir="rtl">أوافق على معالجة بياناتي وفق <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span><span data-lang="en" lang="en" dir="ltr" data-inline>I agree to my data being processed per the <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span></span>
                         </label>
                         <button type="submit" class="btn btn-gold w-full mt-4">
-                            <span data-lang="ar">استقبل فريقي الذكي</span><span data-lang="en" data-inline>Receive My Smart Team</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">استقبل فريقي الذكي</span><span data-lang="en" lang="en" dir="ltr" data-inline>Receive My Smart Team</span>
                             <i class="fas fa-rocket"></i>
                         </button>
                     </div>
@@ -155,23 +155,23 @@
             <div class="text-center mb-10">
                 <div class="n-divider mb-4">✺</div>
                 <h2 class="n-title text-3xl md:text-4xl">
-                    <span data-lang="ar">فريقك</span><span data-lang="en" data-inline>Your Team</span>
-                    <span class="gold" data-lang="ar">—</span><span class="gold" data-lang="en" data-inline>—</span>
+                    <span data-lang="ar" lang="ar" dir="rtl">فريقك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Your Team</span>
+                    <span class="gold" data-lang="ar" lang="ar" dir="rtl">—</span><span class="gold" data-lang="en" lang="en" dir="ltr" data-inline>—</span>
                     <span id="teamPkg" class="gold"></span>
                 </h2>
-                <p class="n-sub mt-3" data-lang="ar">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>
-                <p class="n-sub mt-3" data-lang="en" data-inline>Your employees await a wake touch — click anyone to start serving you.</p>
+                <p class="n-sub mt-3" data-lang="ar" lang="ar" dir="rtl">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>
+                <p class="n-sub mt-3" data-lang="en" lang="en" dir="ltr" data-inline>Your employees await a wake touch — click anyone to start serving you.</p>
             </div>
             <div id="pendingBanner" class="n-card p-4 mb-8 hidden" style="background:#FDF6E3;border:1px solid var(--n-gold);">
                 <div class="flex flex-col sm:flex-row items-center gap-3 justify-between text-center sm:text-start">
                     <div class="text-sm" style="color:var(--n-brown);">
                         <i class="fas fa-moon"></i>
-                        <span data-lang="ar"><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>
-                        <span data-lang="en" data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>
+                        <span data-lang="ar" lang="ar" dir="rtl"><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>
+                        <span data-lang="en" lang="en" dir="ltr" data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>
                     </div>
                     <button id="pendingCta" class="btn btn-gold" style="white-space:nowrap;">
                         <i class="fas fa-credit-card"></i>
-                        <span data-lang="ar">فعّل اشتراكك الآن</span><span data-lang="en" data-inline>Activate Subscription</span>
+                        <span data-lang="ar" lang="ar" dir="rtl">فعّل اشتراكك الآن</span><span data-lang="en" lang="en" dir="ltr" data-inline>Activate Subscription</span>
                     </button>
                 </div>
             </div>
@@ -179,15 +179,15 @@
             <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
                 <button id="subscribeBtn" class="btn btn-gold" style="padding:14px 28px;font-size:1rem;">
                     <i class="fas fa-credit-card"></i>
-                    <span data-lang="ar">فعّل اشتراكك الآن</span><span data-lang="en" data-inline>Activate Subscription</span>
+                    <span data-lang="ar" lang="ar" dir="rtl">فعّل اشتراكك الآن</span><span data-lang="en" lang="en" dir="ltr" data-inline>Activate Subscription</span>
                 </button>
             </div>
             {% set _promo = promo_info() %}
             {% if _promo.active %}
             <div id="portalPromoHint" class="text-center text-sm mt-4" style="color:var(--n-gold-2);">
                 <i class="fas fa-gift"></i> 
-                <span data-lang="ar">خصم الإطلاق <b>&nbsp;{{ _promo.percent }}٪&nbsp;</b> بالكود <b>{{ _promo.code }}</b></span>
-                <span data-lang="en" data-inline>Launch offer <b>{{ _promo.percent }}%</b> with code <b>{{ _promo.code }}</b></span>
+                <span data-lang="ar" lang="ar" dir="rtl">خصم الإطلاق <b>&nbsp;{{ _promo.percent }}٪&nbsp;</b> بالكود <b>{{ _promo.code }}</b></span>
+                <span data-lang="en" lang="en" dir="ltr" data-inline>Launch offer <b>{{ _promo.percent }}%</b> with code <b>{{ _promo.code }}</b></span>
             </div>
             {% endif %}
         </div>
@@ -196,7 +196,7 @@
     <!-- Tenant Reply Agent: this project's review queue (replies to your own customers) -->
     <section id="step-inbox" class="py-8 hidden">
         <div class="max-w-4xl mx-auto px-6">
-            <h3 class="n-title text-xl"><span data-lang="ar">ردود بانتظار مراجعتك</span><span data-lang="en" data-inline>Replies awaiting your review</span></h3>
+            <h3 class="n-title text-xl"><span data-lang="ar" lang="ar" dir="rtl">ردود بانتظار مراجعتك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Replies awaiting your review</span></h3>
             <div id="inboxList" class="mt-4"></div>
         </div>
     </section>
@@ -206,17 +206,17 @@
         <div class="max-w-3xl mx-auto px-6">
             <div class="n-card p-8 text-center">
                 <div class="n-divider mb-4">✺</div>
-                <h2 class="n-title text-2xl mb-2"><span data-lang="ar">الاشتراك</span><span data-lang="en" data-inline>Subscription</span></h2>
+                <h2 class="n-title text-2xl mb-2"><span data-lang="ar" lang="ar" dir="rtl">الاشتراك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Subscription</span></h2>
                 <div id="coSummary" class="n-sub mb-6"></div>
                 <div class="flex items-center justify-center gap-2 mb-4" id="promoRow">
                     <input type="text" id="promoInput" placeholder="كود الخصم / Promo code" autocomplete="off" style="max-width:200px;text-align:center;" class="co-input">
                     <button id="promoApply" class="btn btn-outline" style="padding:10px 18px;font-size:.85rem;">
-                        <span data-lang="ar">تطبيق</span><span data-lang="en" data-inline>Apply</span>
+                        <span data-lang="ar" lang="ar" dir="rtl">تطبيق</span><span data-lang="en" lang="en" dir="ltr" data-inline>Apply</span>
                     </button>
                 </div>
 <label id="refundConsentRow" for="refundConsent" class="flex items-start gap-2 mb-4 text-sm" style="text-align:start;cursor:pointer;">
                         <input type="checkbox" id="refundConsent" name="refund_consent" required class="mt-0.5">
-                        <span><span data-lang="ar">أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a>)</span><span data-lang="en" data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a>)</span></span>
+                        <span><span data-lang="ar" lang="ar" dir="rtl">أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span><span data-lang="en" lang="en" dir="ltr" data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span></span>
                     </label>
 <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
                     <p id="coCardNote" hidden class="mt-4 text-sm" style="color:var(--n-brown-2);"></p>
@@ -237,46 +237,39 @@
                     <div id="coXfer" hidden class="xf-quick" style="margin-top:18px;text-align:start;">
                         <div class="xf-quick-h">
                             <i class="fas fa-building-columns"></i>
-                            <span data-lang="ar">أو ادفع بتحويل بنكي مباشر</span>
-                            <span data-lang="en" data-inline>Or pay by direct bank transfer</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">أو ادفع بتحويل بنكي مباشر</span>
+                            <span data-lang="en" lang="en" dir="ltr" data-inline>Or pay by direct bank transfer</span>
                         </div>
                         <div class="xf-quick-b">
                             <div class="xf-row">
-                                <span class="xf-k" data-lang="ar">الآيبان</span>
-                                <span class="xf-k" data-lang="en" data-inline>IBAN</span>
+                                <span class="xf-k" data-lang="ar" lang="ar" dir="rtl">الآيبان</span>
+                                <span class="xf-k" data-lang="en" lang="en" dir="ltr" data-inline>IBAN</span>
                                 <span class="xf-v" id="xfIban">—</span>
                                 <button type="button" class="xf-copy" data-xf-copy="xfIban">
                                     <i class="fas fa-copy"></i>
-                                    <span data-lang="ar">نسخ</span>
-                                    <span data-lang="en" data-inline>Copy</span>
+                                    <span data-lang="ar" lang="ar" dir="rtl">نسخ</span>
+                                    <span data-lang="en" lang="en" dir="ltr" data-inline>Copy</span>
                                 </button>
                             </div>
                             <div class="xf-row">
-                                <span class="xf-k" data-lang="ar">اسم الحساب</span>
-                                <span class="xf-k" data-lang="en" data-inline>Account name</span>
+                                <span class="xf-k" data-lang="ar" lang="ar" dir="rtl">اسم الحساب</span>
+                                <span class="xf-k" data-lang="en" lang="en" dir="ltr" data-inline>Account name</span>
                                 <span class="xf-v" id="xfName">—</span>
                             </div>
                             <div class="xf-row">
-                                <span class="xf-k" data-lang="ar">البنك</span>
-                                <span class="xf-k" data-lang="en" data-inline>Bank</span>
+                                <span class="xf-k" data-lang="ar" lang="ar" dir="rtl">البنك</span>
+                                <span class="xf-k" data-lang="en" lang="en" dir="ltr" data-inline>Bank</span>
                                 <span class="xf-v" id="xfBank">—</span>
                             </div>
                             <p class="xf-note">
-                                <span data-lang="ar">حوّل المبلغ ثم ارجع واضغط «ادفع بالتحويل» أعلاه لتظهر لك الفاتورة، وبعدها اضغط «أرسلت التحويل» ليصلنا الإشعار ونؤكد تفعيل باقتك.</span>
-                                <span data-lang="en" data-inline>Transfer the amount, then press “Pay by transfer” above to open your invoice, then press “I sent the transfer” so we are notified and activate your plan.</span>
+                                <span data-lang="ar" lang="ar" dir="rtl">حوّل المبلغ ثم ارجع واضغط «ادفع بالتحويل» أعلاه لتظهر لك الفاتورة، وبعدها اضغط «أرسلت التحويل» ليصلنا الإشعار ونؤكد تفعيل باقتك.</span>
+                                <span data-lang="en" lang="en" dir="ltr" data-inline>Transfer the amount, then press “Pay by transfer” above to open your invoice, then press “I sent the transfer” so we are notified and activate your plan.</span>
                             </p>
-                            {% if contact.whatsapp %}
-                            <a class="xf-wa" id="xfWa" href="{{ contact.whatsapp }}" target="_blank" rel="noopener">
-                                <i class="fab fa-whatsapp"></i>
-                                <span data-lang="ar">لست متأكداً كيف تدفع؟ راسلنا على واتساب ونرتّبها معك</span>
-                                <span data-lang="en" data-inline>Not sure how to pay? Message us on WhatsApp and we will sort it out with you</span>
-                            </a>
-                            {% endif %}
                         </div>
                     </div>
                 <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
                 <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
-                    <i class="fas fa-arrow-left"></i> <span data-lang="ar">رجوع للفريق</span><span data-lang="en" data-inline>Back to Team</span>
+                    <i class="fas fa-arrow-left"></i> <span data-lang="ar" lang="ar" dir="rtl">رجوع للفريق</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back to Team</span>
                 </button>
             </div>
         </div>
@@ -293,14 +286,14 @@
                         <div class="text-xs" style="color:var(--n-gold);" id="chatEmpMeta"></div>
                     </div>
                     <button id="chatBack" class="btn btn-outline ms-auto" style="padding:8px 14px;font-size:0.8rem;">
-                        <i class="fas fa-arrow-left"></i> <span data-lang="ar">رجوع</span><span data-lang="en" data-inline>Back</span>
+                        <i class="fas fa-arrow-left"></i> <span data-lang="ar" lang="ar" dir="rtl">رجوع</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back</span>
                     </button>
                 </div>
                 <div class="chat-box flex flex-col gap-3 mb-4 p-4 rounded-xl" style="background:var(--n-cream);border:1px solid var(--n-line);min-height:300px;" id="chatBox"></div>
                 <div class="flex gap-3" id="chatInputRow">
                     <input type="text" id="chatAnswer" class="flex-1" placeholder="..." autocomplete="off">
                     <button id="chatSend" class="btn btn-gold" style="padding:12px 22px;">
-                        <i class="fas fa-paper-plane"></i> <span data-lang="ar">إرسال</span><span data-lang="en" data-inline>Send</span>
+                        <i class="fas fa-paper-plane"></i> <span data-lang="ar" lang="ar" dir="rtl">إرسال</span><span data-lang="en" lang="en" dir="ltr" data-inline>Send</span>
                     </button>
                 </div>
             </div>
@@ -309,14 +302,18 @@
 
     <footer class="n-footer py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" data-inline>✺ Al-Narjis AI ✺</span></div>
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar" lang="ar" dir="rtl">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" lang="en" dir="ltr" data-inline>✺ Al-Narjis AI ✺</span></div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
-                <span data-lang="ar">يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
-                <span data-lang="en" data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>
-                <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar">الخصوصية</span><span data-lang="en" data-inline>Privacy</span></a>
+                <span data-lang="ar" lang="ar" dir="rtl">يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
+                <span data-lang="en" lang="en" dir="ltr" data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>
+                <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الخصوصية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Privacy</span></a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar">الشروط</span><span data-lang="en" data-inline>Terms</span></a>
+                <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الشروط</span><span data-lang="en" lang="en" dir="ltr" data-inline>Terms</span></a>
+                <span style="opacity:0.6;">·</span>
+                <a href="/refund-policy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">سياسة الاسترداد</span><span data-lang="en" lang="en" dir="ltr" data-inline>Refund policy</span></a>
+                <span style="opacity:0.6;">·</span>
+                <a href="/about" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">من نحن</span><span data-lang="en" lang="en" dir="ltr" data-inline>About</span></a>
             </p>
         </div>
     </footer>
@@ -360,24 +357,24 @@
                     <div class="n-card pkg text-center cursor-pointer selectable" data-pkg="${p.key}" style="transition:0.2s">
                         <div class="text-3xl mb-2" style="color:var(--n-gold);"><i class="${p.icon}"></i></div>
                         <h3 class="n-title text-lg">
-                            <span data-lang="ar">${p.name}</span><span data-lang="en" data-inline>${p.name_en}</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">${p.name}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${p.name_en}</span>
                         </h3>
-                        <div class="price mt-1">${p.price} <small data-lang="ar">ريال/شهر</small><small data-lang="en" data-inline>SAR/mo</small></div>
+                        <div class="price mt-1">${p.price} <small data-lang="ar" lang="ar" dir="rtl">ريال/شهر</small><small data-lang="en" lang="en" dir="ltr" data-inline>SAR/mo</small></div>
                         <div class="text-xs mt-2" style="color:var(--n-brown-2);">
-                            <span data-lang="ar">${p.team_size} موظفين • ${p.tagline}</span>
-                            <span data-lang="en" data-inline>${p.team_size} employees • ${p.tagline_en}</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">${p.team_size} موظفين • ${p.tagline}</span>
+                            <span data-lang="en" lang="en" dir="ltr" data-inline>${p.team_size} employees • ${p.tagline_en}</span>
                         </div>
                         ${p.limits ? `<div class="text-xs mt-2" style="color:var(--n-brown-2);">
-                            <span data-lang="ar">${p.limits.conversations.toLocaleString('en')} محادثة • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' دقيقة صوت • ' : ''}ميتا مشمولة حتى ${p.limits.meta_cap / 100} ر.س</span>
-                            <span data-lang="en" data-inline>${p.limits.conversations.toLocaleString('en')} conversations • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' voice min • ' : ''}Meta fees covered up to SAR ${p.limits.meta_cap / 100}</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">${p.limits.conversations.toLocaleString('en')} محادثة • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' دقيقة صوت (قريباً) • ' : ''}ميتا مشمولة حتى ${p.limits.meta_cap / 100} ر.س</span>
+                            <span data-lang="en" lang="en" dir="ltr" data-inline>${p.limits.conversations.toLocaleString('en')} conversations • ${p.limits.voice_minutes ? p.limits.voice_minutes + ' voice min (coming soon) • ' : ''}Meta fees covered up to SAR ${p.limits.meta_cap / 100}</span>
                         </div>` : ''}
-                        ${p.recommended ? '<div class="text-xs mt-2" style="color:var(--n-gold-2);font-weight:700;"><span data-lang="ar">ننصح بها</span><span data-lang="en" data-inline>Recommended</span></div>' : ''}
+                        ${p.recommended ? '<div class="text-xs mt-2" style="color:var(--n-gold-2);font-weight:700;"><span data-lang="ar" lang="ar" dir="rtl">ننصح بها</span><span data-lang="en" lang="en" dir="ltr" data-inline>Recommended</span></div>' : ''}
                     </div>
                 `).join('') + (data.enterprise ? `
                     <a class="n-card text-center" href="/consult" style="display:block;">
-                        <h3 class="n-title text-lg"><span data-lang="ar">${data.enterprise.name}</span><span data-lang="en" data-inline>${data.enterprise.name_en}</span></h3>
-                        <div class="price mt-1"><span data-lang="ar">بعرض سعر — من نحو ${Number(data.enterprise.price_from).toLocaleString('en')} ريال/شهر</span><span data-lang="en" data-inline>By quote — from about SAR ${Number(data.enterprise.price_from).toLocaleString('en')}/mo</span></div>
-                        <div class="text-xs mt-2" style="color:var(--n-brown-2);"><span data-lang="ar">${data.enterprise.tagline}</span><span data-lang="en" data-inline>${data.enterprise.tagline_en}</span></div>
+                        <h3 class="n-title text-lg"><span data-lang="ar" lang="ar" dir="rtl">${data.enterprise.name}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${data.enterprise.name_en}</span></h3>
+                        <div class="price mt-1"><span data-lang="ar" lang="ar" dir="rtl">بعرض سعر — من نحو ${Number(data.enterprise.price_from).toLocaleString('en')} ريال/شهر</span><span data-lang="en" lang="en" dir="ltr" data-inline>By quote — from about SAR ${Number(data.enterprise.price_from).toLocaleString('en')}/mo</span></div>
+                        <div class="text-xs mt-2" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">${data.enterprise.tagline}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${data.enterprise.tagline_en}</span></div>
                     </a>` : '');
                 document.querySelectorAll('.pkg').forEach(c => {
                     c.addEventListener('click', () => {
@@ -400,7 +397,7 @@
                     $('regForm').scrollIntoView({ behavior: 'smooth' });
                 }
             }).catch(() => {
-                $('pkg-status').innerHTML = '<span data-lang="ar">تعذّر التحميل، حدّث الصفحة</span><span data-lang="en" data-inline>Unable to load, refresh the page</span> <a href="/portal" id="retry-packages"><span data-lang="ar">إعادة المحاولة</span><span data-lang="en" data-inline>Retry</span></a>';
+                $('pkg-status').innerHTML = '<span data-lang="ar" lang="ar" dir="rtl">تعذّر التحميل، حدّث الصفحة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Unable to load, refresh the page</span> <a href="/portal" id="retry-packages"><span data-lang="ar" lang="ar" dir="rtl">إعادة المحاولة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Retry</span></a>';
                 $('retry-packages').href = window.location.pathname + window.location.search;
                 $('pkg-grid').innerHTML = '';
             }).finally(() => {
@@ -476,21 +473,21 @@
                                 <span>${a.no.replace('AG-','')}</span>
                             </div>
                             <div>
-                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · <span data-lang="ar">${pending ? 'موظف نائم' : 'يقف الآن'}</span><span data-lang="en" data-inline>${pending ? 'Asleep' : 'On standby'}</span></div>
+                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · <span data-lang="ar" lang="ar" dir="rtl">${pending ? 'موظف نائم' : 'يقف الآن'}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${pending ? 'Asleep' : 'On standby'}</span></div>
                                 <h3 class="n-title text-base">
-                                    <span data-lang="ar">${a.title_ar}</span><span data-lang="en" data-inline>${a.title_en}</span>
+                                    <span data-lang="ar" lang="ar" dir="rtl">${a.title_ar}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${a.title_en}</span>
                                 </h3>
                                 <div class="text-xs" style="color:var(--n-brown-2);">
-                                    <span data-lang="ar">قسم ${a.dept}</span><span data-lang="en" data-inline>Dept: ${deptEn(a.dept)}</span>
+                                    <span data-lang="ar" lang="ar" dir="rtl">قسم ${a.dept}</span><span data-lang="en" lang="en" dir="ltr" data-inline>Dept: ${deptEn(a.dept)}</span>
                                 </div>
                             </div>
                         </div>
                         <p class="text-sm text-neutral-600" style="color:var(--n-brown-2);">
-                            <span data-lang="ar">${a.intro_ar}</span><span data-lang="en" data-inline>${a.intro_en}</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">${a.intro_ar}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${a.intro_en}</span>
                         </p>
                         <button class="btn w-full mt-4 wake-btn ${pending ? 'btn-outline' : 'btn-gold'}" data-slug="${a.slug}">
                             <i class="${pending ? 'fas fa-lock' : 'fas fa-bolt'}"></i>
-                            <span data-lang="ar">${pending ? 'فعّل اشتراكك ليستيقظ' : 'أيقظ الموظف'}</span><span data-lang="en" data-inline>${pending ? 'Activate to wake' : 'Wake Up'}</span>
+                            <span data-lang="ar" lang="ar" dir="rtl">${pending ? 'فعّل اشتراكك ليستيقظ' : 'أيقظ الموظف'}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${pending ? 'Activate to wake' : 'Wake Up'}</span>
                         </button>
                     </div>
                 `).join('');
@@ -674,7 +671,7 @@
             // changed in the summary; the server re-prices them.
             const coPackClamp = v => Math.max(0, Math.min(20, parseInt(v || '0', 10) || 0));
             let coConvPacks = coPackClamp(coQs.get('conv_packs'));
-            let coVoicePacks = coPackClamp(coQs.get('voice_packs'));
+            let coVoicePacks = 0; // voice packs are not sold yet (voice agent coming soon); ?voice_packs is ignored
             document.addEventListener('change', e => {
                 if (e.target && e.target.id === 'coConvPacks') { coConvPacks = coPackClamp(e.target.value); showCoSummary(); }
                 if (e.target && e.target.id === 'coVoicePacks') { coVoicePacks = coPackClamp(e.target.value); showCoSummary(); }
@@ -706,7 +703,7 @@
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
                     '<div style="font-size:.85rem;opacity:.8;display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0;">' +
                         '<label>' + txt('باقات ١٬٠٠٠ محادثة (' + convPrice + ' ر.س): ', '+1,000 conversations (' + convPrice + ' SAR): ') + '<input id="coConvPacks" type="number" min="0" max="20" value="' + coConvPacks + '" style="width:56px;"></label>' +
-                        '<label>' + txt('باقات ١٠٠ دقيقة صوت (' + voicePrice + ' ر.س): ', '+100 voice minutes (' + voicePrice + ' SAR): ') + '<input id="coVoicePacks" type="number" min="0" max="20" value="' + coVoicePacks + '" style="width:56px;"></label>' +
+                        '<span>' + txt('باقات ١٠٠ دقيقة صوت: قريباً', '+100 voice minutes: coming soon') + '</span>' +
                     '</div>' +
                     (coBilling === 'annual' ? '<div style="font-size:.85rem;color:var(--n-green);">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
                     '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>';
@@ -966,20 +963,5 @@ note.textContent = msg;
         })();
     </script>
 
-    <div id="cookieBar" style="position:fixed;bottom:16px;inset-inline:16px;max-width:560px;margin-inline:auto;background:#101014;border:1px solid var(--n-line);border-radius:20px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,.55);">
-        <p style="font-size:.85rem;color:var(--n-brown-2);margin:0 0 10px;">
-            <span data-lang="ar">نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.</span>
-            <span data-lang="en" data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>
-        </p>
-        <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;"><span data-lang="ar">موافق</span><span data-lang="en" data-inline>Got it</span></button>
-        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:var(--n-gold);"><span data-lang="ar">سياسة الخصوصية</span><span data-lang="en" data-inline>Privacy Policy</span></a>
-    </div>
-    <script>
-        (function () {
-            var b = document.getElementById('cookieBar');
-            if (b && !localStorage.getItem('narjis-consent')) setTimeout(function () { b.style.display = 'block'; }, 1200);
-        })();
-        window.acceptCookies = function () { localStorage.setItem('narjis-consent', '1'); var b = document.getElementById('cookieBar'); if (b) b.style.display = 'none'; };
-    </script>
 </body>
 </html>
