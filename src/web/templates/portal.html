@@ -648,6 +648,16 @@
             const coQs = new URLSearchParams(window.location.search);
             const coBilling = coQs.get('billing') === 'annual' ? 'annual' : 'monthly';
             const coAddons = Math.max(0, Math.min(12, parseInt(coQs.get('addons') || '0', 10) || 0));
+            // Usage add-on packs (+1,000 conversations / +100 voice minutes, 99 SAR
+            // each per month) arrive as ?conv_packs=N&voice_packs=N and can be
+            // changed in the summary; the server re-prices them.
+            const coPackClamp = v => Math.max(0, Math.min(20, parseInt(v || '0', 10) || 0));
+            let coConvPacks = coPackClamp(coQs.get('conv_packs'));
+            let coVoicePacks = coPackClamp(coQs.get('voice_packs'));
+            document.addEventListener('change', e => {
+                if (e.target && e.target.id === 'coConvPacks') { coConvPacks = coPackClamp(e.target.value); showCoSummary(); }
+                if (e.target && e.target.id === 'coVoicePacks') { coVoicePacks = coPackClamp(e.target.value); showCoSummary(); }
+            });
             function showCoSummary() {
                 const p = coPkg; if (!p) return;
                 const ar = isAr();
@@ -655,11 +665,21 @@
                 const pct = window.NARJIS_PROMO && window.NARJIS_PROMO.active && window.NARJIS_PROMO.code.toUpperCase() === ($('promoInput') ? $('promoInput').value.trim().toUpperCase() : '') ? window.NARJIS_PROMO.percent : 0;
                 const addonPrice = (window.NARJIS_ADDON && parseFloat(window.NARJIS_ADDON.price)) || 0;
                 const months = coBilling === 'annual' ? 10 : 1;
-                const base = (parseFloat(p.price) + coAddons * addonPrice) * months;
-                const disc = pct ? Math.round(base * pct / 100) : 0;
-                // One-time setup fee on a first monthly order (waived on annual);
-                // the server adds the same catalog.setup_fee, outside the promo.
-                const setup = coBilling === 'annual' ? 0 : (Number(p.setup_fee) || 0) / 100;
+                const planBase = (parseFloat(p.price) + coAddons * addonPrice) * months;
+                const ua = window.NARJIS_USAGE || {};
+                const convPrice = (ua.conversations && parseFloat(ua.conversations.price)) || 0;
+                const voicePrice = (ua.voice_minutes && parseFloat(ua.voice_minutes.price)) || 0;
+                const packs = (coConvPacks * convPrice + coVoicePacks * voicePrice) * months;
+                const base = planBase + packs;
+                // Founding offer (first 15 customers) replaces the promo code:
+                // 30% off annual / 20% off monthly (3-month commitment), no setup fee.
+                const fo = window.NARJIS_FOUNDING;
+                const founding = !!(fo && fo.available);
+                const fpct = founding ? (coBilling === 'annual' ? fo.annual_pct : fo.monthly_pct) : 0;
+                const disc = founding ? Math.floor(planBase * fpct / 100) : (pct ? Math.round(planBase * pct / 100) : 0);
+                // One-time setup fee on a first monthly order (waived on annual
+                // and for founding customers); outside the promo.
+                const setup = (coBilling === 'annual' || founding) ? 0 : (Number(p.setup_fee) || 0) / 100;
                 const after = base - disc + setup;
                 const vat = ar ? Math.round(after * 0.15) : 0;
                 const total = after + vat;
@@ -669,6 +689,11 @@
                     (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة 15%: ', 'VAT 15%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة (تُلغى مع السنوي): ', 'One-time setup fee (waived on annual): ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
+                    (founding ? '<div class="mb-1" style="color:var(--n-green);">' + txt('سعر العملاء المؤسسين: خصم ', 'Founding price: ') + '<b>%' + fpct + '</b>' + txt(' وبدون رسوم إعداد', ' off, no setup fee') + (coBilling === 'annual' ? '' : txt(' (التزام ' + fo.monthly_commitment_months + ' أشهر)', ' (' + fo.monthly_commitment_months + '-month commitment)')) + ' — ' + txt('متبقٍ ', 'seats left: ') + fo.seats_remaining + txt(' مقعداً', '') + '</div>' : '') +
+                    '<div style="font-size:.85rem;opacity:.8;display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0;">' +
+                        '<label>' + txt('باقات ١٬٠٠٠ محادثة (' + convPrice + ' ر.س): ', '+1,000 conversations (' + convPrice + ' SAR): ') + '<input id="coConvPacks" type="number" min="0" max="20" value="' + coConvPacks + '" style="width:56px;"></label>' +
+                        '<label>' + txt('باقات ١٠٠ دقيقة صوت (' + voicePrice + ' ر.س): ', '+100 voice minutes (' + voicePrice + ' SAR): ') + '<input id="coVoicePacks" type="number" min="0" max="20" value="' + coVoicePacks + '" style="width:56px;"></label>' +
+                    '</div>' +
                     (coBilling === 'annual' ? '<div style="font-size:.85rem;color:var(--n-green);">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
                     '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>';
                 window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
@@ -676,6 +701,8 @@
             function openCheckout() {
                 fetch('/api/portal/packages').then(r => r.json()).then(d => {
                     window.NARJIS_ADDON = d.addon || null;
+                    window.NARJIS_USAGE = d.usage_addons || null;
+                    window.NARJIS_FOUNDING = d.founding || null;
                     coPkg = d.packages.find(x => x.key === state.pkg);
                     if (!coPkg) return;
                     showCoSummary();
@@ -817,6 +844,8 @@ note.textContent = msg;
                             project_id: state.projectId,
                             billing_period: coBilling,
                             addons: coAddons,
+                            conversation_packs: coConvPacks,
+                            voice_packs: coVoicePacks,
                             refund_consent: true,
                         })
                     });

@@ -117,6 +117,19 @@
     </div>
 </section>
 
+<section class="oc-card" id="usage-card">
+    <div class="oc-card-h">
+        <h2 class="oc-h2">استهلاك العملاء هذا الشهر</h2>
+        <p class="oc-sub">لا نوقف الخدمة عند تجاوز الحد — الزيادة تُسجَّل للفوترة كإضافات. <span id="founding-seats"></span></p>
+    </div>
+    <div class="oc-scroll">
+        <table class="oc-t">
+            <thead><tr><th>العميل</th><th>الباقة</th><th>المحادثات</th><th>دقائق الصوت</th><th>رسوم ميتا (ر.س)</th><th>الحالة</th><th>المستحق كإضافات</th><th></th></tr></thead>
+            <tbody id="usage-rows"><tr><td colspan="8" class="oc-empty">جارٍ التحميل…</td></tr></tbody>
+        </table>
+    </div>
+</section>
+
 <section class="oc-card">
     <div class="oc-card-h">
         <h2 class="oc-h2">آخر عمليات التشغيل</h2>
@@ -304,6 +317,53 @@ function when(iso) {
     return iso ? new Date(iso).toLocaleDateString('ar', { dateStyle: 'medium' }) : '—';
 }
 
+function usageCell(m, money) {
+    const f = v => money ? (v / 100).toLocaleString('en-US', { maximumFractionDigits: 2 }) : Number(v).toLocaleString('en-US');
+    const cls = m.pct >= 100 ? 'oc-bad' : m.pct >= 80 ? 'oc-idle' : 'oc-ok';
+    return f(m.used) + ' / ' + f(m.limit) + ' ' + ocTag(cls, m.pct + '%');
+}
+
+async function loadUsage() {
+    const body = document.getElementById('usage-rows');
+    try {
+        const [u, f] = await Promise.all([
+            fetch('/api/owner/usage').then(r => r.json()),
+            fetch('/api/owner/founding').then(r => r.json()),
+        ]);
+        if (f && f.status) {
+            document.getElementById('founding-seats').textContent =
+                'مقاعد العملاء المؤسسين: ' + f.status.seats_used + ' / ' + f.status.seats_total;
+        }
+        const founding = {};
+        (f.customers || []).forEach(c => { founding[c.project_id] = c; });
+        body.innerHTML = (u.customers && u.customers.length)
+            ? u.customers.map(function (c) {
+                const due = c.suggested_billing.total_due;
+                const fc = founding[c.project_id];
+                const revoke = fc && fc.founding
+                    ? '<button class="oc-btn" data-revoke="' + escapeHtml(c.project_id) + '">إلغاء سعر المؤسس</button>' : '';
+                return '<tr><td>' + escapeHtml(c.client_name) + (c.founding ? ' ' + ocTag('oc-ok', 'مؤسس') : '') + '</td>'
+                    + '<td class="oc-mut">' + escapeHtml(c.package) + '</td>'
+                    + '<td>' + usageCell(c.metrics.conversations) + '</td>'
+                    + '<td>' + usageCell(c.metrics.voice_minutes) + '</td>'
+                    + '<td>' + usageCell(c.metrics.meta_fees, true) + '</td>'
+                    + '<td>' + (c.over_limit ? ocTag('oc-bad', 'تجاوز الحد') : ocTag('oc-ok', 'ضمن الحد')) + '</td>'
+                    + '<td>' + (due ? (due / 100).toLocaleString('en-US') + ' ر.س' : '—') + '</td>'
+                    + '<td>' + revoke + '</td></tr>';
+            }).join('')
+            : '<tr><td colspan="8" class="oc-empty">لا يوجد مشتركون نشطون بعد</td></tr>';
+    } catch (e) {
+        body.innerHTML = '<tr><td colspan="8" class="oc-empty">تعذّر التحميل</td></tr>';
+    }
+}
+
+document.addEventListener('click', async function (e) {
+    const id = e.target && e.target.getAttribute && e.target.getAttribute('data-revoke');
+    if (!id || !confirm('إلغاء سعر العميل المؤسس لهذا العميل؟ يتحرر المقعد ولا يُطبّق الخصم على التجديدات القادمة.')) return;
+    await fetch('/api/owner/founding/' + encodeURIComponent(id) + '/revoke', { method: 'POST' });
+    loadUsage();
+});
+
 async function loadBusiness() {
     try {
         const d = await (await fetch('/api/owner/overview')).json();
@@ -375,6 +435,7 @@ async function loadExecutions() {
 function loadAll() {
     loadAgentHealth();
     loadBusiness();
+    loadUsage();
     loadInfra();
     loadExecutions();
 }
