@@ -65,8 +65,7 @@
                 <b>{{ _ref }}</b>
             </span>
             {% set _msg = 'السلام عليكم، أرغب في إتمام الفاتورة رقم ' + _ref %}
-            <a class="btn wa" href="https://wa.me/966552978753?text={{ _msg|urlencode }}" target="_blank" rel="noopener">إرسال الرقم عبر واتساب</a>
-            <a class="btn tg" href="https://t.me/AlNarjs7BOT?start={{ _ref }}" target="_blank" rel="noopener">إرسال الرقم عبر تيليجرام</a>
+            <a class="btn" href="mailto:Al-Narjis@karmaai.online?subject={{ ('فاتورة ' ~ _ref)|urlencode }}&amp;body={{ _msg|urlencode }}">إرسال الرقم بالبريد</a>
             <p class="note">هذا الرقم مرجعي فقط ولا يحتاج أي بيانات إضافية منك.</p>
         </div>
         <div class="foot">شكراً لثقتك بالنرجس للذكاء الاصطناعي ✺ · www.karmaai.online</div>
