@@ -145,13 +145,25 @@ async def _smart_replies(request: Request, payload: dict, seen: set[str]) -> Non
     """Draft (or, in auto mode, send) the CEO advisor's reply to each new text message."""
     from src.services import smart_reply
 
+    from src.services import tenant_reply, usage
+
     session_factory = request.app.state.session_factory
     for entry in payload.get("entry") or []:
         for change in entry.get("changes") or []:
-            for message in (change.get("value") or {}).get("messages") or []:
+            value = change.get("value") or {}
+            tenant_id = None
+            async with session_factory() as session:
+                proj = await usage.project_for_whatsapp_number(session, (value.get("metadata") or {}).get("phone_number_id"))
+                if tenant_reply.is_tenant_number(proj):
+                    tenant_id = proj.id
+            for message in value.get("messages") or []:
                 text = ((message.get("text") or {}).get("body") or "").strip()
                 sender = message.get("from")
                 if not text or not sender or str(message.get("id")) in seen:
+                    continue
+                if tenant_id is not None:
+                    # The customer's own agent answers; never the Al-Narjis sales advisor.
+                    await tenant_reply.safe_handle_inbound(session_factory, project_id=tenant_id, contact=sender, text=text)
                     continue
                 async with session_factory() as session:
                     rec = (

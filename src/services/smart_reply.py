@@ -383,7 +383,8 @@ async def safe_handle_inbound(session_factory, **kwargs) -> None:
 # --------------------------------------------------------------------------- owner decisions
 
 async def list_drafts(session: AsyncSession, status: str | None = "pending", limit: int = 100) -> list[ReplyDraft]:
-    q = select(ReplyDraft).order_by(ReplyDraft.created_at.desc()).limit(limit)
+    # Owner queue = Al-Narjis's own conversations only; tenant drafts live in each customer's portal.
+    q = select(ReplyDraft).where(ReplyDraft.project_id.is_(None)).order_by(ReplyDraft.created_at.desc()).limit(limit)
     if status:
         q = q.where(ReplyDraft.status == status)
     return list((await session.execute(q)).scalars())
@@ -391,7 +392,7 @@ async def list_drafts(session: AsyncSession, status: str | None = "pending", lim
 
 async def _pending(session: AsyncSession, draft_id: UUID) -> ReplyDraft:
     draft = await session.get(ReplyDraft, draft_id)
-    if draft is None:
+    if draft is None or draft.project_id is not None:
         raise LookupError("draft not found")
     if draft.status != "pending":
         raise ValueError(f"draft already {draft.status}")
