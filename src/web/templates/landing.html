@@ -304,16 +304,13 @@
         <div class="sec-head rv">
             <span class="eyebrow">{% if ar %}أرقام حقيقية فقط{% else %}Real numbers only{% endif %}</span>
             <h2>{% if ar %}لا نخترع آراء ولا أرقام{% else %}We don't invent reviews or numbers{% endif %}</h2>
-            <p>{% if ar %}الأرقام أدناه تُقرأ مباشرة من النظام. آراء العملاء ستُنشر بأسمائهم بعد موافقتهم فقط.{% else %}The numbers below are read live from the system. Client reviews will be published, with names, only after their consent.{% endif %}</p>
+            <p>{% if ar %}الأرقام أدناه تُقرأ مباشرة من النظام.{% else %}The numbers below are read live from the system.{% endif %}</p>
         </div>
         <div class="grid-4" id="pulse-live">
             <div class="card proof-num rv" data-pulse="agents"><b>{{ agent_count }}</b><span class="muted">{% if ar %}وكيلاً في الفريق{% else %}agents on the roster{% endif %}</span></div>
             <div class="card proof-num rv" data-pulse="divisions"><b>{{ division_count }}</b><span class="muted">{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
             <div class="card proof-num rv" data-pulse="leads_received"><b id="pulseLeads">—</b><span class="muted">{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
             <div class="card proof-num rv" data-pulse="projects"><b id="pulseProjects">—</b><span class="muted">{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
-        </div>
-        <div class="placeholder rv" style="margin-top:24px" data-placeholder="testimonials">
-            {% if ar %}<b>مساحة آراء العملاء</b> — فارغة عمداً حتى تصلنا موافقة مكتوبة من عملاء حقيقيين.{% else %}<b>Client reviews</b> — intentionally empty until real clients give written consent.{% endif %}
         </div>
     </div>
 </section>
@@ -430,6 +427,131 @@
     });
 })();
 </script>
+<!-- ==================== SCRIPTED DEMO (no live API) ==================== -->
+<section id="chat-demo" class="sec" aria-label="{% if ar %}مثال توضيحي لمحادثة{% else %}Illustrative chat example{% endif %}">
+<style>
+#chat-demo .wa{max-width:420px;margin:0 auto;border-radius:22px;overflow:hidden;background:#e9dfd1;box-shadow:0 18px 40px -18px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.08)}
+#chat-demo .wa-top{background:#1f3a2b;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
+#chat-demo .wa-top img{width:30px;height:30px;background:#fff;border-radius:50%;padding:3px}
+#chat-demo .wa-top b{display:block;font-size:.95rem}#chat-demo .wa-top small{opacity:.8;font-size:.75rem}
+#chat-demo .wa-body{padding:14px;min-height:330px;display:flex;flex-direction:column;gap:8px}
+#chat-demo .b{max-width:82%;padding:8px 11px;border-radius:12px;font-size:.92rem;line-height:1.55;white-space:pre-line;opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+#chat-demo .b.show{opacity:1;transform:none}
+#chat-demo .b.c{align-self:flex-end;background:#d7f3c4;color:#1b2a12}
+#chat-demo .b.a{align-self:flex-start;background:#fff;color:#2b2118}
+#chat-demo .b time{display:block;font-size:.68rem;opacity:.55;margin-top:2px;text-align:end}
+#chat-demo .typing{align-self:flex-start;background:#fff;border-radius:12px;padding:8px 12px;display:none}
+#chat-demo .typing.show{display:block}
+#chat-demo .typing i{display:inline-block;width:6px;height:6px;margin:0 2px;border-radius:50%;background:#999;animation:cdT 1s infinite}
+#chat-demo .typing i:nth-child(2){animation-delay:.15s}#chat-demo .typing i:nth-child(3){animation-delay:.3s}
+@keyframes cdT{0%,80%,100%{opacity:.3}40%{opacity:1}}
+#chat-demo .demo-tag{display:inline-block;margin:0 auto 12px;padding:4px 12px;border-radius:999px;border:1px dashed currentColor;font-size:.85rem}
+#chat-demo .replay{display:block;margin:12px auto 0}
+@media (prefers-reduced-motion:reduce){ #chat-demo .b{transition:none}}
+</style>
+    <div class="wrap">
+        <div class="sec-head rv">
+            <span class="eyebrow">{% if ar %}كيف تبدو المحادثة{% else %}What a conversation looks like{% endif %}</span>
+            <h2>{% if ar %}عميل يسأل، والوكيل يرد بلهجتنا{% else %}A customer asks, the agent replies in Saudi dialect{% endif %}</h2>
+        </div>
+        <p style="text-align:center"><span class="demo-tag" id="chatDemoTag">{% if ar %}مثال توضيحي — محادثة مكتوبة مسبقاً وليست عميلاً حقيقياً{% else %}Illustrative example — a pre-written chat, not a real customer{% endif %}</span></p>
+        <div class="wa" dir="{{ 'rtl' if ar else 'ltr' }}">
+            <div class="wa-top"><img src="/static/logo.svg" alt="" width="30" height="30"><div><b>{% if ar %}مثال: صالون ورد{% else %}Example: Ward Salon{% endif %}</b><small>{% if ar %}وكيل الرد · مثال توضيحي{% else %}Reply agent · illustrative example{% endif %}</small></div></div>
+            <div class="wa-body" id="chatDemoBody" aria-live="polite"><div class="typing" id="chatDemoTyping"><i></i><i></i><i></i></div></div>
+        </div>
+        <button type="button" class="btn btn-ghost replay" id="chatDemoReplay">{% if ar %}إعادة التشغيل ↻{% else %}Replay ↻{% endif %}</button>
+    </div>
+<script>
+(function () {
+    var body = document.getElementById('chatDemoBody'), typing = document.getElementById('chatDemoTyping');
+    if (!body) return;
+    var S = {% if ar %}[
+        ['c', 'السلام عليكم، كم سعر الصبغة؟'],
+        ['a', 'وعليكم السلام وحياك الله 🌸\nالصبغة تبدأ من ٢٥٠ ريال وتختلف حسب طول الشعر. تبين أحجز لك موعد؟'],
+        ['c', 'إيه، عندكم شي بكرة العصر؟'],
+        ['a', 'أبشري، بكرة عندنا ٤:٣٠ أو ٦:٠٠ مساءً. أي وقت يناسبك؟'],
+        ['c', '٤:٣٠ تمام'],
+        ['a', 'تم ✅ سجلت طلبك بكرة ٤:٣٠ العصر، وبيأكد لك فريق الصالون الموعد برسالة. تحتاجين شي ثاني؟']
+    ]{% else %}[
+        ['c', 'Hi, how much is hair colouring?'],
+        ['a', 'Hello and welcome 🌸\nColouring starts at SAR 250 depending on hair length. Shall I book you an appointment?'],
+        ['c', 'Yes, anything tomorrow afternoon?'],
+        ['a', 'Sure — tomorrow we have 4:30 or 6:00 pm. Which suits you?'],
+        ['c', '4:30 works'],
+        ['a', 'Done ✅ I logged your request for tomorrow at 4:30 pm; the salon team will confirm by message. Anything else?']
+    ]{% endif %};
+    var timers = [], started = false;
+    function clear() { timers.forEach(clearTimeout); timers = []; body.querySelectorAll('.b').forEach(function (n) { n.remove(); }); typing.classList.remove('show'); }
+    function play() {
+        clear(); var t = 300;
+        S.forEach(function (m, i) {
+            if (m[0] === 'a') { timers.push(setTimeout(function () { body.appendChild(typing); typing.classList.add('show'); }, t)); t += 1100; }
+            timers.push(setTimeout(function () {
+                typing.classList.remove('show');
+                var d = document.createElement('div'); d.className = 'b ' + m[0]; d.textContent = m[1];
+                var tm = document.createElement('time'); tm.textContent = '10:0' + i; d.appendChild(tm);
+                body.insertBefore(d, typing); requestAnimationFrame(function () { d.classList.add('show'); });
+            }, t));
+            t += m[0] === 'c' ? 900 : 700;
+        });
+    }
+    document.getElementById('chatDemoReplay').addEventListener('click', play);
+    if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es, o) { if (es[0].isIntersecting && !started) { started = true; play(); o.disconnect(); } }, { threshold: .3 }).observe(body);
+    } else { play(); }
+})();
+</script>
+</section>
+
+{% if internal_tests %}{% set it = internal_tests %}
+<!-- ==================== WE TESTED IT OURSELVES (real internal tests) ==================== -->
+<section id="tested" class="sec sec-paper" aria-label="{% if ar %}جرّبناها بأنفسنا{% else %}We tested it ourselves{% endif %}">
+<style>
+#tested .it-label{display:block;max-width:680px;margin:0 auto 18px;text-align:center;padding:8px 12px;border-radius:10px;border:1px dashed #b08a35;color:#7a5e22;font-size:.9rem}
+#tested .it-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+#tested .it-metrics .card b{display:block;font-size:1.5rem}
+#tested .it-tr{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+#tested .it-tr .card{font-size:.88rem}
+#tested .it-tr p{margin:0 0 6px}
+#tested .it-tr .u{font-weight:600}
+#tested .it-tr .ag{opacity:.85;white-space:pre-line}
+#tested .it-tr small{opacity:.6}
+#tested .it-cta{text-align:center;margin-top:18px}
+</style>
+    <div class="wrap">
+        <div class="sec-head rv">
+            <span class="eyebrow">{% if ar %}جرّبناها بأنفسنا{% else %}We tested it ourselves{% endif %}</span>
+            <h2>{% if ar %}نتائج حقيقية من اختباراتنا، كما هي{% else %}Real results from our own tests, as they came out{% endif %}</h2>
+            <p>{% if ar %}{{ it.engine_ar }}. أي سؤال ليس في قاعدة المعرفة يُحوَّل لموظف بدل التخمين.{% else %}{{ it.engine_en }}. Any question not in the knowledge base is handed to a person instead of guessed.{% endif %}</p>
+        </div>
+        <span class="it-label" data-label="internal-tests">{% if ar %}اختبارات داخلية من فريق النرجس — ليست آراء عملاء · تاريخ الاختبار: <span dir="ltr">{{ it.test_date }}</span>{% else %}Internal tests by the Al-Narjis team — not customer reviews · Test date: {{ it.test_date }}{% endif %}</span>
+        <div class="it-metrics">
+            <div class="card proof-num"><b>{{ it.metrics.correct }}/{{ it.metrics.questions }}</b><span class="muted">{% if ar %}إجابة صحيحة من قاعدة المعرفة{% else %}correct answers from the knowledge base{% endif %}</span></div>
+            <div class="card proof-num"><b>{{ it.metrics.handoff }}/{{ it.metrics.questions }}</b><span class="muted">{% if ar %}حُوّلت لموظف بدل التخمين{% else %}handed to a person instead of guessing{% endif %}</span></div>
+            <div class="card proof-num"><b>{{ it.metrics.wrong }}</b><span class="muted">{% if ar %}إجابات خاطئة{% else %}wrong answers{% endif %}</span></div>
+            <div class="card proof-num"><b dir="ltr">{{ it.metrics.median_ms }} ms</b><span class="muted">{% if ar %}متوسط زمن الرد (الوسيط، على الخادم){% else %}median response time (server){% endif %}</span></div>
+        </div>
+        <div class="it-tr">
+            {% for tr in it.transcripts %}
+            <div class="card" dir="rtl" lang="ar">
+                {% for t in tr %}<p class="u">👤 {{ t.user }}</p><p class="ag">🤖 {{ t.agent }} <small dir="ltr">({{ t.ms|round|int }} ms)</small></p>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="it-cta"><button type="button" class="btn btn-primary" id="tryAssistant">{% if ar %}جرّبه بنفسك{% else %}Try it yourself{% endif %}</button></div>
+    </div>
+<script>
+(function () {
+    var b = document.getElementById('tryAssistant'); if (!b) return;
+    b.addEventListener('click', function () {
+        var root = document.getElementById('siteAssistant'), tg = document.getElementById('saToggle');
+        if (root && tg && !root.classList.contains('open')) tg.click();
+        var i = document.getElementById('saInput'); if (i) i.focus();
+    });
+})();
+</script>
+</section>
+{% endif %}
 </main>
 
 <footer class="v2-footer" id="site-footer">

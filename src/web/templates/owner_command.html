@@ -81,6 +81,13 @@
             <ul class="cc-list" id="review"></ul>
         </section>
 
+        <section class="cc-card cc-wide" id="ticketsCard">
+            <h2 class="cc-h2">تذاكر الدعم من مساعد الموقع</h2>
+            <div class="cc-scroll"><table class="cc-t">
+                <thead><tr><th>المرجع</th><th>الاسم</th><th>البريد</th><th>السؤال</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+                <tbody id="tTickets"><tr><td colspan="6" class="cc-empty">جارٍ التحميل…</td></tr></tbody>
+            </table></div>
+        </section>
         <section class="cc-card">
             <h2 class="cc-h2">صحة الموقع وآخر الأخطاء</h2>
             <p id="healthLine"></p>
@@ -198,6 +205,17 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
             + (hl.payment_methods.creditcard ? tag('ok', 'مفعّل') : tag('mut', 'غير مفعّل'));
         $('errors').innerHTML = hl.recent_errors.map(e => '<li><span>' + esc(e.message || 'فشل غير موصوف') + '</span><span class="cc-mut">' + day(e.at) + '</span></li>').join('') || '<li class="cc-mut">لا أخطاء حديثة</li>';
     }
+
+    const MAILTO = 'mail' + 'to:';
+    async function loadTickets() {
+        try {
+            const r = await fetch('/api/owner/tickets', {credentials: 'same-origin'});
+            if (!r.ok) throw new Error(r.status);
+            const d = await r.json();
+            $('tTickets').innerHTML = d.tickets.map(t => '<tr><td dir="ltr"><b>' + esc(t.reference) + '</b></td><td>' + esc(t.name) + '</td><td dir="ltr"><a href="' + MAILTO + encodeURIComponent(t.email) + '?subject=' + encodeURIComponent('[' + t.reference + ']') + '">' + esc(t.email) + '</a></td><td>' + esc(String(t.question).slice(0, 300)) + '</td><td>' + esc(t.status) + '</td><td>' + day(t.created_at) + '</td></tr>').join('') || empty(6, 'لا تذاكر بعد');
+        } catch (e) { $('tTickets').innerHTML = empty(6, 'تعذّر تحميل التذاكر'); }
+    }
+    loadTickets();
 
     async function load() {
         try {
