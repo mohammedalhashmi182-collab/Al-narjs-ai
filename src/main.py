@@ -591,8 +591,8 @@ async def landing_page(request: Request):
             "addon": catalog.ADDON_AGENT,
             "usage_addons": catalog.USAGE_ADDONS,
             "enterprise": catalog.ENTERPRISE,
-            "founding_offer": catalog.FOUNDING_OFFER,
-            "founding": await _founding_status_safe(),
+            "founding_offer": catalog.FOUNDING_OFFER if catalog.founding_enabled() else None,
+            "founding": await _founding_status_safe() if catalog.founding_enabled() else None,
             "setup_guarantee": catalog.SETUP_GUARANTEE,
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
@@ -1336,8 +1336,8 @@ async def portal_packages():
         "enterprise": catalog.ENTERPRISE,
         "addon": {**catalog.ADDON_AGENT, "max": catalog.MAX_ADDON_AGENTS},
         "usage_addons": catalog.USAGE_ADDONS,
-        "founding_offer": catalog.FOUNDING_OFFER,
-        "founding": await _founding_status_safe(),
+        **({"founding_offer": catalog.FOUNDING_OFFER, "founding": await _founding_status_safe()}
+           if catalog.founding_enabled() else {}),
         "usage_packs_max": catalog.MAX_USAGE_PACKS,
         "setup_guarantee": catalog.SETUP_GUARANTEE,
         "billing_periods": catalog.BILLING_PERIODS,
@@ -2883,11 +2883,13 @@ async def owner_link_whatsapp_number(project_id: str, body: WhatsAppNumberReques
 @app.get("/api/founding")
 async def founding_public():
     """Public: founding seats left (pricing page / portal)."""
-    from src.services import founding
+    from src.services import catalog, founding
 
+    if not catalog.founding_enabled():
+        return {"enabled": False}
     async with app.state.session_factory() as session:
         st = await founding.status(session)
-    return {k: st[k] for k in ("seats_total", "seats_remaining", "available", "annual_pct", "monthly_pct",
+    return {"enabled": True} | {k: st[k] for k in ("seats_total", "seats_remaining", "available", "annual_pct", "monthly_pct",
                                "monthly_commitment_months", "waives_setup_fee")}
 
 
