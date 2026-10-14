@@ -28,17 +28,17 @@ from .arabic import light_stem, terms
 
 log = logging.getLogger(__name__)
 
-VEC_W = 0.5
-LEX_W = 0.5
+VEC_W = 0.4
+LEX_W = 0.6
 CHUNK_CHARS = int(os.getenv("RAG_CHUNK_CHARS", "450"))
 CANDIDATES = 24
 
 
 def min_confidence() -> float:
     try:
-        return float(os.getenv("RAG_MIN_CONFIDENCE", "0.42"))
+        return float(os.getenv("RAG_MIN_CONFIDENCE", "0.5"))
     except ValueError:
-        return 0.42
+        return 0.5
 
 
 def chunk_text(content: str) -> list[str]:
@@ -138,12 +138,65 @@ async def ensure_indexed(session: AsyncSession, project_id: UUID | None, embedde
 
 # --------------------------------------------------------------------------- retrieval
 
-def coverage(q_terms: list[str], chunk: str) -> float:
-    if not q_terms:
-        return 0.0
-    c = {light_stem(t) for t in terms(chunk)}
+# Question/intent words: they say WHAT is asked (price, time, place) but not ABOUT what,
+# so they weigh little; the topic words decide whether a chunk really answers.
+GENERIC = frozenset({"ما", "كم", "سعر", "يوجد", "متي", "اين", "كيف", "يمكن", "هل", "اريد", "في", "عند", "سياس",
+                     "طريق", "نظام", "معلوم", "اكل"})
+GENERIC_W = 0.25
+
+
+def _stem_set(text: str) -> set[str]:
+    out = set()
+    for t in terms(text):
+        out.add(light_stem(t))
+        if t.startswith("و") and len(t) >= 5:  # conjunction و glued to the word: وجلسات → جلسات
+            out.add(light_stem(t[1:]))
+    return out
+
+
+def _root(t: str) -> str:
+    """Rough triliteral key: تنظيف/انظف/ينظف → نظف, تبييض/ابيض → بيض (verb vs verbal noun)."""
+    if len(t) == 5 and t[0] == "ت" and t[3] == "ي":
+        return t[1:3] + t[4]
+    if len(t) == 4 and t[0] in "ايتن":
+        return t[1:]
+    return t
+
+
+def _match(q: str, cs: set[str]) -> bool:
+    if q in cs:
+        return True
+    rq = _root(q)
+    return len(rq) >= 3 and any(_root(c) == rq for c in cs)
+
+
+def coverage(q_terms: list[str], chunk: str, df: dict[str, int] | None = None, n_docs: int = 1) -> float:
+    """IDF-weighted share of the question's terms found in the chunk.
+
+    A topic word that appears nowhere in this tenant's KB gets the highest
+    weight, so "تقبلون تابي؟" does not match the payment chunk just because
+    both talk about paying."""
+    import math
+
     qs = {light_stem(t) for t in q_terms}
-    return len(qs & c) / len(qs)
+    if not qs:
+        return 0.0
+    cs = _stem_set(chunk)
+    tot = got = 0.0
+    for q in qs:
+        w = GENERIC_W if q in GENERIC else 1.0 + math.log((n_docs + 1) / ((df or {}).get(q, 0) + 1))
+        tot += w
+        if _match(q, cs) or (q.startswith("و") and len(q) >= 5 and _match(q[1:], cs)):
+            got += w
+    return got / tot if tot else 0.0
+
+
+def doc_freq(texts: list[str]) -> dict[str, int]:
+    df: dict[str, int] = {}
+    for x in texts:
+        for t in _stem_set(x):
+            df[t] = df.get(t, 0) + 1
+    return df
 
 
 async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None, k: int = 3,
@@ -166,9 +219,11 @@ async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None
             _tenant(KnowledgeChunk.project_id, project_id), KnowledgeChunk.model == embedder.name))
         rows = [(t, x, v, None) for t, x, v in res.all()]
     scored = []
-    for title, body, vec, cos in rows:
+    texts = [f"{title} {body}" for title, body, _, _ in rows]
+    df = doc_freq(texts)
+    for (title, body, vec, cos), full in zip(rows, texts, strict=True):
         cos = embeddings.cosine(qv, vec) if cos is None else cos
-        cov = coverage(q_terms, f"{title} {body}")
+        cov = coverage(q_terms, full, df, len(rows))
         score = VEC_W * max(0.0, cos) + LEX_W * cov
         scored.append({"title": title, "text": body, "score": round(score, 4), "cosine": round(cos, 4),
                        "coverage": round(cov, 4)})
