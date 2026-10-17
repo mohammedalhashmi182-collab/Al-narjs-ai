@@ -109,15 +109,13 @@ async def send_email(
         return False
 
 
-_PROMO_CODE = "NARJIS50"
-_PROMO_EXPIRES = "14 أكتوبر"
-_PROMO_LINK = "https://karmaai.online"
-def _promo_html() -> str:
+_PRICING_LINK = "https://karmaai.online/pricing"
+
+
+def _pricing_html() -> str:
     return f"""
-    <div style="margin:20px 0;background:#0b3d2e;border:1px solid #c8a45e;border-radius:12px;padding:16px 18px;color:#f4f4f4;text-align:center;">
-      <div style="font-size:14px;">عرض الإطلاق ينتهي <b>{_PROMO_EXPIRES}</b></div>
-      <div style="font-size:20px;font-weight:bold;color:#e6c665;margin:6px 0;">خصم 50% بكود <span style="letter-spacing:2px;">NARJIS50</span></div>
-      <a href="{_PROMO_LINK}" style="display:inline-block;background:#e6c665;color:#0a0b0e;text-decoration:none;padding:10px 26px;border-radius:8px;font-weight:bold;margin-top:8px;">أطلق فريقك الرقمي الآن</a>
+    <div style="margin:20px 0;text-align:center;">
+      <a href="{_PRICING_LINK}" style="display:inline-block;background:#e6c665;color:#0a0b0e;text-decoration:none;padding:10px 26px;border-radius:8px;font-weight:bold;">اطلع على الباقات</a>
     </div>
     """
 
@@ -135,10 +133,10 @@ def _welcome_html(name: str) -> str:
         <p>استلمنا طلبك — فريقك الرقمي يستيقظ للتو ✺. ابدأ خطوتك الأولى الآن ولا حاجة لانتظار أي شيء:</p>
         <ul>
           <li>خطوة 1: افتح <b>karmaai.online</b> واختر فريقك (محتوى / تسويق / متاجر / نمو).</li>
-          <li>خطوة 2: طبّق كود <b style="letter-spacing:2px;">NARJIS50</b> عند الدفع.</li>
-          <li>خطوة 3: أطلق وكيلك الأول — يعمل عبر {_PROMO_EXPIRES} الساعة أو وفق جدولك.</li>
+          <li>خطوة 2: راجع الأسعار في <a href="{_PRICING_LINK}">صفحة الباقات</a>.</li>
+          <li>خطوة 3: أطلق وكيلك الأول من البوابة.</li>
         </ul>
-        {_promo_html()}
+        {_pricing_html()}
         <p style="color:#0b3d2e;font-weight:bold;">— فريق النرجس</p>
       </div>
     </div>
@@ -161,19 +159,19 @@ Al-Narjis AI · Riyadh""",
 
 _FOLLOWUP_COPY = {
     1: {
-        "subject": "عرض الإطلاق الخاص بك ينتهي 14 أكتوبر ✺",
+        "subject": "اختيارك في النرجس ما زال بانتظارك ✺",
         "title": "وصلنا طلبك ولم نكمل اختيارك بعد",
-        "cta": "اختر باقتك الآن",
+        "cta": "اطلع على الباقات",
     },
     2: {
         "subject": "فريق النرجس بانتظارك 👋",
-        "title": "لسه تفوضي؟",
-        "cta": "اكمل باقتك بخصم 50%",
+        "title": "لسه تفكّر؟",
+        "cta": "راجع الباقات",
     },
     3: {
-        "subject": "آخر فرصة: خصم الإطلاق 50%",
-        "title": "عرض الإطلاق يخلص 14 أكتوبر",
-        "cta": "ابدأ اليوم من الموقع",
+        "subject": "الباقات الحالية على النرجس",
+        "title": "أسعار الباقات ظاهرة على الموقع",
+        "cta": "افتح صفحة الأسعار",
     },
 }
 
@@ -181,7 +179,7 @@ _FOLLOWUP_COPY = {
 def _followup_html(step: int, name: str) -> str:
     copy = _FOLLOWUP_COPY.get(step, _FOLLOWUP_COPY[1])
     cta = copy["cta"]
-    link = "https://karmaai.online/home#pricing"
+    link = _PRICING_LINK
     return f"""
     <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e3dcc8;border-radius:14px;overflow:hidden;">
       <div style="background:#0b3d2e;color:#e6c665;text-align:center;padding:22px;">
@@ -192,8 +190,8 @@ def _followup_html(step: int, name: str) -> str:
       <div style="padding:26px;color:#3f3526;font-size:15px;line-height:1.9;">
         <p>أهلاً <b>{name}</b>،</p>
         <p>{copy['title']}.</p>
-        <p>عرض الإطلاق يمنحك خصم <b>50%</b> على جميع الباقات حتى <b>14 أكتوبر</b> — بكود <b style="letter-spacing:2px;">NARJIS50</b>. فريقك الرقمي جاهز للعمل فور الدفع.</p>
-        {_promo_html()}
+        <p>الأسعار الحالية ظاهرة في صفحة الباقات. فريقك الرقمي جاهز للعمل فور إتمام الدفع.</p>
+        {_pricing_html()}
         <div style="text-align:center;margin:26px 0;">
           <a href="{link}" style="background:#c8a45e;color:#0a0b0e;text-decoration:none;padding:14px 34px;border-radius:10px;font-weight:bold;font-size:16px;">{cta}</a>
         </div>
@@ -212,8 +210,8 @@ async def send_followup(step: int, to: str, name: str) -> bool:
 
 {copy['title']}.
 
-عرض الإطلاق يمنحك خصم 50% على جميع الباقات حتى 14 أكتوبر بكود NARJIS50.
-انهِ اختيارك الآن: https://karmaai.online/home#pricing
+الأسعار الحالية ظاهرة في صفحة الباقات.
+اطلع عليها الآن: https://karmaai.online/pricing
 
 — فريق النرجس
 Al-Narjis AI · Riyadh""",

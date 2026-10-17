@@ -19,8 +19,6 @@ CONTENT_FILE = Path(__file__).resolve().parents[2] / "content" / "transfer.json"
 
 FIELDS = ("bank_name", "account_name", "iban", "swift")
 
-TELEGRAM_BOT = "https://t.me/AlNarjs7BOT"
-
 
 def _file_values() -> dict[str, str]:
     try:

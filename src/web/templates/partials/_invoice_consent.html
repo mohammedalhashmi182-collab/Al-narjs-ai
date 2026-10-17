@@ -63,7 +63,7 @@
                 .catch(function () {
                     pp.disabled = false;
                     err.hidden = false;
-                    err.textContent = ar ? 'تعذر فتح PayPal. استخدم البطاقة أو التحويل البنكي.' : 'Could not open PayPal. Use card or bank transfer.';
+                    err.textContent = ar ? 'تعذر فتح PayPal. الدفع غير متاح مؤقتاً، تواصل معنا.' : 'Could not open PayPal. Payment is temporarily unavailable, contact us.';
                 });
         });
         var card = document.getElementById('invoicePayCard');
@@ -83,7 +83,7 @@
                 .catch(function () {
                     card.disabled = false;
                     err.hidden = false;
-                    err.textContent = ar ? 'تعذر فتح صفحة الدفع بالبطاقة. استخدم التحويل البنكي أو تواصل معنا.' : 'Could not open card payment. Use bank transfer or contact us.';
+                    err.textContent = ar ? 'تعذر فتح صفحة الدفع بالبطاقة. الدفع غير متاح مؤقتاً، تواصل معنا.' : 'Could not open card payment. Payment is temporarily unavailable, contact us.';
                 });
         });
     })();

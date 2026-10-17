@@ -18,8 +18,6 @@
     <link rel="stylesheet" href="/static/css/narjis.css">
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     <style>
-        body[data-lang="ar"] [data-lang="en"] { display: none; }
-        body[data-lang="en"] [data-lang="ar"] { display: none; }
         .chat-wrap { max-height: 60vh; min-height: 55vh; overflow-y: auto; }
         .cmsg { max-width: 85%; white-space: pre-wrap; line-height: 1.8; border-radius: 22px; padding: 12px 16px; }
         .cmsg.ai { background: var(--n-sand-2); color: var(--n-brown); border: 1px solid var(--n-line); align-self: flex-start; border-start-start-radius: 6px; }
@@ -37,16 +35,16 @@
                 <span class="text-3xl" style="color:var(--n-gold);">✺</span>
                 <div>
                     <div class="n-title text-xl" style="font-size:1.25rem;">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
-                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">المستشار الذكي · SMART CONSULTANT</div>
+                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}المستشار الذكي{% else %}Smart Consultant{% endif %}</div>
                 </div>
             </a>
             <div class="flex items-center gap-3">
                 <div class="lang-pill" id="langToggle">
-                    <button data-lang-btn="ar" class="arabic active">عربي</button>
-                    <button data-lang-btn="en" class="english">EN</button>
+                    <button data-lang-btn="ar" class="arabic {{ 'active' if _lang == 'ar' else '' }}">عربي</button>
+                    <button data-lang-btn="en" class="english {{ 'active' if _lang == 'en' else '' }}">EN</button>
                 </div>
                 <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
-                    <span data-lang="ar" lang="ar" dir="rtl">الرئيسية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Home</span>
+                    {% if _lang == 'ar' %}<span>الرئيسية</span>{% else %}<span data-inline>Home</span>{% endif %}
                 </a>
             </div>
         </div>
@@ -56,38 +54,36 @@
         <div class="max-w-4xl mx-auto px-6">
             <div class="text-center mb-8">
                 <div class="n-divider mb-4" style="font-size:1.6rem;">✺</div>
-                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar" lang="ar" dir="rtl">خذ</span><span data-lang="en" lang="en" dir="ltr" data-inline>Get</span> <span class="gold" data-lang="ar" lang="ar" dir="rtl">استشارتك</span><span class="gold" data-lang="en" lang="en" dir="ltr" data-inline>Your Consultation</span></h1>
-                <p class="n-sub mt-3" data-lang="ar" lang="ar" dir="rtl">تحدث بحرية عن عملك وأسلوبك وبيئتك — سأقرأ وضعك وأرشدك لأفضل الحلول والوكلاء المناسبين.</p>
-                <p class="n-sub mt-3" data-lang="en" lang="en" dir="ltr" data-inline>Talk freely about your business, style and environment — I'll read your situation and guide you to the best solutions and agents.</p>
+                <h1 class="n-title text-3xl md:text-4xl">{% if _lang == 'ar' %}<span>خذ</span>{% else %}<span data-inline>Get</span>{% endif %} {% if _lang == 'ar' %}<span class="gold">استشارتك</span>{% else %}<span class="gold" data-inline>Your Consultation</span>{% endif %}</h1>
+                {% if _lang == 'ar' %}<p class="n-sub mt-3">تحدث بحرية عن عملك وأسلوبك وبيئتك — سأقرأ وضعك وأرشدك لأفضل الحلول والوكلاء المناسبين.</p>{% else %}<p class="n-sub mt-3" data-inline>Talk freely about your business, style and environment — I'll read your situation and guide you to the best solutions and agents.</p>{% endif %}
             </div>
 
             <div class="n-card p-5">
                 <div class="chat-wrap flex flex-col gap-3 mb-4" id="chatBox">
                     <div class="cmsg ai">
-                        <span data-lang="ar" lang="ar" dir="rtl">أهلاً بك! أنا المستشار الذكي للنرجس. احكِ لي عن عملك: ما الذي تقوم به، كيف تسير أعمالك، وأين ترى التحدي؟ سأستكشف وضعك وأقترح لك أفضل خطة ووكلاء.</span>
-                        <span data-lang="en" lang="en" dir="ltr" data-inline>Hello! I'm Al-Narjis Smart Consultant. Tell me about your business: what you do, how things go, and where you see the challenge? I'll explore your situation and suggest the best plan and agents.</span>
+                        {% if _lang == 'ar' %}<span>أهلاً بك! أنا المستشار الذكي للنرجس. احكِ لي عن عملك: ما الذي تقوم به، كيف تسير أعمالك، وأين ترى التحدي؟ سأستكشف وضعك وأقترح لك أفضل خطة ووكلاء.</span>{% else %}<span data-inline>Hello! I'm Al-Narjis Smart Consultant. Tell me about your business: what you do, how things go, and where you see the challenge? I'll explore your situation and suggest the best plan and agents.</span>{% endif %}
                     </div>
                 </div>
                 <div class="flex gap-3">
                     <input type="text" id="msg" class="flex-1" placeholder="..." autocomplete="off">
                     <button id="send" class="btn btn-gold" style="padding:12px 22px;">
-                        {{ tg_plane() }} <span data-lang="ar" lang="ar" dir="rtl">إرسال</span><span data-lang="en" lang="en" dir="ltr" data-inline>Send</span>
+                        {{ tg_plane() }} {% if _lang == 'ar' %}<span>إرسال</span>{% else %}<span data-inline>Send</span>{% endif %}
                     </button>
                 </div>
                 <div class="mt-4 flex flex-wrap gap-2" id="suggestions">
-                    <button class="chip" data-q="أملك متجر ملابس أونلاين وأريد زيادة المبيعات" data-q-en="I run an online clothing store and want to increase sales"><span data-lang="ar" lang="ar" dir="rtl">أملك متجراً أريد زيادة مبيعاته</span><span data-lang="en" lang="en" dir="ltr" data-inline>I run a store, want more sales</span></button>
-                    <button class="chip" data-q="أبدأ مشروعي الخاص من الصفر" data-q-en="I am starting my own business from scratch"><span data-lang="ar" lang="ar" dir="rtl">أبدأ مشروعي من الصفر</span><span data-lang="en" lang="en" dir="ltr" data-inline>Starting my business from scratch</span></button>
-                    <button class="chip" data-q="اهتمامي ينصب على تواجدي في السوشيال ميديا" data-q-en="I want a social media presence"><span data-lang="ar" lang="ar" dir="rtl">أريد الحضور في السوشيال ميديا</span><span data-lang="en" lang="en" dir="ltr" data-inline>Want a social media presence</span></button>
-                    <button class="chip" data-q="أريد تحسين محتوى موقعي ومقالاتي" data-q-en="I want to improve my website content and articles"><span data-lang="ar" lang="ar" dir="rtl">أريد تحسين محتوى موقعي</span><span data-lang="en" lang="en" dir="ltr" data-inline>Improve my website content</span></button>
+                    <button class="chip" data-q="{% if _lang == 'ar' %}أملك متجر ملابس أونلاين وأريد زيادة المبيعات{% else %}I run an online clothing store and want to increase sales{% endif %}">{% if _lang == 'ar' %}أملك متجراً أريد زيادة مبيعاته{% else %}I run a store, want more sales{% endif %}</button>
+                    <button class="chip" data-q="{% if _lang == 'ar' %}أبدأ مشروعي الخاص من الصفر{% else %}I am starting my own business from scratch{% endif %}">{% if _lang == 'ar' %}أبدأ مشروعي من الصفر{% else %}Starting my business from scratch{% endif %}</button>
+                    <button class="chip" data-q="{% if _lang == 'ar' %}اهتمامي ينصب على تواجدي في السوشيال ميديا{% else %}I want a social media presence{% endif %}">{% if _lang == 'ar' %}أريد الحضور في السوشيال ميديا{% else %}Want a social media presence{% endif %}</button>
+                    <button class="chip" data-q="{% if _lang == 'ar' %}أريد تحسين محتوى موقعي ومقالاتي{% else %}I want to improve my website content and articles{% endif %}">{% if _lang == 'ar' %}أريد تحسين محتوى موقعي{% else %}Improve my website content{% endif %}</button>
                 </div>
             </div>
 
             <div class="text-center mt-6 flex flex-wrap justify-center gap-4">
                 <a href="/portal" class="btn btn-green">
-                    <i class="fas fa-bolt"></i> <span data-lang="ar" lang="ar" dir="rtl">فعّل فريقك الآن</span><span data-lang="en" lang="en" dir="ltr" data-inline>Wake Your Team Now</span>
+                    <i class="fas fa-bolt"></i> {% if _lang == 'ar' %}<span>فعّل فريقك الآن</span>{% else %}<span data-inline>Wake Your Team Now</span>{% endif %}
                 </a>
                 <a href="/home#pricing" class="btn btn-outline">
-                    <span data-lang="ar" lang="ar" dir="rtl">عرض الباقات</span><span data-lang="en" lang="en" dir="ltr" data-inline>View Plans</span>
+                    {% if _lang == 'ar' %}<span>عرض الباقات</span>{% else %}<span data-inline>View Plans</span>{% endif %}
                 </a>
             </div>
         </div>
@@ -95,18 +91,17 @@
 
     <footer class="n-footer py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar" lang="ar" dir="rtl">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" lang="en" dir="ltr" data-inline>✺ Al-Narjis AI ✺</span></div>
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
-                <span data-lang="ar" lang="ar" dir="rtl">يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>
-                <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الخصوصية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Privacy</span></a>
+                {% if _lang == 'ar' %}<span>يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>{% else %}<span data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>{% endif %}
+                <a href="/privacy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الشروط</span><span data-lang="en" lang="en" dir="ltr" data-inline>Terms</span></a>
+                <a href="/terms" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الشروط</span>{% else %}<span data-inline>Terms</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/refund-policy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">سياسة الاسترداد</span><span data-lang="en" lang="en" dir="ltr" data-inline>Refund policy</span></a>
+                <a href="/refund-policy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>سياسة الاسترداد</span>{% else %}<span data-inline>Refund policy</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/about" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">من نحن</span><span data-lang="en" lang="en" dir="ltr" data-inline>About</span></a>
+                <a href="/about" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>من نحن</span>{% else %}<span data-inline>About</span>{% endif %}</a>
             </p>
         </div>
     </footer>
@@ -183,18 +178,17 @@
             $('send').addEventListener('click', () => send());
             $('msg').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
             document.querySelectorAll('.chip').forEach(ch => {
-                ch.addEventListener('click', () => send(isAr() ? ch.dataset.q : ch.dataset.qEn));
+                ch.addEventListener('click', () => send(ch.dataset.q));
             });
         })();
     </script>
 
     <div id="cookieBar" style="position:fixed;bottom:16px;inset-inline:16px;max-width:560px;margin-inline:auto;background:#101014;border:1px solid var(--n-line);border-radius:18px;padding:14px 18px;display:none;z-index:999;box-shadow:0 18px 46px rgba(0,0,0,.55);">
         <p style="font-size:.85rem;color:var(--n-brown-2);margin:0 0 10px;">
-            <span data-lang="ar" lang="ar" dir="rtl">نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.</span>
-            <span data-lang="en" lang="en" dir="ltr" data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>
+            {% if _lang == 'ar' %}<span>نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.</span>{% else %}<span data-inline>We use only essential cookies (language &amp; session). See our Privacy Policy for details.</span>{% endif %}
         </p>
-        <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;"><span data-lang="ar" lang="ar" dir="rtl">موافق</span><span data-lang="en" lang="en" dir="ltr" data-inline>Got it</span></button>
-        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">سياسة الخصوصية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Privacy Policy</span></a>
+        <button onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;">{% if _lang == 'ar' %}<span>موافق</span>{% else %}<span data-inline>Got it</span>{% endif %}</button>
+        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:var(--n-gold);">{% if _lang == 'ar' %}<span>سياسة الخصوصية</span>{% else %}<span data-inline>Privacy Policy</span>{% endif %}</a>
     </div>
     <script>
         (function () {

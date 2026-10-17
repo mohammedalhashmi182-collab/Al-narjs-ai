@@ -7,8 +7,7 @@
 {% block content %}
 <div class="mb-6">
     <p class="n-sub" style="margin-top:2px;">
-        <span data-lang="ar" lang="ar" dir="rtl">فريقك يعمل الآن — تابع الحالة، أوقظ أي وكيل، ونزّل تقريره.</span>
-        <span data-lang="en" lang="en" dir="ltr" data-inline>Your team is live — watch status, wake any agent, and pull its report.</span>
+        {% if _lang == 'ar' %}<span>فريقك يعمل الآن — تابع الحالة، أوقظ أي وكيل، ونزّل تقريره.</span>{% else %}<span data-inline>Your team is live — watch status, wake any agent, and pull its report.</span>{% endif %}
     </p>
 </div>
 
@@ -18,7 +17,7 @@
         <div class="flex items-center gap-3">
             <div class="p-3 rounded-full" style="background:rgba(0,212,156,.14);"><i class="fas fa-robot" style="color:var(--n-gold-2);"></i></div>
             <div>
-                <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">إجمالي الوكلاء</span><span data-lang="en" lang="en" dir="ltr" data-inline>Total agents</span></p>
+                <p class="text-sm" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>إجمالي الوكلاء</span>{% else %}<span data-inline>Total agents</span>{% endif %}</p>
                 <p id="stat-total" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
@@ -27,7 +26,7 @@
         <div class="flex items-center gap-3">
             <div class="p-3 rounded-full" style="background:rgba(77,205,94,.14);"><i class="fas fa-heartbeat" style="color:#3F7D3A;"></i></div>
             <div>
-                <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">يعمل الآن</span><span data-lang="en" lang="en" dir="ltr" data-inline>Active now</span></p>
+                <p class="text-sm" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>يعمل الآن</span>{% else %}<span data-inline>Active now</span>{% endif %}</p>
                 <p id="stat-live" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
@@ -36,7 +35,7 @@
         <div class="flex items-center gap-3">
             <div class="p-3 rounded-full" style="background:rgba(0,212,156,.14);"><i class="fas fa-tasks" style="color:var(--n-gold-2);"></i></div>
             <div>
-                <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">الإنجازات اليوم</span><span data-lang="en" lang="en" dir="ltr" data-inline>Done today</span></p>
+                <p class="text-sm" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>الإنجازات اليوم</span>{% else %}<span data-inline>Done today</span>{% endif %}</p>
                 <p id="stat-done" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
@@ -45,7 +44,7 @@
         <div class="flex items-center gap-3">
             <div class="p-3 rounded-full" style="background:rgba(255,143,143,.12);"><i class="fas fa-exclamation-triangle" style="color:#ff8f8f;"></i></div>
             <div>
-                <p class="text-sm" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">تنبيهات</span><span data-lang="en" lang="en" dir="ltr" data-inline>Alerts</span></p>
+                <p class="text-sm" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>تنبيهات</span>{% else %}<span data-inline>Alerts</span>{% endif %}</p>
                 <p id="stat-alerts" class="text-2xl font-bold" style="color:var(--n-text,#292524);">–</p>
             </div>
         </div>
@@ -54,12 +53,9 @@
 
 <!-- Toolbar -->
 <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center mb-6">
-    <input type="text" id="search-input" placeholder="ابحث عن وكيل..." 
+    <input type="text" id="search-input" placeholder="{% if _lang == 'ar' %}ابحث عن وكيل...{% else %}Search agents...{% endif %}"
            class="flex-1 px-4 py-2.5 rounded-2xl" style="border:1px solid var(--n-line);background:rgba(255,255,255,.035);color:var(--n-brown);"
-           data-lang="ar" lang="ar" dir="rtl" oninput="filterAgents()">
-    <input type="text" id="search-input-en" placeholder="Search agents..." 
-           class="flex-1 px-4 py-2.5 rounded-2xl" style="border:1px solid var(--n-line);background:rgba(255,255,255,.035);color:var(--n-brown);"
-           data-lang="en" lang="en" dir="ltr" data-inline oninput="filterAgents()">
+           dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}" oninput="filterAgents()">
     <select id="category-filter" class="px-4 py-2.5 rounded-2xl" style="border:1px solid var(--n-line);" onchange="filterAgents()">
         <option value="">كل التخصصات</option>
         <option value="marketing">التسويق</option>
@@ -74,7 +70,7 @@
         <button id="view-table" onclick="setView('table')" class="px-4 py-2" style="background:transparent;color:var(--n-brown-2);"><i class="fas fa-list-ul"></i></button>
     </div>
     <button onclick="openCreateModal()" class="btn btn-gold" style="white-space:nowrap;">
-        <i class="fas fa-plus mr-2"></i><span data-lang="ar" lang="ar" dir="rtl">إضافة وكيل</span><span data-lang="en" lang="en" dir="ltr" data-inline>New Agent</span>
+        <i class="fas fa-plus mr-2"></i>{% if _lang == 'ar' %}<span>إضافة وكيل</span>{% else %}<span data-inline>New Agent</span>{% endif %}
     </button>
 </div>
 
@@ -109,25 +105,25 @@
         <div class="n-card" style="padding:20px;">
             <h3 class="flex items-center gap-2 font-bold mb-1" style="color:var(--n-brown);">
                 <i class="fas fa-satellite-dish" style="color:var(--n-gold-2);"></i>
-                <span data-lang="ar" lang="ar" dir="rtl">نشاط لحظي</span><span data-lang="en" lang="en" dir="ltr" data-inline>Live activity</span>
+                {% if _lang == 'ar' %}<span>نشاط لحظي</span>{% else %}<span data-inline>Live activity</span>{% endif %}
                 <span class="status-dot busy ms-auto"></span>
             </h3>
-            <p style="font-size:.8rem;color:var(--n-brown-2);margin-bottom:10px;"><span data-lang="ar" lang="ar" dir="rtl">خطوة بخطوة داخل غرفة العمل</span><span data-lang="en" lang="en" dir="ltr" data-inline>Step by step inside the lab</span></p>
+            <p style="font-size:.8rem;color:var(--n-brown-2);margin-bottom:10px;">{% if _lang == 'ar' %}<span>خطوة بخطوة داخل غرفة العمل</span>{% else %}<span data-inline>Step by step inside the lab</span>{% endif %}</p>
             <div id="feed-list" class="feed-list"></div>
         </div>
 
         <div class="n-card" style="padding:20px;">
             <h3 class="flex items-center gap-2 font-bold mb-1" style="color:var(--n-brown);">
                 <i class="fas fa-quote-right" style="color:var(--n-gold-2);"></i>
-                <span data-lang="ar" lang="ar" dir="rtl">أصوات العملاء</span><span data-lang="en" lang="en" dir="ltr" data-inline>Client voices</span>
+                {% if _lang == 'ar' %}<span>أصوات العملاء</span>{% else %}<span data-inline>Client voices</span>{% endif %}
             </h3>
-            <p style="font-size:.8rem;color:var(--n-brown-2);margin-bottom:12px;"><span data-lang="ar" lang="ar" dir="rtl">قالوا عن فريقك</span><span data-lang="en" lang="en" dir="ltr" data-inline>About your team</span></p>
+            <p style="font-size:.8rem;color:var(--n-brown-2);margin-bottom:12px;">{% if _lang == 'ar' %}<span>قالوا عن فريقك</span>{% else %}<span data-inline>About your team</span>{% endif %}</p>
             <div class="space-y-3">
                 <div class="rev">
                     <div class="rev-ava">ن</div>
                     <div>
                         <div class="star" style="color:var(--n-gold-2);font-size:.8rem;">★★★★★</div>
-                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;"><span data-lang="ar" lang="ar" dir="rtl">أيقظتُ موظف المحتوى، وفي أول أسبوع استلمتُ خطة عربية كاملة تليق بعلامتنا — والباقي بدأ يخدموني بأنفسهم.</span><span data-lang="en" lang="en" dir="ltr" data-inline>I woke the content employee — a full Arabic plan landed in week one, the rest served me on their own.</span></p>
+                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;">{% if _lang == 'ar' %}<span>أيقظتُ موظف المحتوى، وفي أول أسبوع استلمتُ خطة عربية كاملة تليق بعلامتنا — والباقي بدأ يخدموني بأنفسهم.</span>{% else %}<span data-inline>I woke the content employee — a full Arabic plan landed in week one, the rest served me on their own.</span>{% endif %}</p>
                         <div class="who" style="font-weight:800;color:var(--n-brown);font-size:.85rem;">المدير — الرياض</div>
                         <div class="handle" style="font-size:.75rem;color:var(--n-gold-2);" dir="ltr">@marketing.riyadh.sa</div>
                     </div>
@@ -136,7 +132,7 @@
                     <div class="rev-ava">ص</div>
                     <div>
                         <div class="star" style="color:var(--n-gold-2);font-size:.8rem;">★★★★★</div>
-                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;"><span data-lang="ar" lang="ar" dir="rtl">صفحاتي تنشر وترد على مبيعات وأنا نائم. أول مزوّد يفهمني بالعامية السعودية.</span><span data-lang="en" lang="en" dir="ltr" data-inline>My pages publish and answer sales while I sleep. First provider that gets Saudi colloquial.</span></p>
+                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;">{% if _lang == 'ar' %}<span>صفحاتي تنشر وترد على مبيعات وأنا نائم. أول مزوّد يفهمني بالعامية السعودية.</span>{% else %}<span data-inline>My pages publish and answer sales while I sleep. First provider that gets Saudi colloquial.</span>{% endif %}</p>
                         <div class="who" style="font-weight:800;color:var(--n-brown);font-size:.85rem;">صاحبة متجر أزياء — جدة</div>
                         <div class="handle" style="font-size:.75rem;color:var(--n-gold-2);" dir="ltr">@fashion.jeddah.sa</div>
                     </div>
@@ -145,7 +141,7 @@
                     <div class="rev-ava">م</div>
                     <div>
                         <div class="star" style="color:var(--n-gold-2);font-size:.8rem;">★★★★★</div>
-                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;"><span data-lang="ar" lang="ar" dir="rtl">المستشار الذكي قرأ متجرنا بجلسة واحدة ورشّح الباقة الصحيحة — خدمة أسرع وأصدق.</span><span data-lang="en" lang="en" dir="ltr" data-inline>Our consultant read the store in one session and picked the right plan — faster and more honest.</span></p>
+                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;">{% if _lang == 'ar' %}<span>المستشار الذكي قرأ متجرنا بجلسة واحدة ورشّح الباقة الصحيحة — خدمة أسرع وأصدق.</span>{% else %}<span data-inline>Our consultant read the store in one session and picked the right plan — faster and more honest.</span>{% endif %}</p>
                         <div class="who" style="font-weight:800;color:var(--n-brown);font-size:.85rem;">مؤسس مشروع — الدمام</div>
                         <div class="handle" style="font-size:.75rem;color:var(--n-gold-2);" dir="ltr">@startup.dammam.sa</div>
                     </div>
@@ -154,7 +150,7 @@
                     <div class="rev-ava">خ</div>
                     <div>
                         <div class="star" style="color:var(--n-gold-2);font-size:.8rem;">★★★★★</div>
-                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;"><span data-lang="ar" lang="ar" dir="rtl">خطط النمو وصلت جاهزة وعدّلنا عليها ربع ساعة فقط. فريق صغير بإنتاجية فريق كامل.</span><span data-lang="en" lang="en" dir="ltr" data-inline>Growth plans arrived ready; we tuned them in 15 minutes. A small team with full-team output.</span></p>
+                        <p style="font-size:.85rem;color:var(--n-brown);margin:2px 0 4px;">{% if _lang == 'ar' %}<span>خطط النمو وصلت جاهزة وعدّلنا عليها ربع ساعة فقط. فريق صغير بإنتاجية فريق كامل.</span>{% else %}<span data-inline>Growth plans arrived ready; we tuned them in 15 minutes. A small team with full-team output.</span>{% endif %}</p>
                         <div class="who" style="font-weight:800;color:var(--n-brown);font-size:.85rem;">مستثمر فردي — الخبر</div>
                         <div class="handle" style="font-size:.75rem;color:var(--n-gold-2);" dir="ltr">@investor.khobar.sa</div>
                     </div>
@@ -182,7 +178,7 @@
                 <input type="text" id="agent-slug" required class="w-full px-4 py-2">
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">الوصف</span><span data-lang="en" lang="en" dir="ltr" data-inline>Description</span></label>
+                <label class="block text-sm font-medium mb-1" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>الوصف</span>{% else %}<span data-inline>Description</span>{% endif %}</label>
                 <textarea id="agent-description" rows="2" class="w-full px-4 py-2"></textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -203,7 +199,7 @@
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">معاملات افتراضية (JSON)</span><span data-lang="en" lang="en" dir="ltr" data-inline>Default Parameters (JSON)</span></label>
+                <label class="block text-sm font-medium mb-1" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>معاملات افتراضية (JSON)</span>{% else %}<span data-inline>Default Parameters (JSON)</span>{% endif %}</label>
                 <textarea id="agent-params" rows="3" class="w-full px-4 py-2 font-mono text-sm">{}</textarea>
             </div>
             <div class="flex justify-end space-x-3 pt-4 border-t" style="border-color:var(--n-line);">
@@ -643,28 +639,28 @@
                         <div><div style="font-size:.7rem;color:var(--n-brown-2);">Type</div>${detail.is_system ? 'System' : 'Custom'}</div>
                     </div>
                     <div>
-                        <h4 class="font-bold mb-1" style="color:var(--n-brown);"><span data-lang="ar" lang="ar" dir="rtl">التقديم</span><span data-lang="en" lang="en" dir="ltr" data-inline>Intro</span></h4>
+                        <h4 class="font-bold mb-1" style="color:var(--n-brown);">{% if _lang == 'ar' %}<span>التقديم</span>{% else %}<span data-inline>Intro</span>{% endif %}</h4>
                         <p style="color:var(--n-brown-2);font-size:.9rem;">${escapeHtml(a.intro_ar || detail.description)}</p>
                     </div>
                     <div>
-                        <h4 class="font-bold mb-1" style="color:var(--n-brown);"><span data-lang="ar" lang="ar" dir="rtl">الوصف</span><span data-lang="en" lang="en" dir="ltr" data-inline>Description</span></h4>
+                        <h4 class="font-bold mb-1" style="color:var(--n-brown);">{% if _lang == 'ar' %}<span>الوصف</span>{% else %}<span data-inline>Description</span>{% endif %}</h4>
                         <p style="color:var(--n-brown-2);font-size:.85rem;">${escapeHtml(detail.description || '—')}</p>
                     </div>
                     ${questions ? `<div>
-                        <h4 class="font-bold mb-1" style="color:var(--n-brown);"><span data-lang="ar" lang="ar" dir="rtl">أسئلة التشخيص</span><span data-lang="en" lang="en" dir="ltr" data-inline>Diagnostic questions</span></h4>
+                        <h4 class="font-bold mb-1" style="color:var(--n-brown);">{% if _lang == 'ar' %}<span>أسئلة التشخيص</span>{% else %}<span data-inline>Diagnostic questions</span>{% endif %}</h4>
                         <ul style="list-style:disc;padding-inline-start:18px;">${questions}</ul>
                     </div>` : ''}
                     <div>
-                        <h4 class="font-bold mb-1" style="color:var(--n-brown);"><span data-lang="ar" lang="ar" dir="rtl">المعاملات</span><span data-lang="en" lang="en" dir="ltr" data-inline>Parameters</span></h4>
+                        <h4 class="font-bold mb-1" style="color:var(--n-brown);">{% if _lang == 'ar' %}<span>المعاملات</span>{% else %}<span data-inline>Parameters</span>{% endif %}</h4>
                         <pre class="p-3 rounded text-sm overflow-auto" style="background:var(--n-sand-2);color:var(--n-brown-2);">${escapeHtml(JSON.stringify(params, null, 2))}</pre>
                     </div>
                     <div>
-                        <h4 class="font-bold mb-1" style="color:var(--n-brown);"><span data-lang="ar" lang="ar" dir="rtl">القوالب</span><span data-lang="en" lang="en" dir="ltr" data-inline>Prompt Templates</span></h4>
+                        <h4 class="font-bold mb-1" style="color:var(--n-brown);">{% if _lang == 'ar' %}<span>القوالب</span>{% else %}<span data-inline>Prompt Templates</span>{% endif %}</h4>
                         <div class="space-y-2">${tplHtml}</div>
                     </div>
                     <div class="flex gap-3 pt-4 border-t" style="border-color:var(--n-line);">
-                        <button onclick="runAgent('${escapeHtml(detail.slug)}')" class="btn btn-gold"><span data-lang="ar" lang="ar" dir="rtl">تشغيل الوكيل</span><span data-lang="en" lang="en" dir="ltr" data-inline>Run Agent</span></button>
-                        <button onclick="viewPrompts('${escapeHtml(detail.slug)}')" class="btn btn-outline"><span data-lang="ar" lang="ar" dir="rtl">إدارة القوالب</span><span data-lang="en" lang="en" dir="ltr" data-inline>Manage Prompts</span></button>
+                        <button onclick="runAgent('${escapeHtml(detail.slug)}')" class="btn btn-gold">{% if _lang == 'ar' %}<span>تشغيل الوكيل</span>{% else %}<span data-inline>Run Agent</span>{% endif %}</button>
+                        <button onclick="viewPrompts('${escapeHtml(detail.slug)}')" class="btn btn-outline">{% if _lang == 'ar' %}<span>إدارة القوالب</span>{% else %}<span data-inline>Manage Prompts</span>{% endif %}</button>
                     </div>
                 </div>`;
             document.getElementById('detail-modal').style.display = 'flex';

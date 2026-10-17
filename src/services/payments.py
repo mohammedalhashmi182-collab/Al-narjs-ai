@@ -194,8 +194,14 @@ def customer_paypal_enabled() -> bool:
 
 
 def customer_bank_transfer_enabled() -> bool:
-    """Bank-transfer / invoice checkout for customers. Off unless CUSTOMER_BANK_TRANSFER_ENABLED is set."""
-    return _customer_flag("CUSTOMER_BANK_TRANSFER_ENABLED")
+    """Customer checkout is Moyasar only.
+
+    Bank transfer is not a customer payment method. The retired
+    ``CUSTOMER_BANK_TRANSFER_ENABLED`` switch is ignored so it cannot
+    turn the invoice path back on for buyers. Owner-raised invoices stay
+    a separate authenticated path.
+    """
+    return False
 
 
 def paypal_ready() -> bool:

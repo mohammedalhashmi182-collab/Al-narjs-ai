@@ -303,7 +303,9 @@ async def test_checkout_api_has_no_founding_and_bills_packs(maker, monkeypatch):
     monkeypatch.delenv("FOUNDING_ENABLED", raising=False)
     app.state.session_factory = maker
     transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://test", cookies={"narjis_owner": make_session_token()}
+    ) as c:
         r = await c.post("/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice",
                                                 "conversation_packs": 1})
         fnd = (await c.get("/api/founding")).json()

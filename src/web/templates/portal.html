@@ -19,8 +19,6 @@
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     {% include "partials/_analytics.html" %}
     <style>
-        body[data-lang="ar"] [data-lang="en"] { display: none; }
-        body[data-lang="en"] [data-lang="ar"] { display: none; }
         .emp-card.dormant { filter: none; opacity: 0.92; }
         .emp-card.dormant .emp-ava { background: repeating-linear-gradient(45deg, rgba(36,129,204,.10) 0 12px, rgba(36,129,204,.03) 12px 24px); }
         .emp-card .emp-ava { display: grid; place-items: center; }
@@ -32,30 +30,6 @@
         .msg-client { align-self: flex-end; }
         .spin { display: inline-block; animation: rot 0.9s linear infinite; }
         @keyframes rot { to { transform: rotate(360deg); } }
-#xfIban{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.3px}
-.xf-copy{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;
-    padding:7px 12px;border-radius:10px;border:1px solid var(--n-line);
-    background:var(--n-cream);color:var(--n-brown);cursor:pointer;font:inherit;font-size:.78rem}
-.xf-copy:hover{border-color:var(--n-gold)}
-.xf-copy i{font-size:.72rem}
-.xf-copy.done{color:var(--n-green);border-color:var(--n-green)}
-
-/* quick bank-transfer block, shown before the buyer starts a checkout */
-.xf-quick{border:1px solid var(--n-line);border-radius:var(--r-lg);overflow:hidden;background:var(--n-sand)}
-.xf-quick-h{display:flex;align-items:center;gap:9px;padding:11px 15px;
-    background:var(--odsf-gold);color:#292524;font-weight:800;font-size:.92rem}
-.xf-quick-b{padding:14px 16px;display:flex;flex-direction:column;gap:9px}
-.xf-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:4px}
-.xf-k{font-size:.78rem;color:var(--n-earth)}
-.xf-v{font-weight:700;font-size:.92rem;color:var(--n-brown);word-break:break-all;text-align:end}
-.xf-note{margin:6px 0 0;font-size:.78rem;line-height:1.85;color:var(--n-earth)}
-.xf-wa{display:flex;align-items:center;gap:10px;margin-top:12px;padding:13px 15px;
-    border-radius:12px;border:1px solid #25D366;background:rgba(37,211,102,.08);
-    color:var(--n-brown);text-decoration:none;font-size:.86rem;font-weight:600;line-height:1.6}
-.xf-wa:hover{background:rgba(37,211,102,.14)}
-.xf-wa i{font-size:1.15rem;color:#25D366;flex:0 0 auto}
-@media print{.xf-copy{display:none}}
-
         .package-skeleton { min-height:180px; border-radius:16px; background:var(--n-sand-2, #eee); animation:packagePulse 1.2s ease-in-out infinite alternate; }
         @keyframes packagePulse { to { opacity:.45; } }
         @media (prefers-reduced-motion:reduce) { .package-skeleton { animation:none; } }
@@ -71,16 +45,16 @@
                 <img src="/static/logo.svg" alt="Al-Narjis AI" style="height:38px;width:auto;object-fit:contain;border-radius:8px;">
                 <div>
                     <div class="n-title text-xl" style="font-size:1.25rem;">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
-                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">بوابة العميل · CLIENT PORTAL</div>
+                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}بوابة العميل{% else %}Client Portal{% endif %}</div>
                 </div>
             </a>
             <div class="flex items-center gap-3">
                 <div class="lang-pill" id="langToggle">
-                    <button data-lang-btn="ar" class="arabic active">عربي</button>
-                    <button data-lang-btn="en" class="english">EN</button>
+                    <button data-lang-btn="ar" class="arabic {{ 'active' if _lang == 'ar' else '' }}">عربي</button>
+                    <button data-lang-btn="en" class="english {{ 'active' if _lang == 'en' else '' }}">EN</button>
                 </div>
                 <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
-                    <span data-lang="ar" lang="ar" dir="rtl">الرئيسية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Home</span>
+                    {% if _lang == 'ar' %}<span>الرئيسية</span>{% else %}<span data-inline>Home</span>{% endif %}
                 </a>
             </div>
         </div>
@@ -90,12 +64,12 @@
     <!-- Portal login: OTP to the project's email / phone (the project id alone is no longer a credential) -->
     <section id="step-login" class="py-12 hidden">
         <div class="max-w-md mx-auto px-6 text-center">
-            <h2 class="n-title text-2xl"><span data-lang="ar" lang="ar" dir="rtl">الدخول إلى بوابتك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Sign in to your portal</span></h2>
-            <p class="n-sub mt-3"><span data-lang="ar" lang="ar" dir="rtl">أدخل البريد أو الجوال المسجّل في اشتراكك وسنرسل لك رمز دخول.</span><span data-lang="en" lang="en" dir="ltr" data-inline>Enter the email or phone on your subscription and we will send a sign-in code.</span></p>
+            <h2 class="n-title text-2xl">{% if _lang == 'ar' %}<span>الدخول إلى بوابتك</span>{% else %}<span data-inline>Sign in to your portal</span>{% endif %}</h2>
+            <p class="n-sub mt-3">{% if _lang == 'ar' %}<span>أدخل البريد أو الجوال المسجّل في اشتراكك وسنرسل لك رمز دخول.</span>{% else %}<span data-inline>Enter the email or phone on your subscription and we will send a sign-in code.</span>{% endif %}</p>
             <input id="loginIdent" class="w-full mt-4" autocomplete="username" placeholder="email / 05xxxxxxxx">
-            <button id="loginSend" class="btn btn-gold mt-3" type="button"><span data-lang="ar" lang="ar" dir="rtl">أرسل الرمز</span><span data-lang="en" lang="en" dir="ltr" data-inline>Send code</span></button>
+            <button id="loginSend" class="btn btn-gold mt-3" type="button">{% if _lang == 'ar' %}<span>أرسل الرمز</span>{% else %}<span data-inline>Send code</span>{% endif %}</button>
             <input id="loginCode" class="w-full mt-4 hidden" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
-            <button id="loginVerify" class="btn btn-gold mt-3 hidden" type="button"><span data-lang="ar" lang="ar" dir="rtl">دخول</span><span data-lang="en" lang="en" dir="ltr" data-inline>Sign in</span></button>
+            <button id="loginVerify" class="btn btn-gold mt-3 hidden" type="button">{% if _lang == 'ar' %}<span>دخول</span>{% else %}<span data-inline>Sign in</span>{% endif %}</button>
             <p id="loginMsg" class="text-sm mt-3" aria-live="polite"></p>
         </div>
     </section>
@@ -104,12 +78,11 @@
         <div class="max-w-5xl mx-auto px-6">
             <div class="text-center mb-10">
                 <div class="n-divider mb-4">✺</div>
-                <h1 class="n-title text-3xl md:text-4xl"><span data-lang="ar" lang="ar" dir="rtl">فعّل فريقك <span class="gold">الذكي</span></span><span data-lang="en" lang="en" dir="ltr" data-inline>Wake Up Your <span class="gold">Smart</span> Team</span></h1>
-                <p class="n-sub mt-3" data-lang="ar" lang="ar" dir="rtl">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>
-                <p class="n-sub mt-3" data-lang="en" lang="en" dir="ltr" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>
+                <h1 class="n-title text-3xl md:text-4xl">{% if _lang == 'ar' %}<span>فعّل فريقك <span class="gold">الذكي</span></span>{% else %}<span data-inline>Wake Up Your <span class="gold">Smart</span> Team</span>{% endif %}</h1>
+                {% if _lang == 'ar' %}<p class="n-sub mt-3">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>{% else %}<p class="n-sub mt-3" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>{% endif %}
             </div>
 
-            <div id="pkg-status" role="status" aria-live="polite"><span data-lang="ar" lang="ar" dir="rtl">جارٍ تحميل الباقات…</span><span data-lang="en" lang="en" dir="ltr" data-inline>Loading plans…</span></div>
+            <div id="pkg-status" role="status" aria-live="polite">{% if _lang == 'ar' %}<span>جارٍ تحميل الباقات…</span>{% else %}<span data-inline>Loading plans…</span>{% endif %}</div>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10" id="pkg-grid" aria-busy="true">
                 {% for _ in range(4) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
@@ -118,17 +91,17 @@
             <form id="regForm" class="n-form max-w-2xl mx-auto gap-5 hidden">
                 <div class="grid sm:grid-cols-2 gap-5">
                     <div>
-                        <label for="cname" data-lang="ar" lang="ar" dir="rtl">الاسم الكامل</label><label for="cname" data-lang="en" lang="en" dir="ltr" data-inline>Full name</label>
+                        {% if _lang == 'ar' %}<label for="cname">الاسم الكامل</label>{% else %}<label for="cname" data-inline>Full name</label>{% endif %}
                         <input type="text" id="cname" required>
                     </div>
                     <div>
-                        <label for="cphone" data-lang="ar" lang="ar" dir="rtl">رقم الجوال</label><label for="cphone" data-lang="en" lang="en" dir="ltr" data-inline>Phone number</label>
+                        {% if _lang == 'ar' %}<label for="cphone">رقم الجوال</label>{% else %}<label for="cphone" data-inline>Phone number</label>{% endif %}
                         <input type="tel" id="cphone" required>
                     </div>
                 </div>
                 <div class="grid sm:grid-cols-2 gap-5 items-end">
                     <div>
-                        <label for="cemail" data-lang="ar" lang="ar" dir="rtl">البريد الإلكتروني</label><label for="cemail" data-lang="en" lang="en" dir="ltr" data-inline>Email</label>
+                        {% if _lang == 'ar' %}<label for="cemail">البريد الإلكتروني</label>{% else %}<label for="cemail" data-inline>Email</label>{% endif %}
                         <input type="email" id="cemail">
                     </div>
                     <div>
@@ -139,10 +112,10 @@
                     <div class="w-full max-w-sm text-start">
                         <label class="flex items-start gap-2" style="font-size:.8rem;color:var(--n-brown-2);cursor:pointer;">
                             <input type="checkbox" id="consent" required class="mt-0.5">
-                            <span><span data-lang="ar" lang="ar" dir="rtl">أوافق على معالجة بياناتي وفق <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span><span data-lang="en" lang="en" dir="ltr" data-inline>I agree to my data being processed per the <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span></span>
+                            <span>{% if _lang == 'ar' %}<span>أوافق على معالجة بياناتي وفق <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span>{% else %}<span data-inline>I agree to my data being processed per the <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span>{% endif %}</span>
                         </label>
                         <button type="submit" class="btn btn-gold w-full mt-4">
-                            <span data-lang="ar" lang="ar" dir="rtl">استقبل فريقي الذكي</span><span data-lang="en" lang="en" dir="ltr" data-inline>Receive My Smart Team</span>
+                            {% if _lang == 'ar' %}<span>استقبل فريقي الذكي</span>{% else %}<span data-inline>Receive My Smart Team</span>{% endif %}
                             <i class="fas fa-rocket"></i>
                         </button>
                     </div>
@@ -158,23 +131,21 @@
             <div class="text-center mb-10">
                 <div class="n-divider mb-4">✺</div>
                 <h2 class="n-title text-3xl md:text-4xl">
-                    <span data-lang="ar" lang="ar" dir="rtl">فريقك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Your Team</span>
-                    <span class="gold" data-lang="ar" lang="ar" dir="rtl">—</span><span class="gold" data-lang="en" lang="en" dir="ltr" data-inline>—</span>
+                    {% if _lang == 'ar' %}<span>فريقك</span>{% else %}<span data-inline>Your Team</span>{% endif %}
+                    {% if _lang == 'ar' %}<span class="gold">—</span>{% else %}<span class="gold" data-inline>—</span>{% endif %}
                     <span id="teamPkg" class="gold"></span>
                 </h2>
-                <p class="n-sub mt-3" data-lang="ar" lang="ar" dir="rtl">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>
-                <p class="n-sub mt-3" data-lang="en" lang="en" dir="ltr" data-inline>Your employees await a wake touch — click anyone to start serving you.</p>
+                {% if _lang == 'ar' %}<p class="n-sub mt-3">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>{% else %}<p class="n-sub mt-3" data-inline>Your employees await a wake touch — click anyone to start serving you.</p>{% endif %}
             </div>
             <div id="pendingBanner" class="n-card p-4 mb-8 hidden" style="background:#FDF6E3;border:1px solid var(--n-gold);">
                 <div class="flex flex-col sm:flex-row items-center gap-3 justify-between text-center sm:text-start">
                     <div class="text-sm" style="color:var(--n-brown);">
                         <i class="fas fa-moon"></i>
-                        <span data-lang="ar" lang="ar" dir="rtl"><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>
-                        <span data-lang="en" lang="en" dir="ltr" data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>
+                        {% if _lang == 'ar' %}<span><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>{% else %}<span data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>{% endif %}
                     </div>
                     <button id="pendingCta" class="btn btn-gold" style="white-space:nowrap;">
                         <i class="fas fa-credit-card"></i>
-                        <span data-lang="ar" lang="ar" dir="rtl">فعّل اشتراكك الآن</span><span data-lang="en" lang="en" dir="ltr" data-inline>Activate Subscription</span>
+                        {% if _lang == 'ar' %}<span>فعّل اشتراكك الآن</span>{% else %}<span data-inline>Activate Subscription</span>{% endif %}
                     </button>
                 </div>
             </div>
@@ -182,15 +153,14 @@
             <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
                 <button id="subscribeBtn" class="btn btn-gold" style="padding:14px 28px;font-size:1rem;">
                     <i class="fas fa-credit-card"></i>
-                    <span data-lang="ar" lang="ar" dir="rtl">فعّل اشتراكك الآن</span><span data-lang="en" lang="en" dir="ltr" data-inline>Activate Subscription</span>
+                    {% if _lang == 'ar' %}<span>فعّل اشتراكك الآن</span>{% else %}<span data-inline>Activate Subscription</span>{% endif %}
                 </button>
             </div>
             {% set _promo = promo_info() %}
             {% if _promo.active %}
             <div id="portalPromoHint" class="text-center text-sm mt-4" style="color:var(--n-gold-2);">
                 <i class="fas fa-gift"></i> 
-                <span data-lang="ar" lang="ar" dir="rtl">خصم الإطلاق <b>&nbsp;{{ _promo.percent }}٪&nbsp;</b> بالكود <b>{{ _promo.code }}</b></span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>Launch offer <b>{{ _promo.percent }}%</b> with code <b>{{ _promo.code }}</b></span>
+                {% if _lang == 'ar' %}<span>خصم الإطلاق <b>&nbsp;{{ _promo.percent }}٪&nbsp;</b> بالكود <b>{{ _promo.code }}</b></span>{% else %}<span data-inline>Launch offer <b>{{ _promo.percent }}%</b> with code <b>{{ _promo.code }}</b></span>{% endif %}
             </div>
             {% endif %}
         </div>
@@ -199,7 +169,7 @@
     <!-- Tenant Reply Agent: this project's review queue (replies to your own customers) -->
     <section id="step-inbox" class="py-8 hidden">
         <div class="max-w-4xl mx-auto px-6">
-            <h3 class="n-title text-xl"><span data-lang="ar" lang="ar" dir="rtl">ردود بانتظار مراجعتك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Replies awaiting your review</span></h3>
+            <h3 class="n-title text-xl">{% if _lang == 'ar' %}<span>ردود بانتظار مراجعتك</span>{% else %}<span data-inline>Replies awaiting your review</span>{% endif %}</h3>
             <div id="inboxList" class="mt-4"></div>
         </div>
     </section>
@@ -209,72 +179,23 @@
         <div class="max-w-3xl mx-auto px-6">
             <div class="n-card p-8 text-center">
                 <div class="n-divider mb-4">✺</div>
-                <h2 class="n-title text-2xl mb-2"><span data-lang="ar" lang="ar" dir="rtl">الاشتراك</span><span data-lang="en" lang="en" dir="ltr" data-inline>Subscription</span></h2>
+                <h2 class="n-title text-2xl mb-2">{% if _lang == 'ar' %}<span>الاشتراك</span>{% else %}<span data-inline>Subscription</span>{% endif %}</h2>
                 <div id="coSummary" class="n-sub mb-6"></div>
                 <div class="flex items-center justify-center gap-2 mb-4" id="promoRow">
-                    <input type="text" id="promoInput" placeholder="كود الخصم / Promo code" autocomplete="off" style="max-width:200px;text-align:center;" class="co-input">
+                    <input type="text" id="promoInput" placeholder="{% if _lang == 'ar' %}كود الخصم{% else %}Promo code{% endif %}" autocomplete="off" style="max-width:200px;text-align:center;" class="co-input">
                     <button id="promoApply" class="btn btn-outline" style="padding:10px 18px;font-size:.85rem;">
-                        <span data-lang="ar" lang="ar" dir="rtl">تطبيق</span><span data-lang="en" lang="en" dir="ltr" data-inline>Apply</span>
+                        {% if _lang == 'ar' %}<span>تطبيق</span>{% else %}<span data-inline>Apply</span>{% endif %}
                     </button>
                 </div>
 <label id="refundConsentRow" for="refundConsent" class="flex items-start gap-2 mb-4 text-sm" style="text-align:start;cursor:pointer;">
                         <input type="checkbox" id="refundConsent" name="refund_consent" required class="mt-0.5">
-                        <span><span data-lang="ar" lang="ar" dir="rtl">أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span><span data-lang="en" lang="en" dir="ltr" data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span></span>
+                        <span>{% if _lang == 'ar' %}<span>أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span>{% else %}<span data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span>{% endif %}</span>
                     </label>
 <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
                     <p id="coCardNote" hidden class="mt-4 text-sm" style="color:var(--n-brown-2);"></p>
-                    {# Bank transfer, shown before the buyer starts a checkout.
-
-                       The invoice page already carries the IBAN and a copy
-                       button, but a buyer only reaches it *after* choosing a
-                       method, and the note beside the method list used to say
-                       only "card checkout is not live yet". The one method that
-                       genuinely takes money was therefore invisible at the
-                       moment of decision.
-
-                       The details below are the same published account the
-                       invoice prints -- one source, read from /api/payments/
-                       capabilities. Nothing here is a promise the server
-                       cannot keep: a transfer to a real IBAN, confirmed by the
-                       owner, is settlement. #}
-                    {% if bank_transfer_enabled %}
-                    <div id="coXfer" hidden class="xf-quick" style="margin-top:18px;text-align:start;">
-                        <div class="xf-quick-h">
-                            <i class="fas fa-building-columns"></i>
-                            <span data-lang="ar" lang="ar" dir="rtl">أو ادفع بتحويل بنكي مباشر</span>
-                            <span data-lang="en" lang="en" dir="ltr" data-inline>Or pay by direct bank transfer</span>
-                        </div>
-                        <div class="xf-quick-b">
-                            <div class="xf-row">
-                                <span class="xf-k" data-lang="ar" lang="ar" dir="rtl">الآيبان</span>
-                                <span class="xf-k" data-lang="en" lang="en" dir="ltr" data-inline>IBAN</span>
-                                <span class="xf-v" id="xfIban">—</span>
-                                <button type="button" class="xf-copy" data-xf-copy="xfIban">
-                                    <i class="fas fa-copy"></i>
-                                    <span data-lang="ar" lang="ar" dir="rtl">نسخ</span>
-                                    <span data-lang="en" lang="en" dir="ltr" data-inline>Copy</span>
-                                </button>
-                            </div>
-                            <div class="xf-row">
-                                <span class="xf-k" data-lang="ar" lang="ar" dir="rtl">اسم الحساب</span>
-                                <span class="xf-k" data-lang="en" lang="en" dir="ltr" data-inline>Account name</span>
-                                <span class="xf-v" id="xfName">—</span>
-                            </div>
-                            <div class="xf-row">
-                                <span class="xf-k" data-lang="ar" lang="ar" dir="rtl">البنك</span>
-                                <span class="xf-k" data-lang="en" lang="en" dir="ltr" data-inline>Bank</span>
-                                <span class="xf-v" id="xfBank">—</span>
-                            </div>
-                            <p class="xf-note">
-                                <span data-lang="ar" lang="ar" dir="rtl">حوّل المبلغ ثم ارجع واضغط «ادفع بالتحويل» أعلاه لتظهر لك الفاتورة، وبعدها اضغط «أرسلت التحويل» ليصلنا الإشعار ونؤكد تفعيل باقتك.</span>
-                                <span data-lang="en" lang="en" dir="ltr" data-inline>Transfer the amount, then press “Pay by transfer” above to open your invoice, then press “I sent the transfer” so we are notified and activate your plan.</span>
-                            </p>
-                        </div>
-                    </div>
-                    {% endif %}
                 <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
                 <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
-                    <i class="fas fa-arrow-left"></i> <span data-lang="ar" lang="ar" dir="rtl">رجوع للفريق</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back to Team</span>
+                    <i class="fas fa-arrow-left"></i> {% if _lang == 'ar' %}<span>رجوع للفريق</span>{% else %}<span data-inline>Back to Team</span>{% endif %}
                 </button>
             </div>
         </div>
@@ -291,14 +212,14 @@
                         <div class="text-xs" style="color:var(--n-gold);" id="chatEmpMeta"></div>
                     </div>
                     <button id="chatBack" class="btn btn-outline ms-auto" style="padding:8px 14px;font-size:0.8rem;">
-                        <i class="fas fa-arrow-left"></i> <span data-lang="ar" lang="ar" dir="rtl">رجوع</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back</span>
+                        <i class="fas fa-arrow-left"></i> {% if _lang == 'ar' %}<span>رجوع</span>{% else %}<span data-inline>Back</span>{% endif %}
                     </button>
                 </div>
                 <div class="chat-box flex flex-col gap-3 mb-4 p-4 rounded-xl" style="background:var(--n-cream);border:1px solid var(--n-line);min-height:300px;" id="chatBox"></div>
                 <div class="flex gap-3" id="chatInputRow">
                     <input type="text" id="chatAnswer" class="flex-1" placeholder="..." autocomplete="off">
                     <button id="chatSend" class="btn btn-gold" style="padding:12px 22px;">
-                        <i class="fas fa-paper-plane"></i> <span data-lang="ar" lang="ar" dir="rtl">إرسال</span><span data-lang="en" lang="en" dir="ltr" data-inline>Send</span>
+                        <i class="fas fa-paper-plane"></i> {% if _lang == 'ar' %}<span>إرسال</span>{% else %}<span data-inline>Send</span>{% endif %}
                     </button>
                 </div>
             </div>
@@ -307,18 +228,17 @@
 
     <footer class="n-footer py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar" lang="ar" dir="rtl">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" lang="en" dir="ltr" data-inline>✺ Al-Narjis AI ✺</span></div>
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
-                <span data-lang="ar" lang="ar" dir="rtl">يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>
-                <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الخصوصية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Privacy</span></a>
+                {% if _lang == 'ar' %}<span>يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>{% else %}<span data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>{% endif %}
+                <a href="/privacy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الشروط</span><span data-lang="en" lang="en" dir="ltr" data-inline>Terms</span></a>
+                <a href="/terms" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الشروط</span>{% else %}<span data-inline>Terms</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/refund-policy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">سياسة الاسترداد</span><span data-lang="en" lang="en" dir="ltr" data-inline>Refund policy</span></a>
+                <a href="/refund-policy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>سياسة الاسترداد</span>{% else %}<span data-inline>Refund policy</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/about" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">من نحن</span><span data-lang="en" lang="en" dir="ltr" data-inline>About</span></a>
+                <a href="/about" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>من نحن</span>{% else %}<span data-inline>About</span>{% endif %}</a>
             </p>
         </div>
     </footer>
@@ -361,32 +281,28 @@
                     <div class="n-card pkg text-center cursor-pointer selectable" data-pkg="${p.key}" style="transition:0.2s">
                         <div class="text-3xl mb-2" style="color:var(--n-gold);"><i class="${p.icon}"></i></div>
                         <h3 class="n-title text-lg">
-                            <span data-lang="ar" lang="ar" dir="rtl">${p.name}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${p.name_en}</span>
+                            {% if _lang == 'ar' %}<span>${p.name}</span>{% else %}<span data-inline>${p.name_en}</span>{% endif %}
                         </h3>
-                        <div class="price mt-1">${p.price} <small data-lang="ar" lang="ar" dir="rtl">ريال/شهر</small><small data-lang="en" lang="en" dir="ltr" data-inline>SAR/mo</small></div>
+                        <div class="price mt-1">${p.price} {% if _lang == 'ar' %}<small>ريال/شهر</small>{% else %}<small data-inline>SAR/mo</small>{% endif %}</div>
                         <div class="text-xs mt-2" style="color:var(--n-brown-2);">
-                            <span data-lang="ar" lang="ar" dir="rtl">${p.team_size} موظفين • ${p.tagline}</span>
-                            <span data-lang="en" lang="en" dir="ltr" data-inline>${p.team_size} employees • ${p.tagline_en}</span>
+                            {% if _lang == 'ar' %}<span>${p.team_size} موظفين • ${p.tagline}</span>{% else %}<span data-inline>${p.team_size} employees • ${p.tagline_en}</span>{% endif %}
                         </div>
                         ${p.limits ? `<div class="text-xs mt-2" style="color:var(--n-brown-2);">
-                            <span data-lang="ar" lang="ar" dir="rtl">${p.limits.conversations.toLocaleString('en')} محادثة • ميتا مشمولة حتى ${p.limits.meta_cap / 100} ر.س</span>
-                            <span data-lang="en" lang="en" dir="ltr" data-inline>${p.limits.conversations.toLocaleString('en')} conversations • Meta fees covered up to SAR ${p.limits.meta_cap / 100}</span>
+                            {% if _lang == 'ar' %}<span>${p.limits.conversations.toLocaleString('en')} محادثة • ميتا مشمولة حتى ${p.limits.meta_cap / 100} ر.س</span>{% else %}<span data-inline>${p.limits.conversations.toLocaleString('en')} conversations • Meta fees covered up to SAR ${p.limits.meta_cap / 100}</span>{% endif %}
                         </div>` : ''}
                         ${(p.features||[]).length ? `<div class="pkg-feat text-xs mt-3" style="text-align:start">
-                            <div data-lang="ar" lang="ar" dir="rtl"><b>متاح الآن</b><ul>${p.features.map(f=>`<li>✓ ${f}</li>`).join('')}</ul></div>
-                            <div data-lang="en" lang="en" dir="ltr"><b>Available now</b><ul>${p.features_en.map(f=>`<li>✓ ${f}</li>`).join('')}</ul></div>
+                            <div>{% if _lang == 'ar' %}<b>متاح الآن</b><ul>${p.features.map(f=>`<li>✓ ${f}</li>`).join('')}</ul>{% else %}<b>Available now</b><ul>${p.features_en.map(f=>`<li>✓ ${f}</li>`).join('')}</ul>{% endif %}</div>
                         </div>` : ''}
                         ${(p.coming||[]).length ? `<div class="pkg-coming text-xs mt-2" style="text-align:start;opacity:.6">
-                            <div data-lang="ar" lang="ar" dir="rtl"><b>قادم قريباً (غير مشمول حالياً)</b><ul>${p.coming.map(f=>`<li>◦ ${f}</li>`).join('')}</ul></div>
-                            <div data-lang="en" lang="en" dir="ltr"><b>Coming soon (not included yet)</b><ul>${p.coming_en.map(f=>`<li>◦ ${f}</li>`).join('')}</ul></div>
+                            <div>{% if _lang == 'ar' %}<b>قادم قريباً (غير مشمول حالياً)</b><ul>${p.coming.map(f=>`<li>◦ ${f}</li>`).join('')}</ul>{% else %}<b>Coming soon (not included yet)</b><ul>${p.coming_en.map(f=>`<li>◦ ${f}</li>`).join('')}</ul>{% endif %}</div>
                         </div>` : ''}
-                        ${p.recommended ? '<div class="text-xs mt-2" style="color:var(--n-gold-2);font-weight:700;"><span data-lang="ar" lang="ar" dir="rtl">ننصح بها</span><span data-lang="en" lang="en" dir="ltr" data-inline>Recommended</span></div>' : ''}
+                        ${p.recommended ? '<div class="text-xs mt-2" style="color:var(--n-gold-2);font-weight:700;">{% if _lang == 'ar' %}<span>ننصح بها</span>{% else %}<span data-inline>Recommended</span>{% endif %}</div>' : ''}
                     </div>
                 `).join('') + (data.enterprise ? `
                     <a class="n-card text-center" href="/consult" style="display:block;">
-                        <h3 class="n-title text-lg"><span data-lang="ar" lang="ar" dir="rtl">${data.enterprise.name}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${data.enterprise.name_en}</span></h3>
-                        <div class="price mt-1"><span data-lang="ar" lang="ar" dir="rtl">بعرض سعر — من نحو ${Number(data.enterprise.price_from).toLocaleString('en')} ريال/شهر</span><span data-lang="en" lang="en" dir="ltr" data-inline>By quote — from about SAR ${Number(data.enterprise.price_from).toLocaleString('en')}/mo</span></div>
-                        <div class="text-xs mt-2" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">${data.enterprise.tagline}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${data.enterprise.tagline_en}</span></div>
+                        <h3 class="n-title text-lg">{% if _lang == 'ar' %}<span>${data.enterprise.name}</span>{% else %}<span data-inline>${data.enterprise.name_en}</span>{% endif %}</h3>
+                        <div class="price mt-1">{% if _lang == 'ar' %}<span>بعرض سعر — من نحو ${Number(data.enterprise.price_from).toLocaleString('en')} ريال/شهر</span>{% else %}<span data-inline>By quote — from about SAR ${Number(data.enterprise.price_from).toLocaleString('en')}/mo</span>{% endif %}</div>
+                        <div class="text-xs mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>${data.enterprise.tagline}</span>{% else %}<span data-inline>${data.enterprise.tagline_en}</span>{% endif %}</div>
                     </a>` : '');
                 document.querySelectorAll('.pkg').forEach(c => {
                     c.addEventListener('click', () => {
@@ -409,7 +325,7 @@
                     $('regForm').scrollIntoView({ behavior: 'smooth' });
                 }
             }).catch(() => {
-                $('pkg-status').innerHTML = '<span data-lang="ar" lang="ar" dir="rtl">تعذّر التحميل، حدّث الصفحة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Unable to load, refresh the page</span> <a href="/portal" id="retry-packages"><span data-lang="ar" lang="ar" dir="rtl">إعادة المحاولة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Retry</span></a>';
+                $('pkg-status').innerHTML = '{% if _lang == 'ar' %}<span>تعذّر التحميل، حدّث الصفحة</span>{% else %}<span data-inline>Unable to load, refresh the page</span>{% endif %} <a href="/portal" id="retry-packages">{% if _lang == 'ar' %}<span>إعادة المحاولة</span>{% else %}<span data-inline>Retry</span>{% endif %}</a>';
                 $('retry-packages').href = window.location.pathname + window.location.search;
                 $('pkg-grid').innerHTML = '';
             }).finally(() => {
@@ -485,21 +401,21 @@
                                 <span>${a.no.replace('AG-','')}</span>
                             </div>
                             <div>
-                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · <span data-lang="ar" lang="ar" dir="rtl">${pending ? 'موظف نائم' : 'يقف الآن'}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${pending ? 'Asleep' : 'On standby'}</span></div>
+                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · {% if _lang == 'ar' %}<span>${pending ? 'موظف نائم' : 'يقف الآن'}</span>{% else %}<span data-inline>${pending ? 'Asleep' : 'On standby'}</span>{% endif %}</div>
                                 <h3 class="n-title text-base">
-                                    <span data-lang="ar" lang="ar" dir="rtl">${a.title_ar}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${a.title_en}</span>
+                                    {% if _lang == 'ar' %}<span>${a.title_ar}</span>{% else %}<span data-inline>${a.title_en}</span>{% endif %}
                                 </h3>
                                 <div class="text-xs" style="color:var(--n-brown-2);">
-                                    <span data-lang="ar" lang="ar" dir="rtl">قسم ${a.dept}</span><span data-lang="en" lang="en" dir="ltr" data-inline>Dept: ${deptEn(a.dept)}</span>
+                                    {% if _lang == 'ar' %}<span>قسم ${a.dept}</span>{% else %}<span data-inline>Dept: ${deptEn(a.dept)}</span>{% endif %}
                                 </div>
                             </div>
                         </div>
                         <p class="text-sm text-neutral-600" style="color:var(--n-brown-2);">
-                            <span data-lang="ar" lang="ar" dir="rtl">${a.intro_ar}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${a.intro_en}</span>
+                            {% if _lang == 'ar' %}<span>${a.intro_ar}</span>{% else %}<span data-inline>${a.intro_en}</span>{% endif %}
                         </p>
                         <button class="btn w-full mt-4 wake-btn ${pending ? 'btn-outline' : 'btn-gold'}" data-slug="${a.slug}">
                             <i class="${pending ? 'fas fa-lock' : 'fas fa-bolt'}"></i>
-                            <span data-lang="ar" lang="ar" dir="rtl">${pending ? 'فعّل اشتراكك ليستيقظ' : 'أيقظ الموظف'}</span><span data-lang="en" lang="en" dir="ltr" data-inline>${pending ? 'Activate to wake' : 'Wake Up'}</span>
+                            {% if _lang == 'ar' %}<span>${pending ? 'فعّل اشتراكك ليستيقظ' : 'أيقظ الموظف'}</span>{% else %}<span data-inline>${pending ? 'Activate to wake' : 'Wake Up'}</span>{% endif %}
                         </button>
                     </div>
                 `).join('');
@@ -730,15 +646,13 @@
                     showCoSummary();
                     const ar = isAr();
                     const allowPaypal = {{ 'true' if paypal_customer_enabled else 'false' }};
-                    const allowInvoice = {{ 'true' if bank_transfer_enabled else 'false' }};
                     const all = [
                         { m: 'mada', i: 'fas fa-credit-card', t: ar ? 'مدى / بطاقة مصرفية' : 'mada / Bank Card' },
                         { m: 'applepay', i: 'fab fa-apple', t: 'Apple Pay' },
                     ];
                     if (allowPaypal) all.unshift({ m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' });
-                    if (allowInvoice) all.push({ m: 'invoice', i: 'fas fa-landmark', t: ar ? 'تحويل بنكي' : 'Bank Transfer' });
-                    // Never offer a method the server cannot settle: a card button
-                    // that silently becomes a manual transfer is a dead promise.
+                    // Moyasar card methods only. A button must never promise a
+                    // transfer the server will not settle.
                     fetch('/api/payments/capabilities').then(r => r.json()).then(cap => {
                         const live = all.filter(x => cap.methods[x.m]);
                         const hidden = all.length - live.length;
@@ -746,58 +660,15 @@
                             <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
                                 <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
                             </button>`).join('');
-                            /* Show the IBAN here, before any checkout starts, read
-                               from the same capabilities payload the invoice prints.
-                               It stays hidden when no account is published: a copy
-                               button for an empty value is a dead control. */
-                            (function () {
-                                const box = document.getElementById('coXfer');
-                                const bank = cap.bank || {};
-                                if (!box || !allowInvoice || !bank.iban) return;
-                                $('xfIban').textContent = bank.iban;
-                                $('xfName').textContent = bank.account_name || '—';
-                                $('xfBank').textContent = bank.bank_name || '—';
-                                box.hidden = false;
-                                box.querySelectorAll('[data-xf-copy]').forEach(function (btn) {
-                                    btn.addEventListener('click', function () {
-                                        const el = document.getElementById(btn.dataset.xfCopy);
-                                        if (!el) return;
-                                        const text = el.textContent.trim();
-                                        const done = function () {
-                                            const old = btn.innerHTML;
-                                            btn.classList.add('done');
-                                            btn.innerHTML = ar
-                                                ? '<i class="fas fa-check"></i><span>تم النسخ</span>'
-                                                : '<i class="fas fa-check"></i><span>Copied</span>';
-                                            setTimeout(function () {
-                                                btn.innerHTML = old; btn.classList.remove('done');
-                                            }, 1600);
-                                        };
-                                        if (navigator.clipboard && navigator.clipboard.writeText) {
-                                            navigator.clipboard.writeText(text).then(done, function () {});
-                                        } else {
-                                            const sel = window.getSelection();
-                                            const range = document.createRange();
-                                            range.selectNodeContents(el);
-                                            sel.removeAllRanges(); sel.addRange(range);
-                                            try { document.execCommand('copy'); done(); } catch (e) {}
-                                        }
-                                    });
-                                });
-                            })();
 if (hidden) {
                             const note = document.getElementById('coCardNote');
                             if (note) {
                                 note.hidden = false;
                                 let msg;
-                                if (!cap.card && allowInvoice) {
+                                if (!cap.card) {
                                     msg = ar
-                                        ? 'الدفع بالبطاقة غير مفعّل حالياً — استخدم التحويل البنكي بالأسفل، وهو يفعّل باقتك فور تأكيد الإيداع.'
-                                        : 'Card checkout is not live yet — use the bank transfer below, which activates your plan as soon as it lands.';
-                                } else if (!cap.card) {
-                                    msg = ar
-                                        ? 'الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر المساعد في الموقع أو راسلنا على Al-Narjis@karmaai.online.'
-                                        : 'Online payment is being activated. Continue in the site assistant or email Al-Narjis@karmaai.online.';
+                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو Al-Narjis@karmaai.online أو 0540799266.'
+                                        : 'Payment is temporarily unavailable. Contact us through the site assistant, Al-Narjis@karmaai.online, or 0540799266.';
                                 } else if (cap.paypal_test_mode && allowPaypal) {
                                     msg = ar
                                         ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
@@ -893,21 +764,12 @@ note.textContent = msg;
                         window.location.href = data.redirect_url;
                         return;
                     }
-                    const sar = v => (Number(v || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    // Quote what the invoice bills, not the pre-VAT base.
-                    const due = data.invoice_total || data.total;
                     if (data.gateway === 'invoice') {
-                        msg.innerHTML = '<div style="color:var(--n-green);">' + (isAr()
-                            ? 'فاتورة رقم ' + data.payment_id.slice(0, 8).toUpperCase() + ' — المبلغ ' + sar(due) + ' ر.س'
-                            : 'Invoice ' + data.payment_id.slice(0, 8).toUpperCase() + ' created — ' + sar(due) + ' SAR') +
-                            '<a class="btn btn-gold" style="margin-top:12px;width:100%;" href="' + (data.invoice_url || ('/invoice/' + data.payment_id)) + '">' +
-                            (isAr() ? 'افتح الفاتورة وأكمل التحويل' : 'Open the invoice and pay') + '</a>' +
-                            '<div style="margin-top:10px;font-size:.85rem;opacity:.75;">' + (isAr()
-                                ? 'للاستفسار عن الفاتورة راسلنا على Al-Narjis@karmaai.online أو اتصل على 0540799266.'
-                                : 'Questions about this invoice: email Al-Narjis@karmaai.online or call 0540799266.') + '</div>'
-                            + '<a class="btn btn-outline" style="margin-top:10px;width:100%;" href="tel:+966540799266">'
-                                + (isAr() ? 'اتصال بخدمة العملاء 0540799266' : 'Call customer service 0540799266') + '</a>'
-                            + '</div>';
+                        msg.textContent = txt(
+                            'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو Al-Narjis@karmaai.online أو 0540799266.',
+                            'Payment is temporarily unavailable. Contact us through the site assistant, Al-Narjis@karmaai.online, or 0540799266.'
+                        );
+                        release();
                         return;
                     }
                     throw new Error(txt('تعذر إتمام الدفع', 'Payment failed'));

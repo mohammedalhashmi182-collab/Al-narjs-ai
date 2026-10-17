@@ -2,22 +2,20 @@
 
 {% block title %}Company OS - Al-Narjis AI{% endblock %}
 
-{% block page_title %}<span data-lang="ar" lang="ar" dir="rtl">قيادة الشركة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Company OS</span>{% endblock %}
+{% block page_title %}{% if _lang == 'ar' %}<span>قيادة الشركة</span>{% else %}<span data-inline>Company OS</span>{% endif %}{% endblock %}
 
 {% block content %}
 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
     <div>
         <h3 class="text-lg font-bold" style="color:var(--n-brown);">Autonomous Company Operating System</h3>
         <p class="text-sm" style="color:var(--n-brown-2);">
-            <span data-lang="ar" lang="ar" dir="rtl">يدير دورة عمل الرئيس التنفيذي: رصد ← تحديد أولويات ← فرص ← مهام ← قرارات تُسجّل آلياً</span>
-            <span data-lang="en" lang="en" dir="ltr" data-inline>The CEO brain runs a full cycle: observe → prioritize → opportunities → tasks → auditable decisions.</span>
+            {% if _lang == 'ar' %}<span>يدير دورة عمل الرئيس التنفيذي: رصد ← تحديد أولويات ← فرص ← مهام ← قرارات تُسجّل آلياً</span>{% else %}<span data-inline>The CEO brain runs a full cycle: observe → prioritize → opportunities → tasks → auditable decisions.</span>{% endif %}
         </p>
     </div>
     <div class="flex items-center gap-3">
         <button id="runCEO" class="btn inline-flex items-center gap-2 font-bold" style="background:var(--n-gold);color:#111;">
             <i class="fas fa-chess-king"></i>
-            <span data-lang="ar" lang="ar" dir="rtl">تشغيل دورة الرئيس التنفيذي</span>
-            <span data-lang="en" lang="en" dir="ltr" data-inline>Run CEO cycle</span>
+            {% if _lang == 'ar' %}<span>تشغيل دورة الرئيس التنفيذي</span>{% else %}<span data-inline>Run CEO cycle</span>{% endif %}
         </button>
         <span id="ceoStatus" class="text-xs font-bold hidden lg:inline" style="color:var(--n-brown-2);"></span>
     </div>
@@ -28,7 +26,7 @@
         <div class="flex items-center">
             <div class="p-3 bg-cyan-100 rounded-full"><i class="fas fa-robot text-cyan-600 text-2xl"></i></div>
             <div class="mx-3">
-                <p class="text-sm text-gray-500"><span data-lang="ar" lang="ar" dir="rtl">الوكلاء النشطون</span><span data-lang="en" lang="en" dir="ltr" data-inline>Active Agents</span></p>
+                <p class="text-sm text-gray-500">{% if _lang == 'ar' %}<span>الوكلاء النشطون</span>{% else %}<span data-inline>Active Agents</span>{% endif %}</p>
                 <p id="kpi-agents" class="text-2xl font-bold text-gray-900">-</p>
             </div>
         </div>
@@ -38,7 +36,7 @@
         <div class="flex items-center">
             <div class="p-3 bg-blue-100 rounded-full"><i class="fas fa-users text-blue-600 text-2xl"></i></div>
             <div class="mx-3">
-                <p class="text-sm text-gray-500"><span data-lang="ar" lang="ar" dir="rtl">العملاء المحتملون</span><span data-lang="en" lang="en" dir="ltr" data-inline>Leads</span></p>
+                <p class="text-sm text-gray-500">{% if _lang == 'ar' %}<span>العملاء المحتملون</span>{% else %}<span data-inline>Leads</span>{% endif %}</p>
                 <p id="kpi-leads" class="text-2xl font-bold text-gray-900">-</p>
             </div>
         </div>
@@ -48,7 +46,7 @@
         <div class="flex items-center">
             <div class="p-3 bg-emerald-100 rounded-full"><i class="fas fa-coins text-emerald-600 text-2xl"></i></div>
             <div class="mx-3">
-                <p class="text-sm text-gray-500"><span data-lang="ar" lang="ar" dir="rtl">الإيرادات المدفوعة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Paid Revenue</span></p>
+                <p class="text-sm text-gray-500">{% if _lang == 'ar' %}<span>الإيرادات المدفوعة</span>{% else %}<span data-inline>Paid Revenue</span>{% endif %}</p>
                 <p id="kpi-revenue" class="text-2xl font-bold text-gray-900">-</p>
             </div>
         </div>
@@ -58,7 +56,7 @@
         <div class="flex items-center">
             <div class="p-3 bg-amber-100 rounded-full"><i class="fas fa-tasks text-amber-600 text-2xl"></i></div>
             <div class="mx-3">
-                <p class="text-sm text-gray-500"><span data-lang="ar" lang="ar" dir="rtl">مهام مفتوحة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Open Work</span></p>
+                <p class="text-sm text-gray-500">{% if _lang == 'ar' %}<span>مهام مفتوحة</span>{% else %}<span data-inline>Open Work</span>{% endif %}</p>
                 <p id="kpi-tasks" class="text-2xl font-bold text-gray-900">-</p>
             </div>
         </div>
@@ -70,11 +68,10 @@
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
             <h3 class="text-lg font-bold text-gray-900">
-                <span data-lang="ar" lang="ar" dir="rtl">غرفة عمليات الإيرادات</span><span data-lang="en" lang="en" dir="ltr" data-inline>Revenue War Room</span>
+                {% if _lang == 'ar' %}<span>غرفة عمليات الإيرادات</span>{% else %}<span data-inline>Revenue War Room</span>{% endif %}
             </h3>
             <p class="text-xs text-gray-500">
-                <span data-lang="ar" lang="ar" dir="rtl">الهدف 10,000 ر.س اليوم — المصدق فقط يزداد، والإمكاني يُعرض منفصلاً دون أي تزوير</span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>Target 10,000 SAR today — only verified revenue counts; potential is shown separately.</span>
+                {% if _lang == 'ar' %}<span>الهدف 10,000 ر.س اليوم — المصدق فقط يزداد، والإمكاني يُعرض منفصلاً دون أي تزوير</span>{% else %}<span data-inline>Target 10,000 SAR today — only verified revenue counts; potential is shown separately.</span>{% endif %}
             </p>
         </div>
         <span id="rev-wave" class="px-2 py-1 text-xs font-bold rounded-full bg-white border border-gray-200 text-gray-700"></span>
@@ -98,8 +95,7 @@
         </div>
     </div>
     <p class="text-xs text-gray-500 mb-3">
-        <span data-lang="ar" lang="ar" dir="rtl">عدد التواصل المطلوب لتغطية الفجوة حسب افتراضات تحويل صريحة:</span>
-        <span data-lang="en" lang="en" dir="ltr" data-inline>Required conversations to close the gap (explicit conversion assumptions):</span>
+        {% if _lang == 'ar' %}<span>عدد التواصل المطلوب لتغطية الفجوة حسب افتراضات تحويل صريحة:</span>{% else %}<span data-inline>Required conversations to close the gap (explicit conversion assumptions):</span>{% endif %}
         <span id="rev-contacts" class="font-bold text-gray-700">—</span>
         · <span id="rev-tiers" class="font-bold text-gray-700">—</span>
     </p>
@@ -133,7 +129,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar" lang="ar" dir="rtl">الفرص المكتشفة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Opportunities</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900">{% if _lang == 'ar' %}<span>الفرص المكتشفة</span>{% else %}<span data-inline>Opportunities</span>{% endif %}</h3>
             <span class="text-xs text-gray-500">/api/opportunities</span>
         </div>
         <div class="p-4" style="max-height:420px;overflow-y:auto;">
@@ -146,7 +142,7 @@
 
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar" lang="ar" dir="rtl">المهام الموكلة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Tasks</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900">{% if _lang == 'ar' %}<span>المهام الموكلة</span>{% else %}<span data-inline>Tasks</span>{% endif %}</h3>
             <span class="text-xs text-gray-500">/api/tasks</span>
         </div>
         <div class="p-4" style="max-height:420px;overflow-y:auto;">
@@ -160,7 +156,7 @@
 
 <div class="bg-white rounded-2xl shadow mb-8">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900"><span data-lang="ar" lang="ar" dir="rtl">سجل القرارات (لا يحذف أبداً)</span><span data-lang="en" lang="en" dir="ltr" data-inline>Decision Log (append-only)</span></h3>
+        <h3 class="text-lg font-semibold text-gray-900">{% if _lang == 'ar' %}<span>سجل القرارات (لا يحذف أبداً)</span>{% else %}<span data-inline>Decision Log (append-only)</span>{% endif %}</h3>
         <span class="text-xs text-gray-500">/api/decisions</span>
     </div>
     <div class="p-4" style="max-height:360px;overflow-y:auto;">

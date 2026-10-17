@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Demo مخصص - Karma AI{% endblock %}
-{% block page_title %}<span data-lang="ar" lang="ar" dir="rtl">عرض تجريبي مخصص</span><span data-lang="en" lang="en" dir="ltr" data-inline>Personalized demo</span>{% endblock %}
+{% block page_title %}{% if _lang == 'ar' %}<span>عرض تجريبي مخصص</span>{% else %}<span data-inline>Personalized demo</span>{% endif %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">

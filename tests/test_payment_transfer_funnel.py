@@ -170,7 +170,7 @@ class TestCapabilities:
             assert caps["methods"][method] is False
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         with _gateway_config():
-            assert pm.capabilities()["methods"]["invoice"] is True
+            assert pm.capabilities()["methods"]["invoice"] is False
 
     def test_moyasar_secret_switches_on_every_card_method(self, monkeypatch):
         monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
@@ -408,43 +408,15 @@ class TestGatewayFailureFallback:
         finally:
             monkey.undo()
 
-    async def test_the_invoice_link_the_response_promises_actually_opens(self, api, monkeypatch):
+    async def test_a_card_failure_never_becomes_a_bank_invoice(self, api, monkeypatch):
         r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
-        assert r.status_code == 200
-        body = r.json()
-        assert body["gateway"] == "invoice"
-        invoice_url = body["invoice_url"]
-        assert invoice_url == f"/invoice/{body['payment_id']}"
+        assert r.status_code == 502
+        assert "invoice_url" not in r.text
+        assert "401" not in r.text
+        assert "Moyasar error" not in r.text
 
-        anon, _ = api
-        page = await anon.get(invoice_url)
-        assert page.status_code == 200, f"dead invoice link: {invoice_url}"
-        assert body["payment_id"] in page.text
-
-    async def test_the_payment_is_reachable_after_the_gateway_failed(self, api, monkeypatch):
-        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
-        payment_id = r.json()["payment_id"]
-        anon, _ = api
-        fetched = await anon.get(f"/api/payments/{payment_id}")
-        assert fetched.status_code == 200
-
-    async def test_the_buyer_can_report_the_transfer_on_that_invoice(self, api, monkeypatch):
-        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
-        payment_id = r.json()["payment_id"]
-        anon, _ = api
-        report = await anon.post(f"/api/payments/{payment_id}/transfer-reported")
-        assert report.status_code == 200
-
-    async def test_the_gateway_error_is_not_shown_to_the_buyer(self, api, monkeypatch):
-        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
-        assert "401" in r.json()["message"]  # the owner still sees the cause
-        anon, _ = api
-        page = await anon.get(r.json()["invoice_url"])
-        assert "Moyasar error" not in page.text
-        assert "Invalid authorization credentials" not in page.text
-
-    async def test_card_failure_stays_off_the_bank_invoice_by_default(self, api, monkeypatch):
-        """Customers are not offered a bank-transfer invoice unless the flag is on."""
+    async def test_card_failure_stays_off_the_bank_invoice(self, api, monkeypatch):
+        """Customers are not offered a bank-transfer invoice."""
         monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         anon, _ = api
         from src.services import payments as payments_module
@@ -585,12 +557,22 @@ class TestVatInclusiveCharging:
 
     @pytest.mark.usefixtures("founding_full")
     async def test_the_api_reports_the_vat_inclusive_total_to_the_checkout(self, api, monkeypatch):
+        """Owner-raised invoices still quote VAT. Customers cannot open that path."""
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+        from src.core.owner_auth import make_session_token
         from src.services import catalog
 
         anon, _ = api
         with _gateway_config():
-            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"})
+            refused = await anon.post(
+                "/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}
+            )
+            r = await anon.post(
+                "/api/payments",
+                json={"refund_consent": True, "package": "radd", "method": "invoice"},
+                cookies={"narjis_owner": make_session_token()},
+            )
+        assert refused.status_code == 400
         base = catalog.PACKAGES["radd"]["amount"]
         assert r.json()["invoice_total"] == pm.total_with_vat(base)
         # The bank-transfer quote must match the invoice: total is VAT-inclusive
@@ -664,7 +646,7 @@ class TestMoyasarTestKeyIsNotAPaymentMethod:
         assert caps["methods"]["invoice"] is False
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         with _gateway_config(moyasar=TEST_MOYASAR_KEY):
-            assert pm.capabilities()["methods"]["invoice"] is True
+            assert pm.capabilities()["methods"]["invoice"] is False
 
     def test_the_owner_is_told_a_test_key_is_the_reason(self):
         with _gateway_config(moyasar=TEST_MOYASAR_KEY):
@@ -715,12 +697,8 @@ class TestTransferInstructions:
         with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
             assert pm.transfer_instructions(payment)["bank"] == {}
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-        with _bank_file():
-            assert pm.transfer_instructions(payment)["bank"] == {}
         with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
-            bank = pm.transfer_instructions(payment)["bank"]
-        assert bank["iban"] == "SA0380000000608010167519"
-        assert bank["bank_name"] == "مصرف الراجحي"
+            assert pm.transfer_instructions(payment)["bank"] == {}
 
 
 # ---------------------------------------------------------------------------
@@ -856,21 +834,18 @@ class TestPublicSurface:
         assert r.status_code == 400
 
     @pytest.mark.usefixtures("founding_full")
-    async def test_the_invoice_fallback_carries_the_amount_the_invoice_bills(self, api, monkeypatch):
+    async def test_a_customer_cannot_fall_back_to_a_bank_invoice(self, api, monkeypatch):
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         anon, _ = api
-        from src.services import catalog
 
         with _gateway_config():
             r = await anon.post(
                 "/api/payments",
                 json={"refund_consent": True, "package": "radd", "method": "invoice", "customer_name": "-buy-test"},
             )
-        assert r.status_code == 200
-        body = r.json()
-        assert body["gateway"] == "invoice"
-        assert body["invoice_total"] == pm.total_with_vat(catalog.PACKAGES["radd"]["amount"])
-        assert body["invoice_url"] == f"/invoice/{body['payment_id']}"
+        assert r.status_code == 400
+        assert "invoice_url" not in r.text
+        assert "Bank transfer is not available" in r.text
 
     async def test_the_capabilities_route_is_not_shadowed_by_the_payment_id_route(self, api):
         anon, _ = api
@@ -902,28 +877,18 @@ class TestTemplates:
         # WhatsApp is promoted to the primary action in that state.
         assert "{% if not xfer.bank.iban %}" in partial and "mailto:Al-Narjis@karmaai.online" in partial
 
-    async def test_the_invoice_offers_whatsapp_when_no_bank_details_exist(self, api, maker, monkeypatch):
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-        anon, _ = api
-        payment = await _insert_payment(maker)
-        with _bank_file():
-            r = await anon.get(f"/invoice/{payment.id}")
-        assert r.status_code == 200
-        body = r.text
-        assert "لم تُنشر بيانات الحساب بعد" in body
-        assert "mailto:Al-Narjis@karmaai.online" in body and "wa.me" not in body
-        assert "نسخ الآيبان" not in body
-
-    async def test_the_invoice_publishes_the_iban_when_it_is_set(self, api, maker, monkeypatch):
+    async def test_a_customer_invoice_page_does_not_publish_bank_details(self, api, maker, monkeypatch):
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         anon, _ = api
         payment = await _insert_payment(maker)
         with _bank_file(iban="SA0380000000608010167519", bank_name="Al Rajhi"):
             r = await anon.get(f"/invoice/{payment.id}")
+        assert r.status_code == 200
         body = r.text
-        assert "SA0380000000608010167519" in body
+        assert "SA0380000000608010167519" not in body
+        assert "نسخ الآيبان" not in body
         assert "لم تُنشر بيانات الحساب بعد" not in body
-        assert "نسخ الآيبان" in body
+        assert "wa.me" not in body
 
     def test_the_checkout_asks_the_server_which_methods_are_real(self):
         portal = self._read("portal.html")
@@ -935,23 +900,24 @@ class TestTemplates:
         assert "if (hidden) {" in portal
         assert "coCardNote" in portal
 
-    def test_the_invoice_branch_leads_the_buyer_to_the_payable_invoice(self):
+    def test_the_invoice_branch_does_not_send_the_buyer_to_a_transfer(self):
         portal = self._read("portal.html")
-        assert "data.invoice_url || ('/invoice/' + data.payment_id)" in portal
+        assert "data.invoice_url || ('/invoice/' + data.payment_id)" not in portal
+        assert "الدفع غير متاح مؤقتاً" in portal
 
     def test_checkout_fires_the_money_event_for_the_pixel(self):
         portal = self._read("portal.html")
         assert "fbq('track', 'InitiateCheckout'" in portal
 
     def test_the_confirmation_shows_sar_not_halalas(self):
-        """/api/payments speaks halalas; 172500 printed as SAR reads as 172,500 SAR."""
+        """/api/payments speaks halalas; the portal must not print that integer as SAR."""
         portal = self._read("portal.html")
         assert "data.total.toLocaleString()" not in portal
-        assert "sar(due)" in portal
 
-    def test_the_confirmation_quotes_the_same_number_the_invoice_bills(self):
+    def test_the_confirmation_does_not_quote_a_bank_transfer_total(self):
         portal = self._read("portal.html")
-        assert "data.invoice_total || data.total" in portal
+        assert "data.invoice_total || data.total" not in portal
+        assert "أكمل التحويل" not in portal
 
     def test_the_purchase_event_reaches_the_ad_platform_in_sar(self):
         status = self._read("payment_status.html")

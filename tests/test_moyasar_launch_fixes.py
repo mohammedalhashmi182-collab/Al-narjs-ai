@@ -237,9 +237,15 @@ class TestAmountMismatch:
 
 
 class TestIdempotency:
+    def _as_owner(self, anon):
+        from src.core.owner_auth import make_session_token
+
+        anon.cookies.set("narjis_owner", make_session_token())
+
     async def test_same_idempotency_key_creates_one_order(self, anon, maker):
         from sqlalchemy import func, select
 
+        self._as_owner(anon)
         with _settings(moyasar_api_secret=None):
             h = {"Idempotency-Key": "abc-123"}
             r1 = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}, headers=h)
@@ -250,6 +256,7 @@ class TestIdempotency:
             assert (await s.execute(select(func.count()).select_from(Payment))).scalar_one() == 1
 
     async def test_same_customer_double_click_without_key_is_deduped(self, anon):
+        self._as_owner(anon)
         body = {"refund_consent": True, "package": "radd", "method": "invoice", "customer_phone": "0555000000"}
         with _settings(moyasar_api_secret=None):
             r1 = await anon.post("/api/payments", json=body)
@@ -257,6 +264,7 @@ class TestIdempotency:
         assert r1.json()["payment_id"] == r2.json()["payment_id"]
 
     async def test_different_keys_create_different_orders(self, anon):
+        self._as_owner(anon)
         with _settings(moyasar_api_secret=None):
             r1 = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}, headers={"Idempotency-Key": "a"})
             r2 = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}, headers={"Idempotency-Key": "b"})
@@ -269,9 +277,21 @@ class TestIdempotency:
 
 
 class TestBankTransferTotal:
+    """VAT on an owner-raised invoice. A customer cannot open that path."""
+
+    def _as_owner(self, anon):
+        from src.core.owner_auth import make_session_token
+
+        anon.cookies.set("narjis_owner", make_session_token())
+
     async def test_bank_transfer_total_matches_invoice(self, anon):
         with _settings(moyasar_api_secret=None):
+            refused = await anon.post(
+                "/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice"}
+            )
+            self._as_owner(anon)
             r = await anon.post("/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice"})
+        assert refused.status_code == 400
         data = r.json()
         base = data["amount"]
         assert data["total"] == data["invoice_total"] == pm.total_with_vat(base)
@@ -282,6 +302,7 @@ class TestBankTransferTotal:
 
         if catalog.PACKAGES.get("team", {}).get("amount") != 149900:
             pytest.skip("team package price changed")
+        self._as_owner(anon)
         with _settings(moyasar_api_secret=None):
             r = await anon.post("/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice"})
         assert r.json()["total"] == 172385  # halalas == 1,723.85 SAR, not the 149900 base

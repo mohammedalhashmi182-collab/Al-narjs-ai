@@ -316,7 +316,7 @@ def build_result(d: Diagnosis) -> dict:
         },
         "cta": {
             "subscribe": subscribe,
-            "telegram": f"{transfer.TELEGRAM_BOT}?start=plan_{plan_key}",
+            "telegram": "",
             "whatsapp": channels.get("whatsapp", ""),
         },
     }

@@ -287,7 +287,9 @@ async def test_checkout_api_bills_annual_with_addons(maker):
 
     app.state.session_factory = maker
     transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://test", cookies={"narjis_owner": make_session_token()}
+    ) as c:
         r = await c.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice",
                                                 "billing_period": "annual", "addons": 1})
         bad = await c.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice",

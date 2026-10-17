@@ -18,11 +18,9 @@ VARIANT_QUOTE = "quote_followup"
 VARIANT_CUSTOMER = "customer_reengage"
 VARIANT_COLD = "cold_intro"
 
-# Telegram is the only support/outreach channel. The share URL is a deep link that
-# opens the chat picker with the draft already filled in; the rep picks the contact.
+# Drafts are copied and sent by a person. Customer contact is the site assistant,
+# Al-Narjis@karmaai.online and 0540799266. The share URL only pre-fills a message.
 TELEGRAM_SHARE_URL = "https://karmaai.online"
-TELEGRAM_BOT = "https://t.me/AlNarjs7BOT"
-TELEGRAM_SUPPORT = "https://t.me/AlNarjs7BOT?start=support"
 
 VARIANT_LABELS_AR = {
     VARIANT_QUOTE: "متابعة عرض سعر",

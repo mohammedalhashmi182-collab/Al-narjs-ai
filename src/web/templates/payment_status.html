@@ -22,7 +22,7 @@
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen flex items-center justify-center p-6 n-geo">
     <div class="n-card w-full max-w-md text-center">
         <img src="/static/logo.svg" alt="Al-Narjis AI" class="mx-auto mb-3" style="height:40px;width:auto;object-fit:contain;border-radius:8px;">
-        <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">النرجس للذكاء الاصطناعي · AL-NARJIS AI · SMART AGENT PLATFORM</div>
+        <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</div>
         <div class="text-5xl mb-5">
             {% if result == "success" %}
             <i class="fas fa-check-circle" style="color:var(--n-green);"></i>
@@ -32,39 +32,32 @@
         </div>
         {% if result == "success" %}
         <h1 class="n-title text-2xl mb-2">
-            <span data-lang="ar" lang="ar" dir="rtl">تم استلام الدفع بنجاح ✓</span>
-            <span data-lang="en" lang="en" dir="ltr" data-inline>Payment Received ✓</span>
+            {% if _lang == 'ar' %}<span>تم استلام الدفع بنجاح ✓</span>{% else %}<span data-inline>Payment Received ✓</span>{% endif %}
         </h1>
         <p class="n-sub mb-4">
-            <span data-lang="ar" lang="ar" dir="rtl">تم تفعيل باقتك فعلياً — فريقك جاهز الآن ويستطيع العمل. افتح بوابتك وابدأ.</span>
-            <span data-lang="en" lang="en" dir="ltr" data-inline>Your plan is now active — your team is awake and ready. Open your portal and start.</span>
+            {% if _lang == 'ar' %}<span>تم تفعيل باقتك فعلياً — فريقك جاهز الآن ويستطيع العمل. افتح بوابتك وابدأ.</span>{% else %}<span data-inline>Your plan is now active — your team is awake and ready. Open your portal and start.</span>{% endif %}
         </p>
         {% else %}
         <h1 class="n-title text-2xl mb-2">
-            <span data-lang="ar" lang="ar" dir="rtl">تعذر إتمام الدفع</span>
-            <span data-lang="en" lang="en" dir="ltr" data-inline>Payment Failed</span>
+            {% if _lang == 'ar' %}<span>تعذر إتمام الدفع</span>{% else %}<span data-inline>Payment Failed</span>{% endif %}
         </h1>
         <p class="n-sub mb-4">
-            <span data-lang="ar" lang="ar" dir="rtl">حدث خطأ أثناء العملية. يمكنك المحاولة مرة أخرى أو التواصل معنا.</span>
-            <span data-lang="en" lang="en" dir="ltr" data-inline>Something went wrong. Please try again or contact us.</span>
+            {% if _lang == 'ar' %}<span>حدث خطأ أثناء العملية. يمكنك المحاولة مرة أخرى أو التواصل معنا.</span>{% else %}<span data-inline>Something went wrong. Please try again or contact us.</span>{% endif %}
         </p>
         {% endif %}
         {% if payment_id %}
-        <p class="text-xs mb-4" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">رقم العملية: {{ payment_id }}</span><span data-lang="en" lang="en" dir="ltr" data-inline>Payment ID: {{ payment_id }}</span></p>
+        <p class="text-xs mb-4" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>رقم العملية: {{ payment_id }}</span>{% else %}<span data-inline>Payment ID: {{ payment_id }}</span>{% endif %}</p>
         {% endif %}
         <div class="flex flex-col gap-3 mt-2">
             <a id="portalGo" href="/portal" class="btn btn-gold w-full" {% if result != "success" %}style="display:none;"{% endif %}>
                 <i class="fas fa-bolt"></i>
-                <span data-lang="ar" lang="ar" dir="rtl">افتح بوابة فريقك — أيقظ موظفيك</span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>Open Your Team Portal — Wake Your Employees</span>
+                {% if _lang == 'ar' %}<span>افتح بوابة فريقك — أيقظ موظفيك</span>{% else %}<span data-inline>Open Your Team Portal — Wake Your Employees</span>{% endif %}
             </a>
             <a href="/home#pricing" class="btn btn-green w-full">
-                <span data-lang="ar" lang="ar" dir="rtl">العودة إلى الأسعار</span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>Back to Pricing</span>
+                {% if _lang == 'ar' %}<span>العودة إلى الأسعار</span>{% else %}<span data-inline>Back to Pricing</span>{% endif %}
             </a>
             <a id="emailContact" href="mailto:Al-Narjis@karmaai.online" class="btn btn-outline w-full">
-                <span data-lang="ar" lang="ar" dir="rtl">راسلنا بالبريد</span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>Email us</span>
+                {% if _lang == 'ar' %}<span>راسلنا بالبريد</span>{% else %}<span data-inline>Email us</span>{% endif %}
             </a>
         </div>
     </div>
@@ -76,10 +69,13 @@
             var fallback = oid ? null : sessionStorage.getItem('narjis-order-' + id);
             if (!id || (oid === null && !fallback)) return;
             if (oid === null) oid = fallback;
-            var isAr = document.body.dataset.lang === 'ar';
             var icon = document.querySelector('.text-5xl i');
             var h1 = document.querySelector('h1');
             var sub = document.querySelector('.n-sub');
+            var paidTitle = {{ ('تم استلام الدفع بنجاح ✓' if _lang == 'ar' else 'Payment Received ✓') | tojson }};
+            var failTitle = {{ ('لم يكتمل الدفع' if _lang == 'ar' else 'Payment Not Completed') | tojson }};
+            var paidBody = {{ ('تم تفعيل باقتك فعلياً — فريقك جاهز الآن. افتح بوابتك وابدأ.' if _lang == 'ar' else 'Your plan is now active — your team is awake and ready. Open your portal and start.') | tojson }};
+            var failBody = {{ ('حدث خطأ أثناء العملية. جرّب مجدداً أو تواصل معنا.' if _lang == 'ar' else 'Something went wrong. Please try again or contact us.') | tojson }};
             (async function () {
                 var st = null;
                 try {
@@ -99,24 +95,8 @@
                     icon.className = ok ? 'fas fa-check-circle' : 'fas fa-times-circle';
                     icon.style.color = ok ? 'var(--n-green)' : '#b91c1c';
                 }
-                if (h1) {
-                    if (ok) {
-                        h1.querySelector('[data-lang="ar"]').textContent = 'تم استلام الدفع بنجاح ✓';
-                        h1.querySelector('[data-lang="en"]').textContent = 'Payment Received ✓';
-                    } else {
-                        h1.querySelector('[data-lang="ar"]').textContent = 'لم يكتمل الدفع';
-                        h1.querySelector('[data-lang="en"]').textContent = 'Payment Not Completed';
-                    }
-                }
-                if (sub) {
-                    if (ok) {
-                        sub.querySelector('[data-lang="ar"]').textContent = 'تم تفعيل باقتك فعلياً — فريقك جاهز الآن. افتح بوابتك وابدأ.';
-                        sub.querySelector('[data-lang="en"]').textContent = 'Your plan is now active — your team is awake and ready. Open your portal and start.';
-                    } else {
-                        sub.querySelector('[data-lang="ar"]').textContent = 'حدث خطأ أثناء العملية. جرّب مجدداً أو تواصل معنا.';
-                        sub.querySelector('[data-lang="en"]').textContent = 'Something went wrong. Please try again or contact us.';
-                    }
-                }
+                if (h1) h1.textContent = ok ? paidTitle : failTitle;
+                if (sub) sub.textContent = ok ? paidBody : failBody;
                 if (ok) {
                     try {
                         // /api/payments speaks halalas; every ad platform wants SAR.

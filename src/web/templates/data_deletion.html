@@ -15,44 +15,33 @@
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body[data-lang="ar"] [data-lang="en"] { display: none; }
-        body[data-lang="en"] [data-lang="ar"] { display: none; }
     </style>
 </head>
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
     <div class="n-hero" style="padding:56px 20px 40px;">
         <div class="max-w-3xl mx-auto">
-            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; <span data-lang="ar" lang="ar" dir="rtl">العودة للرئيسية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back to home</span></a>
-            <h1 class="n-title text-3xl mt-4"><span data-lang="ar" lang="ar" dir="rtl">تعليمات حذف البيانات</span><span data-lang="en" lang="en" dir="ltr" data-inline>Data Deletion Instructions</span></h1>
-            <p class="n-sub mt-2" style="color:var(--n-brown-2);"><span data-lang="ar" lang="ar" dir="rtl">آخر تحديث: 19 سبتمبر 2026</span><span data-lang="en" lang="en" dir="ltr" data-inline>Last updated: 19 September 2026</span></p>
+            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; {% if _lang == 'ar' %}<span>العودة للرئيسية</span>{% else %}<span data-inline>Back to home</span>{% endif %}</a>
+            <h1 class="n-title text-3xl mt-4">{% if _lang == 'ar' %}<span>تعليمات حذف البيانات</span>{% else %}<span data-inline>Data Deletion Instructions</span>{% endif %}</h1>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>آخر تحديث: 19 سبتمبر 2026</span>{% else %}<span data-inline>Last updated: 19 September 2026</span>{% endif %}</p>
 
             <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
-                <h2 class="n-title text-lg" data-lang="ar" lang="ar" dir="rtl">كيف تطلب حذف بياناتك</h2>
-                <h2 class="n-title text-lg" data-lang="en" lang="en" dir="ltr" data-inline>How to request deletion of your data</h2>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar" lang="ar" dir="rtl">إذا أردت حذف بياناتك الشخصية المخزنة في منصتنا، راسلنا على البريد أدناه واذكر صراحةً «أطلب حذف بياناتي». سنتحقق من هويتك عبر الرقم أو البريد المسجل لدينا.</p>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" lang="en" dir="ltr" data-inline>If you wish to delete your personal data stored on our platform, email us at the address below and state clearly: "I request deletion of my data." We verify your identity via the registered number or email.</p>
+                {% if _lang == 'ar' %}<h2 class="n-title text-lg">كيف تطلب حذف بياناتك</h2>{% else %}<h2 class="n-title text-lg" data-inline>How to request deletion of your data</h2>{% endif %}
+                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">إذا أردت حذف بياناتك الشخصية المخزنة في منصتنا، راسلنا على البريد أدناه واذكر صراحةً «أطلب حذف بياناتي». سنتحقق من هويتك عبر الرقم أو البريد المسجل لدينا.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>If you wish to delete your personal data stored on our platform, email us at the address below and state clearly: "I request deletion of my data." We verify your identity via the registered number or email.</p>{% endif %}
 
                 <ul class="n-sub" style="font-size:0.95rem;list-style:none;padding:0;">
-                    <li style="margin-block:10px;"><span data-lang="ar" lang="ar" dir="rtl">البريد:</span><span data-lang="en" lang="en" dir="ltr" data-inline>Email:</span> <a href="mailto:Al-Narjis@karmaai.online" style="color:var(--n-gold);">Al-Narjis@karmaai.online</a></li>
+                    <li style="margin-block:10px;">{% if _lang == 'ar' %}<span>البريد:</span>{% else %}<span data-inline>Email:</span>{% endif %} <a href="mailto:Al-Narjis@karmaai.online" style="color:var(--n-gold);">Al-Narjis@karmaai.online</a></li>
                 </ul>
 
-                <h2 class="n-title text-lg mt-5" data-lang="ar" lang="ar" dir="rtl">ماذا يُحذف؟</h2>
-                <h2 class="n-title text-lg mt-5" data-lang="en" lang="en" dir="ltr" data-inline>What gets deleted?</h2>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar" lang="ar" dir="rtl">بعد تأكيد الهوية، نحذف خلال 30 يوماً: الاسم، رقم الجوال، البريد الإلكتروني، محتوى الاستفسارات، ملفات التعريف، والمحادثات غير المتعلقة بالفواتير. كحد أدنى سنوقف جميع الاستخدامات التسويقية والتواصلية فوراً حتى اكتمال الحذف.</p>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" lang="en" dir="ltr" data-inline>After identity verification, we delete within 30 days: name, phone number, email, enquiry content, profiles, and non-invoice conversations. At a minimum, we stop all marketing and communication use immediately until deletion is complete.</p>
+                {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">ماذا يُحذف؟</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>What gets deleted?</h2>{% endif %}
+                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">بعد تأكيد الهوية، نحذف خلال 30 يوماً: الاسم، رقم الجوال، البريد الإلكتروني، محتوى الاستفسارات، ملفات التعريف، والمحادثات غير المتعلقة بالفواتير. كحد أدنى سنوقف جميع الاستخدامات التسويقية والتواصلية فوراً حتى اكتمال الحذف.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>After identity verification, we delete within 30 days: name, phone number, email, enquiry content, profiles, and non-invoice conversations. At a minimum, we stop all marketing and communication use immediately until deletion is complete.</p>{% endif %}
 
-                <h2 class="n-title text-lg mt-5" data-lang="ar" lang="ar" dir="rtl">استثناء قانوني (الاحتفاظ الإلزامي)</h2>
-                <h2 class="n-title text-lg mt-5" data-lang="en" lang="en" dir="ltr" data-inline>Legal exception (mandatory retention)</h2>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar" lang="ar" dir="rtl">السجلات المالية والفواتير تُحتفظ بها للمدة التي تقتضيها الأنظمة الضريبية في المملكة (هيئة الزكاة والضريبة والجمارك) — دون استخدام تجاري، ولا تُمسّ إلا بحكم النظام.</p>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" lang="en" dir="ltr" data-inline>Financial records and invoices are retained for the period required by Saudi tax regulations (ZATCA) — for regulatory compliance only, never for commercial use.</p>
+                {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">استثناء قانوني (الاحتفاظ الإلزامي)</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>Legal exception (mandatory retention)</h2>{% endif %}
+                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">السجلات المالية والفواتير تُحتفظ بها للمدة التي تقتضيها الأنظمة الضريبية في المملكة (هيئة الزكاة والضريبة والجمارك) — دون استخدام تجاري، ولا تُمسّ إلا بحكم النظام.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>Financial records and invoices are retained for the period required by Saudi tax regulations (ZATCA) — for regulatory compliance only, never for commercial use.</p>{% endif %}
 
-                <h2 class="n-title text-lg mt-5" data-lang="ar" lang="ar" dir="rtl">ملاحظة بشأن طرف ثالث</h2>
-                <h2 class="n-title text-lg mt-5" data-lang="en" lang="en" dir="ltr" data-inline>Note on third parties</h2>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="ar" lang="ar" dir="rtl">لا نبيع بياناتك ولا نشاركها لأغراض تسويقية، ولا نحتفظ لدينا بمواد تُعالَج آلياً لدى موفري الذكاء الاصطناعي بعد اكتمال الاستجابة.</p>
-                <p class="n-sub" style="font-size:0.95rem;" data-lang="en" lang="en" dir="ltr" data-inline>We never sell your data or use it for marketing, and we do not retain content processed automatically by AI providers once the response is complete.</p>
+                {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">ملاحظة بشأن طرف ثالث</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>Note on third parties</h2>{% endif %}
+                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">لا نبيع بياناتك ولا نشاركها لأغراض تسويقية، ولا نحتفظ لدينا بمواد تُعالَج آلياً لدى موفري الذكاء الاصطناعي بعد اكتمال الاستجابة.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>We never sell your data or use it for marketing, and we do not retain content processed automatically by AI providers once the response is complete.</p>{% endif %}
 
-                <p class="n-sub mt-5" style="font-size:0.9rem;color:var(--n-brown-2);" data-lang="ar" lang="ar" dir="rtl">لمزيد من التفاصيل راجع <a href="/privacy" style="color:var(--n-gold);">سياسة الخصوصية</a>.</p>
-                <p class="n-sub mt-5" style="font-size:0.9rem;color:var(--n-brown-2);" data-lang="en" lang="en" dir="ltr" data-inline>See our <a href="/privacy" style="color:var(--n-gold);">Privacy Policy</a> for more details.</p>
+                {% if _lang == 'ar' %}<p class="n-sub mt-5" style="font-size:0.9rem;color:var(--n-brown-2);">لمزيد من التفاصيل راجع <a href="/privacy" style="color:var(--n-gold);">سياسة الخصوصية</a>.</p>{% else %}<p class="n-sub mt-5" style="font-size:0.9rem;color:var(--n-brown-2);" data-inline>See our <a href="/privacy" style="color:var(--n-gold);">Privacy Policy</a> for more details.</p>{% endif %}
             </div>
         </div>
     </div>

@@ -8,34 +8,34 @@
 <div class="max-w-7xl mx-auto">
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-amber-500">
-            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">متابعات اليوم</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Follow-ups due</p>
+            {% if _lang == 'ar' %}<p class="text-xs text-gray-500">متابعات اليوم</p>{% else %}<p class="text-xs text-gray-500" data-inline>Follow-ups due</p>{% endif %}
             <p id="today-followups" class="text-3xl font-bold text-amber-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-blue-500">
-            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">عملاء جدد</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>New leads</p>
+            {% if _lang == 'ar' %}<p class="text-xs text-gray-500">عملاء جدد</p>{% else %}<p class="text-xs text-gray-500" data-inline>New leads</p>{% endif %}
             <p id="today-new" class="text-3xl font-bold text-blue-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-purple-500">
-            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">ردود تنتظر الإجابة</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Replies</p>
+            {% if _lang == 'ar' %}<p class="text-xs text-gray-500">ردود تنتظر الإجابة</p>{% else %}<p class="text-xs text-gray-500" data-inline>Replies</p>{% endif %}
             <p id="today-replies" class="text-3xl font-bold text-purple-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-emerald-500">
-            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">عروض تجريبية</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Demos</p>
+            {% if _lang == 'ar' %}<p class="text-xs text-gray-500">عروض تجريبية</p>{% else %}<p class="text-xs text-gray-500" data-inline>Demos</p>{% endif %}
             <p id="today-demos" class="text-3xl font-bold text-emerald-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-indigo-500">
-            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">عروض أسعار</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Proposals</p>
+            {% if _lang == 'ar' %}<p class="text-xs text-gray-500">عروض أسعار</p>{% else %}<p class="text-xs text-gray-500" data-inline>Proposals</p>{% endif %}
             <p id="today-proposals" class="text-3xl font-bold text-indigo-600">-</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-green-600">
-            <p class="text-xs text-gray-500" data-lang="ar" lang="ar" dir="rtl">تم الفوز</p><p class="text-xs text-gray-500" data-lang="en" lang="en" dir="ltr" data-inline>Won</p>
+            {% if _lang == 'ar' %}<p class="text-xs text-gray-500">تم الفوز</p>{% else %}<p class="text-xs text-gray-500" data-inline>Won</p>{% endif %}
             <p id="today-won" class="text-3xl font-bold text-green-700">-</p>
         </div>
     </div>
 
     <div class="bg-white rounded-2xl shadow p-5 mb-8">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-stream text-amber-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">مسار البيع</span><span data-lang="en" lang="en" dir="ltr" data-inline>Pipeline</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-stream text-amber-600 me-2"></i>{% if _lang == 'ar' %}<span>مسار البيع</span>{% else %}<span data-inline>Pipeline</span>{% endif %}</h3>
             <div id="conversion" class="text-xs text-gray-500"></div>
         </div>
         <div id="pipeline" class="flex flex-wrap gap-3 text-sm"></div>
@@ -43,7 +43,7 @@
 
     <div class="bg-white rounded-2xl shadow mb-8">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-users text-blue-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">أولويات التواصل</span><span data-lang="en" lang="en" dir="ltr" data-inline>Contact priorities</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-users text-blue-600 me-2"></i>{% if _lang == 'ar' %}<span>أولويات التواصل</span>{% else %}<span data-inline>Contact priorities</span>{% endif %}</h3>
             <div class="flex flex-wrap gap-2 text-sm">
                 <select id="filter-priority" class="border rounded px-2 py-1"><option value="">كل الأولويات</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select>
                 <select id="filter-status" class="border rounded px-2 py-1">
@@ -76,10 +76,10 @@
 
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-file-import text-indigo-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">استيراد قاعدة العملاء (الشيت)</span><span data-lang="en" lang="en" dir="ltr" data-inline>Import lead sheet</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-file-import text-indigo-600 me-2"></i>{% if _lang == 'ar' %}<span>استيراد قاعدة العملاء (الشيت)</span>{% else %}<span data-inline>Import lead sheet</span>{% endif %}</h3>
             <form id="import-form" class="flex items-center gap-2 text-sm" enctype="multipart/form-data">
                 <input type="file" id="import-file" name="file" accept=".xlsx,.xlsm,.csv,.txt" class="max-w-[240px] text-xs border rounded px-2 py-1">
-                <input type="number" id="import-campaign" name="campaign" value="200" min="0" max="500" class="border rounded px-2 py-1 w-20" title="حجم الدفعة (0 = بدون)"><label for="import-campaign" class="text-xs text-gray-400" data-lang="ar" lang="ar" dir="rtl">دفعة</label><label data-lang="en" lang="en" dir="ltr" data-inline>batch</label>
+                <input type="number" id="import-campaign" name="campaign" value="200" min="0" max="500" class="border rounded px-2 py-1 w-20" title="حجم الدفعة (0 = بدون)">{% if _lang == 'ar' %}<label for="import-campaign" class="text-xs text-gray-400">دفعة</label>{% else %}<label data-inline>batch</label>{% endif %}
                 <button type="submit" class="px-3 py-1 rounded bg-indigo-600 text-white">رفع واستيراد</button>
             </form>
         </div>
@@ -88,7 +88,7 @@
 
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
-            <h3 class="text-lg font-semibold text-gray-900">{{ tg_plane() }}<span data-lang="ar" lang="ar" dir="rtl">حملات التواصل</span><span data-lang="en" lang="en" dir="ltr" data-inline>Campaign batches</span></h3>
+            <h3 class="text-lg font-semibold text-gray-900">{{ tg_plane() }}{% if _lang == 'ar' %}<span>حملات التواصل</span>{% else %}<span data-inline>Campaign batches</span>{% endif %}</h3>
             <div class="flex items-center gap-2 text-sm">
                 <input id="campaign-size" type="number" value="200" min="20" max="500" class="border rounded px-2 py-1 w-24">
                 <button id="btn-campaign" class="px-3 py-1 rounded bg-emerald-600 text-white">تجهيز دفعة</button>
@@ -98,7 +98,9 @@
     </div>
 
     <p class="text-xs text-gray-400 mt-6">
-        Telegram: <span id="tg-bot">—</span> · التواصل يدوي ومُراجَع من الإنسان — لا إرسال آلي.
+        التواصل: <a id="contact-email" href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
+        · <a id="contact-phone" href="tel:+966540799266">0540799266</a>
+        · المساعد في الموقع. التواصل يدوي ومُراجَع من الإنسان — لا إرسال آلي.
     </p>
 </div>
 {% endblock %}
@@ -124,7 +126,6 @@ async function loadOverview(){
         document.getElementById('pipeline').innerHTML=STAGE_ORDER.map(s=>`<div class="px-3 py-2 rounded-2xl bg-gray-50 border text-center min-w-[92px]"><div class="font-bold text-lg">${by[s]||0}</div><div class="text-xs text-gray-500">${s}</div></div>`).join('');
         const c=d.conversion;
         document.getElementById('conversion').textContent=`رد %${c.reply_rate} · Demo %${c.demo_rate} · عرض سعر %${c.proposal_rate} · فوز %${c.won_rate}`;
-        document.getElementById('tg-bot').textContent=d.telegram_bot||'https://t.me/AlNarjs7BOT';
     }catch(e){console.error(e);}
 }
 

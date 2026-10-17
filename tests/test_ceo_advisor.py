@@ -56,7 +56,7 @@ def test_result_price_matches_the_payment_vat_logic():
     assert plan["vat_halalas"] == payments.vat_amount(base)
     assert plan["total_halalas"] == payments.total_with_vat(base) == round(base * 1.15)
     assert r["cta"]["subscribe"].startswith(f"/portal?pkg={plan['key']}")
-    assert r["cta"]["telegram"].startswith("https://t.me/AlNarjs7BOT?start=plan_")
+    assert r["cta"]["telegram"] == ""
     assert r["cta"]["whatsapp"] == ""
 
 
