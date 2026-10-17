@@ -115,7 +115,7 @@ class TestReturnUrls:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", _post)
         async with maker() as s:
-            p = await pm.create_payment(s, "radd", "x", None, None)
+            p = await pm.create_payment(s, "bidaya", "x", None, None)
             with _settings(moyasar_api_secret=LIVE_KEY), pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(
                     s, p, pm.source_mada(),
@@ -136,7 +136,7 @@ class TestReturnUrls:
 
         monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
         with _settings(moyasar_api_secret=LIVE_KEY, public_base_url=None):
-            await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "mada"},
+            await anon.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "mada"},
                             headers={"X-Forwarded-Proto": "https"})
         assert captured["success_url"].startswith("https://test/payment/success?id=")
         assert captured["back_url"].startswith("https://test/payment/failure?id=")
@@ -151,7 +151,7 @@ class TestReturnUrls:
 
         monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
         with _settings(moyasar_api_secret=LIVE_KEY, public_base_url="https://alnarjs.example/"):
-            await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "mada"})
+            await anon.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "mada"})
         assert captured["callback_url"] == "https://alnarjs.example/webhooks/moyasar"
 
 
@@ -248,8 +248,8 @@ class TestIdempotency:
         self._as_owner(anon)
         with _settings(moyasar_api_secret=None):
             h = {"Idempotency-Key": "abc-123"}
-            r1 = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}, headers=h)
-            r2 = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}, headers=h)
+            r1 = await anon.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice"}, headers=h)
+            r2 = await anon.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice"}, headers=h)
         assert r1.json()["payment_id"] == r2.json()["payment_id"]
         assert r2.json().get("replayed") is True
         async with maker() as s:
@@ -257,7 +257,7 @@ class TestIdempotency:
 
     async def test_same_customer_double_click_without_key_is_deduped(self, anon):
         self._as_owner(anon)
-        body = {"refund_consent": True, "package": "radd", "method": "invoice", "customer_phone": "0555000000"}
+        body = {"refund_consent": True, "package": "bidaya", "method": "invoice", "customer_phone": "0555000000"}
         with _settings(moyasar_api_secret=None):
             r1 = await anon.post("/api/payments", json=body)
             r2 = await anon.post("/api/payments", json=body)
@@ -266,8 +266,8 @@ class TestIdempotency:
     async def test_different_keys_create_different_orders(self, anon):
         self._as_owner(anon)
         with _settings(moyasar_api_secret=None):
-            r1 = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}, headers={"Idempotency-Key": "a"})
-            r2 = await anon.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}, headers={"Idempotency-Key": "b"})
+            r1 = await anon.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice"}, headers={"Idempotency-Key": "a"})
+            r2 = await anon.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice"}, headers={"Idempotency-Key": "b"})
         assert r1.json()["payment_id"] != r2.json()["payment_id"]
 
     def test_pay_button_is_disabled_and_sends_a_key(self):
@@ -287,10 +287,10 @@ class TestBankTransferTotal:
     async def test_bank_transfer_total_matches_invoice(self, anon):
         with _settings(moyasar_api_secret=None):
             refused = await anon.post(
-                "/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice"}
+                "/api/payments", json={"refund_consent": True, "package": "numuw", "method": "invoice"}
             )
             self._as_owner(anon)
-            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice"})
+            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "numuw", "method": "invoice"})
         assert refused.status_code == 400
         data = r.json()
         base = data["amount"]
@@ -304,5 +304,5 @@ class TestBankTransferTotal:
             pytest.skip("team package price changed")
         self._as_owner(anon)
         with _settings(moyasar_api_secret=None):
-            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice"})
+            r = await anon.post("/api/payments", json={"refund_consent": True, "package": "numuw", "method": "invoice"})
         assert r.json()["total"] == 172385  # halalas == 1,723.85 SAR, not the 149900 base

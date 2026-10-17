@@ -750,7 +750,7 @@ async def _pricing_context() -> dict:
         ],
         "addon": catalog.ADDON_AGENT,
         "usage_addons": catalog.USAGE_ADDONS,
-        "enterprise": catalog.ENTERPRISE,
+        "enterprise": None,
         "founding_offer": catalog.FOUNDING_OFFER if catalog.founding_enabled() else None,
         "founding": await _founding_status_safe() if catalog.founding_enabled() else None,
         "setup_guarantee": catalog.SETUP_GUARANTEE,
@@ -1610,7 +1610,7 @@ async def delete_workflow(slug: str):
 async def portal_packages():
     from src.services import catalog
 
-    icons = {"radd": "fa-comments", "bay": "fa-cart-shopping", "tashgheel": "fa-building"}
+    icons = {"bidaya": "fa-comments", "numuw": "fa-seedling", "sharikat": "fa-building"}
     result = []
     for key, p in catalog.PACKAGES.items():
         team = catalog.get_team(key)
@@ -1621,8 +1621,8 @@ async def portal_packages():
             "price": p["price"],
             "tagline": p["tagline"],
             "tagline_en": p["tagline_en"],
-            "team_size": len(team),
-            "agents": p["agent_count"],
+            "team_size": p.get("display_agents") or p["agent_count"],
+            "agents": p.get("display_agents") or p["agent_count"],
             "icon": icons.get(key, "fa-robot"),
             "amount": p["amount"],
             "annual_amount": catalog.plan_amount(key, "annual"),
@@ -1636,7 +1636,7 @@ async def portal_packages():
         })
     return {
         "packages": result,
-        "enterprise": catalog.ENTERPRISE,
+        "enterprise": None,
         "addon": {**catalog.ADDON_AGENT, "max": catalog.MAX_ADDON_AGENTS},
         "usage_addons": catalog.USAGE_ADDONS,
         **({"founding_offer": catalog.FOUNDING_OFFER, "founding": await _founding_status_safe()}
@@ -2037,7 +2037,7 @@ def _consult_grounded(reply: str, hits: list[dict], packages_text: str) -> bool:
     from src.services.support import SUPPORT_EMAIL
 
     facts = " ".join([packages_text, SUPPORT_EMAIL, "https://karmaai.online", "/portal", "15",
-                      repr(_cat.PACKAGES), repr(_cat.ENTERPRISE), repr(_cat.ADDON_AGENT), repr(_cat.USAGE_ADDONS),
+                      repr(_cat.PACKAGES), repr(_cat.ADDON_AGENT), repr(_cat.USAGE_ADDONS),
                       repr(_cat.SETUP_GUARANTEE), str(_cat.MAX_ADDON_AGENTS)])
     # Markdown list markers ("1." / "2)") at line start are not facts.
     reply = re.sub(r"(?m)^\s*\d{1,2}[.)]\s", "- ", reply)
@@ -2060,8 +2060,12 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
     from src.services import catalog as _catalog
 
-    _pkgs = ", ".join(
-        f"{p['name']} ({p['price']} SAR/mo, {p['agent_count']} agents + CEO)" for p in _catalog.PACKAGES.values()
+    _pkgs = " | ".join(
+        f"{p['name']} ({p['name_en']}): {p['price']} SAR/month before VAT, "
+        f"{p.get('display_agents') or p['agent_count']} agents, "
+        f"setup {int(p.get('setup_fee') or 0) // 100} SAR waived on annual billing. "
+        + "; ".join(p.get("scope_en") or [])
+        for p in _catalog.PACKAGES.values()
     )
     _emps = ", ".join(
         e["title_ar"] for e in _catalog.EMPLOYEES.values()

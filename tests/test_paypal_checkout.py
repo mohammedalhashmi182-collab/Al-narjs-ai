@@ -138,7 +138,7 @@ async def client(maker):
 
 async def _checkout(client, consent=True):
     return await client.post("/api/payments", json={
-        "package": "radd", "method": "paypal", "customer_name": "Buyer",
+        "package": "bidaya", "method": "paypal", "customer_name": "Buyer",
         "customer_phone": "0555000111", "customer_email": None, "refund_consent": consent,
     }, headers={"idempotency-key": uuid.uuid4().hex})
 

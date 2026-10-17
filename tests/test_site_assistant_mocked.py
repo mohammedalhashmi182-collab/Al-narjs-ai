@@ -28,7 +28,7 @@ class _MockModel:
 
     async def complete_with_fallback(self, chain, request):
         self.prompts.append(request.prompt)
-        return _Resp("أهلاً! باقة «رد» بـ 599 ريال شهرياً بدون رسوم تأسيس.")
+        return _Resp("أهلاً! باقة «البداية» بـ 790 ريال شهرياً بدون رسوم إعداد.")
 
 
 @pytest.fixture()
@@ -44,9 +44,9 @@ def client():
 def test_assistant_answers_with_mocked_model(client, monkeypatch):
     mock = _MockModel()
     monkeypatch.setattr(app.state, "model_provider", mock)
-    r = client.post("/api/consult", json={"messages": [{"role": "user", "content": "كم سعر باقة رد؟"}]})
-    assert r.status_code == 200 and "599" in r.json()["reply"]
-    assert mock.prompts and "كم سعر باقة رد؟" in mock.prompts[0]
+    r = client.post("/api/consult", json={"messages": [{"role": "user", "content": "كم سعر باقة البداية؟"}]})
+    assert r.status_code == 200 and "790" in r.json()["reply"]
+    assert mock.prompts and "كم سعر باقة البداية؟" in mock.prompts[0]
 
 
 def test_ticket_flow_reference_alert_email_and_owner_list(client, monkeypatch):

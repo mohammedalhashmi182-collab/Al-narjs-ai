@@ -236,8 +236,9 @@ def _summary(d: Diagnosis) -> tuple[str, str]:
         ar = "وصفك عام، فأبدأ معك بخطة تسويق واضحة ووكيل واحد، ثم نوسّع الفريق حسب النتائج."
         en = "Your description is broad, so I start with a clear marketing plan and one agent, then grow the team on results."
     if d.full_company:
-        ar += " طلبتَ تغطية كل الأقسام، لذلك أرشّح لك باقة تشغيل."
-        en += " You asked for every department, so I recommend the Operate plan."
+        top = catalog.PACKAGES[catalog.PACKAGE_ORDER[-1]]
+        ar += f" طلبتَ تغطية كل الأقسام، لذلك أرشّح لك باقة {top['name']}."
+        en += f" You asked for every department, so I recommend the {top['name_en']} plan."
     return ar, en
 
 

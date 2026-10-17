@@ -61,7 +61,7 @@ async def test_payment_carries_project_link():
     async with async_session_factory() as session:
         payment = await pm.create_payment(
             session,
-            "bay",
+            "numuw",
             customer_name="A",
             customer_phone="0500000000",
             customer_email="a@example.com",

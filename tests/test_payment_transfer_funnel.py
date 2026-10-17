@@ -403,7 +403,7 @@ class TestGatewayFailureFallback:
             with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
                 return await anon.post(
                     "/api/payments",
-                    json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
+                    json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
                 )
         finally:
             monkey.undo()
@@ -428,7 +428,7 @@ class TestGatewayFailureFallback:
         with _gateway_config(moyasar=MOYASAR_SECRET):
             r = await anon.post(
                 "/api/payments",
-                json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
+                json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
             )
         assert r.status_code == 502
         assert "invoice_url" not in r.text
@@ -440,7 +440,7 @@ class TestGatewayFailureFallback:
         with _gateway_config(moyasar=TEST_MOYASAR_KEY):
             r = await anon.post(
                 "/api/payments",
-                json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
+                json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
             )
         assert r.status_code == 503
         assert "قيد التفعيل" in r.text
@@ -517,14 +517,14 @@ class TestVatInclusiveCharging:
         monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
         from src.services import catalog
 
-        base = catalog.PACKAGES["radd"]["amount"]
+        base = catalog.PACKAGES["bidaya"]["amount"]
         async with maker() as session:
-            payment = await pm.create_payment(session, "radd", "عميل", None, None)
+            payment = await pm.create_payment(session, "bidaya", "عميل", None, None)
             with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(session, payment, pm.source_mada())
 
         assert captured["amount"] == pm.total_with_vat(base)
-        assert captured["amount"] == 68885  # 599 + 15% VAT
+        assert captured["amount"] == 90850  # 790 + 15% VAT
         assert captured["amount"] != base, "charging the pre-VAT base under-collects 15%"
 
     async def test_an_explicit_charge_amount_is_honoured(self, maker, monkeypatch):
@@ -536,14 +536,14 @@ class TestVatInclusiveCharging:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
         async with maker() as session:
-            payment = await pm.create_payment(session, "radd", "عميل", None, None)
+            payment = await pm.create_payment(session, "bidaya", "عميل", None, None)
             with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=99900)
         assert captured["amount"] == 99900
 
     async def test_a_charge_below_the_recorded_base_is_refused(self, maker):
         async with maker() as session:
-            payment = await pm.create_payment(session, "radd", "عميل", None, None)
+            payment = await pm.create_payment(session, "bidaya", "عميل", None, None)
             with pytest.raises(pm.PaymentError):
                 await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=1)
 
@@ -565,15 +565,15 @@ class TestVatInclusiveCharging:
         anon, _ = api
         with _gateway_config():
             refused = await anon.post(
-                "/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice"}
+                "/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice"}
             )
             r = await anon.post(
                 "/api/payments",
-                json={"refund_consent": True, "package": "radd", "method": "invoice"},
+                json={"refund_consent": True, "package": "bidaya", "method": "invoice"},
                 cookies={"narjis_owner": make_session_token()},
             )
         assert refused.status_code == 400
-        base = catalog.PACKAGES["radd"]["amount"]
+        base = catalog.PACKAGES["bidaya"]["amount"]
         assert r.json()["invoice_total"] == pm.total_with_vat(base)
         # The bank-transfer quote must match the invoice: total is VAT-inclusive
         # halalas, and the pre-VAT base stays available as "amount".
@@ -631,7 +631,7 @@ class TestMoyasarTestKeyIsNotAPaymentMethod:
         with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=""):
             r = await anon.post(
                 "/api/payments",
-                json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
+                json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
             )
         assert r.status_code == 503
         assert "قيد التفعيل" in r.text
@@ -841,7 +841,7 @@ class TestPublicSurface:
         with _gateway_config():
             r = await anon.post(
                 "/api/payments",
-                json={"refund_consent": True, "package": "radd", "method": "invoice", "customer_name": "-buy-test"},
+                json={"refund_consent": True, "package": "bidaya", "method": "invoice", "customer_name": "-buy-test"},
             )
         assert r.status_code == 400
         assert "invoice_url" not in r.text

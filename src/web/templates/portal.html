@@ -84,7 +84,7 @@
 
             <div id="pkg-status" role="status" aria-live="polite">{% if _lang == 'ar' %}<span>جارٍ تحميل الباقات…</span>{% else %}<span data-inline>Loading plans…</span>{% endif %}</div>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10" id="pkg-grid" aria-busy="true">
-                {% for _ in range(4) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
+                {% for _ in range(3) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
             <noscript><p>{% if _lang == 'ar' %}فعّل JavaScript لاختيار الباقة، أو راسلنا على{% else %}Enable JavaScript to choose a plan, or email us at{% endif %} <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p></noscript>
 
@@ -385,7 +385,7 @@
                     const pc = $('pendingCta');
                     if (pc) pc.addEventListener('click', () => openCheckout());
                 }
-                const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال', radd: 'ردّ', bay: 'بيع', tashgheel: 'تشغيل' };
+                const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال', bidaya: 'البداية', numuw: 'النمو', sharikat: 'الشركات', radd: 'ردّ', bay: 'بيع', tashgheel: 'تشغيل' };
             const DEPT_EN = {
                 'التسويق الرقمي': 'Digital Marketing',
                 'المحتوى': 'Content',

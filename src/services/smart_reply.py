@@ -81,7 +81,7 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
     pkg = catalog.PACKAGES[plan_key]
     monthly = catalog.plan_amount(plan_key, "monthly", addons)
     annual = catalog.plan_amount(plan_key, "annual", addons)
-    agents = pkg["agent_count"] + addons
+    agents = int(pkg.get("display_agents") or pkg["agent_count"]) + addons
     unit = "وكيل" if agents == 1 else "وكلاء"
     extra = f" (منها {addons} إضافي)" if addons else ""
     return (
@@ -98,10 +98,9 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
 def ladder_text() -> str:
     rows = []
     for key, pkg in catalog.PACKAGES.items():
-        rows.append(f"• {pkg['name']}: {pkg['agent_count']} {'وكيل' if pkg['agent_count'] == 1 else 'وكلاء'} – "
+        shown = int(pkg.get("display_agents") or pkg["agent_count"])
+        rows.append(f"• {pkg['name']}: {shown} {'وكيل' if shown == 1 else 'وكلاء'} – "
                     f"{_sar(pkg['amount'])} ريال/شهر – {pkg['limits']['conversations']:,} محادثة")
-    ent = catalog.ENTERPRISE
-    rows.append(f"• {ent['name']}: بعرض سعر، يبدأ من نحو {int(ent['price_from']):,} ريال/شهر")
     return "\n".join(rows)
 
 

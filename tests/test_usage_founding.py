@@ -88,7 +88,7 @@ async def test_conversation_counts_once_per_contact_per_24h(maker, alerts):
 
 
 async def test_alerts_at_80_and_100_once_and_service_is_never_cut(maker, alerts, monkeypatch):
-    monkeypatch.setitem(catalog.PACKAGES["radd"], "limits", {"conversations": 5, "voice_minutes": 0, "meta_cap": 10000})
+    monkeypatch.setitem(catalog.LEGACY_TIERS["radd"], "limits", {"conversations": 5, "voice_minutes": 0, "meta_cap": 10000})
     async with maker() as s:
         proj = await _project(s)
         results = [await usage.record_conversation(s, proj, f"c{i}", now=NOW) for i in range(7)]
@@ -174,32 +174,32 @@ def founding_on(monkeypatch):
 async def test_founding_disabled_by_default_no_discount_full_setup(maker, monkeypatch):
     monkeypatch.delenv("FOUNDING_ENABLED", raising=False)
     async with maker() as s:
-        for key, setup in (("radd", 0), ("bay", 99000), ("tashgheel", 199000)):
+        for key, setup in (("bidaya", 0), ("numuw", 99000), ("sharikat", 199000)):
             m = await pm.create_payment(s, key, "a", "0555000150", None, founding=None)
             assert not m.founding and m.amount == catalog.PACKAGES[key]["amount"] + setup
             assert "المؤسسين" not in m.description
             a = await pm.create_payment(s, key, "b", "0555000151", None, billing_period="annual", founding=None)
             assert not a.founding and a.amount == catalog.plan_amount(key, "annual")
-        assert not await founding.eligible_for_order(s, "radd", is_renewal=False)
+        assert not await founding.eligible_for_order(s, "bidaya", is_renewal=False)
         assert (await founding.status(s))["enabled"] is False
 
 async def test_founding_auto_applies_and_waives_setup(maker, founding_on):
     async with maker() as s:
-        monthly = await pm.create_payment(s, "bay", "a", "0555000100", None, founding=None)
-        annual = await pm.create_payment(s, "bay", "b", "0555000101", None, billing_period="annual", founding=None)
-        regular = await pm.create_payment(s, "bay", "c", "0555000102", None)  # default: not auto
-    assert monthly.founding and monthly.amount == 149900 - 149900 * 20 // 100  # no 990 setup fee
-    assert annual.founding and annual.amount == 1499000 - 1499000 * 30 // 100
+        monthly = await pm.create_payment(s, "numuw", "a", "0555000100", None, founding=None)
+        annual = await pm.create_payment(s, "numuw", "b", "0555000101", None, billing_period="annual", founding=None)
+        regular = await pm.create_payment(s, "numuw", "c", "0555000102", None)  # default: not auto
+    assert monthly.founding and monthly.amount == 149000 - 149000 * 20 // 100  # no 990 setup fee
+    assert annual.founding and annual.amount == 1490000 - 1490000 * 30 // 100
     assert "المؤسسين" in monthly.description
-    assert not regular.founding and regular.amount == 149900 + 99000
+    assert not regular.founding and regular.amount == 149000 + 99000
 
 
 async def test_founding_stops_at_15_seats_and_revoke_frees_one(maker, founding_on):
     async with maker() as s:
         projects = []
         for i in range(15):
-            proj = await _project(s, package="radd", status="pending")
-            pay = await pm.create_payment(s, "radd", "x", f"05550002{i:02d}", None, project_id=proj.id, founding=None)
+            proj = await _project(s, package="bidaya", status="pending")
+            pay = await pm.create_payment(s, "bidaya", "x", f"05550002{i:02d}", None, project_id=proj.id, founding=None)
             assert pay.founding
             pay.status = "paid"
             await s.commit()
@@ -207,19 +207,19 @@ async def test_founding_stops_at_15_seats_and_revoke_frees_one(maker, founding_o
             projects.append(proj)
         assert await founding.seats_remaining(s) == 0
         assert all(p.founding and p.founding_commitment_until is not None for p in projects)
-        late = await pm.create_payment(s, "radd", "late", "0555000300", None, founding=None)
-        assert not late.founding and late.amount == 59900
+        late = await pm.create_payment(s, "bidaya", "late", "0555000300", None, founding=None)
+        assert not late.founding and late.amount == 79000
         result = await founding.revoke(s, projects[0])
         assert result["revoked"] and result["seats_remaining"] == 1
-        nxt = await pm.create_payment(s, "radd", "next", "0555000301", None, founding=None)
+        nxt = await pm.create_payment(s, "bidaya", "next", "0555000301", None, founding=None)
         assert nxt.founding
 
 
 async def test_unpaid_founding_orders_do_not_consume_seats(maker, monkeypatch, founding_on):
     monkeypatch.setitem(catalog.FOUNDING_OFFER, "seats", 1)
     async with maker() as s:
-        first = await pm.create_payment(s, "radd", "a", "0555000400", None, founding=None)
-        second = await pm.create_payment(s, "radd", "b", "0555000401", None, founding=None)
+        first = await pm.create_payment(s, "bidaya", "a", "0555000400", None, founding=None)
+        second = await pm.create_payment(s, "bidaya", "b", "0555000401", None, founding=None)
         # Both unpaid orders are shown the founding price; neither takes the seat.
         assert first.founding and second.founding
         assert await founding.seats_remaining(s) == 1
@@ -227,8 +227,8 @@ async def test_unpaid_founding_orders_do_not_consume_seats(maker, monkeypatch, f
 
 async def test_paid_founding_order_consumes_a_seat(maker, founding_on):
     async with maker() as s:
-        proj = await _project(s, package="radd", status="pending")
-        pay = await pm.create_payment(s, "radd", "x", "0555000410", None, project_id=proj.id, founding=None)
+        proj = await _project(s, package="bidaya", status="pending")
+        pay = await pm.create_payment(s, "bidaya", "x", "0555000410", None, project_id=proj.id, founding=None)
         assert await founding.seats_remaining(s) == 15
         pay.status = "paid"
         await s.commit()
@@ -239,33 +239,33 @@ async def test_paid_founding_order_consumes_a_seat(maker, founding_on):
 async def test_seats_rechecked_at_activation_price_honoured_without_exceeding(maker, monkeypatch, founding_on):
     monkeypatch.setitem(catalog.FOUNDING_OFFER, "seats", 1)
     async with maker() as s:
-        p1 = await _project(s, package="radd", status="pending")
-        p2 = await _project(s, package="radd", status="pending")
-        pay1 = await pm.create_payment(s, "radd", "a", "0555000420", None, project_id=p1.id, founding=None)
-        pay2 = await pm.create_payment(s, "radd", "b", "0555000421", None, project_id=p2.id, founding=None)
+        p1 = await _project(s, package="bidaya", status="pending")
+        p2 = await _project(s, package="bidaya", status="pending")
+        pay1 = await pm.create_payment(s, "bidaya", "a", "0555000420", None, project_id=p1.id, founding=None)
+        pay2 = await pm.create_payment(s, "bidaya", "b", "0555000421", None, project_id=p2.id, founding=None)
         assert pay1.founding and pay2.founding
         for pay in (pay1, pay2):
             pay.status = "paid"
             await s.commit()
             await pm.activate_subscription(s, pay)
         assert p1.founding and not p2.founding  # never more than the seat count
-        assert pay2.founding and pay2.amount == 59900 - 59900 * 20 // 100  # price honoured
+        assert pay2.founding and pay2.amount == 79000 - 79000 * 20 // 100  # price honoured
         assert p2.status == "active"
         assert await founding.seats_remaining(s) == 0
 
 
 async def test_founding_renewal_keeps_price_until_locked_and_not_after_revoke(maker, founding_on):
     async with maker() as s:
-        proj = await _project(s, package="bay", end=NOW + timedelta(days=2), founding=True,
+        proj = await _project(s, package="numuw", end=NOW + timedelta(days=2), founding=True,
                               founding_at=NOW - timedelta(days=28), founding_locked_until=NOW + timedelta(days=300))
         out = await renewals.run_renewals(s, now=NOW, days_before=5, use_gateway=False)
         assert len(out["invoiced"]) == 1
         pay = (await s.execute(select(Payment).where(Payment.project_id == proj.id))).scalar_one()
-        assert pay.founding and pay.amount == 149900 - 149900 * 20 // 100
+        assert pay.founding and pay.amount == 149000 - 149000 * 20 // 100
         await founding.revoke(s, proj)
-        again = await pm.create_payment(s, "bay", "c", "0555000009", None, project_id=proj.id,
+        again = await pm.create_payment(s, "numuw", "c", "0555000009", None, project_id=proj.id,
                                         is_renewal=True, founding=None)
-        assert not again.founding and again.amount == 149900
+        assert not again.founding and again.amount == 149000
 
 
 async def test_legacy_renewal_never_gets_founding(maker):
@@ -279,16 +279,17 @@ async def test_usage_packs_are_billed_and_carried_to_the_project(maker, monkeypa
     from src.services import catalog as _c
     monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when voice launches
     async with maker() as s:
-        proj = await _project(s, package="bay", status="pending")
-        pay = await pm.create_payment(s, "bay", "x", "0555000500", None, project_id=proj.id,
+        proj = await _project(s, package="numuw", status="pending")
+        pay = await pm.create_payment(s, "numuw", "x", "0555000500", None, project_id=proj.id,
                                       billing_period="annual", conversation_packs=2, voice_packs=1)
-        assert pay.amount == 1499000 + 3 * 9900 * 10
+        assert pay.amount == 1490000 + 3 * 9900 * 10
         assert "محادثة إضافية" in pay.description and "دقيقة صوت" in pay.description
         pay.status = "paid"
         await s.commit()
         await pm.activate_subscription(s, pay)
         assert (proj.addon_conversation_packs, proj.addon_voice_packs) == (2, 1)
         assert usage.project_limits(proj)["conversations"] == 6000
+        assert usage.project_limits(proj)["voice_minutes"] == 100
     with pytest.raises(pm.PaymentError):
         pm.usage_packs_amount(catalog.MAX_USAGE_PACKS + 1, 0)
     with pytest.raises(pm.PaymentError):
@@ -306,14 +307,14 @@ async def test_checkout_api_has_no_founding_and_bills_packs(maker, monkeypatch):
     async with httpx.AsyncClient(
         transport=transport, base_url="http://test", cookies={"narjis_owner": make_session_token()}
     ) as c:
-        r = await c.post("/api/payments", json={"refund_consent": True, "package": "bay", "method": "invoice",
+        r = await c.post("/api/payments", json={"refund_consent": True, "package": "numuw", "method": "invoice",
                                                 "conversation_packs": 1})
         fnd = (await c.get("/api/founding")).json()
-        bad = await c.post("/api/payments", json={"refund_consent": True, "package": "radd", "method": "invoice",
+        bad = await c.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice",
                                                   "voice_packs": 99})
     body = r.json()
     assert body["founding_applied"] is False and body["discount"] == 0
-    assert body["amount"] == 149900 + 99000 + 9900  # plan + normal setup fee + pack
+    assert body["amount"] == 149000 + 99000 + 9900  # plan + normal setup fee + pack
     assert fnd == {"enabled": False}
     assert bad.status_code == 400
 
@@ -379,4 +380,4 @@ async def test_voice_minute_packs_cannot_be_bought_yet(maker):
     assert catalog.USAGE_ADDONS["voice_minutes"]["purchasable"] is False
     async with maker() as s:
         with pytest.raises(pm.PaymentError):
-            await pm.create_payment(s, "bay", "x", "0555000501", None, voice_packs=1)
+            await pm.create_payment(s, "numuw", "x", "0555000501", None, voice_packs=1)

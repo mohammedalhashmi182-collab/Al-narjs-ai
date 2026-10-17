@@ -26,11 +26,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models import ClientAgent, ClientProject
 from src.models.ops import WeeklyReport
 from src.models.usage import UsageEvent
-from src.services import catalog
 
 log = logging.getLogger(__name__)
 
-ELIGIBLE_TIERS = ("tashgheel",)
+# النمو and الشركات include the weekly report. Existing تشغيل subscribers keep it.
+ELIGIBLE_TIERS = ("numuw", "sharikat", "tashgheel")
 SCHEDULE_NAME = "ops-weekly-reports"
 SCHEDULE_CRON = "0 7 * * 0"  # Sunday 07:00 Riyadh, start of the Saudi work week
 
@@ -44,7 +44,7 @@ def week_bounds(now: datetime | None = None) -> tuple[datetime, datetime]:
 
 
 def eligible(project) -> bool:
-    return project.status == "active" and catalog.limits_tier(project.package) in ELIGIBLE_TIERS
+    return project.status == "active" and (project.package or "") in ELIGIBLE_TIERS
 
 
 async def collect_metrics(session: AsyncSession, project, start: datetime, end: datetime) -> dict:

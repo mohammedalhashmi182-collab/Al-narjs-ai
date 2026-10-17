@@ -53,7 +53,7 @@ EN: dict[str, dict] = {
             {
                 "h": "Cost",
                 "p": [
-                    "A subscription is a monthly payment, not a salary, and it starts from the entry plan on the pricing page. Plans run from two agents on Reply to fifteen on Operate, each with clear monthly usage limits, billed on an official invoice with 15% VAT, with no long-term contract and cancellation at any time.",
+                    "A subscription is a monthly payment, not a salary, and it starts from the entry plan on the pricing page. Plans run from 5 agents on Start to every agent on Companies, each with clear monthly usage limits, billed on a tax invoice with 15% VAT, with no long-term contract and cancellation at any time.",
                     "The fair question is not \"how cheap is it\" but: does this task slip every week? That is the real cost being removed.",
                 ],
             },
@@ -387,7 +387,7 @@ EN: dict[str, dict] = {
             },
             {
                 "q": "Where do I actually start?",
-                "a": "On the pricing page: pick the plan that matches how repetitive your work is, since plans include two, six or fifteen agents with clear monthly usage limits.",
+                "a": "On the pricing page: pick the plan that matches how repetitive your work is. Plans include 5 agents, 15 agents, or every agent, with clear monthly usage limits.",
             },
         ],
     },
