@@ -20,13 +20,13 @@
 ### البايو (العربية)
 
 ```
-5 موظفين ذكيين يعملون 24/7 لتسويق مشروعك — بـ500 ريال/شهر فقط. جرّب مجاناً ← karmaai.online
+الباقات المنشورة تبدأ من 790 ريال شهرياً قبل الضريبة. التفاصيل ← karmaai.online/pricing
 ```
 
 ### البايو (الإنجليزية)
 
 ```
-5 AI agents working 24/7 to grow your business — from 500 SAR/month. Try free ← karmaai.online
+Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 ```
 
 ### الصورة الشخصية (Profile Photo)
@@ -55,9 +55,9 @@
 ✍️ يكتبون المحتوى
 📞 يردّون على عملائك
 📊 يديرون حملاتك التسويقية
-💰 كلها بـ500 ريال/شهر فقط
+💰 الباقات من 790 ريال شهرياً قبل الضريبة
 
-جرّبها مجاناً الآن ← karmaai.online
+التفاصيل ← karmaai.online/pricing
 
 #الذكاء_الاصطناعي #السعودية #karmaai
 ```
@@ -144,7 +144,7 @@
 📱 إيجنت إدارة السوشيال ميديا
 🎯 إيجنت الحملات الإعلانية
 
-كلها تعمل باللغة العربية، ومتوافقة مع معايير هيئة البيانات والذكاء الاصطناعي السعودية (SDAIA)، وبأقل من 500 ريال شهرياً.
+كلها تعمل باللغة العربية. الباقات المنشورة تبدأ من 790 ريال شهرياً قبل الضريبة: karmaai.online/pricing.
 
 تأسست المنصة عام 2026 على يد محمد الهاشمي، بهدف محو الخرافات حول الذكاء الاصطناعي وتقديمه كأداة عملية يومية لأعمالنا في المنطقة.
 
@@ -166,7 +166,7 @@ Our platform karmaai.online provides 5 pre-built AI agents:
 📱 Social Media Manager Agent
 🎯 Ad Campaign Agent
 
-All operate in Arabic, fully compliant with Saudi data authority (SDAIA) guidelines, starting from just 500 SAR/month.
+All operate in Arabic. Published plans start at SAR 790 a month, before VAT: karmaai.online/pricing.
 
 Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and make it a daily tool for businesses in the region.
 
@@ -254,9 +254,9 @@ Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and mak
 📱 إيجنت السوشيال ميديا
 🎯 إيجنت الحملات الإعلانية
 
-كلها بالعربية، آمنة، وبأقل من 500 ريال/شهر.
+كلها بالعربية. الباقات من 790 ريال شهرياً قبل الضريبة.
 
-ابدأ مجاناً ← karmaai.online
+التفاصيل ← karmaai.online/pricing
 
 محمد الهاشمي — مؤسس النرجس
 
