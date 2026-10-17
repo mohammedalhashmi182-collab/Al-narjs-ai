@@ -56,6 +56,16 @@ CORE_PAGES: list[tuple[str, str, float]] = [
 PUBLIC_AGENT_PREFIX = "/ai-agent"
 INTENT_PAGE = "/ai-agents-saudi-businesses"
 BLOG_PREFIX = "/blog"
+SERVICE_PREFIX = "/services"
+# Public service pages. Slugs match src/services/public_services.py.
+SERVICE_SLUGS = (
+    "automation",
+    "chatbots",
+    "graphic-design",
+    "ui-ux-design",
+    "content-writing",
+    "translation",
+)
 
 
 def site_origin() -> str:
@@ -73,7 +83,28 @@ def is_public_path(path: str) -> bool:
         return False
     if base.startswith(PUBLIC_AGENT_PREFIX + "/") or base.startswith(BLOG_PREFIX + "/"):
         return True
+    if base.startswith(SERVICE_PREFIX + "/"):
+        return base[len(SERVICE_PREFIX) + 1 :] in SERVICE_SLUGS
     return base in {p for p, _c, _pr in CORE_PAGES}
+
+
+def arabic_canonical_redirect(path: str) -> str | None:
+    """Unprefixed public pages 301 to the Arabic URL. Root and private routes stay.
+
+    ``/`` is the owner dashboard when signed in, so it is not redirected here.
+    """
+    if not path or path == "/":
+        return None
+    if path.startswith(("/static", "/brand/", "/api", "/webhooks")):
+        return None
+    if path in ("/robots.txt", "/sitemap.xml", "/favicon.ico"):
+        return None
+    for lang in ("ar", "en"):
+        if path == f"/{lang}" or path.startswith(f"/{lang}/"):
+            return None
+    if not is_public_path(path):
+        return None
+    return "/ar" + path
 
 
 def _base_path(path: str) -> str:
@@ -90,12 +121,14 @@ def _loc(path: str) -> str:
 
 def _url_entry(path: str, changefreq: str, priority: float, lastmod: str | None = None) -> str:
     base = _base_path(path)
+    arabic = "/ar" if base == "/" else "/ar" + base
+    english = "/en" if base == "/" else "/en" + base
     parts = [
         "  <url>",
-        f"    <loc>{escape(_loc(base))}</loc>",
-        f'    <xhtml:link rel="alternate" hreflang="ar" href="{escape(_loc("/ar" + base))}"/>',
-        f'    <xhtml:link rel="alternate" hreflang="en" href="{escape(_loc("/en" + base))}"/>',
-        f'    <xhtml:link rel="alternate" hreflang="x-default" href="{escape(_loc(base))}"/>',
+        f"    <loc>{escape(_loc(arabic))}</loc>",
+        f'    <xhtml:link rel="alternate" hreflang="ar" href="{escape(_loc(arabic))}"/>',
+        f'    <xhtml:link rel="alternate" hreflang="en" href="{escape(_loc(english))}"/>',
+        f'    <xhtml:link rel="alternate" hreflang="x-default" href="{escape(_loc(arabic))}"/>',
     ]
     if lastmod:
         parts.append(f"    <lastmod>{lastmod}</lastmod>")
@@ -110,6 +143,8 @@ def build_sitemap(agent_slugs: list[str], articles: list[dict]) -> str:
     entries: list[str] = []
     for path, changefreq, priority in CORE_PAGES:
         entries.append(_url_entry(path, changefreq, priority))
+    for slug in SERVICE_SLUGS:
+        entries.append(_url_entry(f"{SERVICE_PREFIX}/{slug}", "monthly", 0.8))
     for slug in agent_slugs:
         entries.append(_url_entry(f"{PUBLIC_AGENT_PREFIX}/{slug}", "monthly", 0.7))
     for article in articles:

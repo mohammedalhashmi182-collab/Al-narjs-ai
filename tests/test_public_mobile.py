@@ -96,7 +96,16 @@ def test_mobile_pages_and_language_switch(context, width, path):
         card = page.locator('[data-plan="radd"]').bounding_box()
         assert tag['y'] >= card['y'] and tag['x'] >= card['x']
         assert tag['x'] + tag['width'] <= card['x'] + card['width'] + 1
-        assert page.locator('.plans a[href^="/portal?pkg="]').count() == 4
+        # every v2 subscription plan has a /portal?pkg= link; Enterprise is
+        # by quote and links to /consult instead
+        from src.services import catalog
+        assert page.locator('.plans a[href^="/portal?pkg="]').count() == len(catalog.PACKAGE_ORDER)
+        for key in catalog.PACKAGE_ORDER:
+            assert page.locator('.plans a[href="/portal?pkg=' + key + '"]').count() == 1
+        # the consent banner (shown while META_PIXEL_ID is set) is fixed to the
+        # bottom of the viewport; answer it the way a visitor would first
+        if page.locator('#cookieReject').count():
+            page.locator('#cookieReject').click()
         # the hero CTA opens the CEO consultation and it actually answers
         page.locator('#heroCeo').click()
         page.fill('#ceoProblem', 'متجري على سلة والعملاء ينتظرون الرد على الواتساب')

@@ -23,7 +23,7 @@
     <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
     <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
     <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
-    <link rel="alternate" hreflang="x-default" href="https://karmaai.online{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base_path }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Al-Narjis AI">
     <meta property="og:title" content="{% if ar %}باقات النرجس للذكاء الاصطناعي — تبدأ من {{ _from }} ر.س شهرياً{% else %}Al-Narjis AI plans — from SAR {{ _from }}/month{% endif %}">
@@ -48,7 +48,8 @@
     {% include "partials/_analytics.html" %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="/static/css/narjis-v2.css">
     <style>.rv{opacity:1;transform:none}</style>
 </head>

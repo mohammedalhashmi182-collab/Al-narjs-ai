@@ -1,0 +1,42 @@
+{% extends "partials/_simple_page.html" %}
+{% block title %}{{ service.title_ar if ar else service.title_en }}{% endblock %}
+{% block description %}{{ service.desc_ar if ar else service.desc_en }}{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">{{ service_jsonld | tojson }}</script>
+{% endblock %}
+{% block h1 %}{{ service.h1_ar if ar else service.h1_en }}{% endblock %}
+{% block body %}
+<p class="n-sub"><a href="/home#services">{% if ar %}خدماتنا{% else %}Our services{% endif %}</a></p>
+{% set sections = service.sections_ar if ar else service.sections_en %}
+{% set faqs = service.faq_ar if ar else service.faq_en %}
+{% for sec in sections %}
+    {% if sec.h %}<h2 class="n-title text-lg">{{ sec.h }}</h2>{% endif %}
+    {% for para in sec.p %}<p>{{ para }}</p>{% endfor %}
+    {% if sec.ul %}<ul>{% for item in sec.ul %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+{% endfor %}
+<div class="faq">
+    <h2 class="n-title text-lg">{% if ar %}الأسئلة الشائعة{% else %}FAQ{% endif %}</h2>
+    {% for item in faqs %}
+    <h3>{{ item.q }}</h3>
+    <p>{{ item.a }}</p>
+    {% endfor %}
+</div>
+{% if related %}
+<h2 class="n-title text-lg">{% if ar %}خدمات ذات صلة{% else %}Related services{% endif %}</h2>
+<ul>
+    {% for other in related %}
+    <li><a href="/services/{{ other.slug }}">{{ other.name_ar if ar else other.name_en }}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+<p style="display:flex;flex-wrap:wrap;gap:12px;margin-top:22px">
+    <button type="button" class="btn btn-gold" id="openAssistant">{% if ar %}تحدث مع بوت النرجس{% else %}Talk to the Al-Narjis bot{% endif %}</button>
+    <a class="btn btn-outline" href="mailto:Al-Narjis@karmaai.online">{% if ar %}راسلنا بالبريد{% else %}Email us{% endif %}</a>
+</p>
+<script>
+document.getElementById("openAssistant").addEventListener("click", function () {
+    var toggle = document.getElementById("saToggle");
+    if (toggle) toggle.click();
+});
+</script>
+{% endblock %}

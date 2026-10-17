@@ -12,31 +12,34 @@
     <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
-    {% if ar %}
-    <title>النرجس للذكاء الاصطناعي | رئيسك التنفيذي الذكي وفريق وكلائك</title>
-    <meta name="description" content="صف مشكلة عملك، ويشخّصها الرئيس التنفيذي الذكي في النرجس ويرشّح لك الوكلاء المتخصصين والباقة المناسبة. منصة سعودية من الرياض، باقات من {{ plans[0].price }} ر.س شهرياً.">
-    {% else %}
-    <title>Al-Narjis AI | Your AI CEO and the agent team it builds for you</title>
-    <meta name="description" content="Describe your business problem; the Al-Narjis AI CEO diagnoses it and recommends the specialist agents and the plan you need. A Saudi platform from Riyadh, plans from SAR {{ plans[0].price }}/month.">
-    {% endif %}
+    {% set _title = "النرجس | أتمتة الأعمال وبوتات الذكاء الاصطناعي والتصميم في السعودية" if ar else "Al-Narjis | Business automation, AI chatbots and design in Saudi Arabia" %}
+    {% set _desc = "شركة سعودية من الرياض: أتمتة الأعمال، بوتات محادثة ذكية، تصميم جرافيك وواجهات، كتابة محتوى وترجمة احترافية للمنشآت في السعودية والخليج." if ar else "A Saudi company from Riyadh: business automation, intelligent chatbots, graphic and interface design, professional content writing and translation for organizations in Saudi Arabia and the Gulf." %}
+    {% set _img_alt = "شعار النرجس — حلول الذكاء الاصطناعي من الرياض" if ar else "Al-Narjis logo — AI solutions from Riyadh" %}
+    <title>{{ _title }}</title>
+    <meta name="description" content="{{ _desc }}">
     <meta name="robots" content="index,follow">
     {% set _path = request.url.path %}
     {% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
     {% set _canon_path = '/' ~ _lang ~ _base_path %}
+    {% set _city = "الرياض" if ar else "Riyadh" %}
     <link rel="canonical" href="https://karmaai.online{{ _canon_path }}">
     <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
     <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
-    <link rel="alternate" hreflang="x-default" href="https://karmaai.online{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base_path }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Al-Narjis AI">
-    <meta property="og:title" content="{% if ar %}النرجس — رئيس تنفيذي ذكي يبني لك فريق الوكلاء{% else %}Al-Narjis — an AI CEO that builds your agent team{% endif %}">
-    <meta property="og:description" content="{% if ar %}صف مشكلتك، واحصل على تشخيص وفريق وكلاء وباقة مناسبة خلال ثوانٍ.{% else %}Describe your problem and get a diagnosis, an agent team and the right plan in seconds.{% endif %}">
+    <meta property="og:title" content="{{ _title }}">
+    <meta property="og:description" content="{{ _desc }}">
     <meta property="og:url" content="https://karmaai.online{{ _canon_path }}">
     <meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
+    <meta property="og:image:alt" content="{{ _img_alt }}">
     <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
     <meta property="og:locale:alternate" content="{{ 'en_US' if ar else 'ar_SA' }}">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ _title }}">
+    <meta name="twitter:description" content="{{ _desc }}">
     <meta name="twitter:image" content="https://karmaai.online/brand/og-image.jpg">
+    <meta name="twitter:image:alt" content="{{ _img_alt }}">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -46,14 +49,15 @@
       "url": "https://karmaai.online",
       "legalName": "Arabian Convoy Establishment",
       "foundingLocation": "Riyadh, Saudi Arabia",
-      "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": "Riyadh", "addressCountry": "SA"}
+      "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"}
     }
     </script>
     <script type="application/ld+json">
     {#
-      ProfessionalService (a LocalBusiness subtype). Every field is real: the
-      address is the one on /privacy and the offers are rendered from
-      catalog.PACKAGES. No aggregateRating: nothing has been rated yet.
+      ProfessionalService (a LocalBusiness subtype). The street address matches
+      /privacy. hasOfferCatalog lists the six service pages and carries no
+      price, because those services are not the subscription plans.
+      No aggregateRating: nothing has been rated yet.
     #}
     {
       "@context": "https://schema.org",
@@ -70,22 +74,16 @@
       "foundingLocation": "Riyadh, Saudi Arabia",
       "currenciesAccepted": "SAR",
       "paymentAccepted": {{ ("PayPal، تحويل بنكي، فاتورة ضريبية" if ar else "PayPal, bank transfer, VAT invoice") | tojson }},
-      "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": "Riyadh", "addressRegion": "Riyadh", "addressCountry": "SA"},
+      "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"},
       "geo": {"@type": "GeoCoordinates", "latitude": 24.7136, "longitude": 46.6753},
-      "areaServed": [{"@type": "Country", "name": "Saudi Arabia"}, {"@type": "AdministrativeArea", "name": "Riyadh"}],
+      "areaServed": [{"@type": "Country", "name": "Saudi Arabia"}, {"@type": "Country", "name": "United Arab Emirates"}, {"@type": "Country", "name": "Kuwait"}, {"@type": "Country", "name": "Bahrain"}, {"@type": "Country", "name": "Qatar"}, {"@type": "Country", "name": "Oman"}],
       "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], "opens": "00:00", "closes": "23:59"}],
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
-        "name": {{ ("باقات النرجس" if ar else "Al-Narjis plans") | tojson }},
+        "name": {{ ("خدمات النرجس" if ar else "Al-Narjis services") | tojson }},
         "itemListElement": [
-          {% for plan in plans %}
-          {"@type": "Offer", "name": {{ (plan.name if ar else plan.name_en) | tojson }}, "description": {{ (plan.tagline if ar else plan.tagline_en) | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://karmaai.online/portal?pkg={{ plan.key }}",
-           "priceSpecification": [
-             {"@type": "UnitPriceSpecification", "price": "{{ plan.price }}", "priceCurrency": "SAR", "unitCode": "MON", "billingDuration": "P1M", "valueAddedTaxIncluded": false},
-             {"@type": "UnitPriceSpecification", "price": "{{ plan.annual_price }}", "priceCurrency": "SAR", "unitCode": "ANN", "billingDuration": "P1Y", "valueAddedTaxIncluded": false}
-           ],
-           "addOn": {"@type": "Offer", "name": {{ (addon.name if ar else addon.name_en) | tojson }}, "description": {{ ("وكيل متخصص إضافي فوق الباقة" if ar else "One extra specialist agent on top of the plan") | tojson }}, "price": "{{ addon.price }}", "priceCurrency": "SAR",
-             "priceSpecification": {"@type": "UnitPriceSpecification", "price": "{{ addon.price }}", "priceCurrency": "SAR", "unitCode": "MON", "billingDuration": "P1M", "valueAddedTaxIncluded": false}}}{% if not loop.last %},{% endif %}
+          {% for svc in services %}
+          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": {{ (svc.name_ar if ar else svc.name_en) | tojson }}, "url": "https://karmaai.online/{{ _lang }}/services/{{ svc.slug }}"}}{% if not loop.last %},{% endif %}
           {% endfor %}
         ]
       }
@@ -127,7 +125,8 @@
     {% include "partials/_analytics.html" %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="/static/css/narjis-v2.css">
 </head>
 <body class="v2" data-lang="{{ _lang }}">
@@ -143,6 +142,7 @@
         <a href="/home" class="brand"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
         <nav aria-label="{% if ar %}التنقل{% else %}Navigation{% endif %}">
             <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+            <a href="#services">{% if ar %}خدماتنا{% else %}Services{% endif %}</a>
             <a href="#team">{% if ar %}الفريق{% else %}The team{% endif %}</a>
             <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
             <a href="#vision">{% if ar %}رؤية 2030{% else %}Vision 2030{% endif %}</a>
@@ -161,12 +161,12 @@
         <div class="hero-copy">
             <span class="v2-badge" aria-label="{% if ar %}متوافق مع مستهدفات رؤية 2030{% else %}Aligned with Vision 2030 goals{% endif %}"><b>2030</b>{% if ar %}متوافق مع مستهدفات رؤية المملكة{% else %}Aligned with Saudi Vision goals{% endif %}</span>
             <div class="ornament" aria-hidden="true">✦</div>
-            <h1>{% if ar %}رئيسك التنفيذي الذكي{% else %}Your AI CEO{% endif %}</h1>
+            <h1>{% if ar %}النرجس — حلول الذكاء الاصطناعي وأتمتة الأعمال في السعودية{% else %}Al-Narjis — AI solutions and business automation in Saudi Arabia{% endif %}</h1>
             {% if ar %}
-            <p class="sub">يبني لك الفريق المناسب من أول محادثة</p>
+            <p class="sub">رئيسك التنفيذي الذكي يبني لك الفريق المناسب من أول محادثة</p>
             <p class="lead">اطرح مشكلتك. الرئيس التنفيذي يحلل، يرشح عدد الوكلاء، ويُنشئ اشتراكك المخصص فورًا.</p>
             {% else %}
-            <p class="sub">Builds the right team for you from the first conversation</p>
+            <p class="sub">Your AI CEO builds the right team for you from the first conversation</p>
             <p class="lead">Describe your problem. The CEO analyses it, recommends how many agents you need, and sets up your tailored subscription instantly.</p>
             {% endif %}
             <div class="hero-cta" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:26px">
@@ -255,6 +255,25 @@
         <p class="how-tag"><span aria-hidden="true">❦</span>{% if ar %}أصالة. ذكاء. أثر.{% else %}Heritage. Intelligence. Impact.{% endif %}</p>
     </div></div>
     <svg class="how-sprig" viewBox="0 0 120 220" aria-hidden="true"><path d="M60 215C58 160 64 100 92 20" fill="none" stroke="currentColor" stroke-width="2"/><g fill="currentColor" opacity=".85"><ellipse cx="74" cy="60" rx="7" ry="20" transform="rotate(35 74 60)"/><ellipse cx="94" cy="44" rx="6" ry="17" transform="rotate(-30 94 44)"/><ellipse cx="66" cy="100" rx="7" ry="20" transform="rotate(40 66 100)"/><ellipse cx="86" cy="92" rx="6" ry="18" transform="rotate(-35 86 92)"/><ellipse cx="60" cy="142" rx="7" ry="20" transform="rotate(42 60 142)"/><ellipse cx="80" cy="136" rx="6" ry="18" transform="rotate(-38 80 136)"/></g></svg>
+</section>
+
+<!-- ==================== SERVICES ==================== -->
+<section class="sec" id="services">
+    <div class="wrap">
+        <div class="sec-head rv">
+            <span class="eyebrow">{% if ar %}من الرياض{% else %}From Riyadh{% endif %}</span>
+            <h2>{% if ar %}خدماتنا{% else %}Our services{% endif %}</h2>
+            <p>{% if ar %}ست خدمات للمنشآت في السعودية والخليج. للتواصل: بوت النرجس في أسفل الصفحة، أو البريد الإلكتروني.{% else %}Six services for organizations in Saudi Arabia and the Gulf. To talk to us: the Al-Narjis bot at the bottom of the page, or email.{% endif %}</p>
+        </div>
+        <div class="grid-3">
+            {% for svc in services %}
+            <a class="card svc rv" href="/services/{{ svc.slug }}">
+                <h3>{{ svc.name_ar if ar else svc.name_en }}</h3>
+                <p>{{ svc.card_ar if ar else svc.card_en }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
 </section>
 
 <!-- ==================== TEAM (DIVISIONS) ==================== -->
@@ -374,7 +393,7 @@
         <p class="muted" id="demoLabel" style="text-align:center;border:1px dashed currentColor;border-radius:10px;padding:8px">{% if ar %}🧪 نسخة تجريبية — «عيادة الياسمين» عيادة خيالية لعرض الوكيل فقط. لا حجوزات ولا مدفوعات حقيقية، وتُحذف المحادثة بعد 24 ساعة.{% else %}🧪 Demo — "Yasmin Clinic" is fictional, to show the agent only. No real bookings or payments; chats are deleted after 24 hours.{% endif %}</p>
         <div id="demoLog" style="min-height:140px;max-height:320px;overflow:auto;border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:10px;margin:10px 0" aria-live="polite"></div>
         <form id="demoForm" style="display:flex;gap:8px">
-            <input id="demoInput" maxlength="500" autocomplete="off" style="flex:1;padding:10px;border-radius:10px" placeholder="{% if ar %}مثال: متى أوقات الدوام؟{% else %}e.g. What are your opening hours?{% endif %}">
+            <input id="demoInput" maxlength="500" autocomplete="off" style="flex:1;min-width:0;padding:10px;border-radius:10px" placeholder="{% if ar %}مثال: متى أوقات الدوام؟{% else %}e.g. What are your opening hours?{% endif %}">
             <button class="btn" type="submit">{% if ar %}إرسال{% else %}Send{% endif %}</button>
         </form>
         <p class="muted" id="demoWa" style="text-align:center;display:none;margin-top:8px"></p>
@@ -426,6 +445,7 @@
                 <a href="/consult">{% if ar %}المستشار الذكي (محادثة){% else %}Smart consultant (chat){% endif %}</a>
                 <a href="/ai-agents-saudi-businesses">{% if ar %}وكلاء الذكاء الاصطناعي في السعودية{% else %}AI agents in KSA{% endif %}</a>
                 <a href="/blog">{% if ar %}المدوّنة{% else %}Blog{% endif %}</a>
+                {% for svc in services %}<a href="/services/{{ svc.slug }}">{{ svc.name_ar if ar else svc.name_en }}</a>{% endfor %}
             </div>
             <div>
                 <h4>{% if ar %}تواصل{% else %}Contact{% endif %}</h4>
