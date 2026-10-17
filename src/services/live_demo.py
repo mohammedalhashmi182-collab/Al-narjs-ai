@@ -74,10 +74,10 @@ def check_rate(ip: str) -> tuple[bool, int]:
 
 
 def whatsapp_config() -> dict:
-    """Optional WhatsApp demo number (env only; nothing is configured by default)."""
+    """Optional demo phone id from the environment. No public contact link is built."""
     number = re.sub(r"\D", "", os.getenv("DEMO_WHATSAPP_NUMBER", ""))
     return {"enabled": bool(number), "number": number or None,
-            "link": f"https://wa.me/{number}" if number else None,
+            "link": None,
             "phone_number_id": os.getenv("DEMO_WA_PHONE_NUMBER_ID", "").strip() or None}
 
 

@@ -176,7 +176,7 @@ class TestStatus:
             assert status["connected"] is False
             assert status["token_configured"] is False
             assert status["phone_id_configured"] is False
-            assert "wa.me" in status["fallback"]
+            assert status["fallback"] == "manual"
             assert TOKEN not in json.dumps(status)
             assert PHONE_ID not in json.dumps(status)
 
@@ -260,7 +260,7 @@ class TestSendLifecycle:
             async with maker() as s:
                 result = await ws.send_now(s, lead_id=lead.id, phone=lead.phone, text="مرحباً")
                 assert result["status"] == "awaiting_credential"
-                assert result["fallback"] == "wa.me"
+                assert result["fallback"] == "manual"
                 record = (await s.execute(
                     select(OutboundMessage).order_by(OutboundMessage.created_at.desc()).limit(1)
                 )).scalar_one()

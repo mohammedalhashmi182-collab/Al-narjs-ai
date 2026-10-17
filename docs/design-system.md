@@ -163,15 +163,14 @@ Every button: 48px min touch height, 16px×24px padding, visible `:focus-visible
 
 ## 6. Support channel & integrations
 
-- **Telegram is the only support channel** — <https://t.me/AlNarjs7BOT>, support deep link
-  `?start=support`. Public pages must link Telegram and must never contain `wa.me` or any
-  WhatsApp reference. `tests/test_design_system.py` enforces this.
-- The WhatsApp Cloud API integration (router, sender, webhook, 360dialog gateway) was
-  **retired**. The `WHATSAPP_*` settings remain as inert no-ops so no deployed environment or
-  secret store breaks; removing them is a separate, explicitly-approved step.
+- **Customer contact is the on-site assistant, Al-Narjis@karmaai.online, and 0540799266.**
+  Public pages must not publish WhatsApp or Telegram short links, and must not tell visitors
+  to message the company on WhatsApp or Telegram.
+- The Telegram bot and the WhatsApp Cloud API stay owner-enabled product channels. Their
+  routes stay live; do not assume either one is the public contact path.
 - `src/services/intent_classify.py` holds the channel-neutral intent classification shared by
   inbound pipelines.
-- Outreach drafts carry a Telegram share deep link, never a `wa.me` link.
+- Outreach drafts carry a mailto link to Al-Narjis@karmaai.online, never a WhatsApp or Telegram short link.
 
 ---
 

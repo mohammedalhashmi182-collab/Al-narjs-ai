@@ -13,8 +13,8 @@ template**. The code registry lives in `src/services/wa_templates.py`
 1. Customer wrote within 24h → plain text via `whatsapp_sender.send_now`.
 2. Outside 24h and a template for that purpose has status `approved` → template message.
 3. Otherwise (template not approved, WhatsApp not configured, or the send failed) →
-   **fallback**: an `outbound_messages` row with status `awaiting_manual` and a
-   `wa.me` link, plus a Telegram alert to the owner. Nothing is marked sent without a Meta ack.
+   **fallback**: an `outbound_messages` row with status `awaiting_manual`,
+   queued for the owner, plus an owner alert. Nothing is marked sent without a Meta ack.
 
 Wired today: smart-reply follow-ups and payment links (`ReplyDraft.kind`
 `followup` / `payment_link` on WhatsApp), weekly reports on approval, and

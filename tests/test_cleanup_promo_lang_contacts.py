@@ -132,6 +132,7 @@ def test_promo_requires_a_set_parseable_future_expiry(monkeypatch):
     for code, percent, expires in inactive:
         _set_promo(monkeypatch, code=code, percent=percent, expires=expires)
         assert payments.promo_active() is False, (code, percent, expires)
+        assert payments.promo_info() == {"active": False, "code": "", "percent": 0, "expires": ""}
         assert payments.apply_promo(10_000, "LAUNCH") == (10_000, 0)
 
     _set_promo(monkeypatch, expires=(today + timedelta(days=1)).isoformat())
@@ -183,9 +184,27 @@ def test_named_launch_files_drop_the_retired_code():
     assert "خصم 50%" not in endcard
 
 
-def test_retired_phone_digits_are_gone_and_the_social_batch_uses_the_current_number():
+def test_inactive_promo_api_returns_no_code_and_no_expiry(monkeypatch):
+    _set_promo(monkeypatch, code="LAUNCH", percent=50, expires=None)
+    with TestClient(app) as client:
+        body = client.get("/api/promo").json()["promo"]
+    assert body == {"active": False, "code": "", "percent": 0, "expires": ""}
+
+    today = datetime.now(timezone.utc).date()
+    expires = (today + timedelta(days=4)).isoformat()
+    _set_promo(monkeypatch, code="KEEP", percent=20, expires=expires)
+    with TestClient(app) as client:
+        body = client.get("/api/promo").json()["promo"]
+    assert body["active"] is True
+    assert body["code"] == "KEEP"
+    assert body["percent"] == 20
+    assert body["expires"] == expires
+
+
+def test_retired_phone_digits_are_gone_and_the_social_batch_uses_the_current_contacts():
     social = (ROOT / "marketing/social-batch1-ceo-advisor-ar.md").read_text(encoding="utf-8")
-    assert "https://wa.me/966540799266" in social
+    assert "wa.me" not in social and "t.me" not in social
+    assert "Al-Narjis@karmaai.online" in social and "0540799266" in social
     skip_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", ".pytest_cache"}
     skip_suffixes = {
         ".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf", ".mp4",
@@ -201,24 +220,77 @@ def test_retired_phone_digits_are_gone_and_the_social_batch_uses_the_current_num
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
-        if RETIRED_PHONE_DIGITS in text:
+        if RETIRED_PHONE_DIGITS in text or _OLD_PHONE.search(text):
             hits.append(str(path.relative_to(ROOT)))
     assert hits == []
 
 
-def test_retired_code_is_absent_from_customer_and_marketing_trees():
-    """NARJIS50 must not remain under product, marketing, or campaign trees."""
+_SCAN_ROOTS = ("src", "marketing", "campaigns", "content")
+_SKIP_SUFFIXES = {
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf", ".mp4",
+    ".woff", ".woff2", ".ttf", ".ico", ".pyc",
+}
+# Retired published prices. Bare 499/599/1499/3499 are still the checkout
+# strings in catalog.py, so they are banned in marketing/campaigns/content
+# and the comma ladder is banned in src as well.
+_PRICE_EVERYWHERE = (
+    re.compile(r"9,999|14,999|19,999|9٬999|14٬999|19٬999"),
+    re.compile(r"1,499|3,499|1٬499|3٬499"),
+)
+# Bare amounts are the live checkout strings in catalog.py, and 9999px is a
+# CSS radius, so those forms are enforced on marketing/campaigns/content only.
+_PRICE_COPY_ONLY = (
+    re.compile(r"(?<!\d)499(?!\d)"),
+    re.compile(r"(?<!\d)599(?!\d)"),
+    re.compile(r"(?<!\d)1499(?!\d)"),
+    re.compile(r"(?<!\d)3499(?!\d)"),
+    re.compile(r"(?<!\d)(?:9999|14999|19999)(?!\d)"),
+)
+_HOST = re.compile(r"wa\.me(?![A-Za-z])|(?<![A-Za-z])t\.me(?![A-Za-z])", re.I)
+_DISCOUNT = (
+    re.compile(r"narjis\s*50", re.I),
+    re.compile(r"خصم\s*50\s*%"),
+    re.compile(r"خصم\s*50\s*٪"),
+    re.compile(r"خصم\s*٥٠"),
+    re.compile(r"50\s*%\s*(?:off|discount)", re.I),
+    re.compile(r"(?:discount|off)\s+(?:of\s+)?50\s*%", re.I),
+    re.compile(r"50\s*percent\s*(?:off|discount)", re.I),
+    re.compile("٥٠٪"),
+)
+_OLD_PHONE = re.compile(
+    "".join(re.escape(d) + r"[\s\-\.]*" for d in RETIRED_PHONE_DIGITS[:-1])
+    + re.escape(RETIRED_PHONE_DIGITS[-1])
+)
+
+
+def test_retired_offer_prices_and_contact_links_stay_out_of_customer_trees():
+    """Case-insensitive guard for the retired offer, old prices, and old contact links."""
     hits = []
-    for base in (ROOT / "src", ROOT / "marketing", ROOT / "campaigns"):
+    for name in _SCAN_ROOTS:
+        base = ROOT / name
+        if not base.exists():
+            continue
         for path in base.rglob("*"):
-            if not path.is_file():
+            if not path.is_file() or path.suffix.lower() in _SKIP_SUFFIXES:
                 continue
             try:
-                blob = path.read_bytes()
-            except OSError:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
                 continue
-            if b"NARJIS50" in blob:
-                hits.append(str(path.relative_to(ROOT)))
+            rel = str(path.relative_to(ROOT))
+            reasons = []
+            if _HOST.search(text):
+                reasons.append("contact-link")
+            if any(p.search(text) for p in _DISCOUNT):
+                reasons.append("discount")
+            if any(p.search(text) for p in _PRICE_EVERYWHERE):
+                reasons.append("old-price")
+            if name != "src" and any(p.search(text) for p in _PRICE_COPY_ONLY):
+                reasons.append("old-price")
+            if _OLD_PHONE.search(text):
+                reasons.append("old-phone")
+            if reasons:
+                hits.append(f"{rel}: {','.join(reasons)}")
     assert hits == []
 
 

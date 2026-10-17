@@ -102,7 +102,9 @@ def test_whatsapp_demo_config_optional(monkeypatch):
     assert live_demo.whatsapp_config()["enabled"] is False
     monkeypatch.setenv("DEMO_WHATSAPP_NUMBER", "+966 5000 00000")
     cfg = live_demo.whatsapp_config()
-    assert cfg["enabled"] and cfg["link"] == "https://wa.me/966500000000"
+    assert cfg["enabled"] is True
+    assert cfg["number"] == "966500000000"
+    assert cfg["link"] is None
 
 
 def test_landing_has_labelled_widget():

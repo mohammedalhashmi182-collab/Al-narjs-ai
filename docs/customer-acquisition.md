@@ -25,8 +25,9 @@ python -m uvicorn src.main:app --reload
 > so inbound and imported prospects share one pipeline and one dashboard.
 
 Nothing is ever sent automatically. The system prepares prioritized, Arabic
-drafts with a one-click Telegram share link; a human picks the contact and sends
-from the company Telegram channel (`https://t.me/AlNarjs7BOT`).
+drafts with a mailto link to Al-Narjis@karmaai.online; a human reviews and sends
+from that mailbox, or follows up by phone on 0540799266. Public contact is the
+on-site assistant, that email, and that phone.
 
 ## Data source
 

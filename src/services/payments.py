@@ -181,11 +181,14 @@ def promo_active() -> bool:
 
 
 def promo_info() -> dict:
+    """Public promo payload. An inactive promo exposes no code and no expiry."""
     settings = get_settings()
+    if not promo_active():
+        return {"active": False, "code": "", "percent": 0, "expires": ""}
     return {
-        "active": promo_active(),
+        "active": True,
         "code": settings.promo_code or "",
-        "percent": settings.promo_percent if promo_active() else 0,
+        "percent": settings.promo_percent,
         "expires": settings.promo_expires or "",
     }
 

@@ -237,7 +237,7 @@ class TestTelegramSender:
             assert status["connected"] is False
             assert status["disabled_reason"]
             # The status payload must never leak a credential value.
-            assert "t.me" in status["fallback"]
+            assert status["fallback"] == "manual"
         finally:
             object.__setattr__(_settings, "telegram_token", was_token)
             object.__setattr__(_settings, "telegram_owner_chat_id", was_owner)

@@ -19,8 +19,8 @@ VARIANT_CUSTOMER = "customer_reengage"
 VARIANT_COLD = "cold_intro"
 
 # Drafts are copied and sent by a person. Customer contact is the site assistant,
-# Al-Narjis@karmaai.online and 0540799266. The share URL only pre-fills a message.
-TELEGRAM_SHARE_URL = "https://karmaai.online"
+# Al-Narjis@karmaai.online and 0540799266.
+CONTACT_EMAIL = "Al-Narjis@karmaai.online"
 
 VARIANT_LABELS_AR = {
     VARIANT_QUOTE: "متابعة عرض سعر",
@@ -162,7 +162,7 @@ def generate_message(
     phone = _val(lead, "phone")
     reachable = normalize_mobile_e164(phone) if phone else None
     tg_link = (
-        f"https://t.me/share/url?url={quote(TELEGRAM_SHARE_URL)}&text={quote(message)}"
+        f"mailto:{CONTACT_EMAIL}?body={quote(message)}"
         if reachable
         else None
     )
