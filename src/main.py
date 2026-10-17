@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import MutableHeaders
 
 from src.config.settings import get_settings, settings
 from src.utils.logger import configure_logging, get_logger
@@ -438,18 +439,33 @@ def _static_cache_control(path: str) -> str:
     return ", ".join(sorted(_STATIC_IMMUTABLE))
 
 
-@app.middleware("http")
-async def static_cache_headers(request: Request, call_next):
+class StaticCacheMiddleware:
     """Attach Cache-Control to /static responses, and only to /static.
 
-    Added last so it wraps the static mount: the header must be set on the file
-    response, not recomputed per template render.
+    Pure ASGI so the body is forwarded unchanged. ``BaseHTTPMiddleware`` buffers
+    the body and sends it again under the original Content-Length; uvicorn then
+    closes the connection if those lengths disagree.
     """
-    response = await call_next(request)
-    path = request.url.path
-    if path.startswith("/static/"):
-        response.headers.setdefault("Cache-Control", _static_cache_control(path))
-    return response
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        path = scope.get("path") or ""
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start" and path.startswith("/static/"):
+                headers = MutableHeaders(scope=message)
+                headers.setdefault("Cache-Control", _static_cache_control(path))
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+app.add_middleware(StaticCacheMiddleware)
 
 
 # Security headers on every response. The CSP allow-list is exactly what the
@@ -488,12 +504,28 @@ SECURITY_HEADERS = {
 }
 
 
-@app.middleware("http")
-async def security_headers(request: Request, call_next):
-    response = await call_next(request)
-    for name, value in SECURITY_HEADERS.items():
-        response.headers.setdefault(name, value)
-    return response
+class SecurityHeadersMiddleware:
+    """Stamp the security headers onto the start message and forward the body unchanged."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                for name, value in SECURITY_HEADERS.items():
+                    headers.setdefault(name, value)
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 templates = Jinja2Templates(directory="src/web/templates")
