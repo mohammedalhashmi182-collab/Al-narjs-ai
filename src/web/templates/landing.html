@@ -393,7 +393,7 @@
         <p class="muted" id="demoLabel" style="text-align:center;border:1px dashed currentColor;border-radius:10px;padding:8px">{% if ar %}🧪 نسخة تجريبية — «عيادة الياسمين» عيادة خيالية لعرض الوكيل فقط. لا حجوزات ولا مدفوعات حقيقية، وتُحذف المحادثة بعد 24 ساعة.{% else %}🧪 Demo — "Yasmin Clinic" is fictional, to show the agent only. No real bookings or payments; chats are deleted after 24 hours.{% endif %}</p>
         <div id="demoLog" style="min-height:140px;max-height:320px;overflow:auto;border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:10px;margin:10px 0" aria-live="polite"></div>
         <form id="demoForm" style="display:flex;gap:8px">
-            <input id="demoInput" maxlength="500" autocomplete="off" style="flex:1;padding:10px;border-radius:10px" placeholder="{% if ar %}مثال: متى أوقات الدوام؟{% else %}e.g. What are your opening hours?{% endif %}">
+            <input id="demoInput" maxlength="500" autocomplete="off" style="flex:1;min-width:0;padding:10px;border-radius:10px" placeholder="{% if ar %}مثال: متى أوقات الدوام؟{% else %}e.g. What are your opening hours?{% endif %}">
             <button class="btn" type="submit">{% if ar %}إرسال{% else %}Send{% endif %}</button>
         </form>
         <p class="muted" id="demoWa" style="text-align:center;display:none;margin-top:8px"></p>
