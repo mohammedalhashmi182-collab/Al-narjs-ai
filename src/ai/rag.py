@@ -117,11 +117,12 @@ class KB:
             return
         await self.ingest(path)
 
-    async def retrieve(self, q: str, k: int = 5) -> list[dict]:
+    async def retrieve(self, q: str, k: int = 5, *, ensure: bool = True) -> list[dict]:
         from src.services.rag import store
 
         hits = await store.retrieve(
             self.session, q, project_id=None, k=k, title_prefix=COLLECTION_PREFIX,
+            ensure=ensure,
         )
         out = []
         for h in hits:
@@ -129,3 +130,14 @@ class KB:
             source = title[len(COLLECTION_PREFIX):] if title.startswith(COLLECTION_PREFIX) else title
             out.append({**h, "source": source})
         return out
+
+
+async def index_default(session) -> int:
+    """Index the public KB and its vectors. Safe to run off the request path."""
+    from src.services.rag import embeddings, store
+
+    kb = KB(session)
+    await kb.ensure_default()
+    await store.ensure_indexed(session, None, embeddings.get_embedder())
+    await session.commit()
+    return await store.chunk_count(session, None)

@@ -199,8 +199,27 @@ async def lifespan(app: FastAPI):
         # right away and the upsert never contends with boot-time work.
         agent_registry.start_background_sync()
 
+    async def _index_public_kb() -> None:
+        """Build the public KB off the request path so the first ask cannot hang."""
+        try:
+            from src.ai.rag import index_default
+
+            async with session_factory() as session:
+                chunks = await index_default(session)
+            logger.info("public kb index ready chunks=%s", chunks)
+        except Exception as exc:  # noqa: BLE001 - indexing must not take the process down
+            logger.warning("public kb index failed: %s", type(exc).__name__)
+
+    kb_index_task = asyncio.create_task(_index_public_kb(), name="public-kb-index")
+
     yield
 
+    if not kb_index_task.done():
+        kb_index_task.cancel()
+        try:
+            await kb_index_task
+        except (asyncio.CancelledError, Exception):  # noqa: BLE001
+            pass
     if scheduler_task is not None and not scheduler_task.done():
         scheduler_task.cancel()
         try:
@@ -2655,8 +2674,19 @@ async def update_lead_status(lead_id: str, request: Request):
 
 
 @app.get("/health")
-async def health(deep: bool = False):
-    """Liveness for Render (cheap). ``?deep=1`` adds db + external checks (see /health/deep)."""
+async def health(deep: bool = False, ai: bool = False):
+    """Liveness for Render (cheap). ``?deep=1`` adds db + external checks (see /health/deep).
+
+    ``?ai=1`` adds /api/ai/ask readiness: env-var presence as booleans, the
+    embedder name, and whether pgvector and the public KB index are ready.
+    No secret values.
+    """
+    if ai:
+        from src.ai.status import snapshot
+
+        body = {"status": "healthy", "version": "0.1.0"}
+        body["ai_ask"] = await snapshot(getattr(app.state, "session_factory", None))
+        return body
     if not deep:
         return {"status": "healthy", "version": "0.1.0"}
     from src.services import ops_monitor
