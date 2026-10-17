@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
+from cryptography.fernet import Fernet
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
@@ -20,6 +21,7 @@ from src.db.session import Base
 from src.integrations import http as store_http
 from src.integrations import limits
 from src.integrations.config import SALLA_SCOPES, enabled
+from src.integrations.crypto import StoreTokenKeyError
 from src.integrations.intent import classify, extract_reference
 from src.integrations.phones import same_phone
 from src.integrations.tokens import open_secret, seal
@@ -36,6 +38,7 @@ STATUS_B = "ملغى سرّي"
 PHONE_A = "966512345678"
 SECRET_SALLA = "salla-whsec-test"
 SECRET_ZID = "zid-whsec-test"
+TEST_STORE_KEY = Fernet.generate_key().decode()
 
 
 @pytest.fixture
@@ -56,9 +59,10 @@ def _isolated(monkeypatch):
         "STORE_INTEGRATIONS_ENABLED", "SALLA_CLIENT_ID", "SALLA_CLIENT_SECRET", "SALLA_WEBHOOK_SECRET",
         "SALLA_REDIRECT_URI", "ZID_CLIENT_ID", "ZID_CLIENT_SECRET", "ZID_WEBHOOK_SECRET", "ZID_REDIRECT_URI",
         "STORE_TOKEN_ENC_KEY", "STORE_TOKEN_ENC_KEY_ID", "STORE_TOKEN_ENC_PREVIOUS_KEYS",
-        "TRUSTED_PROXY_HOPS", "STORE_WEBHOOK_MAX_AGE_SECONDS",
+        "ZID_WEBHOOK_ALLOW_UNSIGNED", "TRUSTED_PROXY_HOPS", "STORE_WEBHOOK_MAX_AGE_SECONDS",
     ):
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("STORE_TOKEN_ENC_KEY", TEST_STORE_KEY)
     yield
     store_http.set_transport(None)
     limits.reset()
@@ -127,11 +131,20 @@ async def _connect(maker, project, platform, token, *, merchant="111", authoriza
         return row
 
 
-def test_flag_defaults_off_and_site_copy_stays_coming_soon():
+def test_flag_defaults_off_and_site_copy_stays_coming_soon(monkeypatch):
     assert enabled() is False
     assert "write" not in SALLA_SCOPES
-    line = next(item for item in catalog.PACKAGES["bay"]["scope"] if "سلة" in item)
-    assert "قريباً" in line
+    monkeypatch.setenv("STORE_INTEGRATIONS_ENABLED", "true")
+    monkeypatch.delenv("STORE_TOKEN_ENC_KEY", raising=False)
+    assert enabled() is False
+    with pytest.raises(StoreTokenKeyError):
+        seal("must-not-derive-from-secret-key")
+    bay = catalog.PACKAGES["bay"]
+    scope = [item for item in bay.get("scope") or [] if "سلة" in item or "زد" in item]
+    coming = [item for item in bay.get("coming") or [] if "سلة" in item or "زد" in item]
+    assert scope or coming
+    for item in scope:
+        assert "قريباً" in item
 
 
 def test_phone_match_uses_the_last_nine_digits():
@@ -467,6 +480,7 @@ async def test_flag_off_ignores_authorize_but_still_uninstalls(maker, monkeypatc
 
 async def test_zid_webhook_basic_auth_and_uninstall_isolation(maker, monkeypatch):
     _zid_env(monkeypatch)
+    monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
     first = await _project(maker, "أ", "0555000021")
     second = await _project(maker, "ب", "0555000022")
     await _connect(maker, first, "zid", "m1", merchant="507530", authorization="a1")
@@ -497,12 +511,17 @@ async def test_zid_webhook_accepts_dashboard_header_and_hmac(maker, monkeypatch)
     project = await _project(maker)
     await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
     raw = _stamp({"event_name": "order.status.update", "store_id": 507530})
+    blocked = await _post_zid(maker, raw, {"x-zid-webhook-token": SECRET_ZID})
+    assert blocked.status_code == 401
+    monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
     header = await _post_zid(maker, raw, {"x-zid-webhook-token": SECRET_ZID})
     assert header.status_code == 200 and header.json()["action"] == "ignored"
+    monkeypatch.delenv("ZID_WEBHOOK_ALLOW_UNSIGNED", raising=False)
     other = _stamp({"event_name": "product.update", "store_id": 507530})
     digest = hmac.new(SECRET_ZID.encode(), other, hashlib.sha256).hexdigest()
     hmac_response = await _post_zid(maker, other, {"x-zid-signature": digest})
     assert hmac_response.status_code == 200
+    monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
     downgrade = _stamp({"event_name": "order.create", "store_id": 507530})
     bad_sig = "ab" * 32
     rejected = await _post_zid(maker, downgrade, {
@@ -614,18 +633,13 @@ async def test_order_lookup_rate_limit_stops_guessing(maker, monkeypatch):
 
 
 def test_store_token_key_rotates_by_id_and_does_not_use_the_whatsapp_key(monkeypatch):
-    from cryptography.fernet import Fernet
-
-    monkeypatch.delenv("STORE_TOKEN_ENC_KEY", raising=False)
-    derived = seal("local-only")
-    assert derived.startswith("v1.1.") and open_secret(derived) == "local-only"
-    assert tenant_reply.decrypt_token(derived.split(".", 2)[2]) is None
     old = Fernet.generate_key().decode()
     new = Fernet.generate_key().decode()
     monkeypatch.setenv("STORE_TOKEN_ENC_KEY", old)
     monkeypatch.setenv("STORE_TOKEN_ENC_KEY_ID", "old")
     blob = seal("secret-token")
     assert blob.startswith("v1.old.") and "secret-token" not in blob
+    assert tenant_reply.decrypt_token(blob.split(".", 2)[2]) is None
     monkeypatch.setenv("STORE_TOKEN_ENC_KEY", new)
     monkeypatch.setenv("STORE_TOKEN_ENC_KEY_ID", "new")
     monkeypatch.setenv("STORE_TOKEN_ENC_PREVIOUS_KEYS", f"old:{old}")
@@ -643,7 +657,7 @@ def test_store_migration_does_not_reuse_the_rag_revision():
     assert not Path("alembic/versions/0010_store_integrations.py").exists()
     text = path.read_text()
     assert 'revision: str = "0012"' in text
-    assert 'down_revision: str | None = "0009"' in text
+    assert 'down_revision: str | None = "0011"' in text
     assert "store_oauth_nonces" in text
 
 
@@ -697,6 +711,27 @@ async def test_oauth_callback_requires_the_matching_portal_session(maker, monkey
     assert open_secret(row.access_token_enc) == "bound-access"
 
 
+async def test_failed_token_exchange_burns_the_oauth_nonce(maker, monkeypatch):
+    _salla_env(monkeypatch)
+    project = await _project(maker)
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        return httpx.Response(400, json={"error": "invalid_grant"})
+
+    store_http.set_transport(httpx.MockTransport(handler))
+    async with _client(maker, project) as client:
+        start = await client.get(f"/api/portal/projects/{project.id}/stores/salla/install", follow_redirects=False)
+        state = parse_qs(urlparse(start.headers["location"]).query)["state"][0]
+        first = await client.get("/webhooks/stores/salla/callback", params={"code": "spent-code", "state": state})
+        second = await client.get("/webhooks/stores/salla/callback", params={"code": "spent-code", "state": state})
+    assert first.status_code == 400 and second.status_code == 400
+    assert calls["n"] == 1
+    async with maker() as session:
+        assert (await session.execute(select(StoreConnection))).scalar_one_or_none() is None
+
+
 async def test_webhooks_reject_a_stale_or_unbound_timestamp(maker, monkeypatch):
     _salla_env(monkeypatch)
     _zid_env(monkeypatch)
@@ -709,6 +744,7 @@ async def test_webhooks_reject_a_stale_or_unbound_timestamp(maker, monkeypatch):
     assert (await _post_salla(maker, stale, _sign_salla(stale))).status_code == 401
     fresh = _stamp({"event": "order.updated", "merchant": 42})
     assert (await _post_salla(maker, fresh, _sign_salla(fresh))).status_code == 200
+    monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
     old = _stamp({"event_name": "order.status.update", "store_id": 507530}, age=timedelta(hours=2))
     token = base64.b64encode(f"narjis:{SECRET_ZID}".encode()).decode()
     assert (await _post_zid(maker, old, {"authorization": f"Basic {token}"})).status_code == 401

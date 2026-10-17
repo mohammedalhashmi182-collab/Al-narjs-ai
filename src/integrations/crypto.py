@@ -1,24 +1,19 @@
-"""Fernet for store tokens, separate from the WhatsApp token key.
+"""Fernet for store tokens. Never derived from ``SECRET_KEY``.
 
 Ciphertext is ``v1.<key id>.<fernet token>``.
 
-* ``STORE_TOKEN_ENC_KEY`` — urlsafe-base64 Fernet key. Production must set it.
+* ``STORE_TOKEN_ENC_KEY`` — urlsafe-base64 Fernet key. Required. The integration
+  stays off while this is empty or not a Fernet key.
 * ``STORE_TOKEN_ENC_KEY_ID`` — id written into new ciphertext (default ``1``).
 * ``STORE_TOKEN_ENC_PREVIOUS_KEYS`` — comma-separated ``id:key`` pairs, decrypt only.
 
-When ``STORE_TOKEN_ENC_KEY`` is unset, the key is derived from ``SECRET_KEY``
-with the salt ``store-token-v1`` (not the WhatsApp salt). That fallback is for
-local tests: rotating ``SECRET_KEY`` then makes stored store tokens unreadable.
-Once the dedicated key is set, rotating ``SECRET_KEY`` does not rotate them.
-To rotate the store key, put the old ``id:key`` in ``STORE_TOKEN_ENC_PREVIOUS_KEYS``
-and point ``STORE_TOKEN_ENC_KEY`` / ``STORE_TOKEN_ENC_KEY_ID`` at the new key.
-Refresh re-seals with the current key.
+To rotate, put the old ``id:key`` in ``STORE_TOKEN_ENC_PREVIOUS_KEYS`` and point
+``STORE_TOKEN_ENC_KEY`` / ``STORE_TOKEN_ENC_KEY_ID`` at the new key. Refresh
+re-seals with the current key. Rotating ``SECRET_KEY`` does not affect these tokens.
 """
 
 from __future__ import annotations
 
-import base64
-import hashlib
 import logging
 import re
 from typing import Optional
@@ -30,28 +25,29 @@ log = logging.getLogger(__name__)
 _ID = re.compile(r"[A-Za-z0-9_-]{1,16}")
 
 
+class StoreTokenKeyError(RuntimeError):
+    """``STORE_TOKEN_ENC_KEY`` is missing or not a Fernet key."""
+
+
 def _valid_id(value: str) -> bool:
     return bool(_ID.fullmatch(value or ""))
 
 
-def _derived():
+def _load() -> Optional[tuple[str, dict]]:
     from cryptography.fernet import Fernet
 
-    from src.config.settings import settings
-
-    raw = hashlib.sha256(f"store-token-v1:{settings.secret_key}".encode()).digest()
-    return Fernet(base64.urlsafe_b64encode(raw))
-
-
-def _keys() -> tuple[str, dict]:
-    from cryptography.fernet import Fernet
-
+    material = env("STORE_TOKEN_ENC_KEY")
+    if not material:
+        return None
     current_id = env("STORE_TOKEN_ENC_KEY_ID") or "1"
     if not _valid_id(current_id):
         current_id = "1"
-    material = env("STORE_TOKEN_ENC_KEY")
-    keys: dict = {}
-    keys[current_id] = Fernet(material.encode()) if material else _derived()
+    try:
+        current = Fernet(material.encode())
+    except Exception:
+        log.warning("store token key rejected")
+        return None
+    keys = {current_id: current}
     for piece in env("STORE_TOKEN_ENC_PREVIOUS_KEYS").split(","):
         piece = piece.strip()
         if ":" not in piece:
@@ -67,19 +63,27 @@ def _keys() -> tuple[str, dict]:
     return current_id, keys
 
 
+def key_ready() -> bool:
+    return _load() is not None
+
+
 def seal(value: str) -> str:
-    kid, keys = _keys()
+    loaded = _load()
+    if loaded is None:
+        raise StoreTokenKeyError("STORE_TOKEN_ENC_KEY is required")
+    kid, keys = loaded
     token = keys[kid].encrypt(value.encode()).decode()
     return f"v1.{kid}.{token}"
 
 
 def open_secret(blob: Optional[str]) -> Optional[str]:
-    if not blob or not blob.startswith("v1."):
+    loaded = _load()
+    if loaded is None or not blob or not blob.startswith("v1."):
         return None
     key_id, sep, token = blob[3:].partition(".")
     if not sep or not token or not _valid_id(key_id):
         return None
-    fernet = _keys()[1].get(key_id)
+    fernet = loaded[1].get(key_id)
     if fernet is None:
         return None
     try:

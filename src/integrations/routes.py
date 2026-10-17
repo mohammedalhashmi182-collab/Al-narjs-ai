@@ -184,6 +184,9 @@ async def oauth_callback(platform: str, request: Request):
         if not await claim_nonce(session, request, project, parsed["nonce"], platform):
             log.info("store oauth callback rejected platform=%s", platform)
             return _page(False)
+        # Burn the nonce before the code is exchanged. A failed exchange must
+        # not make the same state usable again.
+        await session.commit()
         try:
             token_body, info = await _exchange(platform, code)
             await save_install(session, project.id, platform, token_body, info)

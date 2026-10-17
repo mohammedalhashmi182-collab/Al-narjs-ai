@@ -1,18 +1,20 @@
 """Zid webhook authentication and uninstall cleanup.
 
-Zid does not document an HMAC body signature. Store webhooks use HTTP Basic
-(username + password) and app-event webhooks use a secret header configured in
-the Partner Dashboard.
+Documented checks (no body HMAC in Zid's docs):
 
-* https://docs.zid.sa/create-a-webhook
-* https://docs.zid.sa/doc-878234
-* https://zid.sa/en/partners/developers/blog/app-security/
+* Store webhooks: ``Authorization: Basic`` for the username and password set
+  when the webhook was created.
+  https://docs.zid.sa/create-a-webhook
+  https://zid.sa/en/partners/developers/blog/app-security/
+* App events (``app.market.application.uninstall``): a secret header configured
+  in the Partner Dashboard. This app reads ``X-Zid-Webhook-Token``.
+  https://docs.zid.sa/doc-878234
 
 When ``X-Zid-Signature`` is present it must be HMAC-SHA256 hex of the raw body.
-A static header is not accepted on that request. Otherwise the secret is
-compared in constant time via Basic (user ``narjis``, password
-``ZID_WEBHOOK_SECRET``) or ``X-Zid-Webhook-Token``. Either way the timestamp
-must fall inside the replay window (``replay.zid_fresh``).
+That binds the body. The documented Basic header and the dashboard static
+header do not, so they are accepted only when ``ZID_WEBHOOK_ALLOW_UNSIGNED``
+is explicitly on (see ``config.zid_unsigned_fallback``). A signature header is
+never downgraded to those fallbacks. The timestamp window still applies.
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ import logging
 
 from sqlalchemy import or_, select
 
-from src.integrations.config import ZID_WEBHOOK_USER, env
+from src.integrations.config import ZID_WEBHOOK_USER, env, zid_unsigned_fallback
 from src.integrations.parse import ident
 from src.integrations.tokens import wipe
 
@@ -39,17 +41,21 @@ def _eq(left: str, right: str) -> bool:
     return hmac.compare_digest(left, right)
 
 
-def _basic_or_static(headers, secret: str) -> bool:
-    basic = headers.get("authorization") or ""
-    scheme, _, token = basic.partition(" ")
-    if scheme.lower() == "basic" and token:
-        try:
-            decoded = base64.b64decode(token.strip(), validate=True).decode()
-        except Exception:
-            decoded = ""
-        user, sep, password = decoded.partition(":")
-        if sep and _eq(user, ZID_WEBHOOK_USER) and _eq(password, secret):
-            return True
+def _basic_header(secret: str) -> str:
+    token = base64.b64encode(f"{ZID_WEBHOOK_USER}:{secret}".encode()).decode()
+    return f"Basic {token}"
+
+
+def _documented_fallback(headers, secret: str) -> bool:
+    """Constant-time check of Zid's documented Basic header or dashboard header.
+
+    Does not authenticate the body. Caller must already have required the
+    explicit unsigned-fallback flag.
+    """
+    given = headers.get("authorization") or ""
+    expected = _basic_header(secret)
+    if _eq(given, expected):
+        return True
     static = (headers.get("x-zid-webhook-token") or "").strip()
     return _eq(static, secret)
 
@@ -63,7 +69,9 @@ def signature_ok(raw: bytes, headers) -> bool:
     if signed:
         digest = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
         return _eq(signed, digest)
-    return _basic_or_static(headers, secret)
+    if not zid_unsigned_fallback():
+        return False
+    return _documented_fallback(headers, secret)
 
 
 def event_name(payload: dict) -> str:

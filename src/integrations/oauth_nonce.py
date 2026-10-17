@@ -89,7 +89,8 @@ async def claim_nonce(session, request, project, nonce: str, platform: str) -> b
     result = await session.execute(
         update(StoreOAuthNonce)
         .where(StoreOAuthNonce.nonce == nonce, StoreOAuthNonce.used_at.is_(None))
-        .values(used_at=datetime.now(UTC)),
+        .values(used_at=datetime.now(UTC))
+        .returning(StoreOAuthNonce.nonce),
         execution_options={"synchronize_session": False},
     )
-    return result.rowcount == 1
+    return result.scalar_one_or_none() is not None
