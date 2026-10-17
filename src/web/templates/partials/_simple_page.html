@@ -19,7 +19,8 @@
     <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
     <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
     <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
-    <link rel="alternate" hreflang="x-default" href="https://karmaai.online{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base_path }}">
+    {% block extra_head %}{% endblock %}
     <meta property="og:title" content="{{ self.title() }}">
     <meta property="og:description" content="{{ self.description() }}">
     <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">

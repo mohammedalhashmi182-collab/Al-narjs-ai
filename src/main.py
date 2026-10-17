@@ -283,9 +283,9 @@ class LocaleMiddleware:
     """Serves /ar/ and /en/ URL prefixes with a persistent language cookie.
 
     /en/home serves the homepage rendered in English; /ar/home in Arabic.
-    Unprefixed paths keep working and fall back to the cookie, then to the
-    browser's Accept-Language header (English for anonymous international
-    visitors, Arabic for Arabic browsers).
+    Unprefixed public pages 301 to the Arabic URL so the sitemap, canonical
+    tags, and hreflang x-default all name the same host path. Private routes
+    (the portal, login, APIs) stay unprefixed. ``/`` stays the owner dashboard.
     """
 
     def __init__(self, app):
@@ -304,6 +304,29 @@ class LocaleMiddleware:
                 locale = lang
                 rest = path[len(lang) + 1:] or "/"
                 break
+
+        if locale is None and scope.get("method", "GET") in ("GET", "HEAD"):
+            from src.services.seo import arabic_canonical_redirect
+
+            target = arabic_canonical_redirect(path)
+            if target:
+                query = scope.get("query_string") or b""
+                if query:
+                    target = target + "?" + query.decode("latin-1", "ignore")
+                payload = target.encode("latin-1")
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": 301,
+                        "headers": [
+                            (b"location", payload),
+                            (b"content-length", b"0"),
+                            (b"cache-control", b"public, max-age=86400"),
+                        ],
+                    }
+                )
+                await send({"type": "http.response.body", "body": b""})
+                return
 
         cookies = _parse_request_cookies(scope)
         if locale:
@@ -598,7 +621,7 @@ async def dashboard(request: Request):
         # permanent: the public root is /home for every visitor
         # no-store so a browser never caches the 301 for the owner, who gets
         # the dashboard on "/" once signed in
-        return RedirectResponse("/home", status_code=301, headers={"Cache-Control": "no-store"})
+        return RedirectResponse("/ar/home", status_code=301, headers={"Cache-Control": "no-store"})
     return templates.TemplateResponse(request, "dashboard.html")
 
 
@@ -676,6 +699,7 @@ async def _pricing_context() -> dict:
 @app.get("/home", response_class=HTMLResponse)
 async def landing_page(request: Request):
     from src.services import catalog, transfer
+    from src.services import public_services
     from src.services import testimonials as _testimonials
     from src.services import payments as _pm
     employees = list(catalog.EMPLOYEES.values())
@@ -707,6 +731,7 @@ async def landing_page(request: Request):
             ],
             **(await _pricing_context()),
             "testimonials": _testimonials.load(),
+            "services": public_services.SERVICES,
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
                 "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
@@ -835,7 +860,7 @@ async def blog_index_page(request: Request):
 
 @app.get("/blog/{slug}", response_class=HTMLResponse)
 async def blog_post_page(slug: str, request: Request):
-    from src.services import blog_articles_1
+    from src.services import blog_articles_1, public_services
 
     articles = blog_articles_1.ARTICLES
     article = next((a for a in articles if a["slug"] == slug), None)
@@ -843,7 +868,33 @@ async def blog_post_page(slug: str, request: Request):
         raise HTTPException(404, "Article not found")
     more = [a for a in articles if a["slug"] != slug][:4]
     return templates.TemplateResponse(
-        request, "blog_post.html", {"article": article, "more": more}
+        request,
+        "blog_post.html",
+        {
+            "article": article,
+            "more": more,
+            "related_services": public_services.links_for_article(slug),
+        },
+    )
+
+
+@app.get("/services/{slug}", response_class=HTMLResponse)
+async def service_page(slug: str, request: Request):
+    from src.services import public_services
+
+    service = public_services.get_service(slug)
+    if service is None:
+        raise HTTPException(404, "Service not found")
+    lang = _page_lang(request)
+    return templates.TemplateResponse(
+        request,
+        "service.html",
+        {
+            "ar": lang == "ar",
+            "service": service,
+            "related": public_services.related_services(service),
+            "service_jsonld": public_services.service_jsonld(service, lang),
+        },
     )
 
 

@@ -54,7 +54,7 @@ def test_owner_api_is_closed_to_anonymous_callers(anon: TestClient, method, path
 def test_owner_pages_redirect_anonymous_visitors_away(anon: TestClient, path) -> None:
     r = anon.get(path, follow_redirects=False)
     assert r.status_code in (301, 302, 303, 307), f"{path} answered {r.status_code}"
-    assert r.headers.get("location") in ("/home", "/login"), path
+    assert r.headers.get("location") in ("/home", "/ar/home", "/login"), path
 
 
 def test_public_agent_list_never_exposes_internal_fields(anon: TestClient) -> None:

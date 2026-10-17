@@ -103,17 +103,21 @@ def test_the_two_addresses_on_the_page_agree(client: TestClient) -> None:
     assert "الرياض" in privacy and "الرمال" in privacy
 
 
-def test_the_offer_catalog_is_rendered_from_the_real_prices(client: TestClient) -> None:
+def test_the_offer_catalog_lists_the_six_services_without_invented_prices(
+    client: TestClient,
+) -> None:
     entity = next(
         b for b in json_ld_blocks(client.get("/home").text)
         if b.get("@type") == "ProfessionalService"
     )
     offers = entity["hasOfferCatalog"]["itemListElement"]
-    assert len(offers) == len(catalog.PACKAGES)
-    published = {o["price"] for o in offers}
-    assert published == {pkg["price"] for pkg in catalog.PACKAGES.values()}
+    assert len(offers) == 6
+    names = {o["itemOffered"]["name"] for o in offers}
+    assert "أتمتة الأعمال" in names
     for offer in offers:
-        assert offer["priceCurrency"] == "SAR"
+        assert "price" not in offer
+        assert "price" not in offer["itemOffered"]
+        assert offer["itemOffered"]["url"].startswith("https://karmaai.online/ar/services/")
 
 
 def test_no_rating_is_invented(client: TestClient) -> None:

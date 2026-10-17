@@ -40,6 +40,7 @@ PUBLIC_TEMPLATES = [
     "invoice.html",
     "invoice_en.html",
     "company.html",
+    "service.html",
 ]
 ALL_TEMPLATES = PUBLIC_TEMPLATES + [
     "base.html",
@@ -221,7 +222,7 @@ def test_v2_layer_defines_its_tokens_and_type() -> None:
     for token, value in V2_TOKENS.items():
         assert f"{token}: {value}" in body, f"missing v2 token {token}"
     assert '"alexandria"' in body and '"noto sans arabic"' in body
-    assert '"cormorant garamond"' in body, "the Latin 'Your AI CEO' line uses the serif"
+    assert "cormorant" not in body, "the landing loads two families, not a third display serif"
 
 
 def test_v2_landing_loads_only_the_v2_layer_and_its_fonts() -> None:
@@ -229,7 +230,9 @@ def test_v2_landing_loads_only_the_v2_layer_and_its_fonts() -> None:
     assert "/static/css/narjis-v2.css" in body
     assert '<body class="v2"' in body
     assert "family=Alexandria" in body and "family=Noto+Sans+Arabic" in body
-    assert "family=Cormorant+Garamond" in body
+    assert "Cormorant" not in body
+    assert 'rel="preload" as="style"' in body
+    assert 'rel="preconnect" href="https://fonts.gstatic.com"' in body
     for retired in ("narjis-luxury.css", "narjis-refresh.css", "family=Cairo"):
         assert retired not in body, f"landing still loads {retired}"
 

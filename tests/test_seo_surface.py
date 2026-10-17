@@ -41,17 +41,30 @@ def test_sitemap_only_lists_public_pages(client: TestClient) -> None:
 def test_sitemap_contains_agents_blog_and_intent(client: TestClient) -> None:
     locs = [e.text for e in ElementTree.fromstring(client.get("/sitemap.xml").text).findall("s:url/s:loc", NS)]
     for slug in catalog.EMPLOYEES:
-        assert f"https://karmaai.online/ai-agent/{slug}" in locs
+        assert f"https://karmaai.online/ar/ai-agent/{slug}" in locs
     for article in blog_articles_1.ARTICLES:
-        assert f"https://karmaai.online/blog/{article['slug']}" in locs
-    assert "https://karmaai.online/ai-agents-saudi-businesses" in locs
-    assert "https://karmaai.online/home" in locs
+        assert f"https://karmaai.online/ar/blog/{article['slug']}" in locs
+    for slug in seo.SERVICE_SLUGS:
+        assert f"https://karmaai.online/ar/services/{slug}" in locs
+    assert "https://karmaai.online/ar/ai-agents-saudi-businesses" in locs
+    assert "https://karmaai.online/ar/home" in locs
+    assert "https://karmaai.online/home" not in locs
 
 
 def test_sitemap_hreflang_targets_exist(client: TestClient) -> None:
     root = ElementTree.fromstring(client.get("/sitemap.xml").text)
     alts = root.findall("s:url/xhtml:link", {"s": NS["s"], "xhtml": "http://www.w3.org/1999/xhtml"})
     assert alts
+    for url in root.findall("s:url", NS)[:8]:
+        links = {
+            link.attrib["hreflang"]: link.attrib["href"]
+            for link in url.findall("xhtml:link", {"s": NS["s"], "xhtml": "http://www.w3.org/1999/xhtml"})
+        }
+        loc = url.find("s:loc", NS).text
+        assert loc.startswith("https://karmaai.online/ar/")
+        assert links["ar"] == loc
+        assert links["x-default"] == loc
+        assert "/en/" in links["en"]
     # every alternate must resolve (localized prefixes are served by LocaleMiddleware)
     for link in alts[:60]:
         href = link.attrib["href"]

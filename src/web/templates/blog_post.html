@@ -8,7 +8,21 @@
   "name": f.q,
   "acceptedAnswer": {"@type": "Answer", "text": f.a}
 }) %}{% endfor %}
-{% set _jsonld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": _faq_entities} %}
+{% set _publisher = "النرجس للذكاء الاصطناعي" if _lang == "ar" else "Al-Narjis AI" %}
+{% set _article_ld = {
+  "@type": "BlogPosting",
+  "headline": article.title_ar if _lang == "ar" else article.title_en,
+  "description": article.desc_ar if _lang == "ar" else article.desc_en,
+  "datePublished": article.date,
+  "dateModified": article.date,
+  "inLanguage": _lang,
+  "mainEntityOfPage": "https://karmaai.online/" ~ _lang ~ "/blog/" ~ article.slug,
+  "image": "https://karmaai.online/brand/og-image.jpg",
+  "articleSection": article.category_ar if _lang == "ar" else article.category_en,
+  "author": {"@type": "Organization", "name": _publisher, "url": "https://karmaai.online"},
+  "publisher": {"@type": "Organization", "name": _publisher, "url": "https://karmaai.online", "logo": {"@type": "ImageObject", "url": "https://karmaai.online/brand/logo.png"}}
+} %}
+{% set _jsonld = {"@context": "https://schema.org", "@graph": [_article_ld, {"@type": "FAQPage", "mainEntity": _faq_entities}]} %}
 {% set _head = seo.head(
   (article.title_ar ~ ' | مدونة النرجس للذكاء الاصطناعي'),
   (article.title_en ~ ' | Al-Narjis AI Blog'),
@@ -70,6 +84,16 @@
         <ul>{% for item in block.ul %}<li>{{ item }}</li>{% endfor %}</ul>
         {% endif %}
     {% endfor %}
+
+    {% if related_services %}
+    <div class="more">
+        <h2 style="margin-top:0">{% if _lang == 'ar' %}خدمات ذات صلة{% else %}Related services{% endif %}</h2>
+        {% for item in related_services %}
+        <a href="/services/{{ item.slug }}">→ {{ item.name_ar if _lang == 'ar' else item.name_en }}</a>
+        <p>{{ item.bridge_ar if _lang == 'ar' else item.bridge_en }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {% if _faq_items %}
     <div class="faq">

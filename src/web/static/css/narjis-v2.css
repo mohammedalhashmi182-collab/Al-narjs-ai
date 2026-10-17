@@ -2,8 +2,8 @@
    Al-Narjis v2 — "Lavender Najd" identity (CEO-advisor rebrand, 2026)
    The public landing page's design contract. See docs/design-system.md.
    - Light theme: lavender action, warm white, Najdi beige and earth,
-     olive/sage accents, a little gold. Alexandria + Noto Sans Arabic,
-     Cormorant Garamond for the Latin "Your AI CEO" line. RTL first.
+     olive/sage accents, a little gold. Two families only: Alexandria and
+     Noto Sans Arabic. RTL first.
    ===================================================================== */
 :root {
   /* light, airy: lavender primary on warm white and Najdi beige/earth */
@@ -30,7 +30,7 @@
   --v2-on-dark-muted: #6b6280;
   --v2-font-display: "Alexandria", "Noto Sans Arabic", system-ui, sans-serif;
   --v2-font-text: "Noto Sans Arabic", "Alexandria", system-ui, sans-serif;
-  --v2-font-serif: "Cormorant Garamond", Georgia, serif;
+  --v2-font-serif: "Alexandria", "Noto Sans Arabic", Georgia, serif;
   --v2-r-sm: 12px;
   --v2-r: 20px;
   --v2-r-lg: 28px;
@@ -152,6 +152,9 @@ body.v2 {
 .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
 .card { background: var(--v2-paper); border: 1px solid var(--v2-line); border-radius: var(--v2-r); padding: 28px; box-shadow: var(--v2-shadow); }
+a.card.svc { display: block; text-decoration: none; color: inherit; }
+a.card.svc p { color: var(--v2-muted); margin: 0; }
+a.card.svc:hover { border-color: var(--v2-lavender); }
 .sec-dark .card { background: var(--v2-canvas-2); border-color: var(--v2-line-dark); box-shadow: none; }
 .step-no { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--v2-saffron-soft); color: var(--v2-ink); font: 700 1rem var(--v2-font-display); margin-bottom: 14px; }
 .muted { color: var(--v2-muted); }
@@ -301,7 +304,7 @@ body.v2 {
     url("/static/img/hero-riyadh.webp") right bottom / auto 100% no-repeat,
     linear-gradient(180deg, #fbf8fd 0%, var(--v2-lavender-soft) 100%); }
 .hero .eyebrow, .eyebrow { color: var(--v2-earth); }
-.hero h1 { font-size: clamp(2.4rem, 5vw, 4rem); color: var(--v2-ink); margin-bottom: .1em; }
+.hero h1 { font-size: clamp(1.7rem, 3.2vw, 2.55rem); line-height: 1.35; color: var(--v2-ink); margin-bottom: .25em; }
 .hero h1 em { color: var(--v2-ink); }
 .hero .en-ceo { display: block; font: 500 clamp(2.4rem, 5.2vw, 4.4rem)/1.05 var(--v2-font-serif); color: var(--v2-lavender); letter-spacing: .01em; margin-bottom: 14px; }
 .hero .ornament { display: flex; align-items: center; gap: 10px; color: var(--v2-saffron); margin: 6px 0 14px; max-width: 420px; }

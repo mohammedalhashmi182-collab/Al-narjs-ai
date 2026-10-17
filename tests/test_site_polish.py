@@ -15,8 +15,15 @@ def client():
         yield c
 
 
-@pytest.mark.parametrize("path", ["/refund-policy", "/about", "/pricing", "/en/refund-policy", "/en/about", "/en/pricing", "/contact"])
-def test_new_pages_render(client, path):
+@pytest.mark.parametrize("path", ["/refund-policy", "/about", "/pricing", "/contact", "/home"])
+def test_unprefixed_public_pages_redirect_to_arabic(client, path):
+    r = client.get(path, follow_redirects=False)
+    assert r.status_code == 301, path
+    assert r.headers["location"] == f"/ar{path}", path
+
+
+@pytest.mark.parametrize("path", ["/en/refund-policy", "/en/about", "/en/pricing", "/ar/contact", "/ar/home"])
+def test_prefixed_public_pages_render(client, path):
     r = client.get(path, follow_redirects=False)
     assert r.status_code == 200, path
 
@@ -78,7 +85,7 @@ def test_english_home_is_english(client):
     assert '<html lang="en" dir="ltr">' in html
     assert "رئيسك التنفيذي الذكي" not in html
     h1 = re.search(r"<h1>(.*?)</h1>", html).group(1)
-    assert h1 == "Your AI CEO"
+    assert h1 == "Al-Narjis — AI solutions and business automation in Saudi Arabia"
     for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S):
         assert not re.search(r"[\u0600-\u06FF]", block), block[:120]
 
