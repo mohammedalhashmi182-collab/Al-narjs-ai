@@ -253,6 +253,10 @@ async def webhook(platform: str, request: Request):
     fresh = salla_fresh(payload) if platform == "salla" else zid_fresh(request.headers, payload)
     if not fresh:
         raise HTTPException(401, "Stale webhook")
+    if platform == "zid":
+        from src.integrations.zid.webhooks import warn_unsigned
+
+        warn_unsigned(request.headers, payload)
     uninstall = _uninstall(platform, payload)
     if not enabled() and not uninstall:
         return {"ok": True, "ignored": True}

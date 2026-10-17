@@ -74,6 +74,28 @@ def signature_ok(raw: bytes, headers) -> bool:
     return _documented_fallback(headers, secret)
 
 
+def _store_id(payload: dict) -> str:
+    direct = ident(payload.get("store_id"))
+    if direct:
+        return direct
+    envelope = payload.get("envelope")
+    if isinstance(envelope, dict):
+        nested = ident(envelope.get("store_id"))
+        if nested:
+            return nested
+    return ident(payload.get("store_uuid")) or "-"
+
+
+def warn_unsigned(headers, payload: dict) -> None:
+    """WARNING when a delivery was accepted without a body signature.
+
+    Logs the store id only. No secret, header, email, or phone.
+    """
+    if (headers.get("x-zid-signature") or "").strip():
+        return
+    log.warning("zid webhook accepted unsigned store_id=%s", _store_id(payload))
+
+
 def event_name(payload: dict) -> str:
     value = payload.get("event_name") or payload.get("event")
     return value.strip()[:80] if isinstance(value, str) else ""

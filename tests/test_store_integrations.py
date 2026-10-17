@@ -506,7 +506,7 @@ async def test_zid_webhook_basic_auth_and_uninstall_isolation(maker, monkeypatch
     assert "hidden@example.com" not in (event.event_name or "") and "966554349999" not in (event.merchant_id or "")
 
 
-async def test_zid_webhook_accepts_dashboard_header_and_hmac(maker, monkeypatch):
+async def test_zid_webhook_accepts_dashboard_header_and_hmac(maker, monkeypatch, caplog):
     _zid_env(monkeypatch)
     project = await _project(maker)
     await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
@@ -516,11 +516,15 @@ async def test_zid_webhook_accepts_dashboard_header_and_hmac(maker, monkeypatch)
     monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
     header = await _post_zid(maker, raw, {"x-zid-webhook-token": SECRET_ZID})
     assert header.status_code == 200 and header.json()["action"] == "ignored"
+    assert "zid webhook accepted unsigned store_id=507530" in caplog.text
+    assert SECRET_ZID not in caplog.text
     monkeypatch.delenv("ZID_WEBHOOK_ALLOW_UNSIGNED", raising=False)
+    caplog.clear()
     other = _stamp({"event_name": "product.update", "store_id": 507530})
     digest = hmac.new(SECRET_ZID.encode(), other, hashlib.sha256).hexdigest()
     hmac_response = await _post_zid(maker, other, {"x-zid-signature": digest})
     assert hmac_response.status_code == 200
+    assert "accepted unsigned" not in caplog.text
     monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
     downgrade = _stamp({"event_name": "order.create", "store_id": 507530})
     bad_sig = "ab" * 32
