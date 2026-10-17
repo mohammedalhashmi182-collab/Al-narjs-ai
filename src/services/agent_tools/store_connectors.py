@@ -1,4 +1,8 @@
-"""Read-only Salla and Zid connectors for the store manager agent.
+"""Read-only Salla and Zid connectors for the owner's own env-token snapshot.
+
+Per-tenant OAuth, encrypted tokens and the customer bot live in
+``src/integrations/`` and stay off until STORE_INTEGRATIONS_ENABLED is set.
+
 
 Only GET requests for products and orders. Credentials come from env vars:
 
