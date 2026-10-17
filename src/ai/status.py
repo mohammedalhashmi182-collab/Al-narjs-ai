@@ -17,25 +17,21 @@ ENV_FLAGS = (
 
 
 async def snapshot(session_factory=None) -> dict:
-    """Which answer providers exist, and whether the public KB index is queryable."""
-    from src.ai.router import last_handoff_reason
-    from src.services.rag import embeddings
+    """Which answer providers exist, and whether the public KB index is queryable.
+
+    Owner-only. The embedder name and the last handoff reason are logs, not
+    fields on this payload.
+    """
+    from src.ai.llm import deep_provider, fast_provider
 
     env = {name: bool((os.getenv(name) or "").strip()) for name in ENV_FLAGS}
-    try:
-        embedder_name = embeddings.get_embedder().name
-    except Exception as exc:  # noqa: BLE001
-        log.warning("ai status embedder check failed: %s", type(exc).__name__)
-        embedder_name = "unavailable"
     out = {
         "env": env,
-        "fast_configured": env["GROQ_API_KEY"],
-        "deep_configured": env["DEEP_MODEL_KEY"],
-        "embedder": embedder_name,
+        "fast_configured": fast_provider().configured,
+        "deep_configured": deep_provider().configured,
         "pgvector": False,
         "index_ready": False,
         "indexed_chunks": 0,
-        "last_handoff_reason": last_handoff_reason(),
     }
     if session_factory is None:
         return out

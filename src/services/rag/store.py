@@ -11,6 +11,7 @@ callers compare it with ``min_confidence()`` and hand off below it.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import os
@@ -159,7 +160,11 @@ async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None
     embedder = embedder or embeddings.get_embedder()
     # The vector leaves for the embedding provider. The lexical terms below
     # stay on the original question so a masked token does not drop the match.
-    embedder, (qv,) = await embeddings.embed_safe(embedder, [for_embedding(query)], kind="query")
+    # The wait is inside the 10s ask budget even if RAG_EMBED_TIMEOUT is larger.
+    embedder, (qv,) = await asyncio.wait_for(
+        embeddings.embed_safe(embedder, [for_embedding(query)], kind="query"),
+        timeout=embeddings.query_embed_timeout(),
+    )
     # The public ask path indexes in the background. Building vectors here
     # made the first customer request embed the whole KB.
     if ensure:

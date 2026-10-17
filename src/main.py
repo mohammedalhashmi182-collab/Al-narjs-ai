@@ -200,15 +200,10 @@ async def lifespan(app: FastAPI):
         agent_registry.start_background_sync()
 
     async def _index_public_kb() -> None:
-        """Build the public KB off the request path so the first ask cannot hang."""
-        try:
-            from src.ai.rag import index_default
+        """Build the public KB off the request path, retrying until it sticks."""
+        from src.ai.rag import index_with_backoff
 
-            async with session_factory() as session:
-                chunks = await index_default(session)
-            logger.info("public kb index ready chunks=%s", chunks)
-        except Exception as exc:  # noqa: BLE001 - indexing must not take the process down
-            logger.warning("public kb index failed: %s", type(exc).__name__)
+        await index_with_backoff(session_factory)
 
     kb_index_task = asyncio.create_task(_index_public_kb(), name="public-kb-index")
 
@@ -2674,14 +2669,19 @@ async def update_lead_status(lead_id: str, request: Request):
 
 
 @app.get("/health")
-async def health(deep: bool = False, ai: bool = False):
+async def health(request: Request, deep: bool = False, ai: bool = False):
     """Liveness for Render (cheap). ``?deep=1`` adds db + external checks (see /health/deep).
 
-    ``?ai=1`` adds /api/ai/ask readiness: env-var presence as booleans, the
-    embedder name, and whether pgvector and the public KB index are ready.
-    No secret values.
+    ``?ai=1`` adds /api/ai/ask readiness for an owner session only: env-var
+    presence as booleans, and whether pgvector and the public KB index are
+    ready. Anyone else gets the plain liveness body. No secret values, no
+    embedder name, and no handoff reason.
     """
     if ai:
+        from src.core.owner_auth import check_owner
+
+        if not check_owner(request):
+            return {"status": "healthy", "version": "0.1.0"}
         from src.ai.status import snapshot
 
         body = {"status": "healthy", "version": "0.1.0"}
@@ -2697,8 +2697,8 @@ async def health(deep: bool = False, ai: bool = False):
 
 
 @app.get("/health/deep")
-async def health_deep():
-    return await health(deep=True)
+async def health_deep(request: Request):
+    return await health(request, deep=True)
 
 
 # ---------------- Payments (Moyasar) ----------------

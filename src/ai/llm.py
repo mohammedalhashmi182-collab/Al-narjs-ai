@@ -85,10 +85,47 @@ def fast_provider() -> Provider:
     )
 
 
+# Gemini's OpenAI-compatible chat endpoint. A Gemini key in DEEP_MODEL_KEY with
+# this base URL and DEEP_MODEL_NAME=gemini-2.5-flash is a valid deep model.
+GEMINI_OPENAI_BASE = "https://generativelanguage.googleapis.com/v1beta/openai/"
+GEMINI_DEEP_MODEL = "gemini-2.5-flash"
+
+
+def _env(name: str) -> str:
+    return (os.getenv(name) or "").strip()
+
+
 def deep_provider() -> Provider:
+    """OpenAI-compatible deep chat.
+
+    An explicit ``DEEP_MODEL_KEY`` uses ``DEEP_MODEL_BASE_URL`` (OpenAI when
+    empty) and ``DEEP_MODEL_NAME`` (``gpt-4o`` when empty). Gemini is that
+    same client: set the base URL to ``GEMINI_OPENAI_BASE``, the key to a
+    Gemini key, and the name to ``gemini-2.5-flash``.
+
+    When ``DEEP_MODEL_KEY`` is empty and ``GEMINI_API_KEY`` is set, those
+    Gemini defaults are used. A non-empty ``DEEP_MODEL_BASE_URL`` or
+    ``DEEP_MODEL_NAME`` still overrides the default.
+    """
+    base = _env("DEEP_MODEL_BASE_URL")
+    model = _env("DEEP_MODEL_NAME")
+    if _env("DEEP_MODEL_KEY"):
+        return Provider(
+            "deep",
+            base or "https://api.openai.com/v1",
+            model or "gpt-4o",
+            "DEEP_MODEL_KEY",
+        )
+    if _env("GEMINI_API_KEY"):
+        return Provider(
+            "deep",
+            base or GEMINI_OPENAI_BASE,
+            model or GEMINI_DEEP_MODEL,
+            "GEMINI_API_KEY",
+        )
     return Provider(
         "deep",
-        os.getenv("DEEP_MODEL_BASE_URL", "https://api.openai.com/v1"),
-        os.getenv("DEEP_MODEL_NAME", "gpt-4o"),
+        base or "https://api.openai.com/v1",
+        model or "gpt-4o",
         "DEEP_MODEL_KEY",
     )

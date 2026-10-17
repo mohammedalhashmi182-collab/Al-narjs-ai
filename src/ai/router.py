@@ -56,8 +56,8 @@ class Result:
     reason: str = ""
 
     def as_dict(self) -> dict:
-        # ``reason`` stays off the public payload. It is logged and shown on /health?ai=1.
-        return {"answer": self.answer, "route": self.route, "sources": self.sources, "reviewed": self.reviewed}
+        # Route, source filenames and the handoff reason stay in the logs.
+        return {"answer": self.answer, "reviewed": self.reviewed}
 
 
 def last_handoff_reason() -> str | None:
@@ -199,27 +199,24 @@ async def _ask(question: str, *, kb=None, fast=None, deep=None, session=None) ->
         return _handoff(fail_reason, sources)
     reviewed = False
     if route == "deep":
+        # Refunds, contracts, privacy and invoices are never sent unreviewed.
+        # A missing or failed reviewer is a handoff. A fast answer is not.
         reviewer = fast if used == deep.name else deep  # second, different model
         if not _configured(reviewer):
-            # The other model is not configured. Keep the answer and say so.
-            reviewed = False
-        else:
+            return _handoff("review_unconfigured", sources)
+        ok, why = await review(reviewer, question, answer, context)
+        if why == "review unavailable":
+            return _handoff("review_unavailable", sources)
+        if not ok:
+            answer, used, fail_reason = await _generate(primary, secondary, question, context)
+            if answer is None:
+                return _handoff(fail_reason, sources, reviewed=True)
             ok, why = await review(reviewer, question, answer, context)
             if why == "review unavailable":
-                reviewed = False
-            elif not ok:
-                answer, used, fail_reason = await _generate(primary, secondary, question, context)
-                if answer is None:
-                    return _handoff(fail_reason, sources, reviewed=True)
-                ok, why = await review(reviewer, question, answer, context)
-                if why == "review unavailable":
-                    reviewed = False
-                elif not ok:
-                    return _handoff("review_rejected", sources, reviewed=True)
-                else:
-                    reviewed = True
-            else:
-                reviewed = True
+                return _handoff("review_unavailable", sources, reviewed=True)
+            if not ok:
+                return _handoff("review_rejected", sources, reviewed=True)
+        reviewed = True
     if rag.is_blocked(answer):
         return _handoff("blocked_answer", sources, reviewed=reviewed)
     # A fast answer is not reviewed by a second model, so invented numbers and
@@ -231,11 +228,23 @@ async def _ask(question: str, *, kb=None, fast=None, deep=None, session=None) ->
     return Result(answer, route if used == primary.name else f"{route}-fallback", sources, reviewed)
 
 
+def _log_outcome(result: Result) -> None:
+    """Route and source filenames are internal. The question is never logged."""
+    log.info(
+        "ai ask route=%s reviewed=%s sources=%s",
+        result.route,
+        result.reviewed,
+        ",".join(result.sources),
+    )
+
+
 async def ask(question: str, *, kb=None, fast=None, deep=None, session=None) -> Result:
     try:
-        return await asyncio.wait_for(
+        result = await asyncio.wait_for(
             _ask(question, kb=kb, fast=fast, deep=deep, session=session),
             timeout=ASK_DEADLINE_S,
         )
     except asyncio.TimeoutError:
-        return _handoff("deadline")
+        result = _handoff("deadline")
+    _log_outcome(result)
+    return result
