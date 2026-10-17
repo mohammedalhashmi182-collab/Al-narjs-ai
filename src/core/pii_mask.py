@@ -9,7 +9,7 @@ replaced with stable placeholders:
 * Saudi IBANs (spaces or dashes)   -> [IBAN_1]
 * phone numbers (mobile, landline, intl.) -> [PHONE_1]
 * card-like numbers (13–19 digits) -> [CARD_1]
-* a name after «اسمي» / «أنا» / "my name is" / "I am" -> [NAME_1]
+* a name after «اسمي» / «أنا اسمي» / "my name is" / «معك» -> [NAME_1]
 
 The model answers with the placeholders; ``unmask`` restores the original
 values in the response locally, so the end-customer still sees correct data
@@ -40,11 +40,15 @@ _SA_MOBILE = rf"(?:(?:\+|00)?{_SEP}(?:966|٩٦٦){_SEP}|[0٠])?[5٥](?:{_SEP}{_D
 _SA_LAND = rf"(?:(?:\+|00)?{_SEP}(?:966|٩٦٦){_SEP}|[0٠])[1١][1-7١-٧](?:{_SEP}{_D}){{7}}"
 _INTL = rf"(?:\+|00){_D}{{1,3}}(?:{_SEP}{_D}){{7,12}}"
 _AR_WORD = r"[\u0621-\u064A]{2,}"
-_AR_STOP = (
-    r"أبغى|ابغى|أبي|ابي|أبى|ابى|أريد|اريد|أحتاج|احتاج|عندي|أسأل|اسأل|أقدر|اقدر|"
-    r"باغي|بسأل|أستفسر|استفسر|وش|كيف|متى|ليش|لماذا|من|في|على|مع|عن|إلى|الى|"
-    r"مو|ما|ليس|لست|أبحث|ابحث|صاحب|عندنا|لدينا|محتاج|محتاجة"
+# The word after a name cue is not a person. Bare «أنا مهتم» has no cue at all.
+_NOT_A_NAME = (
+    "مهتم|مهتمة|أبغى|ابغى|أبي|ابي|أبى|ابى|أريد|اريد|أحتاج|احتاج|عندي|"
+    "أسأل|اسأل|أقدر|اقدر|باغي|بسأل|أستفسر|استفسر|عميل|عميلة|صاحب|صاحبة|"
+    "زبون|متجر|باقة|سعر|خدمة|دعم|دفع|فاتورة|اشتراك|حق|تمام|مشكلة|سؤال|"
+    "جديد|جديدة|الآن|الان|كيف|وش|متى|ليش|لماذا"
 )
+_NAME_TOKEN = rf"(?!(?:{_NOT_A_NAME})(?:\s|$)){_AR_WORD}"
+_EN_NOT_A_NAME = "Interested|Looking|Customer|Client|Owner"
 
 _production_off_warned = False
 
@@ -59,10 +63,12 @@ PATTERNS: list[tuple[str, re.Pattern]] = [
     ("CARD", re.compile(
         rf"(?<![0-9٠-٩])(?:{_D}{{4}}(?:[ \-]{_D}{{4}}){{2,3}}|{_D}{{13,19}})(?![0-9٠-٩])"
     )),
+    # Explicit cues only. «أنا مهتم» and «I am …» are sentences, not introductions.
     ("NAME", re.compile(
-        rf"(?:اسمي|إسمي|اسمى)\s+(?:هو\s+)?{_AR_WORD}(?:\s+{_AR_WORD}){{0,2}}"
-        rf"|(?<![\u0621-\u064A])(?:أنا|انا)\s+(?!(?:{_AR_STOP})(?:\s|$)){_AR_WORD}(?:\s+{_AR_WORD}){{0,2}}"
-        rf"|(?i:\b(?:my name is|i am|i['’]m)\s+)[A-Z][A-Za-z'.-]{{1,30}}(?:\s+[A-Z][A-Za-z'.-]{{1,30}}){{0,2}}"
+        rf"(?:(?:أنا|انا)\s+)?(?:اسمي|إسمي|اسمى)\s+(?:هو\s+)?{_NAME_TOKEN}(?:\s+{_NAME_TOKEN}){{0,2}}"
+        rf"|(?<![\u0621-\u064A])و?معك\s+{_NAME_TOKEN}(?:\s+{_NAME_TOKEN}){{0,2}}"
+        rf"|(?i:\bmy name is\s+)(?!(?:{_EN_NOT_A_NAME})\b)[A-Z][A-Za-z'.-]{{1,30}}"
+        rf"(?:\s+(?!(?:{_EN_NOT_A_NAME})\b)[A-Z][A-Za-z'.-]{{1,30}}){{0,2}}"
     )),
 ]
 

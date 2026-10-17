@@ -25,9 +25,9 @@ from src.core.model_provider import ModelProvider, ModelProviderType, ModelReque
     ("بطاقتي 4111111111111111", "CARD"),
     ("البطاقة 4111 1111 1111 1111", "CARD"),
     ("اسمي محمد العتيبي", "NAME"),
-    ("أنا سارة", "NAME"),
+    ("أنا اسمي سارة", "NAME"),
     ("my name is Sara", "NAME"),
-    ("I am Mohammed", "NAME"),
+    ("معك خالد", "NAME"),
 ])
 def test_masks_each_kind(raw, kind):
     masked, mapping = pii_mask.mask(raw)
@@ -42,6 +42,21 @@ def test_leaves_prices_dates_and_order_numbers():
 
 def test_leaves_handoff_marker_and_bare_intent():
     text = "يحدده محمد. أنا أبغى سعر الباقة"
+    assert pii_mask.mask(text)[0] == text
+
+
+@pytest.mark.parametrize("text", [
+    "انا مهتم بباقة بيع",
+    "أنا أبي باقة بيع",
+    "أنا عميل جديد",
+    "أنا صاحب متجر",
+    "أنا سارة",
+    "I am Mohammed",
+    "اسمي مهتم بالباقة",
+    "معك عميل",
+    "my name is Interested",
+])
+def test_name_mask_skips_sentences_and_non_names(text):
     assert pii_mask.mask(text)[0] == text
 
 
@@ -75,7 +90,7 @@ async def test_provider_never_sees_pii_and_reply_is_restored(monkeypatch):
     mp = ModelProvider.__new__(ModelProvider)
     spy = _Spy()
     mp._clients = {ModelProviderType.GEMINI: spy}
-    req = ModelRequest(prompt="أنا سارة 0551234567 sara@example.com", system_prompt="العميل 1012345678")
+    req = ModelRequest(prompt="اسمي سارة 0551234567 sara@example.com", system_prompt="العميل 1012345678")
     resp = await mp.complete("gemini:test", req)
     sent_prompt, sent_system = spy.seen[0]
     for secret in ("0551234567", "sara@example.com", "1012345678"):
