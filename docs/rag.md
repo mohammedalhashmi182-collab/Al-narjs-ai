@@ -13,7 +13,20 @@ Code: `src/services/rag/` (arabic.py, embeddings.py, store.py, generate.py, site
    (tenant: contact moved to the customer's human queue; site: "تحويل لخدمة العملاء" → ticket).
 5. **Usage**: over the plan's monthly conversation limit no paid embedding/LLM call is made (`RAG_OVER_LIMIT`).
 
-Embedding providers: `RAG_EMBED_PROVIDER` = auto | openai | gemini | local | hash. `local` needs the optional
-`sentence-transformers` package (not installed by default: large download).
+Embedding providers: `EMBEDDING_PROVIDER` (overrides `RAG_EMBED_PROVIDER`) = auto | openai | gemini | local | hash.
+`auto` uses native Gemini embeddings when `GEMINI_API_KEY` is set. OpenAI is used only when the provider is
+explicitly `openai`. A failed real provider is not answered with hash vectors.
+
+`local` is opt-in (`EMBEDDING_PROVIDER=local`): `paraphrase-multilingual-MiniLM-L12-v2`, 384 dimensions, via
+sentence-transformers. It is not the default and not a fallback. The production web service is Render's
+starter plan (`render.yaml`, 512 MB RAM — [Render compute plans](https://render.com/docs/compute-plans)).
+The model weights are about 470 MB and a CPU torch process needs more resident memory than that instance
+has left, so loading it there would run the service out of memory. The package is not in the production
+image. Use it only on a machine with several gigabytes free (a 4 GB plan is the practical floor) after
+installing `sentence-transformers` there.
+
+Chunks store the provider name in `model` and the width in `dim`. A change of either reindexes that
+document and drops the previous provider's rows. A fixed `vector(N)` column is recreated when N does not
+match (768 for Gemini, 384 for MiniLM, 1536 for OpenAI small).
 
 Tests: `tests/test_rag*.py` (mocked; no network). Real Postgres+pgvector: `RAG_PG_TEST_URL=... pytest tests/test_rag_pgvector.py`.

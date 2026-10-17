@@ -101,6 +101,51 @@ def _vec_literal(v: list[float]) -> str:
 
 # --------------------------------------------------------------------------- indexing
 
+_vector_dim_ready: dict[str, int] = {}
+
+
+def _vector_type_needs_rebuild(declared: str, dim: int) -> bool:
+    """True when ``embedding_vec`` is ``vector(N)`` and N is not ``dim``.
+
+    An unconstrained ``vector`` column already accepts the new width.
+    """
+    text_type = (declared or "").strip().lower()
+    if not text_type.startswith("vector(") or not text_type.endswith(")"):
+        return False
+    try:
+        declared_dim = int(text_type[len("vector("):-1])
+    except ValueError:
+        return False
+    return declared_dim != dim
+
+
+async def ensure_vector_dim(session: AsyncSession, dim: int) -> None:
+    """Recreate a fixed-width pgvector column when the embedder width changed.
+
+    No Alembic revision: the column is added best-effort at startup as plain
+    ``vector``. A database that pinned ``vector(1536)`` cannot store Gemini's
+    768-d vectors until the column is unconstrained again.
+    """
+    bind = session.get_bind()
+    if bind.dialect.name != "postgresql":
+        return
+    key = str(getattr(bind, "url", id(bind)))
+    if _vector_dim_ready.get(key) == dim:
+        return
+    declared = (await session.execute(text(
+        "SELECT format_type(a.atttypid, a.atttypmod) "
+        "FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid "
+        "WHERE c.relname = 'agent_knowledge_chunks' AND a.attname = 'embedding_vec' "
+        "AND NOT a.attisdropped"
+    ))).scalar()
+    if _vector_type_needs_rebuild(str(declared or ""), dim):
+        log.warning("pgvector embedding_vec is %s; recreating it for dim %s", declared, dim)
+        await session.execute(text("ALTER TABLE agent_knowledge_chunks DROP COLUMN embedding_vec"))
+        await session.execute(text("ALTER TABLE agent_knowledge_chunks ADD COLUMN embedding_vec vector"))
+        _PGV.pop(key, None)
+    _vector_dim_ready[key] = dim
+
+
 async def index_doc(session: AsyncSession, doc: KnowledgeDoc, embedder: embeddings.Embedder | None = None) -> int:
     """(Re)build the chunk vectors of one document for the current embedder. Flushes, no commit."""
     embedder = embedder or embeddings.get_embedder()
@@ -108,14 +153,16 @@ async def index_doc(session: AsyncSession, doc: KnowledgeDoc, embedder: embeddin
     if not parts:
         return 0
     embedder, vecs = await embeddings.embed_safe(embedder, [f"{doc.title}\n{p}" for p in parts], kind="doc")
-    await session.execute(delete(KnowledgeChunk).where(KnowledgeChunk.doc_id == doc.id,
-                                                       KnowledgeChunk.model == embedder.name))
+    # Drop every previous provider for this doc. Retrieval is filtered by
+    # model and dim, and a provider switch must not leave the old vectors behind.
+    await session.execute(delete(KnowledgeChunk).where(KnowledgeChunk.doc_id == doc.id))
     h = doc_hash(doc)
     rows = [KnowledgeChunk(doc_id=doc.id, project_id=doc.project_id, chunk_index=i, doc_hash=h, title=doc.title[:255], text=p,
                            model=embedder.name, dim=len(v), embedding=v) for i, (p, v) in enumerate(zip(parts, vecs, strict=True))]
     session.add_all(rows)
     await session.flush()
-    if await pgvector_ready(session):
+    if rows and await pgvector_ready(session):
+        await ensure_vector_dim(session, rows[0].dim)
         for r in rows:
             await session.execute(text("UPDATE agent_knowledge_chunks SET embedding_vec = CAST(:v AS vector) WHERE id = :id"),
                                   {"v": _vec_literal(r.embedding), "id": r.id})
@@ -131,10 +178,14 @@ async def ensure_indexed(session: AsyncSession, project_id: UUID | None, embedde
     docs = list((await session.execute(select(KnowledgeDoc).where(_tenant(KnowledgeDoc.project_id, project_id)))).scalars())
     if not docs:
         return
-    have = {(d, h) for d, h in (await session.execute(select(KnowledgeChunk.doc_id, KnowledgeChunk.doc_hash).where(
-        _tenant(KnowledgeChunk.project_id, project_id), KnowledgeChunk.model == embedder.name).distinct())).all()}
+    have = {(d, h, dim) for d, h, dim in (await session.execute(
+        select(KnowledgeChunk.doc_id, KnowledgeChunk.doc_hash, KnowledgeChunk.dim).where(
+            _tenant(KnowledgeChunk.project_id, project_id), KnowledgeChunk.model == embedder.name).distinct()
+    )).all()}
+    width = int(embedder.dim)
     for d in docs:
-        if (d.id, doc_hash(d)) not in have:  # new or edited since indexing
+        # A new provider name misses this set. A new vector width misses it too.
+        if (d.id, doc_hash(d), width) not in have:
             await index_doc(session, d, embedder)
 
 
@@ -176,14 +227,15 @@ async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None
         res = await session.execute(text(
             "SELECT title, text, 1 - (embedding_vec <=> CAST(:q AS vector)) AS cos FROM agent_knowledge_chunks "
             "WHERE model = :m AND " + ("project_id IS NULL" if project_id is None else "project_id = :p") +
-            " AND embedding_vec IS NOT NULL" + prefix_sql +
+            " AND embedding_vec IS NOT NULL AND dim = :dim" + prefix_sql +
             " ORDER BY embedding_vec <=> CAST(:q AS vector) LIMIT :n"),
             {"q": _vec_literal(qv), "m": embedder.name, "p": project_id, "n": CANDIDATES * 4,
-             "pref": f"{title_prefix}%" if title_prefix else None})
+             "dim": int(embedder.dim), "pref": f"{title_prefix}%" if title_prefix else None})
         rows = [(t, x, None, float(c)) for t, x, c in res.all()]
     else:
         stmt = select(KnowledgeChunk.title, KnowledgeChunk.text, KnowledgeChunk.embedding).where(
-            _tenant(KnowledgeChunk.project_id, project_id), KnowledgeChunk.model == embedder.name)
+            _tenant(KnowledgeChunk.project_id, project_id), KnowledgeChunk.model == embedder.name,
+            KnowledgeChunk.dim == int(embedder.dim))
         if title_prefix:
             stmt = stmt.where(KnowledgeChunk.title.startswith(title_prefix))
         res = await session.execute(stmt)

@@ -98,17 +98,67 @@ async def test_hash_embeddings_match_spelling_variants():
 # --------------------------------------------------------------------------- providers
 
 def test_provider_selection_by_env(monkeypatch):
+    monkeypatch.delenv("EMBEDDING_PROVIDER", raising=False)
+    monkeypatch.delenv("RAG_EMBED_MODEL", raising=False)
+    monkeypatch.setattr(embeddings, "_has_local", lambda: False)
     monkeypatch.setattr(embeddings, "_key", lambda n: "k" if n == "GEMINI_API_KEY" else None)
     monkeypatch.setenv("RAG_EMBED_PROVIDER", "auto")
-    assert embeddings.get_embedder().name.startswith("gemini:")
+    assert embeddings.get_embedder().name == "gemini:gemini-embedding-001"
+    # A present OpenAI key must not jump the queue. Production's key is invalid.
     monkeypatch.setattr(embeddings, "_key", lambda n: "k")
+    assert embeddings.get_embedder().name == "gemini:gemini-embedding-001"
+    monkeypatch.setenv("EMBEDDING_PROVIDER", "openai")
     assert embeddings.get_embedder().name == "openai:text-embedding-3-small"
+    monkeypatch.delenv("EMBEDDING_PROVIDER", raising=False)
     monkeypatch.setenv("RAG_EMBED_PROVIDER", "gemini")
     assert embeddings.get_embedder().name.startswith("gemini:")
-    monkeypatch.setattr(embeddings, "_key", lambda n: None)
-    monkeypatch.setattr(embeddings, "_has_local", lambda: False)
-    monkeypatch.setenv("RAG_EMBED_PROVIDER", "openai")  # no key → safe fallback
+    monkeypatch.setattr(embeddings, "_key", lambda n: "k" if n == "OPENAI_API_KEY" else None)
+    monkeypatch.setenv("RAG_EMBED_PROVIDER", "auto")
     assert embeddings.get_embedder().name == "hash:ngram-v1"
+    monkeypatch.setattr(embeddings, "_key", lambda n: None)
+    monkeypatch.setenv("RAG_EMBED_PROVIDER", "openai")  # no key → hash, not a crash
+    assert embeddings.get_embedder().name == "hash:ngram-v1"
+
+
+def test_local_minilm_is_opt_in(monkeypatch):
+    """Starter is 512 MB, so an installed sentence-transformers must not become the default."""
+    monkeypatch.delenv("EMBEDDING_PROVIDER", raising=False)
+    monkeypatch.delenv("RAG_EMBED_MODEL", raising=False)
+    monkeypatch.setattr(embeddings, "_has_local", lambda: True)
+    monkeypatch.setattr(embeddings, "_key", lambda n: "k" if n == "GEMINI_API_KEY" else None)
+    monkeypatch.setenv("RAG_EMBED_PROVIDER", "auto")
+    assert embeddings.get_embedder().name == "gemini:gemini-embedding-001"
+    assert all(not item.name.startswith("local:") for item in embeddings.candidate_embedders())
+    monkeypatch.setenv("EMBEDDING_PROVIDER", "local")
+    local = embeddings.get_embedder()
+    assert local.name == "local:paraphrase-multilingual-MiniLM-L12-v2"
+    assert local.dim == 384
+    names = [item.name for item in embeddings.candidate_embedders()]
+    assert names[0] == local.name and names[1].startswith("gemini:")
+    monkeypatch.setattr(embeddings, "_has_local", lambda: False)
+    embeddings._local_missing_logged = False
+    assert embeddings.get_embedder().name.startswith("gemini:")
+
+
+async def test_local_embed_uses_minilm_without_e5_prefixes(monkeypatch):
+    seen = {}
+
+    class Model:
+        def get_sentence_embedding_dimension(self):
+            return 384
+
+        def encode(self, inputs, normalize_embeddings=False):
+            seen["inputs"] = list(inputs)
+            seen["normalized"] = normalize_embeddings
+            return [[0.0] * 384]
+
+    monkeypatch.setattr(embeddings, "_load_local_model", lambda name: seen.update(model=name) or Model())
+    embeddings.LocalEmbedder._models.clear()
+    embedder = embeddings.LocalEmbedder()
+    vecs = await embedder.embed(["أهلاً"], kind="query")
+    assert seen["model"] == embeddings.LOCAL_MODEL
+    assert seen["inputs"] == ["اهلا"] and seen["normalized"] is True
+    assert embedder.dim == 384 and len(vecs[0]) == 384
 
 
 async def test_openai_and_gemini_payloads(monkeypatch):
@@ -136,15 +186,44 @@ async def test_openai_and_gemini_payloads(monkeypatch):
     assert v == [[0.0, 1.0]] and seen[1][1]["requests"][0]["taskType"] == "RETRIEVAL_QUERY"
 
 
-async def test_provider_failure_falls_back_to_hash():
+async def test_provider_failure_tries_the_next_real_provider(monkeypatch):
     class Boom:
-        name, dim = "openai:x", 3
+        name, dim = "openai:text-embedding-3-small", 3
 
         async def embed(self, texts, kind="doc"):
-            raise RuntimeError("down")
+            raise RuntimeError("invalid_api_key")
 
+    class Ok(embeddings.GeminiEmbedder):
+        def __init__(self):
+            super().__init__("g", "gemini-embedding-001", 2)
+
+        async def embed(self, texts, kind="doc"):
+            return [[1.0, 0.0]]
+
+    monkeypatch.setattr(embeddings, "candidate_embedders", lambda: [Ok()])
     used, vecs = await embeddings.embed_safe(Boom(), ["سلام"])
-    assert used.name == "hash:ngram-v1" and len(vecs[0]) == embeddings.HASH_DIM
+    assert used.name == "gemini:gemini-embedding-001" and vecs == [[1.0, 0.0]]
+
+
+async def test_failed_providers_do_not_answer_with_hash(monkeypatch, caplog):
+    class Boom:
+        name, dim = "openai:text-embedding-3-small", 3
+
+        async def embed(self, texts, kind="doc"):
+            raise RuntimeError("invalid_api_key")
+
+    monkeypatch.setattr(embeddings, "candidate_embedders", lambda: [])
+    embeddings._hash_fallback_logged = False
+    with caplog.at_level("ERROR", logger="src.services.rag.embeddings"):
+        with pytest.raises(embeddings.EmbeddingUnavailable):
+            await embeddings.embed_safe(Boom(), ["سلام"])
+        with pytest.raises(embeddings.EmbeddingUnavailable):
+            await embeddings.embed_safe(Boom(), ["سؤال سري"])
+    errors = [rec.message for rec in caplog.records if rec.levelname == "ERROR"]
+    assert len(errors) == 1
+    assert "hash fallback will not be used to answer" in errors[0]
+    assert "RuntimeError" in errors[0]
+    assert "سؤال سري" not in caplog.text
 
 
 # --------------------------------------------------------------------------- index + isolation
@@ -338,3 +417,101 @@ async def test_query_embedding_is_masked(monkeypatch):
     assert query_calls
     assert all(phone not in text for texts in query_calls for text in texts)
     assert any("[PHONE_1]" in text for texts in query_calls for text in texts)
+
+
+def test_vector_column_rebuild_only_when_the_width_is_fixed():
+    assert store._vector_type_needs_rebuild("vector(1536)", 768) is True
+    assert store._vector_type_needs_rebuild("vector(768)", 768) is False
+    assert store._vector_type_needs_rebuild("vector", 768) is False
+
+
+async def test_fixed_pgvector_column_is_rebuilt_for_a_new_dim():
+    class Bind:
+        class dialect:
+            name = "postgresql"
+        url = "postgresql://test"
+
+    class Result:
+        def scalar(self):
+            return "vector(1536)"
+
+    class Session:
+        def __init__(self):
+            self.sql: list[str] = []
+
+        def get_bind(self):
+            return Bind()
+
+        async def execute(self, statement, params=None):
+            self.sql.append(str(statement))
+            return Result()
+
+    session = Session()
+    store._vector_dim_ready.clear()
+    await store.ensure_vector_dim(session, 768)
+    assert any("DROP COLUMN embedding_vec" in sql for sql in session.sql)
+    assert any("ADD COLUMN embedding_vec vector" in sql for sql in session.sql)
+    await store.ensure_vector_dim(session, 768)
+    assert len(session.sql) == 3
+
+
+async def test_dimension_change_reindexes_the_doc(maker):
+    from src.models.agent_tools import KnowledgeDoc
+
+    class Width:
+        def __init__(self, dim):
+            self.name = "gemini:gemini-embedding-001"
+            self.dim = dim
+            self.calls = 0
+
+        async def embed(self, texts, kind="doc"):
+            self.calls += 1
+            return [[float(self.dim)] * self.dim for _ in texts]
+
+    async with maker() as session:
+        doc = KnowledgeDoc(
+            project_id=None, title="kb:t", source="text",
+            content="سعر باقة رد 599 ريال شهريا للرد على العملاء.",
+        )
+        session.add(doc)
+        await session.flush()
+        await store.index_doc(session, doc, Width(4))
+        await session.commit()
+        narrow = Width(8)
+        await store.ensure_indexed(session, None, narrow)
+        dims = (await session.execute(
+            select(KnowledgeChunk.dim).where(KnowledgeChunk.doc_id == doc.id)
+        )).scalars().all()
+        assert set(dims) == {8} and narrow.calls >= 1
+
+
+async def test_provider_change_reindexes_and_stores_the_new_model(maker):
+    from src.models.agent_tools import KnowledgeDoc
+
+    class Named:
+        def __init__(self, name, dim):
+            self.name = name
+            self.dim = dim
+            self.calls = 0
+
+        async def embed(self, texts, kind="doc"):
+            self.calls += 1
+            return [[1.0] * self.dim for _ in texts]
+
+    async with maker() as session:
+        doc = KnowledgeDoc(
+            project_id=None, title="kb:t", source="text",
+            content="سعر باقة رد 599 ريال شهريا للرد على العملاء.",
+        )
+        session.add(doc)
+        await session.flush()
+        await store.index_doc(session, doc, Named("gemini:gemini-embedding-001", 4))
+        await session.commit()
+        local = Named("local:paraphrase-multilingual-MiniLM-L12-v2", 384)
+        await store.ensure_indexed(session, None, local)
+        rows = (await session.execute(
+            select(KnowledgeChunk).where(KnowledgeChunk.doc_id == doc.id)
+        )).scalars().all()
+        assert {row.model for row in rows} == {local.name}
+        assert {row.dim for row in rows} == {384}
+        assert local.calls >= 1
