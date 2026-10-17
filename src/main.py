@@ -527,6 +527,10 @@ class SecurityHeadersMiddleware:
 
 app.add_middleware(SecurityHeadersMiddleware)
 
+from src.utils.request_log import RequestLogMiddleware  # noqa: E402
+
+app.add_middleware(RequestLogMiddleware)
+
 
 templates = Jinja2Templates(directory="src/web/templates")
 
