@@ -199,8 +199,22 @@ async def lifespan(app: FastAPI):
         # right away and the upsert never contends with boot-time work.
         agent_registry.start_background_sync()
 
+    async def _index_public_kb() -> None:
+        """Build the public KB off the request path, retrying until it sticks."""
+        from src.ai.rag import index_with_backoff
+
+        await index_with_backoff(session_factory)
+
+    kb_index_task = asyncio.create_task(_index_public_kb(), name="public-kb-index")
+
     yield
 
+    if not kb_index_task.done():
+        kb_index_task.cancel()
+        try:
+            await kb_index_task
+        except (asyncio.CancelledError, Exception):  # noqa: BLE001
+            pass
     if scheduler_task is not None and not scheduler_task.done():
         scheduler_task.cancel()
         try:
@@ -2655,8 +2669,24 @@ async def update_lead_status(lead_id: str, request: Request):
 
 
 @app.get("/health")
-async def health(deep: bool = False):
-    """Liveness for Render (cheap). ``?deep=1`` adds db + external checks (see /health/deep)."""
+async def health(request: Request, deep: bool = False, ai: bool = False):
+    """Liveness for Render (cheap). ``?deep=1`` adds db + external checks (see /health/deep).
+
+    ``?ai=1`` adds /api/ai/ask readiness for an owner session only: env-var
+    presence as booleans, and whether pgvector and the public KB index are
+    ready. Anyone else gets the plain liveness body. No secret values, no
+    embedder name, and no handoff reason.
+    """
+    if ai:
+        from src.core.owner_auth import check_owner
+
+        if not check_owner(request):
+            return {"status": "healthy", "version": "0.1.0"}
+        from src.ai.status import snapshot
+
+        body = {"status": "healthy", "version": "0.1.0"}
+        body["ai_ask"] = await snapshot(getattr(app.state, "session_factory", None))
+        return body
     if not deep:
         return {"status": "healthy", "version": "0.1.0"}
     from src.services import ops_monitor
@@ -2667,8 +2697,8 @@ async def health(deep: bool = False):
 
 
 @app.get("/health/deep")
-async def health_deep():
-    return await health(deep=True)
+async def health_deep(request: Request):
+    return await health(request, deep=True)
 
 
 # ---------------- Payments (Moyasar) ----------------

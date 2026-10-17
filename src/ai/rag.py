@@ -7,11 +7,21 @@ uses in-process cosine. Qdrant is not used.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import logging
 import re
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import select, text
+
+log = logging.getLogger(__name__)
+
+# Session-level advisory lock, held on its own connection so indexing commits
+# do not drop it and a pooled connection never keeps it after we unlock.
+_INDEX_LOCK = 814_001_082
+_INDEX_BACKOFF_S = 2.0
+_INDEX_BACKOFF_CAP_S = 300.0
 
 COLLECTION_PREFIX = "kb:"
 CHUNK_CHARS = 800
@@ -20,6 +30,10 @@ CHUNK_CHARS = 800
 BLOCK_MARKERS = ("[X]", "يحدده محمد")
 
 DEFAULT_KB = Path(__file__).resolve().parents[2] / "data" / "kb" / "narjs_services.md"
+
+
+class IndexBusy(Exception):
+    """Another process holds the public-KB index lock."""
 
 
 def is_blocked(text: str) -> bool:
@@ -65,7 +79,7 @@ class KB:
     def __init__(self, session):
         self.session = session
 
-    async def ingest(self, path: str | Path) -> int:
+    async def ingest(self, path: str | Path, *, commit: bool = True) -> int:
         from src.models.agent_tools import KnowledgeDoc
         from src.services.rag import store
 
@@ -92,11 +106,16 @@ class KB:
                 await self.session.flush()
                 await store.index_doc(self.session, doc)
                 n += 1
-        await self.session.commit()
+        if commit:
+            await self.session.commit()
         return n
 
-    async def ensure_default(self) -> None:
-        """Index ``data/kb/narjs_services.md`` when it is missing or its text changed."""
+    async def ensure_default(self, *, commit: bool = True) -> None:
+        """Index ``data/kb/narjs_services.md`` when it is missing or its text changed.
+
+        The idempotency key is the sha256 of the sorted chunk texts. A second
+        process that finds the same hash does not insert another copy.
+        """
         from src.models.agent_tools import KnowledgeDoc
 
         path = DEFAULT_KB
@@ -115,13 +134,14 @@ class KB:
         want = hashlib.sha256("\n".join(sorted(c["text"] for c in chunks)).encode()).hexdigest()
         if existing and digest == want and len(existing) == len(chunks):
             return
-        await self.ingest(path)
+        await self.ingest(path, commit=commit)
 
-    async def retrieve(self, q: str, k: int = 5) -> list[dict]:
+    async def retrieve(self, q: str, k: int = 5, *, ensure: bool = True) -> list[dict]:
         from src.services.rag import store
 
         hits = await store.retrieve(
             self.session, q, project_id=None, k=k, title_prefix=COLLECTION_PREFIX,
+            ensure=ensure,
         )
         out = []
         for h in hits:
@@ -129,3 +149,65 @@ class KB:
             source = title[len(COLLECTION_PREFIX):] if title.startswith(COLLECTION_PREFIX) else title
             out.append({**h, "source": source})
         return out
+
+
+def _is_postgres(bind) -> bool:
+    return getattr(getattr(bind, "dialect", None), "name", "") == "postgresql"
+
+
+async def _write_index(session) -> int:
+    from src.services.rag import embeddings, store
+
+    kb = KB(session)
+    await kb.ensure_default()
+    await store.ensure_indexed(session, None, embeddings.get_embedder())
+    await session.commit()
+    return await store.chunk_count(session, None)
+
+
+async def index_default(session) -> int:
+    """Index the public KB and its vectors. Safe to run off the request path.
+
+    On Postgres a second connection holds ``pg_try_advisory_lock`` for the
+    whole write, including commits. The other instance gets :class:`IndexBusy`
+    and retries later; the content hash then makes the write a no-op.
+    SQLite has a single writer, so it does not take the lock.
+    """
+    bind = session.bind
+    if not _is_postgres(bind):
+        return await _write_index(session)
+    async with bind.connect() as conn:
+        got = (await conn.execute(
+            text("SELECT pg_try_advisory_lock(:k)"),
+            {"k": _INDEX_LOCK},
+        )).scalar()
+        if not got:
+            raise IndexBusy()
+        try:
+            return await _write_index(session)
+        finally:
+            await conn.execute(text("SELECT pg_advisory_unlock(:k)"), {"k": _INDEX_LOCK})
+            await conn.commit()
+
+
+async def index_with_backoff(session_factory, *, sleep=None) -> int:
+    """Index the public KB, retrying with backoff until it succeeds.
+
+    Sleep happens outside the database session. ``CancelledError`` propagates
+    so process shutdown is not turned into another attempt.
+    """
+    pause = sleep or asyncio.sleep
+    delay = _INDEX_BACKOFF_S
+    while True:
+        try:
+            async with session_factory() as session:
+                chunks = await index_default(session)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            log.warning("public kb index failed: %s; retry in %.0fs", type(exc).__name__, delay)
+            await pause(delay)
+            delay = min(delay * 2, _INDEX_BACKOFF_CAP_S)
+            continue
+        log.info("public kb index ready chunks=%s", chunks)
+        return chunks

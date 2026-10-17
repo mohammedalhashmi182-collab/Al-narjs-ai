@@ -11,6 +11,7 @@ callers compare it with ``min_confidence()`` and hand off below it.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import os
@@ -149,7 +150,8 @@ def coverage(q_terms: list[str], chunk: str) -> float:
 
 async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None, k: int = 3,
                    embedder: embeddings.Embedder | None = None,
-                   title_prefix: str | None = None) -> list[dict]:
+                   title_prefix: str | None = None,
+                   ensure: bool = True) -> list[dict]:
     """Top-k chunks of ONE tenant with ``score`` (0..1), ``cosine`` and ``coverage``.
 
     ``title_prefix`` limits the search to one corpus (the public KB uses ``kb:``)
@@ -158,8 +160,15 @@ async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None
     embedder = embedder or embeddings.get_embedder()
     # The vector leaves for the embedding provider. The lexical terms below
     # stay on the original question so a masked token does not drop the match.
-    embedder, (qv,) = await embeddings.embed_safe(embedder, [for_embedding(query)], kind="query")
-    await ensure_indexed(session, project_id, embedder)
+    # The wait is inside the 10s ask budget even if RAG_EMBED_TIMEOUT is larger.
+    embedder, (qv,) = await asyncio.wait_for(
+        embeddings.embed_safe(embedder, [for_embedding(query)], kind="query"),
+        timeout=embeddings.query_embed_timeout(),
+    )
+    # The public ask path indexes in the background. Building vectors here
+    # made the first customer request embed the whole KB.
+    if ensure:
+        await ensure_indexed(session, project_id, embedder)
     q_terms = terms(query)
     rows: list[tuple[str, str, list[float] | None, float | None]] = []
     if await pgvector_ready(session):

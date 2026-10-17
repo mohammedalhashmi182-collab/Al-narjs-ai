@@ -31,7 +31,22 @@ from .arabic import canonical_text, light_stem, normalize, terms
 log = logging.getLogger(__name__)
 
 HASH_DIM = 768
-TIMEOUT = float(os.getenv("RAG_EMBED_TIMEOUT", "15"))
+# A customer question must embed inside the 10s ask budget. Document indexing
+# uses the same default; ``RAG_EMBED_TIMEOUT`` can raise it, but a query never
+# waits longer than ``QUERY_EMBED_S``.
+QUERY_EMBED_S = 4.0
+TIMEOUT = float(os.getenv("RAG_EMBED_TIMEOUT", str(QUERY_EMBED_S)))
+
+
+def query_embed_timeout() -> float:
+    """Seconds a query embedding may take. Never above ``QUERY_EMBED_S``."""
+    try:
+        configured = float(os.getenv("RAG_EMBED_TIMEOUT", str(QUERY_EMBED_S)))
+    except ValueError:
+        configured = QUERY_EMBED_S
+    if configured <= 0:
+        configured = QUERY_EMBED_S
+    return min(configured, QUERY_EMBED_S)
 
 
 class Embedder(Protocol):
