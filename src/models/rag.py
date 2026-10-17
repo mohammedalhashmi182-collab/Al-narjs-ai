@@ -1,4 +1,4 @@
-"""RAG chunk index for knowledge-base documents (alembic 0010).
+"""RAG chunk index for knowledge-base documents (alembic 0011).
 
 One row per (document chunk, embedding model). ``project_id`` is copied from
 the document so every retrieval query filters on the tenant directly (lesson 5:
@@ -7,7 +7,7 @@ strict tenant isolation); NULL = Al-Narjis's own KB (site assistant).
 ``embedding`` (JSON list of floats) is always stored, so retrieval works on any
 database (SQLite in tests: in-process cosine). On Postgres with the pgvector
 extension the same vector is also written to ``embedding_vec`` (type
-``vector``, added by migration 0010 / startup self-heal, not declared here so
+``vector``, added by migration 0011 / startup self-heal, not declared here so
 SQLite never sees it) and similarity runs in the database.
 """
 

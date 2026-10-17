@@ -2815,6 +2815,18 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         packs_amount = pm.usage_packs_amount(body.conversation_packs, body.voice_packs, body.billing_period)
     except pm.PaymentError as exc:
         raise HTTPException(400, str(exc))
+
+    # Refuse a method before any row exists. A test or missing Moyasar key,
+    # and the disabled PayPal / bank-transfer paths, must not leave an orphan
+    # payment that a webhook could later mark paid.
+    method = body.method.lower()
+    if method == "paypal" and not pm.customer_paypal_enabled():
+        raise HTTPException(400, "PayPal is not available. Pay by card through Moyasar.")
+    if method == "invoice" and not owner_invoice and not pm.customer_bank_transfer_enabled():
+        raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
+    if method in pm.CARD_METHODS and not pm.moyasar_collects_money():
+        raise HTTPException(503, pm.CARD_ACTIVATING_AR)
+
     async with app.state.session_factory() as session:
         from uuid import UUID as _UUID
 
@@ -2859,13 +2871,6 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             payment.refund_consent_version = policies.POLICY_VERSION
             await session.commit()
 
-        method = body.method.lower()
-
-        if method == "paypal" and not pm.customer_paypal_enabled():
-            raise HTTPException(400, "PayPal is not available. Pay by card through Moyasar.")
-        if method == "invoice" and not owner_invoice and not pm.customer_bank_transfer_enabled():
-            raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
-
         if method == "paypal":
             # Owner decision (option A): prices are VAT-inclusive and the invoice
             # document always bills base + 15%, so every automated charge must
@@ -2900,7 +2905,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                 }
             except pm.PaymentError as e:
                 if not pm.customer_bank_transfer_enabled():
-                    payment.status = "pending"
+                    await session.delete(payment)
                     await session.commit()
                     raise HTTPException(502, "PayPal is unavailable. Pay by card through Moyasar.")
                 payment.status = "invoice"
@@ -2956,7 +2961,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                 }
             except pm.PaymentError as e:
                 if not pm.customer_bank_transfer_enabled():
-                    payment.status = "pending"
+                    await session.delete(payment)
                     await session.commit()
                     raise HTTPException(502, "Card payment is unavailable. Pay by card through Moyasar when it is live.")
                 payment.status = "pending"
@@ -2976,6 +2981,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
 
         # Invoice / bank-transfer fallback — customer path stays off unless the flag is on.
         if not owner_invoice and not pm.customer_bank_transfer_enabled():
+            await session.delete(payment)
+            await session.commit()
             raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
         payment.status = "invoice"
         await session.commit()
@@ -3507,6 +3514,9 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
             raise HTTPException(409, "This invoice is already paid")
         _record_refund_consent(payment)
         await session.commit()
+
+        if not _pm.moyasar_collects_money():
+            raise HTTPException(503, _pm.CARD_ACTIVATING_AR)
 
         if payment.gateway == "moyasar" and payment.gateway_payment_id:
             return {

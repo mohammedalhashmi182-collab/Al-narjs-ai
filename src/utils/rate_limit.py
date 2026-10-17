@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import threading
 import time
 from collections import defaultdict, deque
@@ -37,13 +38,28 @@ class SlidingWindowLimiter:
             self._hits.clear()
 
 
+def _trusted_proxy_hops() -> int:
+    """How many right-hand X-Forwarded-For hops we operate.
+
+    Render appends the connecting client, so the default of 1 trusts only that
+    right-most address. The left-most value is whatever the caller sent.
+    """
+    raw = (os.getenv("TRUSTED_PROXY_HOPS", "1") or "1").strip()
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 1
+
+
 def client_ip(request: Request) -> str:
+    peer = request.client.host if request.client else ""
+    hops = _trusted_proxy_hops()
     forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    if request.client:
-        return request.client.host
-    return "unknown"
+    if forwarded and hops > 0:
+        parts = [part.strip() for part in forwarded.split(",") if part.strip()]
+        if parts:
+            return parts[max(0, len(parts) - hops)]
+    return peer or "unknown"
 
 
 consult_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=60)

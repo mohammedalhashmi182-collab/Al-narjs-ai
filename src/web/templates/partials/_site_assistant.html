@@ -14,6 +14,8 @@
 #siteAssistant.open #saPanel{display:flex}
 #saPanel header{padding:12px 14px;background:#2f4a2a;color:#fff;font-weight:700}
 #saPanel header small{display:block;font-weight:400;opacity:.85}
+#saPanel .sa-consent{margin:0;padding:8px 12px;font-size:.75rem;line-height:1.45;background:#f4ead8;color:#3f3428}
+#saPanel .sa-consent a{color:#2f4a2a}
 #saLog{padding:12px;max-height:46vh;min-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 #saLog .m{padding:8px 11px;border-radius:12px;white-space:pre-wrap;max-width:90%}
 #saLog .bot{background:#efe6d6;align-self:flex-start}
@@ -46,6 +48,7 @@
 <div id="siteAssistant" lang="{{ 'ar' if _sa_ar else 'en' }}" dir="{{ 'rtl' if _sa_ar else 'ltr' }}">
     <div id="saPanel" role="dialog" aria-label="{% if _sa_ar %}مساعد النرجس{% else %}Al-Narjis assistant{% endif %}">
         <header>{% if _sa_ar %}مساعد النرجس الذكي{% else %}Al-Narjis AI assistant{% endif %}<small>{% if _sa_ar %}دعم 24/7 عبر المساعد. إن لم أستطع الإجابة نتابع معك بالبريد.{% else %}24/7 support through the assistant. If I can't answer, a human follows up by email.{% endif %}</small></header>
+        <p class="sa-consent">{% if _sa_ar %}بإرسال الرسالة توافق على معالجتها بمساعد ذكاء اصطناعي. نُخفي الجوال والبريد والهوية وأرقام البطاقات قبل إرسال النص إلى المعالج، وفق <a href="/privacy">سياسة الخصوصية</a>.{% else %}Sending a message means you agree an AI assistant processes it. Phone numbers, emails, IDs and card numbers are masked before the text reaches the processor, under our <a href="/privacy">privacy policy</a>.{% endif %}</p>
         <div id="saLog" aria-live="polite"><div class="m bot">{% if _sa_ar %}أهلاً! كيف أقدر أساعدك في عملك؟{% else %}Hi! How can I help with your business?{% endif %}</div></div>
         <a id="saHandoff" href="{{ _sup.href }}" data-channel="{{ _sup.channel }}">{% if _sa_ar %}تحويل لخدمة العملاء{% else %}Transfer to customer service{% endif %} ({% if _sa_ar %}اتصال {{ _sup.value }}{% else %}call {{ _sup.value }}{% endif %})</a>
         <button type="button" id="saOpenTicket">{% if _sa_ar %}اطلب تواصل موظف (تذكرة){% else %}Ask a person to contact me (ticket){% endif %}</button>

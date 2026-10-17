@@ -388,49 +388,6 @@
         <p class="muted" style="text-align:center;margin-top:16px"><a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a> · {% if ar %}الرياض، المملكة العربية السعودية{% else %}Riyadh, Saudi Arabia{% endif %}</p>
     </div>
 </section>
-<section id="live-demo" class="section" aria-label="live demo">
-    <div class="wrap" style="max-width:640px;margin:0 auto">
-        <h2 class="rv" style="text-align:center">{% if ar %}جرّب الوكيل الآن{% else %}Try the agent now{% endif %}</h2>
-        <p class="muted" id="demoLabel" style="text-align:center;border:1px dashed currentColor;border-radius:10px;padding:8px">{% if ar %}🧪 نسخة تجريبية — «عيادة الياسمين» عيادة خيالية لعرض الوكيل فقط. لا حجوزات ولا مدفوعات حقيقية، وتُحذف المحادثة بعد 24 ساعة.{% else %}🧪 Demo — "Yasmin Clinic" is fictional, to show the agent only. No real bookings or payments; chats are deleted after 24 hours.{% endif %}</p>
-        <div id="demoLog" style="min-height:140px;max-height:320px;overflow:auto;border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:10px;margin:10px 0" aria-live="polite"></div>
-        <form id="demoForm" style="display:flex;gap:8px">
-            <input id="demoInput" maxlength="500" autocomplete="off" style="flex:1;min-width:0;padding:10px;border-radius:10px" placeholder="{% if ar %}مثال: متى أوقات الدوام؟{% else %}e.g. What are your opening hours?{% endif %}">
-            <button class="btn" type="submit">{% if ar %}إرسال{% else %}Send{% endif %}</button>
-        </form>
-        <p class="muted" id="demoWa" style="text-align:center;display:none;margin-top:8px"></p>
-    </div>
-</section>
-<script>
-(function () {
-    var log = document.getElementById('demoLog'), form = document.getElementById('demoForm'), inp = document.getElementById('demoInput');
-    if (!form) return;
-    var sid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID().slice(0, 32) : String(Math.random()).slice(2);
-    function add(who, text) {
-        var d = document.createElement('div');
-        d.style.cssText = 'margin:6px 0;white-space:pre-wrap;' + (who === 'me' ? 'font-weight:600' : 'opacity:.9');
-        d.textContent = (who === 'me' ? '👤 ' : '🤖 ') + text;
-        log.appendChild(d); log.scrollTop = log.scrollHeight;
-    }
-    fetch('/api/live-demo').then(function (r) { return r.json(); }).then(function (d) {
-        if (d.whatsapp && d.whatsapp.enabled) {
-            var p = document.getElementById('demoWa'), a = document.createElement('a');
-            a.href = d.whatsapp.link; a.target = '_blank'; a.rel = 'noopener';
-            a.textContent = '{% if ar %}أو جرّبه على واتساب (رقم تجريبي){% else %}or try it on WhatsApp (demo number){% endif %}';
-            p.appendChild(a); p.style.display = '';
-        }
-    }).catch(function () {});
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var t = inp.value.trim(); if (!t) return;
-        inp.value = ''; add('me', t);
-        fetch('/api/live-demo/chat', {method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({session_id: sid, text: t})})
-            .then(function (r) { return r.status === 429 ? {reply: '{% if ar %}كثرت الرسائل، جرّب بعد قليل.{% else %}Too many messages, try again shortly.{% endif %}'} : r.json(); })
-            .then(function (d) { add('bot', d.reply || '…'); })
-            .catch(function () { add('bot', '…'); });
-    });
-})();
-</script>
 <!-- ==================== SCRIPTED DEMO (no live API) ==================== -->
 <section id="chat-demo" class="sec" aria-label="{% if ar %}مثال توضيحي لمحادثة{% else %}Illustrative chat example{% endif %}">
 <style>

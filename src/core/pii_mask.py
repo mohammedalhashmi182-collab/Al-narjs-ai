@@ -8,6 +8,7 @@ replaced with stable placeholders:
 * Saudi national / iqama IDs      -> [NATIONAL_ID_1]  (10 digits starting 1 or 2)
 * Saudi IBANs                     -> [IBAN_1]
 * phone numbers (Saudi + intl.)   -> [PHONE_1]
+* card-like numbers (13–19 digits) -> [CARD_1]
 
 The model answers with the placeholders; ``unmask`` restores the original
 values in the response locally, so the end-customer still sees correct data
@@ -33,6 +34,10 @@ PATTERNS: list[tuple[str, re.Pattern]] = [
     ("PHONE", re.compile(
         rf"(?<![0-9٠-٩])(?:(?:\+|00)?[\s\-]?(?:966|٩٦٦)[\s\-]?|[0٠])?[5٥]{_D}(?:[\s\-]?{_D}){{7}}(?![0-9٠-٩])"
         rf"|(?:\+|00){_D}{{1,3}}(?:[\s\-]?{_D}){{7,12}}(?![0-9٠-٩])")),
+    # After phones and national IDs, so a 10-digit ID or a mobile is not a card.
+    ("CARD", re.compile(
+        rf"(?<![0-9٠-٩])(?:{_D}{{4}}(?:[ \-]{_D}{{4}}){{2,3}}|{_D}{{13,19}})(?![0-9٠-٩])"
+    )),
 ]
 
 

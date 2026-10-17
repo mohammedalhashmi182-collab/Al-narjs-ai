@@ -446,6 +446,22 @@ class TestGatewayFailureFallback:
         assert r.status_code == 502
         assert "invoice_url" not in r.text
 
+    async def test_a_test_key_checkout_creates_no_payment(self, api, maker):
+        from sqlalchemy import func, select
+
+        anon, _ = api
+        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
+            r = await anon.post(
+                "/api/payments",
+                json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
+            )
+        assert r.status_code == 503
+        assert "قيد التفعيل" in r.text
+        assert "invoice_url" not in r.text
+        async with maker() as session:
+            count = (await session.execute(select(func.count()).select_from(Payment))).scalar_one()
+        assert count == 0
+
 
 class TestUnresolvableInvoiceLink:
     """The buyer reaches this URL at the moment they decide to pay.
@@ -591,6 +607,20 @@ class TestMoyasarTestKeyIsNotAPaymentMethod:
             caps = pm.capabilities()
         assert caps["card_test_mode"] is False
         assert caps["card"] is True
+
+    def test_a_test_publishable_key_hides_card_beside_a_live_secret(self):
+        from src.config import settings as s
+
+        publishable = "pk_" + "test_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+        old = s.moyasar_publishable_key
+        object.__setattr__(s, "moyasar_publishable_key", publishable)
+        try:
+            with _gateway_config(moyasar=LIVE_MOYASAR_KEY):
+                caps = pm.capabilities()
+        finally:
+            object.__setattr__(s, "moyasar_publishable_key", old)
+        assert caps["card"] is False
+        assert caps["card_test_mode"] is True
 
     def test_the_bank_transfer_route_stays_closed_unless_enabled(self, monkeypatch):
         monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)

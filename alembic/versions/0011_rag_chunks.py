@@ -5,9 +5,12 @@ and the ``embedding_vec`` column are best-effort: when pgvector is not
 available on the database, retrieval falls back to in-process cosine over the
 JSON ``embedding`` column (same results, slower on very large KBs).
 
-Revision ID: 0010
+Revision ID: 0011
 Revises: 0009
 Create Date: 2026-10-14
+
+0010 is reserved for the store-integrations migration on the Salla/Zid branch.
+This revision stays 0011 so the two files never share an Alembic id.
 """
 
 from collections.abc import Sequence
@@ -17,7 +20,7 @@ from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
-revision: str = "0010"
+revision: str = "0011"
 down_revision: str | None = "0009"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

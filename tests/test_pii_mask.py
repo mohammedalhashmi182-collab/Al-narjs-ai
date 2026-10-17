@@ -17,6 +17,8 @@ from src.core.model_provider import ModelProvider, ModelProviderType, ModelReque
     ("هويتي 1012345678", "NATIONAL_ID"),
     ("إقامتي 2123456789", "NATIONAL_ID"),
     ("الآيبان SA0380000000608010167519", "IBAN"),
+    ("بطاقتي 4111111111111111", "CARD"),
+    ("البطاقة 4111 1111 1111 1111", "CARD"),
 ])
 def test_masks_each_kind(raw, kind):
     masked, mapping = pii_mask.mask(raw)

@@ -49,7 +49,7 @@ async_session_factory = async_sessionmaker(
 
 
 async def ensure_pgvector() -> bool:
-    """Best effort: enable pgvector and add agent_knowledge_chunks.embedding_vec (alembic 0010).
+    """Best effort: enable pgvector and add agent_knowledge_chunks.embedding_vec (alembic 0011).
 
     Own transaction, so a database without the extension never breaks startup;
     RAG then uses in-process cosine over the JSON embedding column.

@@ -213,6 +213,31 @@ def paypal_collects_money() -> bool:
     return paypal_ready() and settings.paypal_mode == "live"
 
 
+# Shown when checkout has no live Moyasar key. Bank transfer and PayPal stay off.
+CARD_ACTIVATING_AR = (
+    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر المساعد في الموقع "
+    "أو راسلنا على Al-Narjis@karmaai.online."
+)
+
+
+def moyasar_publishable_is_test() -> bool:
+    key = (get_settings().moyasar_publishable_key or "").strip()
+    return key.startswith("pk_test")
+
+
+def moyasar_collects_money() -> bool:
+    """True only for a live secret whose publishable key is not a test key.
+
+    A missing secret, ``sk_test``, or ``pk_test`` must never open a checkout
+    that a later webhook could mark paid.
+    """
+    if not moyasar_secret_is_live():
+        return False
+    if moyasar_publishable_is_test():
+        return False
+    return True
+
+
 def moyasar_secret_is_live() -> bool:
     """Whether the configured Moyasar secret can actually take a payment.
 
@@ -296,12 +321,16 @@ def capabilities(card_state: Optional[str] = None) -> dict:
     settings = get_settings()
     if card_state is None:
         card_state = cached_credential_state("moyasar")
-    card = bool(settings.moyasar_api_secret) and card_state != "rejected"
-    test_mode = card and not moyasar_secret_is_live()
-    if test_mode:
-        # The credential works, so it passes the probe -- but a test secret cannot
-        # move money. Offering it would be the PayPal-sandbox trap again.
-        card = False
+    secret = (settings.moyasar_api_secret or "").strip()
+    publishable = (settings.moyasar_publishable_key or "").strip()
+    # A working probe is not a live checkout. Test keys and a missing secret
+    # stay hidden so production never sends a buyer to a sandbox invoice.
+    card = moyasar_collects_money() and card_state != "rejected"
+    test_mode = (
+        secret.startswith("sk_test")
+        or publishable.startswith("pk_test")
+        or (bool(secret) and not secret.startswith("sk_live_"))
+    )
     paypal = paypal_collects_money() and customer_paypal_enabled()
     invoice = customer_bank_transfer_enabled()
     methods = {method: card for method in CARD_METHODS}
@@ -356,9 +385,10 @@ def readiness(card_state: Optional[str] = None) -> dict:
         )
     if caps.get("card_test_mode"):
         blocking.append(
-            "MOYASAR_API_SECRET is a TEST key (sk_test_). Moyasar accepts it and "
-            "creates invoices, but no money moves, so card checkout is hidden. "
-            "Set an sk_live_ secret to take real card payments."
+            "MOYASAR_API_SECRET is a TEST key (sk_test_) or the publishable key "
+            "is pk_test_. Moyasar accepts a test secret and creates invoices, but "
+            "no money moves, so card checkout is hidden. Set an sk_live_ secret "
+            "and a pk_live_ publishable key to take real card payments."
         )
     if paypal_ready() and caps["paypal_test_mode"]:
         blocking.append(
@@ -523,6 +553,8 @@ async def initiate_moyasar(
     back_url: Optional[str] = None,
 ) -> dict:
     settings = get_settings()
+    if not moyasar_collects_money():
+        raise PaymentError("Moyasar live key is not configured")
     if not settings.moyasar_api_secret:
         raise PaymentError("Moyasar API secret not configured")
 
@@ -668,6 +700,12 @@ def apply_gateway_status(payment: Payment, data: dict) -> None:
         return
     status = data.get("status")
     if status == "paid":
+        if not moyasar_collects_money():
+            # A test or missing key must never settle an order, even if Moyasar
+            # reports the sandbox invoice as paid.
+            logger.warning("refusing paid status from a non-live Moyasar key for %s", payment.id)
+            payment.status = REVIEW_STATUS
+            return
         if gateway_amount_matches(payment, data):
             payment.status = "paid"
         else:

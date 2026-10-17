@@ -180,6 +180,15 @@ class TestWebhookAuth:
         assert calls and calls[0].endswith("/invoices/inv_123")
         assert await _status(maker, p.id) == "paid"
 
+    async def test_a_test_key_does_not_mark_the_order_paid(self, anon, maker, monkeypatch):
+        p = await _insert(maker)
+        test_key = "sk_" + "test_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 1149885, "currency": "SAR"})
+        with _settings(moyasar_webhook_secret=WEBHOOK_SECRET, moyasar_api_secret=test_key):
+            r = await anon.post("/webhooks/moyasar", json=_event(p))
+        assert r.status_code == 200, r.text
+        assert await _status(maker, p.id) != "paid"
+
     async def test_replay_on_paid_order_is_noop_200(self, anon, maker, monkeypatch):
         p = await _insert(maker, status="paid")
         calls = _fake_moyasar_get(monkeypatch, {"status": "failed", "amount": 1, "currency": "SAR"})
