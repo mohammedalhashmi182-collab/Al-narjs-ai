@@ -4,45 +4,100 @@ Before a prompt leaves the platform for an external model provider (Gemini,
 Moonshot, OpenAI, Groq, Anthropic, OpenRouter), personal identifiers are
 replaced with stable placeholders:
 
-* email addresses                 -> [EMAIL_1]
-* Saudi national / iqama IDs      -> [NATIONAL_ID_1]  (10 digits starting 1 or 2)
-* Saudi IBANs                     -> [IBAN_1]
-* phone numbers (Saudi + intl.)   -> [PHONE_1]
+* email addresses                  -> [EMAIL_1]
+* Saudi national / iqama IDs       -> [NATIONAL_ID_1]  (10 digits starting 1 or 2)
+* Saudi IBANs (spaces or dashes)   -> [IBAN_1]
+* phone numbers (mobile, landline, intl.) -> [PHONE_1]
 * card-like numbers (13–19 digits) -> [CARD_1]
+* a name after «اسمي» / «أنا» / "my name is" / "I am" -> [NAME_1]
 
 The model answers with the placeholders; ``unmask`` restores the original
 values in the response locally, so the end-customer still sees correct data
 while the provider never receives it. Arabic-Indic digits are handled.
+«يحدده محمد» is not a name and is left as-is (it is the handoff marker).
 
-Switch: env ``PII_MASKING`` (default ``on``; ``off``/``0``/``false`` disables).
-A caller may opt out per request with ``metadata["pii_mask"] = False``.
-Local providers (Ollama) are never masked: data does not leave the server.
+Switch: env ``PII_MASKING`` (default ``on``; ``off``/``0``/``false`` disables
+outside production). In production the switch is ignored and a warning is
+logged: personal data still leaves masked. A caller may opt out per request
+with ``metadata["pii_mask"] = False``. Local providers (Ollama) are never
+masked: data does not leave the server.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 
+log = logging.getLogger(__name__)
+
 _AR = "٠١٢٣٤٥٦٧٨٩"
 _D = "[0-9٠-٩]"
+_SEP = r"[\s\-]*"
+# Trunk 0 / +966, then 5, then exactly 8 digits. Separators may sit between digits.
+_SA_MOBILE = rf"(?:(?:\+|00)?{_SEP}(?:966|٩٦٦){_SEP}|[0٠])?[5٥](?:{_SEP}{_D}){{8}}"
+# Landline: trunk 0 or +966, then 1, then an area digit 1–7 (011 Riyadh …), then 7 digits.
+_SA_LAND = rf"(?:(?:\+|00)?{_SEP}(?:966|٩٦٦){_SEP}|[0٠])[1١][1-7١-٧](?:{_SEP}{_D}){{7}}"
+_INTL = rf"(?:\+|00){_D}{{1,3}}(?:{_SEP}{_D}){{7,12}}"
+_AR_WORD = r"[\u0621-\u064A]{2,}"
+_AR_STOP = (
+    r"أبغى|ابغى|أبي|ابي|أبى|ابى|أريد|اريد|أحتاج|احتاج|عندي|أسأل|اسأل|أقدر|اقدر|"
+    r"باغي|بسأل|أستفسر|استفسر|وش|كيف|متى|ليش|لماذا|من|في|على|مع|عن|إلى|الى|"
+    r"مو|ما|ليس|لست|أبحث|ابحث|صاحب|عندنا|لدينا|محتاج|محتاجة"
+)
+
+_production_off_warned = False
 
 PATTERNS: list[tuple[str, re.Pattern]] = [
     ("EMAIL", re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")),
-    ("IBAN", re.compile(rf"\bSA{_D}{{2}}(?:\s?{_D}{{4}}){{5}}\b", re.IGNORECASE)),
+    # Before phones: a dashed IBAN otherwise loses its middle groups to PHONE.
+    ("IBAN", re.compile(rf"\bSA(?:{_SEP}{_D}){{22}}\b", re.IGNORECASE)),
     ("NATIONAL_ID", re.compile(rf"(?<![0-9٠-٩+])[12١٢]{_D}{{9}}(?![0-9٠-٩])")),
     ("PHONE", re.compile(
-        rf"(?<![0-9٠-٩])(?:(?:\+|00)?[\s\-]?(?:966|٩٦٦)[\s\-]?|[0٠])?[5٥]{_D}(?:[\s\-]?{_D}){{7}}(?![0-9٠-٩])"
-        rf"|(?:\+|00){_D}{{1,3}}(?:[\s\-]?{_D}){{7,12}}(?![0-9٠-٩])")),
+        rf"(?<![0-9٠-٩])(?:{_SA_MOBILE}|{_SA_LAND}|{_INTL})(?![0-9٠-٩])")),
     # After phones and national IDs, so a 10-digit ID or a mobile is not a card.
     ("CARD", re.compile(
         rf"(?<![0-9٠-٩])(?:{_D}{{4}}(?:[ \-]{_D}{{4}}){{2,3}}|{_D}{{13,19}})(?![0-9٠-٩])"
     )),
+    ("NAME", re.compile(
+        rf"(?:اسمي|إسمي|اسمى)\s+(?:هو\s+)?{_AR_WORD}(?:\s+{_AR_WORD}){{0,2}}"
+        rf"|(?<![\u0621-\u064A])(?:أنا|انا)\s+(?!(?:{_AR_STOP})(?:\s|$)){_AR_WORD}(?:\s+{_AR_WORD}){{0,2}}"
+        rf"|(?i:\b(?:my name is|i am|i['’]m)\s+)[A-Z][A-Za-z'.-]{{1,30}}(?:\s+[A-Z][A-Za-z'.-]{{1,30}}){{0,2}}"
+    )),
 ]
 
 
+def _requested_off() -> bool:
+    return (os.getenv("PII_MASKING", "on") or "on").strip().lower() in ("off", "0", "false", "no")
+
+
+def _is_production() -> bool:
+    return (os.getenv("ENVIRONMENT", "development") or "").strip().lower() == "production"
+
+
 def enabled() -> bool:
-    return (os.getenv("PII_MASKING", "on") or "on").strip().lower() not in ("off", "0", "false", "no")
+    """True unless masking was explicitly switched off outside production."""
+    global _production_off_warned
+    if not _requested_off():
+        return True
+    if _is_production():
+        if not _production_off_warned:
+            log.warning("PII_MASKING=off is ignored in production; personal data stays masked")
+            _production_off_warned = True
+        return True
+    return False
+
+
+def for_embedding(text: str) -> str:
+    """Mask personal data before a string is sent to an embedding provider.
+
+    Lexical retrieval should keep using the original question. Only the text
+    that leaves for a vector API goes through here.
+    """
+    if not text or not enabled():
+        return text
+    masked, _mapping = mask(text)
+    return masked
 
 
 def mask(text: str, mapping: dict[str, str] | None = None) -> tuple[str, dict[str, str]]:

@@ -8,6 +8,8 @@ includes any tenant data. Vectors are cached per (embedder, text).
 
 from __future__ import annotations
 
+from src.core.pii_mask import for_embedding
+
 from . import embeddings
 from .arabic import terms
 from .store import LEX_W, VEC_W, coverage
@@ -40,7 +42,8 @@ async def retrieve(query: str, embedder: embeddings.Embedder | None = None, k: i
     embedder = embedder or embeddings.get_embedder()
     items = docs()
     texts = [f"{t}\n{b}" for t, b in items]
-    embedder, (qv,) = await embeddings.embed_safe(embedder, [query], kind="query")
+    embed_query = for_embedding(query)
+    embedder, (qv,) = await embeddings.embed_safe(embedder, [embed_query], kind="query")
     missing = [x for x in texts if (embedder.name, x) not in _CACHE]
     if missing:
         used, vecs = await embeddings.embed_safe(embedder, missing, kind="doc")
@@ -49,7 +52,7 @@ async def retrieve(query: str, embedder: embeddings.Embedder | None = None, k: i
                 _CACHE[(embedder.name, x)] = v
         else:  # provider failed mid-way: hash for both sides
             embedder = used
-            (qv,) = await used.embed([query], kind="query")
+            (qv,) = await used.embed([embed_query], kind="query")
             for x, v in zip(missing, vecs, strict=True):
                 _CACHE[(used.name, x)] = v
     q_terms = terms(query)

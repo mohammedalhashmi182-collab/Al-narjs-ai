@@ -77,14 +77,29 @@ async def api(maker, monkeypatch):
         yield anon, owned
 
 
+_UNSET = object()
+
+
 @contextmanager
-def _gateway_config(moyasar=None, paypal_id=None, paypal_secret=None, paypal_mode="sandbox"):
-    """Override the settings singleton deterministically, restore afterwards."""
+def _gateway_config(moyasar=None, paypal_id=None, paypal_secret=None, paypal_mode="sandbox",
+                    publishable=_UNSET):
+    """Override the settings singleton deterministically, restore afterwards.
+
+    A live secret is paired with a live publishable key unless the test passes
+    ``publishable`` itself. An empty publishable key must not look live.
+    """
     from src.config import settings as s
 
-    names = ("moyasar_api_secret", "paypal_client_id", "paypal_client_secret", "paypal_mode")
+    names = ("moyasar_api_secret", "moyasar_publishable_key", "paypal_client_id",
+             "paypal_client_secret", "paypal_mode")
     old = {n: getattr(s, n) for n in names}
+    if publishable is _UNSET:
+        if isinstance(moyasar, str) and moyasar.startswith("sk_" + "live_"):
+            publishable = PUBLIC_MOYASAR_KEY
+        else:
+            publishable = old["moyasar_publishable_key"]
     object.__setattr__(s, "moyasar_api_secret", moyasar)
+    object.__setattr__(s, "moyasar_publishable_key", publishable)
     object.__setattr__(s, "paypal_client_id", paypal_id)
     object.__setattr__(s, "paypal_client_secret", paypal_secret)
     object.__setattr__(s, "paypal_mode", paypal_mode)
@@ -609,18 +624,38 @@ class TestMoyasarTestKeyIsNotAPaymentMethod:
         assert caps["card"] is True
 
     def test_a_test_publishable_key_hides_card_beside_a_live_secret(self):
-        from src.config import settings as s
-
         publishable = "pk_" + "test_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
-        old = s.moyasar_publishable_key
-        object.__setattr__(s, "moyasar_publishable_key", publishable)
-        try:
-            with _gateway_config(moyasar=LIVE_MOYASAR_KEY):
-                caps = pm.capabilities()
-        finally:
-            object.__setattr__(s, "moyasar_publishable_key", old)
+        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=publishable):
+            caps = pm.capabilities()
         assert caps["card"] is False
         assert caps["card_test_mode"] is True
+
+    def test_an_empty_publishable_key_disables_card(self):
+        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=""):
+            caps = pm.capabilities()
+        assert caps["card"] is False
+        assert caps["card_test_mode"] is True
+
+    def test_an_empty_publishable_key_never_marks_paid(self):
+        payment = Payment(amount=49900, currency="SAR", status="pending")
+        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=""):
+            pm.apply_gateway_status(payment, {"status": "paid", "amount": pm.total_with_vat(49900), "currency": "SAR"})
+        assert payment.status != "paid"
+
+    async def test_an_empty_publishable_key_checkout_creates_no_payment(self, api, maker):
+        from sqlalchemy import func, select
+
+        anon, _ = api
+        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=""):
+            r = await anon.post(
+                "/api/payments",
+                json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
+            )
+        assert r.status_code == 503
+        assert "قيد التفعيل" in r.text
+        async with maker() as session:
+            count = (await session.execute(select(func.count()).select_from(Payment))).scalar_one()
+        assert count == 0
 
     def test_the_bank_transfer_route_stays_closed_unless_enabled(self, monkeypatch):
         monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)

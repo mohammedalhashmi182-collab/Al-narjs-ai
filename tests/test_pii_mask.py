@@ -13,12 +13,21 @@ from src.core.model_provider import ModelProvider, ModelProviderType, ModelReque
     ("رقمي +966 55 123 4567", "PHONE"),
     ("رقمي 966551234567", "PHONE"),
     ("جوالي ٠٥٥١٢٣٤٥٦٧", "PHONE"),
+    ("جوالي 05 5123 4567", "PHONE"),
+    ("أرضي 0112345678", "PHONE"),
+    ("أرضي 011 234 5678", "PHONE"),
     ("call +44 20 7946 0958", "PHONE"),
     ("هويتي 1012345678", "NATIONAL_ID"),
     ("إقامتي 2123456789", "NATIONAL_ID"),
     ("الآيبان SA0380000000608010167519", "IBAN"),
+    ("الآيبان SA03-8000-0000-6080-1016-7519", "IBAN"),
+    ("الآيبان SA03 8000 0000 6080 1016 7519", "IBAN"),
     ("بطاقتي 4111111111111111", "CARD"),
     ("البطاقة 4111 1111 1111 1111", "CARD"),
+    ("اسمي محمد العتيبي", "NAME"),
+    ("أنا سارة", "NAME"),
+    ("my name is Sara", "NAME"),
+    ("I am Mohammed", "NAME"),
 ])
 def test_masks_each_kind(raw, kind):
     masked, mapping = pii_mask.mask(raw)
@@ -28,6 +37,11 @@ def test_masks_each_kind(raw, kind):
 
 def test_leaves_prices_dates_and_order_numbers():
     text = "باقة بيع بـ 1,499 ريال، الطلب رقم 48213، الموعد 2026-10-14 الساعة 10"
+    assert pii_mask.mask(text)[0] == text
+
+
+def test_leaves_handoff_marker_and_bare_intent():
+    text = "يحدده محمد. أنا أبغى سعر الباقة"
     assert pii_mask.mask(text)[0] == text
 
 
@@ -68,7 +82,8 @@ async def test_provider_never_sees_pii_and_reply_is_restored(monkeypatch):
         assert secret not in sent_prompt + sent_system
     assert resp.content == "سنتواصل على 0551234567 و sara@example.com"
     assert req.prompt.endswith("sara@example.com")  # caller's request restored
-    assert req.metadata["pii_masked"] == ["EMAIL", "NATIONAL_ID", "PHONE"]
+    assert req.metadata["pii_masked"] == ["EMAIL", "NAME", "NATIONAL_ID", "PHONE"]
+    assert "سارة" not in sent_prompt
 
 
 async def test_disabled_flag_sends_raw(monkeypatch):
@@ -78,6 +93,22 @@ async def test_disabled_flag_sends_raw(monkeypatch):
     mp._clients = {ModelProviderType.GEMINI: spy}
     await mp.complete("gemini:test", ModelRequest(prompt="0551234567"))
     assert spy.seen[0][0] == "0551234567"
+
+
+def test_production_ignores_off_and_warns_once(monkeypatch, caplog):
+    import logging
+
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("PII_MASKING", "off")
+    monkeypatch.setattr(pii_mask, "_production_off_warned", False)
+    with caplog.at_level(logging.WARNING, logger="src.core.pii_mask"):
+        assert pii_mask.enabled()
+        masked, _mapping = pii_mask.mask("0551234567")
+        assert pii_mask.enabled()
+    assert masked == "[PHONE_1]"
+    warnings = [r for r in caplog.records if "PII_MASKING=off is ignored" in r.message]
+    assert len(warnings) == 1
+    assert "0551234567" not in warnings[0].message
 
 
 def test_policy_pages_carry_cross_border_clause():

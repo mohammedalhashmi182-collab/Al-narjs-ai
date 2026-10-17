@@ -294,3 +294,47 @@ async def test_llm_pitch_is_blocked(maker, monkeypatch):
         _, b = await _two(s)
         d = await tenant_reply.handle_inbound(s, project=b, contact="966500000005", text="بكم قص الشعر؟")
         assert "النرجس" not in d.draft_text and "80" in d.draft_text
+
+
+async def test_query_embedding_is_masked(monkeypatch):
+    """The string sent to the embedding provider has the phone replaced."""
+    from src.services.rag import site_kb
+
+    seen = []
+
+    async def _embed(embedder, texts, *, kind="doc"):
+        seen.append((kind, list(texts)))
+        dim = getattr(embedder, "dim", 8)
+        return embedder, [[0.0] * dim for _ in texts]
+
+    monkeypatch.setattr(embeddings, "embed_safe", _embed)
+
+    async def _noop(*_a, **_k):
+        return None
+
+    async def _not_pg(_session):
+        return False
+
+    monkeypatch.setattr(store, "ensure_indexed", _noop)
+    monkeypatch.setattr(store, "pgvector_ready", _not_pg)
+
+    class _Result:
+        def all(self):
+            return []
+
+    class _Session:
+        async def execute(self, *_a, **_k):
+            return _Result()
+
+    phone = "0551234567"
+    hits = await store.retrieve(_Session(), f"جوالي {phone}", project_id=None, k=1)
+    assert hits == []
+    query_calls = [texts for kind, texts in seen if kind == "query"]
+    assert query_calls and phone not in query_calls[0][0] and "[PHONE_1]" in query_calls[0][0]
+
+    seen.clear()
+    await site_kb.retrieve(f"اتصل {phone}")
+    query_calls = [texts for kind, texts in seen if kind == "query"]
+    assert query_calls
+    assert all(phone not in text for texts in query_calls for text in texts)
+    assert any("[PHONE_1]" in text for texts in query_calls for text in texts)

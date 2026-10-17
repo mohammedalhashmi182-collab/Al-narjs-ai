@@ -225,17 +225,18 @@ def moyasar_publishable_is_test() -> bool:
     return key.startswith("pk_test")
 
 
-def moyasar_collects_money() -> bool:
-    """True only for a live secret whose publishable key is not a test key.
+def moyasar_publishable_is_live() -> bool:
+    key = (get_settings().moyasar_publishable_key or "").strip()
+    return key.startswith("pk_live_")
 
-    A missing secret, ``sk_test``, or ``pk_test`` must never open a checkout
-    that a later webhook could mark paid.
+
+def moyasar_collects_money() -> bool:
+    """True only when both the secret and the publishable key are live.
+
+    An empty publishable key, ``pk_test``, ``sk_test``, or a missing secret
+    must never open a checkout that a later webhook could mark paid.
     """
-    if not moyasar_secret_is_live():
-        return False
-    if moyasar_publishable_is_test():
-        return False
-    return True
+    return moyasar_secret_is_live() and moyasar_publishable_is_live()
 
 
 def moyasar_secret_is_live() -> bool:
@@ -330,6 +331,7 @@ def capabilities(card_state: Optional[str] = None) -> dict:
         secret.startswith("sk_test")
         or publishable.startswith("pk_test")
         or (bool(secret) and not secret.startswith("sk_live_"))
+        or (secret.startswith("sk_live_") and not publishable.startswith("pk_live_"))
     )
     paypal = paypal_collects_money() and customer_paypal_enabled()
     invoice = customer_bank_transfer_enabled()

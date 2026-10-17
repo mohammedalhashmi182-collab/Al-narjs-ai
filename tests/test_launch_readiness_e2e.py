@@ -33,6 +33,7 @@ def mock_moyasar(monkeypatch):
     from src.config import settings as st
 
     monkeypatch.setattr(st, "moyasar_api_secret", "sk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY")
+    monkeypatch.setattr(st, "moyasar_publishable_key", "pk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY")
     monkeypatch.setattr(st, "moyasar_webhook_secret", SECRET)
     state = {"amount": 0, "n": 0}
 

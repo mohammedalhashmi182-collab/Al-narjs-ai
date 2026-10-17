@@ -66,13 +66,29 @@ def test_catalog_no_longer_sells_unbuilt_features_as_live():
     text = "\n".join(line for p in catalog.PACKAGES.values() for line in p["scope"] + p["scope_en"])
     for claim in UNBUILT_LIVE_CLAIMS:
         assert claim not in text
-    # Unbuilt features are never in the "available now" scope; they sit in "coming".
+    # Voice stays in "coming". Salla/Zid may sit in scope only when the line
+    # itself says قريباً, matching the store-integration coming-soon copy.
     for key in ("bay", "tashgheel"):
         for line in catalog.PACKAGES[key]["scope"]:
-            assert not any(w in line for w in ("صوت", "سلة", "زد")), line
+            if any(w in line for w in ("سلة", "زد")):
+                assert "قريباً" in line, line
+            else:
+                assert "صوت" not in line, line
         for line in catalog.PACKAGES[key]["scope_en"]:
-            assert not any(w in line.lower() for w in ("voice", "salla", "zid")), line
+            low = line.lower()
+            if "salla" in low or "zid" in low:
+                assert "coming soon" in low, line
+            else:
+                assert "voice" not in low, line
         assert any("صوت" in line or "صوتي" in line for line in catalog.PACKAGES[key]["coming"])
+
+
+def test_salla_zid_scope_line_stays_coming_soon():
+    """Same assertion as the store-integration suite: the bay scope line says قريباً."""
+    line = next(item for item in catalog.PACKAGES["bay"]["scope"] if "سلة" in item)
+    assert line == "ربط متجرك على سلة أو زد (قريباً): الطلبات، تذكير السلات المتروكة، وحالة الشحن"
+    en = next(item for item in catalog.PACKAGES["bay"]["scope_en"] if "Salla" in item)
+    assert "coming soon" in en.lower()
 
 
 def test_prices_and_limits_unchanged():

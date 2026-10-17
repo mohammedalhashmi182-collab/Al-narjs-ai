@@ -22,12 +22,16 @@ def _bank_transfer_code_path(monkeypatch):
 
 WEBHOOK_SECRET = "whsec-test-value"
 LIVE_KEY = "sk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+LIVE_PK = "pk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
 
 
 @contextmanager
 def _settings(**values):
     from src.config import settings as s
 
+    secret = values.get("moyasar_api_secret")
+    if "moyasar_publishable_key" not in values and isinstance(secret, str) and secret.startswith("sk_" + "live_"):
+        values = {**values, "moyasar_publishable_key": LIVE_PK}
     old = {k: getattr(s, k) for k in values}
     for k, v in values.items():
         object.__setattr__(s, k, v)

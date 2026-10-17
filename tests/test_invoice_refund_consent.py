@@ -19,17 +19,28 @@ from src.services import policies
 TPL = Path(__file__).resolve().parents[1] / "src" / "web" / "templates"
 
 
+_UNSET = object()
+
+
 @contextmanager
-def _gateway(secret):
+def _gateway(secret, publishable=_UNSET):
     from src.config import settings as s
 
-    old = s.moyasar_api_secret
+    old_secret = s.moyasar_api_secret
+    old_pk = s.moyasar_publishable_key
+    if publishable is _UNSET:
+        if isinstance(secret, str) and secret.startswith("sk_" + "live_"):
+            publishable = "pk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+        else:
+            publishable = old_pk
     object.__setattr__(s, "moyasar_api_secret", secret)
+    object.__setattr__(s, "moyasar_publishable_key", publishable)
     pm._credential_cache.clear()
     try:
         yield
     finally:
-        object.__setattr__(s, "moyasar_api_secret", old)
+        object.__setattr__(s, "moyasar_api_secret", old_secret)
+        object.__setattr__(s, "moyasar_publishable_key", old_pk)
         pm._credential_cache.clear()
 
 

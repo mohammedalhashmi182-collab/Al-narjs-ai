@@ -20,6 +20,7 @@ from uuid import UUID
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.pii_mask import for_embedding
 from src.models.agent_tools import KnowledgeDoc
 from src.models.rag import KnowledgeChunk
 
@@ -155,7 +156,9 @@ async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None
     so a company question never mixes in another document set.
     """
     embedder = embedder or embeddings.get_embedder()
-    embedder, (qv,) = await embeddings.embed_safe(embedder, [query], kind="query")
+    # The vector leaves for the embedding provider. The lexical terms below
+    # stay on the original question so a masked token does not drop the match.
+    embedder, (qv,) = await embeddings.embed_safe(embedder, [for_embedding(query)], kind="query")
     await ensure_indexed(session, project_id, embedder)
     q_terms = terms(query)
     rows: list[tuple[str, str, list[float] | None, float | None]] = []

@@ -143,6 +143,7 @@ async def test_initiate_moyasar_charges_the_annual_total(maker, monkeypatch):
 
     monkeypatch.setattr(httpx.AsyncClient, "post", _post)
     monkeypatch.setattr(st, "moyasar_api_secret", "sk_" + "live_FAKE-FOR-TESTS")
+    monkeypatch.setattr(st, "moyasar_publishable_key", "pk_" + "live_FAKE-FOR-TESTS")
     async with maker() as s:
         p = await pm.create_payment(s, "bay", "x", None, None, billing_period="annual")
         await pm.initiate_moyasar(s, p, pm.source_mada())

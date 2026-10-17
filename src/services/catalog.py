@@ -110,20 +110,20 @@ PACKAGES = {
             "كل ما في ردّ",
             "٦ وكلاء: متابعة مبيعات، ووكيل سوشال بجدول نشر",
             "٤٬٠٠٠ محادثة ذكية، ورسوم ميتا مشمولة حتى ٢٥٠ ريال",
+            "ربط متجرك على سلة أو زد (قريباً): الطلبات، تذكير السلات المتروكة، وحالة الشحن",
         ],
         "coming": [
             "وكيل صوتي بلهجة سعودية (١٥٠ دقيقة شهرياً عند الإطلاق)",
-            "ربط متجرك على سلة أو زد: الطلبات، تذكير السلات المتروكة، وحالة الشحن",
             "قنوات إضافية: تيليجرام وماسنجر",
         ],
         "scope_en": [
             "Everything in Reply",
             "6 agents: sales follow-up and a social agent with a posting schedule",
             "4,000 smart conversations, Meta fees covered up to 250 SAR",
+            "Connect your Salla or Zid store (coming soon): orders, abandoned-cart reminders and shipping status",
         ],
         "coming_en": [
             "Saudi-dialect voice agent (150 minutes a month at launch)",
-            "Connect your Salla or Zid store: orders, abandoned-cart reminders and shipping status",
             "Extra channels: Telegram and Messenger",
         ],
     },
@@ -144,7 +144,7 @@ PACKAGES = {
             "كل القنوات المتاحة حالياً",
             "٨٬٠٠٠ محادثة ذكية، ورسوم ميتا مشمولة حتى ٥٠٠ ريال",
         ],
-        "coming": ["خط صوتي (٥٠٠ دقيقة شهرياً عند الإطلاق)", "ربط سلة أو زد", "تيليجرام وماسنجر"],
+        "coming": ["خط صوتي (٥٠٠ دقيقة شهرياً عند الإطلاق)", "ربط سلة أو زد (قريباً)", "تيليجرام وماسنجر"],
         "scope_en": [
             "Everything in Sell",
             "15 agents from any department",
@@ -152,7 +152,7 @@ PACKAGES = {
             "Every channel available today",
             "8,000 smart conversations, Meta fees covered up to 500 SAR",
         ],
-        "coming_en": ["Voice line (500 minutes a month at launch)", "Salla or Zid store connection", "Telegram and Messenger"],
+        "coming_en": ["Voice line (500 minutes a month at launch)", "Salla or Zid store connection (coming soon)", "Telegram and Messenger"],
     },
 }
 

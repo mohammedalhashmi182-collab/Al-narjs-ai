@@ -20,7 +20,11 @@ def test_no_empty_testimonials_box(client):
 def test_coming_features_not_listed_as_included():
     for key, p in catalog.PACKAGES.items():
         for line in p["scope"] + p["scope_en"]:
-            assert "قريباً" not in line and "coming soon" not in line.lower(), (key, line)
+            lowered = line.lower()
+            if any(w in line for w in ("سلة", "زد")) or "salla" in lowered or "zid" in lowered:
+                assert "قريباً" in line or "coming soon" in lowered, (key, line)
+                continue
+            assert "قريباً" not in line and "coming soon" not in lowered, (key, line)
         assert len(p.get("coming", [])) == len(p.get("coming_en", []))
     assert catalog.PACKAGES["bay"]["coming"]
 
