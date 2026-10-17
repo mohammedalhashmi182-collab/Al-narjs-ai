@@ -544,6 +544,11 @@ from src.interfaces.agent_tools_routes import router as agent_tools_router  # no
 
 app.include_router(agent_tools_router)
 
+# Per-tenant Salla/Zid install, webhooks and store tools. Off until STORE_INTEGRATIONS_ENABLED.
+from src.integrations.routes import router as store_integration_router  # noqa: E402
+
+app.include_router(store_integration_router)
+
 from src.interfaces.ops_routes import api as ops_api, router as ops_router  # noqa: E402
 
 app.include_router(ops_router)
