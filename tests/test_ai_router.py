@@ -264,6 +264,117 @@ def test_endpoint(monkeypatch):
     assert "route" not in r.json() and "sources" not in r.json() and "s.md" not in r.text
 
 
+def test_strip_internal_sources_keeps_public_urls():
+    leaked = (
+        "ج: الدعم متاح 24 ساعة.\n"
+        "المصدر: `src/services/catalog.py`، `src/web/templates/contact.html`، https://karmaai.online/docs/terms.pdf\n"
+        "يومياً. (المصدر: س1 – خدمات النرجس)\n"
+        "التفاصيل في docs/pdpl-transfer-risk-assessment.md"
+    )
+    cleaned = router.strip_internal_sources(leaked)
+    assert "src/" not in cleaned and "pdpl-transfer" not in cleaned
+    assert "catalog.py" not in cleaned and "contact.html" not in cleaned
+    assert "https://karmaai.online/docs/terms.pdf" in cleaned
+    assert "https://karmaai.online/." not in cleaned
+    assert cleaned.count("https://") == 1
+    assert "24 ساعة" in cleaned
+    # A citation with no path is real content and stays. Only the path is removed.
+    assert "س1 – خدمات النرجس" in cleaned
+    assert router.strip_internal_sources(cleaned) == cleaned
+
+
+async def test_prompt_and_answer_omit_repo_paths():
+    chunk = (
+        "ج: الدعم متاح 24 ساعة طوال أيام الأسبوع عبر مساعد النرجس الذكي.\n"
+        "المصدر: `src/services/policies.py`، `src/web/templates/contact.html`، https://karmaai.online/contact"
+    )
+    leaked = "نعم، الدعم 24 ساعة. المصدر: `src/services/catalog.py`."
+    fast = FakeLLM("groq", [leaked])
+    question = "هل البوت بيحكي عربي ويرد على العملاء 24 ساعة؟"
+    r = await router.ask(question, kb=FakeKB([{"text": chunk, "source": "data/kb/narjs_services.md"}]), fast=fast, deep=FakeLLM("deep", []))
+    assert "src/" not in fast.seen and "policies.py" not in fast.seen and "contact.html" not in fast.seen
+    assert "https://karmaai.online/contact" in fast.seen
+    assert "لا تذكر اسم ملف" in fast.system
+    assert r.route == "fast"
+    assert "24" in r.answer
+    assert "src/" not in r.answer and "المصدر" not in r.answer and "catalog.py" not in r.answer
+    assert "src/" not in r.as_dict()["answer"]
+
+
+def test_endpoint_strips_paths_and_matches_utf8_length(monkeypatch):
+    import time
+    from contextlib import asynccontextmanager
+
+    from fastapi.testclient import TestClient
+
+    from src.main import app
+
+    answer = (
+        "نعم، البوت يشتغل بالعربي ويرد على العملاء على مدار 24 ساعة يومياً. "
+        "المصدر: `src/services/catalog.py`، `src/web/templates/terms.html`"
+    )
+
+    @asynccontextmanager
+    async def _session():
+        yield None
+
+    async def fake_ask(q, **_kwargs):
+        return router.Result(answer, "fast", ["data/kb/narjs_services.md"], False)
+
+    with TestClient(app) as client:
+        monkeypatch.setattr(app.state, "session_factory", _session, raising=False)
+        monkeypatch.setattr(router, "ask", fake_ask)
+        started = time.monotonic()
+        r = client.post("/api/ai/ask", json={"question": "هل البوت بيحكي عربي ويرد على العملاء 24 ساعة؟"})
+        assert time.monotonic() - started < 5
+    assert r.status_code == 200
+    assert r.headers["content-length"] == str(len(r.content))
+    body = r.json()
+    assert body["reviewed"] is False
+    assert "24" in body["answer"]
+    assert "src/" not in r.text and "المصدر" not in r.text and "catalog.py" not in r.text and "terms.html" not in r.text
+
+
+def test_session_close_failure_still_returns_the_answer(monkeypatch):
+    """The answer is logged, then session.close() raises or hangs. The client still gets 200."""
+    import time
+    from contextlib import asynccontextmanager
+
+    from fastapi.testclient import TestClient
+
+    from src.interfaces import ai_routes
+    from src.main import app
+
+    @asynccontextmanager
+    async def _raises():
+        yield None
+        raise ConnectionResetError("SSL unexpected eof")
+
+    @asynccontextmanager
+    async def _hangs():
+        yield None
+        await asyncio.sleep(30)
+
+    async def fake_ask(q, **_kwargs):
+        return router.Result("نعم، الرد بالعربي 24 ساعة.", "fast", [], False)
+
+    monkeypatch.setattr(ai_routes, "_SESSION_CLOSE_TIMEOUT_S", 0.2)
+    with TestClient(app) as client:
+        monkeypatch.setattr(router, "ask", fake_ask)
+        monkeypatch.setattr(app.state, "session_factory", _raises, raising=False)
+        r = client.post("/api/ai/ask", json={"question": "هل البوت بيحكي عربي ويرد على العملاء 24 ساعة؟"})
+        assert r.status_code == 200
+        assert r.json()["answer"].startswith("نعم")
+        assert r.headers["content-length"] == str(len(r.content))
+
+        monkeypatch.setattr(app.state, "session_factory", _hangs, raising=False)
+        started = time.monotonic()
+        r = client.post("/api/ai/ask", json={"question": "هل البوت بيحكي عربي ويرد على العملاء 24 ساعة؟"})
+        elapsed = time.monotonic() - started
+    assert r.status_code == 200 and "24" in r.json()["answer"]
+    assert elapsed < 3
+
+
 async def test_length_finish_regenerates_once():
     fast = FakeLLM("groq", [llm.ChatResult("مقطوع", "length"), "جواب قصير"])
     r = await router.ask("كم سعر باقة رد", kb=FakeKB(HITS), fast=fast, deep=FakeLLM("deep", []))

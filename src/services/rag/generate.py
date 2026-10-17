@@ -82,15 +82,25 @@ async def _llm_complete(system: str, prompt: str) -> str | None:
         return None
 
 
+def _links(text: str) -> set[str]:
+    """Exact link strings. A shorter prefix of a source URL is a different link."""
+    return {u.rstrip(".,)") for u in _URL.findall(text or "")}
+
+
 def grounded(reply: str, hits: list[dict], extra_facts: str = "") -> bool:
-    """Every number and link in the reply appears in the sources."""
+    """Every number and link in the reply appears in the sources.
+
+    Links match exactly. ``https://karmaai.online`` does not count as the
+    source link ``https://karmaai.online/docs/terms.pdf``.
+    """
     source = (" ".join(str(h.get("text") or "") + " " + str(h.get("title") or "") for h in hits) + " " + extra_facts)
     source = source.translate(_AR_DIGITS)
     out = (reply or "").translate(_AR_DIGITS)
     src_nums = {n.replace(",", "") for n in _NUM.findall(source)}
     if any(n.replace(",", "") not in src_nums for n in _NUM.findall(out)):
         return False
-    return all(u.rstrip(".,)") in source for u in _URL.findall(out))
+    src_links = _links(source)
+    return all(u.rstrip(".,)") in src_links for u in _URL.findall(out))
 
 
 def support(reply: str, hits: list[dict]) -> float:
@@ -103,7 +113,9 @@ def support(reply: str, hits: list[dict]) -> float:
 
 
 def extractive(hits: list[dict]) -> str:
-    top = str(hits[0]["text"]).strip()
+    from src.ai.sanitize import sanitize_public_text
+
+    top = sanitize_public_text(str(hits[0]["text"]))
     if len(top) > 700:
         top = top[:700].rsplit(" ", 1)[0] + "…"
     return f"أهلًا بك 🌿\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
@@ -137,10 +149,13 @@ async def answer(question: str, hits: list[dict], *, name: str = "", allow_llm: 
         return done(Answer(fallback, "extractive", conf, None, titles))
     if NO_ANSWER in reply.upper():
         return done(Answer(None, "handoff", conf, "no_answer", titles))
-    bad = (len(reply) > MAX_CHARS or not grounded(reply, used) or support(reply, used) < MIN_SUPPORT
+    from src.ai.sanitize import sanitize_public_text
+
+    reply = sanitize_public_text(reply)
+    bad = (not reply or len(reply) > MAX_CHARS or not grounded(reply, used) or support(reply, used) < MIN_SUPPORT
            or (guard is not None and guard(reply)))
     if bad:
         log.info("RAG reply rejected (ungrounded); using the verbatim source")
         return done(Answer(fallback, "extractive", conf, None, titles))
-    return done(Answer(reply.strip(), "llm", conf, None, titles))
+    return done(Answer(reply, "llm", conf, None, titles))
 

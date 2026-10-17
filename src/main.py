@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import MutableHeaders
 
 from src.config.settings import get_settings, settings
 from src.utils.logger import configure_logging, get_logger
@@ -438,18 +439,33 @@ def _static_cache_control(path: str) -> str:
     return ", ".join(sorted(_STATIC_IMMUTABLE))
 
 
-@app.middleware("http")
-async def static_cache_headers(request: Request, call_next):
+class StaticCacheMiddleware:
     """Attach Cache-Control to /static responses, and only to /static.
 
-    Added last so it wraps the static mount: the header must be set on the file
-    response, not recomputed per template render.
+    Pure ASGI so the body is forwarded unchanged. ``BaseHTTPMiddleware`` buffers
+    the body and sends it again under the original Content-Length; uvicorn then
+    closes the connection if those lengths disagree.
     """
-    response = await call_next(request)
-    path = request.url.path
-    if path.startswith("/static/"):
-        response.headers.setdefault("Cache-Control", _static_cache_control(path))
-    return response
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        path = scope.get("path") or ""
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start" and path.startswith("/static/"):
+                headers = MutableHeaders(scope=message)
+                headers.setdefault("Cache-Control", _static_cache_control(path))
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+app.add_middleware(StaticCacheMiddleware)
 
 
 # Security headers on every response. The CSP allow-list is exactly what the
@@ -488,12 +504,28 @@ SECURITY_HEADERS = {
 }
 
 
-@app.middleware("http")
-async def security_headers(request: Request, call_next):
-    response = await call_next(request)
-    for name, value in SECURITY_HEADERS.items():
-        response.headers.setdefault(name, value)
-    return response
+class SecurityHeadersMiddleware:
+    """Stamp the security headers onto the start message and forward the body unchanged."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                for name, value in SECURITY_HEADERS.items():
+                    headers.setdefault(name, value)
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 templates = Jinja2Templates(directory="src/web/templates")
@@ -2038,13 +2070,19 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     )
 
     # RAG: ground the assistant in Al-Narjis's own KB (project_id NULL only; never a tenant's docs).
+    from src.ai.sanitize import sanitize_public_text
+
     rag_hits = await _consult_sources(history)
     if rag_hits:
         system_prompt += (
             "\n\nSOURCES (Al-Narjis knowledge base; state facts, numbers, policies and links ONLY from these "
             "sources or the REAL PRODUCT list above; if they do not cover the question, say so and offer "
             "«تحويل لخدمة العملاء»):\n"
-            + "\n".join(f"[{i + 1}] {h['title']}: {h['text']}" for i, h in enumerate(rag_hits))
+            + "\n".join(
+                f"[{i + 1}] {sanitize_public_text(str(h.get('title') or ''))}: "
+                f"{sanitize_public_text(str(h.get('text') or ''))}"
+                for i, h in enumerate(rag_hits)
+            )
         )
 
     model_request = ModelRequest(
@@ -2064,7 +2102,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
             asyncio.get_running_loop().create_task(
                 _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
             )
-        content = reply or response.content.strip()
+        content = sanitize_public_text(reply or response.content.strip())
         if content and not _consult_grounded(content, rag_hits, _pkgs):
             # A number or link that is in neither the KB sources nor the real
             # price list is a hallucination: never show it, hand off instead.

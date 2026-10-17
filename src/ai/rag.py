@@ -41,7 +41,13 @@ def is_blocked(text: str) -> bool:
 
 
 def chunk_markdown(text: str, source: str) -> list[dict]:
-    """One chunk per heading section (a Q&A stays whole); long sections split by paragraph."""
+    """One chunk per heading section (a Q&A stays whole); long sections split by paragraph.
+
+    Chunk text is what a customer can be shown. Repository paths are removed
+    here so a later reindex does not store ``src/…`` or ``docs/…`` citations.
+    """
+    from .sanitize import sanitize_public_text
+
     sections = re.split(r"\n(?=#{1,4} )", text or "")
     out: list[dict] = []
     for sec in sections:
@@ -49,6 +55,9 @@ def chunk_markdown(text: str, source: str) -> list[dict]:
         if not sec:
             continue
         title = sec.splitlines()[0].lstrip("# ").strip()
+        sec = sanitize_public_text(sec)
+        if not sec:
+            continue
         if len(sec) <= CHUNK_CHARS:
             out.append({"text": sec, "title": title, "source": source})
             continue
