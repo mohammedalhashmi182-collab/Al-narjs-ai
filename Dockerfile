@@ -21,4 +21,7 @@ EXPOSE 8000
 # instance. Keep-alive is 120s so it stays open longer than Render's edge
 # (about 75s). The default of 5s makes the edge reuse a socket this process
 # already closed, and the client sees a clean TLS close with no status line.
-CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*' --timeout-keep-alive 120"]
+# The access log is off: it records client IPs and the raw query string
+# (OAuth code and state on the store callbacks). RequestLogMiddleware records
+# method, route template, status and duration instead.
+CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*' --timeout-keep-alive 120 --no-access-log"]
