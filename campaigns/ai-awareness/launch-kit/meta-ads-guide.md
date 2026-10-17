@@ -103,7 +103,7 @@
 
 4. **Primary Text:** انسخ النص العربي من `ad-copies.md`
 5. **Headline:** مثال: "فريق ذكي لتسويق مشروعك"
-6. **Description:** "جرّب الآن مع كود NARJIS50 — خصم 50%"
+6. **Description:** "جرّب الآن على karmaai.online"
 7. **Website URL:** `https://karmaai.online`
 8. **CTA Button:** **Learn More**
 

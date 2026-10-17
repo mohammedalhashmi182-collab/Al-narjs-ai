@@ -206,6 +206,22 @@ def test_retired_phone_digits_are_gone_and_the_social_batch_uses_the_current_num
     assert hits == []
 
 
+def test_retired_code_is_absent_from_customer_and_marketing_trees():
+    """NARJIS50 must not remain under product, marketing, or campaign trees."""
+    hits = []
+    for base in (ROOT / "src", ROOT / "marketing", ROOT / "campaigns"):
+        for path in base.rglob("*"):
+            if not path.is_file():
+                continue
+            try:
+                blob = path.read_bytes()
+            except OSError:
+                continue
+            if b"NARJIS50" in blob:
+                hits.append(str(path.relative_to(ROOT)))
+    assert hits == []
+
+
 def test_arabic_subprocessors_page_uses_arabic_for_embeddings():
     with TestClient(app) as client:
         ar = client.get("/subprocessors", cookies={"narjis_lang": "ar"}).text

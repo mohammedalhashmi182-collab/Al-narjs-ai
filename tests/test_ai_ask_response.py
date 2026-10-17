@@ -14,6 +14,8 @@ import sys
 import textwrap
 import time
 
+import pytest
+
 
 _ANSWER = (
     "نعم، البوت يشتغل بالعربي ويرد على العملاء على مدار 24 ساعة يومياً. "
@@ -21,6 +23,7 @@ _ANSWER = (
 )
 
 
+@pytest.mark.allow_hosts(["127.0.0.1"])
 def test_httptools_delivers_arabic_json_with_matching_content_length():
     port = _free_port()
     script = textwrap.dedent(
