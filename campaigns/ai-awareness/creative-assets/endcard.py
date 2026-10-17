@@ -44,13 +44,11 @@ def main():
     d.text((cx, 560), shape("جرّب الآن"), font=font("Tajawal-Black", 130), fill=(255, 255, 244), anchor="mm")
     d.text((cx, 760), shape("فريقك الرقمي يبدأ خلال دقائق"), font=font("Tajawal-Regular", 54), fill=MUTED, anchor="mm")
     # code pill
-    code = shape("NARJIS50  •  خصم 50%")
+    code = shape("بدون بطاقة بنكية")
     f = font("Tajawal-Bold", 58)
     bw = f.getbbox(code)[2] + 90
     d.rounded_rectangle((cx - bw / 2, 940, cx + bw / 2, 1060), radius=60, outline=GOLD, width=4)
     d.text((cx, 1000), code, font=f, fill=GOLD, anchor="mm")
-    # expiry
-    d.text((cx, 1160), shape("ينتهي العرض 14 أكتوبر"), font=font("Tajawal-Regular", 48), fill=MUTED, anchor="mm")
     # bottom logo bar
     d.rectangle((0, H - 300, W, H), fill=(17, 20, 26))
     d.text((cx, H - 240), shape("جرب مجاناً • بدون بطاقة بنكية"), font=font("Tajawal-Bold", 52), fill=(245, 245, 242), anchor="mm")

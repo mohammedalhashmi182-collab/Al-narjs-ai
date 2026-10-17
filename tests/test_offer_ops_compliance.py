@@ -381,7 +381,8 @@ def test_google_subprocessor_includes_embeddings():
 
     google = next(row for row in SUBPROCESSORS if row["name"].startswith("Google"))
     assert "embeddings" in google["purpose_en"]
-    assert "embeddings" in google["purpose_ar"]
+    assert "تضمين النصوص" in google["purpose_ar"]
+    assert "embeddings" not in google["purpose_ar"]
 
 
 def test_retention_table_is_on_subprocessors_and_dpa():

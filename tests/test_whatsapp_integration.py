@@ -125,7 +125,7 @@ def _inbound_payload(msg_id: str, text: str, sender: str = "966555555555") -> di
                 "field": "messages",
                 "value": {
                     "messaging_product": "whatsapp",
-                    "metadata": {"display_phone_number": "06552978753", "phone_number_id": PHONE_ID},
+                    "metadata": {"display_phone_number": "06111000000", "phone_number_id": PHONE_ID},
                     "contacts": [{"profile": {"name": "اختبار"}, "wa_id": sender}],
                     "messages": [{
                         "from": sender,
@@ -143,7 +143,7 @@ def _inbound_payload(msg_id: str, text: str, sender: str = "966555555555") -> di
 def _status_payload(provider_message_id: str, status: str, failed: bool = False) -> dict:
     entry = {
         "messaging_product": "whatsapp",
-        "metadata": {"display_phone_number": "06552978753", "phone_number_id": PHONE_ID},
+        "metadata": {"display_phone_number": "06111000000", "phone_number_id": PHONE_ID},
         "statuses": [{
             "id": provider_message_id,
             "status": status,

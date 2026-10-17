@@ -86,7 +86,7 @@
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10" id="pkg-grid" aria-busy="true">
                 {% for _ in range(4) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
-            <noscript><p>فعّل JavaScript لاختيار الباقة، أو راسلنا على <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p></noscript>
+            <noscript><p>{% if _lang == 'ar' %}فعّل JavaScript لاختيار الباقة، أو راسلنا على{% else %}Enable JavaScript to choose a plan, or email us at{% endif %} <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p></noscript>
 
             <form id="regForm" class="n-form max-w-2xl mx-auto gap-5 hidden">
                 <div class="grid sm:grid-cols-2 gap-5">
@@ -181,12 +181,14 @@
                 <div class="n-divider mb-4">✺</div>
                 <h2 class="n-title text-2xl mb-2">{% if _lang == 'ar' %}<span>الاشتراك</span>{% else %}<span data-inline>Subscription</span>{% endif %}</h2>
                 <div id="coSummary" class="n-sub mb-6"></div>
+                {% if promo_info().active %}
                 <div class="flex items-center justify-center gap-2 mb-4" id="promoRow">
                     <input type="text" id="promoInput" placeholder="{% if _lang == 'ar' %}كود الخصم{% else %}Promo code{% endif %}" autocomplete="off" style="max-width:200px;text-align:center;" class="co-input">
                     <button id="promoApply" class="btn btn-outline" style="padding:10px 18px;font-size:.85rem;">
                         {% if _lang == 'ar' %}<span>تطبيق</span>{% else %}<span data-inline>Apply</span>{% endif %}
                     </button>
                 </div>
+                {% endif %}
 <label id="refundConsentRow" for="refundConsent" class="flex items-start gap-2 mb-4 text-sm" style="text-align:start;cursor:pointer;">
                         <input type="checkbox" id="refundConsent" name="refund_consent" required class="mt-0.5">
                         <span>{% if _lang == 'ar' %}<span>أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span>{% else %}<span data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span>{% endif %}</span>

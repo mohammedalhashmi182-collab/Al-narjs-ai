@@ -197,7 +197,7 @@ class TestFlags:
         assert "no_reachable_channel" in data_flags(lead)
 
     def test_unparsed_phone_flag(self):
-        lead = _FakeLead(phone_raw="06552978753", phone=None)
+        lead = _FakeLead(phone_raw="06111000000", phone=None)
         assert "unparsed_phone" in data_flags(lead)
 
 

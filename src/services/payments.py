@@ -27,7 +27,7 @@ MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
 VAT_RATE = 0.15
 
-from datetime import timedelta as _timedelta
+from datetime import datetime, timedelta as _timedelta, timezone
 
 # Access survives this long past ``current_period_end`` before the renewal
 # job expires it (see src/services/renewals.py).
@@ -149,9 +149,35 @@ def order_description(package: str, billing_period: str, addons: int, discount_p
     return description
 
 
+def _promo_expires_in_future(raw: str | None) -> bool:
+    """True when PROMO_EXPIRES is set, parseable, and still ahead of now (UTC).
+
+    A bare ``YYYY-MM-DD`` counts only when that calendar day is after today.
+    A datetime counts only when it is strictly later than the current instant.
+    A missing or unparseable value is not an active promo.
+    """
+    text = (raw or "").strip()
+    if not text:
+        return False
+    now = datetime.now(timezone.utc)
+    try:
+        if len(text) == 10:
+            day = datetime.strptime(text, "%Y-%m-%d").date()
+        else:
+            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc) > now
+    except ValueError:
+        return False
+    return day > now.date()
+
+
 def promo_active() -> bool:
     settings = get_settings()
-    return bool(settings.promo_code and settings.promo_percent > 0)
+    if not settings.promo_code or settings.promo_percent <= 0:
+        return False
+    return _promo_expires_in_future(settings.promo_expires)
 
 
 def promo_info() -> dict:
