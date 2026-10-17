@@ -123,6 +123,34 @@ def test_ladder_matches_owner_pricing():
     assert catalog.plan_amount("bidaya", "annual") == 10 * catalog.plan_amount("bidaya", "monthly")
 
 
+@pytest.mark.parametrize("old,current,name", [
+    ("radd", "bidaya", "البداية"),
+    ("bay", "numuw", "النمو"),
+    ("tashgheel", "sharikat", "الشركات"),
+])
+def test_legacy_plan_keys_do_not_crash_the_offer(old, current, name):
+    assert catalog.purchasable_plan_key(old) == current
+    assert name in smart_reply.plan_lines(old)
+    assert catalog.purchasable_plan_key("missing") == catalog.RECOMMENDED_PACKAGE
+
+
+async def test_ready_to_buy_with_a_legacy_plan_key_drafts_a_current_plan(maker):
+    async with maker() as s:
+        lead = AcquisitionLead(company_name="متجر قديم", phone="966500000111", source="test")
+        s.add(lead)
+        await s.flush()
+        s.add(LeadPipeline(lead_id=lead.id, channel="whatsapp", recipient="966500000111",
+                           stage="qualified", plan_key="bay", history=[]))
+        await s.commit()
+        draft = await smart_reply.handle_inbound(
+            s, channel="whatsapp", recipient="966500000111", text="ابغى اشترك", lead_id=lead.id,
+        )
+        assert draft is not None and draft.kind == "payment_link"
+        assert draft.plan_key == "numuw"
+        assert "النمو" in draft.draft_text
+        assert "bay" not in draft.draft_text
+
+
 # --------------------------------------------------------------------------- modes
 
 async def test_default_mode_is_review_and_modes_validate(maker):

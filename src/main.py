@@ -1613,7 +1613,6 @@ async def portal_packages():
     icons = {"bidaya": "fa-comments", "numuw": "fa-seedling", "sharikat": "fa-building"}
     result = []
     for key, p in catalog.PACKAGES.items():
-        team = catalog.get_team(key)
         result.append({
             "key": key,
             "name": p["name"],
@@ -1621,8 +1620,6 @@ async def portal_packages():
             "price": p["price"],
             "tagline": p["tagline"],
             "tagline_en": p["tagline_en"],
-            "team_size": p.get("display_agents") or p["agent_count"],
-            "agents": p.get("display_agents") or p["agent_count"],
             "icon": icons.get(key, "fa-robot"),
             "amount": p["amount"],
             "annual_amount": catalog.plan_amount(key, "annual"),
@@ -2062,7 +2059,6 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
     _pkgs = " | ".join(
         f"{p['name']} ({p['name_en']}): {p['price']} SAR/month before VAT, "
-        f"{p.get('display_agents') or p['agent_count']} agents, "
         f"setup {int(p.get('setup_fee') or 0) // 100} SAR waived on annual billing. "
         + "; ".join(p.get("scope_en") or [])
         for p in _catalog.PACKAGES.values()
@@ -2884,6 +2880,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     base = _public_base_url(request)
     from src.services import catalog as _cat_vp
 
+    if body.conversation_packs and not _cat_vp.USAGE_ADDONS["conversations"].get("purchasable", True):
+        raise HTTPException(400, "Conversation packs are not for sale")
     if body.voice_packs and not _cat_vp.USAGE_ADDONS["voice_minutes"].get("purchasable", True):
         raise HTTPException(400, "Voice-minute packs are not available yet (voice agent coming soon)")
     try:

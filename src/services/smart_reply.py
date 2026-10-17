@@ -78,14 +78,13 @@ def _sar(halalas: int) -> str:
 
 
 def plan_lines(plan_key: str, addons: int = 0) -> str:
-    pkg = catalog.PACKAGES[plan_key]
-    monthly = catalog.plan_amount(plan_key, "monthly", addons)
-    annual = catalog.plan_amount(plan_key, "annual", addons)
-    agents = int(pkg.get("display_agents") or pkg["agent_count"]) + addons
-    unit = "وكيل" if agents == 1 else "وكلاء"
-    extra = f" (منها {addons} إضافي)" if addons else ""
+    key = catalog.purchasable_plan_key(plan_key)
+    pkg = catalog.PACKAGES[key]
+    monthly = catalog.plan_amount(key, "monthly", addons)
+    annual = catalog.plan_amount(key, "annual", addons)
+    extra = f" مع {addons} وكيل إضافي" if addons else ""
     return (
-        f"باقة «{pkg['name']}»: {agents} {unit} ذكاء اصطناعي{extra} بـ {_sar(monthly)} ريال شهرياً، "
+        f"باقة «{pkg['name']}»{extra}: {_sar(monthly)} ريال شهرياً، "
         f"أو {_sar(annual)} ريال سنوياً (تدفع 10 أشهر وتاخذ 12). "
         f"تشمل {pkg['limits']['conversations']:,} محادثة ذكية شهرياً"
         + (f" و{pkg['limits']['voice_minutes']} دقيقة صوت عند إطلاق الوكيل الصوتي (قريباً)" if pkg['limits']['voice_minutes'] else "")
@@ -97,10 +96,9 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
 
 def ladder_text() -> str:
     rows = []
-    for key, pkg in catalog.PACKAGES.items():
-        shown = int(pkg.get("display_agents") or pkg["agent_count"])
-        rows.append(f"• {pkg['name']}: {shown} {'وكيل' if shown == 1 else 'وكلاء'} – "
-                    f"{_sar(pkg['amount'])} ريال/شهر – {pkg['limits']['conversations']:,} محادثة")
+    for _key, pkg in catalog.PACKAGES.items():
+        rows.append(f"• {pkg['name']}: {_sar(pkg['amount'])} ريال/شهر – "
+                    f"{pkg['limits']['conversations']:,} محادثة")
     return "\n".join(rows)
 
 
@@ -307,7 +305,8 @@ async def handle_inbound(
         body = compose_closing()
     elif intent == "READY_TO_BUY" and pipe.plan_key:
         kind = "payment_link"
-        pkg = catalog.PACKAGES[pipe.plan_key]
+        plan_key = catalog.purchasable_plan_key(pipe.plan_key)
+        pkg = catalog.PACKAGES.get(plan_key) or catalog.PACKAGES[catalog.RECOMMENDED_PACKAGE]
         body = (f"ممتاز 🎉 هذا رابط الاشتراك الآمن (ميسّر) لباقة «{pkg['name']}»:\n{{payment_url}}\n"
                 "بعد الدفع نبدأ تجهيز فريقك مباشرة.")
     else:

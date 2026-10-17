@@ -85,7 +85,7 @@ async def ensure_demo_project(session: AsyncSession) -> ClientProject:
     proj = (await session.execute(select(ClientProject).where(
         ClientProject.email == DEMO_EMAIL, ClientProject.status == DEMO_STATUS))).scalar_one_or_none()
     if proj is None:
-        proj = ClientProject(client_name=DEMO_NAME, phone="0000000000", email=DEMO_EMAIL, package="radd",
+        proj = ClientProject(client_name=DEMO_NAME, phone="0000000000", email=DEMO_EMAIL, package="bidaya",
                              status=DEMO_STATUS, reply_mode="review",
                              subscription_note="مشروع العرض التجريبي — لا فوترة ولا مدفوعات")
         session.add(proj)

@@ -56,9 +56,8 @@ CEO_SLUG = "orchestrator"
 #  top at checkout. ``amount`` is halalas (pre-VAT monthly base) and is the
 #  only number payments read; ``price`` is its display form. ``agents`` is
 #  the number of specialist agents the CEO can staff (the CEO leads every
-#  plan and is not counted in that number). ``display_agents`` is the count
-#  printed on the public pages: 5, 15, and all 35 agents on الشركات (the
-#  full roster, CEO included).
+#  plan and is not counted in that number). Public pages do not advertise
+#  that count.
 #
 #  ``limits`` are the monthly usage allowances of the plan:
 #    conversations   - smart conversations (one customer, 24h window, any
@@ -68,36 +67,34 @@ CEO_SLUG = "orchestrator"
 #                      anything above is passed through at cost.
 #  ``setup_fee`` is a one-time fee (halalas) charged on the first monthly
 #  order only; it is waived for annual billing and for founding customers.
-#  The customer's channel is their own WhatsApp, for replies to their buyers.
+#  Public scope lists only what checkout and the weekly-report job actually do.
 # ---------------------------------------------------------------------
 PACKAGES = {
     "bidaya": {
         "name": "البداية",
-        "name_en": "Start",
+        "name_en": "Starter",
         "amount": 79000,
         "price": "790",
         "agents": 5,
         "display_agents": 5,
         "setup_fee": 0,
         "limits": {"conversations": 1000, "voice_minutes": 0, "meta_cap": 10000},
-        "tagline": "خمسة وكلاء وقناة واتساب واحدة للرد على عملائك",
-        "tagline_en": "Five agents and one WhatsApp channel for replies to your own customers",
+        "tagline": "١٬٠٠٠ محادثة شهرياً، ودعم بالبريد والهاتف",
+        "tagline_en": "1,000 conversations a month, with email and phone support",
         "scope": [
-            "٥ وكلاء",
-            "قناة واحدة: واتساب للرد على عملائك",
             "١٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ١٠٠ ريال",
+            "بدون رسوم إعداد",
             "فواتير ضريبية",
-            "دعم بالبريد الإلكتروني",
+            "دعم بالبريد الإلكتروني والهاتف",
         ],
         "coming": [],
         "scope_en": [
-            "5 agents",
-            "One channel: WhatsApp, for replies to your own customers",
             "1,000 conversations a month",
             "Meta fees included up to 100 SAR",
+            "No setup fee",
             "Tax invoices",
-            "Email support",
+            "Email and phone support",
         ],
         "coming_en": [],
     },
@@ -110,62 +107,58 @@ PACKAGES = {
         "display_agents": 15,
         "setup_fee": 99000,
         "limits": {"conversations": 4000, "voice_minutes": 0, "meta_cap": 25000},
-        "tagline": "خمسة عشر وكيلاً، وقاعدة معرفة لشركتك، وتقارير أسبوعية",
-        "tagline_en": "Fifteen agents, a knowledge base for your company, and weekly reports",
+        "tagline": "٤٬٠٠٠ محادثة شهرياً، وتقارير أسبوعية",
+        "tagline_en": "4,000 conversations a month, and weekly reports",
         "scope": [
-            "١٥ وكيلاً",
-            "قاعدة معرفة خاصة بشركتك",
-            "تقارير أسبوعية آلية",
             "٤٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ٢٥٠ ريال",
+            "تقارير أسبوعية آلية",
+            "رسوم إعداد ٩٩٠ ريال لمرة واحدة، وتُلغى مع السنوي",
             "فواتير ضريبية",
-            "دعم أولوية بالبريد الإلكتروني والهاتف",
+            "دعم بالبريد الإلكتروني والهاتف",
         ],
         "coming": ["ربط سلة أو زد (قريباً)"],
         "scope_en": [
-            "15 agents",
-            "A knowledge base for your company",
-            "Weekly automated reports",
             "4,000 conversations a month",
             "Meta fees included up to 250 SAR",
+            "Weekly automated reports",
+            "One-time setup fee of 990 SAR, waived on annual billing",
             "Tax invoices",
-            "Priority support by email and phone",
+            "Email and phone support",
         ],
         "coming_en": ["Salla or Zid connection (coming soon)"],
     },
     "sharikat": {
         "name": "الشركات",
-        "name_en": "Companies",
+        "name_en": "Enterprise",
         "amount": 299000,
         "price": "2990",
-        # Every specialist. The public count is 35: the full roster, CEO included.
+        # Specialists the CEO can staff. Not printed on public pages.
         "agents": 34,
         "display_agents": 35,
         "roster_all": True,
         "setup_fee": 199000,
         "limits": {"conversations": 10000, "voice_minutes": 0, "meta_cap": 50000},
-        "tagline": "كل الوكلاء، مع مدير حساب وجلسة استشارة من فريقنا",
-        "tagline_en": "Every agent, with an account manager and a consultation session from our team",
+        "tagline": "١٠٬٠٠٠ محادثة شهرياً، والرد خلال يوم عمل واحد",
+        "tagline_en": "10,000 conversations a month, and a reply within one working day",
         "scope": [
-            "كل الوكلاء الـ٣٥",
-            "البحث في مستندات الشركة",
-            "مدير حساب من فريقنا",
-            "جلسة استشارة شهرية يقدّمها فريقنا",
-            "الرد خلال يوم عمل واحد",
             "١٠٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ٥٠٠ ريال",
+            "تقارير أسبوعية آلية",
+            "الرد خلال يوم عمل واحد",
+            "رسوم إعداد ١٬٩٩٠ ريال لمرة واحدة، وتُلغى مع السنوي",
             "فواتير ضريبية",
+            "دعم بالبريد الإلكتروني والهاتف",
         ],
         "coming": [],
         "scope_en": [
-            "All 35 agents",
-            "Search across your company's documents",
-            "An account manager from our team",
-            "A monthly consultation session delivered by our team",
-            "A reply within one working day",
             "10,000 conversations a month",
             "Meta fees included up to 500 SAR",
+            "Weekly automated reports",
+            "A reply within one working day",
+            "One-time setup fee of 1,990 SAR, waived on annual billing",
             "Tax invoices",
+            "Email and phone support",
         ],
         "coming_en": [],
     },
@@ -174,12 +167,34 @@ PACKAGES = {
 PACKAGE_ORDER = ["bidaya", "numuw", "sharikat"]
 RECOMMENDED_PACKAGE = "numuw"
 
+# Leads saved before Oct 2026 still carry these keys. A payment link has to
+# use a plan that checkout accepts.
+_LEGACY_TO_PUBLIC = {
+    "radd": "bidaya",
+    "starter": "bidaya",
+    "bay": "numuw",
+    "team": "numuw",
+    "scale": "numuw",
+    "tashgheel": "sharikat",
+    "company": "sharikat",
+}
+
+
+def purchasable_plan_key(plan_key: str | None) -> str:
+    """Map a stored plan key onto a current public plan. Never raises."""
+    if plan_key in PACKAGES:
+        return plan_key
+    mapped = _LEGACY_TO_PUBLIC.get(plan_key or "")
+    if mapped in PACKAGES:
+        return mapped
+    return RECOMMENDED_PACKAGE
+
 # Kept for older quote references. Not a public plan and not a checkout key:
 # the listed plans are PACKAGES. Payments only accept PACKAGES.
 ENTERPRISE = {
     "key": "enterprise",
     "name": "مؤسسات",
-    "name_en": "Enterprise",
+    "name_en": "Custom",
     "price_from": "6000",
     "amount_from": 600000,
     "by_quote": True,
@@ -219,8 +234,11 @@ USAGE_ADDONS = {
         "amount": 9900,
         "price": "99",
         "units": 1000,
-        "note": "رسوم ميتا لا تدخل فيها وتُحسب بالتكلفة",
-        "note_en": "Meta fees not included; passed through at cost",
+        # Kept for invoices and renewals of packs already on an account.
+        # New checkout refuses them while this is False.
+        "purchasable": False,
+        "note": "غير معروضة للبيع",
+        "note_en": "Not for sale",
     },
     "voice_minutes": {
         "name": "١٠٠ دقيقة صوت إضافية (قريباً)",
@@ -926,7 +944,7 @@ EMPLOYEES: dict[str, dict] = {
         "intro_ar": "أنا وكيل اكتساب العملاء المحتملين. أفلتر الفرع الواردة وأحدّد الأكثر استعداداً للشراء، وأصيغ رسالة تواصل أولى شخصية لكل عميل محتمل — بلهجة سعودية مهنية، بلا مبالغة ولا وعود غير مثبتة.",
         "intro_en": "I'm the Lead Acquisition Agent. I filter inbound leads, rank the ones most ready to buy, and draft a personalized first-contact message for each — professional Saudi tone, no hype and no unproven promises.",
         "questions": [
-            _q("source", "من أين تأتي الفرص؟ (موقع، تيليجرام، إحالة، اتصال)", "Where do your leads come from? (site, Telegram, referral, calls)"),
+            _q("source", "من أين تأتي الفرص؟ (موقع، إحالة، اتصال)", "Where do your leads come from? (site, referral, calls)"),
             _q("niche", "ما مجال عملك والجمهور المستهدف؟", "What is your field and target audience?"),
             _q("offer", "ما العرض الذي تقدّمه وسعره؟", "Which offer and price do you present?"),
         ],

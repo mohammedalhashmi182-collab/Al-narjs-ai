@@ -277,7 +277,8 @@ async def test_legacy_renewal_never_gets_founding(maker):
 
 async def test_usage_packs_are_billed_and_carried_to_the_project(maker, monkeypatch):
     from src.services import catalog as _c
-    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when voice launches
+    monkeypatch.setitem(_c.USAGE_ADDONS["conversations"], "purchasable", True)
+    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when packs are sold
     async with maker() as s:
         proj = await _project(s, package="numuw", status="pending")
         pay = await pm.create_payment(s, "numuw", "x", "0555000500", None, project_id=proj.id,
@@ -298,7 +299,7 @@ async def test_usage_packs_are_billed_and_carried_to_the_project(maker, monkeypa
 
 # ---------------------------------------------------------------- API
 
-async def test_checkout_api_has_no_founding_and_bills_packs(maker, monkeypatch):
+async def test_checkout_api_has_no_founding_and_refuses_packs(maker, monkeypatch):
     from src.main import app
 
     monkeypatch.delenv("FOUNDING_ENABLED", raising=False)
@@ -307,14 +308,16 @@ async def test_checkout_api_has_no_founding_and_bills_packs(maker, monkeypatch):
     async with httpx.AsyncClient(
         transport=transport, base_url="http://test", cookies={"narjis_owner": make_session_token()}
     ) as c:
-        r = await c.post("/api/payments", json={"refund_consent": True, "package": "numuw", "method": "invoice",
-                                                "conversation_packs": 1})
+        plain = await c.post("/api/payments", json={"refund_consent": True, "package": "numuw", "method": "invoice"})
+        packs = await c.post("/api/payments", json={"refund_consent": True, "package": "numuw", "method": "invoice",
+                                                    "conversation_packs": 1})
         fnd = (await c.get("/api/founding")).json()
         bad = await c.post("/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice",
                                                   "voice_packs": 99})
-    body = r.json()
+    body = plain.json()
     assert body["founding_applied"] is False and body["discount"] == 0
-    assert body["amount"] == 149000 + 99000 + 9900  # plan + normal setup fee + pack
+    assert body["amount"] == 149000 + 99000  # plan + setup; conversation packs are not for sale
+    assert packs.status_code == 400
     assert fnd == {"enabled": False}
     assert bad.status_code == 400
 

@@ -2,7 +2,6 @@
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% set _lang = page_lang(request) %}
 {% set ar = _lang == 'ar' %}
-{% set _promo = promo_info() %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if ar else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
@@ -135,12 +134,6 @@
 </head>
 <body class="v2" data-lang="{{ _lang }}">
 <a class="skip" href="#consult">{% if ar %}انتقل إلى استشارة الرئيس التنفيذي{% else %}Skip to the CEO consultation{% endif %}</a>
-{% if _promo.active %}
-<div class="promo" id="promoBar">
-    {% if ar %}عرض الإطلاق: خصم {{ _promo.percent }}٪ بالكود <code>{{ _promo.code }}</code> حتى {{ _promo.expires }}{% else %}Launch offer: {{ _promo.percent }}% off with code <code>{{ _promo.code }}</code> until {{ _promo.expires }}{% endif %}
-</div>
-{% endif %}
-
 <header class="v2-nav">
     <div class="wrap">
         <a href="/home" class="brand"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
@@ -590,7 +583,7 @@
         });
         var p = r.plan;
         var addonTxt = p.addons ? (AR ? ' + ' + p.addons + ' وكيل إضافي (' + p.addon_price + ' ر.س لكل وكيل)' : ' + ' + p.addons + ' extra agent' + (p.addons === 1 ? '' : 's') + ' (SAR ' + p.addon_price + ' each)') : '';
-        document.getElementById('ceoPlanName').textContent = (AR ? p.name : p.name_en) + addonTxt + (AR ? ' — يشمل ' + p.agents_included + ' وكيلاً' : ' — includes ' + p.agents_included + ' agents');
+        document.getElementById('ceoPlanName').textContent = (AR ? p.name : p.name_en) + addonTxt;
         document.getElementById('ceoPlanPrice').textContent = Number(p.monthly_price || p.price).toLocaleString('en') + (AR ? ' ر.س/شهرياً' : ' SAR/mo');
         document.getElementById('ceoPlanVat').textContent = (AR ? 'الإجمالي مع ضريبة 15٪: ' : 'Total with 15% VAT: ') + sar(p.total_halalas);
         document.getElementById('ceoSubscribe').href = r.cta.subscribe;

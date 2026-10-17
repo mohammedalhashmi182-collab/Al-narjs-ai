@@ -81,7 +81,8 @@ def test_plan_names_are_human_arabic():
 
 async def test_lines_reconcile_with_setup_addons_packs(maker, monkeypatch):
     from src.services import catalog as _c
-    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when voice launches
+    monkeypatch.setitem(_c.USAGE_ADDONS["conversations"], "purchasable", True)
+    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when packs are sold
     async with maker() as s:
         p = await pm.create_payment(s, "numuw", "x", "0555000000", None, addons=2,
                                     conversation_packs=1, voice_packs=1, founding=False)
@@ -94,6 +95,15 @@ async def test_lines_reconcile_with_setup_addons_packs(maker, monkeypatch):
     assert pv["subtotal"] == p.amount
     assert pv["total"] == pm.total_with_vat(p.amount)
     assert all(l["vat_rate"] == 15 for l in pv["lines"])
+
+
+def test_annual_invoice_lines_do_not_nest_parentheses():
+    payment = Payment(amount=catalog.plan_amount("numuw", "annual", 1), currency="SAR", package="numuw",
+                      billing_period="annual", addon_agents=1, status="pending")
+    names = [line["name"] for line in zatca.build_lines(payment)]
+    assert names
+    assert all(name.count("(") <= 1 and name.count(")") <= 1 for name in names)
+    assert any("12 شهراً بسعر 10" in name for name in names)
 
 
 async def test_founding_discount_is_a_line(maker):

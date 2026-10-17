@@ -421,4 +421,4 @@ def test_portal_packages_api_exposes_limits_and_enterprise():
     assert [p["key"] for p in d["packages"]] == catalog.PACKAGE_ORDER
     assert d["packages"][1]["recommended"] and d["packages"][1]["setup_fee"] == 99000
     assert d["enterprise"] is None and d["addon"]["price"] == "149"
-    assert d["usage_addons"]["conversations"]["price"] == "99"
+    assert d["usage_addons"]["conversations"]["purchasable"] is False
