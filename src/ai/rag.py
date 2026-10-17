@@ -33,7 +33,7 @@ DEFAULT_KB = Path(__file__).resolve().parents[2] / "data" / "kb" / "narjs_servic
 
 
 class IndexBusy(Exception):
-    """Another process holds the public-KB index lock."""
+    """Another instance holds the indexing advisory lock."""
 
 
 def is_blocked(text: str) -> bool:
@@ -160,18 +160,23 @@ async def _write_index(session) -> int:
 
     kb = KB(session)
     await kb.ensure_default()
-    await store.ensure_indexed(session, None, embeddings.get_embedder())
+    embedder = embeddings.get_embedder()
+    await store.ensure_indexed(session, None, embedder)
+    # Tenant OpenAI (1536) corpora move here, off the first customer message.
+    # This runs only after pg_try_advisory_lock in index_default, so a second
+    # instance does not reindex the same docs.
+    await store.reindex_openai_tenant_docs(session, embedder)
     await session.commit()
     return await store.chunk_count(session, None)
 
 
 async def index_default(session) -> int:
-    """Index the public KB and its vectors. Safe to run off the request path.
+    """Index the public KB and reindex tenant OpenAI vectors. Off the request path.
 
     On Postgres a second connection holds ``pg_try_advisory_lock`` for the
-    whole write, including commits. The other instance gets :class:`IndexBusy`
-    and retries later; the content hash then makes the write a no-op.
-    SQLite has a single writer, so it does not take the lock.
+    whole write, including commits and the tenant reindex. The other instance
+    gets :class:`IndexBusy` and retries later. SQLite has a single writer, so
+    it does not take the lock.
     """
     bind = session.bind
     if not _is_postgres(bind):

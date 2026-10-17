@@ -1,16 +1,18 @@
 """Arabic-capable text embeddings with a configurable provider.
 
-``RAG_EMBED_PROVIDER`` (env):
-  auto    (default) openai if OPENAI_API_KEY, else gemini if GEMINI_API_KEY,
-          else local if sentence-transformers is installed, else hash
-  openai  OpenAI ``text-embedding-3-small`` (``RAG_EMBED_MODEL`` to override,
-          e.g. text-embedding-3-large)
-  gemini  Google ``gemini-embedding-001`` (``RAG_EMBED_MODEL`` to override)
-  local   sentence-transformers ``intfloat/multilingual-e5-small`` (optional
-          dependency, CPU, no network after the model download)
-  hash    deterministic character n-gram hashing (no network, no dependency).
-          Works for Arabic spelling variants; used in tests and as the last
-          resort so retrieval never goes down with a provider.
+``EMBEDDING_PROVIDER`` overrides ``RAG_EMBED_PROVIDER`` when set.
+  auto    (default) Gemini native embeddings when ``GEMINI_API_KEY`` is set,
+          else hash. OpenAI is not used unless the provider is explicitly
+          ``openai``. Local MiniLM is not in this path.
+  openai  OpenAI ``text-embedding-3-small``. On failure, Gemini.
+  gemini  ``gemini-embedding-001`` via native ``batchEmbedContents``.
+          ``text-embedding-004`` was shut down and is not requested.
+  local   opt-in ``paraphrase-multilingual-MiniLM-L12-v2`` (384-d). The
+          Render web service is the starter plan (512 MB). The weights are
+          about 470 MB and torch needs more on top, so this is never the
+          default and never a silent fallback.
+  hash    explicit character n-gram hashing. A hash vector that exists only
+          because a real provider failed is not used to answer.
 
 Every provider embeds the *normalized* text (``arabic.canonical_text``) so
 dialect/spelling variants land close together. Vectors are L2-normalized.
@@ -126,28 +128,56 @@ class GeminiEmbedder:
     def name(self) -> str:
         return f"gemini:{self.model}"
 
-    async def embed(self, texts: list[str], *, kind: str = "doc") -> list[list[float]]:
+    async def _post(self, texts: list[str], *, kind: str, model: str) -> list[list[float]]:
         import httpx
 
         task = "RETRIEVAL_QUERY" if kind == "query" else "RETRIEVAL_DOCUMENT"
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:batchEmbedContents"
-        reqs = [{"model": f"models/{self.model}", "content": {"parts": [{"text": canonical_text(t)}]},
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:batchEmbedContents"
+        reqs = [{"model": f"models/{model}", "content": {"parts": [{"text": canonical_text(t)}]},
                  "taskType": task, "outputDimensionality": self.dim} for t in texts]
         async with httpx.AsyncClient(timeout=TIMEOUT) as c:
             r = await c.post(url, headers={"x-goog-api-key": self.api_key}, json={"requests": reqs})
         if r.status_code != 200:
             raise RuntimeError(f"gemini embeddings http {r.status_code}")
-        return [_l2(e["values"]) for e in r.json()["embeddings"]]
+        vecs = [_l2(e["values"]) for e in r.json()["embeddings"]]
+        if vecs:
+            self.dim = len(vecs[0])
+        return vecs
+
+    async def embed(self, texts: list[str], *, kind: str = "doc") -> list[list[float]]:
+        try:
+            return await self._post(texts, kind=kind, model=self.model)
+        except RuntimeError as exc:
+            # A retired id such as text-embedding-004 is a 404. The supported
+            # native model is gemini-embedding-001.
+            if self.model != GEMINI_EMBED_MODEL and "404" in str(exc):
+                log.warning("gemini embedding model %s unavailable; using %s", self.model, GEMINI_EMBED_MODEL)
+                self.model = GEMINI_EMBED_MODEL
+                return await self._post(texts, kind=kind, model=self.model)
+            raise
 
 
-class LocalE5Embedder:
-    """multilingual-e5 via sentence-transformers (optional dependency)."""
+# paraphrase-multilingual-MiniLM-L12-v2. 384 dimensions, weights about 470 MB.
+# Not loaded unless the provider is explicitly local.
+LOCAL_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+LOCAL_DIM = 384
+
+
+class LocalEmbedder:
+    """Opt-in multilingual MiniLM via sentence-transformers.
+
+    Production stays on Gemini. ``render.yaml`` pins the web service to the
+    starter plan, which Render documents as 512 MB RAM. The model file is
+    about 470 MB and a CPU torch runtime needs more than the instance has
+    left, so this class is constructed only for ``EMBEDDING_PROVIDER=local``
+    (or ``RAG_EMBED_PROVIDER=local``). The package is not part of the image.
+    """
 
     _models: dict = {}
 
-    def __init__(self, model: str = "intfloat/multilingual-e5-small"):
+    def __init__(self, model: str = LOCAL_MODEL):
         self.model = model
-        self.dim = 384 if "small" in model else 768
+        self.dim = LOCAL_DIM
 
     @property
     def name(self) -> str:
@@ -156,21 +186,64 @@ class LocalE5Embedder:
     async def embed(self, texts: list[str], *, kind: str = "doc") -> list[list[float]]:
         import asyncio
 
-        from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
-
         m = self._models.get(self.model)
         if m is None:
-            m = self._models[self.model] = SentenceTransformer(self.model)
-        prefix = "query: " if kind == "query" else "passage: "
-        inputs = [prefix + normalize(t) for t in texts]
+            m = self._models[self.model] = _load_local_model(self.model)
+            width = getattr(m, "get_sentence_embedding_dimension", lambda: self.dim)()
+            if width:
+                self.dim = int(width)
+        # Same normalized text as the API embedders. MiniLM has no query/passage prefix.
+        inputs = [canonical_text(t) for t in texts]
         vecs = await asyncio.to_thread(m.encode, inputs, normalize_embeddings=True)
-        return [list(map(float, v)) for v in vecs]
+        out = [list(map(float, v)) for v in vecs]
+        if out:
+            self.dim = len(out[0])
+        return out
+
+
+def _load_local_model(model: str):
+    from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
+
+    return SentenceTransformer(model)
 
 
 def _has_local() -> bool:
     import importlib.util
 
     return importlib.util.find_spec("sentence_transformers") is not None
+
+
+class EmbeddingUnavailable(Exception):
+    """Every real embedding provider failed. Hash is not an answer."""
+
+
+_hash_fallback_logged = False
+
+GEMINI_EMBED_MODEL = "gemini-embedding-001"
+
+
+def _provider_choice() -> str:
+    """``EMBEDDING_PROVIDER`` is the explicit selector. ``RAG_EMBED_PROVIDER`` remains."""
+    explicit = (os.getenv("EMBEDDING_PROVIDER") or "").strip().lower()
+    if explicit:
+        return explicit
+    return (os.getenv("RAG_EMBED_PROVIDER") or "auto").strip().lower() or "auto"
+
+
+def _configured_model() -> str:
+    return (os.getenv("RAG_EMBED_MODEL") or "").strip()
+
+
+def _gemini_model(configured: str) -> str:
+    if not configured or configured.startswith("text-embedding") or configured in {"embedding-001"}:
+        return GEMINI_EMBED_MODEL
+    return configured
+
+
+def _openai_model(configured: str) -> str:
+    if not configured or "gemini" in configured or configured.startswith("embedding"):
+        return "text-embedding-3-small"
+    return configured
 
 
 def _key(name: str) -> str | None:
@@ -192,30 +265,126 @@ def set_embedder(e: Embedder | None) -> None:
     _override = e
 
 
+def _gemini_embedder(configured: str) -> GeminiEmbedder | None:
+    key = _key("GEMINI_API_KEY")
+    if not key:
+        return None
+    return GeminiEmbedder(key, _gemini_model(configured))
+
+
+def _openai_embedder(configured: str) -> OpenAIEmbedder | None:
+    key = _key("OPENAI_API_KEY")
+    if not key:
+        return None
+    model = _openai_model(configured)
+    dim = 3072 if "large" in model else 1536
+    return OpenAIEmbedder(key, model, dim)
+
+
+def _looks_like_local_model(configured: str) -> bool:
+    name = configured.lower()
+    return "minilm" in name or name.startswith("paraphrase-") or name.startswith("sentence-transformers/")
+
+
+def _local_embedder(configured: str) -> LocalEmbedder | None:
+    if not _has_local():
+        return None
+    model = configured if _looks_like_local_model(configured) else ""
+    return LocalEmbedder(model or LOCAL_MODEL)
+
+
+_local_missing_logged = False
+
+
+def _warn_local_unavailable() -> None:
+    """One line. The package is absent, so MiniLM is not loaded."""
+    global _local_missing_logged
+    if _local_missing_logged:
+        return
+    _local_missing_logged = True
+    log.warning(
+        "EMBEDDING_PROVIDER=local but sentence-transformers is not installed; "
+        "MiniLM was not loaded. Gemini is next when GEMINI_API_KEY is set"
+    )
+
+
+def candidate_embedders() -> list[Embedder]:
+    """Real providers in try-order.
+
+    OpenAI is included only when explicitly selected. MiniLM is included only
+    when the provider is ``local``: loading torch on the 512 MB starter
+    instance is not a fallback.
+    """
+    choice = _provider_choice()
+    configured = _configured_model()
+    if choice == "hash":
+        return [HashEmbedder()]
+    ordered: list[Embedder | None]
+    if choice == "openai":
+        ordered = [_openai_embedder(configured), _gemini_embedder(configured)]
+    elif choice == "local":
+        local = _local_embedder(configured)
+        if local is None:
+            _warn_local_unavailable()
+        ordered = [local, _gemini_embedder(configured)]
+    else:
+        # auto and gemini: native Gemini. An invalid OpenAI key is ignored.
+        ordered = [_gemini_embedder(configured)]
+    return [item for item in ordered if item is not None]
+
+
 def get_embedder() -> Embedder:
     if _override is not None:
         return _override
-    choice = (os.getenv("RAG_EMBED_PROVIDER") or "auto").strip().lower()
-    model = (os.getenv("RAG_EMBED_MODEL") or "").strip()
-    if choice in ("openai", "auto") and _key("OPENAI_API_KEY"):
-        return OpenAIEmbedder(_key("OPENAI_API_KEY") or "", model or "text-embedding-3-small",
-                              3072 if "large" in (model or "") else 1536)
-    if choice in ("gemini", "auto") and _key("GEMINI_API_KEY"):
-        return GeminiEmbedder(_key("GEMINI_API_KEY") or "", model or "gemini-embedding-001")
-    if choice in ("local", "auto") and _has_local():
-        return LocalE5Embedder(model or "intfloat/multilingual-e5-small")
+    chain = candidate_embedders()
+    if chain:
+        return chain[0]
+    choice = _provider_choice()
     if choice not in ("auto", "hash"):
-        log.warning("RAG_EMBED_PROVIDER=%s unavailable (missing key or package); using hash embeddings", choice)
+        log.warning("embedding provider %s unavailable (missing key or package); using hash embeddings", choice)
     return HashEmbedder()
 
 
+def _log_hash_fallback_once(provider_name: str, exc: BaseException) -> None:
+    """One loud line per process. The question and the key are not included."""
+    global _hash_fallback_logged
+    if _hash_fallback_logged:
+        return
+    _hash_fallback_logged = True
+    log.error(
+        "embedding provider %s failed (%s); hash fallback will not be used to answer",
+        provider_name,
+        type(exc).__name__,
+    )
+
+
 async def embed_safe(embedder: Embedder, texts: list[str], *, kind: str = "doc") -> tuple[Embedder, list[list[float]]]:
-    """Embed with the configured provider; on provider failure fall back to hash (logged, never raises)."""
-    try:
+    """Embed with ``embedder``, then the next real provider.
+
+    Explicit hash embeddings are returned as-is. When every real provider
+    fails, this raises :class:`EmbeddingUnavailable` instead of answering
+    with a hash vector.
+    """
+    if isinstance(embedder, HashEmbedder):
         return embedder, await embedder.embed(texts, kind=kind)
-    except Exception as exc:  # noqa: BLE001
-        if isinstance(embedder, HashEmbedder):
-            raise
-        log.warning("embedding provider %s failed (%s); falling back to hash", embedder.name, type(exc).__name__)
-        h = HashEmbedder()
-        return h, await h.embed(texts, kind=kind)
+    chain: list[Embedder] = []
+    seen: set[str] = set()
+    for item in (embedder, *candidate_embedders()):
+        if isinstance(item, HashEmbedder):
+            continue
+        if item.name in seen:
+            continue
+        seen.add(item.name)
+        chain.append(item)
+    last: BaseException | None = None
+    last_name = embedder.name
+    for item in chain:
+        try:
+            return item, await item.embed(texts, kind=kind)
+        except Exception as exc:  # noqa: BLE001
+            last = exc
+            last_name = item.name
+            log.warning("embedding provider %s failed (%s)", item.name, type(exc).__name__)
+    if last is not None:
+        _log_hash_fallback_once(last_name, last)
+    raise EmbeddingUnavailable(last_name)

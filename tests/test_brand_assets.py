@@ -2,12 +2,19 @@
 import json
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
 
 STATIC = Path("src/web/static")
-client = TestClient(app)
+
+
+@pytest.fixture(scope="module")
+def client():
+    # Close the app so the background indexer does not keep the test database open.
+    with TestClient(app) as c:
+        yield c
 
 
 def test_svg_brand_files_exist():
@@ -16,7 +23,7 @@ def test_svg_brand_files_exist():
         assert body.startswith("<svg") and "</svg>" in body
 
 
-def test_raster_brand_routes():
+def test_raster_brand_routes(client):
     expect = {
         "logo.png": (b"\x89PNG", "image/png"),
         "favicon.png": (b"\x89PNG", "image/png"),
@@ -34,21 +41,21 @@ def test_raster_brand_routes():
     assert client.get("/brand/nope.png").status_code == 404
 
 
-def test_manifest_valid_and_icons_resolve():
+def test_manifest_valid_and_icons_resolve(client):
     data = json.loads((STATIC / "site.webmanifest").read_text(encoding="utf-8"))
     assert data["short_name"] == "النرجس"
     for icon in data["icons"]:
         assert client.get(icon["src"]).status_code == 200, icon["src"]
 
 
-def test_favicon_ico_route():
+def test_favicon_ico_route(client):
     r = client.get("/favicon.ico")
     assert r.status_code == 200
     assert r.headers["content-type"] == "image/x-icon"
     assert r.content[:4] == b"\x00\x00\x01\x00"
 
 
-def test_landing_uses_new_logo():
+def test_landing_uses_new_logo(client):
     html = client.get("/ar/home").text
     assert "/static/logo.svg" in html
     assert 'rel="manifest"' in html

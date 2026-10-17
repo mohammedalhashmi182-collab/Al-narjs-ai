@@ -376,6 +376,14 @@ async def test_public_compliance_pages_render(maker, path, needle):
         assert f'href="{link}"' in r.text
 
 
+def test_google_subprocessor_includes_embeddings():
+    from src.interfaces.ops_routes import SUBPROCESSORS
+
+    google = next(row for row in SUBPROCESSORS if row["name"].startswith("Google"))
+    assert "embeddings" in google["purpose_en"]
+    assert "embeddings" in google["purpose_ar"]
+
+
 def test_retention_table_is_on_subprocessors_and_dpa():
     from src.interfaces.ops_routes import RETENTION
 

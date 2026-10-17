@@ -12,7 +12,7 @@ from sqlalchemy.pool import StaticPool
 import src.models  # noqa: F401 — register tables before create_all
 from src.ai import llm, rag, router
 from src.ai.llm import LLMError
-from src.ai.review import parse_verdict
+from src.ai.review import REVIEW_SYSTEM, parse_verdict, review, rule_violation
 from src.db.session import Base
 from src.models.rag import KnowledgeChunk
 
@@ -26,6 +26,7 @@ class FakeLLM:
 
     async def chat(self, system, user, timeout=3.0):
         self.calls += 1
+        self.system = system
         self.seen = user
         r = self.replies.pop(0) if self.replies else LLMError("empty")
         if isinstance(r, Exception):
@@ -122,6 +123,97 @@ def test_parse_verdict_fails_closed():
     assert parse_verdict(OK)[0] is True
 
 
+def test_review_prompt_forbids_rewrite_and_states_the_rules():
+    assert "لا تُعد كتابته" in REVIEW_SYSTEM
+    assert "CVV" in REVIEW_SYSTEM and "OTP" in REVIEW_SYSTEM and "كلمة مرور" in REVIEW_SYSTEM
+    assert "سياسة" in REVIEW_SYSTEM and "سعر" in REVIEW_SYSTEM
+    assert "استرداد" in REVIEW_SYSTEM and "ضمان" in REVIEW_SYSTEM
+
+
+@pytest.mark.parametrize(
+    ("answer", "reason"),
+    [
+        ("أرسل رقم البطاقة من فضلك", "asks_for_secret"),
+        ("أدخل رمز CVV الظاهر خلف البطاقة", "asks_for_secret"),
+        ("اكتب رمز التحقق OTP", "asks_for_secret"),
+        ("ما هي كلمة المرور؟", "asks_for_secret"),
+        ("الاسترداد خلال 14 يوم", "invented_policy"),
+        ("السعر 1499 ريال", "invented_policy"),
+        ("حسب نظام حماية البيانات الشخصية", "invented_policy"),
+        ("سياسة الاستبدال تسمح بالإرجاع", "invented_policy"),
+        ("نضمن لك استرداد المبلغ كاملاً", "refund_promise"),
+        ("الخدمة بضمان ذهبي", "refund_promise"),
+    ],
+)
+def test_each_review_rule(answer, reason):
+    assert rule_violation(answer, "باقة ردّ 599 ر.س") == reason
+
+
+def test_rules_allow_a_claim_that_is_in_the_kb():
+    source = "نضمن استرداد المبلغ خلال 7 أيام حسب سياسة الاسترداد. لا نطلب رقم البطاقة."
+    assert rule_violation("نضمن استرداد المبلغ خلال 7 أيام", source) is None
+    assert rule_violation("لا نطلب رقم البطاقة ولا كلمة المرور", source) is None
+    assert rule_violation("حسب سياسة الاسترداد", source) is None
+
+
+def test_refund_denial_missing_from_the_kb_is_a_promise_rule():
+    assert rule_violation("لا نضمن أي استرداد", "باقة ردّ 599 ر.س") == "refund_promise"
+
+
+async def test_review_rule_does_not_call_the_model():
+    reviewer = FakeLLM("groq", [OK])
+    ok, why = await review(reviewer, "سؤال", "أرسل رقم البطاقة", "باقة ردّ 599 ر.س")
+    assert ok is False and why == "asks_for_secret" and reviewer.calls == 0
+
+
+async def test_clean_review_sends_the_rules_to_the_model():
+    reviewer = FakeLLM("groq", [OK])
+    ok, why = await review(reviewer, "سؤال", "لا استرداد بعد التفعيل", "لا استرداد بعد التفعيل")
+    assert ok is True and why == ""
+    assert reviewer.calls == 1 and reviewer.system == REVIEW_SYSTEM
+
+
+@pytest.mark.parametrize(
+    ("answer", "reason"),
+    [
+        ("أرسل رقم البطاقة من فضلك", "asks_for_secret"),
+        ("أدخل رمز CVV الظاهر خلف البطاقة", "asks_for_secret"),
+        ("اكتب رمز التحقق OTP", "asks_for_secret"),
+        ("ما هي كلمة المرور؟", "asks_for_secret"),
+        ("الاسترداد خلال 14 يوم", "invented_policy"),
+        ("السعر 1499 ريال", "invented_policy"),
+        ("حسب نظام حماية البيانات الشخصية", "invented_policy"),
+        ("سياسة الاستبدال تسمح بالإرجاع", "invented_policy"),
+        ("نضمن لك استرداد المبلغ كاملاً", "refund_promise"),
+        ("الخدمة بضمان ذهبي", "refund_promise"),
+    ],
+)
+async def test_rule_violation_hands_off_without_a_rewrite(answer, reason):
+    deep = FakeLLM("deep", [answer, "لا يُعاد كتابته"])
+    fast = FakeLLM("groq", [OK, OK])
+    r = await router.ask("وش سياسة الاسترداد", kb=FakeKB(HITS), fast=fast, deep=deep)
+    assert r.route == "handoff" and router.last_handoff_reason() == reason
+    assert answer not in r.answer
+    assert deep.calls == 1 and fast.calls == 0
+
+
+async def test_fast_route_secret_request_hands_off():
+    fast = FakeLLM("groq", ["أرسل كلمة المرور"])
+    deep = FakeLLM("deep", [OK])
+    r = await router.ask("كم سعر باقة رد", kb=FakeKB(HITS), fast=fast, deep=deep)
+    assert r.route == "handoff" and router.last_handoff_reason() == "asks_for_secret"
+    assert deep.calls == 0
+
+
+async def test_promise_copied_from_the_kb_is_reviewed_not_rewritten():
+    hits = [{"text": "نضمن استرداد المبلغ خلال 7 أيام", "source": "data/kb/narjs_services.md"}]
+    deep = FakeLLM("deep", ["نضمن استرداد المبلغ خلال 7 أيام"])
+    fast = FakeLLM("groq", [OK])
+    r = await router.ask("وش سياسة الاسترداد", kb=FakeKB(hits), fast=fast, deep=deep)
+    assert r.route == "deep" and r.reviewed is True and fast.calls == 1
+    assert r.answer == "نضمن استرداد المبلغ خلال 7 أيام"
+
+
 def test_chunk_markdown_keeps_qa_together():
     md = "# عنوان\n\n### س1: سؤال؟\nج: جواب\nالمصدر: x\n\n### س2: ثاني؟\nج: يحدده محمد\n"
     chunks = rag.chunk_markdown(md, "kb.md")
@@ -163,10 +255,10 @@ def test_endpoint(monkeypatch):
         return router.Result("جواب", "fast", ["s.md"], False)
 
     monkeypatch.setattr(router, "ask", fake_ask)
-    # The route opens a DB session before the (patched) answer. Lifespan does
-    # not run on a one-shot TestClient, so the test supplies the factory.
+    # The route opens a DB session before the (patched) answer.
     monkeypatch.setattr(app.state, "session_factory", _session, raising=False)
-    r = TestClient(app).post("/api/ai/ask", json={"question": "كم سعر رد"})
+    with TestClient(app) as client:
+        r = client.post("/api/ai/ask", json={"question": "كم سعر رد"})
     assert r.status_code == 200
     assert r.json() == {"answer": "جواب", "reviewed": False}
     assert "route" not in r.json() and "sources" not in r.json() and "s.md" not in r.text
@@ -237,7 +329,8 @@ def test_endpoint_rejects_oversized_question():
 
     from src.main import app
 
-    r = TestClient(app).post("/api/ai/ask", json={"question": "س" * 2001})
+    with TestClient(app) as client:
+        r = client.post("/api/ai/ask", json={"question": "س" * 2001})
     assert r.status_code == 422
 
 
@@ -456,6 +549,153 @@ def test_explicit_deep_key_is_not_replaced_by_gemini(monkeypatch):
     assert provider.model == "gpt-4o"
 
 
+async def test_gemini_chat_uses_native_generate_content(monkeypatch):
+    import httpx
+
+    seen = {}
+
+    class Response:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "candidates": [{
+                    "content": {"parts": [
+                        {"text": "تفكير", "thought": True},
+                        {"text": "لا استرداد"},
+                    ]},
+                    "finishReason": "STOP",
+                }]
+            }
+
+    async def post(self, url, headers=None, json=None):
+        seen["url"] = url
+        seen["headers"] = dict(headers or {})
+        seen["json"] = json
+        return Response()
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.delenv("DEEP_MODEL_KEY", raising=False)
+    monkeypatch.delenv("DEEP_MODEL_BASE_URL", raising=False)
+    monkeypatch.delenv("DEEP_MODEL_NAME", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini-test-value-not-a-real-key")
+    result = await llm.deep_provider().chat("نظام", "سؤال")
+    assert result.text == "لا استرداد" and result.finish_reason == "stop"
+    assert seen["url"] == "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    assert "chat/completions" not in seen["url"]
+    assert "Authorization" not in seen["headers"]
+    assert seen["json"]["generationConfig"]["thinkingConfig"] == {"thinkingBudget": 0}
+    assert "gemini-test-value-not-a-real-key" not in seen["url"]
+
+
+async def test_configured_gemini_compat_url_still_uses_native_generate_content(monkeypatch):
+    import httpx
+
+    seen = {}
+
+    class Response:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"candidates": [{"content": {"parts": [{"text": "تم"}]}, "finishReason": "STOP"}]}
+
+    async def post(self, url, headers=None, json=None):
+        seen["url"] = url
+        return Response()
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setenv("DEEP_MODEL_KEY", "gemini-test-value-not-a-real-key")
+    monkeypatch.setenv("DEEP_MODEL_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
+    monkeypatch.setenv("DEEP_MODEL_NAME", "gemini-2.5-flash")
+    result = await llm.deep_provider().chat("نظام", "سؤال")
+    assert result.text == "تم"
+    assert seen["url"].endswith(":generateContent")
+    assert "/openai/chat/completions" not in seen["url"]
+
+
+async def test_groq_http_error_logs_the_status_and_class(monkeypatch, caplog):
+    import logging
+
+    import httpx
+
+    class Response:
+        status_code = 404
+
+        def raise_for_status(self):
+            request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+            response = httpx.Response(404, request=request)
+            raise httpx.HTTPStatusError("not found", request=request, response=response)
+
+    seen = {}
+
+    async def post(self, url, headers=None, json=None):
+        seen["json"] = json
+        return Response()
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setenv("GROQ_API_KEY", "groq-test-value-not-a-real-key")
+    monkeypatch.setenv("GROQ_DEFAULT_MODEL", "openai/gpt-oss-120b")
+    provider = llm.fast_provider()
+    with caplog.at_level(logging.WARNING, logger="src.ai.llm"):
+        with pytest.raises(llm.LLMError):
+            await provider.chat("نظام", "سؤال")
+    assert seen["json"]["model"] == "openai/gpt-oss-120b"
+    assert seen["json"]["reasoning_effort"] == "low"
+    assert any("error=HTTPStatusError" in rec.message and "status=404" in rec.message for rec in caplog.records)
+    assert "groq-test-value-not-a-real-key" not in caplog.text
+    assert "سؤال" not in caplog.text
+
+
+def test_retired_groq_model_is_replaced(monkeypatch):
+    llm._retired_groq_logged = False
+    monkeypatch.setenv("GROQ_DEFAULT_MODEL", "llama-3.3-70b-versatile")
+    assert llm.fast_provider().model == "openai/gpt-oss-120b"
+    monkeypatch.setenv("GROQ_DEFAULT_MODEL", "openai/gpt-oss-20b")
+    assert llm.fast_provider().model == "openai/gpt-oss-20b"
+    monkeypatch.delenv("GROQ_DEFAULT_MODEL", raising=False)
+    assert llm.groq_model() == llm.GROQ_MODEL
+
+
+async def test_generation_failure_logs_the_error_class(caplog):
+    import logging
+
+    class ModelNotFound(Exception):
+        pass
+
+    class Gone:
+        name = "groq"
+
+        async def chat(self, *_a, **_k):
+            raise ModelNotFound("retired")
+
+    with caplog.at_level(logging.WARNING, logger="src.ai.router"):
+        result = await router.ask(
+            "كم سعر باقة رد", kb=FakeKB(HITS), fast=Gone(), deep=Gone(),
+        )
+    assert result.reason == "generation_failed" and result.route == "handoff"
+    assert any("error=ModelNotFound" in rec.message for rec in caplog.records)
+    assert "كم سعر باقة رد" not in caplog.text
+
+
+async def test_embedding_failure_hands_off_without_calling_the_model():
+    from src.services.rag.embeddings import EmbeddingUnavailable
+
+    class Cold:
+        async def retrieve(self, q, k=5, ensure=True):
+            raise EmbeddingUnavailable("openai:text-embedding-3-small")
+
+    fast = FakeLLM("groq", ["لا يُستدعى"])
+    result = await router.ask("كم سعر باقة رد", kb=Cold(), fast=fast, deep=FakeLLM("deep", []))
+    assert result.reason == "embedding_failed" and result.answer == router.HANDOFF_AR
+    assert fast.calls == 0
+
+
 def test_query_embed_timeout_stays_inside_the_ask_budget(monkeypatch):
     from src.services.rag import embeddings
 
@@ -538,6 +778,80 @@ class _LockSession:
         self.bind = _LockBind(acquired)
 
 
+async def test_gemini_other_finish_reason_is_a_failure(monkeypatch):
+    import httpx
+
+    class Response:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"candidates": [{"content": {"parts": [{"text": "نص"}]}, "finishReason": "OTHER"}]}
+
+    async def post(self, url, headers=None, json=None):
+        return Response()
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.delenv("DEEP_MODEL_KEY", raising=False)
+    monkeypatch.delenv("DEEP_MODEL_BASE_URL", raising=False)
+    monkeypatch.delenv("DEEP_MODEL_NAME", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini-test-value-not-a-real-key")
+    result = await llm.deep_provider().chat("نظام", "سؤال")
+    assert result.finish_reason == "other"
+    assert llm._GEMINI_FINISH.get("NOT_A_REAL_REASON", "other") == "other"
+
+
+async def test_other_finish_reason_is_not_sent(caplog):
+    import logging
+
+    fast = FakeLLM("groq", [llm.ChatResult("باقة ردّ بـ599 ر.س", "other")])
+    deep = FakeLLM("deep", [llm.ChatResult("باقة ردّ بـ599 ر.س", "other")])
+    with caplog.at_level(logging.WARNING, logger="src.ai.router"):
+        r = await router.ask("كم سعر باقة رد", kb=FakeKB(HITS), fast=fast, deep=deep)
+    assert r.route == "handoff" and "599" not in r.answer
+    assert "finish=other" in caplog.text
+    assert fast.calls == 1 and deep.calls == 1
+
+
+async def test_review_other_finish_is_unavailable():
+    reviewer = FakeLLM("groq", [llm.ChatResult(OK, "other")])
+    ok, why = await review(reviewer, "سؤال", "لا استرداد بعد التفعيل", "لا استرداد بعد التفعيل")
+    assert ok is False and why == "review unavailable"
+
+
+async def test_background_index_reindexes_openai_tenant_docs(monkeypatch):
+    from src.services.rag import store
+
+    seen = {}
+
+    async def ensure_default(self, *, commit=True):
+        return None
+
+    async def ensure_indexed(*_a, **_k):
+        return None
+
+    async def reindex(session, embedder=None):
+        seen["embedder"] = embedder.name
+        return 2
+
+    async def chunk_count(*_a, **_k):
+        return 4
+
+    class Session:
+        async def commit(self):
+            seen["committed"] = True
+
+    monkeypatch.setattr(rag.KB, "ensure_default", ensure_default)
+    monkeypatch.setattr(store, "ensure_indexed", ensure_indexed)
+    monkeypatch.setattr(store, "reindex_openai_tenant_docs", reindex)
+    monkeypatch.setattr(store, "chunk_count", chunk_count)
+    assert await rag._write_index(Session()) == 4
+    assert seen["committed"] is True
+    assert seen["embedder"]
+
+
 async def test_postgres_index_lock_busy_does_not_write(monkeypatch):
     async def write(_session):
         raise AssertionError("wrote without the lock")
@@ -550,6 +864,21 @@ async def test_postgres_index_lock_busy_does_not_write(monkeypatch):
     assert "pg_try_advisory_lock" in sql[0][0]
     assert sql[0][1] == {"k": rag._INDEX_LOCK}
     assert not any("pg_advisory_unlock" in text for text, _params in sql)
+
+
+async def test_cross_instance_lock_blocks_tenant_reindex(monkeypatch):
+    from src.services.rag import store
+
+    async def reindex(*_a, **_k):
+        raise AssertionError("tenant reindex ran without the advisory lock")
+
+    monkeypatch.setattr(store, "reindex_openai_tenant_docs", reindex)
+    session = _LockSession(False)
+    with pytest.raises(rag.IndexBusy):
+        await rag.index_default(session)
+    sql = session.bind.conn.statements
+    assert "pg_try_advisory_lock" in sql[0][0]
+    assert sql[0][1] == {"k": rag._INDEX_LOCK}
 
 
 async def test_postgres_index_lock_is_released_after_the_write(monkeypatch):

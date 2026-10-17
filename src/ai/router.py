@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass, field
 
 from . import llm, rag
-from .review import review
+from .review import RULE_HANDOFF, review, rule_violation
 
 log = logging.getLogger(__name__)
 
@@ -154,7 +154,11 @@ async def _generate(primary, secondary, question: str, context: str) -> tuple[st
     for prov in (primary, secondary):
         try:
             result = await _complete(prov, question, context)
-        except Exception:
+        except Exception as exc:
+            _log_generation_failure(prov, exc)
+            continue
+        if _failed_finish(result):
+            _log_finish_failure(prov, result.finish_reason)
             continue
         if result.finish_reason == "content_filter":
             saw_filter = True
@@ -162,7 +166,11 @@ async def _generate(primary, secondary, question: str, context: str) -> tuple[st
         if result.finish_reason == "length" or not result.text:
             try:
                 result = await _complete(prov, question, context, shorter=True)
-            except Exception:
+            except Exception as exc:
+                _log_generation_failure(prov, exc)
+                continue
+            if _failed_finish(result):
+                _log_finish_failure(prov, result.finish_reason)
                 continue
             if result.finish_reason == "content_filter":
                 saw_filter = True
@@ -183,6 +191,10 @@ async def _ask(question: str, *, kb=None, fast=None, deep=None, session=None) ->
     try:
         hits = await _hits(kb, question) if kb is not None else []
     except Exception as exc:
+        from src.services.rag.embeddings import EmbeddingUnavailable
+
+        if isinstance(exc, EmbeddingUnavailable):
+            return _handoff("embedding_failed")
         log.warning("ai ask retrieval failed: %s", type(exc).__name__)
         return _handoff("retrieval_failed")
     usable, blocked_reason = _answer_hits(hits)
@@ -197,6 +209,10 @@ async def _ask(question: str, *, kb=None, fast=None, deep=None, session=None) ->
     answer, used, fail_reason = await _generate(primary, secondary, question, context)
     if answer is None:
         return _handoff(fail_reason, sources)
+    # Hard rules hand off. The reviewer is not asked to rewrite the answer.
+    violation = rule_violation(answer, context)
+    if violation:
+        return _handoff(violation, sources)
     reviewed = False
     if route == "deep":
         # Refunds, contracts, privacy and invoices are never sent unreviewed.
@@ -205,13 +221,20 @@ async def _ask(question: str, *, kb=None, fast=None, deep=None, session=None) ->
         if not _configured(reviewer):
             return _handoff("review_unconfigured", sources)
         ok, why = await review(reviewer, question, answer, context)
+        if why in RULE_HANDOFF:
+            return _handoff(why, sources, reviewed=True)
         if why == "review unavailable":
             return _handoff("review_unavailable", sources)
         if not ok:
             answer, used, fail_reason = await _generate(primary, secondary, question, context)
             if answer is None:
                 return _handoff(fail_reason, sources, reviewed=True)
+            violation = rule_violation(answer, context)
+            if violation:
+                return _handoff(violation, sources, reviewed=True)
             ok, why = await review(reviewer, question, answer, context)
+            if why in RULE_HANDOFF:
+                return _handoff(why, sources, reviewed=True)
             if why == "review unavailable":
                 return _handoff("review_unavailable", sources, reviewed=True)
             if not ok:
@@ -226,6 +249,29 @@ async def _ask(question: str, *, kb=None, fast=None, deep=None, session=None) ->
     if not grounded(answer, usable):
         return _handoff("ungrounded", sources, reviewed=reviewed)
     return Result(answer, route if used == primary.name else f"{route}-fallback", sources, reviewed)
+
+
+def _failed_finish(result) -> bool:
+    """Gemini OTHER and any unmapped finish reason are not an answer."""
+    return result.finish_reason not in (None, "stop", "length", "content_filter")
+
+
+def _log_finish_failure(prov, finish: str | None) -> None:
+    log.warning(
+        "ai ask generation failed provider=%s finish=%s",
+        getattr(prov, "name", "?"),
+        finish or "-",
+    )
+
+
+def _log_generation_failure(prov, exc: BaseException) -> None:
+    """The exception class (HTTPStatusError, timeout, …), never the question."""
+    cause = exc.__cause__ or exc
+    log.warning(
+        "ai ask generation failed provider=%s error=%s",
+        getattr(prov, "name", "?"),
+        type(cause).__name__,
+    )
 
 
 def _log_outcome(result: Result) -> None:

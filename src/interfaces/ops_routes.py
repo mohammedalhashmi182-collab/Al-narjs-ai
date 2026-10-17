@@ -31,7 +31,7 @@ api = APIRouter(prefix="/api/owner/ops", dependencies=[Depends(require_owner)], 
 SUBPROCESSORS = [
     {"name": "Render", "purpose_ar": "استضافة التطبيق وقاعدة البيانات", "purpose_en": "Application and database hosting",
      "region_ar": "الولايات المتحدة (منطقة Render الافتراضية: أوريغون)", "region_en": "USA (Render default region: Oregon)"},
-    {"name": "Google (Gemini API)", "purpose_ar": "توليد ردود الذكاء الاصطناعي", "purpose_en": "AI response generation",
+    {"name": "Google (Gemini API)", "purpose_ar": "توليد ردود الذكاء الاصطناعي والتضمين (embeddings)", "purpose_en": "AI response generation and embeddings",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Groq", "purpose_ar": "إجابة المساعد السريعة بعد إخفاء البيانات الشخصية", "purpose_en": "Fast assistant answers after PII masking",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
