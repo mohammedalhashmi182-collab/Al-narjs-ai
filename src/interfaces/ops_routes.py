@@ -43,7 +43,7 @@ SUBPROCESSORS = [
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Moyasar", "purpose_ar": "معالجة المدفوعات بالبطاقة", "purpose_en": "Card payment processing",
      "region_ar": "شركة سعودية", "region_en": "Saudi company"},
-    {"name": "PayPal", "purpose_ar": "معالجة المدفوعات (عند اختيارها)", "purpose_en": "Payment processing (when chosen)",
+    {"name": "PayPal", "purpose_ar": "مسار دفع غير متاح للعملاء (الدفع عبر ميسر فقط)", "purpose_en": "Payment path not offered to customers (Moyasar only)",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
 ]
 

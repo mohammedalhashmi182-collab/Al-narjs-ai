@@ -45,9 +45,9 @@
 </style>
 <div id="siteAssistant" lang="{{ 'ar' if _sa_ar else 'en' }}" dir="{{ 'rtl' if _sa_ar else 'ltr' }}">
     <div id="saPanel" role="dialog" aria-label="{% if _sa_ar %}مساعد النرجس{% else %}Al-Narjis assistant{% endif %}">
-        <header>{% if _sa_ar %}مساعد النرجس الذكي{% else %}Al-Narjis AI assistant{% endif %}<small>{% if _sa_ar %}اسأل عن الباقات والخدمة. إن لم أستطع الإجابة أحوّلك للبريد.{% else %}Ask about plans and the service. If I can't answer, I'll hand you to email.{% endif %}</small></header>
+        <header>{% if _sa_ar %}مساعد النرجس الذكي{% else %}Al-Narjis AI assistant{% endif %}<small>{% if _sa_ar %}دعم 24/7 عبر المساعد. إن لم أستطع الإجابة نتابع معك بالبريد.{% else %}24/7 support through the assistant. If I can't answer, a human follows up by email.{% endif %}</small></header>
         <div id="saLog" aria-live="polite"><div class="m bot">{% if _sa_ar %}أهلاً! كيف أقدر أساعدك في عملك؟{% else %}Hi! How can I help with your business?{% endif %}</div></div>
-        <a id="saHandoff" href="{{ _sup.href }}" data-channel="{{ _sup.channel }}"{% if _sup.channel == 'whatsapp' %} target="_blank" rel="noopener"{% endif %}>{% if _sa_ar %}تحويل لخدمة العملاء{% else %}Transfer to customer service{% endif %}{% if _sup.channel == 'email' %} ({% if _sa_ar %}البريد{% else %}email{% endif %}){% elif _sup.channel == 'whatsapp' %} ({% if _sa_ar %}واتساب{% else %}WhatsApp{% endif %}){% else %} ({% if _sa_ar %}اتصال{% else %}call{% endif %}){% endif %}</a>
+        <a id="saHandoff" href="{{ _sup.href }}" data-channel="{{ _sup.channel }}">{% if _sa_ar %}تحويل لخدمة العملاء{% else %}Transfer to customer service{% endif %} ({% if _sa_ar %}اتصال {{ _sup.value }}{% else %}call {{ _sup.value }}{% endif %})</a>
         <button type="button" id="saOpenTicket">{% if _sa_ar %}اطلب تواصل موظف (تذكرة){% else %}Ask a person to contact me (ticket){% endif %}</button>
         <form id="saTicket" novalidate>
             <b>{% if _sa_ar %}نحوّلك لفريقنا{% else %}We'll pass you to our team{% endif %}</b>

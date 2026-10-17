@@ -145,28 +145,37 @@ async def _insert_payment(maker, **kw) -> Payment:
 
 
 class TestCapabilities:
-    def test_no_gateway_means_only_bank_transfer_is_offered(self):
+    def test_no_gateway_means_only_bank_transfer_is_offered(self, monkeypatch):
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _gateway_config():
             caps = pm.capabilities()
-        assert caps["methods"]["invoice"] is True
+        assert caps["methods"]["invoice"] is False
         assert caps["card"] is False and caps["paypal"] is False
         for method in pm.CARD_METHODS:
             assert caps["methods"][method] is False
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+        with _gateway_config():
+            assert pm.capabilities()["methods"]["invoice"] is True
 
-    def test_moyasar_secret_switches_on_every_card_method(self):
+    def test_moyasar_secret_switches_on_every_card_method(self, monkeypatch):
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _gateway_config(moyasar=MOYASAR_SECRET):
             caps = pm.capabilities()
         assert caps["card"] is True
         for method in pm.CARD_METHODS:
             assert caps["methods"][method] is True
-        assert caps["methods"]["invoice"] is True
+        assert caps["methods"]["invoice"] is False
 
-    def test_paypal_needs_both_halves_of_the_credential(self):
+    def test_paypal_needs_both_halves_of_the_credential(self, monkeypatch):
+        monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
         with _gateway_config(paypal_id="id-only", paypal_mode="live"):
             assert pm.capabilities()["paypal"] is False
         with _gateway_config(paypal_id="id", paypal_secret=PAYPAL_SECRET, paypal_mode="live"):
             caps = pm.capabilities()
         assert caps["paypal"] is True and caps["paypal_test_mode"] is False
+        monkeypatch.delenv("CUSTOMER_PAYPAL_ENABLED", raising=False)
+        with _gateway_config(paypal_id="id", paypal_secret=PAYPAL_SECRET, paypal_mode="live"):
+            assert pm.capabilities()["paypal"] is False
 
     def test_a_sandbox_paypal_is_not_offered_as_a_way_to_pay(self):
         """A sandbox checkout takes no money: showing it is a dead CTA."""
@@ -275,8 +284,8 @@ class TestGatewayCredentialProbe:
         assert caps["card"] is False and caps["card_configured"] is True
         for method in pm.CARD_METHODS:
             assert caps["methods"][method] is False
-        # The buyer still has a real way to pay.
-        assert caps["methods"]["invoice"] is True
+        # Bank transfer is not a customer method unless the flag is on.
+        assert caps["methods"]["invoice"] is False
 
     async def test_an_accepted_secret_keeps_the_card_methods(self, fake_moyasar):
         fake_moyasar.status = 200
@@ -374,6 +383,7 @@ class TestGatewayFailureFallback:
 
         monkey = pytest.MonkeyPatch()
         monkey.setattr(payments_module, "initiate_moyasar", _boom)
+        monkey.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         try:
             with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
                 return await anon.post(
@@ -417,6 +427,24 @@ class TestGatewayFailureFallback:
         page = await anon.get(r.json()["invoice_url"])
         assert "Moyasar error" not in page.text
         assert "Invalid authorization credentials" not in page.text
+
+    async def test_card_failure_stays_off_the_bank_invoice_by_default(self, api, monkeypatch):
+        """Customers are not offered a bank-transfer invoice unless the flag is on."""
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
+        anon, _ = api
+        from src.services import payments as payments_module
+
+        async def _boom(*args, **kwargs):
+            raise pm.PaymentError("Moyasar error 401: Invalid authorization credentials")
+
+        monkeypatch.setattr(payments_module, "initiate_moyasar", _boom)
+        with _gateway_config(moyasar=MOYASAR_SECRET):
+            r = await anon.post(
+                "/api/payments",
+                json={"refund_consent": True, "package": "radd", "method": "mada", "customer_name": "مشتر"},
+            )
+        assert r.status_code == 502
+        assert "invoice_url" not in r.text
 
 
 class TestUnresolvableInvoiceLink:
@@ -525,7 +553,8 @@ class TestVatInclusiveCharging:
             assert pm.total_with_vat(base) > base, key
 
     @pytest.mark.usefixtures("founding_full")
-    async def test_the_api_reports_the_vat_inclusive_total_to_the_checkout(self, api):
+    async def test_the_api_reports_the_vat_inclusive_total_to_the_checkout(self, api, monkeypatch):
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         from src.services import catalog
 
         anon, _ = api
@@ -563,10 +592,14 @@ class TestMoyasarTestKeyIsNotAPaymentMethod:
         assert caps["card_test_mode"] is False
         assert caps["card"] is True
 
-    def test_the_bank_transfer_route_stays_open_regardless(self):
+    def test_the_bank_transfer_route_stays_closed_unless_enabled(self, monkeypatch):
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _gateway_config(moyasar=TEST_MOYASAR_KEY):
             caps = pm.capabilities()
-        assert caps["methods"]["invoice"] is True
+        assert caps["methods"]["invoice"] is False
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
+            assert pm.capabilities()["methods"]["invoice"] is True
 
     def test_the_owner_is_told_a_test_key_is_the_reason(self):
         with _gateway_config(moyasar=TEST_MOYASAR_KEY):
@@ -605,18 +638,18 @@ class TestTransferInstructions:
         assert pm.transfer_instructions(payment)["reference"] == str(payment.id)[:8].upper()
 
     def test_whatsapp_link_carries_the_reference_and_the_amount(self):
-        from urllib.parse import parse_qs, urlparse
-
         payment = Payment(id=uuid4(), amount=49900, currency="SAR", status="invoice")
         out = pm.transfer_instructions(payment)
-        link = out["contact"]["whatsapp"]
-        assert link.startswith("https://wa.me/966")
-        text = parse_qs(urlparse(link).query).get("text", [""])[0]
-        assert out["reference"] in text
-        assert f"{out['total_sar']:.2f}" in text
+        assert out["contact"]["whatsapp"] == ""
+        assert out["contact"]["phone"] == "tel:+966540799266"
+        assert out["reference"]
 
-    def test_bank_details_appear_only_when_the_owner_publishes_them(self):
+    def test_bank_details_appear_only_when_the_owner_publishes_them(self, monkeypatch):
         payment = Payment(id=uuid4(), amount=49900, currency="SAR", status="invoice")
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
+        with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
+            assert pm.transfer_instructions(payment)["bank"] == {}
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         with _bank_file():
             assert pm.transfer_instructions(payment)["bank"] == {}
         with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
@@ -758,7 +791,8 @@ class TestPublicSurface:
         assert r.status_code == 400
 
     @pytest.mark.usefixtures("founding_full")
-    async def test_the_invoice_fallback_carries_the_amount_the_invoice_bills(self, api):
+    async def test_the_invoice_fallback_carries_the_amount_the_invoice_bills(self, api, monkeypatch):
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         anon, _ = api
         from src.services import catalog
 
@@ -803,7 +837,8 @@ class TestTemplates:
         # WhatsApp is promoted to the primary action in that state.
         assert "{% if not xfer.bank.iban %}" in partial and "mailto:Al-Narjis@karmaai.online" in partial
 
-    async def test_the_invoice_offers_whatsapp_when_no_bank_details_exist(self, api, maker):
+    async def test_the_invoice_offers_whatsapp_when_no_bank_details_exist(self, api, maker, monkeypatch):
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         anon, _ = api
         payment = await _insert_payment(maker)
         with _bank_file():
@@ -814,7 +849,8 @@ class TestTemplates:
         assert "mailto:Al-Narjis@karmaai.online" in body and "wa.me" not in body
         assert "نسخ الآيبان" not in body
 
-    async def test_the_invoice_publishes_the_iban_when_it_is_set(self, api, maker):
+    async def test_the_invoice_publishes_the_iban_when_it_is_set(self, api, maker, monkeypatch):
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         anon, _ = api
         payment = await _insert_payment(maker)
         with _bank_file(iban="SA0380000000608010167519", bank_name="Al Rajhi"):
@@ -867,10 +903,13 @@ class TestTemplates:
 class TestTransferModule:
     def test_contact_channels_have_no_empty_whatsapp_link(self):
         channels = transfer.contact_channels()
-        assert channels["telegram"].startswith("https://t.me/")
-        assert channels["whatsapp"] == "" or channels["whatsapp"].startswith("https://wa.me/")
+        assert channels["telegram"] == ""
+        assert channels["whatsapp"] == ""
+        assert channels["messenger"] == ""
+        assert channels["phone"] == "tel:+966540799266"
 
     def test_a_prefilled_message_is_url_encoded(self):
-        link = transfer.contact_buttons("ABCD1234", 920.0, "مؤسسة")["whatsapp"]
-        assert link.startswith("https://wa.me/966")
-        assert " " not in link.split("?text=")[1]
+        buttons = transfer.contact_buttons("ABCD1234", 920.0, "مؤسسة")
+        assert buttons["whatsapp"] == ""
+        assert buttons["phone"] == "tel:+966540799266"
+        assert buttons["email"].startswith("mailto:")

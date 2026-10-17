@@ -237,6 +237,7 @@
                        capabilities. Nothing here is a promise the server
                        cannot keep: a transfer to a real IBAN, confirmed by the
                        owner, is settlement. #}
+                    {% if bank_transfer_enabled %}
                     <div id="coXfer" hidden class="xf-quick" style="margin-top:18px;text-align:start;">
                         <div class="xf-quick-h">
                             <i class="fas fa-building-columns"></i>
@@ -270,6 +271,7 @@
                             </p>
                         </div>
                     </div>
+                    {% endif %}
                 <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
                 <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
                     <i class="fas fa-arrow-left"></i> <span data-lang="ar" lang="ar" dir="rtl">رجوع للفريق</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back to Team</span>
@@ -342,7 +344,6 @@
 
             const $ = id => document.getElementById(id);
             const isAr = () => document.body.dataset.lang === 'ar';
-            const xfWhatsapp = (document.getElementById('xfWa') || {}).href ? document.getElementById('xfWa').getAttribute('href') : '';
             const txt = (ar, en) => isAr() ? ar : en;
 
             let state = { projectId: null, pkg: null, current: null, questions: [], qIndex: 0, answers: {} };
@@ -728,12 +729,14 @@
                     if (!coPkg) return;
                     showCoSummary();
                     const ar = isAr();
+                    const allowPaypal = {{ 'true' if paypal_customer_enabled else 'false' }};
+                    const allowInvoice = {{ 'true' if bank_transfer_enabled else 'false' }};
                     const all = [
-                        { m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' },
                         { m: 'mada', i: 'fas fa-credit-card', t: ar ? 'مدى / بطاقة مصرفية' : 'mada / Bank Card' },
                         { m: 'applepay', i: 'fab fa-apple', t: 'Apple Pay' },
-                        { m: 'invoice', i: 'fas fa-landmark', t: ar ? 'تحويل بنكي' : 'Bank Transfer' },
                     ];
+                    if (allowPaypal) all.unshift({ m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' });
+                    if (allowInvoice) all.push({ m: 'invoice', i: 'fas fa-landmark', t: ar ? 'تحويل بنكي' : 'Bank Transfer' });
                     // Never offer a method the server cannot settle: a card button
                     // that silently becomes a manual transfer is a dead promise.
                     fetch('/api/payments/capabilities').then(r => r.json()).then(cap => {
@@ -750,7 +753,7 @@
                             (function () {
                                 const box = document.getElementById('coXfer');
                                 const bank = cap.bank || {};
-                                if (!box || !bank.iban) return;
+                                if (!box || !allowInvoice || !bank.iban) return;
                                 $('xfIban').textContent = bank.iban;
                                 $('xfName').textContent = bank.account_name || '—';
                                 $('xfBank').textContent = bank.bank_name || '—';
@@ -787,11 +790,15 @@ if (hidden) {
                             if (note) {
                                 note.hidden = false;
                                 let msg;
-                                if (!cap.card) {
+                                if (!cap.card && allowInvoice) {
                                     msg = ar
                                         ? 'الدفع بالبطاقة غير مفعّل حالياً — استخدم التحويل البنكي بالأسفل، وهو يفعّل باقتك فور تأكيد الإيداع.'
                                         : 'Card checkout is not live yet — use the bank transfer below, which activates your plan as soon as it lands.';
-                                } else if (cap.paypal_test_mode) {
+                                } else if (!cap.card) {
+                                    msg = ar
+                                        ? 'الدفع بالبطاقة عبر ميسر غير مفعّل حالياً. راسلنا على Al-Narjis@karmaai.online.'
+                                        : 'Card payment through Moyasar is not live yet. Email Al-Narjis@karmaai.online.';
+                                } else if (cap.paypal_test_mode && allowPaypal) {
                                     msg = ar
                                         ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
                                         : 'PayPal is in test mode, so only the live payment methods are shown.';
@@ -896,10 +903,10 @@ note.textContent = msg;
                             '<a class="btn btn-gold" style="margin-top:12px;width:100%;" href="' + (data.invoice_url || ('/invoice/' + data.payment_id)) + '">' +
                             (isAr() ? 'افتح الفاتورة وأكمل التحويل' : 'Open the invoice and pay') + '</a>' +
                             '<div style="margin-top:10px;font-size:.85rem;opacity:.75;">' + (isAr()
-                                ? 'تحويل بنكي يفعّل باقتك فور تأكيد الإيداع.'
-                                : 'A bank transfer activates your plan once the payment lands.') + '</div>'
-                            + (xfWhatsapp ? '<a class="btn btn-outline" style="margin-top:10px;width:100%;" target="_blank" rel="noopener" href="' + xfWhatsapp + '?text=' + encodeURIComponent((isAr() ? '\u0645\u0631\u062d\u0628\u0627\u064b\u060c \u0623\u0631\u0633\u0644\u062a \u0641\u0627\u062a\u0648\u0631\u0629 \u0631\u0642\u0645 ' : 'Hello, I sent invoice ') + data.payment_id.slice(0, 8).toUpperCase() + (isAr() ? ' \u0628\u0645\u0628\u0644\u063a ' + sar(due) + ' \u0631.\u0633 \u0648\u0623\u062d\u062a\u0627\u062c \u0645\u0633\u0627\u0639\u062f\u0629 \u0641\u064a \u0627\u0644\u062f\u0641\u0639.' : ' for ' + sar(due) + ' SAR and need help paying.')) + '"><i class="fab fa-whatsapp"></i> '
-                                + (isAr() ? '\u0645\u0633\u0627\u0639\u062f\u0629 \u0641\u064a \u0627\u0644\u062f\u0641\u0639 \u0639\u0628\u0631 \u0648\u0627\u062a\u0633\u0627\u0628' : 'Help me pay on WhatsApp') + '</a>' : '')
+                                ? 'للاستفسار عن الفاتورة راسلنا على Al-Narjis@karmaai.online أو اتصل على 0540799266.'
+                                : 'Questions about this invoice: email Al-Narjis@karmaai.online or call 0540799266.') + '</div>'
+                            + '<a class="btn btn-outline" style="margin-top:10px;width:100%;" href="tel:+966540799266">'
+                                + (isAr() ? 'اتصال بخدمة العملاء 0540799266' : 'Call customer service 0540799266') + '</a>'
                             + '</div>';
                         return;
                     }

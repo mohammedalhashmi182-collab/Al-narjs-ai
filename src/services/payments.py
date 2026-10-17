@@ -4,6 +4,7 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import time
 from typing import Optional
 from uuid import UUID
@@ -182,6 +183,21 @@ class PaymentNotFound(PaymentError):
     pass
 
 
+def _customer_flag(name: str) -> bool:
+    """Customer payment switches. Default off: unset, empty, or anything but a true token."""
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def customer_paypal_enabled() -> bool:
+    """PayPal/USD checkout for customers. Off unless CUSTOMER_PAYPAL_ENABLED is set."""
+    return _customer_flag("CUSTOMER_PAYPAL_ENABLED")
+
+
+def customer_bank_transfer_enabled() -> bool:
+    """Bank-transfer / invoice checkout for customers. Off unless CUSTOMER_BANK_TRANSFER_ENABLED is set."""
+    return _customer_flag("CUSTOMER_BANK_TRANSFER_ENABLED")
+
+
 def paypal_ready() -> bool:
     settings = get_settings()
     return bool(settings.paypal_client_id and settings.paypal_client_secret)
@@ -286,10 +302,11 @@ def capabilities(card_state: Optional[str] = None) -> dict:
         # The credential works, so it passes the probe -- but a test secret cannot
         # move money. Offering it would be the PayPal-sandbox trap again.
         card = False
-    paypal = paypal_collects_money()
+    paypal = paypal_collects_money() and customer_paypal_enabled()
+    invoice = customer_bank_transfer_enabled()
     methods = {method: card for method in CARD_METHODS}
     methods["paypal"] = paypal
-    methods["invoice"] = True
+    methods["invoice"] = invoice
     return {
         "methods": methods,
         "card": card,
@@ -299,8 +316,8 @@ def capabilities(card_state: Optional[str] = None) -> dict:
         "paypal": paypal,
         "paypal_configured": paypal_ready(),
         "paypal_test_mode": paypal_ready() and settings.paypal_mode != "live",
-        "invoice": True,
-        "bank": transfer.bank_details(),
+        "invoice": invoice,
+        "bank": transfer.bank_details() if invoice else {},
         "contact": transfer.contact_channels(),
     }
 
@@ -389,7 +406,7 @@ def transfer_instructions(payment: Payment) -> dict:
         "total_halalas": total,
         "total_sar": round(total / 100, 2),
         "currency": payment.currency or "SAR",
-        "bank": transfer.bank_details(),
+        "bank": transfer.bank_details() if customer_bank_transfer_enabled() else {},
         "contact": transfer.contact_buttons(ref, round(total / 100, 2), customer),
         "invoice_url": f"/invoice/{payment.id}",
     }

@@ -147,23 +147,34 @@ def coverage(q_terms: list[str], chunk: str) -> float:
 
 
 async def retrieve(session: AsyncSession, query: str, *, project_id: UUID | None, k: int = 3,
-                   embedder: embeddings.Embedder | None = None) -> list[dict]:
-    """Top-k chunks of ONE tenant with ``score`` (0..1), ``cosine`` and ``coverage``."""
+                   embedder: embeddings.Embedder | None = None,
+                   title_prefix: str | None = None) -> list[dict]:
+    """Top-k chunks of ONE tenant with ``score`` (0..1), ``cosine`` and ``coverage``.
+
+    ``title_prefix`` limits the search to one corpus (the public KB uses ``kb:``)
+    so a company question never mixes in another document set.
+    """
     embedder = embedder or embeddings.get_embedder()
     embedder, (qv,) = await embeddings.embed_safe(embedder, [query], kind="query")
     await ensure_indexed(session, project_id, embedder)
     q_terms = terms(query)
     rows: list[tuple[str, str, list[float] | None, float | None]] = []
     if await pgvector_ready(session):
+        prefix_sql = " AND title LIKE :pref" if title_prefix else ""
         res = await session.execute(text(
             "SELECT title, text, 1 - (embedding_vec <=> CAST(:q AS vector)) AS cos FROM agent_knowledge_chunks "
             "WHERE model = :m AND " + ("project_id IS NULL" if project_id is None else "project_id = :p") +
-            " AND embedding_vec IS NOT NULL ORDER BY embedding_vec <=> CAST(:q AS vector) LIMIT :n"),
-            {"q": _vec_literal(qv), "m": embedder.name, "p": project_id, "n": CANDIDATES * 4})
+            " AND embedding_vec IS NOT NULL" + prefix_sql +
+            " ORDER BY embedding_vec <=> CAST(:q AS vector) LIMIT :n"),
+            {"q": _vec_literal(qv), "m": embedder.name, "p": project_id, "n": CANDIDATES * 4,
+             "pref": f"{title_prefix}%" if title_prefix else None})
         rows = [(t, x, None, float(c)) for t, x, c in res.all()]
     else:
-        res = await session.execute(select(KnowledgeChunk.title, KnowledgeChunk.text, KnowledgeChunk.embedding).where(
-            _tenant(KnowledgeChunk.project_id, project_id), KnowledgeChunk.model == embedder.name))
+        stmt = select(KnowledgeChunk.title, KnowledgeChunk.text, KnowledgeChunk.embedding).where(
+            _tenant(KnowledgeChunk.project_id, project_id), KnowledgeChunk.model == embedder.name)
+        if title_prefix:
+            stmt = stmt.where(KnowledgeChunk.title.startswith(title_prefix))
+        res = await session.execute(stmt)
         rows = [(t, x, v, None) for t, x, v in res.all()]
     scored = []
     for title, body, vec, cos in rows:

@@ -1,5 +1,6 @@
 {
-  "_comment": "Public contact channels, confirmed by the owner 2026-10-13: WhatsApp from WHATSAPP_BUSINESS_NUMBER (0552978753 -> wa.me/966552978753), Telegram contact t.me/karma777779 (the production bot t.me/AlNarjs7BOT stays the bot and plan deep-link target), Messenger m.me/Alnarjs-Ai.",
-  "telegram_handle": "karma777779",
-  "messenger_page": "Alnarjs-Ai"
+  "_comment": "Public contact, confirmed for the customer surfaces: the on-site AI assistant, email Al-Narjis@karmaai.online, and the company phone. WhatsApp, Telegram and Messenger are not customer-contact channels.",
+  "phone_e164": "+966540799266",
+  "phone_display": "0540799266",
+  "email": "Al-Narjis@karmaai.online"
 }

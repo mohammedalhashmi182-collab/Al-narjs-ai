@@ -14,6 +14,12 @@ from src.db.session import Base
 from src.models import Payment
 from src.services import payments as pm
 
+@pytest.fixture(autouse=True)
+def _bank_transfer_code_path(monkeypatch):
+    """These tests exercise the invoice code path; customers do not see it unless the flag is on."""
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+
+
 WEBHOOK_SECRET = "whsec-test-value"
 LIVE_KEY = "sk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
 

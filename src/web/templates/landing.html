@@ -48,6 +48,8 @@
       "alternateName": "The Arabian Convoy Establishment",
       "url": "https://karmaai.online",
       "legalName": "Arabian Convoy Establishment",
+      "telephone": "+966540799266",
+      "email": "Al-Narjis@karmaai.online",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"}
     }
@@ -73,7 +75,9 @@
       "logo": "https://karmaai.online/brand/logo.png",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "currenciesAccepted": "SAR",
-      "paymentAccepted": {{ ("PayPal، تحويل بنكي، فاتورة ضريبية" if ar else "PayPal, bank transfer, VAT invoice") | tojson }},
+      "paymentAccepted": "Moyasar",
+      "telephone": "+966540799266",
+      "email": "Al-Narjis@karmaai.online",
       "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"},
       "geo": {"@type": "GeoCoordinates", "latitude": 24.7136, "longitude": 46.6753},
       "areaServed": [{"@type": "Country", "name": "Saudi Arabia"}, {"@type": "Country", "name": "United Arab Emirates"}, {"@type": "Country", "name": "Kuwait"}, {"@type": "Country", "name": "Bahrain"}, {"@type": "Country", "name": "Qatar"}, {"@type": "Country", "name": "Oman"}],
@@ -369,7 +373,7 @@
             <details><summary>{% if ar %}كم الأسعار؟{% else %}What are the prices?{% endif %}</summary><p>{% for plan in plans %}{% if ar %}{{ plan.name }}: {{ '{:,}'.format(plan.price|int) }} ر.س{% else %}{{ plan.name_en }}: SAR {{ '{:,}'.format(plan.price|int) }}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}. {% if ar %}شهرياً، وتُضاف ضريبة القيمة المضافة 15٪. في الدفع السنوي تدفع 10 أشهر وتحصل على 12، والوكيل الإضافي بـ{{ addon.price }} ر.س شهرياً.{% else %}per month, plus 15% VAT. Annual billing: pay for 10 months, get 12. An extra agent is SAR {{ addon.price }}/month.{% endif %}</p></details>
             <details><summary>{% if ar %}كيف يتجدد الاشتراك؟{% else %}How does renewal work?{% endif %}</summary><p>{% if ar %}قبل نهاية الفترة بأيام نرسل لك فاتورة التجديد للفترة نفسها (شهرية أو سنوية). إذا لم تُسدَّد يبقى فريقك يعمل 3 أيام بعد نهاية الفترة ثم يتوقف حتى الدفع.{% else %}A few days before your period ends we issue a renewal invoice for the same period (monthly or annual). If it is not paid, your team keeps working for 3 days after the period ends, then pauses until payment.{% endif %}</p></details>
             <details><summary>{% if ar %}هل أستطيع الإلغاء؟{% else %}Can I cancel?{% endif %}</summary><p>{% if ar %}نعم، في أي وقت قبل التجديد. لا تُرد دفعات الفترة المنقضية، ويُغلق الفريق عند الإلغاء.{% else %}Yes, any time before renewal. Payments for an elapsed period are not refunded, and the team closes on cancellation.{% endif %}</p></details>
-            <details><summary>{% if ar %}كيف أدفع؟{% else %}How do I pay?{% endif %}</summary><p>{% if ar %}عبر بوابة الدفع Moyasar عند تفعيلها، أو بفاتورة ضريبية رسمية وتحويل بنكي. يبدأ الفريق بعد تأكيد الدفع.{% else %}Through the Moyasar gateway when enabled, or by official VAT invoice and bank transfer. The team starts once payment is confirmed.{% endif %}</p></details>
+            <details><summary>{% if ar %}كيف أدفع؟{% else %}How do I pay?{% endif %}</summary><p>{% if ar %}بالبطاقة عبر بوابة ميسر (Moyasar). يبدأ الفريق بعد تأكيد الدفع.{% else %}By card through the Moyasar gateway. The team starts once payment is confirmed.{% endif %}</p></details>
             <details><summary>{% if ar %}هل أحتاج خبرة تقنية؟{% else %}Do I need technical skills?{% endif %}</summary><p>{% if ar %}لا. تتعامل مع الفريق عبر بوابة العميل، ونرافقك في الإعداد.{% else %}No. You work with the team through the client portal, and we guide the setup.{% endif %}</p></details>
             <details><summary>{% if ar %}هل بياناتي آمنة؟{% else %}Is my data safe?{% endif %}</summary><p>{% if ar %}لا نبيع بياناتك، ويمكنك طلب حذفها في أي وقت من <a href="/data-deletion">صفحة حذف البيانات</a>.{% else %}We never sell your data, and you can request deletion any time on the <a href="/data-deletion">data deletion page</a>.{% endif %}</p></details>
         </div>
@@ -572,6 +576,7 @@
             <div>
                 <h4>{% if ar %}تواصل{% else %}Contact{% endif %}</h4>
                 <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
+                <a href="tel:+966540799266" dir="ltr">0540799266</a>
             </div>
         </div>
         <div class="legal">
