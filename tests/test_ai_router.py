@@ -267,16 +267,19 @@ def test_endpoint(monkeypatch):
 def test_strip_internal_sources_keeps_public_urls():
     leaked = (
         "ج: الدعم متاح 24 ساعة.\n"
-        "المصدر: `src/services/catalog.py`، `src/web/templates/contact.html`، https://karmaai.online/pricing\n"
+        "المصدر: `src/services/catalog.py`، `src/web/templates/contact.html`، https://karmaai.online/docs/terms.pdf\n"
         "يومياً. (المصدر: س1 – خدمات النرجس)\n"
         "التفاصيل في docs/pdpl-transfer-risk-assessment.md"
     )
     cleaned = router.strip_internal_sources(leaked)
-    assert "src/" not in cleaned and "docs/" not in cleaned
+    assert "src/" not in cleaned and "pdpl-transfer" not in cleaned
     assert "catalog.py" not in cleaned and "contact.html" not in cleaned
-    assert "المصدر" not in cleaned
-    assert "https://karmaai.online/pricing" in cleaned
+    assert "https://karmaai.online/docs/terms.pdf" in cleaned
+    assert "https://karmaai.online/." not in cleaned
+    assert cleaned.count("https://") == 1
     assert "24 ساعة" in cleaned
+    # A citation with no path is real content and stays. Only the path is removed.
+    assert "س1 – خدمات النرجس" in cleaned
     assert router.strip_internal_sources(cleaned) == cleaned
 
 

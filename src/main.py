@@ -2070,13 +2070,19 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     )
 
     # RAG: ground the assistant in Al-Narjis's own KB (project_id NULL only; never a tenant's docs).
+    from src.ai.sanitize import sanitize_public_text
+
     rag_hits = await _consult_sources(history)
     if rag_hits:
         system_prompt += (
             "\n\nSOURCES (Al-Narjis knowledge base; state facts, numbers, policies and links ONLY from these "
             "sources or the REAL PRODUCT list above; if they do not cover the question, say so and offer "
             "«تحويل لخدمة العملاء»):\n"
-            + "\n".join(f"[{i + 1}] {h['title']}: {h['text']}" for i, h in enumerate(rag_hits))
+            + "\n".join(
+                f"[{i + 1}] {sanitize_public_text(str(h.get('title') or ''))}: "
+                f"{sanitize_public_text(str(h.get('text') or ''))}"
+                for i, h in enumerate(rag_hits)
+            )
         )
 
     model_request = ModelRequest(
@@ -2096,7 +2102,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
             asyncio.get_running_loop().create_task(
                 _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
             )
-        content = reply or response.content.strip()
+        content = sanitize_public_text(reply or response.content.strip())
         if content and not _consult_grounded(content, rag_hits, _pkgs):
             # A number or link that is in neither the KB sources nor the real
             # price list is a hallucination: never show it, hand off instead.

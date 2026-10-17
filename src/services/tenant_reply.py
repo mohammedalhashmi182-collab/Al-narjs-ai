@@ -85,10 +85,9 @@ def wants_human(text: str) -> bool:
 
 
 def compose_answer(hits: list[dict]) -> str:
-    top = hits[0]["text"].strip()
-    if len(top) > 700:
-        top = top[:700].rsplit(" ", 1)[0] + "…"
-    return f"أهلًا بك 🌿\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
+    from src.services.rag.generate import extractive
+
+    return extractive(hits)
 
 
 def compose_handoff(project: ClientProject, reason: str) -> str:
@@ -139,9 +138,15 @@ async def _rag_reply(session: AsyncSession, project: ClientProject, text: str, m
     if ans.handoff or not ans.text:
         meta["rag_handoff"] = ans.handoff or "empty"
         return None, "no_answer"
-    if contains_pitch(ans.text):
+    from src.ai.sanitize import sanitize_public_text
+
+    body = sanitize_public_text(ans.text)
+    if not body:
+        meta["rag_handoff"] = "stripped_empty"
+        return None, "no_answer"
+    if contains_pitch(body):
         return None, "guard"
-    return ans.text, None
+    return body, None
 
 
 # --------------------------------------------------------------------------- per-project token
