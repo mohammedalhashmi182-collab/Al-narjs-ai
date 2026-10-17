@@ -8,10 +8,11 @@ the Partner Dashboard.
 * https://docs.zid.sa/doc-878234
 * https://zid.sa/en/partners/developers/blog/app-security/
 
-This app accepts either:
-* ``Authorization: Basic`` for user ``narjis`` and password ``ZID_WEBHOOK_SECRET``
-* header ``X-Zid-Webhook-Token`` equal to ``ZID_WEBHOOK_SECRET``
-* header ``X-Zid-Signature`` equal to HMAC-SHA256 hex of the raw body (optional)
+When ``X-Zid-Signature`` is present it must be HMAC-SHA256 hex of the raw body.
+A static header is not accepted on that request. Otherwise the secret is
+compared in constant time via Basic (user ``narjis``, password
+``ZID_WEBHOOK_SECRET``) or ``X-Zid-Webhook-Token``. Either way the timestamp
+must fall inside the replay window (``replay.zid_fresh``).
 """
 
 from __future__ import annotations
@@ -38,10 +39,7 @@ def _eq(left: str, right: str) -> bool:
     return hmac.compare_digest(left, right)
 
 
-def signature_ok(raw: bytes, headers) -> bool:
-    secret = env("ZID_WEBHOOK_SECRET")
-    if not secret:
-        return False
+def _basic_or_static(headers, secret: str) -> bool:
     basic = headers.get("authorization") or ""
     scheme, _, token = basic.partition(" ")
     if scheme.lower() == "basic" and token:
@@ -52,12 +50,20 @@ def signature_ok(raw: bytes, headers) -> bool:
         user, sep, password = decoded.partition(":")
         if sep and _eq(user, ZID_WEBHOOK_USER) and _eq(password, secret):
             return True
-    static = headers.get("x-zid-webhook-token") or ""
-    if _eq(static.strip(), secret):
-        return True
+    static = (headers.get("x-zid-webhook-token") or "").strip()
+    return _eq(static, secret)
+
+
+def signature_ok(raw: bytes, headers) -> bool:
+    """Authenticate the delivery. Does not check the timestamp window."""
+    secret = env("ZID_WEBHOOK_SECRET")
+    if not secret:
+        return False
     signed = (headers.get("x-zid-signature") or "").strip().lower()
-    digest = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
-    return _eq(signed, digest)
+    if signed:
+        digest = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+        return _eq(signed, digest)
+    return _basic_or_static(headers, secret)
 
 
 def event_name(payload: dict) -> str:

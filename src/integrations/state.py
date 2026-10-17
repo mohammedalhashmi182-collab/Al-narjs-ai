@@ -1,4 +1,8 @@
-"""Signed OAuth state. Binds the callback to one project and expires in 10 minutes."""
+"""Signed OAuth state. Binds the callback to one project, one nonce, and 10 minutes.
+
+The nonce is single-use and stored server-side (see ``oauth_nonce``). The
+signature only stops the browser from editing the project id.
+"""
 
 from __future__ import annotations
 
@@ -6,9 +10,12 @@ import base64
 import hashlib
 import hmac
 import json
+import re
 import time
 from typing import Optional
 from uuid import UUID
+
+_NONCE = re.compile(r"[A-Za-z0-9_-]{16,64}")
 
 
 def _key() -> bytes:
@@ -21,13 +28,18 @@ def _sign(payload: str) -> str:
     return hmac.new(_key(), payload.encode(), hashlib.sha256).hexdigest()
 
 
-def sign_state(project_id: UUID, platform: str, *, now: float | None = None) -> str:
-    body = {"p": str(project_id), "pf": platform, "exp": int((now or time.time()) + 600)}
+def sign_state(project_id: UUID, platform: str, nonce: str, *, now: float | None = None) -> str:
+    body = {
+        "p": str(project_id),
+        "pf": platform,
+        "n": nonce,
+        "exp": int((now or time.time()) + 600),
+    }
     raw = base64.urlsafe_b64encode(json.dumps(body, separators=(",", ":")).encode()).decode().rstrip("=")
     return f"{raw}.{_sign(raw)}"
 
 
-def read_state(token: str, platform: str, *, now: float | None = None) -> Optional[str]:
+def read_state(token: str, platform: str, *, now: float | None = None) -> Optional[dict]:
     if not token or token.count(".") != 1:
         return None
     raw, sig = token.split(".")
@@ -42,4 +54,7 @@ def read_state(token: str, platform: str, *, now: float | None = None) -> Option
     if float(body.get("exp", 0)) < (now or time.time()):
         return None
     project_id = body.get("p")
-    return str(project_id) if project_id else None
+    nonce = body.get("n")
+    if not project_id or not isinstance(nonce, str) or not _NONCE.fullmatch(nonce):
+        return None
+    return {"project_id": str(project_id), "nonce": nonce}

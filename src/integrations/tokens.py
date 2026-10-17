@@ -1,4 +1,4 @@
-"""Encrypted token storage and refresh. Reuses the tenant Fernet helper."""
+"""Encrypted token storage and refresh. Store tokens use ``integrations.crypto``."""
 
 from __future__ import annotations
 
@@ -26,17 +26,17 @@ def _lock(key: str) -> asyncio.Lock:
 def seal(value: Optional[str]) -> Optional[str]:
     if not value:
         return None
-    from src.services.tenant_reply import encrypt_token
+    from src.integrations.crypto import seal as seal_token
 
-    return encrypt_token(value)
+    return seal_token(value)
 
 
 def open_secret(blob: Optional[str]) -> Optional[str]:
     if not blob:
         return None
-    from src.services.tenant_reply import decrypt_token
+    from src.integrations.crypto import open_secret as open_token
 
-    return decrypt_token(blob)
+    return open_token(blob)
 
 
 def expires_at(value: object, *, now: Optional[datetime] = None) -> Optional[datetime]:

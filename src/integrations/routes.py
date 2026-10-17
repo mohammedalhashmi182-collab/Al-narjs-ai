@@ -22,7 +22,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from src.core.portal_auth import require_portal_project
 from src.integrations import limits
 from src.integrations.config import enabled, env
+from src.integrations.net import client_ip
 from src.integrations.provider import StoreApiError
+from src.integrations.replay import salla_fresh, zid_fresh
 from src.integrations.service import (
     apply_webhook,
     claim_event,
@@ -34,7 +36,6 @@ from src.integrations.service import (
     save_policy,
 )
 from src.integrations.state import read_state, sign_state
-from src.utils.rate_limit import client_ip
 
 log = logging.getLogger(__name__)
 
@@ -122,7 +123,11 @@ async def install(pid: str, platform: str, request: Request):
     async with _factory(request)() as session:
         project = await _active(session, pid, request)
         _limit(limits.installs, f"{project.id}:{client_ip(request)}")
-        state = sign_state(project.id, platform)
+        from src.integrations.oauth_nonce import issue_nonce
+
+        nonce = await issue_nonce(session, request, project, platform)
+        await session.commit()
+        state = sign_state(project.id, platform, nonce)
     if platform == "salla":
         from src.integrations.salla.client import authorize_url
 
@@ -158,25 +163,32 @@ async def oauth_callback(platform: str, request: Request):
         log.info("store oauth denied platform=%s", platform)
         return _page(False)
     code = (request.query_params.get("code") or "").strip()
-    project_id = read_state(request.query_params.get("state") or "", platform)
-    if not code or not project_id:
+    parsed = read_state(request.query_params.get("state") or "", platform)
+    if not code or not parsed:
+        log.info("store oauth callback rejected platform=%s", platform)
         return _page(False)
     from uuid import UUID
 
+    from src.integrations.oauth_nonce import claim_nonce
     from src.models import ClientProject
 
     try:
-        pid = UUID(project_id)
+        pid = UUID(parsed["project_id"])
     except ValueError:
         return _page(False)
     async with _factory(request)() as session:
         project = await session.get(ClientProject, pid)
         if project is None or project.status != "active":
+            log.info("store oauth callback rejected platform=%s", platform)
+            return _page(False)
+        if not await claim_nonce(session, request, project, parsed["nonce"], platform):
+            log.info("store oauth callback rejected platform=%s", platform)
             return _page(False)
         try:
             token_body, info = await _exchange(platform, code)
             await save_install(session, project.id, platform, token_body, info)
         except StoreApiError as exc:
+            await session.rollback()
             log.warning("store oauth failed platform=%s status=%s", platform, exc.status)
             return _page(False)
     return _page(True)
@@ -235,6 +247,9 @@ async def webhook(platform: str, request: Request):
         raise HTTPException(400, "Invalid JSON")
     if not isinstance(payload, dict):
         raise HTTPException(400, "Invalid JSON")
+    fresh = salla_fresh(payload) if platform == "salla" else zid_fresh(request.headers, payload)
+    if not fresh:
+        raise HTTPException(401, "Stale webhook")
     uninstall = _uninstall(platform, payload)
     if not enabled() and not uninstall:
         return {"ok": True, "ignored": True}

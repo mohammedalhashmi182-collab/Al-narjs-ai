@@ -1,9 +1,10 @@
-"""Per-tenant Salla/Zid connection, store policy, and webhook idempotency.
+"""Per-tenant Salla/Zid connection, store policy, webhook idempotency, OAuth nonces.
 
-Tokens are Fernet ciphertext (same helper as the tenant WhatsApp token). Rows are
-created by ``create_all`` on boot and mirrored by alembic 0010. Webhook payloads
-are never stored — only a hash — so a retry cannot duplicate work and customer
-PII from the platform never lands in this table.
+Store tokens are Fernet ciphertext from ``integrations.crypto`` (``v1.<key id>.*``),
+not the WhatsApp token key. Rows are created by ``create_all`` on boot and
+mirrored by alembic 0012. Webhook payloads are never stored — only a hash — so
+a retry cannot duplicate work and customer PII from the platform never lands
+in this table.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -69,3 +70,19 @@ class StoreWebhookEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (UniqueConstraint("platform", "dedupe_key", name="uq_store_webhook_dedupe"),)
+
+
+class StoreOAuthNonce(Base):
+    """Single-use install nonce. Bound to one project and one portal session version."""
+
+    __tablename__ = "store_oauth_nonces"
+
+    nonce: Mapped[str] = mapped_column(String(64), primary_key=True)
+    project_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    platform: Mapped[str] = mapped_column(String(10), nullable=False)
+    portal_token_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    auth_kind: Mapped[str] = mapped_column(String(8), nullable=False)  # portal | owner
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

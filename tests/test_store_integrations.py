@@ -55,6 +55,8 @@ def _isolated(monkeypatch):
     for name in (
         "STORE_INTEGRATIONS_ENABLED", "SALLA_CLIENT_ID", "SALLA_CLIENT_SECRET", "SALLA_WEBHOOK_SECRET",
         "SALLA_REDIRECT_URI", "ZID_CLIENT_ID", "ZID_CLIENT_SECRET", "ZID_WEBHOOK_SECRET", "ZID_REDIRECT_URI",
+        "STORE_TOKEN_ENC_KEY", "STORE_TOKEN_ENC_KEY_ID", "STORE_TOKEN_ENC_PREVIOUS_KEYS",
+        "TRUSTED_PROXY_HOPS", "STORE_WEBHOOK_MAX_AGE_SECONDS",
     ):
         monkeypatch.delenv(name, raising=False)
     yield
@@ -82,6 +84,13 @@ async def _project(maker, name="متجر الورد", phone="0555000001"):
 
 def _sign_salla(raw: bytes) -> str:
     return hmac.new(SECRET_SALLA.encode(), raw, hashlib.sha256).hexdigest()
+
+
+def _stamp(payload: dict, *, age: timedelta | None = None) -> bytes:
+    moment = datetime.now(UTC) if age is None else datetime.now(UTC) - age
+    body = dict(payload)
+    body["created_at"] = moment.strftime("%Y-%m-%d %H:%M:%S")
+    return json.dumps(body).encode()
 
 
 def _enable(monkeypatch):
@@ -398,7 +407,7 @@ async def test_salla_webhook_signature_idempotency_and_uninstall(maker, monkeypa
     await _connect(maker, first, "salla", TOKEN_A, merchant="1234509876")
     await _connect(maker, second, "salla", TOKEN_B, merchant="999")
     payload = {"event": "app.uninstalled", "merchant": 1234509876, "data": {"id": 6789012345}}
-    raw = json.dumps(payload).encode()
+    raw = _stamp(payload)
     bad = await _post_salla(maker, raw, "0" * 64)
     assert bad.status_code == 401
     ok = await _post_salla(maker, raw, _sign_salla(raw))
@@ -425,7 +434,7 @@ async def test_salla_authorize_webhook_updates_known_merchant_only(maker, monkey
         "access_token": fresh, "refresh_token": "salla-refresh-NEW-999", "expires": 1893456000,
         "scope": "offline_access orders.read", "token_type": "bearer",
     }}
-    raw = json.dumps(payload).encode()
+    raw = _stamp(payload)
     response = await _post_salla(maker, raw, _sign_salla(raw))
     assert response.status_code == 200 and response.json()["action"] == "authorized"
     async with maker() as session:
@@ -440,15 +449,15 @@ async def test_flag_off_ignores_authorize_but_still_uninstalls(maker, monkeypatc
     monkeypatch.setenv("SALLA_WEBHOOK_SECRET", SECRET_SALLA)
     project = await _project(maker)
     await _connect(maker, project, "salla", TOKEN_A, merchant="42")
-    authorize = json.dumps({"event": "app.store.authorize", "merchant": 42, "data": {
+    authorize = _stamp({"event": "app.store.authorize", "merchant": 42, "data": {
         "access_token": "should-not-save", "refresh_token": "nope", "expires": 1209599,
-    }}).encode()
+    }})
     ignored = await _post_salla(maker, authorize, _sign_salla(authorize))
     assert ignored.status_code == 200 and ignored.json()["ignored"] is True
     async with maker() as session:
         row = (await session.execute(select(StoreConnection))).scalar_one()
     assert open_secret(row.access_token_enc) == TOKEN_A
-    uninstall = json.dumps({"event": "app.uninstalled", "merchant": 42}).encode()
+    uninstall = _stamp({"event": "app.uninstalled", "merchant": 42})
     wiped = await _post_salla(maker, uninstall, _sign_salla(uninstall))
     assert wiped.json()["action"] == "uninstalled"
     async with maker() as session:
@@ -467,7 +476,7 @@ async def test_zid_webhook_basic_auth_and_uninstall_isolation(maker, monkeypatch
         "store_uuid": "d78468cd-4b44-4fee-a00d-76561f35787c", "merchant_email": "hidden@example.com",
         "merchant_phone_no": "966554349999", "status": "uninstall",
     }
-    raw = json.dumps(payload).encode()
+    raw = _stamp(payload)
     bad = await _post_zid(maker, raw, {"authorization": "Basic " + base64.b64encode(b"narjis:wrong").decode()})
     assert bad.status_code == 401
     token = base64.b64encode(f"narjis:{SECRET_ZID}".encode()).decode()
@@ -487,15 +496,19 @@ async def test_zid_webhook_accepts_dashboard_header_and_hmac(maker, monkeypatch)
     _zid_env(monkeypatch)
     project = await _project(maker)
     await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
-    raw = json.dumps({"event_name": "order.status.update", "store_id": 507530}).encode()
+    raw = _stamp({"event_name": "order.status.update", "store_id": 507530})
     header = await _post_zid(maker, raw, {"x-zid-webhook-token": SECRET_ZID})
     assert header.status_code == 200 and header.json()["action"] == "ignored"
-    signed = hmac.new(SECRET_ZID.encode(), raw, hashlib.sha256).hexdigest()
-    other = json.dumps({"event_name": "product.update", "store_id": 507530}).encode()
+    other = _stamp({"event_name": "product.update", "store_id": 507530})
     digest = hmac.new(SECRET_ZID.encode(), other, hashlib.sha256).hexdigest()
     hmac_response = await _post_zid(maker, other, {"x-zid-signature": digest})
     assert hmac_response.status_code == 200
-    assert signed  # the same construction is what the route checks
+    downgrade = _stamp({"event_name": "order.create", "store_id": 507530})
+    bad_sig = "ab" * 32
+    rejected = await _post_zid(maker, downgrade, {
+        "x-zid-signature": bad_sig, "x-zid-webhook-token": SECRET_ZID,
+    })
+    assert rejected.status_code == 401
 
 
 async def test_portal_policy_is_isolated_and_editable(maker, monkeypatch):
@@ -598,6 +611,146 @@ async def test_order_lookup_rate_limit_stops_guessing(maker, monkeypatch):
         limited = await answer_store_question(session, loaded, PHONE_A, "حالة الطلب 999999")
     assert calls["n"] == 8
     assert limited is not None and limited.reason == "rate_limited"
+
+
+def test_store_token_key_rotates_by_id_and_does_not_use_the_whatsapp_key(monkeypatch):
+    from cryptography.fernet import Fernet
+
+    monkeypatch.delenv("STORE_TOKEN_ENC_KEY", raising=False)
+    derived = seal("local-only")
+    assert derived.startswith("v1.1.") and open_secret(derived) == "local-only"
+    assert tenant_reply.decrypt_token(derived.split(".", 2)[2]) is None
+    old = Fernet.generate_key().decode()
+    new = Fernet.generate_key().decode()
+    monkeypatch.setenv("STORE_TOKEN_ENC_KEY", old)
+    monkeypatch.setenv("STORE_TOKEN_ENC_KEY_ID", "old")
+    blob = seal("secret-token")
+    assert blob.startswith("v1.old.") and "secret-token" not in blob
+    monkeypatch.setenv("STORE_TOKEN_ENC_KEY", new)
+    monkeypatch.setenv("STORE_TOKEN_ENC_KEY_ID", "new")
+    monkeypatch.setenv("STORE_TOKEN_ENC_PREVIOUS_KEYS", f"old:{old}")
+    assert open_secret(blob) == "secret-token"
+    assert seal("next").startswith("v1.new.")
+    monkeypatch.delenv("STORE_TOKEN_ENC_PREVIOUS_KEYS")
+    assert open_secret(blob) is None
+
+
+def test_store_migration_does_not_reuse_the_rag_revision():
+    from pathlib import Path
+
+    path = Path("alembic/versions/0012_store_integrations.py")
+    assert path.is_file()
+    assert not Path("alembic/versions/0010_store_integrations.py").exists()
+    text = path.read_text()
+    assert 'revision: str = "0012"' in text
+    assert 'down_revision: str | None = "0009"' in text
+    assert "store_oauth_nonces" in text
+
+
+async def test_oauth_callback_requires_the_matching_portal_session(maker, monkeypatch):
+    _salla_env(monkeypatch)
+    merchant = await _project(maker, "التاجر", "0555000091")
+    other = await _project(maker, "آخر", "0555000092")
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        if request.url.path == "/oauth2/token":
+            return httpx.Response(200, json={
+                "access_token": "bound-access", "refresh_token": "bound-refresh", "expires": 100,
+            })
+        if request.url.path == "/oauth2/user/info":
+            return httpx.Response(200, json={"data": {"store": {"id": 555001, "name": "متجر مربوط"}}})
+        return httpx.Response(404)
+
+    store_http.set_transport(httpx.MockTransport(handler))
+    async with _client(maker, merchant) as client:
+        start = await client.get(f"/api/portal/projects/{merchant.id}/stores/salla/install", follow_redirects=False)
+        state = parse_qs(urlparse(start.headers["location"]).query)["state"][0]
+    async with _client(maker) as client:
+        bare = await client.get("/webhooks/stores/salla/callback", params={"code": "c", "state": state})
+    assert bare.status_code == 400 and calls["n"] == 0
+    async with _client(maker, other) as client:
+        foreign = await client.get("/webhooks/stores/salla/callback", params={"code": "c", "state": state})
+    assert foreign.status_code == 400 and calls["n"] == 0
+    async with maker() as session:
+        loaded = await session.get(ClientProject, merchant.id)
+        loaded.portal_token_version = int(loaded.portal_token_version or 0) + 1
+        await session.commit()
+        revoked = loaded
+    async with _client(maker, revoked) as client:
+        bumped = await client.get("/webhooks/stores/salla/callback", params={"code": "c", "state": state})
+    assert bumped.status_code == 400 and calls["n"] == 0
+    async with maker() as session:
+        loaded = await session.get(ClientProject, merchant.id)
+        loaded.portal_token_version = 0
+        await session.commit()
+        restored = loaded
+    async with _client(maker, restored) as client:
+        ok = await client.get("/webhooks/stores/salla/callback", params={"code": "c", "state": state})
+        again = await client.get("/webhooks/stores/salla/callback", params={"code": "c", "state": state})
+    assert ok.status_code == 200 and again.status_code == 400
+    assert calls["n"] == 2
+    async with maker() as session:
+        row = (await session.execute(select(StoreConnection))).scalar_one()
+    assert row.project_id == merchant.id
+    assert open_secret(row.access_token_enc) == "bound-access"
+
+
+async def test_webhooks_reject_a_stale_or_unbound_timestamp(maker, monkeypatch):
+    _salla_env(monkeypatch)
+    _zid_env(monkeypatch)
+    project = await _project(maker)
+    await _connect(maker, project, "salla", TOKEN_A, merchant="42")
+    await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
+    missing = json.dumps({"event": "app.uninstalled", "merchant": 42}).encode()
+    assert (await _post_salla(maker, missing, _sign_salla(missing))).status_code == 401
+    stale = _stamp({"event": "app.uninstalled", "merchant": 42}, age=timedelta(hours=2))
+    assert (await _post_salla(maker, stale, _sign_salla(stale))).status_code == 401
+    fresh = _stamp({"event": "order.updated", "merchant": 42})
+    assert (await _post_salla(maker, fresh, _sign_salla(fresh))).status_code == 200
+    old = _stamp({"event_name": "order.status.update", "store_id": 507530}, age=timedelta(hours=2))
+    token = base64.b64encode(f"narjis:{SECRET_ZID}".encode()).decode()
+    assert (await _post_zid(maker, old, {"authorization": f"Basic {token}"})).status_code == 401
+    signed_old = _stamp({"event_name": "order.status.update", "store_id": 9}, age=timedelta(minutes=30))
+    digest = hmac.new(SECRET_ZID.encode(), signed_old, hashlib.sha256).hexdigest()
+    forged_clock = await _post_zid(maker, signed_old, {
+        "x-zid-signature": digest,
+        "x-zid-timestamp": str(int(datetime.now(UTC).timestamp())),
+    })
+    assert forged_clock.status_code == 401
+    async with maker() as session:
+        row = (await session.execute(select(StoreConnection).where(StoreConnection.platform == "salla"))).scalar_one()
+    assert row.status == "active" and open_secret(row.access_token_enc) == TOKEN_A
+
+
+async def test_store_rate_limit_uses_the_trusted_proxy_hop(maker, monkeypatch):
+    _enable(monkeypatch)
+    monkeypatch.setenv("TRUSTED_PROXY_HOPS", "1")
+    project = await _project(maker)
+    statuses = []
+    async with _client(maker, project) as client:
+        for n in range(21):
+            response = await client.put(
+                f"/api/portal/projects/{project.id}/store/policy",
+                json={"shipping": "شحن"},
+                headers={"x-forwarded-for": f"1.1.1.{n}, 203.0.113.9"},
+            )
+            statuses.append(response.status_code)
+    assert statuses.count(200) == 20 and statuses[-1] == 429
+    async with _client(maker, project) as client:
+        other = await client.put(
+            f"/api/portal/projects/{project.id}/store/policy",
+            json={"shipping": "شحن"},
+            headers={"x-forwarded-for": "1.1.1.1, 203.0.113.10"},
+        )
+        spoofed_left = await client.put(
+            f"/api/portal/projects/{project.id}/store/policy",
+            json={"shipping": "شحن"},
+            headers={"x-forwarded-for": "203.0.113.9, 198.51.100.7"},
+        )
+    assert other.status_code == 200
+    assert spoofed_left.status_code == 200
 
 
 async def _post_salla(maker, raw: bytes, signature: str):

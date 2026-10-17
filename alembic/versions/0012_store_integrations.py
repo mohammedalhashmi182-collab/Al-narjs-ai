@@ -1,8 +1,14 @@
-"""Per-tenant Salla/Zid connections, store policy, webhook idempotency.
+"""Per-tenant Salla/Zid connections, store policy, webhook idempotency, OAuth nonces.
 
 Additive. Startup ``create_all`` creates the same tables.
 
-Revision ID: 0010
+Revision 0012 revises 0009, which is still the head of main. Revisions 0010 and
+0011 are not used here: PR #80 claims 0010 (``0010_rag_chunks``) on the same
+parent. Before both branches are merged, point ``down_revision`` at that RAG
+head so alembic does not grow a second head. The revision id itself does not
+collide with 0010.
+
+Revision ID: 0012
 Revises: 0009
 Create Date: 2026-10-17
 """
@@ -14,7 +20,7 @@ from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
-revision: str = "0010"
+revision: str = "0012"
 down_revision: str | None = "0009"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -68,9 +74,23 @@ def upgrade() -> None:
             sa.Column("created_at", TS, server_default=sa.func.now()),
             sa.UniqueConstraint("platform", "dedupe_key", name="uq_store_webhook_dedupe"),
         )
+    if "store_oauth_nonces" not in existing:
+        op.create_table(
+            "store_oauth_nonces",
+            sa.Column("nonce", sa.String(64), primary_key=True),
+            sa.Column("project_id", UUID, sa.ForeignKey("client_projects.id", ondelete="CASCADE"), nullable=False),
+            sa.Column("platform", sa.String(10), nullable=False),
+            sa.Column("portal_token_version", sa.Integer(), nullable=False),
+            sa.Column("auth_kind", sa.String(8), nullable=False),
+            sa.Column("expires_at", TS, nullable=False),
+            sa.Column("used_at", TS),
+            sa.Column("created_at", TS, server_default=sa.func.now()),
+        )
+        op.create_index("ix_store_oauth_nonces_project_id", "store_oauth_nonces", ["project_id"])
 
 
 def downgrade() -> None:
+    op.drop_table("store_oauth_nonces")
     op.drop_table("store_webhook_events")
     op.drop_table("store_policies")
     op.drop_table("store_connections")
