@@ -19,17 +19,28 @@ from src.services import policies
 TPL = Path(__file__).resolve().parents[1] / "src" / "web" / "templates"
 
 
+_UNSET = object()
+
+
 @contextmanager
-def _gateway(secret):
+def _gateway(secret, publishable=_UNSET):
     from src.config import settings as s
 
-    old = s.moyasar_api_secret
+    old_secret = s.moyasar_api_secret
+    old_pk = s.moyasar_publishable_key
+    if publishable is _UNSET:
+        if isinstance(secret, str) and secret.startswith("sk_" + "live_"):
+            publishable = "pk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+        else:
+            publishable = old_pk
     object.__setattr__(s, "moyasar_api_secret", secret)
+    object.__setattr__(s, "moyasar_publishable_key", publishable)
     pm._credential_cache.clear()
     try:
         yield
     finally:
-        object.__setattr__(s, "moyasar_api_secret", old)
+        object.__setattr__(s, "moyasar_api_secret", old_secret)
+        object.__setattr__(s, "moyasar_publishable_key", old_pk)
         pm._credential_cache.clear()
 
 
@@ -140,7 +151,7 @@ async def test_card_pay_with_consent_stores_it_and_redirects(anon, maker, monkey
 
     monkeypatch.setattr(pm, "initiate_moyasar", _init)
     p = await _owner_invoice(maker)
-    with _gateway("sk_test"):
+    with _gateway("sk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"):
         r = await anon.post(f"/api/payments/{p.id}/pay-card", json={"refund_consent": True})
         # A second tap reuses the Moyasar invoice instead of creating another.
         again = await anon.post(f"/api/payments/{p.id}/pay-card", json={"refund_consent": True})
@@ -149,6 +160,23 @@ async def test_card_pay_with_consent_stores_it_and_redirects(anon, maker, monkey
     assert again.status_code == 200 and "inv_x" in again.json()["redirect_url"]
     row = await _reload(maker, p.id)
     assert row.refund_consent_at is not None and row.refund_consent_version == policies.POLICY_VERSION
+
+
+async def test_card_pay_with_a_test_key_does_not_charge(anon, maker, monkeypatch):
+    called = []
+
+    async def _init(*a, **k):
+        called.append(1)
+        return {}
+
+    monkeypatch.setattr(pm, "initiate_moyasar", _init)
+    p = await _owner_invoice(maker)
+    with _gateway("sk_" + "test_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"):
+        r = await anon.post(f"/api/payments/{p.id}/pay-card", json={"refund_consent": True})
+    assert r.status_code == 503
+    assert "قيد التفعيل" in r.text
+    assert called == []
+    assert (await _reload(maker, p.id)).status != "paid"
 
 
 async def test_card_pay_without_gateway_is_503(anon, maker):

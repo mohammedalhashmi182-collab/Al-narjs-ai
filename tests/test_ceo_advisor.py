@@ -57,7 +57,7 @@ def test_result_price_matches_the_payment_vat_logic():
     assert plan["total_halalas"] == payments.total_with_vat(base) == round(base * 1.15)
     assert r["cta"]["subscribe"].startswith(f"/portal?pkg={plan['key']}")
     assert r["cta"]["telegram"].startswith("https://t.me/AlNarjs7BOT?start=plan_")
-    assert r["cta"]["whatsapp"].startswith("https://wa.me/966552978753?text=")
+    assert r["cta"]["whatsapp"] == ""
 
 
 class _BadProvider:
@@ -115,12 +115,13 @@ async def test_endpoint_returns_the_recommendation():
         assert short.status_code == 400
 
 
-def test_contact_channels_hide_messenger_until_configured(monkeypatch):
+def test_contact_channels_are_phone_and_email_only():
     from src.services import transfer
 
-    monkeypatch.setattr(transfer, "_contact_file", lambda: {"messenger_page": ""})
-    assert transfer.contact_channels()["messenger"] == ""
-    monkeypatch.setattr(transfer, "_contact_file", lambda: {"messenger_page": "AlNarjisAI"})
-    assert transfer.contact_channels()["messenger"] == "https://m.me/AlNarjisAI"
-    monkeypatch.setattr(transfer, "_contact_file", lambda: {"messenger_page": "bad page/../x"})
-    assert transfer.contact_channels()["messenger"] == ""
+    channels = transfer.contact_channels("مرحبا")
+    assert channels["messenger"] == ""
+    assert channels["telegram"] == ""
+    assert channels["whatsapp"] == ""
+    assert channels["phone"] == "tel:+966540799266"
+    assert channels["phone_display"] == "0540799266"
+    assert channels["email"] == "mailto:Al-Narjis@karmaai.online"

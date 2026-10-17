@@ -17,6 +17,11 @@ from src.models.usage import SubscriptionUsage, UsageEvent
 from src.services import catalog, founding, renewals, usage
 from src.services import payments as pm
 
+@pytest.fixture(autouse=True)
+def _bank_transfer_code_path(monkeypatch):
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+
+
 NOW = datetime(2026, 10, 14, 9, 0, tzinfo=timezone.utc)
 
 

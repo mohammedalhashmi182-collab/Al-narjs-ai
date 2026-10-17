@@ -20,7 +20,8 @@ POLICY_PROMPT = (
     f"- Refunds: none after activation. Before paying, the customer explicitly agrees to: «{REFUND_CONSENT_AR}». "
     "Always refunded: a duplicate charge or a technical billing error. Cancellation stops the next renewal; "
     "the current period is not refunded. Every refund request is escalated to Mohammed.\n"
-    "- Support: 24 hours a day, 7 days a week.\n"
+    "- Support: 24 hours a day, 7 days a week, through the AI assistant, including holidays. "
+    "A human follows up by email.\n"
     "- Free trial: none. The only free thing is the diagnosis by the CEO advisor.\n"
     "- Meta WhatsApp fees: currently included in the subscription (Al-Narjis absorbs them). Say 'currently included'; "
     "never promise they will stay included permanently.\n"
@@ -37,7 +38,7 @@ OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد �
 
 الإلغاء: تقدر تلغي في أي وقت، والإلغاء يوقف التجديد القادم، وتبقى الخدمة شغالة حتى نهاية الفترة الحالية بدون استرداد لها.
 
-أوقات الدعم وساعات العمل: دعمنا متاح 24 ساعة طوال أيام الأسبوع (24/7)، بما فيها الإجازات.
+أوقات الدعم: الدعم متاح 24 ساعة طوال أيام الأسبوع (24/7) عبر مساعد النرجس الذكي، بما فيها الإجازات. المتابعة البشرية تتم بالبريد الإلكتروني.
 
 التجربة المجانية: ما عندنا تجربة مجانية. المجاني هو التشخيص مع الرئيس التنفيذي الذكي فقط.
 

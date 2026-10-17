@@ -14,14 +14,24 @@ from src.db.session import Base
 from src.models import Payment
 from src.services import payments as pm
 
+@pytest.fixture(autouse=True)
+def _bank_transfer_code_path(monkeypatch):
+    """These tests exercise the invoice code path; customers do not see it unless the flag is on."""
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+
+
 WEBHOOK_SECRET = "whsec-test-value"
 LIVE_KEY = "sk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+LIVE_PK = "pk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
 
 
 @contextmanager
 def _settings(**values):
     from src.config import settings as s
 
+    secret = values.get("moyasar_api_secret")
+    if "moyasar_publishable_key" not in values and isinstance(secret, str) and secret.startswith("sk_" + "live_"):
+        values = {**values, "moyasar_publishable_key": LIVE_PK}
     old = {k: getattr(s, k) for k in values}
     for k, v in values.items():
         object.__setattr__(s, k, v)
@@ -173,6 +183,15 @@ class TestWebhookAuth:
         assert r.status_code == 200, r.text
         assert calls and calls[0].endswith("/invoices/inv_123")
         assert await _status(maker, p.id) == "paid"
+
+    async def test_a_test_key_does_not_mark_the_order_paid(self, anon, maker, monkeypatch):
+        p = await _insert(maker)
+        test_key = "sk_" + "test_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
+        _fake_moyasar_get(monkeypatch, {"status": "paid", "amount": 1149885, "currency": "SAR"})
+        with _settings(moyasar_webhook_secret=WEBHOOK_SECRET, moyasar_api_secret=test_key):
+            r = await anon.post("/webhooks/moyasar", json=_event(p))
+        assert r.status_code == 200, r.text
+        assert await _status(maker, p.id) != "paid"
 
     async def test_replay_on_paid_order_is_noop_200(self, anon, maker, monkeypatch):
         p = await _insert(maker, status="paid")

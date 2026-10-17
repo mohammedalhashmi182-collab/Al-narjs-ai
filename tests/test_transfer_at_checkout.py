@@ -92,7 +92,7 @@ def test_the_values_come_from_the_capabilities_payload(portal: str) -> None:
 
 def test_it_stays_hidden_when_no_account_is_published(portal: str) -> None:
     block = portal[portal.find("const live = all.filter"): portal.find("if (hidden) {")]
-    assert "if (!box || !bank.iban) return;" in block, (
+    assert "!bank.iban) return;" in block, (
         "an empty copy button for an unpublished account is a dead control"
     )
 
@@ -100,7 +100,8 @@ def test_it_stays_hidden_when_no_account_is_published(portal: str) -> None:
 def test_the_note_points_at_the_transfer_rather_than_only_at_the_missing_card(
     portal: str,
 ) -> None:
-    note = portal[portal.find("if (!cap.card)"): portal.find("if (!cap.card)") + 700]
+    start = portal.find("if (!cap.card && allowInvoice)")
+    note = portal[start: start + 700]
     assert "الأسفل" in note or "below" in note, (
         "the note must direct the buyer to the working method beside it"
     )
@@ -111,14 +112,17 @@ def test_the_note_points_at_the_transfer_rather_than_only_at_the_missing_card(
 # --------------------------------------------------------------------------
 
 
-def test_capabilities_still_publishes_the_account(client: TestClient) -> None:
+def test_capabilities_hides_bank_transfer_unless_enabled(client: TestClient, monkeypatch) -> None:
+    monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
     r = client.get(CAPABILITIES)
     assert r.status_code == 200
     body = r.json()
-    assert body["methods"]["invoice"] is True, "the working method must stay on"
-    assert body["bank"]["iban"], "no IBAN is published, so the block cannot show"
-    assert body["bank"]["account_name"]
-    assert body["bank"]["bank_name"]
+    assert body["methods"]["invoice"] is False
+    assert body["bank"] == {}
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+    enabled = client.get(CAPABILITIES).json()
+    assert enabled["methods"]["invoice"] is True
+    assert enabled["bank"]["iban"]
 
 
 def test_capabilities_never_leaks_a_secret(client: TestClient) -> None:
@@ -146,17 +150,21 @@ def test_the_copy_target_has_no_dead_hash_placeholder(portal: str) -> None:
 
 
 
-def test_after_the_invoice_is_created_whatsapp_carries_the_reference(portal: str) -> None:
-    """The buyer who already pressed the button must not have to retype the number."""
+def test_after_the_invoice_is_created_phone_is_the_handoff(portal: str) -> None:
     segment = portal[portal.find("data.gateway === 'invoice'"):][:2600]
-    assert "xfWhatsapp" in segment, "the invoice success message has no WhatsApp help"
-    assert "encodeURIComponent" in segment
-    assert "payment_id" in segment, "the WhatsApp message must carry the invoice reference"
+    assert "0540799266" in segment
+    assert "tel:+966540799266" in segment
+    assert "xfWhatsapp" not in segment
+    assert "wa.me" not in segment
 
 
-def test_capabilities_publishes_the_whatsapp_route(client: TestClient) -> None:
+def test_capabilities_publishes_the_company_phone(client: TestClient) -> None:
     contact = client.get(CAPABILITIES).json()["contact"]
-    assert contact["whatsapp"].startswith("https://wa.me/"), contact
+    assert contact["whatsapp"] == ""
+    assert contact["telegram"] == ""
+    assert contact["messenger"] == ""
+    assert contact["phone"] == "tel:+966540799266"
+    assert contact["phone_display"] == "0540799266"
 
 
 # --------------------------------------------------------------------------

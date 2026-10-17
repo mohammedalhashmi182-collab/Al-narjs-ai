@@ -4,6 +4,7 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import time
 from typing import Optional
 from uuid import UUID
@@ -182,6 +183,21 @@ class PaymentNotFound(PaymentError):
     pass
 
 
+def _customer_flag(name: str) -> bool:
+    """Customer payment switches. Default off: unset, empty, or anything but a true token."""
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def customer_paypal_enabled() -> bool:
+    """PayPal/USD checkout for customers. Off unless CUSTOMER_PAYPAL_ENABLED is set."""
+    return _customer_flag("CUSTOMER_PAYPAL_ENABLED")
+
+
+def customer_bank_transfer_enabled() -> bool:
+    """Bank-transfer / invoice checkout for customers. Off unless CUSTOMER_BANK_TRANSFER_ENABLED is set."""
+    return _customer_flag("CUSTOMER_BANK_TRANSFER_ENABLED")
+
+
 def paypal_ready() -> bool:
     settings = get_settings()
     return bool(settings.paypal_client_id and settings.paypal_client_secret)
@@ -195,6 +211,32 @@ def paypal_collects_money() -> bool:
     """
     settings = get_settings()
     return paypal_ready() and settings.paypal_mode == "live"
+
+
+# Shown when checkout has no live Moyasar key. Bank transfer and PayPal stay off.
+CARD_ACTIVATING_AR = (
+    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر المساعد في الموقع "
+    "أو راسلنا على Al-Narjis@karmaai.online."
+)
+
+
+def moyasar_publishable_is_test() -> bool:
+    key = (get_settings().moyasar_publishable_key or "").strip()
+    return key.startswith("pk_test")
+
+
+def moyasar_publishable_is_live() -> bool:
+    key = (get_settings().moyasar_publishable_key or "").strip()
+    return key.startswith("pk_live_")
+
+
+def moyasar_collects_money() -> bool:
+    """True only when both the secret and the publishable key are live.
+
+    An empty publishable key, ``pk_test``, ``sk_test``, or a missing secret
+    must never open a checkout that a later webhook could mark paid.
+    """
+    return moyasar_secret_is_live() and moyasar_publishable_is_live()
 
 
 def moyasar_secret_is_live() -> bool:
@@ -280,16 +322,22 @@ def capabilities(card_state: Optional[str] = None) -> dict:
     settings = get_settings()
     if card_state is None:
         card_state = cached_credential_state("moyasar")
-    card = bool(settings.moyasar_api_secret) and card_state != "rejected"
-    test_mode = card and not moyasar_secret_is_live()
-    if test_mode:
-        # The credential works, so it passes the probe -- but a test secret cannot
-        # move money. Offering it would be the PayPal-sandbox trap again.
-        card = False
-    paypal = paypal_collects_money()
+    secret = (settings.moyasar_api_secret or "").strip()
+    publishable = (settings.moyasar_publishable_key or "").strip()
+    # A working probe is not a live checkout. Test keys and a missing secret
+    # stay hidden so production never sends a buyer to a sandbox invoice.
+    card = moyasar_collects_money() and card_state != "rejected"
+    test_mode = (
+        secret.startswith("sk_test")
+        or publishable.startswith("pk_test")
+        or (bool(secret) and not secret.startswith("sk_live_"))
+        or (secret.startswith("sk_live_") and not publishable.startswith("pk_live_"))
+    )
+    paypal = paypal_collects_money() and customer_paypal_enabled()
+    invoice = customer_bank_transfer_enabled()
     methods = {method: card for method in CARD_METHODS}
     methods["paypal"] = paypal
-    methods["invoice"] = True
+    methods["invoice"] = invoice
     return {
         "methods": methods,
         "card": card,
@@ -299,8 +347,8 @@ def capabilities(card_state: Optional[str] = None) -> dict:
         "paypal": paypal,
         "paypal_configured": paypal_ready(),
         "paypal_test_mode": paypal_ready() and settings.paypal_mode != "live",
-        "invoice": True,
-        "bank": transfer.bank_details(),
+        "invoice": invoice,
+        "bank": transfer.bank_details() if invoice else {},
         "contact": transfer.contact_channels(),
     }
 
@@ -339,9 +387,10 @@ def readiness(card_state: Optional[str] = None) -> dict:
         )
     if caps.get("card_test_mode"):
         blocking.append(
-            "MOYASAR_API_SECRET is a TEST key (sk_test_). Moyasar accepts it and "
-            "creates invoices, but no money moves, so card checkout is hidden. "
-            "Set an sk_live_ secret to take real card payments."
+            "MOYASAR_API_SECRET is a TEST key (sk_test_) or the publishable key "
+            "is pk_test_. Moyasar accepts a test secret and creates invoices, but "
+            "no money moves, so card checkout is hidden. Set an sk_live_ secret "
+            "and a pk_live_ publishable key to take real card payments."
         )
     if paypal_ready() and caps["paypal_test_mode"]:
         blocking.append(
@@ -389,7 +438,7 @@ def transfer_instructions(payment: Payment) -> dict:
         "total_halalas": total,
         "total_sar": round(total / 100, 2),
         "currency": payment.currency or "SAR",
-        "bank": transfer.bank_details(),
+        "bank": transfer.bank_details() if customer_bank_transfer_enabled() else {},
         "contact": transfer.contact_buttons(ref, round(total / 100, 2), customer),
         "invoice_url": f"/invoice/{payment.id}",
     }
@@ -506,6 +555,8 @@ async def initiate_moyasar(
     back_url: Optional[str] = None,
 ) -> dict:
     settings = get_settings()
+    if not moyasar_collects_money():
+        raise PaymentError("Moyasar live key is not configured")
     if not settings.moyasar_api_secret:
         raise PaymentError("Moyasar API secret not configured")
 
@@ -651,6 +702,12 @@ def apply_gateway_status(payment: Payment, data: dict) -> None:
         return
     status = data.get("status")
     if status == "paid":
+        if not moyasar_collects_money():
+            # A test or missing key must never settle an order, even if Moyasar
+            # reports the sandbox invoice as paid.
+            logger.warning("refusing paid status from a non-live Moyasar key for %s", payment.id)
+            payment.status = REVIEW_STATUS
+            return
         if gateway_amount_matches(payment, data):
             payment.status = "paid"
         else:

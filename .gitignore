@@ -8,7 +8,10 @@ venv/
 *.sqlite3
 logs/
 # Imported lead data + campaign exports contain customer PII — never commit.
-data/
+# The public knowledge base under data/kb/ is product copy, not customer data.
+data/*
+!data/kb/
+!data/kb/**
 .Python
 .DS_Store
 Thumbs.db

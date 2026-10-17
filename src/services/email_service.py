@@ -112,9 +112,6 @@ async def send_email(
 _PROMO_CODE = "NARJIS50"
 _PROMO_EXPIRES = "14 أكتوبر"
 _PROMO_LINK = "https://karmaai.online"
-_WA_LINK = "https://wa.me/message/PPIY6ZARA53GM1"
-
-
 def _promo_html() -> str:
     return f"""
     <div style="margin:20px 0;background:#0b3d2e;border:1px solid #c8a45e;border-radius:12px;padding:16px 18px;color:#f4f4f4;text-align:center;">
@@ -154,7 +151,7 @@ async def send_welcome(to: str, name: str) -> bool:
         subject="أهلاً بك في النرجس للذكاء الاصطناعي ✺",
         body=f"""أهلاً {name}،
 
-شكراً لاختيارك النرجس للذكاء الاصطناعي. استلمنا طلبك وسيتواصل معك فريقنا خلال ٢٤ ساعة.
+شكراً لاختيارك النرجس للذكاء الاصطناعي. الدعم متاح 24/7 عبر المساعد في الموقع، والمتابعة البشرية تتم بالبريد.
 
 — فريق النرجس
 Al-Narjis AI · Riyadh""",
@@ -176,7 +173,7 @@ _FOLLOWUP_COPY = {
     3: {
         "subject": "آخر فرصة: خصم الإطلاق 50%",
         "title": "عرض الإطلاق يخلص 14 أكتوبر",
-        "cta": "ابدأ اليوم مع واتساب",
+        "cta": "ابدأ اليوم من الموقع",
     },
 }
 
@@ -184,11 +181,7 @@ _FOLLOWUP_COPY = {
 def _followup_html(step: int, name: str) -> str:
     copy = _FOLLOWUP_COPY.get(step, _FOLLOWUP_COPY[1])
     cta = copy["cta"]
-    link = (
-        "https://wa.me/message/PPIY6ZARA53GM1"
-        if step >= 3
-        else "https://karmaai.online/home#pricing"
-    )
+    link = "https://karmaai.online/home#pricing"
     return f"""
     <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e3dcc8;border-radius:14px;overflow:hidden;">
       <div style="background:#0b3d2e;color:#e6c665;text-align:center;padding:22px;">

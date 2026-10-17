@@ -133,19 +133,18 @@ def test_plan_wording(client):
 
     radd = catalog.PACKAGES["radd"]
     assert not any("ميسّر" in line or "ميسر" in line for line in radd["scope"])
-    assert any("تيليجرام" in line and "قريباً" in line for line in radd["scope"])
+    assert not any("تيليجرام" in line for line in radd["scope"])  # coming items live in "coming"
+    assert any("تيليجرام" in line for line in radd["coming"])
 
 
-def test_support_handoff_is_env_configured(monkeypatch):
+def test_support_handoff_is_the_company_phone():
     from src.services.support import support_contact
 
-    monkeypatch.delenv("SUPPORT_PHONE", raising=False)
-    assert support_contact()["channel"] == "email"
-    monkeypatch.setenv("SUPPORT_PHONE", "+966500000000")
-    monkeypatch.setenv("SUPPORT_CHANNEL", "whatsapp")
-    assert support_contact()["href"] == "https://wa.me/966500000000"
-    monkeypatch.setenv("SUPPORT_CHANNEL", "call")
-    assert support_contact()["href"] == "tel:+966500000000"
+    contact = support_contact()
+    assert contact["channel"] == "call"
+    assert contact["href"] == "tel:+966540799266"
+    assert contact["value"] == "0540799266"
+    assert contact["email"] == "Al-Narjis@karmaai.online"
 
 
 def test_assistant_offers_customer_service_handoff(client):

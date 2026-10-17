@@ -14,9 +14,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from urllib.parse import quote
-
-from src.config.settings import get_settings
 
 CONTENT_FILE = Path(__file__).resolve().parents[2] / "content" / "transfer.json"
 
@@ -45,51 +42,33 @@ def has_bank_details() -> bool:
     return bool(bank_details().get("iban"))
 
 
-def _whatsapp_e164() -> str:
-    from src.services.lead_normalize import normalize_mobile_e164
-
-    return normalize_mobile_e164(get_settings().whatsapp_business_number) or ""
-
-
-CONTACT_FILE = Path(__file__).resolve().parents[2] / "content" / "contact.json"
-
-
-def _contact_file() -> dict[str, str]:
-    try:
-        data = json.loads(CONTACT_FILE.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
 def messenger_page() -> str:
-    """Facebook Page username for m.me links; empty until the owner sets it."""
-    raw = str(_contact_file().get("messenger_page", "")).strip().lstrip("@")
-    return raw if raw and all(c.isalnum() or c in "._-" for c in raw) else ""
+    """Messenger is not a customer-contact channel."""
+    return ""
 
 
 def telegram_contact_handle() -> str:
-    """The person/channel handle published as the Telegram contact.
-
-    Distinct from TELEGRAM_BOT (the production bot that plan deep links use).
-    """
-    raw = str(_contact_file().get("telegram_handle", "")).strip().lstrip("@")
-    return raw if raw and all(c.isalnum() or c == "_" for c in raw) else TELEGRAM_BOT.rsplit("/", 1)[-1]
+    """Telegram is not published as a customer-contact handle."""
+    return ""
 
 
 def contact_channels(message: str = "") -> dict[str, str]:
-    """One-tap links a buyer can use instead of guessing how to reach us.
+    """Customer contact: company phone, email, and the on-site assistant.
 
-    A channel the owner has not configured is an empty string, so the UI can
-    hide it instead of rendering a dead button.
+    WhatsApp, Telegram and Messenger stay empty so templates hide those buttons.
+    ``message`` is accepted for callers that used to pre-fill a chat link.
     """
-    number = _whatsapp_e164()
-    whatsapp = f"https://wa.me/{number}" if number else ""
-    if whatsapp and message:
-        whatsapp = f"{whatsapp}?text={quote(message)}"
-    page = messenger_page()
-    messenger = f"https://m.me/{page}" if page else ""
-    return {"whatsapp": whatsapp, "telegram": TELEGRAM_BOT, "messenger": messenger}
+    del message  # no chat deep-link is published
+    from src.services.support import COMPANY_PHONE_DISPLAY, COMPANY_PHONE_E164, SUPPORT_EMAIL
+
+    return {
+        "phone": f"tel:{COMPANY_PHONE_E164}",
+        "phone_display": COMPANY_PHONE_DISPLAY,
+        "email": f"mailto:{SUPPORT_EMAIL}",
+        "whatsapp": "",
+        "telegram": "",
+        "messenger": "",
+    }
 
 
 def contact_buttons(reference: str, amount_sar: float, customer: str | None = None) -> dict[str, str]:

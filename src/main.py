@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 import time
@@ -20,10 +21,11 @@ from src.config.settings import get_settings, settings
 from src.utils.logger import configure_logging, get_logger
 from src.utils.rate_limit import (
     rate_limit_consult,
+    rate_limit_ticket,
     rate_limit_login,
     rate_limit_transfer_report,
 )
-from src.db.session import init_db, get_session_factory, close_db
+from src.db.session import close_db, ensure_pgvector, get_session_factory, init_db
 
 configure_logging(settings.log_level, settings.log_json)
 
@@ -71,6 +73,7 @@ def _log_database_target() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await ensure_pgvector()  # RAG: pgvector when available, else in-process cosine
     _log_database_target()
     session_factory = await get_session_factory()
 
@@ -436,24 +439,27 @@ async def static_cache_headers(request: Request, call_next):
 
 
 # Security headers on every response. The CSP allow-list is exactly what the
-# public pages load: Google Fonts, cdnjs (Font Awesome), the Tailwind CDN on the
-# pages that still use it, the consent-gated Meta pixel and Google tag, and
-# PayPal for checkout. Inline scripts/styles are still used by the templates, so
+# public pages load: Google Fonts, cdnjs (Font Awesome), the consent-gated Meta
+# pixel and Google tag, and Moyasar/PayPal for checkout. Tailwind is served as
+# compiled static CSS (no CDN). Inline scripts/styles are still used by the templates, so
 # 'unsafe-inline' stays until they are moved to files. frame-ancestors 'none'
 # (plus X-Frame-Options for old browsers) stops clickjacking.
 CONTENT_SECURITY_POLICY = "; ".join(
     [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com "
-        "https://connect.facebook.net https://www.googletagmanager.com https://www.paypal.com https://*.paypal.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
+        "https://connect.facebook.net https://www.googletagmanager.com https://www.paypal.com https://*.paypal.com "
+        "https://cdn.moyasar.com https://*.moyasar.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com "
+        "https://cdn.moyasar.com https://*.moyasar.com",
         "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
         "img-src 'self' data: blob: https:",
         "connect-src 'self' https://www.facebook.com https://connect.facebook.net "
         "https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com "
-        "https://www.paypal.com https://*.paypal.com",
-        "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.facebook.com",
-        "form-action 'self' https://www.paypal.com https://*.paypal.com",
+        "https://www.paypal.com https://*.paypal.com https://api.moyasar.com https://*.moyasar.com",
+        "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.facebook.com "
+        "https://*.moyasar.com",
+        "form-action 'self' https://www.paypal.com https://*.paypal.com https://api.moyasar.com https://*.moyasar.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "object-src 'none'",
@@ -542,6 +548,11 @@ from src.interfaces.ops_routes import api as ops_api, router as ops_router  # no
 
 app.include_router(ops_router)
 app.include_router(ops_api)
+
+# LLM router + pgvector RAG: POST /api/ai/ask (fast/deep routing, review, handoff).
+from src.interfaces.ai_routes import router as ai_ask_router  # noqa: E402
+
+app.include_router(ai_ask_router)
 
 
 async def get_session() -> AsyncSession:
@@ -732,6 +743,7 @@ async def landing_page(request: Request):
             **(await _pricing_context()),
             "testimonials": _testimonials.load(),
             "services": public_services.SERVICES,
+            "internal_tests": __import__("src.services.internal_tests", fromlist=["load"]).load(),
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
                 "مرحباً، أريد التحدث مع الرئيس التنفيذي الذكي عن مشروعي"
@@ -1038,8 +1050,14 @@ async def client_portal_page(request: Request):
 
     # The checkout renders a WhatsApp escape hatch, so the number comes from the
     # same published contact source as the invoice rather than a second copy.
+    from src.services import payments as _pm
+
     return templates.TemplateResponse(
-        request, "portal.html", {"contact": transfer.contact_channels()}
+        request, "portal.html", {
+            "contact": transfer.contact_channels(),
+            "bank_transfer_enabled": _pm.customer_bank_transfer_enabled(),
+            "paypal_customer_enabled": _pm.customer_paypal_enabled(),
+        },
     )
 
 
@@ -1561,6 +1579,10 @@ async def portal_packages():
             "setup_fee": p["setup_fee"],
             "limits": p["limits"],
             "recommended": key == catalog.RECOMMENDED_PACKAGE,
+            "features": p["scope"],
+            "features_en": p["scope_en"],
+            "coming": p.get("coming", []),
+            "coming_en": p.get("coming_en", []),
         })
     return {
         "packages": result,
@@ -1881,6 +1903,97 @@ async def ceo_consult(request: CeoConsultRequest, http_request: Request):
     return await ceo_advisor.diagnose(problem, provider=provider, locale=locale)
 
 
+class SupportTicketRequest(BaseModel):
+    name: str = ""
+    email: str = ""
+    question: str = ""
+    consent: bool = False
+    page: Optional[str] = None
+    lang: Optional[str] = None
+
+
+def _ticket_lang(body: "SupportTicketRequest", request: Request) -> str:
+    # The page the visitor wrote from decides the reply language; a stale
+    # locale cookie from another tab must not flip an Arabic visitor to English.
+    if body.lang in ("ar", "en"):
+        return body.lang
+    page = (body.page or "").lower()
+    if page == "/en" or page.startswith("/en/"):
+        return "en"
+    if page == "/ar" or page.startswith("/ar/"):
+        return "ar"
+    return "en" if request.cookies.get(_LOCALE_COOKIE) == "en" else "ar"
+
+
+@app.post("/api/support/ticket", dependencies=[Depends(rate_limit_ticket)])
+async def create_support_ticket(body: SupportTicketRequest, request: Request):
+    """Human handoff from the site assistant: store a ticket, notify the owner."""
+    from src.services import tickets
+
+    lang = _ticket_lang(body, request)
+    try:
+        async with app.state.session_factory() as session:
+            t = await tickets.create(session, name=body.name, email=body.email, question=body.question,
+                                     consent=body.consent, lang=lang, page=body.page)
+    except tickets.TicketError as exc:
+        return JSONResponse(status_code=422, content={"ok": False, "field": exc.field})
+    return {"ok": True, "reference": t.reference,
+            "response_time": tickets.RESPONSE_TIME_EN if lang == "en" else tickets.RESPONSE_TIME_AR}
+
+
+@app.get("/api/owner/tickets")
+async def owner_list_tickets(request: Request):
+    from src.core.owner_auth import check_owner
+    from src.services import tickets
+
+    if not check_owner(request):
+        raise HTTPException(401, "owner only")
+    async with app.state.session_factory() as session:
+        return {"tickets": await tickets.list_recent(session)}
+
+
+_CONSULT_HANDOFF_AR = ("ما أقدر أأكد هذه المعلومة من مصادرنا الآن. أقدر أحوّلك لخدمة العملاء "
+                       "ويرد عليك فريقنا بالبريد.")
+_CONSULT_HANDOFF_EN = ("I can't confirm that from our sources right now. I can transfer you to customer service "
+                       "and our team will reply by email.")
+
+
+async def _consult_sources(history: list[dict]) -> list[dict]:
+    """Top KB chunks of Al-Narjis's own KB for the latest visitor message (best effort)."""
+    q = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
+    if not q.strip():
+        return []
+    try:
+        from src.services import rag
+
+        from src.services.rag import site_kb
+
+        async with app.state.session_factory() as session:
+            hits = await rag.retrieve(session, q, project_id=None, k=3)
+            await session.commit()  # lazy index backfill
+        hits += await site_kb.retrieve(q, k=3)  # catalog facts (prices etc.), generated from catalog.py
+        hits.sort(key=lambda h: -h["score"])
+        return [h for h in hits if h["score"] >= rag.min_confidence()][:4]
+    except Exception as exc:  # noqa: BLE001
+        from src.utils.logger import get_logger
+
+        get_logger(__name__).warning("consult: RAG retrieval failed (%s)", type(exc).__name__)
+        return []
+
+
+def _consult_grounded(reply: str, hits: list[dict], packages_text: str) -> bool:
+    from src.services import catalog as _cat
+    from src.services.rag.generate import grounded
+    from src.services.support import SUPPORT_EMAIL
+
+    facts = " ".join([packages_text, SUPPORT_EMAIL, "https://karmaai.online", "/portal", "15",
+                      repr(_cat.PACKAGES), repr(_cat.ENTERPRISE), repr(_cat.ADDON_AGENT), repr(_cat.USAGE_ADDONS),
+                      repr(_cat.SETUP_GUARANTEE), str(_cat.MAX_ADDON_AGENTS)])
+    # Markdown list markers ("1." / "2)") at line start are not facts.
+    reply = re.sub(r"(?m)^\s*\d{1,2}[.)]\s", "- ", reply)
+    return grounded(reply, hits, extra_facts=facts)
+
+
 @app.post("/api/consult", dependencies=[Depends(rate_limit_consult)])
 async def consult_chat(request: ConsultRequest, http_request: Request):
     from src.core.model_provider import ModelRequest
@@ -1910,10 +2023,20 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         employees_text=_emps,
     )
 
+    # RAG: ground the assistant in Al-Narjis's own KB (project_id NULL only; never a tenant's docs).
+    rag_hits = await _consult_sources(history)
+    if rag_hits:
+        system_prompt += (
+            "\n\nSOURCES (Al-Narjis knowledge base; state facts, numbers, policies and links ONLY from these "
+            "sources or the REAL PRODUCT list above; if they do not cover the question, say so and offer "
+            "«تحويل لخدمة العملاء»):\n"
+            + "\n".join(f"[{i + 1}] {h['title']}: {h['text']}" for i, h in enumerate(rag_hits))
+        )
+
     model_request = ModelRequest(
         prompt="\n".join(f"{m['role']}: {m['content']}" for m in history) + "\n\nassistant:",
         system_prompt=system_prompt,
-        temperature=0.6,
+        temperature=0.3,
         max_tokens=1200,
     )
 
@@ -1928,6 +2051,13 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
                 _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
             )
         content = reply or response.content.strip()
+        if content and not _consult_grounded(content, rag_hits, _pkgs):
+            # A number or link that is in neither the KB sources nor the real
+            # price list is a hallucination: never show it, hand off instead.
+            from src.utils.logger import get_logger
+
+            get_logger(__name__).warning("consult: ungrounded number/link in reply; handing off")
+            return {"reply": _CONSULT_HANDOFF_AR if locale == "ar" else _CONSULT_HANDOFF_EN, "handoff": "ungrounded"}
         if not content:
             # A model that answered with nothing usable is a failure, not a
             # success with an empty bubble in the transcript.
@@ -2685,6 +2815,18 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         packs_amount = pm.usage_packs_amount(body.conversation_packs, body.voice_packs, body.billing_period)
     except pm.PaymentError as exc:
         raise HTTPException(400, str(exc))
+
+    # Refuse a method before any row exists. A test or missing Moyasar key,
+    # and the disabled PayPal / bank-transfer paths, must not leave an orphan
+    # payment that a webhook could later mark paid.
+    method = body.method.lower()
+    if method == "paypal" and not pm.customer_paypal_enabled():
+        raise HTTPException(400, "PayPal is not available. Pay by card through Moyasar.")
+    if method == "invoice" and not owner_invoice and not pm.customer_bank_transfer_enabled():
+        raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
+    if method in pm.CARD_METHODS and not pm.moyasar_collects_money():
+        raise HTTPException(503, pm.CARD_ACTIVATING_AR)
+
     async with app.state.session_factory() as session:
         from uuid import UUID as _UUID
 
@@ -2729,8 +2871,6 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             payment.refund_consent_version = policies.POLICY_VERSION
             await session.commit()
 
-        method = body.method.lower()
-
         if method == "paypal":
             # Owner decision (option A): prices are VAT-inclusive and the invoice
             # document always bills base + 15%, so every automated charge must
@@ -2764,6 +2904,10 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "sar_per_usd": settings.paypal_sar_per_usd,
                 }
             except pm.PaymentError as e:
+                if not pm.customer_bank_transfer_enabled():
+                    await session.delete(payment)
+                    await session.commit()
+                    raise HTTPException(502, "PayPal is unavailable. Pay by card through Moyasar.")
                 payment.status = "invoice"
                 await session.commit()
                 return {
@@ -2816,6 +2960,10 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "total": pm.total_with_vat(payment.amount),
                 }
             except pm.PaymentError as e:
+                if not pm.customer_bank_transfer_enabled():
+                    await session.delete(payment)
+                    await session.commit()
+                    raise HTTPException(502, "Card payment is unavailable. Pay by card through Moyasar when it is live.")
                 payment.status = "pending"
                 await session.commit()
                 return {
@@ -2831,7 +2979,11 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "invoice_url": f"/invoice/{payment.id}",
                 }
 
-        # Invoice / bank-transfer fallback
+        # Invoice / bank-transfer fallback — customer path stays off unless the flag is on.
+        if not owner_invoice and not pm.customer_bank_transfer_enabled():
+            await session.delete(payment)
+            await session.commit()
+            raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
         payment.status = "invoice"
         await session.commit()
         return {
@@ -3363,6 +3515,9 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
         _record_refund_consent(payment)
         await session.commit()
 
+        if not _pm.moyasar_collects_money():
+            raise HTTPException(503, _pm.CARD_ACTIVATING_AR)
+
         if payment.gateway == "moyasar" and payment.gateway_payment_id:
             return {
                 "payment_id": str(payment.id),
@@ -3453,7 +3608,7 @@ async def invoice_page(request: Request, payment_id: str):
             "base": payment.amount,
             "vat": pm.vat_amount(payment.amount),
             "total": pm.total_with_vat(payment.amount),
-            "xfer": pm.transfer_instructions(payment) if payment.status != "paid" else None,
+            "xfer": pm.transfer_instructions(payment) if payment.status != "paid" and pm.customer_bank_transfer_enabled() else None,
             "consent_needed": payment.status != "paid" and payment.refund_consent_at is None,
             "refund_consent_ar": policies.REFUND_CONSENT_AR,
             "refund_consent_en": policies.REFUND_CONSENT_EN,
@@ -3463,6 +3618,7 @@ async def invoice_page(request: Request, payment_id: str):
             ),
             "paypal_enabled": payment.status not in ("paid", pm.REVIEW_STATUS)
             and payment.gateway in ("invoice", "paypal")
+            and pm.customer_paypal_enabled()
             and pm.paypal_collects_money(),
             "paypal_usd": (
                 f"{pm.sar_halalas_to_usd_cents(pm.total_with_vat(payment.amount)) / 100:.2f}"
@@ -3563,8 +3719,8 @@ async def pay_invoice_with_paypal(payment_id: str, body: InvoiceConsentRequest, 
     except ValueError:
         raise HTTPException(422, "invalid payment id")
     _require_refund_consent(body.refund_consent)
-    if not pm.paypal_collects_money():
-        raise HTTPException(503, "PayPal is not available; use card or bank transfer")
+    if not pm.customer_paypal_enabled() or not pm.paypal_collects_money():
+        raise HTTPException(503, "PayPal is not available. Pay by card through Moyasar.")
     base = _public_base_url(request)
     async with app.state.session_factory() as session:
         payment = (

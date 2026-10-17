@@ -17,6 +17,11 @@ from src.models import Payment
 from src.services import payments as pm
 from src.services import policies
 
+@pytest.fixture(autouse=True)
+def _bank_transfer_code_path(monkeypatch):
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+
+
 ROOT = Path(__file__).resolve().parents[1]
 TPL = ROOT / "src" / "web" / "templates"
 

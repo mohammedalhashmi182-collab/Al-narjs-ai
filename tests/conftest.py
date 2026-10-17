@@ -32,3 +32,20 @@ def _reset_payment_idempotency_cache():
     yield
     main._payment_replays.clear()
     main._payment_locks.clear()
+
+
+@_pytest.fixture(autouse=True)
+def _rag_offline(monkeypatch):
+    """RAG never calls a real embedding/LLM provider in tests: hash embeddings,
+    and no LLM unless a test installs its own mock on ``generate._llm_complete``."""
+    from src.services.rag import embeddings, generate
+
+    monkeypatch.setenv("RAG_EMBED_PROVIDER", "hash")
+    embeddings.set_embedder(None)
+
+    async def _no_llm(system, prompt):
+        return None
+
+    monkeypatch.setattr(generate, "_llm_complete", _no_llm)
+    yield
+    embeddings.set_embedder(None)

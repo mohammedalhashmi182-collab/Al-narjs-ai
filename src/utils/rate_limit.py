@@ -6,6 +6,8 @@ from collections import defaultdict, deque
 
 from fastapi import HTTPException, Request
 
+from src.utils.net import client_ip
+
 
 class SlidingWindowLimiter:
     def __init__(self, max_requests: int, window_seconds: int) -> None:
@@ -35,15 +37,6 @@ class SlidingWindowLimiter:
         """
         with self._lock:
             self._hits.clear()
-
-
-def client_ip(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    if request.client:
-        return request.client.host
-    return "unknown"
 
 
 consult_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=60)
@@ -96,6 +89,34 @@ botpress_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=300)
 
 def rate_limit_botpress(request: Request) -> None:
     ok, retry_after = botpress_limiter.check(f"{client_ip(request)}:/api/v1/botpress-lead")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+# Support tickets from the site assistant notify the owner, so keep them tight.
+ticket_limiter = SlidingWindowLimiter(max_requests=3, window_seconds=600)
+
+
+# Public RAG answers call a model. Keep the window tight and key it separately
+# from /api/consult so one endpoint cannot exhaust the other.
+ai_ask_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=60)
+
+
+def rate_limit_ai_ask(request: Request) -> None:
+    ok, retry_after = ai_ask_limiter.check(f"{client_ip(request)}:/api/ai/ask")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+def rate_limit_ticket(request: Request) -> None:
+    ok, retry_after = ticket_limiter.check(f"{client_ip(request)}:/api/support/ticket")
     if not ok:
         raise HTTPException(
             status_code=429,

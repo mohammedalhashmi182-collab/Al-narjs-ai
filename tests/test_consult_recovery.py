@@ -33,7 +33,8 @@ BODY = {"messages": [{"role": "user", "content": "ما هي باقاتكم؟"}]}
 
 # a reply that is unmistakably a real answer, so a test can tell it apart from
 # any placeholder or apology the endpoint might emit
-REAL_ANSWER = "لدينا أربع باقات تبدأ من 800 ريال شهرياً، وكل باقة تفتح خمسة وكلاء."
+# (uses a real catalog price: invented numbers are now handed off, see test_rag_site_assistant.py)
+REAL_ANSWER = "لدينا ثلاث باقات تبدأ من 599 ريال شهرياً، وكل باقة تفتح وكلاء متخصصين."
 
 
 class _StubResponse:
@@ -115,7 +116,7 @@ def test_an_empty_model_answer_is_a_failure_not_a_success(client, monkeypatch):
 def test_a_lead_marker_is_stripped_from_the_visible_reply(client, monkeypatch):
     from src.core.karma_persona import LEAD_MARK
 
-    _use(monkeypatch, _WorkingProvider(content=f'باقة البداية 800 ريال. {LEAD_MARK}{{"name":"x"}}'))
+    _use(monkeypatch, _WorkingProvider(content=f'باقة البداية 599 ريال. {LEAD_MARK}{{"name":"x"}}'))
     r = client.post(CONSULT, json=BODY)
     assert r.status_code == 200
     assert LEAD_MARK not in r.json()["reply"], "the internal lead marker reached the user"

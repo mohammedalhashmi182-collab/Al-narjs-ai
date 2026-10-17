@@ -64,7 +64,8 @@ def test_no_invented_social_proof(page: str) -> None:
     low = page.lower()
     for word in ("aggregaterating", "ratingvalue", "★★★★", "testimonial-quote"):
         assert word not in low
-    assert 'data-placeholder="testimonials"' in page
+    assert 'data-placeholder="testimonials"' not in page
+    assert "فارغة عمداً" not in page
     # live counters start empty and are only filled from /api/pulse
     assert 'id="pulseLeads">—<' in page and 'id="pulseProjects">—<' in page
 

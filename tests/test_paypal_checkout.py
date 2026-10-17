@@ -6,6 +6,7 @@ PayPal is fully mocked here; no request leaves the process.
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from contextlib import contextmanager
 
@@ -37,11 +38,17 @@ def _paypal_live(webhook_id="WH-TEST", rate=3.75):
     old = {n: getattr(s, n) for n in names}
     for n, v in names.items():
         object.__setattr__(s, n, v)
+    old_flag = os.environ.get("CUSTOMER_PAYPAL_ENABLED")
+    os.environ["CUSTOMER_PAYPAL_ENABLED"] = "1"
     try:
         yield s
     finally:
         for n, v in old.items():
             object.__setattr__(s, n, v)
+        if old_flag is None:
+            os.environ.pop("CUSTOMER_PAYPAL_ENABLED", None)
+        else:
+            os.environ["CUSTOMER_PAYPAL_ENABLED"] = old_flag
 
 
 class FakePayPal:

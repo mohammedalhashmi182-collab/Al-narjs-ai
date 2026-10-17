@@ -33,6 +33,10 @@ SUBPROCESSORS = [
      "region_ar": "الولايات المتحدة (منطقة Render الافتراضية: أوريغون)", "region_en": "USA (Render default region: Oregon)"},
     {"name": "Google (Gemini API)", "purpose_ar": "توليد ردود الذكاء الاصطناعي", "purpose_en": "AI response generation",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
+    {"name": "Groq", "purpose_ar": "إجابة المساعد السريعة بعد إخفاء البيانات الشخصية", "purpose_en": "Fast assistant answers after PII masking",
+     "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
+    {"name": "OpenAI", "purpose_ar": "المسار الأعمق للمساعد بعد إخفاء البيانات الشخصية", "purpose_en": "Deeper assistant answers after PII masking",
+     "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Moonshot AI (Kimi)", "purpose_ar": "مزود ذكاء اصطناعي احتياطي", "purpose_en": "Fallback AI provider",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Meta Platforms (WhatsApp Cloud API, Messenger)", "purpose_ar": "استقبال وإرسال رسائل واتساب وماسنجر",
@@ -43,7 +47,7 @@ SUBPROCESSORS = [
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Moyasar", "purpose_ar": "معالجة المدفوعات بالبطاقة", "purpose_en": "Card payment processing",
      "region_ar": "شركة سعودية", "region_en": "Saudi company"},
-    {"name": "PayPal", "purpose_ar": "معالجة المدفوعات (عند اختيارها)", "purpose_en": "Payment processing (when chosen)",
+    {"name": "PayPal", "purpose_ar": "مسار دفع غير متاح للعملاء (الدفع عبر ميسر فقط)", "purpose_en": "Payment path not offered to customers (Moyasar only)",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
 ]
 
