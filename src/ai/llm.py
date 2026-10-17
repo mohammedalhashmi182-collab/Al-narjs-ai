@@ -15,6 +15,20 @@ log = logging.getLogger(__name__)
 TIMEOUT_S = 3.0
 # Truncation and safety filters are not a complete answer.
 BAD_FINISH = frozenset({"length", "content_filter"})
+# Anything not listed here, including Gemini's OTHER, is a failed completion.
+_GEMINI_FINISH = {
+    "STOP": "stop",
+    "MAX_TOKENS": "length",
+    "SAFETY": "content_filter",
+    "RECITATION": "content_filter",
+    "BLOCKLIST": "content_filter",
+    "PROHIBITED_CONTENT": "content_filter",
+    "SPII": "content_filter",
+    "OTHER": "other",
+    "LANGUAGE": "other",
+    "FINISH_REASON_UNSPECIFIED": "other",
+    "MALFORMED_FUNCTION_CALL": "other",
+}
 # Groq shut llama-3.3-70b-versatile and llama-3.1-8b-instant down on 2026-08-16
 # for free and developer tiers (404 model_not_found). gpt-oss-120b is the
 # replacement Groq documents for the 70B model.
@@ -140,15 +154,7 @@ class Provider:
         raw = "".join(part.get("text") or "" for part in parts if not part.get("thought"))
         text = pii_mask.unmask(raw, mapping).strip()
         finish = str(candidate.get("finishReason") or "STOP")
-        mapped = {
-            "STOP": "stop",
-            "MAX_TOKENS": "length",
-            "SAFETY": "content_filter",
-            "RECITATION": "content_filter",
-            "BLOCKLIST": "content_filter",
-            "PROHIBITED_CONTENT": "content_filter",
-            "SPII": "content_filter",
-        }.get(finish, "stop")
+        mapped = _GEMINI_FINISH.get(finish, "other")
         return ChatResult(text, mapped)
 
 

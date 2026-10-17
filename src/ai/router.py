@@ -157,6 +157,9 @@ async def _generate(primary, secondary, question: str, context: str) -> tuple[st
         except Exception as exc:
             _log_generation_failure(prov, exc)
             continue
+        if _failed_finish(result):
+            _log_finish_failure(prov, result.finish_reason)
+            continue
         if result.finish_reason == "content_filter":
             saw_filter = True
             continue
@@ -165,6 +168,9 @@ async def _generate(primary, secondary, question: str, context: str) -> tuple[st
                 result = await _complete(prov, question, context, shorter=True)
             except Exception as exc:
                 _log_generation_failure(prov, exc)
+                continue
+            if _failed_finish(result):
+                _log_finish_failure(prov, result.finish_reason)
                 continue
             if result.finish_reason == "content_filter":
                 saw_filter = True
@@ -243,6 +249,19 @@ async def _ask(question: str, *, kb=None, fast=None, deep=None, session=None) ->
     if not grounded(answer, usable):
         return _handoff("ungrounded", sources, reviewed=reviewed)
     return Result(answer, route if used == primary.name else f"{route}-fallback", sources, reviewed)
+
+
+def _failed_finish(result) -> bool:
+    """Gemini OTHER and any unmapped finish reason are not an answer."""
+    return result.finish_reason not in (None, "stop", "length", "content_filter")
+
+
+def _log_finish_failure(prov, finish: str | None) -> None:
+    log.warning(
+        "ai ask generation failed provider=%s finish=%s",
+        getattr(prov, "name", "?"),
+        finish or "-",
+    )
 
 
 def _log_generation_failure(prov, exc: BaseException) -> None:

@@ -778,6 +778,80 @@ class _LockSession:
         self.bind = _LockBind(acquired)
 
 
+async def test_gemini_other_finish_reason_is_a_failure(monkeypatch):
+    import httpx
+
+    class Response:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"candidates": [{"content": {"parts": [{"text": "نص"}]}, "finishReason": "OTHER"}]}
+
+    async def post(self, url, headers=None, json=None):
+        return Response()
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.delenv("DEEP_MODEL_KEY", raising=False)
+    monkeypatch.delenv("DEEP_MODEL_BASE_URL", raising=False)
+    monkeypatch.delenv("DEEP_MODEL_NAME", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini-test-value-not-a-real-key")
+    result = await llm.deep_provider().chat("نظام", "سؤال")
+    assert result.finish_reason == "other"
+    assert llm._GEMINI_FINISH.get("NOT_A_REAL_REASON", "other") == "other"
+
+
+async def test_other_finish_reason_is_not_sent(caplog):
+    import logging
+
+    fast = FakeLLM("groq", [llm.ChatResult("باقة ردّ بـ599 ر.س", "other")])
+    deep = FakeLLM("deep", [llm.ChatResult("باقة ردّ بـ599 ر.س", "other")])
+    with caplog.at_level(logging.WARNING, logger="src.ai.router"):
+        r = await router.ask("كم سعر باقة رد", kb=FakeKB(HITS), fast=fast, deep=deep)
+    assert r.route == "handoff" and "599" not in r.answer
+    assert "finish=other" in caplog.text
+    assert fast.calls == 1 and deep.calls == 1
+
+
+async def test_review_other_finish_is_unavailable():
+    reviewer = FakeLLM("groq", [llm.ChatResult(OK, "other")])
+    ok, why = await review(reviewer, "سؤال", "لا استرداد بعد التفعيل", "لا استرداد بعد التفعيل")
+    assert ok is False and why == "review unavailable"
+
+
+async def test_background_index_reindexes_openai_tenant_docs(monkeypatch):
+    from src.services.rag import store
+
+    seen = {}
+
+    async def ensure_default(self, *, commit=True):
+        return None
+
+    async def ensure_indexed(*_a, **_k):
+        return None
+
+    async def reindex(session, embedder=None):
+        seen["embedder"] = embedder.name
+        return 2
+
+    async def chunk_count(*_a, **_k):
+        return 4
+
+    class Session:
+        async def commit(self):
+            seen["committed"] = True
+
+    monkeypatch.setattr(rag.KB, "ensure_default", ensure_default)
+    monkeypatch.setattr(store, "ensure_indexed", ensure_indexed)
+    monkeypatch.setattr(store, "reindex_openai_tenant_docs", reindex)
+    monkeypatch.setattr(store, "chunk_count", chunk_count)
+    assert await rag._write_index(Session()) == 4
+    assert seen["committed"] is True
+    assert seen["embedder"]
+
+
 async def test_postgres_index_lock_busy_does_not_write(monkeypatch):
     async def write(_session):
         raise AssertionError("wrote without the lock")
@@ -790,6 +864,21 @@ async def test_postgres_index_lock_busy_does_not_write(monkeypatch):
     assert "pg_try_advisory_lock" in sql[0][0]
     assert sql[0][1] == {"k": rag._INDEX_LOCK}
     assert not any("pg_advisory_unlock" in text for text, _params in sql)
+
+
+async def test_cross_instance_lock_blocks_tenant_reindex(monkeypatch):
+    from src.services.rag import store
+
+    async def reindex(*_a, **_k):
+        raise AssertionError("tenant reindex ran without the advisory lock")
+
+    monkeypatch.setattr(store, "reindex_openai_tenant_docs", reindex)
+    session = _LockSession(False)
+    with pytest.raises(rag.IndexBusy):
+        await rag.index_default(session)
+    sql = session.bind.conn.statements
+    assert "pg_try_advisory_lock" in sql[0][0]
+    assert sql[0][1] == {"k": rag._INDEX_LOCK}
 
 
 async def test_postgres_index_lock_is_released_after_the_write(monkeypatch):

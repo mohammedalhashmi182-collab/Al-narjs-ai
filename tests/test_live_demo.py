@@ -110,5 +110,6 @@ def test_landing_has_labelled_widget():
 
     from src.main import app
 
-    html = TestClient(app).get("/").text
+    with TestClient(app) as client:
+        html = client.get("/").text
     assert 'id="chat-demo"' in html and "مثال توضيحي" in html and "/api/live-demo/chat" not in html

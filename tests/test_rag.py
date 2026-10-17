@@ -425,7 +425,7 @@ def test_vector_column_rebuild_only_when_the_width_is_fixed():
     assert store._vector_type_needs_rebuild("vector", 768) is False
 
 
-async def test_fixed_pgvector_column_is_rebuilt_for_a_new_dim():
+async def test_index_path_never_drops_the_vector_column(caplog):
     class Bind:
         class dialect:
             name = "postgresql"
@@ -447,12 +447,42 @@ async def test_fixed_pgvector_column_is_rebuilt_for_a_new_dim():
             return Result()
 
     session = Session()
-    store._vector_dim_ready.clear()
-    await store.ensure_vector_dim(session, 768)
+    store._vector_dim_state.clear()
+    store._vector_dim_warned.clear()
+    with caplog.at_level("WARNING", logger="src.services.rag.store"):
+        assert await store.ensure_vector_dim(session, 768) is False
+        assert await store.ensure_vector_dim(session, 768) is False
+    assert not any("DROP COLUMN" in sql or "ADD COLUMN" in sql for sql in session.sql)
+    assert len(session.sql) == 1
+    warnings = [rec.message for rec in caplog.records if rec.levelname == "WARNING"]
+    assert len(warnings) == 1
+    assert "rebuild_embedding_vec.py" in warnings[0]
+    assert "DROP COLUMN" in warnings[0]
+
+
+async def test_vector_column_rebuild_is_an_explicit_admin_call():
+    class Bind:
+        class dialect:
+            name = "postgresql"
+        url = "postgresql://admin"
+
+    class Session:
+        def __init__(self):
+            self.sql: list[str] = []
+
+        def get_bind(self):
+            return Bind()
+
+        async def execute(self, statement, params=None):
+            self.sql.append(str(statement))
+            return None
+
+    session = Session()
+    store._vector_dim_state["postgresql://admin"] = "blocked:vector(1536)"
+    await store.rebuild_embedding_vec_column(session)
     assert any("DROP COLUMN embedding_vec" in sql for sql in session.sql)
     assert any("ADD COLUMN embedding_vec vector" in sql for sql in session.sql)
-    await store.ensure_vector_dim(session, 768)
-    assert len(session.sql) == 3
+    assert "postgresql://admin" not in store._vector_dim_state
 
 
 async def test_dimension_change_reindexes_the_doc(maker):
@@ -515,3 +545,81 @@ async def test_provider_change_reindexes_and_stores_the_new_model(maker):
         assert {row.model for row in rows} == {local.name}
         assert {row.dim for row in rows} == {384}
         assert local.calls >= 1
+
+
+async def test_openai_tenant_docs_reindex_in_the_background(maker):
+    """A customer retrieve must not rewrite OpenAI 1536 chunks. The background job does."""
+    from src.models.agent_tools import KnowledgeDoc
+
+    class Next:
+        name = "gemini:gemini-embedding-001"
+        dim = 8
+
+        async def embed(self, texts, kind="doc"):
+            return [[1.0] * self.dim for _ in texts]
+
+    async with maker() as session:
+        project, _other = await _two(session)
+        rows = (await session.execute(
+            select(KnowledgeChunk).where(KnowledgeChunk.project_id == project.id)
+        )).scalars().all()
+        assert rows
+        for row in rows:
+            row.model = "openai:text-embedding-3-small"
+            row.dim = 1536
+        owner = (await session.execute(
+            select(KnowledgeChunk).where(KnowledgeChunk.project_id.is_(None))
+        )).scalars().first()
+        assert owner is not None
+        owner.model = "openai:text-embedding-3-small"
+        owner.dim = 1536
+        await session.commit()
+
+        await store.retrieve(
+            session, "تنظيف الاسنان", project_id=project.id, k=3, embedder=Next(),
+        )
+        still = (await session.execute(
+            select(KnowledgeChunk.model).where(KnowledgeChunk.project_id == project.id)
+        )).scalars().all()
+        assert set(still) == {"openai:text-embedding-3-small"}
+
+        n = await store.reindex_openai_tenant_docs(session, Next())
+        await session.commit()
+        assert n >= 1
+        fresh = (await session.execute(
+            select(KnowledgeChunk.model, KnowledgeChunk.dim).where(KnowledgeChunk.doc_id.in_(
+                select(KnowledgeDoc.id).where(KnowledgeDoc.project_id == project.id)
+            ))
+        )).all()
+        assert fresh and {model for model, _dim in fresh} == {Next.name}
+        assert {dim for _model, dim in fresh} == {8}
+        owner_model = (await session.execute(
+            select(KnowledgeChunk.model).where(KnowledgeChunk.project_id.is_(None))
+        )).scalars().first()
+        assert owner_model == "openai:text-embedding-3-small"
+
+
+async def test_unindexed_tenant_doc_still_indexes_on_retrieve(maker):
+    """A doc with no vectors is still filled on the question. OpenAI 1536 is the exception."""
+    from src.models.agent_tools import KnowledgeDoc
+
+    class Next:
+        name = "hash:ngram-v1"
+        dim = 8
+
+        async def embed(self, texts, kind="doc"):
+            return [[1.0] * self.dim for _ in texts]
+
+    async with maker() as session:
+        project = ClientProject(
+            client_name="عيادة جديدة", phone="0555000199", package="radd", status="active",
+        )
+        session.add(project)
+        await session.flush()
+        session.add(KnowledgeDoc(
+            project_id=project.id, title="دوام", source="text",
+            content="الدوام من الأحد إلى الخميس ومن الساعة التاسعة صباحًا.",
+        ))
+        await session.commit()
+        hits = await store.retrieve(session, "متى الدوام", project_id=project.id, k=3, embedder=Next())
+        assert hits and "الأحد" in hits[0]["text"]

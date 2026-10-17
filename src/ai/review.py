@@ -166,6 +166,9 @@ async def review(reviewer, question: str, answer: str, context: str) -> tuple[bo
     except Exception:
         return False, "review unavailable"
     text = raw.text if hasattr(raw, "text") else raw
-    if getattr(raw, "finish_reason", "stop") in ("length", "content_filter"):
+    finish = getattr(raw, "finish_reason", "stop")
+    if finish in ("length", "content_filter"):
         return False, "review truncated"
+    if finish not in ("stop", None):
+        return False, "review unavailable"
     return parse_verdict(text)

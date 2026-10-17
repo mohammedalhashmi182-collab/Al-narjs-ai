@@ -26,7 +26,16 @@ image. Use it only on a machine with several gigabytes free (a 4 GB plan is the 
 installing `sentence-transformers` there.
 
 Chunks store the provider name in `model` and the width in `dim`. A change of either reindexes that
-document and drops the previous provider's rows. A fixed `vector(N)` column is recreated when N does not
-match (768 for Gemini, 384 for MiniLM, 1536 for OpenAI small).
+document and drops the previous provider's rows. Tenant documents still stored as OpenAI
+`text-embedding-3-small` (1536) are reindexed by the background indexer, under the Postgres advisory
+lock (`pg_try_advisory_lock`), not on the first customer message.
+
+Indexing never runs `DROP COLUMN embedding_vec`. If the column is a fixed `vector(N)` that does not
+match the current width (768 Gemini, 384 MiniLM, 1536 OpenAI small), a warning is logged and the
+pgvector column is left alone. An admin rebuilds it by hand:
+
+```
+python scripts/rebuild_embedding_vec.py
+```
 
 Tests: `tests/test_rag*.py` (mocked; no network). Real Postgres+pgvector: `RAG_PG_TEST_URL=... pytest tests/test_rag_pgvector.py`.
