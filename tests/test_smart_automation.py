@@ -134,6 +134,20 @@ def test_legacy_plan_keys_do_not_crash_the_offer(old, current, name):
     assert catalog.purchasable_plan_key("missing") == catalog.RECOMMENDED_PACKAGE
 
 
+@pytest.mark.parametrize("old,name", [
+    ("radd", "البداية"),
+    ("bay", "النمو"),
+    ("tashgheel", "الشركات"),
+])
+def test_followup_names_the_current_plan_for_a_legacy_key(old, name):
+    reminder = smart_reply.compose_followup("qualified", 0, old, None)
+    assert f"«{name}»" in reminder
+    assert "«»" not in reminder
+    link = smart_reply.compose_followup("payment_link_sent", 1, old, "https://karmaai.online/pay/x")
+    assert f"«{name}»" in link
+    assert old not in link
+
+
 async def test_ready_to_buy_with_a_legacy_plan_key_drafts_a_current_plan(maker):
     async with maker() as s:
         lead = AcquisitionLead(company_name="متجر قديم", phone="966500000111", source="test")

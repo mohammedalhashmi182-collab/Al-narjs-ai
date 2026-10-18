@@ -134,7 +134,9 @@ def compose_closing() -> str:
 
 
 def compose_followup(stage: str, attempt: int, plan_key: str | None, payment_url: str | None) -> str:
-    plan = catalog.PACKAGES.get(plan_key or "", {}).get("name", "")
+    # Old lead keys (radd/bay/tashgheel) are not in PACKAGES; name them as the current plan.
+    current = catalog.purchasable_plan_key(plan_key) if plan_key else ""
+    plan = catalog.PACKAGES.get(current, {}).get("name", "")
     if stage == "payment_link_sent" and payment_url:
         return (f"هلا مجدداً 👋 حبيت أذكّرك برابط الاشتراك في باقة «{plan}»:\n{payment_url}\n"
                 "لو عندك أي سؤال قبل الدفع أنا موجود.")

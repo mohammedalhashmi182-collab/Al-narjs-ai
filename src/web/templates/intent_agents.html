@@ -18,8 +18,8 @@
 {% set _head = seo.head(
   'وكلاء الذكاء الاصطناعي للأعمال السعودية | النرجس',
   'AI Agents for Saudi Businesses | Al-Narjis AI',
-  'وكلاء ذكاء اصطناعي بالاشتراك الشهري للأعمال السعودية: ' ~ agent_count ~ ' وكيلاً متخصصاً، وفريق من 5 لكل باقة، بفاتورة رسمية.',
-  'Monthly AI agent subscriptions for Saudi businesses: ' ~ agent_count ~ ' specialized agents and a dedicated 5-agent team per plan.',
+  'وكلاء ذكاء اصطناعي بالاشتراك الشهري للأعمال السعودية. الكتالوج يضم ' ~ agent_count ~ ' وكيلاً متخصصاً، والباقات تختلف بحدود الاستخدام لا بعدد الوكلاء، بفاتورة رسمية.',
+  'Monthly AI agent subscriptions for Saudi businesses. The catalog lists ' ~ agent_count ~ ' specialized agents. Plans differ by usage limits, not by a headcount.',
   request.url.path,
   'website',
   jsonld=_jsonld) %}
@@ -71,9 +71,9 @@
     <h1>{% if _lang == 'ar' %}وكلاء الذكاء الاصطناعي للأعمال السعودية{% else %}AI Agents for Saudi Businesses{% endif %}</h1>
     <p class="lead">
         {% if _lang == 'ar' %}
-        منصة سعودية من الرياض تقدم الذكاء الاصطناعي باشتراك شهري: {{ agent_count }} وكيلاً متخصصاً، وباقات من ٥ وكلاء حتى ٣٥ وكيلاً بحدود استخدام واضحة. فاتورة ضريبية، ضريبة ١٥٪، إلغاء في أي وقت.
+        منصة سعودية من الرياض تقدم الذكاء الاصطناعي باشتراك شهري. الكتالوج يضم {{ agent_count }} وكيلاً متخصصاً، والباقات المنشورة تختلف بحد المحادثات ورسوم ميتا ورسوم الإعداد، لا بعدد الوكلاء. فاتورة ضريبية، ضريبة ١٥٪، إلغاء في أي وقت.
         {% else %}
-        A Riyadh-based Saudi platform that delivers AI on a monthly subscription: {{ agent_count }} specialized agents, and plans from 5 to 35 agents with clear usage limits. Tax invoice, 15% VAT, cancel anytime.
+        A Riyadh-based Saudi platform that delivers AI on a monthly subscription. The catalog lists {{ agent_count }} specialized agents. Published plans differ by the conversation cap, the Meta fee cap, and the setup fee, not by a headcount. Tax invoice, 15% VAT, cancel anytime.
         {% endif %}
     </p>
 
