@@ -18,11 +18,9 @@ VARIANT_QUOTE = "quote_followup"
 VARIANT_CUSTOMER = "customer_reengage"
 VARIANT_COLD = "cold_intro"
 
-# Telegram is the only support/outreach channel. The share URL is a deep link that
-# opens the chat picker with the draft already filled in; the rep picks the contact.
-TELEGRAM_SHARE_URL = "https://karmaai.online"
-TELEGRAM_BOT = "https://t.me/AlNarjs7BOT"
-TELEGRAM_SUPPORT = "https://t.me/AlNarjs7BOT?start=support"
+# Drafts are copied and sent by a person. Customer contact is the site assistant,
+# Al-Narjis@karmaai.online and 0540799266.
+CONTACT_EMAIL = "Al-Narjis@karmaai.online"
 
 VARIANT_LABELS_AR = {
     VARIANT_QUOTE: "متابعة عرض سعر",
@@ -164,7 +162,7 @@ def generate_message(
     phone = _val(lead, "phone")
     reachable = normalize_mobile_e164(phone) if phone else None
     tg_link = (
-        f"https://t.me/share/url?url={quote(TELEGRAM_SHARE_URL)}&text={quote(message)}"
+        f"mailto:{CONTACT_EMAIL}?body={quote(message)}"
         if reachable
         else None
     )

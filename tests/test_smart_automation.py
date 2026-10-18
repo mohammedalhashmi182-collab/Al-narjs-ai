@@ -109,18 +109,60 @@ PROBLEM = "عندي متجر إلكتروني والمبيعات ضعيفة وا
 # --------------------------------------------------------------------------- wording
 
 def test_offer_quotes_only_catalog_prices():
-    text = smart_reply.plan_lines("bay")
-    assert "1,499" in text and "14,990" in text and "299" in text and "4,000" in text
+    text = smart_reply.plan_lines("numuw")
+    assert "1,490" in text and "14,900" in text and "149" in text and "4,000" in text
     assert "رؤية 2030" in smart_reply.VISION_LINE
     for key, pkg in catalog.PACKAGES.items():
         assert f"{pkg['amount'] // 100:,}" in smart_reply.ladder_text()
-    assert catalog.ADDON_AGENT["amount"] == 29900
+    assert catalog.ADDON_AGENT["amount"] == 14900
 
 
 def test_ladder_matches_owner_pricing():
-    got = {k: (p["amount"] // 100, p["agent_count"]) for k, p in catalog.PACKAGES.items()}
-    assert got == {"radd": (599, 2), "bay": (1499, 6), "tashgheel": (3499, 15)}
-    assert catalog.plan_amount("radd", "annual") == 10 * catalog.plan_amount("radd", "monthly")
+    got = {k: (p["amount"] // 100, p.get("display_agents")) for k, p in catalog.PACKAGES.items()}
+    assert got == {"bidaya": (790, 5), "numuw": (1490, 15), "sharikat": (2990, 35)}
+    assert catalog.plan_amount("bidaya", "annual") == 10 * catalog.plan_amount("bidaya", "monthly")
+
+
+@pytest.mark.parametrize("old,current,name", [
+    ("radd", "bidaya", "البداية"),
+    ("bay", "numuw", "النمو"),
+    ("tashgheel", "sharikat", "الشركات"),
+])
+def test_legacy_plan_keys_do_not_crash_the_offer(old, current, name):
+    assert catalog.purchasable_plan_key(old) == current
+    assert name in smart_reply.plan_lines(old)
+    assert catalog.purchasable_plan_key("missing") == catalog.RECOMMENDED_PACKAGE
+
+
+@pytest.mark.parametrize("old,name", [
+    ("radd", "البداية"),
+    ("bay", "النمو"),
+    ("tashgheel", "الشركات"),
+])
+def test_followup_names_the_current_plan_for_a_legacy_key(old, name):
+    reminder = smart_reply.compose_followup("qualified", 0, old, None)
+    assert f"«{name}»" in reminder
+    assert "«»" not in reminder
+    link = smart_reply.compose_followup("payment_link_sent", 1, old, "https://karmaai.online/pay/x")
+    assert f"«{name}»" in link
+    assert old not in link
+
+
+async def test_ready_to_buy_with_a_legacy_plan_key_drafts_a_current_plan(maker):
+    async with maker() as s:
+        lead = AcquisitionLead(company_name="متجر قديم", phone="966500000111", source="test")
+        s.add(lead)
+        await s.flush()
+        s.add(LeadPipeline(lead_id=lead.id, channel="whatsapp", recipient="966500000111",
+                           stage="qualified", plan_key="bay", history=[]))
+        await s.commit()
+        draft = await smart_reply.handle_inbound(
+            s, channel="whatsapp", recipient="966500000111", text="ابغى اشترك", lead_id=lead.id,
+        )
+        assert draft is not None and draft.kind == "payment_link"
+        assert draft.plan_key == "numuw"
+        assert "النمو" in draft.draft_text
+        assert "bay" not in draft.draft_text
 
 
 # --------------------------------------------------------------------------- modes
@@ -234,7 +276,7 @@ async def test_opt_out_creates_no_reply_and_marks_lost(maker):
 async def test_short_hello_gets_one_greeting_not_spam(maker):
     async with maker() as s:
         first = await smart_reply.handle_inbound(s, channel="messenger", recipient="psid1", text="السلام عليكم")
-        assert first is not None and "ردّ" in first.draft_text
+        assert first is not None and "البداية" in first.draft_text
         assert await smart_reply.handle_inbound(s, channel="messenger", recipient="psid1", text="هلا") is None
 
 
@@ -278,7 +320,7 @@ async def test_payment_link_failure_is_reported_not_sent(maker, monkeypatch):
     async with maker() as s:
         await smart_reply.handle_inbound(s, channel="telegram", recipient="56", text=PROBLEM)
         pipe = (await s.execute(select(LeadPipeline))).scalars().one()
-        d = await lead_pipeline.request_payment_link(s, pipe.lead_id, "bay", billing_period="annual")
+        d = await lead_pipeline.request_payment_link(s, pipe.lead_id, "numuw", billing_period="annual")
         d = await smart_reply.approve(s, d.id)
         assert d.status == "failed" and "Unknown package" in d.send_result["error"]
 
@@ -290,7 +332,7 @@ async def test_owner_payment_link_endpoint_validates(api, maker):
         lead_id = (await s.execute(select(LeadPipeline))).scalars().one().lead_id
     r = await api.post(f"/api/owner/automation/pipeline/{lead_id}/payment-link", json={"plan_key": "nope"})
     assert r.status_code == 400
-    r = await api.post(f"/api/owner/automation/pipeline/{lead_id}/payment-link", json={"plan_key": "bay"})
+    r = await api.post(f"/api/owner/automation/pipeline/{lead_id}/payment-link", json={"plan_key": "numuw"})
     assert r.status_code == 200 and r.json()["kind"] == "payment_link" and r.json()["status"] == "pending"
 
 
@@ -390,7 +432,7 @@ def test_weekly_schedule_has_seven_real_posts():
     assert len({w["scheduled_for"].date() for w in week}) == 7
     assert any("رؤية 2030" in w["text"] for w in week)
     joined = "\n".join(w["text"] for w in week)
-    for key in ("radd", "bay", "tashgheel"):
+    for key in ("bidaya", "numuw", "sharikat"):
         assert f"{catalog.PACKAGES[key]['amount'] // 100:,}" in joined
     assert "%" not in joined  # no invented performance percentages
 

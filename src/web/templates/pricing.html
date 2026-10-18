@@ -14,10 +14,10 @@
     {% set _from = plans[0].price|int %}
     {% if ar %}
     <title>الباقات والأسعار | النرجس للذكاء الاصطناعي — وكلاء ذكاء اصطناعي لعملك</title>
-    <meta name="description" content="أسعار النرجس للذكاء الاصطناعي: {% for p in plans %}{{ p.name }} {{ '{:,}'.format(p.price|int) }} ر.س شهرياً{% if not loop.last %}، {% endif %}{% endfor %}، وباقة المؤسسات بعرض سعر. رسوم إعداد واضحة، إضافات حسب الحاجة، وضريبة 15٪ عند الدفع.">
+    <meta name="description" content="أسعار النرجس للذكاء الاصطناعي: {% for p in plans %}{{ p.name }} {{ '{:,}'.format(p.price|int) }} ر.س شهرياً{% if not loop.last %}، {% endif %}{% endfor %}. رسوم إعداد واضحة، إضافات حسب الحاجة، وضريبة ١٥٪ عند الدفع.">
     {% else %}
     <title>Pricing | Al-Narjis AI — AI agent teams for your business</title>
-    <meta name="description" content="Al-Narjis AI pricing: {% for p in plans %}{{ p.name_en }} SAR {{ '{:,}'.format(p.price|int) }}/month{% if not loop.last %}, {% endif %}{% endfor %}, and Enterprise by quote. Clear setup fees, add-ons as you need them, 15% VAT at checkout.">
+    <meta name="description" content="Al-Narjis AI pricing: {% for p in plans %}{{ p.name_en }} SAR {{ '{:,}'.format(p.price|int) }}/month{% if not loop.last %}, {% endif %}{% endfor %}. Clear setup fees, add-ons as you need them, 15% VAT at checkout.">
     {% endif %}
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">

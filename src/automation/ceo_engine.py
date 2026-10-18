@@ -213,8 +213,8 @@ class CompanyBrain:
             )
             description = (
                 "Gap-driven wave. Start with quotation-without-purchase evidence, interleave "
-                "recent historical customers, use the wa.me one-tap fallback until WhatsApp "
-                "credentials are configured, and push each reply to a demo."
+                "recent historical customers, keep unsent messages queued until credentials "
+                "are configured, and push each reply to a demo."
             )
             confidence = 0.62
             priority = 190

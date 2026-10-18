@@ -20,8 +20,6 @@
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     {% include "partials/_analytics.html" %}
     <style>
-        body[data-lang="ar"] [data-lang="en"] { display: none; }
-        body[data-lang="en"] [data-lang="ar"] { display: none; }
     </style>
 </head>
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
@@ -31,7 +29,7 @@
                 <span class="text-3xl" style="color:var(--n-gold);">✺</span>
                 <div>
                     <div class="n-title text-xl" style="font-size:1.25rem;">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
-                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">الباقة · PACKAGE</div>
+                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}الباقة{% else %}Package{% endif %}</div>
                 </div>
             </a>
             <div class="flex items-center gap-3">
@@ -40,7 +38,7 @@
                     <button data-lang-btn="en" class="english {{ 'active' if _lang == 'en' }}">EN</button>
                 </div>
                 <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
-                    <span data-lang="ar" lang="ar" dir="rtl">الرئيسية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Home</span>
+                    {% if _lang == 'ar' %}<span>الرئيسية</span>{% else %}<span data-inline>Home</span>{% endif %}
                 </a>
             </div>
         </div>
@@ -52,18 +50,17 @@
 
     <footer class="n-footer py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);"><span data-lang="ar" lang="ar" dir="rtl">✺ النرجس للذكاء الاصطناعي ✺</span><span data-lang="en" lang="en" dir="ltr" data-inline>✺ Al-Narjis AI ✺</span></div>
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
-                <span data-lang="ar" lang="ar" dir="rtl">مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>
-                <span data-lang="en" lang="en" dir="ltr" data-inline>The Arabian Convoy Establishment · CR 31332495263 ·</span>
-                <a href="/privacy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الخصوصية</span><span data-lang="en" lang="en" dir="ltr" data-inline>Privacy</span></a>
+                {% if _lang == 'ar' %}<span>مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>{% else %}<span data-inline>The Arabian Convoy Establishment · CR 31332495263 ·</span>{% endif %}
+                <a href="/privacy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/terms" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">الشروط</span><span data-lang="en" lang="en" dir="ltr" data-inline>Terms</span></a>
+                <a href="/terms" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الشروط</span>{% else %}<span data-inline>Terms</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/refund-policy" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">سياسة الاسترداد</span><span data-lang="en" lang="en" dir="ltr" data-inline>Refund policy</span></a>
+                <a href="/refund-policy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>سياسة الاسترداد</span>{% else %}<span data-inline>Refund policy</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
-                <a href="/about" style="color:var(--n-gold);"><span data-lang="ar" lang="ar" dir="rtl">من نحن</span><span data-lang="en" lang="en" dir="ltr" data-inline>About</span></a>
+                <a href="/about" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>من نحن</span>{% else %}<span data-inline>About</span>{% endif %}</a>
             </p>
         </div>
     </footer>

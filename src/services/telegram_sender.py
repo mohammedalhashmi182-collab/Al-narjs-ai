@@ -5,7 +5,7 @@ Rules (kept from the retired WhatsApp sender, which they governed):
   local system and nothing is marked sent.
 - Every send requires a real Bot API ack (``ok: true`` + ``message_id``) before
   it is recorded. A failed call is recorded as a failure — never silently sent.
-- The owner gets a ``t.me`` fallback link for manual outreach.
+- Without a token the message stays queued for the owner to send manually.
 - Secrets (tokens, auth headers) are never written to the database, logs, or
   response payloads — the bot token lives only inside the request URL and is
   never echoed.
@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 API_URL = "https://api.telegram.org"
 CHANNEL = "telegram"
 DISABLED_REASON = "TELEGRAM_TOKEN غير مُعدّ في ملف .env"
-FALLBACK = "t.me"
+FALLBACK = "manual"
 
 
 def is_enabled() -> bool:

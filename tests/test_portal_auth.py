@@ -102,7 +102,7 @@ async def test_creating_a_project_grants_its_session(maker):
     await registry.sync_base_agents()
     app.state.agent_registry = registry
     async with _client(maker) as c:
-        r = await c.post("/api/portal/projects", json={"client_name": "x", "phone": "0555000000", "package": "radd"})
+        r = await c.post("/api/portal/projects", json={"client_name": "x", "phone": "0555000000", "package": "bidaya"})
         assert r.status_code == 200 and portal_auth.COOKIE_NAME in r.cookies
         pid = r.json()["project_id"]
         assert (await c.get(f"/api/portal/projects/{pid}")).status_code == 200

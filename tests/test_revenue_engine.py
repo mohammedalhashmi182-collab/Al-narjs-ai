@@ -197,7 +197,7 @@ class TestFlags:
         assert "no_reachable_channel" in data_flags(lead)
 
     def test_unparsed_phone_flag(self):
-        lead = _FakeLead(phone_raw="06552978753", phone=None)
+        lead = _FakeLead(phone_raw="06111000000", phone=None)
         assert "unparsed_phone" in data_flags(lead)
 
 
@@ -237,7 +237,7 @@ class TestTelegramSender:
             assert status["connected"] is False
             assert status["disabled_reason"]
             # The status payload must never leak a credential value.
-            assert "t.me" in status["fallback"]
+            assert status["fallback"] == "manual"
         finally:
             object.__setattr__(_settings, "telegram_token", was_token)
             object.__setattr__(_settings, "telegram_owner_chat_id", was_owner)
@@ -296,7 +296,7 @@ async def test_radar_payloads_have_evidence_and_no_secrets(api, maker):
     payload = wave["wave"][0]
     assert payload["tier"] in ("A", "B")
     assert payload["reference_id"]
-    assert payload["price_sar"] == catalog.tier_price_sar("growth") == 1499
+    assert payload["price_sar"] == catalog.tier_price_sar("growth") == 790
     assert payload["insight"]
     assert payload["message_draft"]
     assert "C:" not in str(payload)

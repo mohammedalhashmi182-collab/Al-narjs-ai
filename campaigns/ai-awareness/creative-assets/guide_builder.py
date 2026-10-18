@@ -90,7 +90,7 @@ def cta_page(d, page, total):
     f = font("Tajawal-Black", 96)
     d.text((W // 2, 300), shape("جاهز تبدأ خطوتك الأولى؟"), font=f, fill=(255, 255, 244), anchor="mm")
     d.text((W // 2, 500), shape("ادخل من الآن — دقيقة واحدة وتكون بفريقك الرقمي."), font=font("Tajawal-Regular", 48), fill=(214, 210, 200), anchor="mm")
-    code = shape("NARJIS50  •  خصم 50%")
+    code = shape("جرّب مجاناً")
     f2 = font("Tajawal-Bold", 60)
     bw = f2.getbbox(code)[2] + 90
     d.rounded_rectangle((W // 2 - bw / 2, 720, W // 2 + bw / 2, 850), radius=62, outline=GOLD, width=4)
@@ -121,7 +121,7 @@ PAGES = [
     },
     {
         "kicker": "فريقك الرقمي",
-        "title": "أربعة إيجنتس = فريق كامل",
+        "title": "الباقة تغطي المحتوى والردود والمتجر والتسويق",
         "bullets": [
             "إيجنت سوشيال: يخطط وينشر محتواك على المواعيد.",
             "إيجنت متاجر: يرفع المنتجات ويحدّث الأسعار والكوبونات.",

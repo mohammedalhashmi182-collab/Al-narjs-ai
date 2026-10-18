@@ -1,9 +1,18 @@
 import os
+import tempfile
 
 os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-production")
 os.environ.setdefault("OWNER_PASSWORD", "test-owner-password-not-for-production")
 os.environ.setdefault("ENVIRONMENT", "test")
-os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test_ai_agent_system.db")
+
+# One SQLite file per pytest process. The old shared ./test_ai_agent_system.db
+# leaked rows and locks across runs and xdist workers.
+_db_now = os.environ.get("DATABASE_URL", "")
+_shared_sqlite = _db_now.endswith("test_ai_agent_system.db") or _db_now.endswith("ai_agent_system.db")
+if not _db_now or _shared_sqlite:
+    _worker = os.environ.get("PYTEST_XDIST_WORKER", "master")
+    _db_dir = tempfile.mkdtemp(prefix=f"narjis-pytest-{_worker}-{os.getpid()}-")
+    os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///" + os.path.join(_db_dir, "test.db")
 
 
 import pytest as _pytest

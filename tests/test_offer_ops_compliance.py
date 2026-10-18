@@ -66,39 +66,36 @@ def test_catalog_no_longer_sells_unbuilt_features_as_live():
     text = "\n".join(line for p in catalog.PACKAGES.values() for line in p["scope"] + p["scope_en"])
     for claim in UNBUILT_LIVE_CLAIMS:
         assert claim not in text
-    # Voice stays in "coming". Salla/Zid may sit in scope only when the line
-    # itself says قريباً, matching the store-integration coming-soon copy.
-    for key in ("bay", "tashgheel"):
-        for line in catalog.PACKAGES[key]["scope"]:
-            if any(w in line for w in ("سلة", "زد")):
-                assert "قريباً" in line, line
-            else:
-                assert "صوت" not in line, line
-        for line in catalog.PACKAGES[key]["scope_en"]:
+    # Salla/Zid is labelled coming soon and is not sold as included.
+    growth = catalog.PACKAGES["numuw"]
+    assert any("قريباً" in line for line in growth["coming"])
+    assert any("coming soon" in line.lower() for line in growth["coming_en"])
+    for key in catalog.PACKAGE_ORDER:
+        for line in catalog.PACKAGES[key]["scope"] + catalog.PACKAGES[key]["scope_en"]:
             low = line.lower()
-            if "salla" in low or "zid" in low:
-                assert "coming soon" in low, line
-            else:
-                assert "voice" not in low, line
-        assert any("صوت" in line or "صوتي" in line for line in catalog.PACKAGES[key]["coming"])
+            assert "تيليجرام" not in line and "ماسنجر" not in line
+            assert "telegram" not in low and "messenger" not in low
+            assert "وكيل صوتي" not in line and "دقائق الصوت" not in line
+            assert "voice agent" not in low and "voice minute" not in low
 
 
 def test_salla_zid_scope_line_stays_coming_soon():
-    """Same assertion as the store-integration suite: the bay scope line says قريباً."""
-    line = next(item for item in catalog.PACKAGES["bay"]["scope"] if "سلة" in item)
-    assert line == "ربط متجرك على سلة أو زد (قريباً): الطلبات، تذكير السلات المتروكة، وحالة الشحن"
-    en = next(item for item in catalog.PACKAGES["bay"]["scope_en"] if "Salla" in item)
+    """النمو lists the store connection as coming soon, not as included."""
+    line = next(item for item in catalog.PACKAGES["numuw"]["coming"] if "سلة" in item)
+    assert line == "ربط سلة أو زد (قريباً)"
+    en = next(item for item in catalog.PACKAGES["numuw"]["coming_en"] if "Salla" in item)
     assert "coming soon" in en.lower()
+    assert not any("سلة" in item for item in catalog.PACKAGES["numuw"]["scope"])
 
 
 def test_prices_and_limits_unchanged():
-    assert [catalog.PACKAGES[k]["amount"] for k in catalog.PACKAGE_ORDER] == [59900, 149900, 349900]
-    assert catalog.PACKAGES["bay"]["limits"]["voice_minutes"] == 150
+    assert [catalog.PACKAGES[k]["amount"] for k in catalog.PACKAGE_ORDER] == [79000, 149000, 299000]
+    assert [catalog.PACKAGES[k]["limits"]["conversations"] for k in catalog.PACKAGE_ORDER] == [1000, 4000, 10000]
 
 
-def test_landing_marks_voice_as_coming_soon():
+def test_landing_does_not_sell_voice_minutes():
     html = (TPL / "landing.html").read_text(encoding="utf-8") + (TPL / "partials" / "_pricing_section.html").read_text(encoding="utf-8")
-    assert "دقائق الصوت شهرياً (قريباً)" in html and "Voice minutes / month (coming soon)" in html
+    assert "دقائق الصوت" not in html and "Voice minutes" not in html
 
 
 # ------------------------------------------------------------------ 6. conversation QA
@@ -106,7 +103,7 @@ def test_landing_marks_voice_as_coming_soon():
 def test_qa_accepts_catalog_prices():
     from src.services import smart_reply
 
-    r = draft_qa.score_draft(smart_reply.plan_lines("bay"))
+    r = draft_qa.score_draft(smart_reply.plan_lines("numuw"))
     assert not any(i["code"] == "invented_price" for i in r["issues"]), r
 
 
@@ -381,7 +378,8 @@ def test_google_subprocessor_includes_embeddings():
 
     google = next(row for row in SUBPROCESSORS if row["name"].startswith("Google"))
     assert "embeddings" in google["purpose_en"]
-    assert "embeddings" in google["purpose_ar"]
+    assert "تضمين النصوص" in google["purpose_ar"]
+    assert "embeddings" not in google["purpose_ar"]
 
 
 def test_retention_table_is_on_subprocessors_and_dpa():

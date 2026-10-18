@@ -331,8 +331,8 @@ async def sales_overview(request: Request):
             "proposal_rate": rate("PROPOSAL"),
             "won_rate": rate("WON"),
         },
-        "telegram_bot": lead_outreach.TELEGRAM_BOT,
-        "telegram_support": lead_outreach.TELEGRAM_SUPPORT,
+        "contact_email": "Al-Narjis@karmaai.online",
+        "contact_phone": "0540799266",
         "top_leads": [_lead_dict(l) for l in priority_leads],
     }
 

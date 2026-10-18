@@ -14,7 +14,10 @@ import sys
 import textwrap
 import time
 
+import pytest
 
+
+@pytest.mark.allow_hosts(["127.0.0.1"])
 def test_idle_keepalive_close_sends_no_status_until_the_timeout_is_raised():
     closed = _exchange(timeout_keep_alive=1, pause=1.6)
     assert closed["first"] == 200

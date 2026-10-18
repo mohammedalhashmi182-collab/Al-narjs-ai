@@ -8,8 +8,8 @@ inbound message. Outside that window a pre-approved template is required.
 1. inside the 24h window            -> plain text through ``whatsapp_sender``
 2. outside, template ``approved``   -> template message through the Cloud API
 3. otherwise (no approved template, WhatsApp not configured, or the send
-   failed)                          -> fallback: a queued ``wa.me`` link for the
-   owner plus a Telegram War Room note. Nothing is marked sent without an ack.
+   failed)                          -> fallback: queued for the owner to send
+   manually, plus an owner alert. Nothing is marked sent without an ack.
 
 ``DEFAULT_TEMPLATES`` is the list to submit in Meta Business Manager; see
 ``docs/whatsapp-templates.md``. Their status starts as ``draft`` and is only
@@ -176,7 +176,7 @@ async def _fallback(session: AsyncSession, *, phone: Any, text: str, lead_id: An
 
     session.add(OutboundMessage(
         id=uuid4(), lead_id=lead_id, channel="whatsapp", phone=(str(phone or ""))[:32] or None,
-        text=text, status=FALLBACK_STATUS, message_type="text", provider="wa.me",
+        text=text, status=FALLBACK_STATUS, message_type="text", provider="manual",
         error=reason[:500], wa_me_link=whatsapp_sender._wa_me_link(phone, text),
         created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
     ))

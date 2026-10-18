@@ -78,14 +78,13 @@ def _sar(halalas: int) -> str:
 
 
 def plan_lines(plan_key: str, addons: int = 0) -> str:
-    pkg = catalog.PACKAGES[plan_key]
-    monthly = catalog.plan_amount(plan_key, "monthly", addons)
-    annual = catalog.plan_amount(plan_key, "annual", addons)
-    agents = pkg["agent_count"] + addons
-    unit = "وكيل" if agents == 1 else "وكلاء"
-    extra = f" (منها {addons} إضافي)" if addons else ""
+    key = catalog.purchasable_plan_key(plan_key)
+    pkg = catalog.PACKAGES[key]
+    monthly = catalog.plan_amount(key, "monthly", addons)
+    annual = catalog.plan_amount(key, "annual", addons)
+    extra = f" مع {addons} وكيل إضافي" if addons else ""
     return (
-        f"باقة «{pkg['name']}»: {agents} {unit} ذكاء اصطناعي{extra} بـ {_sar(monthly)} ريال شهرياً، "
+        f"باقة «{pkg['name']}»{extra}: {_sar(monthly)} ريال شهرياً، "
         f"أو {_sar(annual)} ريال سنوياً (تدفع 10 أشهر وتاخذ 12). "
         f"تشمل {pkg['limits']['conversations']:,} محادثة ذكية شهرياً"
         + (f" و{pkg['limits']['voice_minutes']} دقيقة صوت عند إطلاق الوكيل الصوتي (قريباً)" if pkg['limits']['voice_minutes'] else "")
@@ -97,11 +96,9 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
 
 def ladder_text() -> str:
     rows = []
-    for key, pkg in catalog.PACKAGES.items():
-        rows.append(f"• {pkg['name']}: {pkg['agent_count']} {'وكيل' if pkg['agent_count'] == 1 else 'وكلاء'} – "
-                    f"{_sar(pkg['amount'])} ريال/شهر – {pkg['limits']['conversations']:,} محادثة")
-    ent = catalog.ENTERPRISE
-    rows.append(f"• {ent['name']}: بعرض سعر، يبدأ من نحو {int(ent['price_from']):,} ريال/شهر")
+    for _key, pkg in catalog.PACKAGES.items():
+        rows.append(f"• {pkg['name']}: {_sar(pkg['amount'])} ريال/شهر – "
+                    f"{pkg['limits']['conversations']:,} محادثة")
     return "\n".join(rows)
 
 
@@ -137,7 +134,9 @@ def compose_closing() -> str:
 
 
 def compose_followup(stage: str, attempt: int, plan_key: str | None, payment_url: str | None) -> str:
-    plan = catalog.PACKAGES.get(plan_key or "", {}).get("name", "")
+    # Old lead keys (radd/bay/tashgheel) are not in PACKAGES; name them as the current plan.
+    current = catalog.purchasable_plan_key(plan_key) if plan_key else ""
+    plan = catalog.PACKAGES.get(current, {}).get("name", "")
     if stage == "payment_link_sent" and payment_url:
         return (f"هلا مجدداً 👋 حبيت أذكّرك برابط الاشتراك في باقة «{plan}»:\n{payment_url}\n"
                 "لو عندك أي سؤال قبل الدفع أنا موجود.")
@@ -308,7 +307,8 @@ async def handle_inbound(
         body = compose_closing()
     elif intent == "READY_TO_BUY" and pipe.plan_key:
         kind = "payment_link"
-        pkg = catalog.PACKAGES[pipe.plan_key]
+        plan_key = catalog.purchasable_plan_key(pipe.plan_key)
+        pkg = catalog.PACKAGES.get(plan_key) or catalog.PACKAGES[catalog.RECOMMENDED_PACKAGE]
         body = (f"ممتاز 🎉 هذا رابط الاشتراك الآمن (ميسّر) لباقة «{pkg['name']}»:\n{{payment_url}}\n"
                 "بعد الدفع نبدأ تجهيز فريقك مباشرة.")
     else:

@@ -21,13 +21,13 @@ BASE_TAGS = ["#النرجس_للذكاء_الاصطناعي", "#رؤية_2030", 
 
 # (weekday 0=Mon, local hour, platform, theme, plan) — Saudi evening peak, Fri lighter.
 WEEKLY_SLOTS: tuple[tuple[int, int, str, str, str | None], ...] = (
-    (6, 20, "instagram", "problem_solution", "radd"),   # Sunday
+    (6, 20, "instagram", "problem_solution", "bidaya"),  # Sunday
     (0, 21, "linkedin", "vision2030", None),               # Monday
-    (1, 20, "x", "plan_spotlight", "radd"),                # Tuesday
+    (1, 20, "x", "plan_spotlight", "bidaya"),              # Tuesday
     (2, 21, "instagram", "how_it_works", None),            # Wednesday
-    (3, 20, "tiktok", "plan_spotlight", "bay"),          # Thursday
+    (3, 20, "tiktok", "plan_spotlight", "numuw"),          # Thursday
     (4, 16, "x", "addon", None),                           # Friday (after prayers)
-    (5, 21, "linkedin", "plan_spotlight", "tashgheel"),      # Saturday
+    (5, 21, "linkedin", "plan_spotlight", "sharikat"),     # Saturday
 )
 
 
@@ -35,30 +35,31 @@ def _sar(halalas: int) -> str:
     return f"{halalas // 100:,}"
 
 
-def _agents_word(n: int) -> str:
-    return "وكيل" if n == 1 else "وكلاء"
-
-
 def compose_post(theme: str, plan_key: str | None = None) -> str:
     link = "karmaai.online"
     if theme == "plan_spotlight" and plan_key in catalog.PACKAGES:
         pkg = catalog.PACKAGES[plan_key]
-        n = pkg["agent_count"]
-        return (f"باقة «{pkg['name']}» 🌟\n{n} {_agents_word(n)} ذكاء اصطناعي يشتغلون لمنشأتك بـ "
+        return (f"باقة «{pkg['name']}» 🌟\n"
                 f"{_sar(pkg['amount'])} ريال شهرياً، أو {_sar(catalog.plan_amount(plan_key, 'annual'))} ريال سنوياً "
-                f"(ادفع 10 أشهر واحصل على 12).\nاكتب لنا مشكلتك ويرشّح لك المدير التنفيذي الافتراضي الفريق المناسب.\n{link}")
+                f"(ادفع 10 أشهر واحصل على 12).\n"
+                f"تشمل {pkg['limits']['conversations']:,} محادثة شهرياً، ورسوم ميتا حتى {pkg['limits']['meta_cap'] // 100} ريال.\n"
+                f"اكتب لنا مشكلتك ويرشّح لك الرئيس التنفيذي الباقة المناسبة.\n{link}")
     if theme == "problem_solution":
         pkg = catalog.PACKAGES[plan_key or catalog.PACKAGE_ORDER[0]]
         return ("ردود العملاء متأخرة؟ المحتوى متقطّع؟ الإعلانات ما تجيب نتيجة؟ 🤔\n"
-                f"ابدأ بباقة «{pkg['name']}» بـ {_sar(pkg['amount'])} ريال شهرياً، ووكيلان ذكيان يردّان على عملائك ويتابعون الطلب حتى الفاتورة.\n"
+                f"ابدأ بباقة «{pkg['name']}» بـ {_sar(pkg['amount'])} ريال شهرياً.\n"
                 f"وصف مشكلتك بكلماتك على {link}")
     if theme == "vision2030":
+        prices = "، ".join(
+            f"«{catalog.PACKAGES[k]['name']}» {_sar(catalog.PACKAGES[k]['amount'])} ريال"
+            for k in catalog.PACKAGE_ORDER
+        )
         return ("التحول الرقمي من مستهدفات رؤية 2030 🇸🇦\n"
-                "في «النرجس» نوفّر للمنشآت الصغيرة والمتوسطة فريق وكلاء ذكاء اصطناعي بالعربي: تسويق، مبيعات، خدمة عملاء، محتوى وتحليل.\n"
-                f"اختر حجم الفريق اللي يناسبك من وكيلين إلى 15 وكيل.\n{link}")
+                "في «النرجس» نوفّر للمنشآت الصغيرة والمتوسطة اشتراكاً بالعربي وفاتورة ضريبية.\n"
+                f"الباقات: {prices} شهرياً.\n{link}")
     if theme == "how_it_works":
-        return ("كيف نشتغل؟ 3 خطوات:\n1️⃣ تكتب مشكلتك بكلماتك\n2️⃣ المدير التنفيذي الافتراضي يشخّصها ويرشّح الفريق\n"
-                f"3️⃣ تشترك ونبدأ تجهيز وكلائك\nجرّبها الحين على {link}")
+        return ("كيف نشتغل؟ 3 خطوات:\n1️⃣ تكتب مشكلتك بكلماتك\n2️⃣ الرئيس التنفيذي يشخّصها ويرشّح الباقة\n"
+                f"3️⃣ تشترك ونبدأ التجهيز\nجرّبها الحين على {link}")
     if theme == "addon":
         add = _sar(catalog.ADDON_AGENT["amount"])
         return (f"فريقك يحتاج يد زيادة؟ 💪 أضف أي وكيل ذكاء اصطناعي لباقتك بـ {add} ريال شهرياً فقط، بدون تغيير باقتك.\n{link}")

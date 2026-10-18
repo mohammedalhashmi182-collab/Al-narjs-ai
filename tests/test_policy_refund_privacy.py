@@ -62,7 +62,7 @@ async def anon(maker):
 
 async def test_payment_without_consent_is_blocked(anon, maker):
     with _no_gateway():
-        r = await anon.post("/api/payments", json={"package": "radd", "method": "invoice"})
+        r = await anon.post("/api/payments", json={"package": "bidaya", "method": "invoice"})
     assert r.status_code == 422
     assert policies.REFUND_CONSENT_AR in r.json()["detail"]["message_ar"]
     async with maker() as s:
@@ -71,13 +71,22 @@ async def test_payment_without_consent_is_blocked(anon, maker):
 
 async def test_payment_false_consent_is_blocked(anon):
     with _no_gateway():
-        r = await anon.post("/api/payments", json={"package": "radd", "method": "mada", "refund_consent": False})
+        r = await anon.post("/api/payments", json={"package": "bidaya", "method": "mada", "refund_consent": False})
     assert r.status_code == 422
 
 
 async def test_consent_timestamp_is_stored(anon, maker):
+    from src.core.owner_auth import make_session_token
+
     with _no_gateway():
-        r = await anon.post("/api/payments", json={"package": "radd", "method": "invoice", "refund_consent": True})
+        refused = await anon.post(
+            "/api/payments", json={"package": "bidaya", "method": "invoice", "refund_consent": True}
+        )
+        anon.cookies.set("narjis_owner", make_session_token())
+        r = await anon.post(
+            "/api/payments", json={"package": "bidaya", "method": "invoice", "refund_consent": True}
+        )
+    assert refused.status_code == 400
     assert r.status_code == 200, r.text
     async with maker() as s:
         p = await s.get(Payment, UUID(r.json()["payment_id"]))

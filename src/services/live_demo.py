@@ -74,10 +74,10 @@ def check_rate(ip: str) -> tuple[bool, int]:
 
 
 def whatsapp_config() -> dict:
-    """Optional WhatsApp demo number (env only; nothing is configured by default)."""
+    """Optional demo phone id from the environment. No public contact link is built."""
     number = re.sub(r"\D", "", os.getenv("DEMO_WHATSAPP_NUMBER", ""))
     return {"enabled": bool(number), "number": number or None,
-            "link": f"https://wa.me/{number}" if number else None,
+            "link": None,
             "phone_number_id": os.getenv("DEMO_WA_PHONE_NUMBER_ID", "").strip() or None}
 
 
@@ -85,7 +85,7 @@ async def ensure_demo_project(session: AsyncSession) -> ClientProject:
     proj = (await session.execute(select(ClientProject).where(
         ClientProject.email == DEMO_EMAIL, ClientProject.status == DEMO_STATUS))).scalar_one_or_none()
     if proj is None:
-        proj = ClientProject(client_name=DEMO_NAME, phone="0000000000", email=DEMO_EMAIL, package="radd",
+        proj = ClientProject(client_name=DEMO_NAME, phone="0000000000", email=DEMO_EMAIL, package="bidaya",
                              status=DEMO_STATUS, reply_mode="review",
                              subscription_note="مشروع العرض التجريبي — لا فوترة ولا مدفوعات")
         session.add(proj)

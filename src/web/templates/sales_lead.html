@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block title %}بطاقة عميل - Karma AI{% endblock %}
-{% block page_title %}<span data-lang="ar" lang="ar" dir="rtl">بطاقة العميل المحتمل</span><span data-lang="en" lang="en" dir="ltr" data-inline>Lead record</span>{% endblock %}
+{% block page_title %}{% if _lang == 'ar' %}<span>بطاقة العميل المحتمل</span>{% else %}<span data-inline>Lead record</span>{% endif %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto" id="app" data-lead-id="{{ lead_id }}">
-    <a href="/acquisition" class="text-sm text-gray-500 hover:text-gray-800">&larr; <span data-lang="ar" lang="ar" dir="rtl">عودة للوحة البيع</span><span data-lang="en" lang="en" dir="ltr" data-inline>Back to pipeline</span></a>
+    <a href="/acquisition" class="text-sm text-gray-500 hover:text-gray-800">&larr; {% if _lang == 'ar' %}<span>عودة للوحة البيع</span>{% else %}<span data-inline>Back to pipeline</span>{% endif %}</a>
 
     <div class="grid lg:grid-cols-3 gap-6 mt-4">
         <div class="lg:col-span-2 space-y-6">
@@ -21,19 +21,19 @@
             </div>
 
             <div class="bg-white rounded-2xl shadow p-6" id="next-action-card">
-                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-forward text-blue-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">الإجراء التالي</span><span data-lang="en" lang="en" dir="ltr" data-inline>Next action</span></h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-forward text-blue-600 me-2"></i>{% if _lang == 'ar' %}<span>الإجراء التالي</span>{% else %}<span data-inline>Next action</span>{% endif %}</h3>
                 <div class="grid sm:grid-cols-2 gap-3 text-sm" id="next-action-facts"></div>
                 <div id="next-action-missing" class="text-xs text-amber-700 mt-3"></div>
             </div>
 
             <div class="bg-white rounded-2xl shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-lightbulb text-amber-500 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">لماذا نستهدف هذه الشركة؟</span><span data-lang="en" lang="en" dir="ltr" data-inline>Why this lead</span></h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-lightbulb text-amber-500 me-2"></i>{% if _lang == 'ar' %}<span>لماذا نستهدف هذه الشركة؟</span>{% else %}<span data-inline>Why this lead</span>{% endif %}</h3>
                 <ul id="reasons" class="list-disc ps-5 text-sm text-gray-700 space-y-1"></ul>
             </div>
 
             <div class="bg-white rounded-2xl shadow p-6">
                 <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
-                    <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-comment-dots text-emerald-600 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">رسالة تواصل مخصصة</span><span data-lang="en" lang="en" dir="ltr" data-inline>Outreach draft</span></h3>
+                    <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-comment-dots text-emerald-600 me-2"></i>{% if _lang == 'ar' %}<span>رسالة تواصل مخصصة</span>{% else %}<span data-inline>Outreach draft</span>{% endif %}</h3>
                     <div class="flex gap-2 text-sm">
                         <select id="variant" class="border rounded px-2 py-1"></select>
                         <button id="btn-generate" class="px-3 py-1 rounded bg-emerald-600 text-white">توليد</button>
@@ -42,14 +42,13 @@
                 <textarea id="message" rows="8" class="w-full border rounded p-3 text-sm leading-7" style="direction:rtl;"></textarea>
                 <div class="flex flex-wrap gap-2 mt-3">
                     <button id="btn-copy" class="px-3 py-1.5 rounded border text-sm">نسخ الرسالة</button>
-                    <a id="btn-tg" class="px-3 py-1.5 rounded bg-[#229ED9] text-white text-sm" target="_blank" rel="noopener" href="https://t.me/AlNarjs7BOT?start=support"><i class="fab fa-telegram-plane"></i> فتح تيليجرام</a>
                     <a id="btn-demo" class="px-3 py-1.5 rounded bg-gray-800 text-white text-sm" target="_blank" href="/acquisition/leads/{{ lead_id }}/demo"><i class="fas fa-laptop-code"></i> فتح Demo</a>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">الإرسال يدوي. افتح تيليجرام ← الصق الرسالة ← أرسل. لا يوجد إرسال آلي.</p>
+                <p class="text-xs text-gray-400 mt-2">الإرسال يدوي. انسخ الرسالة وأرسلها بنفسك عبر البريد أو الاتصال. لا يوجد إرسال آلي. التواصل: Al-Narjis@karmaai.online · 0540799266.</p>
             </div>
 
             <div class="bg-white rounded-2xl shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-history text-gray-500 me-2"></i><span data-lang="ar" lang="ar" dir="rtl">سجل النشاط</span><span data-lang="en" lang="en" dir="ltr" data-inline>Activity log</span></h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3"><i class="fas fa-history text-gray-500 me-2"></i>{% if _lang == 'ar' %}<span>سجل النشاط</span>{% else %}<span data-inline>Activity log</span>{% endif %}</h3>
                 <div id="events" class="text-sm space-y-3"></div>
             </div>
         </div>
@@ -128,9 +127,6 @@ async function load(){
 
 function setMessage(draft){
     document.getElementById('message').value=draft.message;
-    const tg=document.getElementById('btn-tg');
-    if(draft.tg_link){tg.href=draft.tg_link;tg.classList.remove('opacity-40');tg.style.pointerEvents='auto';}
-    else{tg.removeAttribute('href');tg.style.pointerEvents='none';tg.classList.add('opacity-40');}
     document.getElementById('btn-demo').href=`/acquisition/leads/${LEAD_ID}/demo`;
 }
 

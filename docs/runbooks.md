@@ -37,7 +37,7 @@ Symptoms: WhatsApp sends fail with Meta error code `190` (OAuthException) or HTT
 2. Meta Business Settings → System users → generate a **permanent system-user token** with `whatsapp_business_messaging` and `whatsapp_business_management` for the WABA. (Temporary tokens expire in 24h.)
 3. Render → Environment → update `WHATSAPP_TOKEN` (never paste it anywhere else). Render redeploys.
 4. Verify by checking `/webhooks/whatsapp/health` and sending a test message to your own number.
-5. Resend the queued fallbacks: messages with status `awaiting_manual` (open the `wa.me` link or re-trigger the send).
+5. Resend the queued fallbacks: messages with status `awaiting_manual` (re-trigger the send from the owner queue).
 
 ## Payment webhook failure (Moyasar / PayPal)
 

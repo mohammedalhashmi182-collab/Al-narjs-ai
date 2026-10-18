@@ -136,7 +136,7 @@ class TestStatus:
             status = ts.send_status()
             assert status["enabled"] is False
             assert status["token_configured"] is False
-            assert status["fallback"] == "t.me"
+            assert status["fallback"] == "manual"
             assert TOKEN not in json.dumps(status)
 
     def test_enabled_with_token(self):
@@ -335,7 +335,7 @@ class TestSendLifecycle:
             async with maker() as s:
                 result = await ts.send_now(s, lead_id=lead.id, chat_id=CHAT, text="مرحباً")
                 assert result["status"] == "awaiting_credential"
-                assert result["fallback"] == "t.me"
+                assert result["fallback"] == "manual"
                 record = (await s.execute(
                     select(OutboundMessage).order_by(OutboundMessage.created_at.desc()).limit(1)
                 )).scalar_one()

@@ -26,7 +26,7 @@ def test_coming_features_not_listed_as_included():
                 continue
             assert "قريباً" not in line and "coming soon" not in lowered, (key, line)
         assert len(p.get("coming", [])) == len(p.get("coming_en", []))
-    assert catalog.PACKAGES["bay"]["coming"]
+    assert catalog.PACKAGES["numuw"]["coming"]
 
 
 def test_pricing_page_splits_now_and_coming(client):
@@ -38,8 +38,9 @@ def test_pricing_page_splits_now_and_coming(client):
 
 def test_portal_api_exposes_features_and_coming(client):
     pk = client.get("/api/portal/packages").json()["packages"]
-    bay = next(p for p in pk if p["key"] == "bay")
-    assert bay["features"] and bay["coming"] and bay["coming_en"]
+    growth = next(p for p in pk if p["key"] == "numuw")
+    assert growth["features"] and growth["coming"] and growth["coming_en"]
+    assert all(p["key"] not in {"radd", "bay", "tashgheel"} for p in pk)
 
 
 def test_refund_policy_available_features_only(client):

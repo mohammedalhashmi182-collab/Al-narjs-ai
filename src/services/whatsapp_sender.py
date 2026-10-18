@@ -3,7 +3,7 @@
 Rules:
 - Without ``WHATSAPP_TOKEN`` **and** ``WHATSAPP_PHONE_ID`` the sender is fully
   disabled. Messages are never marked ``SENT`` and never leave the local system.
-- The owner gets a one-tap ``wa.me`` fallback link for manual outreach.
+- Without credentials the message stays queued for the owner to send manually.
 - With credentials every send requires an actual Cloud API ack before recording
   a provider-supplied message id and timestamp. A failed ack is recorded as a
   ``send_failed`` event â€” never silently marked as sent.
@@ -66,7 +66,7 @@ def send_status() -> dict:
         "token_configured": token,
         "phone_id_configured": phone_id,
         "disabled_reason": None if meta_connected else DISABLED_REASON,
-        "fallback": "wa.me",
+        "fallback": "manual",
         "webhook_configured": bool(webhook),
         "webhook_healthy": bool(webhook),
         "env_required": ["WHATSAPP_TOKEN + WHATSAPP_PHONE_ID"],
@@ -275,7 +275,7 @@ async def _send_with_ack(session: AsyncSession, record: OutboundMessage) -> dict
             "lead_id": str(record.lead_id) if record.lead_id else None,
             "status": record.status,
             "wa_me_link": record.wa_me_link,
-            "fallback": "wa.me",
+            "fallback": "manual",
         }
 
     blocked = await _outreach_block_reason(session, record)
