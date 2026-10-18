@@ -130,11 +130,11 @@ def _welcome_html(name: str) -> str:
       </div>
       <div style="padding:26px;color:#3f3526;font-size:15px;line-height:1.9;">
         <p>أهلاً <b>{name}</b>،</p>
-        <p>استلمنا طلبك — فريقك الرقمي يستيقظ للتو ✺. ابدأ خطوتك الأولى الآن ولا حاجة لانتظار أي شيء:</p>
+        <p>استلمنا طلبك. الباقات والأسعار منشورة على الموقع، ويبدأ التجهيز بعد تأكيد الدفع:</p>
         <ul>
-          <li>خطوة 1: افتح <b>karmaai.online</b> واختر فريقك (محتوى / تسويق / متاجر / نمو).</li>
+          <li>خطوة 1: افتح <b>karmaai.online</b> واختر الباقة المناسبة.</li>
           <li>خطوة 2: راجع الأسعار في <a href="{_PRICING_LINK}">صفحة الباقات</a>.</li>
-          <li>خطوة 3: أطلق وكيلك الأول من البوابة.</li>
+          <li>خطوة 3: نبدأ تجهيز فريقك بعد تأكيد الدفع.</li>
         </ul>
         {_pricing_html()}
         <p style="color:#0b3d2e;font-weight:bold;">— فريق النرجس</p>
@@ -159,18 +159,18 @@ Al-Narjis AI · Riyadh""",
 
 _FOLLOWUP_COPY = {
     1: {
-        "subject": "اختيارك في النرجس ما زال بانتظارك ✺",
+        "subject": "وصلنا طلبك ولم نكمل اختيارك بعد ✺",
         "title": "وصلنا طلبك ولم نكمل اختيارك بعد",
         "cta": "اطلع على الباقات",
     },
     2: {
         "subject": "فريق النرجس بانتظارك 👋",
-        "title": "لسه تفكّر؟",
+        "title": "الباقات ما زالت متاحة على الموقع",
         "cta": "راجع الباقات",
     },
     3: {
-        "subject": "الباقات الحالية على النرجس",
-        "title": "أسعار الباقات ظاهرة على الموقع",
+        "subject": "تذكير أخير من النرجس",
+        "title": "إذا ناسبك الوقت، الباقات جاهزة على الموقع",
         "cta": "افتح صفحة الأسعار",
     },
 }
@@ -190,7 +190,7 @@ def _followup_html(step: int, name: str) -> str:
       <div style="padding:26px;color:#3f3526;font-size:15px;line-height:1.9;">
         <p>أهلاً <b>{name}</b>،</p>
         <p>{copy['title']}.</p>
-        <p>الأسعار الحالية ظاهرة في صفحة الباقات. فريقك الرقمي جاهز للعمل فور إتمام الدفع.</p>
+        <p>الباقات والأسعار منشورة على الموقع، ويبدأ تجهيز الفريق بعد تأكيد الدفع.</p>
         {_pricing_html()}
         <div style="text-align:center;margin:26px 0;">
           <a href="{link}" style="background:#c8a45e;color:#0a0b0e;text-decoration:none;padding:14px 34px;border-radius:10px;font-weight:bold;font-size:16px;">{cta}</a>
@@ -210,7 +210,7 @@ async def send_followup(step: int, to: str, name: str) -> bool:
 
 {copy['title']}.
 
-الأسعار الحالية ظاهرة في صفحة الباقات.
+الباقات والأسعار منشورة على الموقع، ويبدأ تجهيز الفريق بعد تأكيد الدفع.
 اطلع عليها الآن: https://karmaai.online/pricing
 
 — فريق النرجس

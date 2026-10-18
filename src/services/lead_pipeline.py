@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.settings import get_settings
 from src.models import AcquisitionLead, Payment
+from src.services import catalog
 from src.models.automation import PIPELINE_STAGES, LeadPipeline, ReplyDraft
 
 FOLLOWUP_STAGES = ("offer_sent", "payment_link_sent")
@@ -108,9 +109,10 @@ async def ensure_payment_link(session: AsyncSession, draft: ReplyDraft, *, base_
     pipe = await session.get(LeadPipeline, draft.lead_id) if draft.lead_id else None
     if pipe is not None and pipe.payment_url and pipe.plan_key == draft.plan_key:
         return pipe.payment_url
-    plan_key = draft.plan_key or (pipe.plan_key if pipe else None)
-    if not plan_key:
+    raw_plan = draft.plan_key or (pipe.plan_key if pipe else None)
+    if not raw_plan:
         raise payments.PaymentError("no plan chosen for this lead")
+    plan_key = catalog.purchasable_plan_key(raw_plan)
     period = (draft.meta or {}).get("billing_period") or "monthly"
     addons = int((draft.meta or {}).get("addons") or 0)
     lead = await session.get(AcquisitionLead, draft.lead_id) if draft.lead_id else None

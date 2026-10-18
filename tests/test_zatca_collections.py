@@ -81,13 +81,14 @@ def test_plan_names_are_human_arabic():
 
 async def test_lines_reconcile_with_setup_addons_packs(maker, monkeypatch):
     from src.services import catalog as _c
-    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when voice launches
+    monkeypatch.setitem(_c.USAGE_ADDONS["conversations"], "purchasable", True)
+    monkeypatch.setitem(_c.USAGE_ADDONS["voice_minutes"], "purchasable", True)  # billing maths for when packs are sold
     async with maker() as s:
-        p = await pm.create_payment(s, "bay", "x", "0555000000", None, addons=2,
+        p = await pm.create_payment(s, "numuw", "x", "0555000000", None, addons=2,
                                     conversation_packs=1, voice_packs=1, founding=False)
     pv = zatca.preview(p)
     names = [l["name"] for l in pv["lines"]]
-    assert names[0].startswith("باقة بيع")
+    assert names[0].startswith("باقة النمو")
     assert any("وكيل إضافي" in n for n in names)
     assert any("رسوم إعداد" in n for n in names)
     assert sum(1 for n in names if n.startswith("باقة ١")) == 2
@@ -96,9 +97,18 @@ async def test_lines_reconcile_with_setup_addons_packs(maker, monkeypatch):
     assert all(l["vat_rate"] == 15 for l in pv["lines"])
 
 
+def test_annual_invoice_lines_do_not_nest_parentheses():
+    payment = Payment(amount=catalog.plan_amount("numuw", "annual", 1), currency="SAR", package="numuw",
+                      billing_period="annual", addon_agents=1, status="pending")
+    names = [line["name"] for line in zatca.build_lines(payment)]
+    assert names
+    assert all(name.count("(") <= 1 and name.count(")") <= 1 for name in names)
+    assert any("12 شهراً بسعر 10" in name for name in names)
+
+
 async def test_founding_discount_is_a_line(maker):
     async with maker() as s:
-        p = await pm.create_payment(s, "radd", "x", "0555000000", None, founding=True)
+        p = await pm.create_payment(s, "bidaya", "x", "0555000000", None, founding=True)
     pv = zatca.preview(p)
     disc = [l for l in pv["lines"] if l["net"] < 0]
     assert disc and "المؤسسين" in disc[0]["name"]
@@ -109,8 +119,8 @@ async def test_founding_discount_is_a_line(maker):
 
 async def test_sequential_numbers_and_idempotent_issue(maker):
     async with maker() as s:
-        a = await pm.create_payment(s, "radd", "a", "0555000001", None, founding=False)
-        b = await pm.create_payment(s, "bay", "b", "0555000002", None, founding=False)
+        a = await pm.create_payment(s, "bidaya", "a", "0555000001", None, founding=False)
+        b = await pm.create_payment(s, "numuw", "b", "0555000002", None, founding=False)
         assert await zatca.ensure_invoice(s, a) is None  # unpaid: pro-forma only
         a.status = b.status = "paid"
         await s.commit()
@@ -125,7 +135,7 @@ async def test_sequential_numbers_and_idempotent_issue(maker):
 
 async def test_credit_notes_never_exceed_invoice(maker):
     async with maker() as s:
-        p = await pm.create_payment(s, "radd", "a", "0555000001", None, founding=False)
+        p = await pm.create_payment(s, "bidaya", "a", "0555000001", None, founding=False)
         p.status = "paid"
         await s.commit()
         inv = await zatca.ensure_invoice(s, p, now=NOW)
@@ -141,7 +151,7 @@ async def test_credit_notes_never_exceed_invoice(maker):
 
 async def test_unpaid_order_cannot_be_credited(maker):
     async with maker() as s:
-        p = await pm.create_payment(s, "radd", "a", "0555000001", None, founding=False)
+        p = await pm.create_payment(s, "bidaya", "a", "0555000001", None, founding=False)
         with pytest.raises(zatca.ZatcaError):
             await zatca.issue_credit_note(s, p)
 
@@ -153,7 +163,7 @@ async def _project_with_renewal(s, end, status="invoice"):
                          status="active", current_period_end=end)
     s.add(proj)
     await s.commit()
-    pay = await pm.create_payment(s, "radd", "متجر", "0555111222", "c@example.com", project_id=proj.id,
+    pay = await pm.create_payment(s, "bidaya", "متجر", "0555111222", "c@example.com", project_id=proj.id,
                                   is_renewal=True, founding=False)
     pay.status = status
     proj.renewal_payment_id = pay.id
@@ -203,7 +213,7 @@ async def test_paid_renewal_gets_no_reminder(maker):
 
 async def test_failed_payment_recovery_link_once(maker):
     async with maker() as s:
-        p = await pm.create_payment(s, "radd", "a", "0555000001", "a@example.com", founding=False)
+        p = await pm.create_payment(s, "bidaya", "a", "0555000001", "a@example.com", founding=False)
         p.status = "failed"
         p.created_at = NOW - timedelta(hours=2)
         await s.commit()
@@ -247,8 +257,8 @@ async def test_invoice_page_renders_tax_invoice(maker, monkeypatch):
     monkeypatch.setattr(st, "seller_vat_number", "310122393500003")
     app.state.session_factory = maker
     async with maker() as s:
-        p = await pm.create_payment(s, "radd", "a", "0555000001", None, founding=False)
-        unpaid = await pm.create_payment(s, "radd", "b", "0555000002", None, founding=False)
+        p = await pm.create_payment(s, "bidaya", "a", "0555000001", None, founding=False)
+        unpaid = await pm.create_payment(s, "bidaya", "b", "0555000002", None, founding=False)
         p.status = "paid"
         await s.commit()
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
@@ -256,5 +266,5 @@ async def test_invoice_page_renders_tax_invoice(maker, monkeypatch):
         u = await c.get(f"/invoice/{unpaid.id}")
     assert r.status_code == 200
     assert "فاتورة ضريبية مبسطة" in r.text and "INV-000001" in r.text and "310122393500003" in r.text
-    assert "باقة ردّ" in r.text and ">radd<" not in r.text
+    assert "باقة البداية" in r.text and ">bidaya<" not in r.text
     assert "فاتورة مبدئية" in u.text and "INV-" not in u.text

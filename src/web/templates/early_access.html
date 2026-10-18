@@ -123,7 +123,7 @@
                     <input type="email" id="clientEmail" name="email" required placeholder="you@example.com">
                 </div>
                 <div class="field">
-                    <label for="clientPhone">{% if _lang == 'ar' %}رقم الجوال / التيليجرام{% else %}Mobile number{% endif %}</label>
+                    <label for="clientPhone">{% if _lang == 'ar' %}رقم الجوال{% else %}Mobile number{% endif %}</label>
                     <input type="tel" id="clientPhone" name="phone" inputmode="tel" autocomplete="tel" required placeholder="05XXXXXXXX أو +9665XXXXXXXX">
                     <p class="hint" id="phoneHint" role="alert" aria-live="polite">{% if _lang == 'ar' %}اكتب رقم جوال سعودي صحيح يبدأ بـ 05 أو ‎+9665 ويحتوي 10 أرقام، مثال: 0550123456{% else %}Enter a valid Saudi mobile starting with 05 or +9665 — 10 digits, e.g. 0550123456{% endif %}</p>
                     <p class="ok-tag" id="phoneOk">{% if _lang == 'ar' %}✓ تم التحقق من الرقم{% else %}✓ Number verified{% endif %}</p>

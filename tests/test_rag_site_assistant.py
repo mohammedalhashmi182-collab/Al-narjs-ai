@@ -42,8 +42,8 @@ def _ask(client, monkeypatch, reply, q):
 
 
 def test_owner_kb_sources_reach_the_prompt(client, monkeypatch):
-    r, m = _ask(client, monkeypatch, "باقة «رد» بـ 599 ريال شهرياً.", "كم سعر باقة رد شهريا؟")
-    assert r.status_code == 200 and "599" in r.json()["reply"] and "handoff" not in r.json()
+    r, m = _ask(client, monkeypatch, "باقة «البداية» بـ 790 ريال شهرياً.", "كم سعر باقة البداية شهريا؟")
+    assert r.status_code == 200 and "790" in r.json()["reply"] and "handoff" not in r.json()
     assert "SOURCES" in m.requests[0].system_prompt
 
 

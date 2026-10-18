@@ -59,7 +59,7 @@ async def test_never_takes_payments(maker):
         assert "http" not in r["reply"]
         proj = await live_demo.ensure_demo_project(s)
         with pytest.raises(pm.PaymentError):
-            await pm.create_payment(s, "radd", "x", "0555", None, project_id=proj.id)
+            await pm.create_payment(s, "bidaya", "x", "0555", None, project_id=proj.id)
         assert (await s.execute(select(func.count()).select_from(Payment))).scalar() == 0
 
 

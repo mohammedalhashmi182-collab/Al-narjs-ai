@@ -92,8 +92,8 @@ def test_mobile_pages_and_language_switch(context, width, path):
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         assert page.locator('a[href="#"]').count() == 0
     if path == '/home':
-        tag = page.locator('[data-plan="radd"] .tag').bounding_box()
-        card = page.locator('[data-plan="radd"]').bounding_box()
+        tag = page.locator('[data-plan="bidaya"] .tag').bounding_box()
+        card = page.locator('[data-plan="bidaya"]').bounding_box()
         assert tag['y'] >= card['y'] and tag['x'] >= card['x']
         assert tag['x'] + tag['width'] <= card['x'] + card['width'] + 1
         # every v2 subscription plan has a /portal?pkg= link; Enterprise is
@@ -123,16 +123,16 @@ def test_portal_timeout_and_retry_preserve_plan(context):
     page = context.new_page()
     page.route('**/api/portal/packages', lambda route: None)
     page.clock.install()
-    page.goto('http://testserver/portal?pkg=radd')
-    assert page.locator('.package-skeleton').count() == 4
+    page.goto('http://testserver/portal?pkg=bidaya')
+    assert page.locator('.package-skeleton').count() == 3
     page.clock.fast_forward(5100)
     page.locator('#retry-packages').wait_for()
     assert page.locator('#pkg-grid').get_attribute('aria-busy') == 'false'
-    assert page.locator('#retry-packages').get_attribute('href') == '/portal?pkg=radd'
+    assert page.locator('#retry-packages').get_attribute('href') == '/portal?pkg=bidaya'
     page.unroute('**/api/portal/packages')
     page.locator('#retry-packages').click()
     page.locator('.pkg.selected').wait_for()
-    assert page.locator('.pkg.selected').get_attribute('data-pkg') == 'radd'
+    assert page.locator('.pkg.selected').get_attribute('data-pkg') == 'bidaya'
 
 
 def test_portal_http_failure(context):
@@ -158,6 +158,6 @@ def test_home_without_javascript(browser):
             assert int(counter.inner_text()) > 0
         assert page.locator('#team').is_visible()
         assert page.locator('.dv-card').count() > 0
-        assert page.locator('#pricing .plan').count() == 4
+        assert page.locator('#pricing .plan').count() == 3
         assert page.locator('#team .rv').first.evaluate('(el) => getComputedStyle(el).opacity') == '1'
         page.close()

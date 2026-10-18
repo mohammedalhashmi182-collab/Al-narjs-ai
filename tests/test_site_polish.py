@@ -35,7 +35,8 @@ def test_pricing_is_a_real_page_with_plans_and_meta(client):
     assert '<meta name="description"' in html and "application/ld+json" in html
     for key in catalog.PACKAGE_ORDER:
         assert catalog.PACKAGES[key]["name_en"] in html
-    assert "By quote" in html and "setup fee" in html.lower()
+    assert "setup fee" in html.lower()
+    assert "By quote" not in html
 
 
 def test_refund_policy_quotes_the_terms_and_is_linked(client):
@@ -131,10 +132,11 @@ def test_trackers_wait_for_consent(client, monkeypatch):
 def test_plan_wording(client):
     from src.services import catalog
 
-    radd = catalog.PACKAGES["radd"]
-    assert not any("ميسّر" in line or "ميسر" in line for line in radd["scope"])
-    assert not any("تيليجرام" in line for line in radd["scope"])  # coming items live in "coming"
-    assert any("تيليجرام" in line for line in radd["coming"])
+    for pkg in catalog.PACKAGES.values():
+        lines = pkg["scope"] + pkg["coming"]
+        assert not any("ميسّر" in line or "ميسر" in line for line in lines)
+        assert not any("تيليجرام" in line or "ماسنجر" in line for line in lines)
+        assert not any("SLA" in line or "WhatsApp" in line for line in pkg["scope"])
 
 
 def test_support_handoff_is_the_company_phone():

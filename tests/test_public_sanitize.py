@@ -76,7 +76,7 @@ def test_public_kb_and_chunks_drop_repo_paths():
     assert "https://karmaai.online/pricing" in blob
     assert "https://karmaai.online/refund-policy" in blob
     assert "وصف الخدمة في الموقع" in blob
-    assert "599" in blob and "1,499" in blob and "3,499" in blob
+    assert "790" in blob and "1,490" in blob and "2,990" in blob
     injected = rag.chunk_markdown(
         "### س: سؤال؟\nج: السعر 599.\nالمصدر: `src/services/catalog.py`، https://karmaai.online/docs/terms.pdf\n",
         "kb.md",

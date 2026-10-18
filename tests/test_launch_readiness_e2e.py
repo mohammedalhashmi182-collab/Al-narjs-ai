@@ -60,13 +60,13 @@ def mock_moyasar(monkeypatch):
 
 
 CASES = [
-    # problem, expected tier, addons on top
-    ("عندي محل عطور في الرياض وأحتاج تسويق", "radd", 0),
-    ("صالون نسائي في الرياض: السوشيال ضعيف والإعلانات ما تجيب نتائج", "radd", 0),
-    ("مطعم في جدة: سوشيال ضعيف، إعلانات بلا نتائج، ضغط ردود واتساب، ومتجر إلكتروني", "bay", 0),
-    ("أبي شركة كاملة تغطي كل شي", "tashgheel", 0),
-    ("عيادة أسنان في الدمام تحتاج تسويق", "radd", 2),
-    ("شركة مقاولات: أبي شركة كاملة", "tashgheel", 3),
+    # problem, expected tier, addons on top of the diagnosis
+    ("عندي محل عطور في الرياض وأحتاج تسويق", "bidaya", 0),
+    ("صالون نسائي في الرياض: السوشيال ضعيف والإعلانات ما تجيب نتائج", "bidaya", 0),
+    ("مطعم في جدة: سوشيال ضعيف، إعلانات بلا نتائج، ضغط ردود واتساب، ومتجر إلكتروني", "numuw", 0),
+    ("أبي شركة كاملة تغطي كل شي", "sharikat", 0),
+    ("عيادة أسنان في الدمام تحتاج تسويق", "bidaya", 2),
+    ("شركة مقاولات: أبي شركة كاملة", "sharikat", 3),
 ]
 
 
@@ -100,10 +100,13 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
         "agents": recommended, "addons": addons})
     assert code == 200, proj
     allowance = catalog.plan_agent_count(tier) + addons
-    assert len(proj["team"]) == 1 + allowance
+    expected_team = catalog.staff_team(tier, addons, preferred=recommended)
+    # Add-ons cannot invent specialists past the roster (الشركات is already the full team).
+    assert len(proj["team"]) == len(expected_team)
     staffed = {t["slug"] for t in proj["team"]}
     for slug in recommended[:allowance]:
-        assert slug in staffed, f"diagnosed agent {slug} not staffed"
+        if slug in {t for t in expected_team}:
+            assert slug in staffed, f"diagnosed agent {slug} not staffed"
 
     code, pay = await call("POST", "/api/payments", {
         "refund_consent": True, "package": tier, "method": "creditcard", "customer_name": "عميل تجريبي",
@@ -122,34 +125,36 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
         agents = (await s.execute(select(ClientAgent).where(ClientAgent.project_id == project.id))).scalars().all()
     assert project.status == "active" and project.current_period_end is not None
     assert project.addon_agents == addons
-    assert len(agents) == 1 + allowance
+    assert len(agents) == len(expected_team)
     assert sum(a.slug == catalog.CEO_SLUG for a in agents) == 1
 
 
 async def test_addons_bought_at_checkout_are_staffed_on_activation(maker):
     """Project created with the bare tier, add-ons only on the payment."""
     async with maker() as s:
-        proj = ClientProject(client_name="c", phone="0555000009", package="radd", status="pending")
+        proj = ClientProject(client_name="c", phone="0555000009", package="bidaya", status="pending")
         s.add(proj)
         await s.flush()
-        for slug in catalog.get_team("radd"):
+        for slug in catalog.get_team("bidaya"):
             s.add(ClientAgent(project_id=proj.id, slug=slug, status="dormant"))
         await s.commit()
-        pay = await pm.create_payment(s, "radd", "c", "0555000009", None, project_id=proj.id, addons=2)
+        pay = await pm.create_payment(s, "bidaya", "c", "0555000009", None, project_id=proj.id, addons=2)
         pay.status = "paid"
         await s.commit()
         out = await pm.activate_subscription(s, pay)
         rows = (await s.execute(select(ClientAgent).where(ClientAgent.project_id == proj.id))).scalars().all()
     assert len(out["staffed"]) == 2
-    assert len(rows) == 1 + 2 + 2
+    assert len(rows) == 1 + catalog.plan_agent_count("bidaya") + 2
 
 
 def test_staff_team_sizes():
+    specialists = len(catalog.EMPLOYEES) - 1
     for key in catalog.PACKAGES:
         for addons in (0, 1, 5):
             team = catalog.staff_team(key, addons)
+            allowance = catalog.plan_agent_count(key) + addons
             assert team[0] == catalog.CEO_SLUG
-            assert len(team) == 1 + catalog.plan_agent_count(key) + addons
+            assert len(team) == 1 + min(allowance, specialists)
             assert len(set(team)) == len(team)
     assert catalog.staff_team("radd", 0, ["sales_closer"]) == [catalog.CEO_SLUG, "sales_closer", "customer_service"]
     assert catalog.staff_team("radd", 0, ["nope"])[1] == "customer_service"

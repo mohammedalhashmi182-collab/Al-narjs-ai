@@ -513,6 +513,8 @@ async def create_payment(
     addons = _validate_addons(addons)
     conversation_packs = _validate_packs(conversation_packs, "conversation_packs")
     voice_packs = _validate_packs(voice_packs, "voice_packs")
+    if conversation_packs and not is_renewal and not catalog.USAGE_ADDONS["conversations"].get("purchasable", True):
+        raise PaymentError("Conversation packs are not for sale")
     if voice_packs and not is_renewal and not catalog.USAGE_ADDONS["voice_minutes"].get("purchasable", True):
         raise PaymentError("Voice-minute packs are not available yet (voice agent coming soon)")
 
