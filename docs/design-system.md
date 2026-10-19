@@ -163,14 +163,14 @@ Every button: 48px min touch height, 16px×24px padding, visible `:focus-visible
 
 ## 6. Support channel & integrations
 
-- **Customer contact is the on-site assistant, Al-Narjis@karmaai.online, and 0540799266.**
+- **Customer contact is the on-site assistant, AlNarjisai@gmail.com, and 0540799266.**
   Public pages must not publish WhatsApp or Telegram short links, and must not tell visitors
   to message the company on WhatsApp or Telegram.
 - The Telegram bot and the WhatsApp Cloud API stay owner-enabled product channels. Their
   routes stay live; do not assume either one is the public contact path.
 - `src/services/intent_classify.py` holds the channel-neutral intent classification shared by
   inbound pipelines.
-- Outreach drafts carry a mailto link to Al-Narjis@karmaai.online, never a WhatsApp or Telegram short link.
+- Outreach drafts carry a mailto link to AlNarjisai@gmail.com, never a WhatsApp or Telegram short link.
 
 ---
 

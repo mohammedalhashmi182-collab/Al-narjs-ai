@@ -331,7 +331,7 @@ async def sales_overview(request: Request):
             "proposal_rate": rate("PROPOSAL"),
             "won_rate": rate("WON"),
         },
-        "contact_email": "Al-Narjis@karmaai.online",
+        "contact_email": "AlNarjisai@gmail.com",
         "contact_phone": "0540799266",
         "top_leads": [_lead_dict(l) for l in priority_leads],
     }

@@ -44,11 +44,11 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
-      "alternateName": "The Arabian Convoy Establishment",
+      "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
       "url": "https://karmaai.online",
-      "legalName": "Arabian Convoy Establishment",
+      "legalName": {{ "أحمد عبدالله الزهراني" | tojson }},
       "telephone": "+966540799266",
-      "email": "Al-Narjis@karmaai.online",
+      "email": "AlNarjisai@gmail.com",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"}
     }
@@ -66,7 +66,7 @@
       "@id": "https://karmaai.online/#business",
       "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
       "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
-      "legalName": "Arabian Convoy Establishment",
+      "legalName": {{ "أحمد عبدالله الزهراني" | tojson }},
       "url": "https://karmaai.online",
       "description": {% if ar %}"رئيس تنفيذي ذكي يشخّص مشكلة عملك ويقود فريقاً من {{ agent_count }} وكيلاً في {{ division_count }} أقسام متخصصة."{% else %}"An AI CEO that diagnoses your business problem and leads a team of {{ agent_count }} agents across {{ division_count }} specialist departments."{% endif %},
       "inLanguage": "{{ _lang }}",
@@ -76,7 +76,7 @@
       "currenciesAccepted": "SAR",
       "paymentAccepted": "Moyasar",
       "telephone": "+966540799266",
-      "email": "Al-Narjis@karmaai.online",
+      "email": "AlNarjisai@gmail.com",
       "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"},
       "geo": {"@type": "GeoCoordinates", "latitude": 24.7136, "longitude": 46.6753},
       "areaServed": [{"@type": "Country", "name": "Saudi Arabia"}, {"@type": "Country", "name": "United Arab Emirates"}, {"@type": "Country", "name": "Kuwait"}, {"@type": "Country", "name": "Bahrain"}, {"@type": "Country", "name": "Qatar"}, {"@type": "Country", "name": "Oman"}],
@@ -219,7 +219,7 @@
                     <div style="text-align:end"><b id="ceoPlanPrice"></b><small id="ceoPlanVat"></small></div>
                 </div>
                 <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}</a>
-                <p class="ceo-alt" style="font-size:.88rem">{% if ar %}سؤال عن التوصية؟ اسأل مساعد النرجس أسفل الصفحة أو راسلنا على <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a>{% else %}Questions about the recommendation? Ask the Al-Narjis assistant at the bottom of the page or email <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>{% endif %}</p>
+                <p class="ceo-alt" style="font-size:.88rem">{% if ar %}سؤال عن التوصية؟ اسأل مساعد النرجس أسفل الصفحة أو راسلنا على <a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a>{% else %}Questions about the recommendation? Ask the Al-Narjis assistant at the bottom of the page or email <a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a>{% endif %}</p>
             </div>
         </div>
     </div>
@@ -228,7 +228,7 @@
 <!-- ==================== TRUST BADGES ==================== -->
 <section class="trust" aria-label="{% if ar %}الثقة{% else %}Trust{% endif %}">
     <div class="wrap">
-        <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>{% if ar %}سجل تجاري <b>31332495263</b>{% else %}Commercial Reg. <b>31332495263</b>{% endif %}</span>
+        <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>{% if ar %}وثيقة عمل حر رقم <b>FL-272182297</b>{% else %}Freelance document No. <b>FL-272182297</b>{% endif %}</span>
         <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>{% if ar %}دفع آمن عبر <b>Moyasar</b>{% else %}Secure payments by <b>Moyasar</b>{% endif %}</span>
         <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/></svg>{% if ar %}<b>فاتورة ضريبية</b> مع ضريبة القيمة المضافة 15٪{% else %}<b>VAT invoice</b> with 15% VAT{% endif %}</span>
         <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>{% if ar %}صُنع في <b>الرياض</b>{% else %}Built in <b>Riyadh</b>{% endif %}</span>
@@ -378,7 +378,7 @@
     <div class="wrap">
         <div class="sec-head rv"><span class="eyebrow">{% if ar %}تواصل{% else %}Talk to us{% endif %}</span><h2>{% if ar %}اسأل مساعد النرجس أو راسلنا بالبريد{% else %}Ask the Al-Narjis assistant or email us{% endif %}</h2></div>
         <p class="muted" style="text-align:center">{% if ar %}مساعد النرجس الذكي يجيبك فوراً من الزر أسفل الصفحة، وإذا لم يستطع الإجابة يحوّلك إلى البريد.{% else %}The Al-Narjis assistant answers instantly from the button at the bottom of the page; if it can't answer, it hands you to email.{% endif %}</p>
-        <p class="muted" style="text-align:center;margin-top:16px"><a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a> · {% if ar %}الرياض، المملكة العربية السعودية{% else %}Riyadh, Saudi Arabia{% endif %}</p>
+        <p class="muted" style="text-align:center;margin-top:16px"><a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a> · {% if ar %}الرياض، المملكة العربية السعودية{% else %}Riyadh, Saudi Arabia{% endif %}</p>
     </div>
 </section>
 <!-- ==================== SCRIPTED DEMO (no live API) ==================== -->
@@ -525,12 +525,12 @@
             </div>
             <div>
                 <h4>{% if ar %}تواصل{% else %}Contact{% endif %}</h4>
-                <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>
+                <a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a>
                 <a href="tel:+966540799266" dir="ltr">0540799266</a>
             </div>
         </div>
         <div class="legal">
-            <span>{% if ar %}يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 · الرياض{% else %}Operated by The Arabian Convoy Establishment · Commercial Reg. 31332495263 · Riyadh{% endif %}</span>
+            <span>{% if ar %}يُدار بواسطة أحمد عبدالله الزهراني · وثيقة عمل حر رقم FL-272182297 · الرياض{% else %}Operated by أحمد عبدالله الزهراني · Freelance document No. FL-272182297 · Riyadh{% endif %}</span>
             <span><a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a> · <a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a> · <a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a> · <a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a> · <a href="/pricing">{% if ar %}الباقات والأسعار{% else %}Pricing{% endif %}</a> · <a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a> · <a href="/dpa">{% if ar %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a> · <a href="/subprocessors">{% if ar %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a> · <a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a></span>
         </div>
     </div>
@@ -600,7 +600,7 @@
         fetch('/api/ceo/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem: text, lang: AR ? 'ar' : 'en' }) })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(render)
-            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على Al-Narjis@karmaai.online.' : 'Could not reach the CEO — try again or email Al-Narjis@karmaai.online.'; msg.hidden = false; })
+            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على AlNarjisai@gmail.com.' : 'Could not reach the CEO — try again or email AlNarjisai@gmail.com.'; msg.hidden = false; })
             .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
 

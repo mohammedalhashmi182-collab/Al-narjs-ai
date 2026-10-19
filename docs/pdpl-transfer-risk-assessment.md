@@ -1,6 +1,6 @@
 # PDPL cross-border transfer risk assessment (TRA)
 
-Controller / processor: The Arabian Convoy Establishment — Al-Narjis AI (CR 31332495263), Riyadh.
+Controller / processor: أحمد عبدالله الزهراني (وثيقة عمل حر FL-272182297) — Al-Narjis AI (النرجس), Riyadh.
 Scope: personal data processed by karmaai.online and sent outside the Kingdom of Saudi Arabia.
 Framework: the Personal Data Protection Law (PDPL, Royal Decree M/19, amended M/148), its Implementing
 Regulation, and SDAIA's *Regulation on Personal Data Transfer outside the Kingdom*. This includes the

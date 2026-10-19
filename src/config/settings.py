@@ -134,10 +134,12 @@ class Settings(BaseSettings):
     # SELLER_VAT_NUMBER must be the 15-digit VAT registration number (starts
     # and ends with 3). While it is unset the invoice prints a visible
     # placeholder and /api/owner/billing/zatca/status flags it.
-    seller_name_ar: str = Field(default="مؤسسة ذا أريبيان كونفو", alias="SELLER_NAME_AR")
-    seller_name_en: str = Field(default="The Arabian Convoy Establishment", alias="SELLER_NAME_EN")
+    # The legal operator is a freelance-document holder. SELLER_CR_NUMBER keeps
+    # its env-var name and stores the freelance document number (not a CR).
+    seller_name_ar: str = Field(default="أحمد عبدالله الزهراني", alias="SELLER_NAME_AR")
+    seller_name_en: str = Field(default="أحمد عبدالله الزهراني", alias="SELLER_NAME_EN")
     seller_vat_number: str | None = Field(default=None, alias="SELLER_VAT_NUMBER")
-    seller_cr_number: str = Field(default="31332495263", alias="SELLER_CR_NUMBER")
+    seller_cr_number: str = Field(default="FL-272182297", alias="SELLER_CR_NUMBER")
     seller_address_ar: str = Field(
         default="بناية 2371 محمد العمري، حي الرمال 7369، الرياض 13263، المملكة العربية السعودية",
         alias="SELLER_ADDRESS_AR",

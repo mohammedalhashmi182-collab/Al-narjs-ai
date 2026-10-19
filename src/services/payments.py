@@ -251,7 +251,7 @@ def paypal_collects_money() -> bool:
 # Shown when checkout has no live Moyasar key. Bank transfer and PayPal stay off.
 CARD_ACTIVATING_AR = (
     "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر المساعد في الموقع "
-    "أو راسلنا على Al-Narjis@karmaai.online."
+    "أو راسلنا على AlNarjisai@gmail.com."
 )
 
 

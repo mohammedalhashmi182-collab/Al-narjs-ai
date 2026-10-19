@@ -40,7 +40,7 @@
   - `reel1_team_9x16.mp4` و `reel2_offer_9x16.mp4` مع هاشتاقات (#الذكاء_الاصطناعي #سوق_سعودي #ريادة_أعمال) + رابط /guide في البايو.
 - **لينكدإن**: `linkedin_team_1200x1200` + منشورات الأسبوع 1–2 أسبوعياً (استخدم packs).
 - **X**: `x_fomo_1600x900` + تغريدات الأسبوع بأسلوب «قصير ومباشر».
-- **التواصل**: المساعد في الموقع https://karmaai.online/consult · البريد Al-Narjis@karmaai.online · الهاتف 0540799266.
+- **التواصل**: المساعد في الموقع https://karmaai.online/consult · البريد AlNarjisai@gmail.com · الهاتف 0540799266.
 
 ### ج. الإيميل (بريفو)
 - استورد القوالب الخمسة من `campaign/ai-awareness/email/` إلى Brevo:
@@ -55,7 +55,7 @@
 ---
 
 ## 3) الأرقام الرئيسية
-- التواصل: المساعد في الموقع · `Al-Narjis@karmaai.online` · `0540799266`
+- التواصل: المساعد في الموقع · `AlNarjisai@gmail.com` · `0540799266`
 - الدليل: `https://karmaai.online/guide` · PDF: `…/narjis-30day-ai-guide.pdf`
 - بوابة الشراء: `https://karmaai.online/portal` (الدفع مويصر، فواتير تلقائية).
 - محل البايو القياسي: «باقات منشورة بالعربي — التفاصيل في karmaai.online/pricing».

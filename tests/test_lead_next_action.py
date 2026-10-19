@@ -121,7 +121,7 @@ def test_prepare_follow_up_builds_draft_and_preserves_tg_link():
     draft = prepared["draft"]
     assert draft["message"]
     assert draft["tg_link"] is not None
-    assert draft["tg_link"].startswith("mailto:Al-Narjis@karmaai.online?body=")
+    assert draft["tg_link"].startswith("mailto:AlNarjisai@gmail.com?body=")
     assert prepared["next_action"]["due"] == engine.DUE
     assert prepared["suggested_timing"] is not None
 

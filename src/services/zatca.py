@@ -5,8 +5,8 @@ What each issued document carries (Phase-1 requirements for a B2C
 
 - the title "فاتورة ضريبية مبسطة" / "Simplified Tax Invoice" (credit notes:
   "إشعار دائن");
-- seller name and VAT registration number (``SELLER_VAT_NUMBER``), CR number
-  and address from settings;
+- seller name and VAT registration number (``SELLER_VAT_NUMBER``), freelance
+  document number (``SELLER_CR_NUMBER``) and address from settings;
 - a sequential number from a DB counter (``INV-000001``, ``CRN-000001``),
   never the payment UUID;
 - the issue date and time;

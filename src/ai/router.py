@@ -21,7 +21,7 @@ _last_handoff_reason: str | None = None
 
 HANDOFF_AR = (
     "سؤالك يحتاج مراجعة من فريقنا. الدعم متاح على مدار الساعة عبر المساعد، "
-    "والمتابعة البشرية بالبريد Al-Narjis@karmaai.online أو بالاتصال على 0540799266."
+    "والمتابعة البشرية بالبريد AlNarjisai@gmail.com أو بالاتصال على 0540799266."
 )
 
 DEEP_KEYWORDS = (

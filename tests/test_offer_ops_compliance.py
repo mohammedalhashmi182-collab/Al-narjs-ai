@@ -360,7 +360,7 @@ def test_runbook_covers_required_incidents():
 
 # ------------------------------------------------------------------ 5. PDPL / contact pages
 
-@pytest.mark.parametrize("path,needle", [("/dpa", "PDPL"), ("/subprocessors", "Gemini"), ("/contact", "Al-Narjis@karmaai.online")])
+@pytest.mark.parametrize("path,needle", [("/dpa", "PDPL"), ("/subprocessors", "Gemini"), ("/contact", "AlNarjisai@gmail.com")])
 async def test_public_compliance_pages_render(maker, path, needle):
     async with _client(maker, owner=False) as c:
         r = await c.get(path, follow_redirects=True)

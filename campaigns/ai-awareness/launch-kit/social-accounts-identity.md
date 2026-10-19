@@ -149,7 +149,7 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 تأسست المنصة عام 2026 على يد محمد الهاشمي، بهدف محو الخرافات حول الذكاء الاصطناعي وتقديمه كأداة عملية يومية لأعمالنا في المنطقة.
 
 🌐 karmaai.online
-📧 info@karmaai.online
+📧 AlNarjisai@gmail.com
 ```
 
 ### القسم "عن" (About) — الإنجليزية
@@ -171,7 +171,7 @@ All operate in Arabic. Published plans start at SAR 790 a month, before VAT: kar
 Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and make it a daily tool for businesses in the region.
 
 🌐 karmaai.online
-📧 info@karmaai.online
+📧 AlNarjisai@gmail.com
 ```
 
 ### صورة الغلاف (Cover Photo)
