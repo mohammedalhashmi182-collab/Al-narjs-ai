@@ -360,6 +360,7 @@ from src.models.automation import (  # noqa: E402,F401
 from src.models.billing import CollectionReminder, InvoiceSequence, TaxInvoice  # noqa: E402,F401
 from src.models.agent_tools import KnowledgeDoc, ProjectDataFile  # noqa: E402,F401
 from src.models.tenant import PortalLoginCode, TenantContact  # noqa: E402,F401
+from src.models.store_integration import StoreConnection, StoreOAuthNonce, StorePolicy, StoreWebhookEvent  # noqa: E402,F401
 from src.models.usage import SubscriptionUsage, UsageEvent  # noqa: E402,F401
 from src.models.ops import WeeklyReport, WhatsAppTemplate  # noqa: E402,F401
 from src.models.support import SupportTicket  # noqa: E402,F401

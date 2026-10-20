@@ -222,6 +222,29 @@ async def _contact(session: AsyncSession, project_id: UUID, contact: str) -> Opt
     ))).scalar_one_or_none()
 
 
+async def _store_turn(session, project, recipient: str, text: str, meta: dict) -> tuple[str | None, str | None]:
+    """Store tools first. ``(None, None)`` means retrieval may answer."""
+    from src.integrations.config import enabled as stores_enabled
+
+    if not stores_enabled():
+        return None, None
+    try:
+        from src.integrations.service import answer_store_question
+
+        turn = await answer_store_question(session, project, recipient, text)
+    except Exception:
+        log.warning("tenant store tools failed for project %s", project.id)
+        return None, None
+    if turn is None:
+        return None, None
+    meta.update(turn.meta)
+    if turn.kind == "handoff":
+        return None, turn.reason or "no_answer"
+    if contains_pitch(turn.body):
+        return turn.body, "guard"
+    return turn.body, None
+
+
 async def handle_inbound(session: AsyncSession, *, project: ClientProject, contact: Any, text: str) -> ReplyDraft | None:
     """Draft (and in auto mode send) this project's reply to one inbound text."""
     text = (text or "").strip()
@@ -243,10 +266,14 @@ async def handle_inbound(session: AsyncSession, *, project: ClientProject, conta
 
     meta: dict = {"intent": intent, "tenant": True}
     kind = "reply"
+    body = None
     if wants_human(text):
         reason = "requested"
     else:
-        body, reason = await _rag_reply(session, project, text, meta)
+        # Store tools, then _rag_reply, then the human fallback below.
+        body, reason = await _store_turn(session, project, recipient, text, meta)
+        if body is None and reason is None:
+            body, reason = await _rag_reply(session, project, text, meta)
     if reason:
         kind = "handoff"
         body = compose_handoff(project, reason)
