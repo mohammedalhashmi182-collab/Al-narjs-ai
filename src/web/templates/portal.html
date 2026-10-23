@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 {% set _lang = page_lang(request) %}
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
+{% from "components/card.html" import card %}
+{% from "components/button.html" import button, icon %}
+{% from "components/badge.html" import badge %}
+{% from "components/input.html" import input %}
+{% from "components/alert.html" import alert %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
@@ -11,155 +16,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if _lang == 'ar' %}بوابة العميل | النرجس للذكاء الاصطناعي{% else %}Client Portal | Al-Narjis AI{% endif %}</title>
     <link rel="stylesheet" href="/static/css/app-tw.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Readex+Pro:wght@500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
-    <link rel="stylesheet" href="/static/css/narjis-luxury.css">
+    <link rel="stylesheet" href="/static/css/portal.css">
     {% include "partials/_analytics.html" %}
-    <style>
-        .emp-card.dormant { filter: none; opacity: 0.92; }
-        .emp-card.dormant .emp-ava { background: repeating-linear-gradient(45deg, rgba(36,129,204,.10) 0 12px, rgba(36,129,204,.03) 12px 24px); }
-        .emp-card .emp-ava { display: grid; place-items: center; }
-        .awake-pulse { animation: pulseBlue 1.6s ease-in-out infinite; }
-        @keyframes pulseBlue { 0%,100% { box-shadow: 0 0 0 0 rgba(36,129,204,.35);} 50% { box-shadow: 0 0 0 14px rgba(36,129,204,0);} }
-        .chat-box { max-height: 55vh; overflow-y: auto; }
-        .msg { max-width: 82%; }
-        .msg-agent { align-self: flex-start; }
-        .msg-client { align-self: flex-end; }
-        .spin { display: inline-block; animation: rot 0.9s linear infinite; }
-        @keyframes rot { to { transform: rotate(360deg); } }
-        .package-skeleton { min-height:180px; border-radius:16px; background:var(--n-sand-2, #eee); animation:packagePulse 1.2s ease-in-out infinite alternate; }
-        @keyframes packagePulse { to { opacity:.45; } }
-        @media (prefers-reduced-motion:reduce) { .package-skeleton { animation:none; } }
-        @media (max-width:640px) { .n-nav > div { flex-wrap:wrap; gap:12px; } }
-    </style>
-    <link rel="stylesheet" href="/static/css/narjis-refresh.css">
 </head>
-<body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
+<body data-lang="{{ _lang }}" class="portal-page min-h-screen">
     <!-- Top nav -->
-    <nav class="n-nav px-6 py-4">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <a href="/home" class="flex items-center gap-3">
-                <img src="/static/logo.svg" alt="Al-Narjis AI" style="height:38px;width:auto;object-fit:contain;border-radius:8px;">
+    <nav class="n-nav portal-nav">
+        <div class="portal-shell portal-nav-inner">
+            <a href="/home" class="portal-brand">
+                <img src="/static/logo.svg" alt="Al-Narjis AI" class="portal-brand-logo">
                 <div>
-                    <div class="n-title text-xl" style="font-size:1.25rem;">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
-                    <div class="text-xs tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}بوابة العميل{% else %}Client Portal{% endif %}</div>
+                    <div class="n-title portal-brand-name">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
+                    {{ badge("بوابة العميل" if _lang == "ar" else "Client Portal", class_name="portal-brand-caption") }}
                 </div>
             </a>
-            <div class="flex items-center gap-3">
-                <div class="lang-pill" id="langToggle">
-                    <button data-lang-btn="ar" class="arabic {{ 'active' if _lang == 'ar' else '' }}">عربي</button>
-                    <button data-lang-btn="en" class="english {{ 'active' if _lang == 'en' else '' }}">EN</button>
+            <div class="portal-nav-actions">
+                <div class="lang-pill portal-language" id="langToggle">
+                    {{ button('عربي', variant='ghost', class_name='arabic ' ~ ('active' if _lang == 'ar' else ''), attrs={'data-lang-btn': 'ar'}) }}
+                    {{ button('EN', variant='ghost', class_name='english ' ~ ('active' if _lang == 'en' else ''), attrs={'data-lang-btn': 'en'}) }}
                 </div>
-                <a href="/home" class="btn btn-outline" style="padding:10px 18px;font-size:0.85rem;">
+                {% call button(href='/home', variant='outline') %}
+                    {{ icon('home') }}
                     {% if _lang == 'ar' %}<span>الرئيسية</span>{% else %}<span data-inline>Home</span>{% endif %}
-                </a>
+                {% endcall %}
             </div>
         </div>
     </nav>
 
+    <main class="portal-main">
+
     <!-- Step 1: register / choose package -->
     <!-- Portal login: OTP to the project's email / phone (the project id alone is no longer a credential) -->
-    <section id="step-login" class="py-12 hidden">
-        <div class="max-w-md mx-auto px-6 text-center">
-            <h2 class="n-title text-2xl">{% if _lang == 'ar' %}<span>الدخول إلى بوابتك</span>{% else %}<span data-inline>Sign in to your portal</span>{% endif %}</h2>
-            <p class="n-sub mt-3">{% if _lang == 'ar' %}<span>أدخل البريد أو الجوال المسجّل في اشتراكك وسنرسل لك رمز دخول.</span>{% else %}<span data-inline>Enter the email or phone on your subscription and we will send a sign-in code.</span>{% endif %}</p>
-            <input id="loginIdent" class="w-full mt-4" autocomplete="username" placeholder="email / 05xxxxxxxx">
-            <button id="loginSend" class="btn btn-gold mt-3" type="button">{% if _lang == 'ar' %}<span>أرسل الرمز</span>{% else %}<span data-inline>Send code</span>{% endif %}</button>
-            <input id="loginCode" class="w-full mt-4 hidden" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
-            <button id="loginVerify" class="btn btn-gold mt-3 hidden" type="button">{% if _lang == 'ar' %}<span>دخول</span>{% else %}<span data-inline>Sign in</span>{% endif %}</button>
-            <p id="loginMsg" class="text-sm mt-3" aria-live="polite"></p>
+    <section id="step-login" class="portal-section hidden">
+        <div class="portal-shell portal-shell--narrow text-center">
+            {% call card(class_name='portal-login') %}
+            <h2 class="n-title portal-title">{% if _lang == 'ar' %}<span>الدخول إلى بوابتك</span>{% else %}<span data-inline>Sign in to your portal</span>{% endif %}</h2>
+            <p class="n-sub portal-description mt-3">{% if _lang == 'ar' %}<span>أدخل البريد أو الجوال المسجّل في اشتراكك وسنرسل لك رمز دخول.</span>{% else %}<span data-inline>Enter the email or phone on your subscription and we will send a sign-in code.</span>{% endif %}</p>
+            {{ input('loginIdent', class_name='w-full mt-4', attrs={'dir': 'ltr', 'autocomplete': 'username', 'placeholder': 'email / 05xxxxxxxx', 'aria-label': 'البريد أو الجوال' if _lang == 'ar' else 'Email or phone'}) }}
+            {% call button(variant='primary', class_name='mt-3', attrs={'id': 'loginSend'}) %}{% if _lang == 'ar' %}<span>أرسل الرمز</span>{% else %}<span data-inline>Send code</span>{% endif %}{% endcall %}
+            {{ input('loginCode', class_name='w-full mt-4 hidden', attrs={'dir': 'ltr', 'inputmode': 'numeric', 'autocomplete': 'one-time-code', 'maxlength': '6', 'placeholder': '••••••', 'aria-label': 'رمز الدخول' if _lang == 'ar' else 'Sign-in code'}) }}
+            {% call button(variant='primary', class_name='mt-3 hidden', attrs={'id': 'loginVerify'}) %}{% if _lang == 'ar' %}<span>دخول</span>{% else %}<span data-inline>Sign in</span>{% endif %}{% endcall %}
+            {{ alert(class_name='text-sm mt-3', attrs={'id': 'loginMsg'}) }}
+        {% endcall %}
         </div>
     </section>
 
-    <section id="step-register" class="py-12">
-        <div class="max-w-5xl mx-auto px-6">
-            <div class="text-center mb-10">
-                <div class="n-divider mb-4">✺</div>
-                <h1 class="n-title text-3xl md:text-4xl">{% if _lang == 'ar' %}<span>فعّل فريقك <span class="gold">الذكي</span></span>{% else %}<span data-inline>Wake Up Your <span class="gold">Smart</span> Team</span>{% endif %}</h1>
-                {% if _lang == 'ar' %}<p class="n-sub mt-3">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>{% else %}<p class="n-sub mt-3" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>{% endif %}
+    <section id="step-register" class="portal-section">
+        <div class="portal-shell">
+            <div class="portal-heading">
+                <div class="n-divider mb-4 portal-heading-icon" aria-hidden="true">✺</div>
+                <h1 class="n-title portal-title">{% if _lang == 'ar' %}<span>فعّل فريقك <span class="gold">الذكي</span></span>{% else %}<span data-inline>Wake Up Your <span class="gold">Smart</span> Team</span>{% endif %}</h1>
+                {% if _lang == 'ar' %}<p class="n-sub portal-description mt-3">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>{% else %}<p class="n-sub portal-description mt-3" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>{% endif %}
             </div>
 
-            <div id="pkg-status" role="status" aria-live="polite">{% if _lang == 'ar' %}<span>جارٍ تحميل الباقات…</span>{% else %}<span data-inline>Loading plans…</span>{% endif %}</div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10" id="pkg-grid" aria-busy="true">
+            {% call alert(class_name='mb-4', attrs={'id': 'pkg-status'}) %}{% if _lang == 'ar' %}<span>جارٍ تحميل الباقات…</span>{% else %}<span data-inline>Loading plans…</span>{% endif %}{% endcall %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10 portal-grid--plans" id="pkg-grid" aria-busy="true">
                 {% for _ in range(3) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
             <noscript><p>{% if _lang == 'ar' %}فعّل JavaScript لاختيار الباقة، أو راسلنا على{% else %}Enable JavaScript to choose a plan, or email us at{% endif %} <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p></noscript>
 
-            <form id="regForm" class="n-form max-w-2xl mx-auto gap-5 hidden">
-                <div class="grid sm:grid-cols-2 gap-5">
+            <form id="regForm" class="n-form n-card ui-card portal-register max-w-2xl mx-auto gap-5 hidden">
+                <div class="grid sm:grid-cols-2 gap-5 portal-form-grid">
                     <div>
                         {% if _lang == 'ar' %}<label for="cname">الاسم الكامل</label>{% else %}<label for="cname" data-inline>Full name</label>{% endif %}
-                        <input type="text" id="cname" required>
+                        {{ input('cname', attrs={'required': True}) }}
                     </div>
                     <div>
                         {% if _lang == 'ar' %}<label for="cphone">رقم الجوال</label>{% else %}<label for="cphone" data-inline>Phone number</label>{% endif %}
-                        <input type="tel" id="cphone" required>
+                        {{ input('cphone', type='tel', attrs={'dir': 'ltr', 'required': True}) }}
                     </div>
                 </div>
-                <div class="grid sm:grid-cols-2 gap-5 items-end">
+                <div class="grid sm:grid-cols-2 gap-5 items-end portal-form-grid">
                     <div>
                         {% if _lang == 'ar' %}<label for="cemail">البريد الإلكتروني</label>{% else %}<label for="cemail" data-inline>Email</label>{% endif %}
-                        <input type="email" id="cemail">
+                        {{ input('cemail', type='email', attrs={'dir': 'ltr'}) }}
                     </div>
                     <div>
-                        <div id="pkgSummary" class="text-sm font-bold" style="color:var(--n-gold-2);"></div>
+                        <div id="pkgSummary" class="portal-summary text-sm font-bold"></div>
                     </div>
                 </div>
                 <div class="flex justify-center pt-2">
                     <div class="w-full max-w-sm text-start">
-                        <label class="flex items-start gap-2" style="font-size:.8rem;color:var(--n-brown-2);cursor:pointer;">
-                            <input type="checkbox" id="consent" required class="mt-0.5">
-                            <span>{% if _lang == 'ar' %}<span>أوافق على معالجة بياناتي وفق <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span>{% else %}<span data-inline>I agree to my data being processed per the <a href="/privacy" style="color:var(--n-gold);text-decoration:underline;">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span>{% endif %}</span>
+                        <label for="consent" class="portal-consent flex items-start gap-2">
+                            {{ input('consent', type='checkbox', class_name='mt-0.5', attrs={'required': True}) }}
+                            <span>{% if _lang == 'ar' %}<span>أوافق على معالجة بياناتي وفق <a href="/privacy" class="portal-text-link">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span>{% else %}<span data-inline>I agree to my data being processed per the <a href="/privacy" class="portal-text-link">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span>{% endif %}</span>
                         </label>
-                        <button type="submit" class="btn btn-gold w-full mt-4">
+                        {% call button(variant='primary', class_name='w-full mt-4', type='submit') %}
                             {% if _lang == 'ar' %}<span>استقبل فريقي الذكي</span>{% else %}<span data-inline>Receive My Smart Team</span>{% endif %}
-                            <i class="fas fa-rocket"></i>
-                        </button>
+                            {{ icon('rocket') }}
+                        {% endcall %}
                     </div>
                 </div>
-                <div id="regMsg" class="text-center font-bold py-2 rounded-lg" style="display:none;"></div>
+                {{ alert(class_name='text-center', attrs={'id': 'regMsg', 'style': 'display:none;'}) }}
             </form>
         </div>
     </section>
 
     <!-- Step 2: team (dormant) -->
-    <section id="step-team" class="py-12 hidden">
-        <div class="max-w-6xl mx-auto px-6">
-            <div class="text-center mb-10">
-                <div class="n-divider mb-4">✺</div>
-                <h2 class="n-title text-3xl md:text-4xl">
+    <section id="step-team" class="portal-section hidden">
+        <div class="portal-shell">
+            <div class="portal-heading">
+                <div class="n-divider mb-4 portal-heading-icon" aria-hidden="true">✺</div>
+                <h2 class="n-title portal-title">
                     {% if _lang == 'ar' %}<span>فريقك</span>{% else %}<span data-inline>Your Team</span>{% endif %}
                     {% if _lang == 'ar' %}<span class="gold">—</span>{% else %}<span class="gold" data-inline>—</span>{% endif %}
-                    <span id="teamPkg" class="gold"></span>
+                    {{ badge(attrs={'id': 'teamPkg'}) }}
                 </h2>
-                {% if _lang == 'ar' %}<p class="n-sub mt-3">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>{% else %}<p class="n-sub mt-3" data-inline>Your employees await a wake touch — click anyone to start serving you.</p>{% endif %}
+                {% if _lang == 'ar' %}<p class="n-sub portal-description mt-3">موظفوك في انتظار لمسة إيقاظ. اضغط على أي موظف ليبدأ بالتعرف عليك وخدمتك.</p>{% else %}<p class="n-sub portal-description mt-3" data-inline>Your employees await a wake touch — click anyone to start serving you.</p>{% endif %}
             </div>
-            <div id="pendingBanner" class="n-card p-4 mb-8 hidden" style="background:#FDF6E3;border:1px solid var(--n-gold);">
-                <div class="flex flex-col sm:flex-row items-center gap-3 justify-between text-center sm:text-start">
-                    <div class="text-sm" style="color:var(--n-brown);">
-                        <i class="fas fa-moon"></i>
+            {% call alert(variant='warning', class_name='mb-8 hidden', attrs={'id': 'pendingBanner'}) %}
+                <div class="portal-notice-layout flex flex-col sm:flex-row items-center gap-3 justify-between text-center sm:text-start">
+                    <div class="text-sm">
+                        {{ icon('moon') }}
                         {% if _lang == 'ar' %}<span><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>{% else %}<span data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>{% endif %}
                     </div>
-                    <button id="pendingCta" class="btn btn-gold" style="white-space:nowrap;">
-                        <i class="fas fa-credit-card"></i>
+                    {% call button(variant='primary', attrs={'id': 'pendingCta'}) %}
+                        {{ icon('credit-card') }}
                         {% if _lang == 'ar' %}<span>فعّل اشتراكك الآن</span>{% else %}<span data-inline>Activate Subscription</span>{% endif %}
-                    </button>
+                    {% endcall %}
                 </div>
-            </div>
+            {% endcall %}
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="team-grid"></div>
-            <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
-                <button id="subscribeBtn" class="btn btn-gold" style="padding:14px 28px;font-size:1rem;">
-                    <i class="fas fa-credit-card"></i>
+            <div class="portal-actions text-center mt-10 flex flex-wrap justify-center gap-4">
+                {% call button(variant='primary', attrs={'id': 'subscribeBtn'}) %}
+                    {{ icon('credit-card') }}
                     {% if _lang == 'ar' %}<span>فعّل اشتراكك الآن</span>{% else %}<span data-inline>Activate Subscription</span>{% endif %}
-                </button>
+                {% endcall %}
             </div>
             {% set _promo = promo_info() %}
             {% if _promo.active %}
-            <div id="portalPromoHint" class="text-center text-sm mt-4" style="color:var(--n-gold-2);">
-                <i class="fas fa-gift"></i>
+            <div id="portalPromoHint" class="portal-promo text-center text-sm mt-4">
+                {{ icon('gift') }}
                 {% if _lang == 'ar' %}<span>خصم الإطلاق <b>&nbsp;{{ _promo.percent }}٪&nbsp;</b> بالكود <b>{{ _promo.code }}</b></span>{% else %}<span data-inline>Launch offer <b>{{ _promo.percent }}%</b> with code <b>{{ _promo.code }}</b></span>{% endif %}
             </div>
             {% endif %}
@@ -167,80 +155,82 @@
     </section>
 
     <!-- Tenant Reply Agent: this project's review queue (replies to your own customers) -->
-    <section id="step-inbox" class="py-8 hidden">
-        <div class="max-w-4xl mx-auto px-6">
+    <section id="step-inbox" class="portal-section hidden">
+        <div class="portal-shell portal-shell--medium">
             <h3 class="n-title text-xl">{% if _lang == 'ar' %}<span>ردود بانتظار مراجعتك</span>{% else %}<span data-inline>Replies awaiting your review</span>{% endif %}</h3>
             <div id="inboxList" class="mt-4"></div>
         </div>
     </section>
 
     <!-- Step 2b: checkout -->
-    <section id="step-checkout" class="py-12 hidden">
-        <div class="max-w-3xl mx-auto px-6">
-            <div class="n-card p-8 text-center">
-                <div class="n-divider mb-4">✺</div>
-                <h2 class="n-title text-2xl mb-2">{% if _lang == 'ar' %}<span>الاشتراك</span>{% else %}<span data-inline>Subscription</span>{% endif %}</h2>
-                <div id="coSummary" class="n-sub mb-6"></div>
+    <section id="step-checkout" class="portal-section hidden">
+        <div class="portal-shell portal-shell--medium">
+            {% call card(class_name='portal-checkout text-center') %}
+                <div class="n-divider mb-4 portal-heading-icon" aria-hidden="true">✺</div>
+                <h2 class="n-title portal-title mb-2">{% if _lang == 'ar' %}<span>الاشتراك</span>{% else %}<span data-inline>Subscription</span>{% endif %}</h2>
+                <div id="coSummary" class="n-sub portal-summary mb-6"></div>
                 {% if promo_info().active %}
-                <div class="flex items-center justify-center gap-2 mb-4" id="promoRow">
-                    <input type="text" id="promoInput" placeholder="{% if _lang == 'ar' %}كود الخصم{% else %}Promo code{% endif %}" autocomplete="off" style="max-width:200px;text-align:center;" class="co-input">
-                    <button id="promoApply" class="btn btn-outline" style="padding:10px 18px;font-size:.85rem;">
+                <div class="portal-promo flex items-center justify-center gap-2 mb-4" id="promoRow">
+                    {{ input('promoInput', class_name='co-input', attrs={'placeholder': 'كود الخصم' if _lang == 'ar' else 'Promo code', 'aria-label': 'كود الخصم' if _lang == 'ar' else 'Promo code', 'autocomplete': 'off'}) }}
+                    {% call button(variant='outline', attrs={'id': 'promoApply'}) %}
                         {% if _lang == 'ar' %}<span>تطبيق</span>{% else %}<span data-inline>Apply</span>{% endif %}
-                    </button>
+                    {% endcall %}
                 </div>
                 {% endif %}
-<label id="refundConsentRow" for="refundConsent" class="flex items-start gap-2 mb-4 text-sm" style="text-align:start;cursor:pointer;">
-                        <input type="checkbox" id="refundConsent" name="refund_consent" required class="mt-0.5">
-                        <span>{% if _lang == 'ar' %}<span>أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span>{% else %}<span data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span>{% endif %}</span>
-                    </label>
-<div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
-                    <p id="coCardNote" hidden class="mt-4 text-sm" style="color:var(--n-brown-2);"></p>
-                <div id="coMsg" class="text-center font-bold py-2 rounded-lg mt-4" style="display:none;"></div>
-                <button id="coBack" class="btn btn-outline mt-6" style="padding:10px 22px;">
-                    <i class="fas fa-arrow-left"></i> {% if _lang == 'ar' %}<span>رجوع للفريق</span>{% else %}<span data-inline>Back to Team</span>{% endif %}
-                </button>
-            </div>
+                <label id="refundConsentRow" for="refundConsent" class="portal-consent flex items-start gap-2 mb-4 text-sm">
+                    {{ input('refundConsent', type='checkbox', class_name='mt-0.5', attrs={'name': 'refund_consent', 'required': True}) }}
+                    <span>{% if _lang == 'ar' %}<span>أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span>{% else %}<span data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span>{% endif %}</span>
+                </label>
+                <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
+                <p id="coCardNote" hidden class="mt-4 text-sm portal-description" role="status"></p>
+                {{ alert(class_name='text-center mt-4', attrs={'id': 'coMsg', 'style': 'display:none;'}) }}
+                {% call button(variant='outline', class_name='mt-6', attrs={'id': 'coBack'}) %}
+                    {{ icon('back') }} {% if _lang == 'ar' %}<span>رجوع للفريق</span>{% else %}<span data-inline>Back to Team</span>{% endif %}
+                {% endcall %}
+            {% endcall %}
         </div>
     </section>
 
     <!-- Step 3: interview chat -->
-    <section id="step-chat" class="py-12 hidden">
-        <div class="max-w-3xl mx-auto px-6">
-            <div class="n-card p-6">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="emp-ava aw-preview" style="width:56px;height:56px;border-radius:50%;background:#EEF3EA;color:#3D5F33;font-weight:800;font-size:1.1rem;"></div>
+    <section id="step-chat" class="portal-section hidden">
+        <div class="portal-shell portal-shell--medium">
+            {% call card(class_name='portal-chat') %}
+                <div class="portal-chat-header flex items-center gap-4 mb-4">
+                    <div class="emp-ava aw-preview portal-avatar" aria-hidden="true"></div>
                     <div>
                         <div class="n-title text-lg" id="chatEmpName"></div>
-                        <div class="text-xs" style="color:var(--n-gold);" id="chatEmpMeta"></div>
+                        <div class="text-xs" id="chatEmpMeta"></div>
                     </div>
-                    <button id="chatBack" class="btn btn-outline ms-auto" style="padding:8px 14px;font-size:0.8rem;">
-                        <i class="fas fa-arrow-left"></i> {% if _lang == 'ar' %}<span>رجوع</span>{% else %}<span data-inline>Back</span>{% endif %}
-                    </button>
+                    {% call button(variant='outline', class_name='ms-auto', attrs={'id': 'chatBack'}) %}
+                        {{ icon('back') }} {% if _lang == 'ar' %}<span>رجوع</span>{% else %}<span data-inline>Back</span>{% endif %}
+                    {% endcall %}
                 </div>
-                <div class="chat-box flex flex-col gap-3 mb-4 p-4 rounded-xl" style="background:var(--n-cream);border:1px solid var(--n-line);min-height:300px;" id="chatBox"></div>
-                <div class="flex gap-3" id="chatInputRow">
-                    <input type="text" id="chatAnswer" class="flex-1" placeholder="..." autocomplete="off">
-                    <button id="chatSend" class="btn btn-gold" style="padding:12px 22px;">
-                        <i class="fas fa-paper-plane"></i> {% if _lang == 'ar' %}<span>إرسال</span>{% else %}<span data-inline>Send</span>{% endif %}
-                    </button>
+                <div class="chat-box portal-chat-log flex flex-col gap-3 mb-4" id="chatBox" role="log" aria-live="polite"></div>
+                <div class="portal-chat-compose flex gap-3" id="chatInputRow">
+                    {{ input('chatAnswer', class_name='flex-1', attrs={'placeholder': '...', 'autocomplete': 'off', 'aria-label': 'إجابتك' if _lang == 'ar' else 'Your answer'}) }}
+                    {% call button(variant='primary', attrs={'id': 'chatSend'}) %}
+                        {{ icon('send') }} {% if _lang == 'ar' %}<span>إرسال</span>{% else %}<span data-inline>Send</span>{% endif %}
+                    {% endcall %}
                 </div>
-            </div>
+            {% endcall %}
         </div>
     </section>
 
-    <footer class="n-footer py-8">
-        <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
-            <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
-            <p class="text-xs mt-3" style="opacity:0.6;">
+    </main>
+
+    <footer class="n-footer portal-footer">
+        <div class="portal-shell text-center">
+            <div class="text-lg mb-2">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
+            <p class="text-xs">Al-Narjis AI · Riyadh · © 2026</p>
+            <p class="portal-footer-links text-xs mt-3">
                 {% if _lang == 'ar' %}<span>يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>{% else %}<span data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>{% endif %}
-                <a href="/privacy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>
-                <span style="opacity:0.6;">·</span>
-                <a href="/terms" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الشروط</span>{% else %}<span data-inline>Terms</span>{% endif %}</a>
-                <span style="opacity:0.6;">·</span>
-                <a href="/refund-policy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>سياسة الاسترداد</span>{% else %}<span data-inline>Refund policy</span>{% endif %}</a>
-                <span style="opacity:0.6;">·</span>
-                <a href="/about" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>من نحن</span>{% else %}<span data-inline>About</span>{% endif %}</a>
+                <a href="/privacy">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>
+                <span>·</span>
+                <a href="/terms">{% if _lang == 'ar' %}<span>الشروط</span>{% else %}<span data-inline>Terms</span>{% endif %}</a>
+                <span>·</span>
+                <a href="/refund-policy">{% if _lang == 'ar' %}<span>سياسة الاسترداد</span>{% else %}<span data-inline>Refund policy</span>{% endif %}</a>
+                <span>·</span>
+                <a href="/about">{% if _lang == 'ar' %}<span>من نحن</span>{% else %}<span data-inline>About</span>{% endif %}</a>
             </p>
         </div>
     </footer>
@@ -280,8 +270,8 @@
                 if (!Array.isArray(data.packages) || !data.packages.length) throw new Error('packages');
                 $('pkg-status').textContent = '';
                 $('pkg-grid').innerHTML = data.packages.map(p => `
-                    <div class="n-card pkg text-center cursor-pointer selectable" data-pkg="${p.key}" style="transition:0.2s">
-                        <div class="text-3xl mb-2" style="color:var(--n-gold);"><i class="${p.icon}"></i></div>
+                    {% call card(class_name='pkg cursor-pointer selectable', attrs={'data-pkg': '${p.key}'}) %}
+                        <div class="portal-plan-icon mb-2" data-icon="${p.icon}">{{ icon('sparkles') }}</div>
                         <h3 class="n-title text-lg">
                             {% if _lang == 'ar' %}<span>${p.name}</span>{% else %}<span data-inline>${p.name_en}</span>{% endif %}
                         </h3>
@@ -298,8 +288,8 @@
                         ${(p.coming||[]).length ? `<div class="pkg-coming text-xs mt-2" style="text-align:start;opacity:.6">
                             <div>{% if _lang == 'ar' %}<b>قادم قريباً (غير مشمول حالياً)</b><ul>${p.coming.map(f=>`<li>◦ ${f}</li>`).join('')}</ul>{% else %}<b>Coming soon (not included yet)</b><ul>${p.coming_en.map(f=>`<li>◦ ${f}</li>`).join('')}</ul>{% endif %}</div>
                         </div>` : ''}
-                        ${p.recommended ? '<div class="text-xs mt-2" style="color:var(--n-gold-2);font-weight:700;">{% if _lang == 'ar' %}<span>ننصح بها</span>{% else %}<span data-inline>Recommended</span>{% endif %}</div>' : ''}
-                    </div>
+                        ${p.recommended ? '{% call badge(class_name="mt-3") %}{% if _lang == 'ar' %}<span>ننصح بها</span>{% else %}<span data-inline>Recommended</span>{% endif %}{% endcall %}' : ''}
+                    {% endcall %}
                 `).join('') + (data.enterprise ? `
                     <a class="n-card text-center" href="/consult" style="display:block;">
                         <h3 class="n-title text-lg">{% if _lang == 'ar' %}<span>${data.enterprise.name}</span>{% else %}<span data-inline>${data.enterprise.name_en}</span>{% endif %}</h3>
@@ -397,13 +387,13 @@
             const deptEn = d => DEPT_EN[d] || d;
                 $('teamPkg').textContent = isAr() ? pkgNames[state.pkg] : (team[0]?.pkg_en || '');
                 $('team-grid').innerHTML = team.map(a => `
-                    <div class="n-card emp-card dormant" data-slug="${a.slug}" style="cursor:pointer">
+                    {% call card(class_name='emp-card dormant cursor-pointer', attrs={'data-slug': '${a.slug}'}) %}
                         <div class="flex items-center gap-3 mb-3">
-                            <div class="emp-ava" style="width:52px;height:52px;border-radius:50%;background:#EEF3EA;color:#3D5F33;font-weight:800;font-size:1rem;">
+                            <div class="emp-ava" aria-hidden="true">
                                 <span>${a.no.replace('AG-','')}</span>
                             </div>
                             <div>
-                                <div class="text-xs" style="color:var(--n-gold);">${a.no} · {% if _lang == 'ar' %}<span>${pending ? 'موظف نائم' : 'يقف الآن'}</span>{% else %}<span data-inline>${pending ? 'Asleep' : 'On standby'}</span>{% endif %}</div>
+                                {% call badge(variant='outline') %}${a.no} · {% if _lang == 'ar' %}<span>${pending ? 'موظف نائم' : 'يقف الآن'}</span>{% else %}<span data-inline>${pending ? 'Asleep' : 'On standby'}</span>{% endif %}{% endcall %}
                                 <h3 class="n-title text-base">
                                     {% if _lang == 'ar' %}<span>${a.title_ar}</span>{% else %}<span data-inline>${a.title_en}</span>{% endif %}
                                 </h3>
@@ -416,10 +406,10 @@
                             {% if _lang == 'ar' %}<span>${a.intro_ar}</span>{% else %}<span data-inline>${a.intro_en}</span>{% endif %}
                         </p>
                         <button class="btn w-full mt-4 wake-btn ${pending ? 'btn-outline' : 'btn-gold'}" data-slug="${a.slug}">
-                            <i class="${pending ? 'fas fa-lock' : 'fas fa-bolt'}"></i>
+                            ${pending ? `{{ icon('lock') }}` : `{{ icon('bolt') }}`}
                             {% if _lang == 'ar' %}<span>${pending ? 'فعّل اشتراكك ليستيقظ' : 'أيقظ الموظف'}</span>{% else %}<span data-inline>${pending ? 'Activate to wake' : 'Wake Up'}</span>{% endif %}
                         </button>
-                    </div>
+                    {% endcall %}
                 `).join('');
 
                 document.querySelectorAll('.wake-btn').forEach(b => {
@@ -484,8 +474,7 @@
                 const cfg = UPLOADERS[slug];
                 if (!cfg) return;
                 const wrap = document.createElement('div');
-                wrap.className = 'msg msg-agent';
-                wrap.style.cssText = 'background:var(--n-sand-2);color:var(--n-brown);border:1px dashed var(--n-gold);border-radius:20px;padding:10px 14px;';
+                wrap.className = 'msg msg-agent portal-upload';
                 const label = document.createElement('div');
                 label.textContent = '📎 ' + txt(cfg.ar, cfg.en);
                 const input = document.createElement('input');
@@ -540,9 +529,6 @@
                 const box = $('chatBox');
                 const d = document.createElement('div');
                 d.className = 'msg ' + (who === 'agent' ? 'msg-agent' : 'msg-client');
-                d.style.cssText = (who === 'agent'
-                    ? 'background:var(--n-sand-2);color:var(--n-brown);border:1px solid var(--n-line);'
-                    : 'background:linear-gradient(135deg,var(--n-gold-2),var(--n-gold));color:#ffffff;') + 'border-radius:20px;padding:10px 14px;white-space:pre-wrap;line-height:1.7;';
                 d.textContent = text;
                 box.appendChild(d);
                 box.scrollTop = box.scrollHeight;
@@ -554,7 +540,6 @@
                     const box = $('chatBox');
                     const spin = document.createElement('div');
                     spin.className = 'msg msg-agent';
-                    spin.style.cssText = 'background:var(--n-sand-2);border:1px solid var(--n-line);border-radius:16px;padding:12px 16px;color:var(--n-brown);';
                     spin.innerHTML = '<span class="spin">⟳</span> ' + txt('يعمل الآن...', 'Working...');
                     box.appendChild(spin);
                     box.scrollTop = box.scrollHeight;
@@ -568,8 +553,7 @@
                         if (data.result) {
                             addMsg('agent', data.result);
                             const finish = document.createElement('div');
-                            finish.className = 'msg msg-agent';
-                            finish.style.cssText = 'background:linear-gradient(135deg,var(--n-gold-2),var(--n-gold));border-radius:20px;padding:10px 14px;color:#ffffff;font-weight:700;';
+                            finish.className = 'msg msg-agent msg-complete';
                             finish.textContent = txt(
                                 '✅ اكتمل العمل. عُد للفريق لإيقاظ موظف آخر، أو تواصل معنا لطلب هذا الموظف في باقتك رسمياً.',
                                 '✅ Done. Go back to wake another employee, or contact us to officially add this employee to your plan.'
@@ -649,7 +633,7 @@
                         const hidden = all.length - live.length;
                         $('coMethods').innerHTML = live.map(x => `
                             <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
-                                <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
+                                {{ icon('credit-card') }}<span>${x.t}</span>
                             </button>`).join('');
 if (hidden) {
                             const note = document.getElementById('coCardNote');

@@ -1,0 +1,4 @@
+{# A surface that can contain any portal content through a call block. #}
+{% macro card(class_name='', attrs=none) -%}
+<div class="n-card ui-card{% if class_name %} {{ class_name }}{% endif %}"{{ (attrs or {})|xmlattr }}>{{ caller() }}</div>
+{%- endmacro %}
