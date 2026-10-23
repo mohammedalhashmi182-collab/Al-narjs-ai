@@ -73,6 +73,12 @@ async def set_mode(session: AsyncSession, channel: str, mode: str) -> str:
 
 # --------------------------------------------------------------------------- wording
 
+def pm_vat_enabled() -> bool:
+    from src.services import payments
+
+    return payments.vat_enabled()
+
+
 def _sar(halalas: int) -> str:
     return f"{halalas // 100:,}"
 
@@ -90,7 +96,7 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
         + (f" و{pkg['limits']['voice_minutes']} دقيقة صوت عند إطلاق الوكيل الصوتي (قريباً)" if pkg['limits']['voice_minutes'] else "")
         + f"، ورسوم ميتا مشمولة حتى {_sar(pkg['limits']['meta_cap'])} ريال. "
         f"وتقدر تضيف أي وكيل إضافي بـ {_sar(catalog.ADDON_AGENT['amount'])} ريال شهرياً. "
-        "ضريبة القيمة المضافة موضّحة في الفاتورة."
+        + ("ضريبة القيمة المضافة موضّحة في الفاتورة." if pm_vat_enabled() else "السعر نهائي كما هو موضّح في الفاتورة.")
     )
 
 

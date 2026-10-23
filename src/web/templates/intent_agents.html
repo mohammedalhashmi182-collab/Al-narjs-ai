@@ -71,9 +71,9 @@
     <h1>{% if _lang == 'ar' %}وكلاء الذكاء الاصطناعي للأعمال السعودية{% else %}AI Agents for Saudi Businesses{% endif %}</h1>
     <p class="lead">
         {% if _lang == 'ar' %}
-        منصة سعودية من الرياض تقدم الذكاء الاصطناعي باشتراك شهري. الكتالوج يضم {{ agent_count }} وكيلاً متخصصاً، والباقات المنشورة تختلف بحد المحادثات ورسوم ميتا ورسوم الإعداد، لا بعدد الوكلاء.{% if vat_enabled() %} فاتورة ضريبية، ضريبة ١٥٪، إلغاء{% else %} فاتورة رسمية، إلغاء{% endif %} في أي وقت.
+        منصة سعودية من الرياض تقدم الذكاء الاصطناعي باشتراك شهري. الكتالوج يضم {{ agent_count }} وكيلاً متخصصاً، والباقات المنشورة تختلف بحد المحادثات ورسوم ميتا ورسوم الإعداد، لا بعدد الوكلاء.{% if vat_enabled() %} فاتورة ضريبية، ضريبة {{ vat_percent() }}٪، إلغاء{% else %} فاتورة رسمية، إلغاء{% endif %} في أي وقت.
         {% else %}
-        A Riyadh-based Saudi platform that delivers AI on a monthly subscription. The catalog lists {{ agent_count }} specialized agents. Published plans differ by the conversation cap, the Meta fee cap, and the setup fee, not by a headcount.{% if vat_enabled() %} Tax invoice, 15% VAT, cancel{% else %} Official invoice, cancel{% endif %} anytime.
+        A Riyadh-based Saudi platform that delivers AI on a monthly subscription. The catalog lists {{ agent_count }} specialized agents. Published plans differ by the conversation cap, the Meta fee cap, and the setup fee, not by a headcount.{% if vat_enabled() %} Tax invoice, {{ vat_percent() }}% VAT, cancel{% else %} Official invoice, cancel{% endif %} anytime.
         {% endif %}
     </p>
 

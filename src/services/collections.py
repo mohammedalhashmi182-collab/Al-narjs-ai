@@ -73,18 +73,18 @@ def due_stage(period_end: datetime, now: datetime) -> Optional[str]:
 
 
 def reminder_text(stage: str, project, payment, period_end: datetime, base_url: str) -> str:
-    total = pm.total_with_vat(int(payment.amount)) / 100
+    total = pm.payment_total(payment) / 100
     end = (period_end + timedelta(hours=3)).strftime("%Y-%m-%d")
     pkg = catalog.PACKAGES.get(project.package, {}).get("name", project.package)
     return (
         f"مرحباً {project.client_name}، {_STAGE_AR[stage]}. باقة {pkg} لدى النرجس، تاريخ الانتهاء {end}. "
-        f"المبلغ المستحق {total:,.2f} ر.س شاملة ضريبة القيمة المضافة. "
+        f"المبلغ المستحق {total:,.2f} ر.س{pm.vat_note_ar(payment)}. "
         f"للسداد: {base_url}/invoice/{payment.id} — رقم المرجع {pm.reference(payment)}."
     )
 
 
 def recovery_text(payment, base_url: str) -> str:
-    total = pm.total_with_vat(int(payment.amount)) / 100
+    total = pm.payment_total(payment) / 100
     return (
         f"مرحباً {payment.customer_name or ''}، لم تكتمل عملية الدفع الأخيرة ({total:,.2f} ر.س). "
         f"يمكنك إعادة المحاولة بالبطاقة أو اختيار التحويل البنكي من هنا: {base_url}/invoice/{payment.id} "
@@ -93,10 +93,10 @@ def recovery_text(payment, base_url: str) -> str:
 
 
 def overage_text(project, payment, base_url: str) -> str:
-    total = pm.total_with_vat(int(payment.amount)) / 100
+    total = pm.payment_total(payment) / 100
     return (
         f"مرحباً {project.client_name}، تجاوز استهلاكك الشهري الحد المشمول في باقتك، ولم نوقف الخدمة. "
-        f"فاتورة الاستهلاك الإضافي {total:,.2f} ر.س شاملة الضريبة: {base_url}/invoice/{payment.id}."
+        f"فاتورة الاستهلاك الإضافي {total:,.2f} ر.س{pm.vat_note_ar(payment)}: {base_url}/invoice/{payment.id}."
     )
 
 
@@ -188,7 +188,7 @@ async def run_reminders(session: AsyncSession, now: datetime, base_url: str) -> 
         channels = await _deliver(
             session, project_phone=project.phone, email=project.email,
             subject="تذكير تجديد الاشتراك — النرجس للذكاء الاصطناعي", text=text, message_type="renewal",
-            owner_note=f"💳 تحصيل {stage}: {project.client_name} — {pm.total_with_vat(int(payment.amount)) / 100:,.2f} ر.س غير مسددة ({pm.reference(payment)})",
+            owner_note=f"💳 تحصيل {stage}: {project.client_name} — {pm.payment_total(payment) / 100:,.2f} ر.س غير مسددة ({pm.reference(payment)})",
             whatsapp=stage != "d-5",
         )
         await _mark(session, project.id, payment.id, stage, channels)
@@ -257,7 +257,7 @@ async def bill_overage(session: AsyncSession, now: datetime, base_url: str) -> l
         if project is None:
             continue
         payment = Payment(
-            amount=int(bill["total_due"]), currency="SAR", package=zatca.OVERAGE_PACKAGE, billing_period="monthly",
+            amount=int(bill["total_due"]), total_halalas=pm.total_with_vat(int(bill["total_due"])), currency="SAR", package=zatca.OVERAGE_PACKAGE, billing_period="monthly",
             addon_conversation_packs=int(bill["conversation_packs"]), addon_voice_packs=int(bill["voice_packs"]),
             customer_name=project.client_name, customer_phone=project.phone, customer_email=project.email,
             project_id=None, status="invoice", gateway="invoice",
@@ -270,12 +270,12 @@ async def bill_overage(session: AsyncSession, now: datetime, base_url: str) -> l
         channels = await _deliver(
             session, project_phone=project.phone, email=project.email,
             subject="فاتورة الاستهلاك الإضافي — النرجس للذكاء الاصطناعي", text=text, message_type="overage",
-            owner_note=f"📈 فاتورة استهلاك إضافي: {project.client_name} — {pm.total_with_vat(payment.amount) / 100:,.2f} ر.س ({base_url}/invoice/{payment.id})",
+            owner_note=f"📈 فاتورة استهلاك إضافي: {project.client_name} — {pm.payment_total(payment) / 100:,.2f} ر.س ({base_url}/invoice/{payment.id})",
         )
         session.add(CollectionReminder(id=uuid4(), project_id=project.id, payment_id=payment.id, stage=stage, channels=channels))
         await session.commit()
         out.append({"project_id": str(project.id), "payment_id": str(payment.id), "amount": payment.amount,
-                    "total": pm.total_with_vat(payment.amount), "channels": channels})
+                    "total": pm.payment_total(payment), "channels": channels})
     return out
 
 

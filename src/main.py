@@ -2067,7 +2067,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     from src.services import catalog as _catalog
 
     _pkgs = " | ".join(
-        f"{p['name']} ({p['name_en']}): {p['price']} SAR/month before VAT, "
+        f"{p['name']} ({p['name_en']}): {p['price']} SAR/month{' before VAT' if _vat_pm.vat_enabled() else ''}, "
         f"setup {int(p.get('setup_fee') or 0) // 100} SAR waived on annual billing. "
         + "; ".join(p.get("scope_en") or [])
         for p in _catalog.PACKAGES.values()
@@ -2955,11 +2955,10 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             await session.commit()
 
         if method == "paypal":
-            # Owner decision (option A): prices are VAT-inclusive and the invoice
-            # document always bills base + 15%, so every automated charge must
-            # equal total_with_vat. Previously the English locale charged the
-            # pre-VAT base while the invoice showed the VAT-inclusive figure.
-            charge = pm.total_with_vat(payment.amount)
+            # Every automated charge equals the total stored on the payment at
+            # creation (base + VAT at the configured VAT_RATE, 0 when not
+            # VAT-registered), so the charge and the invoice always agree.
+            charge = pm.payment_total(payment)
             try:
                 order = await pm.create_paypal_order(
                     session,
@@ -2979,7 +2978,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "discount": discount_halalas,
                     "promo_applied": discount_pct > 0 and not payment.founding,
                     **founding_info,
-                    "vat": pm.vat_amount(payment.amount) if include_vat else 0,
+                    "vat": pm.payment_vat(payment) if include_vat else 0,
                     "total": charge,
                     # PayPal cannot charge SAR: the buyer pays this USD amount.
                     "charge_currency": order["currency"],
@@ -3002,9 +3001,9 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "discount": discount_halalas,
                     "promo_applied": discount_pct > 0 and not payment.founding,
                     **founding_info,
-                    "vat": pm.vat_amount(payment.amount),
-                    "total": pm.total_with_vat(payment.amount),
-                    "invoice_total": pm.total_with_vat(payment.amount),
+                    "vat": pm.payment_vat(payment),
+                    "total": pm.payment_total(payment),
+                    "invoice_total": pm.payment_total(payment),
                     "invoice_url": f"/invoice/{payment.id}",
                 }
 
@@ -3039,8 +3038,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "discount": discount_halalas,
                     "promo_applied": discount_pct > 0 and not payment.founding,
                     **founding_info,
-                    "vat": pm.vat_amount(payment.amount),
-                    "total": pm.total_with_vat(payment.amount),
+                    "vat": pm.payment_vat(payment),
+                    "total": pm.payment_total(payment),
                 }
             except pm.PaymentError as e:
                 if not pm.customer_bank_transfer_enabled():
@@ -3058,7 +3057,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "discount": discount_halalas,
                     "promo_applied": discount_pct > 0 and not payment.founding,
                     **founding_info,
-                    "invoice_total": pm.total_with_vat(payment.amount),
+                    "invoice_total": pm.payment_total(payment),
                     "invoice_url": f"/invoice/{payment.id}",
                 }
 
@@ -3077,9 +3076,9 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
             "discount": discount_halalas,
             "promo_applied": discount_pct > 0 and not payment.founding,
             **founding_info,
-            "vat": pm.vat_amount(payment.amount),
-            "total": pm.total_with_vat(payment.amount),
-            "invoice_total": pm.total_with_vat(payment.amount),
+            "vat": pm.payment_vat(payment),
+            "total": pm.payment_total(payment),
+            "invoice_total": pm.payment_total(payment),
             "invoice_url": f"/invoice/{payment.id}",
         }
 
@@ -3124,7 +3123,7 @@ async def capture_payment(payment_id: str, request: Request):
         email_sent = await email_service.send_invoice(
             payment,
             base_halalas=payment.amount,
-            total_halalas=pm.total_with_vat(payment.amount),
+            total_halalas=pm.payment_total(payment),
             locale=locale,
         )
 
@@ -3133,8 +3132,8 @@ async def capture_payment(payment_id: str, request: Request):
         "status": payment.status,
         "gateway": payment.gateway,
         "amount": payment.amount,
-        "vat": pm.vat_amount(payment.amount),
-        "total": pm.total_with_vat(payment.amount),
+        "vat": pm.payment_vat(payment),
+        "total": pm.payment_total(payment),
         "invoice_url": f"/invoice/{payment.id}" if payment.status == "paid" else None,
         "email_sent": email_sent,
     }
@@ -3165,7 +3164,7 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
         return {"applied": True, "deduplicated": True}
 
     package = payment.package or "social"
-    total_halalas = _pm.total_with_vat(payment.amount)
+    total_halalas = _pm.payment_total(payment)
 
     session.add(
         Decision(
@@ -3484,8 +3483,8 @@ async def confirm_payment_received(payment_id: str, body: ConfirmReceivedRequest
             "payment_id": str(payment.id),
             "status": "paid",
             "amount": payment.amount,
-            "vat": _pm.vat_amount(payment.amount),
-            "total": _pm.total_with_vat(payment.amount),
+            "vat": _pm.payment_vat(payment),
+            "total": _pm.payment_total(payment),
             "invoice_url": f"/invoice/{payment.id}",
             "outcome": outcome,
         }
@@ -3688,9 +3687,12 @@ async def invoice_page(request: Request, payment_id: str):
             "qr_svg": zatca.qr_svg(tax_invoice.qr_tlv) if tax_invoice and tax_invoice.qr_tlv else None,
             "issued_riyadh": (tax_invoice.issued_at + _td(hours=3)).strftime("%Y-%m-%d %H:%M")
             if tax_invoice and tax_invoice.issued_at else None,
-            "base": payment.amount,
-            "vat": pm.vat_amount(payment.amount),
-            "total": pm.total_with_vat(payment.amount),
+            # Issued documents render from their stored figures, never the
+            # current VAT_RATE (an invoice issued at 15% stays a tax invoice).
+            "base": int(tax_invoice.subtotal) if tax_invoice else payment.amount,
+            "vat": int(tax_invoice.vat_total) if tax_invoice else pm.payment_vat(payment),
+            "total": int(tax_invoice.total) if tax_invoice else pm.payment_total(payment),
+            "has_vat": (int(tax_invoice.vat_total) if tax_invoice else pm.payment_vat(payment)) > 0,
             "xfer": pm.transfer_instructions(payment) if payment.status != "paid" and pm.customer_bank_transfer_enabled() else None,
             "consent_needed": payment.status != "paid" and payment.refund_consent_at is None,
             "refund_consent_ar": policies.REFUND_CONSENT_AR,
@@ -3704,7 +3706,7 @@ async def invoice_page(request: Request, payment_id: str):
             and pm.customer_paypal_enabled()
             and pm.paypal_collects_money(),
             "paypal_usd": (
-                f"{pm.sar_halalas_to_usd_cents(pm.total_with_vat(payment.amount)) / 100:.2f}"
+                f"{pm.sar_halalas_to_usd_cents(pm.payment_total(payment)) / 100:.2f}"
                 if pm.paypal_collects_money() else None
             ),
         },
@@ -3739,8 +3741,8 @@ async def get_payment(payment_id: str):
         "description": payment.description,
         "gateway": payment.gateway,
         "gateway_payment_id": payment.gateway_payment_id,
-        "vat": pm.vat_amount(payment.amount),
-        "total": pm.total_with_vat(payment.amount),
+        "vat": pm.payment_vat(payment),
+        "total": pm.payment_total(payment),
     }
 
 
@@ -3832,7 +3834,7 @@ async def pay_invoice_with_paypal(payment_id: str, body: InvoiceConsentRequest, 
             "gateway": "paypal",
             "order_id": order["order_id"],
             "redirect_url": order["approval_url"],
-            "total": pm.total_with_vat(payment.amount),
+            "total": pm.payment_total(payment),
             "charge_currency": order["currency"],
             "charge_amount": order["amount_usd"],
             "sar_per_usd": settings.paypal_sar_per_usd,

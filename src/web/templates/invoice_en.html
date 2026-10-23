@@ -46,12 +46,12 @@
         </div>
         <div class="inv-body">
             <div class="row">
-                <span>{% if vat_enabled() %}{% if tax_invoice %}Simplified Tax Invoice<br><small>فاتورة ضريبية مبسطة</small>{% else %}Pro-forma invoice<br><small>The tax invoice is issued on payment</small>{% endif %}{% else %}{% if tax_invoice %}Invoice<br><small>فاتورة</small>{% else %}Pro-forma invoice<br><small>The invoice is issued on payment</small>{% endif %}{% endif %}</span>
+                <span>{% if has_vat %}{% if tax_invoice %}Simplified Tax Invoice<br><small>فاتورة ضريبية مبسطة</small>{% else %}Pro-forma invoice<br><small>The tax invoice is issued on payment</small>{% endif %}{% else %}{% if tax_invoice %}Invoice<br><small>فاتورة</small>{% else %}Pro-forma invoice<br><small>The invoice is issued on payment</small>{% endif %}{% endif %}</span>
                 <span class="no">{% if tax_invoice %}No. {{ tax_invoice.invoice_number }}{% else %}Ref {{ payment.id|string|truncate(8, true, '')|upper }}{% endif %}</span>
             </div>
             <div class="org">
                 <b>{{ seller.name_en }}</b> ({{ seller.name_ar }})<br>
-                {% if vat_enabled() %}VAT No.: {{ seller.vat_number }}{% if seller.vat_placeholder %} <span style="color:#B91C1C">(not configured yet)</span>{% endif %}<br>{% endif %}
+                {% if has_vat %}VAT No.: {{ seller.vat_number }}{% if seller.vat_placeholder %} <span style="color:#B91C1C">(not configured yet)</span>{% endif %}<br>{% endif %}
                 Freelance document No. {{ seller.cr_number }}<br>
                 {{ seller.address_ar }}
             </div>
@@ -61,26 +61,26 @@
                 {% if payment.customer_email %} · {{ payment.customer_email }}{% endif %}
             </div>
             <table>
-                <tr><th>Item</th><th>Qty</th>{% if vat_enabled() %}<th>Net</th><th>VAT {{ vat_percent() }}%</th>{% else %}<th>Amount</th>{% endif %}<th>Total</th></tr>
+                <tr><th>Item</th><th>Qty</th>{% if has_vat %}<th>Net</th><th>VAT {{ ((vat * 100 / base)|round|int) if base else 0 }}%</th>{% else %}<th>Amount</th>{% endif %}<th>Total</th></tr>
                 {% for l in lines %}
-                <tr><td>{{ l.name }}</td><td>{{ l.qty }}</td><td>{{ "%.2f"|format(l.net / 100) }}</td>{% if vat_enabled() %}<td>{{ "%.2f"|format(l.vat / 100) }}</td>{% endif %}<td>{{ "%.2f"|format(l.gross / 100) }}</td></tr>
+                <tr><td>{{ l.name }}</td><td>{{ l.qty }}</td><td>{{ "%.2f"|format(l.net / 100) }}</td>{% if has_vat %}<td>{{ "%.2f"|format(l.vat / 100) }}</td>{% endif %}<td>{{ "%.2f"|format(l.gross / 100) }}</td></tr>
                 {% endfor %}
-                {% if vat_enabled() %}
+                {% if has_vat %}
                 <tr class="tot"><td colspan="2">Subtotal (excl. VAT)</td><td colspan="3">{{ "%.2f"|format(base / 100) }} SAR</td></tr>
-                <tr><td colspan="2">VAT {{ vat_percent() }}%</td><td colspan="3">{{ "%.2f"|format(vat / 100) }} SAR</td></tr>
+                <tr><td colspan="2">VAT {{ ((vat * 100 / base)|round|int) if base else 0 }}%</td><td colspan="3">{{ "%.2f"|format(vat / 100) }} SAR</td></tr>
                 <tr class="tot"><td colspan="2">Total (incl. VAT)</td><td colspan="3">{{ "%.2f"|format(total / 100) }} SAR</td></tr>
                 {% else %}
                 <tr class="tot"><td colspan="2">Total</td><td colspan="2">{{ "%.2f"|format(total / 100) }} SAR</td></tr>
                 {% endif %}
             </table>
-            {% if tax_invoice and tax_invoice.qr_tlv and vat_enabled() %}
+            {% if tax_invoice and tax_invoice.qr_tlv and has_vat %}
             <div class="qr" style="text-align:center;margin-top:14px;">
                 {% if qr_svg %}{{ qr_svg|safe }}{% endif %}
                 <div class="meta" style="word-break:break-all;">QR (ZATCA TLV): {{ tax_invoice.qr_tlv }}</div>
             </div>
             {% endif %}
             {% for cn in credit_notes %}
-            <div class="meta">Credit note {{ cn.invoice_number }} on {{ cn.issued_at.strftime('%Y-%m-%d') }}: {{ "%.2f"|format(cn.total / 100) }} SAR{% if vat_enabled() %} incl. VAT{% endif %}{% if cn.reason %} — {{ cn.reason }}{% endif %}</div>
+            <div class="meta">Credit note {{ cn.invoice_number }} on {{ cn.issued_at.strftime('%Y-%m-%d') }}: {{ "%.2f"|format(cn.total / 100) }} SAR{% if has_vat %} incl. VAT{% endif %}{% if cn.reason %} — {{ cn.reason }}{% endif %}</div>
             {% endfor %}
             <div class="meta" style="margin-top:16px;">Paid via {{ 'PayPal' if payment.gateway == 'paypal' else ('Moyasar' if payment.gateway == 'moyasar' else 'Bank transfer') }}</div>
             {% include "partials/_invoice_consent.html" %}

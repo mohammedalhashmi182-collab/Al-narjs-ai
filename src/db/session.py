@@ -109,6 +109,7 @@ async def init_db():
                 ("payments", "refund_consent_version", "VARCHAR(20)"),
                 ("payments", "charge_currency", "VARCHAR(3)"),
                 ("payments", "charge_amount", "INTEGER"),
+                ("payments", "total_halalas", "INTEGER"),
                 ("client_projects", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
                 ("client_projects", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
                 ("client_projects", "current_period_end", "TIMESTAMPTZ"),
@@ -140,6 +141,16 @@ async def init_db():
                     ))
                 except Exception:
                     pass
+            # Rows created before payments.total_halalas existed were all billed
+            # at the then-hardcoded 15%: freeze that total so a later VAT_RATE
+            # change never alters what an existing order owes (idempotent).
+            try:
+                await conn.execute(text(
+                    "UPDATE payments SET total_halalas = amount + CAST(ROUND(amount * 0.15) AS INTEGER) "
+                    "WHERE total_halalas IS NULL"
+                ))
+            except Exception:
+                pass
             await conn.commit()
         elif engine.dialect.name == "sqlite":
             # create_all cannot add columns to an existing SQLite table, so the
@@ -177,6 +188,7 @@ async def init_db():
                 ("payments", "refund_consent_version", "VARCHAR(20)"),
                 ("payments", "charge_currency", "VARCHAR(3)"),
                 ("payments", "charge_amount", "INTEGER"),
+                ("payments", "total_halalas", "INTEGER"),
                 ("client_projects", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
                 ("client_projects", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
                 ("client_projects", "current_period_end", "TIMESTAMP"),
@@ -206,6 +218,16 @@ async def init_db():
                     await conn.execute(text(f'ALTER TABLE "{table}" ADD COLUMN "{column}" {ddl}'))
                 except Exception:
                     pass
+            # Rows created before payments.total_halalas existed were all billed
+            # at the then-hardcoded 15%: freeze that total so a later VAT_RATE
+            # change never alters what an existing order owes (idempotent).
+            try:
+                await conn.execute(text(
+                    "UPDATE payments SET total_halalas = amount + CAST(ROUND(amount * 0.15) AS INTEGER) "
+                    "WHERE total_halalas IS NULL"
+                ))
+            except Exception:
+                pass
             await conn.commit()
 
 
