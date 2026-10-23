@@ -152,7 +152,7 @@ def test_public_contact_identity_is_consistent() -> None:
         assert 'Al-Narjs AI' not in body, path
         assert 'aimerchantvault.77@gmail.com' not in body, path
         for address in re.findall(r'mailto:([^"\s?]+)', body):
-            assert address == 'Al-Narjis@karmaai.online', path
+            assert address == 'AlNarjisai@gmail.com', path
 
 
 def test_single_how_section_and_explicit_sample_disclosure() -> None:
@@ -160,5 +160,6 @@ def test_single_how_section_and_explicit_sample_disclosure() -> None:
     assert body.count('id="how"') == 1
     assert body.index('id="how"') < body.index('id="pricing"')
     for name in ['landing.html', 'consult.html', 'portal.html']:
-        assert 'يُدار بواسطة مؤسسة ذا أريبيان كونفو' in _read(name)
-        assert 'Operated by The Arabian Convoy Establishment' in _read(name)
+        assert 'يُدار بواسطة أحمد عبدالله الزهراني' in _read(name)
+        assert 'وثيقة عمل حر رقم FL-272182297' in _read(name)
+        assert 'Operated by أحمد عبدالله الزهراني' in _read(name)

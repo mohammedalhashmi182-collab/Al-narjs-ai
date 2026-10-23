@@ -1,9 +1,9 @@
 {% extends "partials/_simple_page.html" %}
-{#- Only facts the owner stated: operator, CR, city/district, founder, mission,
+{#- Only facts the owner stated: operator, freelance document, city/district, founder, mission,
     services. No invented numbers, clients or stock photos of people.
     Testimonials render only from real records (see partials/_testimonials). -#}
 {% block title %}{% if ar %}من نحن | النرجس للذكاء الاصطناعي{% else %}About us | Al-Narjis AI{% endif %}{% endblock %}
-{% block description %}{% if ar %}النرجس للذكاء الاصطناعي منصة سعودية من الرياض أسسها كريم وتديرها مؤسسة ذا أريبيان كونفو. رسالتنا: الذكاء الاصطناعي يساعد الناس ولا يستبدلهم.{% else %}Al-Narjis AI is a Saudi platform from Riyadh, founded by Karim and operated by The Arabian Convoy Establishment. Our mission: AI helps people, it doesn't replace them.{% endif %}{% endblock %}
+{% block description %}{% if ar %}النرجس للذكاء الاصطناعي منصة سعودية من الرياض أسسها كريم ويديرها أحمد عبدالله الزهراني. رسالتنا: الذكاء الاصطناعي يساعد الناس ولا يستبدلهم.{% else %}Al-Narjis AI is a Saudi platform from Riyadh, founded by Karim and operated by أحمد عبدالله الزهراني. Our mission: AI helps people, it doesn't replace them.{% endif %}{% endblock %}
 {% block h1 %}{% if ar %}من نحن{% else %}About us{% endif %}{% endblock %}
 {% block body %}
 <style>
@@ -37,13 +37,13 @@
 <p>نحن فريق سعودي يبني من الرياض، ونعمل بما يتماشى مع مستهدفات رؤية المملكة 2030 في التحول الرقمي: تمكين المنشآت الصغيرة والمتوسطة من أدوات رقمية بلغتها، مع احترام نظام حماية البيانات الشخصية.</p>
 <h2 class="n-title text-lg">الجهة المشغّلة</h2>
 <ul>
-<li>مؤسسة ذا أريبيان كونفو</li>
-<li>سجل تجاري: <span dir="ltr">31332495263</span></li>
+<li>أحمد عبدالله الزهراني</li>
+<li>وثيقة عمل حر رقم <span dir="ltr">FL-272182297</span></li>
 <li>العنوان: الرياض، حي الرمال، المملكة العربية السعودية</li>
 <li>المؤسس: كريم</li>
 </ul>
 <h2 class="n-title text-lg">تواصل</h2>
-<p>اسأل مساعد النرجس من الزر أسفل الصفحة، أو راسلنا على <a href="mailto:Al-Narjis@karmaai.online" dir="ltr">Al-Narjis@karmaai.online</a>.</p>
+<p>اسأل مساعد النرجس من الزر أسفل الصفحة، أو راسلنا على <a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a>.</p>
 {% else %}
 <h2 class="n-title text-lg">Our story</h2>
 <p><b>Karim</b> founded Al-Narjis AI in Riyadh with a simple idea: Saudi business owners deserve AI tools that understand their dialect and their market, and that serve them and their teams instead of replacing them. We started on a single local server, and everything we build today follows the same principle: we build the team you actually need, and the decisions stay with you.</p>
@@ -59,13 +59,13 @@
 <p>We are a Saudi team building from Riyadh, working in line with Saudi Vision 2030's digital-transformation goals: giving small and medium businesses digital tools in their own language, while respecting the Personal Data Protection Law (PDPL).</p>
 <h2 class="n-title text-lg">Operator</h2>
 <ul>
-<li>The Arabian Convoy Establishment (مؤسسة ذا أريبيان كونفو)</li>
-<li>Commercial Registration: 31332495263</li>
+<li>أحمد عبدالله الزهراني</li>
+<li>Freelance document No. FL-272182297</li>
 <li>Address: Al-Rimal district, Riyadh, Saudi Arabia</li>
 <li>Founder: Karim</li>
 </ul>
 <h2 class="n-title text-lg">Contact</h2>
-<p>Ask the Al-Narjis assistant from the button at the bottom of the page, or email <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p>
+<p>Ask the Al-Narjis assistant from the button at the bottom of the page, or email <a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a>.</p>
 {% endif %}
 {% include "partials/_testimonials.html" %}
 {% endblock %}

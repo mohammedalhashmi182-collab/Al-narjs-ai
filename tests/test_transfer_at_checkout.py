@@ -53,7 +53,7 @@ def test_a_down_card_checkout_asks_the_buyer_to_contact_us(portal: str) -> None:
     assert "استخدم التحويل البنكي" not in portal
     assert "Payment is temporarily unavailable" in portal
     assert "الدفع غير متاح مؤقتاً" in portal
-    assert "Al-Narjis@karmaai.online" in portal
+    assert "AlNarjisai@gmail.com" in portal
 
 
 # --------------------------------------------------------------------------
@@ -101,7 +101,7 @@ def test_an_invoice_response_does_not_send_the_buyer_to_a_transfer(portal: str) 
     assert "افتح الفاتورة" not in segment
     assert "invoice_url" not in segment
     assert "0540799266" in segment
-    assert "Al-Narjis@karmaai.online" in segment
+    assert "AlNarjisai@gmail.com" in segment
 
 
 def test_capabilities_publishes_the_company_phone(client: TestClient) -> None:
@@ -159,4 +159,4 @@ def test_the_landing_page_has_no_floating_channel_buttons(client: TestClient) ->
     for marker in ('id="waFloat"', 'id="tgFloat"', 'id="msFloat"', "wa.me/", "t.me/", "m.me/"):
         assert marker not in body, marker
     assert 'id="siteAssistant"' in body
-    assert "mailto:Al-Narjis@karmaai.online" in body
+    assert "mailto:AlNarjisai@gmail.com" in body

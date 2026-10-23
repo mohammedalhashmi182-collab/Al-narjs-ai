@@ -66,13 +66,13 @@
                    a transfer would be asking them to claim something that never happened.
                    Email becomes the primary action and the wording says what is true. #}
                 <strong>{% if xf_ar %}لم تُنشر بيانات الحساب بعد{% else %}Account details are not published yet{% endif %}</strong> —
-                {% if xf_ar %}راسلنا على Al-Narjis@karmaai.online برقم الفاتورة هذا وسنرسل لك بيانات التحويل.
-                {% else %}email Al-Narjis@karmaai.online with this invoice reference and we will send you the transfer details.{% endif %}
+                {% if xf_ar %}راسلنا على AlNarjisai@gmail.com برقم الفاتورة هذا وسنرسل لك بيانات التحويل.
+                {% else %}email AlNarjisai@gmail.com with this invoice reference and we will send you the transfer details.{% endif %}
             {% endif %}
         </p>
         <div class="xfer-actions">
             {% if not xfer.bank.iban %}
-            <a class="xfer-btn xfer-main" id="xferMail" href="mailto:Al-Narjis@karmaai.online?subject={{ (xfer.reference if xfer.reference is defined else '')|urlencode }}">{% if xf_ar %}أرسل رقم الفاتورة بالبريد{% else %}Email the reference{% endif %}</a>
+            <a class="xfer-btn xfer-main" id="xferMail" href="mailto:AlNarjisai@gmail.com?subject={{ (xfer.reference if xfer.reference is defined else '')|urlencode }}">{% if xf_ar %}أرسل رقم الفاتورة بالبريد{% else %}Email the reference{% endif %}</a>
             {% endif %}
             <button type="button" class="xfer-btn {% if xfer.bank.iban %}xfer-main{% else %}xfer-ghost{% endif %}" id="xferReport">
                 {% if xfer.bank.iban %}
@@ -97,7 +97,7 @@
         var t = {
             sent: ar ? 'تم إشعارنا. سنؤكد التحويل وتُفعَّل باقتك خلال دقائق.' : 'Notified. We verify the transfer and activate your plan within minutes.',
             again: ar ? 'وصلنا إشعارك سابقاً وسيتم التأكيد قريباً.' : 'We already have your report and will confirm shortly.',
-            failed: ar ? 'تعذر الإشعار. أرسل لنا رقم الفاتورة على Al-Narjis@karmaai.online.' : 'Could not notify us. Email the invoice reference to Al-Narjis@karmaai.online.',
+            failed: ar ? 'تعذر الإشعار. أرسل لنا رقم الفاتورة على AlNarjisai@gmail.com.' : 'Could not notify us. Email the invoice reference to AlNarjisai@gmail.com.',
             copied: ar ? 'تم النسخ' : 'Copied'
         };
         var ok = document.getElementById('xferOk');

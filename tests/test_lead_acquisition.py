@@ -228,7 +228,7 @@ def test_generate_message_builds_arabic_draft_and_tg_link() -> None:
         }
     )
     assert "مطعم الأصالة" in draft["message"]
-    assert draft["tg_link"].startswith("mailto:Al-Narjis@karmaai.online?body=")
+    assert draft["tg_link"].startswith("mailto:AlNarjisai@gmail.com?body=")
     assert draft["lead_mobile"] == "966553078789"
     assert draft["variant"] in lead_outreach.VARIANT_LABELS_AR
 
@@ -529,7 +529,7 @@ async def test_acquisition_workflow_message_demo_and_followup(api) -> None:
     detail = await client.get(f"/api/acquisition/leads/{lead_id}")
     assert detail.status_code == 200
     assert detail.json()["draft"]["message"]
-    assert detail.json()["draft"]["tg_link"].startswith("mailto:Al-Narjis@karmaai.online?body=")
+    assert detail.json()["draft"]["tg_link"].startswith("mailto:AlNarjisai@gmail.com?body=")
 
     message = await client.post(f"/api/acquisition/leads/{lead_id}/message", json={"variant": "cold_intro"})
     assert message.status_code == 200

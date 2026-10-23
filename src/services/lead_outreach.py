@@ -19,8 +19,8 @@ VARIANT_CUSTOMER = "customer_reengage"
 VARIANT_COLD = "cold_intro"
 
 # Drafts are copied and sent by a person. Customer contact is the site assistant,
-# Al-Narjis@karmaai.online and 0540799266.
-CONTACT_EMAIL = "Al-Narjis@karmaai.online"
+# AlNarjisai@gmail.com and 0540799266.
+CONTACT_EMAIL = "AlNarjisai@gmail.com"
 
 VARIANT_LABELS_AR = {
     VARIANT_QUOTE: "متابعة عرض سعر",

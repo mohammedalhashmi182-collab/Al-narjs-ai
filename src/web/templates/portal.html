@@ -86,7 +86,7 @@
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10" id="pkg-grid" aria-busy="true">
                 {% for _ in range(3) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
-            <noscript><p>{% if _lang == 'ar' %}فعّل JavaScript لاختيار الباقة، أو راسلنا على{% else %}Enable JavaScript to choose a plan, or email us at{% endif %} <a href="mailto:Al-Narjis@karmaai.online">Al-Narjis@karmaai.online</a>.</p></noscript>
+            <noscript><p>{% if _lang == 'ar' %}فعّل JavaScript لاختيار الباقة، أو راسلنا على{% else %}Enable JavaScript to choose a plan, or email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a>.</p></noscript>
 
             <form id="regForm" class="n-form max-w-2xl mx-auto gap-5 hidden">
                 <div class="grid sm:grid-cols-2 gap-5">
@@ -233,7 +233,7 @@
             <div class="text-lg mb-2" style="color:var(--n-gold-2);">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
             <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
-                {% if _lang == 'ar' %}<span>يُدار بواسطة مؤسسة ذا أريبيان كونفو · سجل تجاري 31332495263 ·</span>{% else %}<span data-inline>Operated by The Arabian Convoy Establishment · CR 31332495263 ·</span>{% endif %}
+                {% if _lang == 'ar' %}<span>يُدار بواسطة أحمد عبدالله الزهراني · وثيقة عمل حر رقم FL-272182297 ·</span>{% else %}<span data-inline>Operated by أحمد عبدالله الزهراني · Freelance document No. FL-272182297 ·</span>{% endif %}
                 <a href="/privacy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>
                 <span style="opacity:0.6;">·</span>
                 <a href="/terms" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الشروط</span>{% else %}<span data-inline>Terms</span>{% endif %}</a>
@@ -658,8 +658,8 @@ if (hidden) {
                                 let msg;
                                 if (!cap.card) {
                                     msg = ar
-                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو Al-Narjis@karmaai.online أو 0540799266.'
-                                        : 'Payment is temporarily unavailable. Contact us through the site assistant, Al-Narjis@karmaai.online, or 0540799266.';
+                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو AlNarjisai@gmail.com أو 0540799266.'
+                                        : 'Payment is temporarily unavailable. Contact us through the site assistant, AlNarjisai@gmail.com, or 0540799266.';
                                 } else if (cap.paypal_test_mode && allowPaypal) {
                                     msg = ar
                                         ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
@@ -757,8 +757,8 @@ note.textContent = msg;
                     }
                     if (data.gateway === 'invoice') {
                         msg.textContent = txt(
-                            'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو Al-Narjis@karmaai.online أو 0540799266.',
-                            'Payment is temporarily unavailable. Contact us through the site assistant, Al-Narjis@karmaai.online, or 0540799266.'
+                            'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو AlNarjisai@gmail.com أو 0540799266.',
+                            'Payment is temporarily unavailable. Contact us through the site assistant, AlNarjisai@gmail.com, or 0540799266.'
                         );
                         release();
                         return;

@@ -50,7 +50,7 @@ def test_service_page_is_canonical_and_marked_up(client: TestClient, slug: str) 
     assert "tel:+966540799266" in ar.text
     assert ar.text.count("tel:") == ar.text.count("tel:+966540799266")
     assert 'href="#"' not in ar.text
-    assert "mailto:Al-Narjis@karmaai.online" in ar.text
+    assert "mailto:AlNarjisai@gmail.com" in ar.text
     assert "تحدث مع بوت النرجس" in ar.text
     assert "CEO" not in ar.text.split("<footer", 1)[0]
 

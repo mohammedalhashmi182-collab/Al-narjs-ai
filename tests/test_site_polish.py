@@ -51,7 +51,7 @@ def test_refund_policy_quotes_the_terms_and_is_linked(client):
 
 def test_about_has_operator_facts_and_no_invented_testimonials(client):
     html = client.get("/ar/about").text
-    assert "31332495263" in html and "ذا أريبيان كونفو" in html and "المؤسس: كريم" in html and "محمد" not in html
+    assert "FL-272182297" in html and "أحمد عبدالله الزهراني" in html and "المؤسس: كريم" in html and "محمد" not in html
     assert "Founder: Karim" in client.get("/en/about").text
     assert "testimonials" not in html  # empty list -> no section
 
@@ -146,7 +146,7 @@ def test_support_handoff_is_the_company_phone():
     assert contact["channel"] == "call"
     assert contact["href"] == "tel:+966540799266"
     assert contact["value"] == "0540799266"
-    assert contact["email"] == "Al-Narjis@karmaai.online"
+    assert contact["email"] == "AlNarjisai@gmail.com"
 
 
 def test_assistant_offers_customer_service_handoff(client):

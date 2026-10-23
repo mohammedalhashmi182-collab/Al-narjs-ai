@@ -100,8 +100,8 @@ def test_sales_surfaces_use_the_current_contacts():
     lead = (TEMPLATES / "sales_lead.html").read_text(encoding="utf-8")
     dash = (TEMPLATES / "sales_dashboard.html").read_text(encoding="utf-8")
     assert "btn-tg" not in lead
-    assert "Al-Narjis@karmaai.online" in lead and "0540799266" in lead
-    assert "mailto:Al-Narjis@karmaai.online" in dash
+    assert "AlNarjisai@gmail.com" in lead and "0540799266" in lead
+    assert "mailto:AlNarjisai@gmail.com" in dash
     assert "0540799266" in dash
 
 
@@ -204,7 +204,7 @@ def test_inactive_promo_api_returns_no_code_and_no_expiry(monkeypatch):
 def test_retired_phone_digits_are_gone_and_the_social_batch_uses_the_current_contacts():
     social = (ROOT / "marketing/social-batch1-ceo-advisor-ar.md").read_text(encoding="utf-8")
     assert "wa.me" not in social and "t.me" not in social
-    assert "Al-Narjis@karmaai.online" in social and "0540799266" in social
+    assert "AlNarjisai@gmail.com" in social and "0540799266" in social
     skip_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", ".pytest_cache"}
     skip_suffixes = {
         ".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf", ".mp4",
@@ -261,6 +261,29 @@ _OLD_PHONE = re.compile(
     "".join(re.escape(d) + r"[\s\-\.]*" for d in RETIRED_PHONE_DIGITS[:-1])
     + re.escape(RETIRED_PHONE_DIGITS[-1])
 )
+
+
+_OLD_COMPANY_EMAIL = re.compile(r"al-narjis@karmaai\.online", re.I)
+_EMAIL_SCAN_ROOTS = ("src", "content", "data")
+
+
+def test_retired_karmaai_contact_email_stays_out_of_product_trees():
+    """The old karmaai.online mailbox must not appear in src/, content/, or data/."""
+    hits = []
+    for name in _EMAIL_SCAN_ROOTS:
+        base = ROOT / name
+        if not base.exists():
+            continue
+        for path in base.rglob("*"):
+            if not path.is_file() or path.suffix.lower() in _SKIP_SUFFIXES:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            if _OLD_COMPANY_EMAIL.search(text):
+                hits.append(str(path.relative_to(ROOT)))
+    assert hits == []
 
 
 def test_retired_offer_prices_and_contact_links_stay_out_of_customer_trees():

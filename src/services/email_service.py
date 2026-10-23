@@ -229,8 +229,8 @@ def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: i
         return f"{halalas / 100:,.2f} SAR"
 
     ar = locale == "ar"
-    label_org = "مؤسسة ذا أريبيان كونفو" if ar else "The Arabian Convoy Establishment"
-    cr = "سجل تجاري 31332495263" if ar else "Commercial Reg. 31332495263"
+    label_org = "أحمد عبدالله الزهراني"
+    cr = "وثيقة عمل حر رقم FL-272182297" if ar else "Freelance document No. FL-272182297"
     label_inv = "فاتورة / Invoice" if ar else "Invoice"
     label_pkg = "الباقة / Package" if ar else "Package"
     label_subtotal = "المبلغ قبل الضريبة / Subtotal" if ar else "Subtotal"

@@ -78,7 +78,7 @@ def test_risk_reversal_matches_the_refund_terms(page: str) -> None:
 
 
 def test_trust_badges_and_vision_disclaimer(page: str) -> None:
-    assert "31332495263" in page and "Moyasar" in page
+    assert "FL-272182297" in page and "Moyasar" in page
     assert 'id="vision"' in page
     assert "لسنا جهة حكومية" in page
 
@@ -90,7 +90,7 @@ def test_contact_links_are_real_or_absent(page: str) -> None:
     assert "t.me/" not in page
     assert "m.me/" not in page
     assert 'id="siteAssistant"' in page
-    assert "mailto:Al-Narjis@karmaai.online" in page
+    assert "mailto:AlNarjisai@gmail.com" in page
     assert 'href="#"' not in page
 
 

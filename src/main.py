@@ -2143,11 +2143,11 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
             content={
                 "reply": (
                     "المستشار الذكي غير متاح الآن. راسل فريقنا على "
-                    "Al-Narjis@karmaai.online وسيرد عليك بالبريد."
+                    "AlNarjisai@gmail.com وسيرد عليك بالبريد."
                     if locale == "ar"
                     else
                     "The smart consultant is temporarily unavailable. Email our "
-                    "team at Al-Narjis@karmaai.online and they will reply by email."
+                    "team at AlNarjisai@gmail.com and they will reply by email."
                 ),
                 "error": "consult_unavailable",
                 "retryable": True,

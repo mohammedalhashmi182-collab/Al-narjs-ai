@@ -1,9 +1,9 @@
 {
-  "note": "Customer contact is the on-site assistant, Al-Narjis@karmaai.online, and 0540799266. Each template is a ready-to-paste Arabic message a human reviews before sending. Copy is truthful and never claims existing customers or unverifiable results.",
+  "note": "Customer contact is the on-site assistant, AlNarjisai@gmail.com, and 0540799266. Each template is a ready-to-paste Arabic message a human reviews before sending. Copy is truthful and never claims existing customers or unverifiable results.",
   "channel": "email",
   "site": "https://karmaai.online",
   "consult": "https://karmaai.online/consult",
-  "email": "Al-Narjis@karmaai.online",
+  "email": "AlNarjisai@gmail.com",
   "phone": "0540799266",
   "agent_count_note": "Do not hard-code an agent count in copy. The live number is served from src/services/catalog.py and rendered on the landing page.",
   "plans_sar_per_month_before_vat": {
@@ -42,7 +42,7 @@
         "org": "شركتكم",
         "amount": "920",
         "invoice_no": "AN-0001",
-        "support": "Al-Narjis@karmaai.online"
+        "support": "AlNarjisai@gmail.com"
       }
     },
     {
@@ -53,9 +53,9 @@
       "example_body": {
         "pkg": "النمو",
         "days": "3",
-        "support": "Al-Narjis@karmaai.online"
+        "support": "AlNarjisai@gmail.com"
       }
     }
   ],
-  "how_to_use": "انسخ النص، راجع المبالغ يدوياً، ثم أرسله من البريد Al-Narjis@karmaai.online أو سجّله للمتابعة الهاتفية على 0540799266. لا يوجد إرسال آلي — كل رسالة يقرؤها إنسان قبل إرسالها."
+  "how_to_use": "انسخ النص، راجع المبالغ يدوياً، ثم أرسله من البريد AlNarjisai@gmail.com أو سجّله للمتابعة الهاتفية على 0540799266. لا يوجد إرسال آلي — كل رسالة يقرؤها إنسان قبل إرسالها."
 }
