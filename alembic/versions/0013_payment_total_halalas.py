@@ -21,7 +21,9 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column("payments", sa.Column("total_halalas", sa.Integer(), nullable=True))
+    cols = {c["name"] for c in sa.inspect(op.get_bind()).get_columns("payments")}
+    if "total_halalas" not in cols:
+        op.add_column("payments", sa.Column("total_halalas", sa.Integer(), nullable=True))
     op.execute(
         "UPDATE payments SET total_halalas = amount + CAST(ROUND(amount * 0.15) AS INTEGER) "
         "WHERE total_halalas IS NULL"

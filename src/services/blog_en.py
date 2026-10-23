@@ -53,7 +53,7 @@ EN: dict[str, dict] = {
             {
                 "h": "Cost",
                 "p": [
-                    "A subscription is a monthly payment, not a salary, and it starts from the Starter plan on the pricing page. Starter, Growth, and Enterprise differ by the monthly conversation cap and the Meta fees covered, billed on a tax invoice with 15% VAT, with no long-term contract and cancellation at any time.",
+                    "A subscription is a monthly payment, not a salary, and it starts from the Starter plan on the pricing page. Starter, Growth, and Enterprise differ by the monthly conversation cap and the Meta fees covered, billed with an official invoice, with no long-term contract and cancellation at any time.",
                     "The fair question is not \"how cheap is it\" but: does this task slip every week? That is the real cost being removed.",
                 ],
             },
