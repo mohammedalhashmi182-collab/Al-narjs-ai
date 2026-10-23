@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="/static/css/portal.css">
     {% include "partials/_analytics.html" %}
 </head>
-<body data-lang="{{ _lang }}" class="portal-page min-h-screen">
+<body data-lang="{{ _lang }}" class="luxury bg-sand portal-page min-h-screen">
     <!-- Top nav -->
     <nav class="n-nav portal-nav">
         <div class="portal-shell portal-nav-inner">
@@ -38,8 +38,8 @@
             </a>
             <div class="portal-nav-actions">
                 <div class="lang-pill portal-language" id="langToggle">
-                    {{ button('عربي', variant='ghost', class_name='arabic ' ~ ('active' if _lang == 'ar' else ''), attrs={'data-lang-btn': 'ar'}) }}
-                    {{ button('EN', variant='ghost', class_name='english ' ~ ('active' if _lang == 'en' else ''), attrs={'data-lang-btn': 'en'}) }}
+                    <button type="button" data-lang-btn="ar" class="arabic {{ 'active' if _lang == 'ar' else '' }}">عربي</button>
+                    <button type="button" data-lang-btn="en" class="english {{ 'active' if _lang == 'en' else '' }}">EN</button>
                 </div>
                 {% call button(href='/home', variant='outline') %}
                     {{ icon('home') }}
@@ -183,7 +183,7 @@
                 </div>
                 {% endif %}
                 <label id="refundConsentRow" for="refundConsent" class="portal-consent flex items-start gap-2 mb-4 text-sm">
-                    {{ input('refundConsent', type='checkbox', class_name='mt-0.5', attrs={'name': 'refund_consent', 'required': True}) }}
+                    <input type="checkbox" id="refundConsent" name="refund_consent" required class="mt-0.5">
                     <span>{% if _lang == 'ar' %}<span>أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span>{% else %}<span data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span>{% endif %}</span>
                 </label>
                 <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
