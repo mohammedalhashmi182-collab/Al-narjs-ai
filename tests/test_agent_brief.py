@@ -10,7 +10,7 @@ from src.services import agent_brief, catalog
 def test_every_agent_renders_with_no_empty_variables_and_keeps_answers():
     engine = PromptEngine()
     for slug, emp in catalog.EMPLOYEES.items():
-        tmpl = yaml.safe_load(Path(f"agents/base/{slug}.yaml").read_text())["prompts"]["default"]
+        tmpl = yaml.safe_load(Path(f"agents/base/{slug}.yaml").read_text(encoding="utf-8"))["prompts"]["default"]
         answers = {q["key"]: f"جواب-{q['key']}" for q in emp.get("questions", [])}
         variables = agent_brief.build_variables(tmpl, answers, "مقهى الياسمين")
         assert agent_brief.template_vars(tmpl) <= set(variables), slug

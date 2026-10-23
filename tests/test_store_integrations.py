@@ -659,7 +659,7 @@ def test_store_migration_does_not_reuse_the_rag_revision():
     path = Path("alembic/versions/0012_store_integrations.py")
     assert path.is_file()
     assert not Path("alembic/versions/0010_store_integrations.py").exists()
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     assert 'revision: str = "0012"' in text
     assert 'down_revision: str | None = "0011"' in text
     assert "store_oauth_nonces" in text
