@@ -49,6 +49,7 @@ def test_a_single_need_gets_a_small_team_and_vague_text_gets_one_agent():
     assert vague["agent_count"] == 1 and vague["plan"]["key"] == "bidaya"
 
 
+@pytest.mark.usefixtures("vat15")
 def test_result_price_matches_the_payment_vat_logic():
     r = ceo_advisor.build_result(ceo_advisor.diagnose_rules("Instagram engagement is weak"))
     plan = r["plan"]

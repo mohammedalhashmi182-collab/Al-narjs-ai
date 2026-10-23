@@ -90,6 +90,8 @@ except Exception:
     pass
 
 templates = Jinja2Templates(directory="src/web/templates")
+from src.services import payments as _vat_pm  # noqa: E402
+templates.env.globals.update(vat_rate=_vat_pm.vat_rate, vat_percent=_vat_pm.vat_percent, vat_enabled=_vat_pm.vat_enabled)
 
 
 async def get_session() -> AsyncSession:

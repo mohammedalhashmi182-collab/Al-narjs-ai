@@ -134,6 +134,7 @@ async def test_annual_order_amount_vat_and_gateway_check_agree(maker):
     assert not pm.gateway_amount_matches(p, {"amount": pm.total_with_vat(179900), "currency": "SAR"})
 
 
+@pytest.mark.usefixtures("vat15")
 async def test_initiate_moyasar_charges_the_annual_total(maker, monkeypatch):
     from src.config import settings as st
 

@@ -233,8 +233,9 @@ def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: i
     cr = "وثيقة عمل حر رقم FL-272182297" if ar else "Freelance document No. FL-272182297"
     label_inv = "فاتورة / Invoice" if ar else "Invoice"
     label_pkg = "الباقة / Package" if ar else "Package"
-    label_subtotal = "المبلغ قبل الضريبة / Subtotal" if ar else "Subtotal"
-    label_vat = "ضريبة القيمة المضافة 15% / VAT 15%" if ar else "VAT 15%"
+    _pct = round(vat_halalas * 100 / base_halalas) if base_halalas else 0
+    label_subtotal = ("المبلغ قبل الضريبة / Subtotal" if vat_halalas else "المبلغ / Subtotal") if ar else "Subtotal"
+    label_vat = f"ضريبة القيمة المضافة {_pct}% / VAT {_pct}%" if ar else f"VAT {_pct}%"
     label_total = "الإجمالي / Total" if ar else "Total"
     label_num = "فاتورة رقم" if ar else "Invoice No."
 

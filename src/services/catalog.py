@@ -52,8 +52,8 @@ DOMAIN_TEAMS = {
 CEO_SLUG = "orchestrator"
 
 # ---------------------------------------------------------------------
-#  Public subscription tiers (Oct 2026). Monthly, SAR, VAT 15% added on
-#  top at checkout. ``amount`` is halalas (pre-VAT monthly base) and is the
+#  Public subscription tiers (Oct 2026). Monthly, SAR; VAT (payments.vat_rate,
+#  from env VAT_RATE, 0 while not VAT-registered) is added at checkout. ``amount`` is halalas (pre-VAT monthly base) and is the
 #  only number payments read; ``price`` is its display form. ``agents`` is
 #  the number of specialist agents the CEO can staff (the CEO leads every
 #  plan and is not counted in that number). Public pages do not advertise
@@ -85,7 +85,7 @@ PACKAGES = {
             "١٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ١٠٠ ريال",
             "بدون رسوم إعداد",
-            "فواتير ضريبية",
+            "فواتير رسمية",
             "دعم بالبريد الإلكتروني والهاتف",
         ],
         "coming": [],
@@ -93,7 +93,7 @@ PACKAGES = {
             "1,000 conversations a month",
             "Meta fees included up to 100 SAR",
             "No setup fee",
-            "Tax invoices",
+            "Official invoices",
             "Email and phone support",
         ],
         "coming_en": [],
@@ -114,7 +114,7 @@ PACKAGES = {
             "رسوم ميتا مشمولة حتى ٢٥٠ ريال",
             "تقارير أسبوعية آلية",
             "رسوم إعداد ٩٩٠ ريال لمرة واحدة، وتُلغى مع السنوي",
-            "فواتير ضريبية",
+            "فواتير رسمية",
             "دعم بالبريد الإلكتروني والهاتف",
         ],
         "coming": ["ربط سلة أو زد (قريباً)"],
@@ -123,7 +123,7 @@ PACKAGES = {
             "Meta fees included up to 250 SAR",
             "Weekly automated reports",
             "One-time setup fee of 990 SAR, waived on annual billing",
-            "Tax invoices",
+            "Official invoices",
             "Email and phone support",
         ],
         "coming_en": ["Salla or Zid connection (coming soon)"],
@@ -147,7 +147,7 @@ PACKAGES = {
             "تقارير أسبوعية آلية",
             "الرد خلال يوم عمل واحد",
             "رسوم إعداد ١٬٩٩٠ ريال لمرة واحدة، وتُلغى مع السنوي",
-            "فواتير ضريبية",
+            "فواتير رسمية",
             "دعم بالبريد الإلكتروني والهاتف",
         ],
         "coming": [],
@@ -157,7 +157,7 @@ PACKAGES = {
             "Weekly automated reports",
             "A reply within one working day",
             "One-time setup fee of 1,990 SAR, waived on annual billing",
-            "Tax invoices",
+            "Official invoices",
             "Email and phone support",
         ],
         "coming_en": [],

@@ -46,12 +46,12 @@
         </div>
         <div class="inv-body">
             <div class="row">
-                <span>{% if tax_invoice %}فاتورة ضريبية مبسطة<br><small>Simplified Tax Invoice</small>{% else %}فاتورة مبدئية (عرض سعر)<br><small>تصدر الفاتورة الضريبية بعد السداد</small>{% endif %}</span>
+                <span>{% if has_vat %}{% if tax_invoice %}فاتورة ضريبية مبسطة<br><small>Simplified Tax Invoice</small>{% else %}فاتورة مبدئية (عرض سعر)<br><small>تصدر الفاتورة الضريبية بعد السداد</small>{% endif %}{% else %}{% if tax_invoice %}فاتورة<br><small>Invoice</small>{% else %}فاتورة مبدئية (عرض سعر)<br><small>تصدر الفاتورة بعد السداد</small>{% endif %}{% endif %}</span>
                 <span class="no">{% if tax_invoice %}رقم الفاتورة {{ tax_invoice.invoice_number }}{% else %}مرجع {{ payment.id|string|truncate(8, true, '')|upper }}{% endif %}</span>
             </div>
             <div class="org">
                 <b>{{ seller.name_ar }}</b><br>
-                الرقم الضريبي: {{ seller.vat_number }}{% if seller.vat_placeholder %} <span style="color:#B91C1C">(غير مُعدّ بعد)</span>{% endif %}<br>
+                {% if has_vat %}الرقم الضريبي: {{ seller.vat_number }}{% if seller.vat_placeholder %} <span style="color:#B91C1C">(غير مُعدّ بعد)</span>{% endif %}<br>{% endif %}
                 وثيقة عمل حر رقم {{ seller.cr_number }}<br>
                 {{ seller.address_ar }}
             </div>
@@ -61,22 +61,26 @@
                 {% if payment.customer_email %} · {{ payment.customer_email }}{% endif %}
             </div>
             <table>
-                <tr><th>البند</th><th>الكمية</th><th>المبلغ قبل الضريبة</th><th>الضريبة 15%</th><th>الإجمالي</th></tr>
+                <tr><th>البند</th><th>الكمية</th>{% if has_vat %}<th>المبلغ قبل الضريبة</th><th>الضريبة {{ ((vat * 100 / base)|round|int) if base else 0 }}%</th>{% else %}<th>المبلغ</th>{% endif %}<th>الإجمالي</th></tr>
                 {% for l in lines %}
-                <tr><td>{{ l.name }}</td><td>{{ l.qty }}</td><td>{{ "%.2f"|format(l.net / 100) }}</td><td>{{ "%.2f"|format(l.vat / 100) }}</td><td>{{ "%.2f"|format(l.gross / 100) }}</td></tr>
+                <tr><td>{{ l.name }}</td><td>{{ l.qty }}</td><td>{{ "%.2f"|format(l.net / 100) }}</td>{% if has_vat %}<td>{{ "%.2f"|format(l.vat / 100) }}</td>{% endif %}<td>{{ "%.2f"|format(l.gross / 100) }}</td></tr>
                 {% endfor %}
+                {% if has_vat %}
                 <tr class="tot"><td colspan="2">الإجمالي قبل الضريبة</td><td colspan="3">{{ "%.2f"|format(base / 100) }} ر.س</td></tr>
-                <tr><td colspan="2">ضريبة القيمة المضافة 15%</td><td colspan="3">{{ "%.2f"|format(vat / 100) }} ر.س</td></tr>
+                <tr><td colspan="2">ضريبة القيمة المضافة {{ ((vat * 100 / base)|round|int) if base else 0 }}%</td><td colspan="3">{{ "%.2f"|format(vat / 100) }} ر.س</td></tr>
                 <tr class="tot"><td colspan="2">الإجمالي شامل الضريبة</td><td colspan="3">{{ "%.2f"|format(total / 100) }} ر.س</td></tr>
+                {% else %}
+                <tr class="tot"><td colspan="2">الإجمالي</td><td colspan="2">{{ "%.2f"|format(total / 100) }} ر.س</td></tr>
+                {% endif %}
             </table>
-            {% if tax_invoice %}
+            {% if tax_invoice and tax_invoice.qr_tlv and has_vat %}
             <div class="qr" style="text-align:center;margin-top:14px;">
                 {% if qr_svg %}{{ qr_svg|safe }}{% endif %}
                 <div class="meta" style="word-break:break-all;">QR (ZATCA TLV): {{ tax_invoice.qr_tlv }}</div>
             </div>
             {% endif %}
             {% for cn in credit_notes %}
-            <div class="meta">إشعار دائن {{ cn.invoice_number }} بتاريخ {{ cn.issued_at.strftime('%Y-%m-%d') }}: {{ "%.2f"|format(cn.total / 100) }} ر.س شامل الضريبة{% if cn.reason %} — {{ cn.reason }}{% endif %}</div>
+            <div class="meta">إشعار دائن {{ cn.invoice_number }} بتاريخ {{ cn.issued_at.strftime('%Y-%m-%d') }}: {{ "%.2f"|format(cn.total / 100) }} ر.س{% if has_vat %} شامل الضريبة{% endif %}{% if cn.reason %} — {{ cn.reason }}{% endif %}</div>
             {% endfor %}
             <div class="meta" style="margin-top:16px;">الدفع عبر {{ 'PayPal' if payment.gateway == 'paypal' else ('مويصر' if payment.gateway == 'moyasar' else 'تحويل بنكي') }}</div>
             {% include "partials/_invoice_consent.html" %}

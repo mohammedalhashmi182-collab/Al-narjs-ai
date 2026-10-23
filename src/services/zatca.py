@@ -17,7 +17,7 @@ What each issued document carries (Phase-1 requirements for a B2C
 
 Line totals always reconcile to the charged amount: per-line VAT is rounded,
 and any 1-halala rounding difference is put on the largest line so the
-invoice total equals ``payments.total_with_vat(payment.amount)``.
+invoice total equals ``payments.payment_total(payment)`` (stored at creation).
 
 An invoice is issued once per payment, when it is paid (idempotent). Unpaid
 orders render as a pro-forma without a tax-invoice number.
@@ -35,14 +35,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.services import catalog
 from src.services import payments as pm
 
-VAT_RATE = pm.VAT_RATE
-VAT_PERCENT = 15
 VAT_PLACEHOLDER = "300000000000003"  # obvious placeholder until the owner sets SELLER_VAT_NUMBER
 INVOICE_SERIES = "INV"
 CREDIT_SERIES = "CRN"
 OVERAGE_PACKAGE = "overage"
 TITLE_AR = "فاتورة ضريبية مبسطة"
 TITLE_EN = "Simplified Tax Invoice"
+PLAIN_TITLE_AR = "فاتورة"
+PLAIN_TITLE_EN = "Invoice"
+
+
+def title_ar() -> str:
+    return TITLE_AR if pm.vat_enabled() else PLAIN_TITLE_AR
+
+
+def title_en() -> str:
+    return TITLE_EN if pm.vat_enabled() else PLAIN_TITLE_EN
+
+
 CREDIT_TITLE_AR = "إشعار دائن"
 CREDIT_TITLE_EN = "Credit Note"
 
@@ -80,7 +90,7 @@ def readiness() -> dict:
     """What the owner still has to provide (never echoes secrets)."""
     s = seller()
     missing = []
-    if s["vat_placeholder"]:
+    if s["vat_placeholder"] and pm.vat_enabled():
         missing.append("SELLER_VAT_NUMBER (15-digit VAT registration number, starts and ends with 3)")
     if not (s["cr_number"] or "").strip():
         missing.append("SELLER_CR_NUMBER")
@@ -103,6 +113,10 @@ def _sar(halalas: int) -> str:
 
 
 def qr_tlv_base64(seller_name: str, vat_number: str, issued_at: datetime, total: int, vat_total: int) -> str:
+    """ZATCA TLV QR. Empty when the document carries no VAT: a non-registered
+    operator must not issue a QR that claims a VAT number/amount."""
+    if vat_total <= 0:
+        return ""
     ts = issued_at.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     blob = (_tlv(1, seller_name) + _tlv(2, vat_number) + _tlv(3, ts)
             + _tlv(4, _sar(total)) + _tlv(5, _sar(vat_total)))
@@ -200,9 +214,18 @@ def build_lines(payment) -> list[dict]:
     return lines
 
 
-def with_vat(lines: list[dict], expected_vat: Optional[int] = None) -> tuple[list[dict], int, int, int]:
-    """Add per-line VAT (15%) and return (lines, subtotal, vat_total, total)."""
-    out = [dict(l, vat_rate=VAT_PERCENT, vat=round(l["net"] * VAT_RATE)) for l in lines]
+def _rate_of(net: int, vat: int) -> float:
+    return round(vat / net, 4) if net else 0.0
+
+
+def with_vat(lines: list[dict], expected_vat: Optional[int] = None,
+             rate: Optional[float] = None) -> tuple[list[dict], int, int, int]:
+    """Add per-line VAT and return (lines, subtotal, vat_total, total).
+
+    ``rate`` defaults to the configured VAT_RATE; callers pass the rate stored
+    on the order/invoice so documents never change when the setting does."""
+    rate = pm.vat_rate() if rate is None else rate
+    out = [dict(l, vat_rate=round(rate * 100), vat=round(l["net"] * rate)) for l in lines]
     subtotal = sum(l["net"] for l in out)
     vat_total = sum(l["vat"] for l in out)
     if expected_vat is not None and out and vat_total != expected_vat:
@@ -216,7 +239,8 @@ def with_vat(lines: list[dict], expected_vat: Optional[int] = None) -> tuple[lis
 
 def preview(payment) -> dict:
     """Lines and totals for any order (paid or not) without issuing anything."""
-    lines, subtotal, vat_total, total = with_vat(build_lines(payment), pm.vat_amount(int(payment.amount)))
+    vat = pm.payment_vat(payment)
+    lines, subtotal, vat_total, total = with_vat(build_lines(payment), vat, rate=_rate_of(int(payment.amount), vat))
     return {"lines": lines, "subtotal": subtotal, "vat_total": vat_total, "total": total}
 
 
@@ -309,7 +333,7 @@ async def issue_credit_note(session: AsyncSession, payment, *, amount: Optional[
         lines = [dict(l) for l in original.lines]
         subtotal, vat_total, total = int(original.subtotal), int(original.vat_total), int(original.total)
     else:
-        lines, subtotal, vat_total, total = with_vat([_line(f"إشعار دائن عن الفاتورة {original.invoice_number}: {reason}", 1, amount)])
+        lines, subtotal, vat_total, total = with_vat(rate=_rate_of(int(original.subtotal), int(original.vat_total)), lines=[_line(f"إشعار دائن عن الفاتورة {original.invoice_number}: {reason}", 1, amount)])
     note = TaxInvoice(
         invoice_number=await next_number(session, CREDIT_SERIES),
         kind="credit_note",

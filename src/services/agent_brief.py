@@ -56,7 +56,7 @@ DEFAULTS: dict[str, str] = {
 
 SAUDI_CONTEXT = (
     "You work for a Saudi small/medium business served by Al-Narjis (النرجس). "
-    "Assume the Saudi market unless told otherwise: prices in SAR (VAT 15%), "
+    "Assume the Saudi market unless told otherwise: prices in SAR, "
     "Saudi platforms and habits (Snapchat, TikTok, Instagram, X, WhatsApp Business, Salla, Zid, "
     "Google Maps), Saudi regulations (PDPL, ZATCA e-invoicing, Maroof/SBC), Hijri/Gregorian dates, "
     "Ramadan/Eid/National Day (23 Sept)/Founding Day (22 Feb) seasons and prayer-time aware scheduling. "

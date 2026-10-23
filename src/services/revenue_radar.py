@@ -151,7 +151,8 @@ async def radar_payload(
 ) -> dict:
     pkg = getattr(lead, "suggested_package", None) or "social"
     price = _package_price_sar(pkg)
-    vat = math.ceil(price * settings.vat_rate)
+    from src.services import payments as _pm
+    vat = math.ceil(price * _pm.vat_rate())
     total = price + vat
     phone = getattr(lead, "phone_number", None) or getattr(lead, "phone", None)
     email = getattr(lead, "email", None) or getattr(lead, "email_address", None)

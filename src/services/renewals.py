@@ -9,7 +9,7 @@ How it works (one pass of :func:`run_renewals`):
    :data:`RENEWAL_LEAD_DAYS`) the job raises ONE renewal order per period:
    same tier, billing period and add-on agents, at today's catalog price, no
    promo. When Moyasar is configured a hosted invoice is created for the
-   VAT-inclusive total (the same ``initiate_moyasar`` path and amount checks
+   stored total (base + VAT at the rate in force at creation) (the same ``initiate_moyasar`` path and amount checks
    as a first purchase); otherwise, or when Moyasar errors, it stays a manual
    invoice (``/invoice/<id>``). The order id is kept on
    ``project.renewal_payment_id`` so later passes never duplicate it.
@@ -62,13 +62,13 @@ def reminder_text(project, payment, period_end: datetime, base_url: str = "") ->
     """Customer-facing reminder. It links ONLY to our consent-gated /invoice page,
     never to a raw Moyasar checkout, so the refund-policy checkbox cannot be skipped."""
     pkg = catalog.PACKAGES.get(project.package) or catalog.get_package(project.package) or {}
-    total = payments.total_with_vat(payment.amount) / 100
+    total = payments.payment_total(payment) / 100
     period = "سنوي" if payment.billing_period == "annual" else "شهري"
     end_riyadh = (period_end + timedelta(hours=3)).strftime("%Y-%m-%d")
     return (
         f"مرحباً {project.client_name}، يقترب موعد تجديد اشتراكك ({period}) في باقة "
         f"{pkg.get('name', project.package)} لدى النرجس. ينتهي الاشتراك في {end_riyadh}. "
-        f"قيمة التجديد {total:,.2f} ر.س شاملة ضريبة القيمة المضافة. "
+        f"قيمة التجديد {total:,.2f} ر.س{payments.vat_note_ar(payment)}. "
         f"فاتورة التجديد: {(base_url or '').rstrip('/')}/invoice/{payment.id} — رقم المرجع {payments.reference(payment)}."
     )
 
@@ -128,7 +128,7 @@ async def _raise_renewal(session: AsyncSession, project, *, base_url: str, use_g
         "payment_id": str(payment.id),
         "gateway": gateway,
         "amount": payment.amount,
-        "total": payments.total_with_vat(payment.amount),
+        "total": payments.payment_total(payment),
         "billing_period": payment.billing_period,
     }
 

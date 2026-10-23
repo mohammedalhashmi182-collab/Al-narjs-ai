@@ -45,6 +45,8 @@ from src.services.lead_segmentation import SEGMENT_LABELS_AR
 
 router = APIRouter()
 templates = Jinja2Templates(directory="src/web/templates")
+from src.services import payments as _vat_pm  # noqa: E402
+templates.env.globals.update(vat_rate=_vat_pm.vat_rate, vat_percent=_vat_pm.vat_percent, vat_enabled=_vat_pm.vat_enabled)
 templates.env.globals["page_lang"] = lambda request: request.cookies.get("narjis_lang", "ar")
 templates.env.globals["settings"] = get_settings()
 templates.env.globals["promo_info"] = lambda: {}
@@ -216,7 +218,8 @@ async def sales_lead_proposal_page(request: Request, lead_id: str):
     )
 
     price = PRICE_SAR.get(package_key) or _catalog.tier_price_sar(package_key)
-    vat = round(price * 0.15)
+    from src.services import payments as _pm
+    vat = round(price * _pm.vat_rate())
     tier = score_lead(lead_dict)
     return templates.TemplateResponse(
         request,

@@ -14,10 +14,10 @@
     {% set _from = plans[0].price|int %}
     {% if ar %}
     <title>الباقات والأسعار | النرجس للذكاء الاصطناعي — وكلاء ذكاء اصطناعي لعملك</title>
-    <meta name="description" content="أسعار النرجس للذكاء الاصطناعي: {% for p in plans %}{{ p.name }} {{ '{:,}'.format(p.price|int) }} ر.س شهرياً{% if not loop.last %}، {% endif %}{% endfor %}. رسوم إعداد واضحة، إضافات حسب الحاجة، وضريبة ١٥٪ عند الدفع.">
+    <meta name="description" content="أسعار النرجس للذكاء الاصطناعي: {% for p in plans %}{{ p.name }} {{ '{:,}'.format(p.price|int) }} ر.س شهرياً{% if not loop.last %}، {% endif %}{% endfor %}. رسوم إعداد واضحة، إضافات حسب الحاجة{% if vat_enabled() %}، وضريبة {{ vat_percent() }}٪ عند الدفع.{% else %}.{% endif %}">
     {% else %}
     <title>Pricing | Al-Narjis AI — AI agent teams for your business</title>
-    <meta name="description" content="Al-Narjis AI pricing: {% for p in plans %}{{ p.name_en }} SAR {{ '{:,}'.format(p.price|int) }}/month{% if not loop.last %}, {% endif %}{% endfor %}. Clear setup fees, add-ons as you need them, 15% VAT at checkout.">
+    <meta name="description" content="Al-Narjis AI pricing: {% for p in plans %}{{ p.name_en }} SAR {{ '{:,}'.format(p.price|int) }}/month{% if not loop.last %}, {% endif %}{% endfor %}. Clear setup fees, add-ons as you need them{% if vat_enabled() %}, {{ vat_percent() }}% VAT at checkout.{% else %}.{% endif %}">
     {% endif %}
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
@@ -27,7 +27,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Al-Narjis AI">
     <meta property="og:title" content="{% if ar %}باقات النرجس للذكاء الاصطناعي — تبدأ من {{ _from }} ر.س شهرياً{% else %}Al-Narjis AI plans — from SAR {{ _from }}/month{% endif %}">
-    <meta property="og:description" content="{% if ar %}فريق وكلاء ذكاء اصطناعي بقيادة الرئيس التنفيذي الذكي، بفاتورة ضريبية رسمية وإلغاء في أي وقت قبل التجديد.{% else %}An AI agent team led by an AI CEO, with official VAT invoices and cancel any time before renewal.{% endif %}">
+    <meta property="og:description" content="{% if ar %}فريق وكلاء ذكاء اصطناعي بقيادة الرئيس التنفيذي الذكي، {% if vat_enabled() %}بفاتورة ضريبية رسمية{% else %}بفاتورة رسمية{% endif %} وإلغاء في أي وقت قبل التجديد.{% else %}An AI agent team led by an AI CEO, {% if vat_enabled() %}with official VAT invoices{% else %}with official invoices{% endif %} and cancel any time before renewal.{% endif %}">
     <meta property="og:url" content="https://karmaai.online/{{ _lang }}{{ _base_path }}">
     <meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
     <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
@@ -69,7 +69,7 @@
 <section class="sec" style="padding-bottom:0"><div class="wrap"><h1 style="text-align:center">{% if ar %}الباقات والأسعار{% else %}Plans and pricing{% endif %}</h1></div></section>
 {% include "partials/_pricing_section.html" %}
 <section class="sec" style="padding-top:0"><div class="wrap">
-    <p class="addon-note">{% if ar %}الأسعار قبل ضريبة القيمة المضافة 15٪. لا استرداد بعد التفعيل، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — راجع <a href="/refund-policy">سياسة الاسترداد</a> و<a href="/terms">الشروط</a>.{% else %}Prices exclude 15% VAT. No refunds after activation; duplicate charges and technical billing errors are always refunded — see the <a href="/refund-policy">refund policy</a> and <a href="/terms">terms</a>.{% endif %}</p>
+    <p class="addon-note">{% if ar %}{% if vat_enabled() %}الأسعار قبل ضريبة القيمة المضافة {{ vat_percent() }}٪. {% else %}{% endif %}لا استرداد بعد التفعيل، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — راجع <a href="/refund-policy">سياسة الاسترداد</a> و<a href="/terms">الشروط</a>.{% else %}{% if vat_enabled() %}Prices exclude {{ vat_percent() }}% VAT. {% else %}{% endif %}No refunds after activation; duplicate charges and technical billing errors are always refunded — see the <a href="/refund-policy">refund policy</a> and <a href="/terms">terms</a>.{% endif %}</p>
 </div></section>
 </main>
 <footer class="v2-footer">

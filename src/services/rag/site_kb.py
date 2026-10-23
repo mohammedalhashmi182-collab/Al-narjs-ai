@@ -17,6 +17,12 @@ from .store import LEX_W, VEC_W, coverage
 _CACHE: dict[tuple[str, str], list[float]] = {}
 
 
+
+def _vat_note() -> str:
+    from src.services import payments
+
+    return " قبل ضريبة القيمة المضافة" if payments.vat_enabled() else ""
+
 def docs() -> list[tuple[str, str]]:
     from src.services import catalog
 
@@ -25,7 +31,7 @@ def docs() -> list[tuple[str, str]]:
         p = catalog.PACKAGES[key]
         setup = int(p.get("setup_fee") or 0) // 100
         out.append((f"باقة {p['name']} ({p['name_en']})",
-                    f"سعر باقة {p['name']} ({p['name_en']} plan): {p['price']} ريال شهريًا قبل ضريبة القيمة المضافة. "
+                    f"سعر باقة {p['name']} ({p['name_en']} plan): {p['price']} ريال شهريًا{_vat_note()}. "
                     f"رسوم الإعداد: {setup} ريال (تُعفى في الاشتراك السنوي).\n"
                     + "\n".join(p.get("scope", []))))
     a = catalog.ADDON_AGENT

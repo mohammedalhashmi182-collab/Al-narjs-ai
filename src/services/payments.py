@@ -25,7 +25,6 @@ PACKAGES = catalog.PACKAGES  # compatible alias — amounts live in catalog only
 
 MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
-VAT_RATE = 0.15
 
 from datetime import datetime, timedelta as _timedelta, timezone
 
@@ -49,12 +48,61 @@ _credential_cache: dict[str, tuple[float, str]] = {}
 _credential_lock = asyncio.Lock()
 
 
+def _clamp_rate(raw, source: str) -> float:
+    try:
+        r = float(raw)
+    except (TypeError, ValueError):
+        logger.warning("VAT_RATE from %s is not a number; using 0", source)
+        return 0.0
+    if r != r or r < 0 or r > 1:  # NaN, negative, or a percent like 15
+        logger.warning("VAT_RATE from %s=%r is outside 0..1; using 0", source, raw)
+        return 0.0
+    return r
+
+
+def vat_rate() -> float:
+    """Single source of truth: env VAT_RATE via settings (default 0 = not VAT-registered).
+
+    Valid range is 0 <= rate <= 1 (a fraction, e.g. 0.15). Anything else (e.g.
+    ``15``) is rejected with a warning and treated as 0. Read at call time."""
+    raw = os.environ.get("VAT_RATE")
+    if raw is not None and raw.strip() != "":
+        return _clamp_rate(raw, "env")
+    return _clamp_rate(get_settings().vat_rate or 0, "settings")
+
+
+def vat_percent() -> int:
+    return round(vat_rate() * 100)
+
+
+def vat_enabled() -> bool:
+    return vat_rate() > 0
+
+
 def vat_amount(halalas: int) -> int:
-    return round(halalas * VAT_RATE)
+    return round(halalas * vat_rate())
 
 
 def total_with_vat(halalas: int) -> int:
     return halalas + vat_amount(halalas)
+
+
+def payment_total(payment) -> int:
+    """Halalas billed for this payment: the amount stored at creation.
+
+    Falls back to the current rate only for rows that predate the column
+    (startup backfills those at the legacy 15%)."""
+    t = getattr(payment, "total_halalas", None)
+    return int(t) if t is not None else total_with_vat(int(payment.amount))
+
+
+def payment_vat(payment) -> int:
+    return payment_total(payment) - int(payment.amount)
+
+
+def vat_note_ar(payment) -> str:
+    """' شاملة ضريبة القيمة المضافة' only when this payment actually carries VAT."""
+    return " شاملة ضريبة القيمة المضافة" if payment_vat(payment) > 0 else ""
 
 
 def _validate_addons(addons) -> int:
@@ -462,14 +510,14 @@ def transfer_instructions(payment: Payment) -> dict:
     from src.services import transfer
 
     ref = reference(payment)
-    total = total_with_vat(payment.amount)
+    total = payment_total(payment)
     customer = payment.customer_name or payment.customer_phone or payment.customer_email
     return {
         "payment_id": str(payment.id),
         "reference": ref,
         "status": payment.status,
         "base_halalas": payment.amount,
-        "vat_halalas": vat_amount(payment.amount),
+        "vat_halalas": payment_vat(payment),
         "total_halalas": total,
         "total_sar": round(total / 100, 2),
         "currency": payment.currency or "SAR",
@@ -559,6 +607,7 @@ async def create_payment(
 
     payment = Payment(
         amount=amount,
+        total_halalas=total_with_vat(amount),
         currency="SAR",
         package=package,
         billing_period=period,
@@ -597,11 +646,9 @@ async def initiate_moyasar(
     if not settings.moyasar_api_secret:
         raise PaymentError("Moyasar API secret not configured")
 
-    # Owner decision (option A): package prices are VAT-inclusive, so the amount
-    # charged must equal what the invoice bills. This previously charged
-    # payment.amount (the pre-VAT base) while the invoice document showed
-    # base + 15%, under-collecting 15% on every card sale.
-    charge = total_with_vat(payment.amount) if amount_halalas is None else amount_halalas
+    # The amount charged must equal what the invoice bills: the total stored on
+    # the payment at creation (base + VAT at the rate then in force).
+    charge = payment_total(payment) if amount_halalas is None else amount_halalas
     if charge < payment.amount:
         raise PaymentError("Charge amount is below the recorded base amount")
 
@@ -715,8 +762,8 @@ REVIEW_STATUS = "review"
 
 
 def expected_charge(payment: Payment) -> int:
-    """Halalas Moyasar must report for this order: the VAT-inclusive total."""
-    return total_with_vat(payment.amount)
+    """Halalas Moyasar must report for this order: the total stored at creation."""
+    return payment_total(payment)
 
 
 def gateway_amount_matches(payment: Payment, data: dict) -> bool:

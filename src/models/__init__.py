@@ -245,6 +245,9 @@ class Payment(Base):
     # What the gateway actually charged when it is not SAR (PayPal: USD cents).
     charge_currency: Mapped[Optional[str]] = mapped_column(String(3), nullable=True)
     charge_amount: Mapped[Optional[int]] = mapped_column(nullable=True)
+    # SAR halalas billed (base + VAT at the rate in force when the order was
+    # created). Confirmation and invoices use this, never the current rate.
+    total_halalas: Mapped[Optional[int]] = mapped_column(nullable=True)
     # Usage add-on packs bought with the order (+1000 conversations / +100 voice min each).
     addon_conversation_packs: Mapped[int] = mapped_column(default=0, server_default="0")
     addon_voice_packs: Mapped[int] = mapped_column(default=0, server_default="0")

@@ -20,6 +20,10 @@ from src.services import payments as pm
 NOW = datetime(2026, 10, 14, 6, 0, tzinfo=timezone.utc)
 
 
+# ZATCA tax-invoice behaviour applies only when VAT-registered.
+pytestmark = pytest.mark.usefixtures("vat15")
+
+
 @pytest.fixture
 async def maker():
     engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)

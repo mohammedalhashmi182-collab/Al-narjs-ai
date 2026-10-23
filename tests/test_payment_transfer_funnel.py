@@ -506,6 +506,7 @@ class TestUnresolvableInvoiceLink:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("vat15")
 class TestVatInclusiveCharging:
     async def test_moyasar_is_asked_to_charge_the_invoice_total(self, maker, monkeypatch):
         captured: dict = {}

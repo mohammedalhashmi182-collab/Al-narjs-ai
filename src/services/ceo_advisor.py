@@ -313,7 +313,7 @@ def build_result(d: Diagnosis) -> dict:
             "vat_halalas": vat,
             "total_halalas": total,
             "total_sar": f"{total / 100:,.2f}",
-            "vat_rate": payments.VAT_RATE,
+            "vat_rate": payments.vat_rate(),
         },
         "cta": {
             "subscribe": subscribe,
