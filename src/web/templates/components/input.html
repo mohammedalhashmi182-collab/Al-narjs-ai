@@ -1,0 +1,4 @@
+{# attrs keeps native validation, autocomplete and accessibility available. #}
+{% macro input(id, type='text', class_name='', attrs=none) -%}
+<input type="{{ type }}" id="{{ id }}" class="ui-input{% if type == 'checkbox' %} ui-input--checkbox{% endif %}{% if class_name %} {{ class_name }}{% endif %}"{{ (attrs or {})|xmlattr }}>
+{%- endmacro %}
