@@ -17,6 +17,11 @@
     <title>{% if _lang == 'ar' %}بوابة العميل | النرجس للذكاء الاصطناعي{% else %}Client Portal | Al-Narjis AI{% endif %}</title>
     <link rel="stylesheet" href="/static/css/app-tw.css">
     <link rel="stylesheet" href="/static/css/narjis.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Readex+Pro:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis-luxury.css">
+    <link rel="stylesheet" href="/static/css/narjis-refresh.css">
     <link rel="stylesheet" href="/static/css/portal.css">
     {% include "partials/_analytics.html" %}
 </head>
@@ -271,7 +276,7 @@
                 $('pkg-status').textContent = '';
                 $('pkg-grid').innerHTML = data.packages.map(p => `
                     {% call card(class_name='pkg cursor-pointer selectable', attrs={'data-pkg': '${p.key}'}) %}
-                        <div class="portal-plan-icon mb-2" data-icon="${p.icon}">{{ icon('sparkles') }}</div>
+                        <div class="portal-plan-icon mb-2" data-icon="${p.icon}" style="color:var(--n-gold);"><i class="${p.icon}"></i></div>
                         <h3 class="n-title text-lg">
                             {% if _lang == 'ar' %}<span>${p.name}</span>{% else %}<span data-inline>${p.name_en}</span>{% endif %}
                         </h3>
@@ -633,7 +638,7 @@
                         const hidden = all.length - live.length;
                         $('coMethods').innerHTML = live.map(x => `
                             <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
-                                {{ icon('credit-card') }}<span>${x.t}</span>
+                                <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
                             </button>`).join('');
 if (hidden) {
                             const note = document.getElementById('coCardNote');
