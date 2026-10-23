@@ -25,7 +25,6 @@ PACKAGES = catalog.PACKAGES  # compatible alias — amounts live in catalog only
 
 MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
-VAT_RATE = 0.15
 
 from datetime import datetime, timedelta as _timedelta, timezone
 
@@ -49,8 +48,33 @@ _credential_cache: dict[str, tuple[float, str]] = {}
 _credential_lock = asyncio.Lock()
 
 
+def vat_rate() -> float:
+    """Single source of truth: env VAT_RATE via settings (default 0 = not VAT-registered).
+
+    Read at call time so a changed env / cleared settings cache is honoured."""
+    import os as _os
+
+    raw = _os.environ.get("VAT_RATE")
+    if raw is not None and raw.strip() != "":
+        try:
+            r = float(raw)
+        except ValueError:
+            r = float(get_settings().vat_rate or 0)
+    else:
+        r = float(get_settings().vat_rate or 0)
+    return r if r > 0 else 0.0
+
+
+def vat_percent() -> int:
+    return round(vat_rate() * 100)
+
+
+def vat_enabled() -> bool:
+    return vat_rate() > 0
+
+
 def vat_amount(halalas: int) -> int:
-    return round(halalas * VAT_RATE)
+    return round(halalas * vat_rate())
 
 
 def total_with_vat(halalas: int) -> int:

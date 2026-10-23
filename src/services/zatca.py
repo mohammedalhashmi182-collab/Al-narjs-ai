@@ -35,14 +35,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.services import catalog
 from src.services import payments as pm
 
-VAT_RATE = pm.VAT_RATE
-VAT_PERCENT = 15
 VAT_PLACEHOLDER = "300000000000003"  # obvious placeholder until the owner sets SELLER_VAT_NUMBER
 INVOICE_SERIES = "INV"
 CREDIT_SERIES = "CRN"
 OVERAGE_PACKAGE = "overage"
 TITLE_AR = "فاتورة ضريبية مبسطة"
 TITLE_EN = "Simplified Tax Invoice"
+PLAIN_TITLE_AR = "فاتورة"
+PLAIN_TITLE_EN = "Invoice"
+
+
+def title_ar() -> str:
+    return TITLE_AR if pm.vat_enabled() else PLAIN_TITLE_AR
+
+
+def title_en() -> str:
+    return TITLE_EN if pm.vat_enabled() else PLAIN_TITLE_EN
+
+
 CREDIT_TITLE_AR = "إشعار دائن"
 CREDIT_TITLE_EN = "Credit Note"
 
@@ -80,7 +90,7 @@ def readiness() -> dict:
     """What the owner still has to provide (never echoes secrets)."""
     s = seller()
     missing = []
-    if s["vat_placeholder"]:
+    if s["vat_placeholder"] and pm.vat_enabled():
         missing.append("SELLER_VAT_NUMBER (15-digit VAT registration number, starts and ends with 3)")
     if not (s["cr_number"] or "").strip():
         missing.append("SELLER_CR_NUMBER")
@@ -103,6 +113,10 @@ def _sar(halalas: int) -> str:
 
 
 def qr_tlv_base64(seller_name: str, vat_number: str, issued_at: datetime, total: int, vat_total: int) -> str:
+    """ZATCA TLV QR. Empty when VAT is disabled: a non-registered operator must
+    not issue a QR that claims a VAT number/amount."""
+    if not pm.vat_enabled():
+        return ""
     ts = issued_at.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     blob = (_tlv(1, seller_name) + _tlv(2, vat_number) + _tlv(3, ts)
             + _tlv(4, _sar(total)) + _tlv(5, _sar(vat_total)))
@@ -201,8 +215,9 @@ def build_lines(payment) -> list[dict]:
 
 
 def with_vat(lines: list[dict], expected_vat: Optional[int] = None) -> tuple[list[dict], int, int, int]:
-    """Add per-line VAT (15%) and return (lines, subtotal, vat_total, total)."""
-    out = [dict(l, vat_rate=VAT_PERCENT, vat=round(l["net"] * VAT_RATE)) for l in lines]
+    """Add per-line VAT (settings VAT_RATE; 0 when not VAT-registered) and return (lines, subtotal, vat_total, total)."""
+    rate = pm.vat_rate()
+    out = [dict(l, vat_rate=pm.vat_percent(), vat=round(l["net"] * rate)) for l in lines]
     subtotal = sum(l["net"] for l in out)
     vat_total = sum(l["vat"] for l in out)
     if expected_vat is not None and out and vat_total != expected_vat:

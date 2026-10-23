@@ -155,6 +155,7 @@ class TestReturnUrls:
         assert captured["callback_url"] == "https://alnarjs.example/webhooks/moyasar"
 
 
+@pytest.mark.usefixtures("vat15")
 class TestWebhookAuth:
     async def test_missing_token_is_401(self, anon, maker):
         p = await _insert(maker)
@@ -211,6 +212,7 @@ class TestWebhookAuth:
         assert await _status(maker, p.id) == "failed"
 
 
+@pytest.mark.usefixtures("vat15")
 class TestAmountMismatch:
     async def test_webhook_wrong_amount_goes_to_review(self, anon, maker, monkeypatch):
         p = await _insert(maker)

@@ -604,12 +604,13 @@
                 // One-time setup fee on a first monthly order (waived on annual); outside the promo.
                 const setup = coBilling === 'annual' ? 0 : (Number(p.setup_fee) || 0) / 100;
                 const after = base - disc + setup;
-                const vat = ar ? Math.round(after * 0.15) : 0;
+                const VAT_RATE = {{ vat_rate() | tojson }};
+                const vat = VAT_RATE > 0 ? Math.round(after * VAT_RATE) : 0;
                 const total = after + vat;
                 $('coSummary').innerHTML =
                     '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
-                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:var(--n-green);">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt('المبلغ قبل الضريبة: ', 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
-                    (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة 15%: ', 'VAT 15%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
+                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:var(--n-green);">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + (VAT_RATE > 0 ? txt('المبلغ قبل الضريبة: ', 'Subtotal: ') : txt('المبلغ: ', 'Subtotal: ')) + base.toLocaleString() + ' ' + cur + '</div>') +
+                    (vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة ' + Math.round(VAT_RATE*100) + '%: ', 'VAT ' + Math.round(VAT_RATE*100) + '%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة (تُلغى مع السنوي): ', 'One-time setup fee (waived on annual): ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
                     '' +

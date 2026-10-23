@@ -544,6 +544,10 @@ from src.services.support import support_contact as _support_contact  # noqa: E4
 
 templates.env.globals["support_contact"] = _support_contact
 templates.env.globals["settings"] = get_settings()
+from src.services import payments as _vat_pm  # noqa: E402
+templates.env.globals["vat_rate"] = _vat_pm.vat_rate
+templates.env.globals["vat_percent"] = _vat_pm.vat_percent
+templates.env.globals["vat_enabled"] = _vat_pm.vat_enabled
 
 
 def _promo_info() -> dict:
@@ -1615,7 +1619,7 @@ async def delete_workflow(slug: str):
 async def portal_packages():
     from src.services import catalog
 
-    icons = {"bidaya": "fa-comments", "numuw": "fa-seedling", "sharikat": "fa-building"}
+    icons = {"bidaya": "fas fa-comments", "numuw": "fas fa-seedling", "sharikat": "fas fa-building"}
     result = []
     for key, p in catalog.PACKAGES.items():
         result.append({
@@ -2881,7 +2885,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     if not owner_invoice:
         _require_refund_consent(body.refund_consent)
     locale = _request_locale(request)
-    include_vat = locale == "ar"
+    include_vat = pm.vat_enabled()
     base = _public_base_url(request)
     from src.services import catalog as _cat_vp
 
@@ -3681,7 +3685,7 @@ async def invoice_page(request: Request, payment_id: str):
             "credit_notes": credit_notes,
             "seller": tax_invoice.seller if tax_invoice else zatca.seller(),
             "lines": tax_invoice.lines if tax_invoice else zp["lines"],
-            "qr_svg": zatca.qr_svg(tax_invoice.qr_tlv) if tax_invoice else None,
+            "qr_svg": zatca.qr_svg(tax_invoice.qr_tlv) if tax_invoice and tax_invoice.qr_tlv else None,
             "issued_riyadh": (tax_invoice.issued_at + _td(hours=3)).strftime("%Y-%m-%d %H:%M")
             if tax_invoice and tax_invoice.issued_at else None,
             "base": payment.amount,

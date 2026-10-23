@@ -58,3 +58,11 @@ def _rag_offline(monkeypatch):
     monkeypatch.setattr(generate, "_llm_complete", _no_llm)
     yield
     embeddings.set_embedder(None)
+
+
+@_pytest.fixture
+def vat15(monkeypatch):
+    """Opt a test into the legacy VAT-registered behaviour (VAT_RATE=0.15).
+    Production default is 0 (operator not VAT-registered)."""
+    monkeypatch.setenv("VAT_RATE", "0.15")
+    yield

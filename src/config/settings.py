@@ -128,7 +128,7 @@ class Settings(BaseSettings):
     gtag_id: str | None = Field(default=None, alias="GTAG_ID")
 
     # VAT (KSA, applied to Saudi-facing invoices)
-    vat_rate: float = Field(default=0.15, alias="VAT_RATE")
+    vat_rate: float = Field(default=0.0, alias="VAT_RATE")  # 0 = operator not VAT-registered
 
     # ZATCA phase-1 seller identity printed on every simplified tax invoice.
     # SELLER_VAT_NUMBER must be the 15-digit VAT registration number (starts
