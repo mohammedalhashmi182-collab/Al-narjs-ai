@@ -72,11 +72,11 @@ class _R:
 # ---------------------------------------------------------------- SAR limits
 def test_spending_limits_are_in_sar():
     for path in Path("agents/base").glob("*.yaml"):
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         assert "micro_budget_usd" not in text and "amount_usd" not in text and "$250" not in text, path
-    closer = yaml.safe_load(Path("agents/base/sales_closer.yaml").read_text())
+    closer = yaml.safe_load(Path("agents/base/sales_closer.yaml").read_text(encoding="utf-8"))
     assert closer["x_tasami"]["micro_budget_sar"] == 950
-    assert "ريال" in Path("agents/base/policy_guardian.yaml").read_text()
+    assert "ريال" in Path("agents/base/policy_guardian.yaml").read_text(encoding="utf-8")
 
 
 def test_legacy_usd_budget_converts():

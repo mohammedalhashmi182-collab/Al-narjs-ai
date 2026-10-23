@@ -1,0 +1,3 @@
+{% macro badge(label='', variant='secondary', class_name='', attrs=none) -%}
+<span class="ui-badge ui-badge--{{ variant }}{% if class_name %} {{ class_name }}{% endif %}"{{ (attrs or {})|xmlattr }}>{{ caller() if caller is defined else label }}</span>
+{%- endmacro %}
