@@ -183,7 +183,13 @@ async def test_openai_and_gemini_payloads(monkeypatch):
     v = await embeddings.OpenAIEmbedder("sk-test").embed(["أهلاً"])
     assert v == [[1.0, 0.0]] and seen[0][1]["input"] == ["اهلا"]  # normalized text is embedded
     v = await embeddings.GeminiEmbedder("g-test").embed(["سؤال"], kind="query")
-    assert v == [[0.0, 1.0]] and seen[1][1]["requests"][0]["taskType"] == "RETRIEVAL_QUERY"
+    req = seen[1][1]["requests"][0]
+    cfg = req["embedContentConfig"]
+    assert v == [[0.0, 1.0]]
+    assert cfg["taskType"] == "RETRIEVAL_QUERY"
+    assert cfg["outputDimensionality"] == 768
+    assert cfg["autoTruncate"] is True
+    assert "taskType" not in req and "outputDimensionality" not in req
 
 
 async def test_provider_failure_tries_the_next_real_provider(monkeypatch):
