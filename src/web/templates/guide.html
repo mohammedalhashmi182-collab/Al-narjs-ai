@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
-<html lang="ar" dir="rtl" data-lang="ar">
+{% set ar = page_lang(request) == 'ar' %}
+<html lang="{{ 'ar' if ar else 'en' }}" dir="{{ 'rtl' if ar else 'ltr' }}" data-lang="{{ 'ar' if ar else 'en' }}">
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
@@ -8,10 +9,10 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>خطة 30 يوماً — دليل مجاني | النرجس للذكاء الاصطناعي</title>
-<meta name="description" content="دليل مجاني بالعربي لمدة 30 يوماً: كيف تحوّل منشأتك بالذكاء الاصطناعي خطوة بخطوة — محتوى، ردود، متجر، وتسويق.">
-<meta property="og:title" content="خطة 30 يوماً للذكاء الاصطناعي — دليل مجاني">
-<meta property="og:description" content="دليل 30 يوماً بالعربي. الباقات المنشورة تختلف بحدود الاستخدام، لا بعدد الوكلاء.">
+<title>30-Day Plan — Free Guide | Al-Narjis AI</title>
+<meta name="description" content="{% if ar %}دليل مجاني بالعربي لمدة 30 يوماً: كيف تحوّل منشأتك بالذكاء الاصطناعي خطوة بخطوة — محتوى، ردود، متجر، وتسويق.{% else %}A free 30-day guide in Arabic: how to transform your business with AI step by step — content, replies, store and marketing.{% endif %}">
+<meta property="og:title" content="{% if ar %}خطة 30 يوماً للذكاء الاصطناعي — دليل مجاني{% else %}30-Day AI Plan — Free Guide{% endif %}">
+<meta property="og:description" content="{% if ar %}دليل 30 يوماً بالعربي. الباقات المنشورة تختلف بحدود الاستخدام، لا بعدد الوكلاء.{% else %}A 30-day guide in Arabic. The published plans differ by usage limits, not by the number of agents.{% endif %}">
 <meta property="og:image" content="/static/guide/page_01.png">
 <meta property="og:type" content="article">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -105,79 +106,80 @@ footer b { color:var(--gold-b); }
     <nav class="nav">
         <a href="/home" class="brand">
             <img class="logo" src="/static/logo.svg" alt="Al-Narjis AI">
-            <span><span class="name">النرجس <b>AI</b></span></span>
+            <span><span class="name">{% if ar %}النرجس{% else %}Al-Narjis{% endif %} <b>AI</b></span></span>
         </a>
         <div>
-            <a href="/home" class="ghost">الرئيسية</a>
-            <a href="/portal" class="btn"><i class="fas fa-bolt"></i> أيقظ فريقك</a>
+            <a href="/home" {% if ar %}class="ghost">الرئيسية</a>{% else %}class="ghost">{% if ar %}الرئيسية{% else %}Home{% endif %}</a>{% endif %}
+            <a href="/portal" class="btn"><i class="fas fa-bolt"></i> {% if ar %}أيقظ فريقك{% else %}Wake up your team{% endif %}</a>
         </div>
     </nav>
 
     <section class="hero">
-        <span class="tag">دليل مجاني — برعاية النرجس للذكاء الاصطناعي</span>
-        <h1>خطة <span class="grad">30 يوماً</span><br>للذكاء الاصطناعي</h1>
-        <p class="sub">لأصحاب المشاريع الصغيرة في السعودية: كيف تحوّل أعمالك بالذكاء الاصطناعي خطوة بخطوة — بدون برمجة و بدون ميزانية ضخمة. ابدأ اليوم وطبّق من الأسبوع الأول.</p>
+        <span class="tag">{% if ar %}دليل مجاني — برعاية النرجس للذكاء الاصطناعي{% else %}Free guide — by Al-Narjis AI{% endif %}</span>
+        <h1>{% if ar %}خطة <span class="grad">30 يوماً</span><br>للذكاء الاصطناعي{% else %}A <span class="grad">30-day</span><br>AI plan{% endif %}</h1>
+        <p class="sub">{% if ar %}لأصحاب المشاريع الصغيرة في السعودية: كيف تحوّل أعمالك بالذكاء الاصطناعي خطوة بخطوة — بدون برمجة و بدون ميزانية ضخمة. ابدأ اليوم وطبّق من الأسبوع الأول.{% else %}For small business owners in Saudi Arabia: how to transform your business with AI step by step — no coding and no huge budget. Start today and apply it from the first week.{% endif %}</p>
         <div class="featured">
-            <div class="plus"><i class="fas fa-check-circle"></i><span><b>حدود كل باقة منشورة</b>المحادثات ورسوم ميتا ورسوم الإعداد، لا عدد الوكلاء.</span></div>
-            <div class="plus"><i class="fas fa-check-circle"></i><span><b>20 دقيقة يومياً</b>لا أكثر — الباقي أتمتة.</span></div>
-            <div class="plus"><i class="fas fa-check-circle"></i><span><b>بالعربي 100%</b>وبصوت علامتك التجارية.</span></div>
+            <div class="plus"><i class="fas fa-check-circle"></i><span><b>Every plan's limits are published</b>Conversations, Meta fees and setup fees, not the number of agents.</span></div>
+            <div class="plus"><i class="fas fa-check-circle"></i><span><b>20 minutes a day</b>No more — the rest is automated.</span></div>
+            <div class="plus"><i class="fas fa-check-circle"></i><span><b>100% Arabic</b>In your brand's voice.</span></div>
         </div>
     </section>
 
     <section class="cover">
-        <div class="mock"><img src="/static/guide/page_01.png" alt="خطة 30 يوماً — غلاف الدليل"></div>
+        <div class="mock"><img src="/static/guide/page_01.png" alt="{% if ar %}خطة 30 يوماً — غلاف الدليل{% else %}30-day plan — guide cover{% endif %}"></div>
         <div class="cta-card">
-            <h2>حمّل الدليل مجاناً</h2>
-            <p>أدخل بياناتك ونرسل لك ملف PDF. الأسعار الحالية في <a href="/pricing">صفحة الباقات</a>. بدون رسائل مزعجة.</p>
+            <h2>{% if ar %}حمّل الدليل مجاناً{% else %}Download the guide for free{% endif %}</h2>
+            <p>{% if ar %}أدخل بياناتك ونرسل لك ملف PDF. الأسعار الحالية في <a href="/pricing">صفحة الباقات</a>. بدون رسائل مزعجة.{% else %}Enter your details and we will send you the PDF (in Arabic). Current prices are on the <a href="/pricing">plans page</a>. No spam.{% endif %}</p>
             <form class="form" id="guideForm">
-                <div class="field"><label>الاسم</label><input name="name" type="text" required placeholder="مثال: محمد الهاشمي"></div>
-                <div class="field"><label>رقم الجوال (اختياري)</label><input name="phone" type="tel" placeholder="05xxxxxxxx"></div>
-                <div class="field"><label>البريد الإلكتروني</label><input name="email" type="email" required placeholder="you@example.com"></div>
-                <button type="submit">احصل على الدليل الآن</button>
+                <div class="field"><label>{% if ar %}الاسم{% else %}Name{% endif %}</label><input name="name" type="text" required placeholder="{% if ar %}مثال: سارة{% else %}e.g. Sarah{% endif %}"></div>
+                <div class="field"><label>{% if ar %}رقم الجوال (اختياري){% else %}Mobile number (optional){% endif %}</label><input name="phone" type="tel" placeholder="05xxxxxxxx"></div>
+                <div class="field"><label>{% if ar %}البريد الإلكتروني{% else %}Email{% endif %}</label><input name="email" type="email" required placeholder="you@example.com"></div>
+                <button type="submit">{% if ar %}احصل على الدليل الآن{% else %}Get the guide now{% endif %}</button>
             </form>
             <div class="msg" id="guideMsg"></div>
             <div class="dl-wrap" id="dlWrap">
-                <a class="big" href="/static/guide/narjis-30day-ai-guide.pdf" download onclick="this.style.opacity=.8"><i class="fas fa-download"></i> تحميل الدليل PDF</a>
-                <span class="alt">أو تصفح <a href="/static/guide/page_01.png" target="_blank">صفحة الغلاف</a> · <a href="/pricing">الأسعار</a></span>
+                <a class="big" href="/static/guide/narjis-30day-ai-guide.pdf" download onclick="this.style.opacity=.8"><i class="fas fa-download"></i> {% if ar %}تحميل الدليل PDF{% else %}Download the PDF guide{% endif %}</a>
+                <span class="alt">{% if ar %}أو تصفح <a href="/static/guide/page_01.png" target="_blank">صفحة الغلاف</a> · <a href="/pricing">الأسعار</a>{% else %}Or browse the <a href="/static/guide/page_01.png" target="_blank">cover page</a> · <a href="/pricing">Prices</a>{% endif %}</span>
             </div>
         </div>
     </section>
 
     <section class="timeline">
-        <h2>الخارطة: <span>4 أسابيع</span></h2>
+        <h2>{% if ar %}الخارطة: <span>4 أسابيع</span>{% else %}The roadmap: <span>4 weeks</span>{% endif %}</h2>
         <div class="steps">
-            <div class="step"><span class="n">1</span><b>الأسبوع الأول — الفريق يستفيق</b><p>أنشئ حسابك، فعّل إيجنت المحتوى، واجعل أول أسبوع منشورات آلي. وفّرت عليك ساعات.</p></div>
-            <div class="step"><span class="n">2</span><b>الأسبوع الثاني — ردود وخدمة عملاء</b><p>دع الإيجنت يرد على الرسائل الشائعة بأسلوبك، ولا عميل ينتظر.</p></div>
-            <div class="step"><span class="n">3</span><b>الأسبوع الثالث — متجر وأسعار</b><p>ارفع منتجاتك دفعة واحدة، حدّث الأسعار، وطبّق كوبون الشكر التلقائي.</p></div>
-            <div class="step"><span class="n">4</span><b>الأسبوع الرابع — قياس وتحسين</b><p>قرّرات بيانات لا تخمين، ثم أضف إيجنت حملات التسويق.</p></div>
+            <div class="step"><span class="n">1</span>{% if ar %}<b>الأسبوع الأول — الفريق يستفيق</b><p>أنشئ حسابك، فعّل إيجنت المحتوى، واجعل أول أسبوع منشورات آلي. وفّرت عليك ساعات.</p>{% else %}<b>Week 1 — The team wakes up</b><p>Create your account, turn on the content agent, and make your first week of posts automatic. That saves you hours.</p>{% endif %}</div>
+            <div class="step"><span class="n">2</span>{% if ar %}<b>الأسبوع الثاني — ردود وخدمة عملاء</b><p>دع الإيجنت يرد على الرسائل الشائعة بأسلوبك، ولا عميل ينتظر.</p>{% else %}<b>Week 2 — Replies and customer service</b><p>Let the agent answer common messages in your style, so no customer waits.</p>{% endif %}</div>
+            <div class="step"><span class="n">3</span>{% if ar %}<b>الأسبوع الثالث — متجر وأسعار</b><p>ارفع منتجاتك دفعة واحدة، حدّث الأسعار، وطبّق كوبون الشكر التلقائي. (ربط سلة أو زد قريباً وغير مشمول حالياً.)</p>{% else %}<b>Week 3 — Store and prices</b><p>Upload your products in one batch, update prices, and apply the automatic thank-you coupon. (Salla/Zid store connection is coming soon and is not included yet.)</p>{% endif %}</div>
+            <div class="step"><span class="n">4</span>{% if ar %}<b>الأسبوع الرابع — قياس وتحسين</b><p>قرارات بيانات لا تخمين، ثم أضف إيجنت حملات التسويق.</p>{% else %}<b>Week 4 — Measure and improve</b><p>Decisions from data, not guesses; then add the marketing campaigns agent.</p>{% endif %}</div>
         </div>
     </section>
 
     <section class="agents-sec">
-        <h2>فريقك <span>الرقمي</span></h2>
+        <h2>{% if ar %}فريقك <span>الرقمي</span>{% else %}Your <span>digital</span> team{% endif %}</h2>
         <div class="cards">
-            <div class="card"><i class="fas fa-share-alt"></i><b>إيجنت سوشيال</b><p>ينشر محتواك على المواعيد بخطة أسبوعية.</p></div>
-            <div class="card"><i class="fas fa-cart-arrow-down"></i><b>إيجنت متاجر</b><p>يرفع المنتجات ويحدّث الأسعار والكوبونات.</p></div>
-            <div class="card"><i class="fas fa-bullhorn"></i><b>إيجنت تسويق</b><p>يدير الحملات والخصومات.</p></div>
-            <div class="card"><i class="fas fa-comments"></i><b>إيجنت محتوى</b><p>صناعة نصوص وردود بعلامتك التجارية.</p></div>
+            <div class="card"><i class="fas fa-share-alt"></i>{% if ar %}<b>إيجنت سوشيال</b><p>ينشر محتواك على المواعيد بخطة أسبوعية.</p>{% else %}<b>Social agent</b><p>Publishes your content on schedule with a weekly plan.</p>{% endif %}</div>
+            <div class="card"><i class="fas fa-cart-arrow-down"></i>{% if ar %}<b>إيجنت متاجر</b><p>يرفع المنتجات ويحدّث الأسعار والكوبونات.</p>{% else %}<b>Store agent</b><p>Uploads products and updates prices and coupons.</p>{% endif %}</div>
+            <div class="card"><i class="fas fa-bullhorn"></i>{% if ar %}<b>إيجنت تسويق</b><p>يدير الحملات والخصومات.</p>{% else %}<b>Marketing agent</b><p>Runs campaigns and discounts.</p>{% endif %}</div>
+            <div class="card"><i class="fas fa-comments"></i>{% if ar %}<b>إيجنت محتوى</b><p>صناعة نصوص وردود بعلامتك التجارية.</p>{% else %}<b>Content agent</b><p>Writes copy and replies in your brand's voice.</p>{% endif %}</div>
         </div>
     </section>
 
     <section class="banner">
-        <div><b>جاهز تبدأ خطوتك الأولى اليوم؟</b><span>راجع <a href="/pricing">الباقات الحالية</a> ثم أيقظ فريقك.</span></div>
-        <a href="/pricing">شاهد الأسعار</a>
+        {% if ar %}<div><b>جاهز تبدأ خطوتك الأولى اليوم؟</b><span>راجع <a href="/pricing">الباقات الحالية</a> ثم أيقظ فريقك.</span></div>{% else %}<div><b>Ready to take your first step today?</b><span>Review the <a href="/pricing">current plans</a>, then wake up your team.</span></div>{% endif %}
+        <a href="/pricing">{% if ar %}شاهد الأسعار{% else %}See prices{% endif %}</a>
     </section>
 
-    <footer>النرجس للذكاء الاصطناعي · <b>Al-Narjis AI</b> · الرياض — karmaai.online</footer>
+    <footer>{% if ar %}النرجس للذكاء الاصطناعي · <b>Al-Narjis AI</b> · الرياض — karmaai.online{% else %}<b>Al-Narjis AI</b> · Riyadh — karmaai.online{% endif %}</footer>
 </div>
 <script>
+var AR = {{ 'true' if ar else 'false' }};
 var form = document.getElementById('guideForm');
 var msg = document.getElementById('guideMsg');
 var dl = document.getElementById('dlWrap');
 form.addEventListener('submit', function (e) {
     e.preventDefault();
     msg.className = 'msg';
-    msg.textContent = 'جارٍ إرسال طلبك…';
+    msg.textContent = AR ? 'جارٍ إرسال طلبك…' : 'Sending your request…';
     msg.style.display = 'block';
     var data = Object.fromEntries(new FormData(form).entries());
     data.package = 'guide';
@@ -187,15 +189,15 @@ form.addEventListener('submit', function (e) {
         if (r.ok) {
             if (window.fbq) fbq('track', 'Lead');
             msg.className = 'msg ok';
-            msg.textContent = '✓ تم! حمّل دليلك الآن من الأسفل.';
+            msg.textContent = AR ? '✓ تم! حمّل دليلك الآن من الأسفل.' : '✓ Done! Download your guide below.';
             dl.classList.add('show');
         } else {
             msg.className = 'msg err';
-            msg.textContent = 'حدث خطأ، حاول مرة أخرى.';
+            msg.textContent = AR ? 'حدث خطأ، حاول مرة أخرى.' : 'Something went wrong, please try again.';
         }
     }).catch(function () {
         msg.className = 'msg err';
-        msg.textContent = 'تعذر الاتصال، تحقق من الإنترنت.';
+        msg.textContent = AR ? 'تعذر الاتصال، تحقق من الإنترنت.' : 'Could not connect, check your internet.';
     });
 });
 </script>

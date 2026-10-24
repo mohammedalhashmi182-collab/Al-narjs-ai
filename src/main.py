@@ -2070,6 +2070,7 @@ class ConsultMessage(BaseModel):
 
 class ConsultRequest(BaseModel):
     messages: list[ConsultMessage]
+    lang: Optional[str] = None
 
 
 class CeoConsultRequest(BaseModel):
@@ -2244,12 +2245,16 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     if not request.messages:
         raise HTTPException(400, "No messages")
 
-    locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
+    page_locale = request.lang if request.lang in ("ar", "en") else http_request.cookies.get(_LOCALE_COOKIE, "ar")
 
     history = []
     for m in request.messages[-12:]:
         role = "user" if m.role in ("user", "client") else "assistant"
         history.append({"role": role, "content": m.content})
+    from src.core.karma_persona import mostly_arabic, reply_locale
+
+    last_user = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
+    locale = reply_locale(last_user, page_locale)
 
     from src.services import catalog as _catalog
 
@@ -2318,6 +2323,9 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
             get_logger(__name__).warning("consult: ungrounded number/link in reply; handing off")
             return {"reply": _CONSULT_HANDOFF_AR if locale == "ar" else _CONSULT_HANDOFF_EN, "handoff": "ungrounded"}
+        if content and locale == "en" and mostly_arabic(content):
+            # An English visitor must never get an Arabic answer.
+            return {"reply": _CONSULT_HANDOFF_EN, "handoff": "language"}
         if not content:
             # A model that answered with nothing usable is a failure, not a
             # success with an empty bubble in the transcript.

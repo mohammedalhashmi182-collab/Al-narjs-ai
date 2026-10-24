@@ -55,7 +55,8 @@ def build_consult_system_prompt(*, locale: str, packages_text: str, employees_te
         "explicitly writes in another language, and keep short clear headings and bullets. "
         "Use correct Arabic spelling; never repeat a word twice in a row; proofread before answering."
         if locale == "ar" else
-        "Respond in clear, fluent business English with short clear headings and bullets."
+        "Respond ONLY in clear, fluent business English with short clear headings and bullets, even "
+        "though the sources below are in Arabic; translate facts, never reply in Arabic."
     )
     return f"""You are KarmaAI — the Smart Consultant (المستشار الذكي) of Al-Narjis AI
 (النرجس للذكاء الاصطناعي), the elite AI automation system operating at karmaai.online
@@ -85,6 +86,8 @@ FIXED FACTS (always true; never contradict them)
 - Support: through this site assistant and by email. There is NO phone support and no phone number;
   never say "phone support" or "دعم بالهاتف" even if a plan feature text mentions it.
 {_payment_fact()}
+- Store platforms: write Salla as «سلة» (never «سِلا») and Zid as «زد». Connecting a Salla or Zid store
+  is coming soon and is not included today; never say it is available.
 - Refund: the ONLY refund is the one-time setup fee, and only if the first agent is not working within
   10 business days. The subscription itself is not refunded; a duplicate charge is reviewed by the
   team (press «اطلب تواصل موظف»). Never name a person as the refund contact.
@@ -214,11 +217,34 @@ def _names_unverified(line: str, sources: str) -> bool:
     return False
 
 
+# Models sometimes transliterate Salla as «سِلا»/«سلا»; the store platform is «سلة».
+_SALLA_MISSPELT = re.compile(r"(?<![\u0600-\u06FF])س\u0650?لا(?![\u0600-\u06FF])")
+_AR_LETTER = re.compile(r"[\u0600-\u06FF]")
+_LATIN_LETTER = re.compile(r"[A-Za-z]")
+
+
+def reply_locale(last_user_message: str, page_locale: str) -> str:
+    """Answer in the visitor's own language: Arabic letters -> ar, Latin only -> en,
+    neither (digits, emoji) -> the page locale."""
+    text = last_user_message or ""
+    if _AR_LETTER.search(text):
+        return "ar"
+    if _LATIN_LETTER.search(text):
+        return "en"
+    return "en" if page_locale == "en" else "ar"
+
+
+def mostly_arabic(text: str) -> bool:
+    ar = len(_AR_LETTER.findall(text or ""))
+    latin = len(_LATIN_LETTER.findall(text or ""))
+    return ar > latin
+
+
 def enforce_reply_policy(reply: str, *, locale: str = "ar", sources: str = "") -> str:
     """Remove phone-support claims, contact-detail requests, wrong VAT claims and
     invented integrations from a consult reply. Idempotent."""
     ar = locale != "en"
-    text = reply or ""
+    text = _SALLA_MISSPELT.sub("سلة", reply or "")
     out: list[str] = []
     notes: list[str] = []
     for line in text.split("\n"):
