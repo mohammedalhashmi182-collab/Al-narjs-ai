@@ -26,6 +26,10 @@ PACKAGES = catalog.PACKAGES  # compatible alias — amounts live in catalog only
 MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
 
+# Release hold: credentials alone must never activate payments. Lift only in a
+# separately approved release after production verification.
+MOYASAR_ON_HOLD = True
+
 from datetime import datetime, timedelta as _timedelta, timezone
 
 # Access survives this long past ``current_period_end`` before the renewal
@@ -318,7 +322,7 @@ def moyasar_collects_money() -> bool:
     An empty publishable key, ``pk_test``, ``sk_test``, or a missing secret
     must never open a checkout that a later webhook could mark paid.
     """
-    return moyasar_secret_is_live() and moyasar_publishable_is_live()
+    return not MOYASAR_ON_HOLD and moyasar_secret_is_live() and moyasar_publishable_is_live()
 
 
 def moyasar_secret_is_live() -> bool:
@@ -361,6 +365,8 @@ async def probe_moyasar_credentials() -> str:
     unexpected status returns "unknown", which keeps the method visible, because
     hiding a working checkout over a network blip costs a real sale.
     """
+    if MOYASAR_ON_HOLD:
+        return "pending"
     settings = get_settings()
     if not settings.moyasar_api_secret:
         return "unset"
@@ -402,7 +408,9 @@ def capabilities(card_state: Optional[str] = None) -> dict:
     from src.services import transfer
 
     settings = get_settings()
-    if card_state is None:
+    if MOYASAR_ON_HOLD:
+        card_state = "pending"
+    elif card_state is None:
         card_state = cached_credential_state("moyasar")
     secret = (settings.moyasar_api_secret or "").strip()
     publishable = (settings.moyasar_publishable_key or "").strip()
@@ -423,6 +431,8 @@ def capabilities(card_state: Optional[str] = None) -> dict:
     return {
         "methods": methods,
         "card": card,
+        "moyasar_status": "pending" if MOYASAR_ON_HOLD else ("active" if card else "unavailable"),
+        "moyasar_on_hold": MOYASAR_ON_HOLD,
         "card_configured": bool(settings.moyasar_api_secret),
         "card_credentials": card_state,
         "card_test_mode": test_mode,
@@ -462,6 +472,8 @@ def readiness(card_state: Optional[str] = None) -> dict:
     # A configured-but-rejected secret is worse than a missing one: it looks
     # ready and fails on every buyer. Name it first.
     blocking: list[str] = []
+    if MOYASAR_ON_HOLD:
+        blocking.append("Moyasar: Pending / On Hold by owner request. Live payments are disabled.")
     if caps["card_credentials"] == "rejected":
         blocking.append(
             "MOYASAR_API_SECRET is set but Moyasar rejected it (401). "
@@ -660,6 +672,8 @@ async def initiate_moyasar(
     back_url: Optional[str] = None,
 ) -> dict:
     settings = get_settings()
+    if MOYASAR_ON_HOLD:
+        raise PaymentError("Moyasar: Pending / On Hold")
     if not moyasar_collects_money():
         raise PaymentError("Moyasar live key is not configured")
     if not settings.moyasar_api_secret:
@@ -748,7 +762,7 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
     provider = payment_provider(payment)
     if provider == "paypal":
         return await verify_paypal_payment(session, payment)
-    if provider != "moyasar":
+    if provider != "moyasar" or MOYASAR_ON_HOLD:
         return payment  # invoice / bank transfer: settled by the owner, no gateway
 
     settings = get_settings()
@@ -841,6 +855,8 @@ def apply_gateway_status(payment: Payment, data: dict) -> None:
 
 async def handle_moyasar_webhook(session: AsyncSession, event: dict) -> dict:
     """Apply a verified Moyasar webhook event. Safe to receive more than once."""
+    if MOYASAR_ON_HOLD:
+        return {"ok": True, "ignored": "moyasar_on_hold"}
     event_type = str(event.get("type") or "")
     if event_type not in ("payment_paid", "payment_failed"):
         return {"ok": True, "ignored": event_type or "unknown"}
@@ -892,7 +908,7 @@ def source_applepay() -> dict:
 
 
 def get_publishable_key() -> Optional[str]:
-    return get_settings().moyasar_publishable_key
+    return None if MOYASAR_ON_HOLD else get_settings().moyasar_publishable_key
 
 
 # ---------------- PayPal ----------------

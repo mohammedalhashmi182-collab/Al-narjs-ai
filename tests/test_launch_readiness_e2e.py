@@ -28,7 +28,7 @@ async def maker():
 
 
 @pytest.fixture
-def mock_moyasar(monkeypatch):
+def mock_moyasar(monkeypatch, moyasar_release):
     """Fake Moyasar: invoice creation + a GET that reports the exact paid total."""
     from src.config import settings as st
 

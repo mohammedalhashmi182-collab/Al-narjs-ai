@@ -69,7 +69,7 @@ python -m src.main
 ```
 Al-narjs-ai/
 ├── agents/
-│   ├── base/           # 20 pre-built agents (YAML)
+│   ├── base/           # Pre-built agent definitions (YAML; live count from registry)
 │   └── custom/         # User-created agents
 ├── src/
 │   ├── automation/     # Scheduler, triggers, workflows, queue
