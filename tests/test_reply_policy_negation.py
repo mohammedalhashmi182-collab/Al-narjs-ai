@@ -1,4 +1,5 @@
 """The reply guard must not invert sentences that already deny phone support or tax invoices."""
+
 from src.core.karma_persona import enforce_reply_policy
 
 

@@ -458,9 +458,9 @@ def _prices_line() -> tuple[str, str]:
     months = catalog.BILLING_PERIODS["annual"]
     ar, en = [], []
     for pkg in catalog.PACKAGES.values():
-        fee = pkg["setup_fee"] // 100
-        ar.append(f"{pkg['name']} {int(pkg['price']):,} ر.س شهرياً" + (f" + إعداد {fee:,} ر.س مرة واحدة" if fee else " بدون رسوم إعداد"))
-        en.append(f"{pkg['name_en']} SAR {int(pkg['price']):,}/month" + (f" + SAR {fee:,} one-time setup" if fee else ", no setup fee"))
+        fee = int(str(pkg["setup_fee"])) // 100
+        ar.append(f"{pkg['name']} {int(str(pkg['price'])):,} ر.س شهرياً" + (f" + إعداد {fee:,} ر.س مرة واحدة" if fee else " بدون رسوم إعداد"))
+        en.append(f"{pkg['name_en']} SAR {int(str(pkg['price'])):,}/month" + (f" + SAR {fee:,} one-time setup" if fee else ", no setup fee"))
     return (
         "الباقات: " + "، ".join(ar) + f". السنوي: تدفع {months['months_billed']} أشهر وتحصل على {months['months_granted']}.",
         "Plans: " + "; ".join(en) + f". Yearly: pay {months['months_billed']} months, get {months['months_granted']}.",

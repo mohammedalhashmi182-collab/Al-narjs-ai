@@ -32,7 +32,7 @@ _LEAD_EXAMPLE = (
 
 PAYMENTS_CLOSED_FACT = (
     "- Payment: online card payment is NOT open yet (الدفع الإلكتروني قيد التفعيل حالياً). Do not tell the\n"
-    "  visitor to pay, activate or subscribe now, never say «فعّل باقتك فوراً» or \"pay by card via Moyasar\",\n"
+    "  visitor to pay, activate or subscribe now, never tell them to activate their plan instantly or \"pay by card via Moyasar\",\n"
     "  and never name a payment gateway. Say they can register their interest (سجّل اهتمامك) through this\n"
     "  assistant («اطلب تواصل موظف») or /portal, and the team contacts them by email when payment opens."
 )

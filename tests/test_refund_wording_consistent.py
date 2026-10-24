@@ -1,6 +1,7 @@
 """Owner decision 24 Oct 2026: the only refund after activation is the setup fee
 (agent not working within 10 business days). Every public or prompt surface must
 say so; none may state 'non-refundable after activation' without the exception."""
+
 import re
 from pathlib import Path
 
@@ -9,16 +10,25 @@ import httpx
 from src.core import karma_persona
 from src.services import policies
 
-AR = ("الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: "
-      "إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط")
-EN = ("The service starts once it is activated and the amount is non-refundable after activation, "
-      "except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only")
+AR = (
+    "الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: "
+    "إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط"
+)
+EN = (
+    "The service starts once it is activated and the amount is non-refundable after activation, "
+    "except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only"
+)
 
 SURFACES = [
-    "src/services/policies.py", "src/core/karma_persona.py", "data/kb/narjs_services.md",
-    "src/web/templates/portal.html", "src/web/templates/terms.html",
-    "src/web/templates/refund_policy.html", "src/web/templates/partials/_invoice_consent.html",
-    "agents/base/customer_service.yaml", "agents/base/sales_closer.yaml",
+    "src/services/policies.py",
+    "src/core/karma_persona.py",
+    "data/kb/narjs_services.md",
+    "src/web/templates/portal.html",
+    "src/web/templates/terms.html",
+    "src/web/templates/refund_policy.html",
+    "src/web/templates/partials/_invoice_consent.html",
+    "agents/base/customer_service.yaml",
+    "agents/base/sales_closer.yaml",
 ]
 CONTRADICT = [
     (re.compile(r"غير قابل للاسترداد بعد التفعيل"), "رسوم الإعداد"),
@@ -47,7 +57,9 @@ def test_no_surface_states_no_refund_without_the_setup_fee_exception():
 
 
 def test_assistant_prompt_and_policy_prompt_carry_the_rule():
-    prompt = karma_persona.build_consult_system_prompt(locale="ar", packages_text="", employees_text="")
+    prompt = karma_persona.build_consult_system_prompt(
+        locale="ar", packages_text="", employees_text=""
+    )
     assert AR in prompt
     assert AR in policies.POLICY_PROMPT
 
@@ -55,8 +67,9 @@ def test_assistant_prompt_and_policy_prompt_carry_the_rule():
 async def _get(path):
     from src.main import app
 
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test",
-                                 follow_redirects=True) as c:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test", follow_redirects=True
+    ) as c:
         r = await c.get(path)
     assert r.status_code == 200
     return r.text

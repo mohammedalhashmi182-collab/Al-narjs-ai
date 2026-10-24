@@ -1,12 +1,14 @@
 """Terms state yearly billing (pay 10 months, get 12) and the setup fee on both cycles."""
+
 import httpx
 
 from src.main import app
 
 
 async def _get(path):
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test",
-                                 follow_redirects=True) as c:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test", follow_redirects=True
+    ) as c:
         r = await c.get(path)
     assert r.status_code == 200
     return r.text

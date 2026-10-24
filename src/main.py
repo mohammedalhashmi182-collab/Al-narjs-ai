@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
+from uuid import UUID
 
 from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware

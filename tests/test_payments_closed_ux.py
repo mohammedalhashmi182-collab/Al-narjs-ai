@@ -1,4 +1,5 @@
 """While payments are closed, pricing and portal say so plainly and invite interest only."""
+
 import httpx
 import pytest
 
@@ -12,17 +13,21 @@ EN = "Online payment is not open yet."
 async def _get(path):
     from src.main import app
 
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test",
-                                 follow_redirects=True) as client:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test", follow_redirects=True
+    ) as client:
         r = await client.get(path)
     assert r.status_code == 200, (path, r.status_code)
     return r.text
 
 
-@pytest.mark.parametrize("path,banner,cta,old_cta", [
-    ("/ar/pricing", AR, "سجّل اهتمامك", "اشترك في "),
-    ("/en/pricing", EN, "Register interest", ">Get "),
-])
+@pytest.mark.parametrize(
+    "path,banner,cta,old_cta",
+    [
+        ("/ar/pricing", AR, "سجّل اهتمامك", "اشترك في "),
+        ("/en/pricing", EN, "Register interest", ">Get "),
+    ],
+)
 async def test_pricing_shows_closed_banner_above_plans(path, banner, cta, old_cta):
     assert not pm.payments_open()
     html = await _get(path)
@@ -32,17 +37,27 @@ async def test_pricing_shows_closed_banner_above_plans(path, banner, cta, old_ct
     assert old_cta not in html
 
 
-@pytest.mark.parametrize("path,banner,cta", [
-    ("/ar/portal", AR, "سجّل اهتمامك"),
-    ("/en/portal", EN, "Register interest"),
-])
+@pytest.mark.parametrize(
+    "path,banner,cta",
+    [
+        ("/ar/portal", AR, "سجّل اهتمامك"),
+        ("/en/portal", EN, "Register interest"),
+    ],
+)
 async def test_portal_shows_closed_banner_and_no_instant_promise(path, banner, cta):
     html = await _get(path)
     assert banner in html
     assert html.index('id="paymentsClosedBanner"') < html.index('id="pkg-grid"')
     assert cta in html
-    for bad in ("Pending / On Hold", "معلّق حالياً", "serve you instantly", "خدمتك فوراً",
-                "العمل لك فوراً", "working for you instantly", "استقبل فريقي الذكي"):
+    for bad in (
+        "Pending / On Hold",
+        "معلّق حالياً",
+        "serve you instantly",
+        "خدمتك فوراً",
+        "العمل لك فوراً",
+        "working for you instantly",
+        "استقبل فريقي الذكي",
+    ):
         assert bad not in html, bad
 
 

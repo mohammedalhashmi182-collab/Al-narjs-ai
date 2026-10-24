@@ -1,4 +1,5 @@
 """The site assistant's instructions and KB say payment is not open yet while it is closed."""
+
 from pathlib import Path
 
 from src.core import karma_persona
@@ -9,7 +10,9 @@ FORBIDDEN = ("فعّل باقتك فوراً", "pay by card via Moyasar", "Moyas
 
 
 def _prompt(locale):
-    return karma_persona.build_consult_system_prompt(locale=locale, packages_text="P", employees_text="E")
+    return karma_persona.build_consult_system_prompt(
+        locale=locale, packages_text="P", employees_text="E"
+    )
 
 
 def test_consult_instructions_say_payment_closed_while_flag_on():
@@ -40,7 +43,7 @@ def test_kb_states_payments_closed_and_correct_refund():
     assert "سجّل اهتمامك عبر مساعد النرجس" in text
     for bad in FORBIDDEN:
         assert bad not in text, bad
-    refund = text[text.index("### س37"):text.index("### س38")]
+    refund = text[text.index("### س37") : text.index("### س38")]
     assert "رسوم الإعداد لمرة واحدة فقط" in refund and "10 أيام عمل" in refund
     assert "الزهراني" not in refund
     assert "الخدمة تبدأ فوراً" not in refund

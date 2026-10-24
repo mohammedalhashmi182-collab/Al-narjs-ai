@@ -1,4 +1,5 @@
 """/en/guide is English LTR, and the site assistant answers in the visitor's language."""
+
 import re
 
 import httpx
@@ -12,8 +13,9 @@ _AR = re.compile(r"[\u0600-\u06FF]")
 
 
 async def _get(path):
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test",
-                                 follow_redirects=True) as client:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test", follow_redirects=True
+    ) as client:
         r = await client.get(path)
     assert r.status_code == 200
     return r.text
@@ -26,7 +28,7 @@ async def test_en_guide_is_english_ltr():
     for tag in ("title", "h1", "h2", "label", "button", "footer"):
         for inner in re.findall(rf"<{tag}[^>]*>(.*?)</{tag}>", page, flags=re.S):
             assert not _AR.search(inner), (tag, inner[:80])
-    assert "A <span class=\"grad\">30-day</span>" in html
+    assert 'A <span class="grad">30-day</span>' in html
     assert "Salla/Zid store connection is coming soon" in html
     assert "محمد الهاشمي" not in html
 
@@ -73,8 +75,13 @@ def test_english_question_gets_english_prompt_and_never_an_arabic_reply(client, 
     prov = _Capture("متجر سِلا (Salla) نظام غير مؤكد دعم رسمياً")
     monkeypatch.setattr(app.state, "model_provider", prov, raising=False)
     client.cookies.set("narjis_lang", "ar")
-    r = client.post("/api/consult", json={"messages": [
-        {"role": "user", "content": "I want a bot for my Salla store"}], "lang": "en"})
+    r = client.post(
+        "/api/consult",
+        json={
+            "messages": [{"role": "user", "content": "I want a bot for my Salla store"}],
+            "lang": "en",
+        },
+    )
     assert r.status_code == 200
     assert not _AR.search(r.json()["reply"])
     assert "Respond ONLY in clear, fluent business English" in prov.system
