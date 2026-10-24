@@ -128,9 +128,30 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap">
     <link rel="preload" as="image" href="/static/img/hero-najdi.webp" imagesrcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" imagesizes="100vw" fetchpriority="high">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
+    <link rel="stylesheet" href="/static/css/narjis-intro.css">
+    <script>(function(){try{if(!localStorage.getItem('nj-intro-seen')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('nj-intro-on')}catch(e){}})();</script>
 </head>
 <body class="nj" data-lang="{{ _lang }}">
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
+<div class="nj-intro" id="njIntro">
+    <button type="button" class="nj-intro-skip">{% if ar %}تخطّي{% else %}Skip intro{% endif %}</button>
+    <div class="nj-hero" aria-hidden="true">
+        <svg class="nj-path" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+            <defs><mask id="njm" maskUnits="userSpaceOnUse"><path class="reveal" pathLength="1" d="M40 520 C 250 430, 300 300, 470 250 S 800 110, 975 170"/></mask></defs>
+            <path class="dots" vector-effect="non-scaling-stroke" mask="url(#njm)" d="M40 520 C 250 430, 300 300, 470 250 S 800 110, 975 170"/>
+            <rect class="node" x="34" y="514" width="12" height="12" transform="rotate(45 40 520)"/>
+            <rect class="node" x="969" y="164" width="12" height="12" transform="rotate(45 975 170)"/>
+        </svg>
+        <div class="nj-stack" dir="ltr">
+            <p class="nj-word nj-ghost">AlNarjis</p>
+            <p class="nj-word nj-main">AlNarjis</p>
+            <p class="nj-word nj-ghost">AlNarjis</p>
+        </div>
+        <p class="nj-ar" lang="ar" dir="rtl"><span class="nj-diamond"></span>النرجس للذكاء الاصطناعي<span class="nj-diamond"></span></p>
+        <div class="nj-tiles"></div>
+    </div>
+</div>
+<script src="/static/js/narjis-intro.js"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
     <symbol id="i-msg" viewBox="0 0 32 32"><path d="M4 7h24v15H13l-6 5v-5H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 13h12M10 17h7" stroke="currentColor" stroke-width="1.5"/></symbol>
     <symbol id="i-rep" viewBox="0 0 32 32"><path d="M5 27h22M8 23v-7M14 23V9M20 23v-10M26 23V5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
