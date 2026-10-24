@@ -120,6 +120,27 @@ async def check_external(probe=None) -> dict:
     return out
 
 
+def capability_readiness() -> dict:
+    """Safe production-readiness booleans. Never return credential values."""
+    from src.integrations import config as store_config
+    from src.services import email_service
+    from src.services.agent_tools import web_search
+
+    search = web_search.status()
+    return {
+        "email": {"configured": bool(email_service.is_configured())},
+        "web_search": {
+            "enabled": bool(search.get("enabled")),
+            "provider": search.get("provider"),
+        },
+        "stores": {
+            "enabled": bool(store_config.enabled()),
+            "salla_oauth_ready": bool(store_config.salla_oauth_ready()),
+            "zid_oauth_ready": bool(store_config.zid_oauth_ready()),
+        },
+    }
+
+
 async def deep_health(session_factory, probe=None) -> dict:
     db = await check_db(session_factory)
     external = await check_external(probe)
@@ -130,6 +151,7 @@ async def deep_health(session_factory, probe=None) -> dict:
         "checked_at": datetime.now(UTC).isoformat(),
         "db": db,
         "external": external,
+        "capabilities": capability_readiness(),
         "degraded": degraded,
     }
 
