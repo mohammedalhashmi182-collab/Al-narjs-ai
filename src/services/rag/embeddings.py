@@ -144,12 +144,45 @@ class GeminiEmbedder:
         } for t in texts]
         async with httpx.AsyncClient(timeout=TIMEOUT) as c:
             r = await c.post(url, headers={"x-goog-api-key": self.api_key}, json={"requests": reqs})
-        if r.status_code != 200:
-            raise RuntimeError(f"gemini embeddings http {r.status_code}")
-        vecs = [_l2(e["values"]) for e in r.json()["embeddings"]]
-        if vecs:
-            self.dim = len(vecs[0])
-        return vecs
+        if r.status_code == 200:
+            vecs = [_l2(e["values"]) for e in r.json()["embeddings"]]
+            if vecs:
+                self.dim = len(vecs[0])
+            return vecs
+
+        # Some Gemini API/key combinations accept the documented single
+        # embedContent endpoint while rejecting batchEmbedContents. Preserve
+        # quality by retrying the same inputs individually instead of dropping
+        # RAG entirely. No user text or provider body is logged.
+        out: list[list[float]] = []
+        single_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent"
+        async with httpx.AsyncClient(timeout=TIMEOUT) as c:
+            for text in texts:
+                payload = {
+                    "model": f"models/{model}",
+                    "content": {"parts": [{"text": canonical_text(text)}]},
+                    "embedContentConfig": {
+                        "taskType": task,
+                        "outputDimensionality": self.dim,
+                        "autoTruncate": True,
+                    },
+                }
+                one = await c.post(
+                    single_url,
+                    headers={"x-goog-api-key": self.api_key},
+                    json=payload,
+                )
+                if one.status_code != 200:
+                    raise RuntimeError(
+                        f"gemini embeddings batch {r.status_code}; single {one.status_code}"
+                    )
+                values = ((one.json().get("embedding") or {}).get("values") or [])
+                if not values:
+                    raise RuntimeError("gemini embeddings single response missing values")
+                out.append(_l2(values))
+        if out:
+            self.dim = len(out[0])
+        return out
 
     async def embed(self, texts: list[str], *, kind: str = "doc") -> list[list[float]]:
         try:
