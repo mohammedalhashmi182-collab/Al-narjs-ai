@@ -172,13 +172,15 @@ async def _run_agent(sched) -> dict:
     input_data = (sched.payload or {}).get("input", {})
     rendered = app.state.prompt_engine.render(tmpl.template_text, input_data)
 
-    from src.core.model_provider import ModelRequest
+    from src.services import agent_runtime
 
-    model_request = ModelRequest(
+    response = await agent_runtime.execute(
+        app.state.model_provider,
+        agent,
         prompt=rendered.user_prompt,
         system_prompt=rendered.system_prompt,
-        temperature=agent.default_parameters.get("temperature", 0.7),
-        max_tokens=agent.default_parameters.get("max_tokens", 2000),
+        locale=str((sched.payload or {}).get("locale") or "ar"),
+        metadata={"schedule_id": str(sched.id), "target": slug},
+        quality_gate=True,
     )
-    await app.state.model_provider.complete(agent.default_model, model_request)
-    return {"status": "executed", "target": slug}
+    return {"status": "executed", "target": slug, "quality": response.quality}
