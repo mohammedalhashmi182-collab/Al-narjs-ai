@@ -63,10 +63,10 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    await model_provider.close()
-    await queue_worker.stop()
     await scheduler.stop()
     await trigger_engine.stop()
+    await queue_worker.stop()
+    await model_provider.close()
 
 
 app = FastAPI(
