@@ -78,13 +78,25 @@ _, _, body = retry("/api/payments/capabilities")
 caps = json.loads(body)
 must(caps.get("card") is False, f"Moyasar card unexpectedly live: {caps!r}")
 
-for path in ("/webhooks/telegram/health", "/webhooks/whatsapp/health"):
+channel_summary = {}
+for path, name in (("/webhooks/telegram/health", "telegram"), ("/webhooks/whatsapp/health", "whatsapp")):
     _, _, body = retry(path)
     data = json.loads(body)
     must(isinstance(data, dict), f"{path}: not an object")
     blob = json.dumps(data).lower()
     must("eaa" not in blob and "sk_live_" not in blob and "pk_live_" not in blob,
          f"{path}: credential-like value leaked")
+    channel_summary[name] = {
+        "configured": data.get("configured"),
+        "connected": data.get("connected"),
+        "status": data.get("status"),
+    }
+
+_, _, deep_body = retry("/health?deep=1")
+deep = json.loads(deep_body)
+db = deep.get("db") or {}
+external = deep.get("external") or {}
+must(db.get("ok") is True, f"production DB deep health failed: {db!r}")
 
 print("PRODUCTION_SMOKE_PASS")
 print(json.dumps({
@@ -92,6 +104,15 @@ print(json.dumps({
     "public_pages": "ok",
     "owner_isolation": "ok",
     "portal_probe": "ok",
+    "database": {"ok": db.get("ok")},
+    "externals": {
+        name: {
+            "configured": (external.get(name) or {}).get("configured"),
+            "ok": (external.get(name) or {}).get("ok"),
+            "status": (external.get(name) or {}).get("status"),
+        }
+        for name in ("gemini", "telegram", "whatsapp", "moyasar")
+    },
     "moyasar_card": caps.get("card"),
-    "channels": "reachable",
+    "channels": channel_summary,
 }, ensure_ascii=False))
