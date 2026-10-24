@@ -832,7 +832,11 @@ class ModelProvider:
         for spec in chain:
             try:
                 logger.info(f"Trying model: {spec}")
-                request.metadata["model_name"] = spec.model_name
+                # Optional per-request override for the Gemini step only (e.g. the
+                # public consult uses CONSULT_GEMINI_MODEL); other steps keep theirs.
+                override = request.metadata.get("gemini_model_override")
+                request.metadata["model_name"] = (
+                    override if override and spec.provider == ModelProviderType.GEMINI else spec.model_name)
                 client = self._clients.get(spec.provider)
                 if not client:
                     logger.warning(f"Provider {spec.provider} not available, skipping")

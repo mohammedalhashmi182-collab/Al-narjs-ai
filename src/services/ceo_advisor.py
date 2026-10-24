@@ -198,29 +198,48 @@ def recommend_plan(agent_count: int, full_company: bool = False) -> str:
     return top
 
 
-def recommend_offer(agent_count: int, full_company: bool = False) -> tuple[str, int]:
+def recommend_offer(agent_count: int, full_company: bool = False,
+                    agents: list[str] | None = None) -> tuple[str, int]:
     """(tier, add-on agents) that staffs the team at the lowest monthly price.
 
-    Starts from the smallest covering tier, then checks whether a smaller
-    tier plus a few add-on agents (at most ``MAX_SUGGESTED_ADDONS``) is
-    strictly cheaper. Beyond the top tier the gap is filled with add-ons.
+    Without ``agents`` it sizes by count only (legacy contract). With the
+    recommended ``agents`` it only accepts an offer that really contains them:
+    a tier whose published team (``catalog.PACKAGE_TEAMS``) includes every
+    agent, or a smaller tier plus exactly the missing agents as add-ons (at
+    most ``MAX_SUGGESTED_ADDONS``). A tier is never recommended just because
+    its agent count is large enough.
     """
-    if full_company:
-        top = catalog.PACKAGE_ORDER[-1]
-        return top, max(0, agent_count - catalog.plan_agent_count(top))
-    plan = recommend_plan(agent_count)
     top = catalog.PACKAGE_ORDER[-1]
+    if full_company:
+        return top, max(0, agent_count - catalog.plan_agent_count(top))
+    if agents:
+        wanted = [a for a in dict.fromkeys(agents) if a != catalog.CEO_SLUG]
+        best: tuple[str, int] | None = None
+        best_price = None
+        for key in catalog.PACKAGE_ORDER:
+            team = set(catalog.PACKAGE_TEAMS.get(key, []))
+            missing = sum(1 for a in wanted if a not in team)
+            addons = max(missing, len(wanted) - catalog.plan_agent_count(key), 0)
+            if addons and (key == top or addons <= catalog.MAX_SUGGESTED_ADDONS):
+                pass
+            elif addons:
+                continue
+            price = catalog.plan_amount(key, "monthly", addons)
+            if best_price is None or price < best_price:
+                best, best_price = (key, addons), price
+        return best or (top, 0)
+    plan = recommend_plan(agent_count)
     if catalog.plan_agent_count(plan) < agent_count:
         return top, agent_count - catalog.plan_agent_count(top)
-    best, best_addons = plan, 0
-    best_price = catalog.plan_amount(plan)
+    best_key, best_addons = plan, 0
+    best_amt = catalog.plan_amount(plan)
     for key in catalog.PACKAGE_ORDER[: catalog.PACKAGE_ORDER.index(plan)]:
         gap = agent_count - catalog.plan_agent_count(key)
         if 0 < gap <= catalog.MAX_SUGGESTED_ADDONS:
             price = catalog.plan_amount(key, "monthly", gap)
-            if price < best_price:
-                best, best_addons, best_price = key, gap, price
-    return best, best_addons
+            if price < best_amt:
+                best_key, best_addons, best_amt = key, gap, price
+    return best_key, best_addons
 
 
 def _summary(d: Diagnosis) -> tuple[str, str]:
@@ -259,7 +278,7 @@ def _agent_card(slug: str, need_by_agent: dict[str, Need]) -> dict:
 
 
 def build_result(d: Diagnosis) -> dict:
-    plan_key, addons = recommend_offer(len(d.agents), d.full_company)
+    plan_key, addons = recommend_offer(len(d.agents), d.full_company, agents=d.agents)
     pkg = catalog.PACKAGES[plan_key]
     base = catalog.plan_amount(plan_key, "monthly", addons)
     annual_base = catalog.plan_amount(plan_key, "annual", addons)
