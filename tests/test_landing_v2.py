@@ -37,9 +37,13 @@ def page_en() -> str:
         return c.get("/en/home").text
 
 
-def test_ceo_consultation_is_in_the_hero_and_posts_to_the_endpoint(page: str) -> None:
-    hero = page[page.index('id="top"'):page.index('class="trust"')]
-    assert 'id="ceo"' in hero and 'id="ceoForm"' in hero
+def test_ceo_consultation_is_reachable_and_posts_to_the_endpoint(page: str) -> None:
+    # Najdi homepage: the hero CTA opens the site assistant; the real CEO
+    # diagnosis form lives in the "start with one goal" section.
+    hero = page[page.index('id="top"'):page.index('id="how"')]
+    assert "data-open-assistant" in hero and "ناقش هدفك مع CEO" in hero
+    consult = page[page.index('id="consult"'):]
+    assert 'id="ceo"' in consult and 'id="ceoForm"' in consult
     assert "/api/ceo/consult" in page
     assert 'id="ceoSubscribe"' in page and 'href="/portal"' in page
 

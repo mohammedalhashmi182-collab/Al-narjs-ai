@@ -201,7 +201,7 @@ def test_every_founder_class_in_markup_has_a_style_rule() -> None:
     stylesheet mentions is invisible to the design-system tests, so assert it
     here."""
     html = LANDING.read_text(encoding="utf-8")
-    styles = html + (LANDING.parents[1] / "static/css/narjis-v2.css").read_text(encoding="utf-8")
+    styles = html + (LANDING.parents[1] / "static/css/narjis-v2.css").read_text(encoding="utf-8") + (LANDING.parents[1] / "static/css/narjis-najdi.css").read_text(encoding="utf-8")
 
     used = set()
     for attr in re.findall(r'class="([^"]*founder[^"]*)"', html):

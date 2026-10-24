@@ -172,7 +172,9 @@ def test_no_template_loads_a_retired_font(name: str) -> None:
     assert not used, f"{name} still loads {used}"
 
 
-@pytest.mark.parametrize("name", ALL_TEMPLATES)
+# The homepage moved to the owner-approved "Najdi" design (preview v3), which
+# deliberately brings IBM Plex Sans Arabic back for that page only.
+@pytest.mark.parametrize("name", [n for n in ALL_TEMPLATES if n != "landing.html"])
 def test_no_template_loads_the_retired_font_pairing(name: str) -> None:
     body = read(name)
     assert RETIRED_FONT_LINK not in body, f"{name} still loads the previous font pairing"
@@ -212,31 +214,6 @@ def _v2() -> str:
     return V2_CSS.read_text(encoding="utf-8").lower()
 
 
-def test_landing_declares_the_v2_theme_colour() -> None:
-    body = read("landing.html")
-    assert f'<meta name="theme-color" content="{V2_TOKENS["--v2-ivory"]}">' in body
-
-
-def test_v2_layer_defines_its_tokens_and_type() -> None:
-    body = _v2()
-    for token, value in V2_TOKENS.items():
-        assert f"{token}: {value}" in body, f"missing v2 token {token}"
-    assert '"alexandria"' in body and '"noto sans arabic"' in body
-    assert "cormorant" not in body, "the landing loads two families, not a third display serif"
-
-
-def test_v2_landing_loads_only_the_v2_layer_and_its_fonts() -> None:
-    body = read("landing.html")
-    assert "/static/css/narjis-v2.css" in body
-    assert '<body class="v2"' in body
-    assert "family=Alexandria" in body and "family=Noto+Sans+Arabic" in body
-    assert "Cormorant" not in body
-    assert 'rel="preload" as="style"' in body
-    assert 'rel="preconnect" href="https://fonts.gstatic.com"' in body
-    for retired in ("narjis-luxury.css", "narjis-refresh.css", "family=Cairo"):
-        assert retired not in body, f"landing still loads {retired}"
-
-
 def _luminance(hexv: str) -> float:
     def ch(c: int) -> float:
         c = c / 255
@@ -263,21 +240,6 @@ def test_v2_is_a_light_theme_with_readable_text() -> None:
     # the lavender serif is display-size only: WCAG large-text threshold
     assert _contrast(V2_TOKENS["--v2-lavender"], V2_TOKENS["--v2-ivory"]) >= 3
     assert _contrast(V2_TOKENS["--v2-saudi"], V2_TOKENS["--v2-ivory"]) >= 4.5
-
-
-def test_v2_hero_and_how_use_the_approved_art_and_copy() -> None:
-    body = read("landing.html")
-    assert "رئيسك التنفيذي الذكي" in body and "Your AI CEO" in body
-    assert "يبني لك الفريق المناسب من أول محادثة" in body
-    assert "تحدث مع الرئيس التنفيذي الآن" in body and "استكشف الإمكانات" in body
-    css_body = _v2()
-    assert "/static/img/hero-riyadh.webp" in css_body and "/static/img/how-diriyah.webp" in css_body
-    for img in ("hero-riyadh.webp", "how-diriyah.webp"):
-        path = ROOT / "src" / "web" / "static" / "img" / img
-        assert path.exists() and path.stat().st_size < 250_000, f"{img} missing or too heavy"
-    # no fabricated client strip or third-party logos from the mockup
-    for name in ("نيوم", "أرامكو", "NEOM", "Aramco", "موثوق به في"):
-        assert name not in body
 
 
 def test_v2_layer_respects_reduced_motion_and_has_no_retired_palette() -> None:
@@ -471,3 +433,66 @@ def test_unknown_department_falls_back_to_the_same_glyph_on_both_sides() -> None
     )
 
 
+
+
+# --------------------------------------------------------------------------
+# "Najdi" homepage (owner-approved preview v3): warm black canvas, #FF5A36
+# action, ivory text, IBM Plex Sans Arabic. No purple, no neon.
+# --------------------------------------------------------------------------
+NAJDI_CSS = CSS_DIR / "narjis-najdi.css"
+NAJDI_TOKENS = {
+    "--nj-ink": "#12100d",
+    "--nj-ivory": "#f4eee2",
+    "--nj-accent": ACCENT,
+    "--nj-ivory2": "#bdb4a5",
+    "--nj-ink-soft": "#5a5046",
+}
+
+
+def _najdi() -> str:
+    return NAJDI_CSS.read_text(encoding="utf-8").lower()
+
+
+def test_landing_declares_the_najdi_theme_colour() -> None:
+    assert f'<meta name="theme-color" content="{NAJDI_TOKENS["--nj-ink"]}">' in read("landing.html")
+
+
+def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
+    body = read("landing.html")
+    assert "/static/css/narjis-najdi.css" in body
+    assert '<body class="nj"' in body
+    assert "family=IBM+Plex+Sans+Arabic" in body
+    assert 'rel="preload" as="style"' in body
+    assert 'rel="preconnect" href="https://fonts.gstatic.com"' in body
+    for retired in ("narjis-v2.css", "narjis-luxury.css", "narjis-refresh.css", "family=Cairo", "Cormorant"):
+        assert retired not in body, f"landing still loads {retired}"
+
+
+def test_najdi_layer_tokens_and_no_purple() -> None:
+    css = _najdi()
+    for token, value in NAJDI_TOKENS.items():
+        assert f"{token}: {value}" in css, f"missing najdi token {token}"
+    for purple in ("#7a5cb8", "#8a6fc4", "#f6f2fb", "purple", "violet", "lavender"):
+        assert purple not in css
+    assert "prefers-reduced-motion" in css
+
+
+def test_najdi_text_meets_wcag_aa() -> None:
+    ink, ivory = NAJDI_TOKENS["--nj-ink"], NAJDI_TOKENS["--nj-ivory"]
+    assert _contrast(ivory, ink) >= 7
+    assert _contrast(NAJDI_TOKENS["--nj-ivory2"], ink) >= 4.5
+    assert _contrast(NAJDI_TOKENS["--nj-ink-soft"], ivory) >= 4.5
+    assert _contrast(ACCENT, ink) >= 4.5  # accent buttons carry ink text
+
+
+def test_najdi_hero_uses_the_approved_copy_and_a_real_image() -> None:
+    body = read("landing.html")
+    assert "اشرح هدفك." in body and "نختار فريقك <em>ونقود التنفيذ.</em>" in body
+    assert "ناقش هدفك مع CEO" in body and "شاهد نموذج تسليم" in body
+    assert "base64" not in body
+    for img in ("hero-najdi.webp", "hero-najdi-800.webp"):
+        assert f"/static/img/{img}" in body
+        path = ROOT / "src" / "web" / "static" / "img" / img
+        assert path.exists() and path.stat().st_size < 120_000, f"{img} missing or too heavy"
+    for name in ("نيوم", "أرامكو", "NEOM", "Aramco", "موثوق به في"):
+        assert name not in body
