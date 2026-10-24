@@ -136,7 +136,7 @@ def capability_readiness() -> dict:
         },
         "stores": {
             "enabled": bool(store_config.enabled()),
-            "token_encryption_ready": bool(store_key_ready()),
+            "store_crypto_ready": bool(store_key_ready()),
             "salla_oauth_ready": bool(store_config.salla_oauth_ready()),
             "zid_oauth_ready": bool(store_config.zid_oauth_ready()),
         },
