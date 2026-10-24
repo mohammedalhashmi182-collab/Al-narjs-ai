@@ -320,7 +320,7 @@ def test_capability_readiness_never_exposes_secret_values(monkeypatch):
     from src.services.agent_tools import web_search
 
     monkeypatch.setattr(email_service, "is_configured", lambda: True)
-    monkeypatch.setattr(web_search, "status", lambda: {"enabled": True, "provider": "tavily", "env_vars": ["SECRET"]})
+    monkeypatch.setattr(web_search, "status", lambda: {"enabled": True, "provider": "tavily", "env_vars": ["INTERNAL_VAR"]})
     monkeypatch.setattr(store_config, "enabled", lambda: False)
     monkeypatch.setattr(store_crypto, "key_ready", lambda: True)
     monkeypatch.setattr(store_config, "salla_oauth_ready", lambda: True)
@@ -332,7 +332,7 @@ def test_capability_readiness_never_exposes_secret_values(monkeypatch):
         "web_search": {"enabled": True, "provider": "tavily"},
         "stores": {
             "enabled": False,
-            "token_encryption_ready": True,
+            "store_crypto_ready": True,
             "salla_oauth_ready": True,
             "zid_oauth_ready": False,
         },
