@@ -218,10 +218,9 @@ async def test_gemini_batch_failure_retries_individual_embed_content(monkeypatch
     singles = [item for item in calls[1:] if item[0].endswith(":embedContent")]
     assert len(singles) == 2
     for _url, payload in singles:
-        cfg = payload["embedContentConfig"]
-        assert cfg["taskType"] == "RETRIEVAL_DOCUMENT"
-        assert cfg["outputDimensionality"] == 768
-        assert cfg["autoTruncate"] is True
+        assert payload["taskType"] == "RETRIEVAL_DOCUMENT"
+        assert payload["outputDimensionality"] == 768
+        assert "embedContentConfig" not in payload
 
 
 async def test_provider_failure_tries_the_next_real_provider(monkeypatch):
