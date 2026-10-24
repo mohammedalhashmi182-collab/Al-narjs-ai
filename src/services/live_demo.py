@@ -55,6 +55,35 @@ PAYMENT_WORDS = ("ادفع", "دفع", "الدفع", "بطاقة", "مدى", "ف
 PAYMENT_REPLY = ("هذه نسخة تجريبية 🙏 لا يتم فيها أي دفع أو حجز حقيقي. "
                  "في النسخة الحقيقية يحوّلك الوكيل لفريق العيادة لإكمال الحجز.")
 
+# Deterministic keyword fallback over the demo KB. On production the RAG step
+# can hand off (embedder/threshold/usage limit) and the demo then answered every
+# question with the same handoff line. A demo that only says "a human will reply"
+# shows nothing, so the KB is answered directly when retrieval gives up.
+KB_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "أوقات الدوام": ("دوام", "الدوام", "اوقات", "أوقات", "تفتح", "مفتوح", "ساعات", "متى", "hours", "open"),
+    "الموقع": ("موقع", "وين", "فين", "عنوان", "مكان", "مواقف", "location", "where", "address"),
+    "الخدمات": ("خدمات", "خدمة", "تقويم", "حشو", "عصب", "اطفال", "أطفال", "تنظيف", "services"),
+    "الأسعار التقريبية": ("سعر", "اسعار", "أسعار", "كم", "تكلفة", "بكم", "تبييض", "كشف", "price", "cost"),
+    "الحجز": ("حجز", "احجز", "أحجز", "موعد", "مواعيد", "book", "appointment"),
+    "التأمين": ("تأمين", "تامين", "insurance"),
+    "الطوارئ": ("طوارئ", "ألم", "الم", "تورم", "وجع", "emergency", "pain"),
+}
+MENU_REPLY = ("أهلًا بك في العيادة التجريبية 🌿 أقدر أجاوبك عن: أوقات الدوام، الموقع، الخدمات، "
+              "الأسعار التقريبية، الحجز، التأمين، والطوارئ. اسألني عن أي واحد منها.")
+
+
+def kb_answer(text: str) -> Optional[str]:
+    """Best demo-KB entry for ``text`` by keyword hits, or None."""
+    t = (text or "").lower()
+    kb = dict(KB)
+    best, score = None, 0
+    for title, words in KB_KEYWORDS.items():
+        n = sum(1 for w in words if w.lower() in t)
+        if n > score:
+            best, score = title, n
+    return kb[best] if best else None
+
+
 ip_limiter = SlidingWindowLimiter(max_requests=int(os.getenv("DEMO_RATE_PER_MIN", "8")), window_seconds=60)
 ip_daily_limiter = SlidingWindowLimiter(max_requests=int(os.getenv("DEMO_RATE_PER_DAY", "60")), window_seconds=86400)
 global_daily_limiter = SlidingWindowLimiter(max_requests=int(os.getenv("DEMO_GLOBAL_PER_DAY", "2000")), window_seconds=86400)
@@ -147,6 +176,12 @@ async def chat(session: AsyncSession, session_id: str, text: str, now: Optional[
         else:
             draft.status = "demo"
             reply, kind = draft.draft_text, draft.kind
+        if kind != "reply" and not tenant_reply.wants_human(text):
+            # Retrieval gave up: answer from the demo KB instead of a handoff.
+            fact = kb_answer(text)
+            reply, kind = (f"{fact}\n\n(معلومة تجريبية لعيادة خيالية)", "kb_reply") if fact else (MENU_REPLY, "menu")
+            if draft is not None:
+                draft.draft_text, draft.kind = reply, "reply"
         # The demo never "parks" a visitor with a human: clear handoff/opt-out so they can keep trying.
         c = (await session.execute(select(TenantContact).where(
             TenantContact.project_id == proj.id, TenantContact.contact == tenant_reply._norm(key)))).scalar_one_or_none()

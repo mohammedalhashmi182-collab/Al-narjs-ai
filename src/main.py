@@ -2098,6 +2098,27 @@ async def owner_list_tickets(request: Request):
         return {"tickets": await tickets.list_recent(session)}
 
 
+def _consult_model_metadata() -> dict:
+    """Optional stronger model for the public consult only (not a secret).
+
+    ``CONSULT_GEMINI_MODEL`` (e.g. a "pro" Gemini model) overrides the default
+    flash model for this endpoint; unset keeps today's behaviour.
+    """
+    name = (os.getenv("CONSULT_GEMINI_MODEL") or "").strip()
+    return {"gemini_model_override": name} if re.fullmatch(r"[A-Za-z0-9._\-/]{1,80}", name) else {}
+
+
+def _consult_scope_line(line: str) -> str:
+    """Plan feature text as the assistant may state it.
+
+    The catalog text (owner-approved, unchanged here) says "Email and phone
+    support", but there is no public phone line: the assistant states support
+    via the site and email instead. "Official invoices" are not tax invoices.
+    """
+    line = re.sub(r"(?i)email and phone support", "Support via the site assistant and email (no phone support)", line)
+    return re.sub(r"(?i)^official invoices$", "Ordinary invoices (not tax invoices; no VAT)", line)
+
+
 _CONSULT_HANDOFF_AR = ("ما أقدر أأكد هذه المعلومة من مصادرنا الآن. أقدر أحوّلك لخدمة العملاء "
                        "ويرد عليك فريقنا بالبريد.")
 _CONSULT_HANDOFF_EN = ("I can't confirm that from our sources right now. I can transfer you to customer service "
@@ -2127,14 +2148,42 @@ async def _consult_sources(history: list[dict]) -> list[dict]:
         return []
 
 
-def _consult_grounded(reply: str, hits: list[dict], packages_text: str) -> bool:
+def _consult_visitor_numbers(history: list[dict]) -> str:
+    """Numbers the visitor typed, plus their monthly (x30) form, as allowed facts.
+
+    Echoing "50 messages a day = 1,500 a month" back is not a hallucination;
+    refusing it was the main cause of over-refusal on plan questions.
+    """
+    from src.services.rag.generate import _AR_DIGITS, _NUM
+
+    out: list[str] = []
+    for m in history:
+        if m.get("role") != "user":
+            continue
+        for n in _NUM.findall(str(m.get("content") or "").translate(_AR_DIGITS)):
+            n = n.replace(",", "")
+            out.append(n)
+            try:
+                if float(n) <= 100000:
+                    out.append(str(int(float(n) * 30)))
+            except ValueError:
+                pass
+    return " ".join(out)
+
+
+# Small counting numbers (steps, days, list items, "24/7") are not price claims.
+_CONSULT_SMALL_NUMBERS = " ".join(str(i) for i in range(0, 32))
+
+
+def _consult_grounded(reply: str, hits: list[dict], packages_text: str, visitor_numbers: str = "") -> bool:
     from src.services import catalog as _cat
     from src.services.rag.generate import grounded
     # No public phone or email in the grounding facts: contact is via the site
     # assistant and work is delivered by email.
     facts = " ".join([packages_text, "https://karmaai.online", "/portal", "15",
                       repr(_cat.PACKAGES), repr(_cat.ADDON_AGENT), repr(_cat.USAGE_ADDONS),
-                      repr(_cat.SETUP_GUARANTEE), str(_cat.MAX_ADDON_AGENTS)])
+                      repr(_cat.SETUP_GUARANTEE), str(_cat.MAX_ADDON_AGENTS),
+                      _CONSULT_SMALL_NUMBERS, visitor_numbers])
     # Markdown list markers ("1." / "2)") at line start are not facts.
     reply = re.sub(r"(?m)^\s*\d{1,2}[.)]\s", "- ", reply)
     return grounded(reply, hits, extra_facts=facts)
@@ -2157,15 +2206,19 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     from src.services import catalog as _catalog
 
     _pkgs = " | ".join(
-        f"{p['name']} ({p['name_en']}): {p['price']} SAR/month{' before VAT' if _vat_pm.vat_enabled() else ''}, "
-        f"setup {int(p.get('setup_fee') or 0) // 100} SAR waived on annual billing. "
-        + "; ".join(p.get("scope_en") or [])
-        for p in _catalog.PACKAGES.values()
+        f"{p['name']} ({p['name_en']}): {p['price']} SAR/month"
+        f"{' before VAT' if _vat_pm.vat_enabled() else ' (no VAT; operator not VAT-registered)'}, "
+        + (f"plus a separate one-time setup fee of {int(p.get('setup_fee') or 0) // 100} SAR on the first "
+           f"month (not part of the monthly price), waived on annual billing. "
+           if int(p.get("setup_fee") or 0) else "no setup fee. ")
+        + f"Specialist agents included: {', '.join(_catalog.EMPLOYEES[a]['title_en'] for a in _catalog.PACKAGE_TEAMS.get(k, []) if a in _catalog.EMPLOYEES and a != _catalog.CEO_SLUG)}. "
+        + "; ".join(_consult_scope_line(x) for x in (p.get("scope_en") or []))
+        for k, p in _catalog.PACKAGES.items()
     )
     _emps = ", ".join(
         e["title_ar"] for e in _catalog.EMPLOYEES.values()
     )
-    from src.core.karma_persona import build_consult_system_prompt, extract_lead
+    from src.core.karma_persona import build_consult_system_prompt, enforce_reply_policy, extract_lead
     system_prompt = build_consult_system_prompt(
         locale=locale,
         packages_text=_pkgs,
@@ -2191,8 +2244,9 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     model_request = ModelRequest(
         prompt="\n".join(f"{m['role']}: {m['content']}" for m in history) + "\n\nassistant:",
         system_prompt=system_prompt,
-        temperature=0.3,
+        temperature=0.2,
         max_tokens=1200,
+        metadata=_consult_model_metadata(),
     )
 
     try:
@@ -2206,7 +2260,10 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
                 _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
             )
         content = sanitize_public_text(reply or response.content.strip())
-        if content and not _consult_grounded(content, rag_hits, _pkgs):
+        content = enforce_reply_policy(
+            content, locale=locale,
+            sources=" ".join(f"{h.get('title') or ''} {h.get('text') or ''}" for h in rag_hits))
+        if content and not _consult_grounded(content, rag_hits, _pkgs, _consult_visitor_numbers(history)):
             # A number or link that is in neither the KB sources nor the real
             # price list is a hallucination: never show it, hand off instead.
             from src.utils.logger import get_logger

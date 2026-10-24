@@ -81,7 +81,8 @@ def test_full_company_request_is_the_top_tier():
 
 
 def test_build_result_exposes_addons_and_annual():
-    d = ceo_advisor.Diagnosis(agents=["store_manager", "customer_service", "sales_closer"])
+    # Agents that ARE in the Bidaya team (the plan must really include them).
+    d = ceo_advisor.Diagnosis(agents=catalog.PACKAGE_TEAMS["bidaya"][1:4])
     r = ceo_advisor.build_result(d)
     plan = r["plan"]
     assert plan["key"] == "bidaya" and plan["addons"] == 0
