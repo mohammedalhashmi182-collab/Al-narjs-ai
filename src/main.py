@@ -1491,19 +1491,20 @@ async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
 
     rendered = app.state.prompt_engine.render(tmpl.template_text, request.input_data)
 
-    from src.core.model_provider import ModelRequest
-    model_request = ModelRequest(
-        prompt=rendered.user_prompt,
-        system_prompt=rendered.system_prompt,
-        temperature=agent.default_parameters.get("temperature", 0.7),
-        max_tokens=agent.default_parameters.get("max_tokens", 2000),
-    )
-
     from datetime import datetime, timezone
+    from src.services import agent_runtime
 
     started = datetime.now(timezone.utc)
+    locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
     try:
-        response = await app.state.model_provider.complete(agent.default_model, model_request)
+        response = await agent_runtime.execute(
+            app.state.model_provider,
+            agent,
+            prompt=rendered.user_prompt,
+            system_prompt=rendered.system_prompt,
+            locale=locale,
+            quality_gate=True,
+        )
     except Exception as e:
         await _record_agent_run(
             agent.slug, "failed", started, type(e).__name__, None
@@ -1515,7 +1516,7 @@ async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
     )
     return {
         "content": response.content,
-        "structured_output": response.structured_output.model_dump() if response.structured_output else None,
+        "structured_output": response.structured_output,
         "tokens_used": response.tokens_used,
         "latency_ms": response.latency_ms,
         "model": response.model,
@@ -1921,10 +1922,9 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
             request.answers, (_catalog.EMPLOYEES.get(slug) or {}).get("questions"), project.client_name
         )
 
-        from src.services import agent_tools as _tools
-        brief += await _tools.run_context(session, slug, project, request.answers)
+        from src.services import agent_tools as _tools, agent_runtime
+        tool_context = await _tools.run_context(session, slug, project, request.answers)
 
-        from src.core.model_provider import ModelRequest
         locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
         lang_instruction = (
             "Respond in Modern Standard Arabic (اللغة العربية الفصحى) unless the user"
@@ -1933,15 +1933,25 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
             "Respond in clear, fluent business English. Use proper terminology and"
             " structure your answer clearly with headings."
         )
-        model_request = ModelRequest(
-            prompt=rendered.user_prompt + brief,
-            system_prompt=(
-                rendered.system_prompt + "\n\n" + agent_brief.SAUDI_CONTEXT + "\n\n" + lang_instruction
-            ).strip(),
-            temperature=agent_def.default_parameters.get("temperature", 0.7),
-            max_tokens=max(agent_def.default_parameters.get("max_tokens", 2000), agent_brief.MIN_MAX_TOKENS),
-        )
-        response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
+        base_system = (
+            rendered.system_prompt + "\n\n" + agent_brief.SAUDI_CONTEXT + "\n\n" + lang_instruction
+        ).strip()
+        try:
+            response = await agent_runtime.execute(
+                app.state.model_provider,
+                agent_def,
+                prompt=rendered.user_prompt + brief,
+                system_prompt=base_system,
+                tool_context=tool_context,
+                locale=locale,
+                client_name=project.client_name,
+                metadata={"project_id": str(project.id), "agent_slug": slug},
+                quality_gate=True,
+            )
+        except Exception:
+            agent.status = "failed"
+            await session.commit()
+            raise
 
         agent.result = response.content
         agent.status = "done"
