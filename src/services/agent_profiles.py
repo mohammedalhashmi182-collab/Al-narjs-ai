@@ -41,7 +41,7 @@ AGENT_SKILLS = {
     "customer_manager": ("account_context", "retention_signals", "customer_health", "next_best_action"),
     "store_manager": ("ecommerce_operations", "catalog_analysis", "order_insights", "conversion_friction"),
     "product_describer": ("product_positioning", "benefit_translation", "catalog_consistency", "conversion_copy"),
-    "content_writer": ("long_form_writing", "research_synthesis", "seo_structure", "editorial_quality"),
+    "content_writer": ("long_form_writing", "research_synthesis", "seo_structure", "editorial_quality"),\n    "content_ideas": ("creative_strategy", "trend_translation", "content_pillars", "idea_prioritization"),\n    "email_writer": ("business_email", "subject_line_design", "cta_clarity", "tone_control"),\n    "cv_writer": ("resume_strategy", "ats_structure", "achievement_framing", "career_positioning"),\n    "text_improver": ("editing", "clarity", "tone_alignment", "meaning_preservation"),
     "article_writer": ("article_research", "narrative_structure", "fact_checking", "source_attribution"),
     "content_manager": ("content_strategy", "editorial_planning", "distribution", "performance_review"),
     "ad_writer": ("direct_response_copy", "hook_testing", "cta_design", "policy_safe_claims"),
@@ -65,7 +65,7 @@ TOOL_AGENTS = {
     "knowledge_base": frozenset({
         "customer_service", "customer_manager", "sales_closer", "lead_acquisition",
         "marketing_agent", "social_media", "content_writer", "article_writer",
-        "content_manager", "ad_writer", "market_analyst", "competitor_analyst",
+        "content_manager", "ad_writer", "email_writer", "market_analyst", "competitor_analyst",
         "data_analyst", "finance_pricing", "legal_privacy", "security_compliance",
         "software_engineer", "integrations_engineer", "store_manager",
         "product_describer", "project_manager", "business_ideas",

@@ -36,7 +36,7 @@ def deterministic_issues(content: str) -> list[str]:
         issues.append("incomplete: answer is too short")
     if _PLACEHOLDER.search(text):
         issues.append("unresolved template/default placeholder")
-    if text.count("~~~") % 2:
+    if text.count("```") % 2:
         issues.append("unclosed code block")
     return issues
 
