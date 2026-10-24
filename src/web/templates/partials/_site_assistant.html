@@ -5,8 +5,8 @@
   so on mobile it never covers content; pages reserve bottom space for it.
 #}
 {% set _sa_ar = (page_lang(request) == 'ar') %}
-{% set _sup = support_contact() %}
 <style>
+@media print{ #siteAssistant{display:none!important} }
 #siteAssistant{position:fixed;bottom:16px;inset-inline-end:16px;z-index:60;font:15px/1.6 inherit}
 #saToggle{width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;background:#2f4a2a;color:#fff;display:grid;place-items:center;box-shadow:0 10px 24px -8px rgba(0,0,0,.45)}
 #saToggle svg{width:26px;height:26px}
@@ -50,7 +50,6 @@
         <header>{% if _sa_ar %}مساعد النرجس الذكي{% else %}Al-Narjis AI assistant{% endif %}<small>{% if _sa_ar %}دعم 24/7 عبر المساعد. إن لم أستطع الإجابة نتابع معك بالبريد.{% else %}24/7 support through the assistant. If I can't answer, a human follows up by email.{% endif %}</small></header>
         <p class="sa-consent">{% if _sa_ar %}بإرسال الرسالة توافق على معالجتها بمساعد ذكاء اصطناعي. نُخفي الجوال والبريد والهوية وأرقام البطاقات قبل إرسال النص إلى المعالج، وفق <a href="/privacy">سياسة الخصوصية</a>.{% else %}Sending a message means you agree an AI assistant processes it. Phone numbers, emails, IDs and card numbers are masked before the text reaches the processor, under our <a href="/privacy">privacy policy</a>.{% endif %}</p>
         <div id="saLog" aria-live="polite"><div class="m bot">{% if _sa_ar %}أهلاً! كيف أقدر أساعدك في عملك؟{% else %}Hi! How can I help with your business?{% endif %}</div></div>
-        <a id="saHandoff" href="{{ _sup.href }}" data-channel="{{ _sup.channel }}">{% if _sa_ar %}تحويل لخدمة العملاء{% else %}Transfer to customer service{% endif %} ({% if _sa_ar %}اتصال {{ _sup.value }}{% else %}call {{ _sup.value }}{% endif %})</a>
         <button type="button" id="saOpenTicket">{% if _sa_ar %}اطلب تواصل موظف (تذكرة){% else %}Ask a person to contact me (ticket){% endif %}</button>
         <form id="saTicket" novalidate>
             <b>{% if _sa_ar %}نحوّلك لفريقنا{% else %}We'll pass you to our team{% endif %}</b>
@@ -62,7 +61,7 @@
             <button type="submit">{% if _sa_ar %}أرسل التذكرة{% else %}Send ticket{% endif %}</button>
         </form>
         <form id="saForm"><input id="saInput" maxlength="800" autocomplete="off" aria-label="{% if _sa_ar %}رسالتك{% else %}Your message{% endif %}" placeholder="{% if _sa_ar %}اكتب سؤالك…{% else %}Type your question…{% endif %}"><button type="submit">{% if _sa_ar %}إرسال{% else %}Send{% endif %}</button></form>
-        <p class="sa-mail">{% if _sa_ar %}أو راسلنا على{% else %}Or email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a></p>
+        <p class="sa-mail">{% if _sa_ar %}نرد عليك ونسلّم العمل على بريدك الإلكتروني.{% else %}We reply and deliver work to your email.{% endif %}</p>
     </div>
     <button type="button" id="saToggle" aria-expanded="false" aria-controls="saPanel" aria-label="{% if _sa_ar %}افتح مساعد النرجس{% else %}Open the Al-Narjis assistant{% endif %}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm3 6.5a1.5 1.5 0 1 0 0 .01zm5 0a1.5 1.5 0 1 0 0 .01zm5 0a1.5 1.5 0 1 0 0 .01z"/></svg></button>
 </div>
@@ -71,14 +70,13 @@
     var root = document.getElementById('siteAssistant'); if (!root) return;
     var AR = {{ 'true' if _sa_ar else 'false' }};
     var HANDOFF = AR
-        ? 'لا أستطيع الإجابة على هذا الآن. راسل فريقنا على AlNarjisai@gmail.com وسيرد عليك بالبريد.'
-        : "I can't answer that right now. Email our team at AlNarjisai@gmail.com and they will reply by email.";
+        ? 'لا أستطيع الإجابة على هذا الآن. اضغط «اطلب تواصل موظف» وسيرد عليك فريقنا بالبريد.'
+        : "I can't answer that right now. Press “Ask a person to contact me” and our team will reply by email.";
     var log = document.getElementById('saLog'), form = document.getElementById('saForm'), inp = document.getElementById('saInput');
     var tg = document.getElementById('saToggle'), history = [];
-    var ho = document.getElementById('saHandoff');
     var COMPLAINT = /(مشكل|شكو|شكي|اشتكي|ما يشتغل|لا يعمل|متوقف|خطأ|تعطل|عطل|سيئ|استرداد|complain|problem|issue|not working|broken|error|refund)/i;
     var ot = document.getElementById('saOpenTicket'), tk = document.getElementById('saTicket'), lastQ = '';
-    function offerHandoff() { ho.classList.add('show'); ot.classList.add('show'); }
+    function offerHandoff() { ot.classList.add('show'); }
     var HUMAN = /(موظف|انسان|إنسان|بشري|شخص حقيقي|خدمة العملاء|كلم أحد|اكلم احد|أكلم أحد|human|person|agent|representative|real person)/i;
     ot.addEventListener('click', function () {
         tk.classList.add('show'); ot.classList.remove('show');
@@ -89,8 +87,8 @@
         var err = document.getElementById('stErr'), name = document.getElementById('stName').value.trim(),
             email = document.getElementById('stEmail').value.trim(), q = document.getElementById('stQ').value.trim(),
             consent = document.getElementById('stConsent').checked;
-        var M = AR ? {name: 'اكتب اسمك.', email: 'اكتب بريداً إلكترونياً صحيحاً.', question: 'اكتب سؤالك.', consent: 'الموافقة مطلوبة لنتمكن من الرد.', rate: 'أرسلت طلبات كثيرة، حاول بعد قليل.', fail: 'تعذّر الإرسال. راسلنا على AlNarjisai@gmail.com'}
-                   : {name: 'Enter your name.', email: 'Enter a valid email.', question: 'Enter your question.', consent: 'Consent is required so we can reply.', rate: 'Too many requests, try again shortly.', fail: 'Could not send. Email AlNarjisai@gmail.com'};
+        var M = AR ? {name: 'اكتب اسمك.', email: 'اكتب بريداً إلكترونياً صحيحاً.', question: 'اكتب سؤالك.', consent: 'الموافقة مطلوبة لنتمكن من الرد.', rate: 'أرسلت طلبات كثيرة، حاول بعد قليل.', fail: 'تعذّر الإرسال. حاول مرة أخرى بعد قليل.'}
+                   : {name: 'Enter your name.', email: 'Enter a valid email.', question: 'Enter your question.', consent: 'Consent is required so we can reply.', rate: 'Too many requests, try again shortly.', fail: 'Could not send. Please try again shortly.'};
         if (name.length < 2) { err.textContent = M.name; return; }
         if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(email)) { err.textContent = M.email; return; }
         if (q.length < 3) { err.textContent = M.question; return; }
@@ -117,6 +115,19 @@
     tg.addEventListener('click', function () {
         var o = root.classList.toggle('open'); tg.setAttribute('aria-expanded', o ? 'true' : 'false'); if (o) inp.focus();
     });
+    // Every on-page "contact us" link (href="#assistant" or data-open-assistant)
+    // opens this assistant: it is the only contact channel on the site.
+    function openAssistant() {
+        if (!root.classList.contains('open')) { root.classList.add('open'); tg.setAttribute('aria-expanded', 'true'); }
+        inp.focus();
+    }
+    window.openNarjisAssistant = openAssistant;
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('[data-open-assistant], a[href="#assistant"]');
+        if (!a) return;
+        e.preventDefault(); openAssistant();
+    });
+    if (location.hash === '#assistant') openAssistant();
     function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
     form.addEventListener('submit', function (e) {
         e.preventDefault(); var t = inp.value.trim(); if (!t) return;

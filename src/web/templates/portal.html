@@ -79,7 +79,7 @@
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10 portal-grid--plans" id="pkg-grid" aria-busy="true">
                 {% for _ in range(3) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
             </div>
-            <noscript><p>{% if _lang == 'ar' %}فعّل JavaScript لاختيار الباقة، أو راسلنا على{% else %}Enable JavaScript to choose a plan, or email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a>.</p></noscript>
+            <noscript><p>{% if _lang == 'ar' %}فعّل JavaScript لاختيار الباقة.{% else %}Enable JavaScript to choose a plan.{% endif %}</p></noscript>
 
             <form id="regForm" class="n-form n-card ui-card portal-register max-w-2xl mx-auto gap-5 hidden">
                 <div class="grid sm:grid-cols-2 gap-5 portal-form-grid">
@@ -539,7 +539,23 @@
                 box.scrollTop = box.scrollHeight;
             }
 
+            function newRunKey() {
+                if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+                return 'run-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+            }
+            function setRunBusy(busy) {
+                state.running = busy;
+                if ($('chatSend')) $('chatSend').disabled = busy;
+                if ($('chatAnswer')) $('chatAnswer').disabled = busy;
+            }
+
             async function finishInterview() {
+                // One run per click: a stable Idempotency-Key for this request and
+                // the controls disabled until it settles, so a double-click or a
+                // retry never runs (or emails) the work twice.
+                if (state.running) return;
+                const runKey = newRunKey();
+                setRunBusy(true);
                 addMsg('agent', txt('شكراً لك! الآن أبدأ العمل على النتيجة...', 'Thank you! Starting work on your result...'));
                 setTimeout(() => {
                     const box = $('chatBox');
@@ -551,9 +567,10 @@
 
                     fetch(`/api/portal/projects/${state.projectId}/agents/${state.current.slug}/run`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ answers: state.answers })
+                        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': runKey },
+                        body: JSON.stringify({ answers: state.answers, run_id: runKey })
                     }).then(r => r.json()).then(data => {
+                        setRunBusy(false);
                         spin.remove();
                         if (data.result) {
                             addMsg('agent', data.result);
@@ -564,11 +581,18 @@
                                 '✅ Done. Go back to wake another employee, or contact us to officially add this employee to your plan.'
                             );
                             box.appendChild(finish);
+                            if (data.emailed === true) {
+                                const mailed = document.createElement('div');
+                                mailed.className = 'msg msg-agent msg-complete';
+                                mailed.textContent = txt('📧 أُرسلت النتيجة إلى بريدك الإلكتروني.', '📧 Sent by email.');
+                                box.appendChild(mailed);
+                            }
                             box.scrollTop = box.scrollHeight;
                         } else {
                             addMsg('agent', txt('تعذر إنهاء المهمة. حاول مجدداً.', 'Failed to finish. Try again.'));
                         }
                     }).catch(() => {
+                        setRunBusy(false);
                         spin.remove();
                         addMsg('agent', txt('حدث خطأ في الاتصال.', 'Connection error.'));
                     });
@@ -648,8 +672,8 @@ if (hidden) {
                                 let msg;
                                 if (!cap.card) {
                                     msg = ar
-                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو AlNarjisai@gmail.com أو 0540799266.'
-                                        : 'Payment is temporarily unavailable. Contact us through the site assistant, AlNarjisai@gmail.com, or 0540799266.';
+                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا عبر مساعد النرجس في الموقع.'
+                                        : 'Payment is temporarily unavailable. Contact us through the site assistant.';
                                 } else if (cap.paypal_test_mode && allowPaypal) {
                                     msg = ar
                                         ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
@@ -747,8 +771,8 @@ note.textContent = msg;
                     }
                     if (data.gateway === 'invoice') {
                         msg.textContent = txt(
-                            'الدفع غير متاح مؤقتاً. تواصل معنا عبر المساعد في الموقع أو AlNarjisai@gmail.com أو 0540799266.',
-                            'Payment is temporarily unavailable. Contact us through the site assistant, AlNarjisai@gmail.com, or 0540799266.'
+                            'الدفع غير متاح مؤقتاً. تواصل معنا عبر مساعد النرجس في الموقع.',
+                            'Payment is temporarily unavailable. Contact us through the site assistant.'
                         );
                         release();
                         return;
@@ -824,5 +848,6 @@ note.textContent = msg;
         })();
     </script>
 
+{% include "partials/_site_assistant.html" %}
 </body>
 </html>

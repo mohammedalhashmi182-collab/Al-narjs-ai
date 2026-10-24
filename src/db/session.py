@@ -133,6 +133,10 @@ async def init_db():
                 ("client_projects", "portal_token_version", "INTEGER NOT NULL DEFAULT 0"),
                 ("automation_reply_drafts", "project_id", "UUID"),
                 ("inbound_messages", "project_id", "UUID"),
+                # Agent results delivered by email (alembic 0014)
+                ("client_agents", "result_emailed_at", "TIMESTAMPTZ"),
+                # Order pricing snapshot (alembic 0015)
+                ("payments", "pricing_snapshot", "JSON"),
             ]
             for table, column, ddl in placeholders:
                 try:
@@ -212,6 +216,8 @@ async def init_db():
                 ("client_projects", "portal_token_version", "INTEGER NOT NULL DEFAULT 0"),
                 ("automation_reply_drafts", "project_id", "CHAR(36)"),
                 ("inbound_messages", "project_id", "CHAR(36)"),
+                ("client_agents", "result_emailed_at", "TIMESTAMP"),
+                ("payments", "pricing_snapshot", "JSON"),
             ]
             for table, column, ddl in sqlite_placeholders:
                 try:

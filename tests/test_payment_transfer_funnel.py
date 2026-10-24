@@ -473,7 +473,7 @@ class TestUnresolvableInvoiceLink:
         anon, _ = api
         body = (await anon.get("/invoice/deadbeef-0000-0000-0000-000000000000")).text
         # site contact is email only (owner decision, Oct 2026)
-        assert "mailto:AlNarjisai@gmail.com" in body
+        assert "data-open-assistant" in body and "mailto:" not in body
         assert "DEADBEEF" in body
         assert "wa.me/" not in body and "t.me/" not in body
 
@@ -487,7 +487,7 @@ class TestUnresolvableInvoiceLink:
         anon, _ = api
         r = await anon.get("/invoice/deadbeef-0000-0000-0000-000000000000", cookies={"narjis_lang": "en"})
         assert "We could not load this invoice" in r.text
-        assert "Email the reference" in r.text
+        assert "Send it through the assistant" in r.text and "mailto:" not in r.text
 
     async def test_a_real_invoice_is_never_replaced_by_the_recovery_page(self, api, maker):
         anon, _ = api
@@ -876,7 +876,8 @@ class TestTemplates:
         assert "لم تُنشر بيانات الحساب بعد" in partial
         assert "Account details are not published yet" in partial
         # WhatsApp is promoted to the primary action in that state.
-        assert "{% if not xfer.bank.iban %}" in partial and "mailto:AlNarjisai@gmail.com" in partial
+        assert "{% if not xfer.bank.iban %}" in partial and "data-open-assistant" in partial
+        assert "mailto:" not in partial
 
     async def test_a_customer_invoice_page_does_not_publish_bank_details(self, api, maker, monkeypatch):
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")

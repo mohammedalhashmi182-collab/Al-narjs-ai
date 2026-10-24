@@ -130,9 +130,10 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
 
 
 async def test_addons_bought_at_checkout_are_staffed_on_activation(maker):
-    """Project created with the bare tier, add-ons only on the payment."""
+    """Add-ons chosen at signup (on the project) are charged and staffed on activation."""
     async with maker() as s:
-        proj = ClientProject(client_name="c", phone="0555000009", package="bidaya", status="pending")
+        proj = ClientProject(client_name="c", phone="0555000009", package="bidaya", status="pending",
+                             addon_agents=2)
         s.add(proj)
         await s.flush()
         for slug in catalog.get_team("bidaya"):
