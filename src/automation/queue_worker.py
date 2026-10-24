@@ -280,26 +280,27 @@ class QueueWorker:
             prompt_engine = PromptEngine()
             rendered = prompt_engine.render(prompt_template.template_text, task.input_data)
 
-            request = ModelRequest(
+            from src.services import agent_runtime
+
+            response = await agent_runtime.execute(
+                self.model_provider,
+                agent_def,
                 prompt=rendered.user_prompt,
                 system_prompt=rendered.system_prompt,
-                temperature=agent_def.default_parameters.get("temperature", 0.7),
-                max_tokens=agent_def.default_parameters.get("max_tokens", 2000),
-                top_p=agent_def.default_parameters.get("top_p", 1.0),
+                locale=str((task.metadata or {}).get("locale") or "ar"),
                 metadata=task.metadata,
-            )
-
-            response = await asyncio.wait_for(
-                self.model_provider.complete(agent_def.default_model, request),
+                top_p=agent_def.default_parameters.get("top_p", 1.0),
                 timeout=task.timeout_seconds,
+                quality_gate=True,
             )
 
             task.result = {
                 "content": response.content,
-                "structured_output": response.structured_output.model_dump() if response.structured_output else None,
+                "structured_output": response.structured_output,
                 "tokens_used": response.tokens_used,
                 "latency_ms": response.latency_ms,
                 "model": response.model,
+                "quality": response.quality,
             }
             task.status = TaskStatus.COMPLETED
 
