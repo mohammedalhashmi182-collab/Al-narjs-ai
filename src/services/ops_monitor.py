@@ -123,6 +123,7 @@ async def check_external(probe=None) -> dict:
 def capability_readiness() -> dict:
     """Safe production-readiness booleans. Never return credential values."""
     from src.integrations import config as store_config
+    from src.integrations.crypto import key_ready as store_key_ready
     from src.services import email_service
     from src.services.agent_tools import web_search
 
@@ -135,6 +136,7 @@ def capability_readiness() -> dict:
         },
         "stores": {
             "enabled": bool(store_config.enabled()),
+            "token_encryption_ready": bool(store_key_ready()),
             "salla_oauth_ready": bool(store_config.salla_oauth_ready()),
             "zid_oauth_ready": bool(store_config.zid_oauth_ready()),
         },
