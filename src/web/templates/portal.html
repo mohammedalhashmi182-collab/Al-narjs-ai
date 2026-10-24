@@ -539,7 +539,23 @@
                 box.scrollTop = box.scrollHeight;
             }
 
+            function newRunKey() {
+                if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+                return 'run-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+            }
+            function setRunBusy(busy) {
+                state.running = busy;
+                if ($('chatSend')) $('chatSend').disabled = busy;
+                if ($('chatAnswer')) $('chatAnswer').disabled = busy;
+            }
+
             async function finishInterview() {
+                // One run per click: a stable Idempotency-Key for this request and
+                // the controls disabled until it settles, so a double-click or a
+                // retry never runs (or emails) the work twice.
+                if (state.running) return;
+                const runKey = newRunKey();
+                setRunBusy(true);
                 addMsg('agent', txt('شكراً لك! الآن أبدأ العمل على النتيجة...', 'Thank you! Starting work on your result...'));
                 setTimeout(() => {
                     const box = $('chatBox');
@@ -551,9 +567,10 @@
 
                     fetch(`/api/portal/projects/${state.projectId}/agents/${state.current.slug}/run`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ answers: state.answers })
+                        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': runKey },
+                        body: JSON.stringify({ answers: state.answers, run_id: runKey })
                     }).then(r => r.json()).then(data => {
+                        setRunBusy(false);
                         spin.remove();
                         if (data.result) {
                             addMsg('agent', data.result);
@@ -575,6 +592,7 @@
                             addMsg('agent', txt('تعذر إنهاء المهمة. حاول مجدداً.', 'Failed to finish. Try again.'));
                         }
                     }).catch(() => {
+                        setRunBusy(false);
                         spin.remove();
                         addMsg('agent', txt('حدث خطأ في الاتصال.', 'Connection error.'));
                     });

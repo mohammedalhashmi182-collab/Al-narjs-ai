@@ -1186,6 +1186,9 @@ def expected_order_amounts(package: str, period: str, addons: int, *, conversati
 
 def order_mismatch(payment: Payment, project) -> Optional[str]:
     """Why this paid order may not activate ``project`` (None when it matches)."""
+    currency = str(getattr(payment, "currency", None) or "").strip().upper()
+    if currency != "SAR":
+        return f"currency {payment.currency!r} != 'SAR'"
     pay_pkg = catalog.resolve_tier(payment.package)
     proj_pkg = catalog.resolve_tier(project.package)
     if pay_pkg != proj_pkg:

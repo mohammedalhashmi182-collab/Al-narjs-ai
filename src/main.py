@@ -1776,6 +1776,24 @@ async def portal_get_project(project_id: str, http_request: Request):
 
 class PortalAnswers(BaseModel):
     answers: dict
+    # Optional client idempotency key (the portal sends one per click; the
+    # Idempotency-Key header wins when both are present).
+    run_id: Optional[str] = None
+
+
+# Portal agent runs replayed by idempotency key: (project, slug, key) ->
+# (monotonic time, response). A repeat of the same key inside the window gets
+# the stored response; it never re-runs the model or re-sends the email.
+PORTAL_RUN_IDEMPOTENCY_WINDOW_SECONDS = 15 * 60
+_portal_run_replays: dict[tuple[str, str, str], tuple[float, dict]] = {}
+_portal_run_locks: dict[tuple[str, str, str], asyncio.Lock] = {}
+
+
+def _portal_run_key(project_id: str, slug: str, request: "PortalAnswers", http_request: Request):
+    raw = (http_request.headers.get("Idempotency-Key") or request.run_id or "").strip()
+    if not raw:
+        return None
+    return (str(project_id), slug, raw[:128])
 
 
 @app.post("/api/portal/projects/{project_id}/agents/{slug}/wake")
@@ -1831,6 +1849,32 @@ async def portal_wake_agent(project_id: str, slug: str, http_request: Request):
 
 @app.post("/api/portal/projects/{project_id}/agents/{slug}/run")
 async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, http_request: Request):
+    key = _portal_run_key(project_id, slug, request, http_request)
+    if key is None:  # no key: every call is a deliberate new run
+        return await _portal_run_agent(project_id, slug, request, http_request)
+    # The session check runs before any replay so a key never leaks a result
+    # across tenants.
+    from src.core.portal_auth import require_portal_project
+
+    async with app.state.session_factory() as _s:
+        await require_portal_project(_s, http_request, project_id)
+    lock = _portal_run_locks.setdefault(key, asyncio.Lock())
+    async with lock:
+        now = time.monotonic()
+        for k, (at, _) in list(_portal_run_replays.items()):
+            if now - at > PORTAL_RUN_IDEMPOTENCY_WINDOW_SECONDS:
+                _portal_run_replays.pop(k, None)
+                if k != key and not _portal_run_locks.get(k, lock).locked():
+                    _portal_run_locks.pop(k, None)
+        cached = _portal_run_replays.get(key)
+        if cached:
+            return {**cached[1], "replayed": True}
+        response = await _portal_run_agent(project_id, slug, request, http_request)
+        _portal_run_replays[key] = (time.monotonic(), response)
+        return response
+
+
+async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, http_request: Request):
     from src.models import ClientAgent, ClientProject
     from sqlalchemy import select
     from uuid import UUID
@@ -2085,9 +2129,9 @@ async def _consult_sources(history: list[dict]) -> list[dict]:
 def _consult_grounded(reply: str, hits: list[dict], packages_text: str) -> bool:
     from src.services import catalog as _cat
     from src.services.rag.generate import grounded
-    from src.services.support import SUPPORT_EMAIL
-
-    facts = " ".join([packages_text, SUPPORT_EMAIL, "https://karmaai.online", "/portal", "15",
+    # No public phone or email in the grounding facts: contact is via the site
+    # assistant and work is delivered by email.
+    facts = " ".join([packages_text, "https://karmaai.online", "/portal", "15",
                       repr(_cat.PACKAGES), repr(_cat.ADDON_AGENT), repr(_cat.USAGE_ADDONS),
                       repr(_cat.SETUP_GUARANTEE), str(_cat.MAX_ADDON_AGENTS)])
     # Markdown list markers ("1." / "2)") at line start are not facts.
@@ -3229,22 +3273,37 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
     package = payment.package or "social"
     total_halalas = _pm.payment_total(payment)
 
+    # Activate first: the success entry and the lead's WON status are written
+    # only when the paid order really activated the project. A refused order
+    # (mismatch -> payment in review) is logged as review and leaves the lead.
+    activation = await _pm.activate_subscription(session, payment)
+    # A refusal (wrong currency/package/amount) moved the payment to review.
+    # A lead-only payment with no portal project has nothing to activate and
+    # still counts as won once the money is verified.
+    activated = not activation.get("review") and (
+        bool(activation.get("activated")) or activation.get("reason") == "no matching project"
+    )
     session.add(
         Decision(
-            decision=f"تم استلام دفعة ({package}) بقيمة {total_halalas // 100} ر.س",
+            decision=(
+                f"تم استلام دفعة ({package}) بقيمة {total_halalas // 100} ر.س"
+                if activated else
+                f"دفعة ({package}) بقيمة {total_halalas // 100} ر.س بانتظار المراجعة — لم يُفعَّل الاشتراك"
+            ),
             reason=marker,
             actor="owner",
             evidence=OrderedDict(
-                payment_id=str(payment.id), package=package, amount=payment.amount, note=note
+                payment_id=str(payment.id), package=package, amount=payment.amount, note=note,
+                activation_reason=activation.get("reason"),
             ),
             expected="paid",
-            actual="paid",
-            status="resolved",
+            actual="paid" if activated else "review",
+            status="resolved" if activated else "review",
             learning=note or "تحقق يدوي من استلام الدفعة",
         )
     )
 
-    if payment.lead_id:
+    if activated and payment.lead_id:
         lead = (
             await session.execute(
                 _sel(AcquisitionLead).where(AcquisitionLead.id == payment.lead_id)
@@ -3270,7 +3329,6 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
             )
 
     await session.commit()
-    activation = await _pm.activate_subscription(session, payment)
     return {"applied": True, **activation}
 
 

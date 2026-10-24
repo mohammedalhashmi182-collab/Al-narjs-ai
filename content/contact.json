@@ -1,6 +1,5 @@
 {
-  "_comment": "Public contact, confirmed for the customer surfaces: the on-site AI assistant, email AlNarjisai@gmail.com, and the company phone. WhatsApp, Telegram and Messenger are not customer-contact channels.",
-  "phone_e164": "+966540799266",
-  "phone_display": "0540799266",
-  "email": "AlNarjisai@gmail.com"
+  "_comment": "Public contact: the on-site AI assistant only; work is delivered by email. No phone number or email address is a public contact channel. WhatsApp, Telegram and Messenger are not customer-contact channels.",
+  "channel": "site_assistant",
+  "delivery": "email"
 }

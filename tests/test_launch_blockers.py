@@ -56,6 +56,8 @@ def _client(maker, owner=False, project=None):
     main.app.state.session_factory = maker
     main._payment_replays.clear()
     main._payment_locks.clear()
+    main._portal_run_replays.clear()
+    main._portal_run_locks.clear()
     cookies = {"narjis_owner": make_session_token()} if owner else {}
     if project is not None:
         cookies[portal_auth.COOKIE_NAME] = portal_auth.make_session_token(project)
@@ -288,3 +290,136 @@ def test_docs_stay_available_outside_production():
     from src.main import app
 
     assert TestClient(app).get("/openapi.json").status_code == 200
+
+
+# --- addendum: currency, refusal side effects, run idempotency, contact ------
+
+@pytest.mark.parametrize("currency,ok", [("SAR", True), ("sar", True), ("USD", False), ("", False)])
+async def test_activation_requires_sar(maker, currency, ok):
+    project = await _project(maker, package="numuw")
+    pay = await _paid(maker, project, "numuw")
+    async with maker() as s:
+        p = await s.get(Payment, pay.id)
+        p.currency = currency
+        await s.commit()
+    async with maker() as s:
+        out = await pm.activate_subscription(s, await s.get(Payment, pay.id))
+    assert out["activated"] is ok
+    async with maker() as s:
+        assert (await s.get(ClientProject, project.id)).status == ("active" if ok else "pending")
+        if not ok:
+            assert out.get("review") is True and "currency" in out["reason"]
+            assert (await s.get(Payment, pay.id)).status == pm.REVIEW_STATUS
+
+
+async def _lead_payment(maker, currency):
+    from src.models import AcquisitionLead
+
+    project = await _project(maker, package="numuw")
+    pay = await _paid(maker, project, "numuw")
+    async with maker() as s:
+        lead = AcquisitionLead(company_name="L")
+        s.add(lead)
+        await s.flush()
+        p = await s.get(Payment, pay.id)
+        p.lead_id, p.currency = lead.id, currency
+        await s.commit()
+        return project, pay, lead.id
+
+
+@pytest.mark.parametrize("currency,activated", [("SAR", True), ("USD", False)])
+async def test_lead_won_and_success_log_only_after_activation(maker, currency, activated):
+    from src import main
+    from src.models import AcquisitionLead, Decision
+
+    project, pay, lead_id = await _lead_payment(maker, currency)
+    async with maker() as s:
+        out = await main._apply_paid_outcome(s, pay.id)
+    assert out["activated"] is activated
+    async with maker() as s:
+        lead = await s.get(AcquisitionLead, lead_id)
+        dec = (await s.execute(select(Decision).where(Decision.reason == f"payment_ref:{pay.id}"))).scalars().all()
+    assert len(dec) == 1
+    if activated:
+        assert lead.lead_status == "WON" and dec[0].status == "resolved"
+    else:
+        assert lead.lead_status != "WON"
+        assert dec[0].status == "review" and dec[0].actual == "review"
+
+
+async def _keyed_runs(maker, monkeypatch, keys, header=True):
+    from src.services import email_service
+
+    sent = []
+
+    async def send(to, subject, body, *a, **k):
+        sent.append(to)
+        return True
+
+    monkeypatch.setattr(email_service, "send_email", send)
+    _fake_runtime(monkeypatch)
+    project = await _project(maker, status="active", email="buyer@shop.sa")
+    async with maker() as s:
+        s.add(ClientAgent(project_id=project.id, slug="customer_service", status="awake"))
+        await s.commit()
+    out = []
+    async with _client(maker, project=project) as c:
+        for k in keys:
+            url = f"/api/portal/projects/{project.id}/agents/customer_service/run"
+            if header:
+                r = await c.post(url, json={"answers": {}}, headers={"Idempotency-Key": k})
+            else:
+                r = await c.post(url, json={"answers": {}, "run_id": k})
+            assert r.status_code == 200, r.text
+            out.append(r.json())
+    return out, sent
+
+
+@pytest.mark.parametrize("header", [True, False])
+async def test_same_run_key_does_not_rerun_or_resend(maker, monkeypatch, header):
+    out, sent = await _keyed_runs(maker, monkeypatch, ["k1", "k1"], header=header)
+    assert sent == ["buyer@shop.sa"]
+    assert out[1]["result"] == out[0]["result"] and out[1].get("replayed") is True
+
+
+async def test_new_run_key_still_runs(maker, monkeypatch):
+    out, sent = await _keyed_runs(maker, monkeypatch, ["k1", "k2"])
+    assert len(sent) == 2 and not out[1].get("replayed")
+
+
+def test_portal_js_sends_a_run_key_and_disables_while_running():
+    html = pathlib.Path("src/web/templates/portal.html").read_text(encoding="utf-8")
+    assert "'Idempotency-Key': runKey" in html and "setRunBusy(true)" in html
+    assert "if (state.running) return;" in html
+
+
+_PHONE = __import__("re").compile(r"(?:\+?966|\b0)5\d{8}\b|05\d{2}\s?\d{3}\s?\d{3}")
+_EMAIL = __import__("re").compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+
+
+def test_kb_and_grounding_have_no_phone_or_email():
+    import inspect
+
+    from src import main
+
+    kb = pathlib.Path("data/kb/narjs_services.md").read_text(encoding="utf-8")
+    src = inspect.getsource(main._consult_grounded)
+    for text in (kb, src, pathlib.Path("content/contact.json").read_text(encoding="utf-8")):
+        assert not _PHONE.search(text) and not _EMAIL.search(text)
+    assert "SUPPORT_EMAIL" not in src
+
+
+def test_grounding_facts_do_not_contain_support_email(monkeypatch):
+    from src import main
+    from src.services.rag import generate
+    from src.services.support import SUPPORT_EMAIL
+
+    seen = {}
+
+    def fake(reply, hits, extra_facts=""):
+        seen["facts"] = extra_facts
+        return True
+
+    monkeypatch.setattr(generate, "grounded", fake)
+    main._consult_grounded("x", [], "pkgs")
+    assert SUPPORT_EMAIL not in seen["facts"] and not _PHONE.search(seen["facts"])
