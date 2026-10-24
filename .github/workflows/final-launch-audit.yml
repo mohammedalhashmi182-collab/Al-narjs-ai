@@ -1,0 +1,19 @@
+name: final-launch-audit
+
+on:
+  push:
+    branches:
+      - audit/final-launch-20261025
+  workflow_dispatch:
+
+jobs:
+  live-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run final live HTTP audit
+        run: python scripts/final_launch_audit.py
