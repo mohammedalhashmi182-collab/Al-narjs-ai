@@ -158,19 +158,21 @@ def agent_run(
             return
 
         rendered = comps["prompt_engine"].render(tmpl.template_text, data)
-        request = ModelRequest(
-            prompt=rendered.user_prompt,
-            system_prompt=rendered.system_prompt,
-            temperature=agent.default_parameters.get("temperature", 0.7),
-            max_tokens=agent.default_parameters.get("max_tokens", 2000),
-        )
+        from src.services import agent_runtime
 
         with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
             task = progress.add_task(f"Running {slug}...", total=None)
-            response = await comps["model_provider"].complete(agent.default_model, request)
+            response = await agent_runtime.execute(
+                comps["model_provider"],
+                agent,
+                prompt=rendered.user_prompt,
+                system_prompt=rendered.system_prompt,
+                locale=str(data.get("locale") or "ar"),
+                quality_gate=True,
+            )
 
         console.print(Panel(response.content, title=f"Response from {slug}", border_style="green"))
-        console.print(f"[dim]Tokens: {response.tokens_used}, Latency: {response.latency_ms}ms[/dim]")
+        console.print(f"[dim]Tokens: {response.tokens_used}, Latency: {response.latency_ms}ms, QA: {response.quality}[/dim]")
 
     asyncio.run(_run())
 

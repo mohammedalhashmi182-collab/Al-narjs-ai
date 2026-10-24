@@ -28,7 +28,7 @@ prompts:
 
     - Market and language being targeted: {{market}}'
 is_system: true
-x_tasami:
+x_narjis:
   code: GR-05
   dept: GR
   authority: execute

@@ -6,10 +6,14 @@ message instead of failing the agent run."""
 from src.services.agent_tools import data_files, knowledge_base, store_connectors, web_search  # noqa: F401
 
 # Which agents get which tool context injected into their run.
-WEB_SEARCH_AGENTS = frozenset({"market_analyst", "competitor_analyst", "data_analyst", "search_discovery", "business_ideas"})
-DATA_FILE_AGENTS = frozenset({"data_analyst"})
-STORE_AGENTS = frozenset({"store_manager"})
-KNOWLEDGE_AGENTS = frozenset({"customer_service", "customer_manager"})
+# Runtime permissions are authoritative in agent_profiles. Keep these aliases
+# for backwards-compatible tests/imports, but do not maintain a second policy.
+from src.services.agent_profiles import TOOL_AGENTS
+
+WEB_SEARCH_AGENTS = TOOL_AGENTS["web_search"]
+DATA_FILE_AGENTS = TOOL_AGENTS["data_files"]
+STORE_AGENTS = TOOL_AGENTS["store"]
+KNOWLEDGE_AGENTS = TOOL_AGENTS["knowledge_base"]
 
 
 def status() -> dict:
@@ -47,11 +51,20 @@ async def run_context(session, slug: str, project, answers: dict | None) -> str:
             out += store_connectors.context_block(await store_connectors.snapshots())
         if slug in KNOWLEDGE_AGENTS:
             q = _query_from(answers, "")
+            # Tenant knowledge first: never mix another customer's content.
             hits = await knowledge_base.search(session, q, project_id=project.id, k=4) if q else []
             if not hits:
                 docs = await knowledge_base.list_docs(session, project.id)
                 hits = [{"title": d.title, "text": d.content[:1500]} for d in docs[:2]]
             out += knowledge_base.context_block(hits)
+
+            # Owner/global Al-Narjis knowledge is safe shared policy/product
+            # context and can supplement (never replace) the tenant evidence.
+            global_hits = await knowledge_base.search(session, q, project_id=None, k=3) if q else []
+            if global_hits:
+                out += "\n\n[Al-Narjis shared policy/product knowledge]:\n" + "\n".join(
+                    f"• ({h['title']}) {h['text']}" for h in global_hits
+                )
     except Exception:
         return out
     return out

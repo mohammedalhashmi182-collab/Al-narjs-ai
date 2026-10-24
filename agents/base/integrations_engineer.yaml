@@ -23,7 +23,7 @@ prompts:
     \ beyond that goes to EX-03 (Policy Guardian) for the\nowner's decision. Say plainly when\
     \ you have hit that line rather than\ntrimming the work to stay under it."
 is_system: true
-x_tasami:
+x_narjis:
   code: PD-05
   dept: PD
   authority: execute_with_approval

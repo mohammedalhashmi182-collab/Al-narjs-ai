@@ -24,7 +24,7 @@ prompts:
     \ customer count at current pricing.\n\nShow the arithmetic. A pricing recommendation\
     \ the owner cannot check is a\npricing recommendation the owner cannot act on."
 is_system: true
-x_tasami:
+x_narjis:
   code: CO-03
   dept: CO
   authority: suggest

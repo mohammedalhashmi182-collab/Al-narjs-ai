@@ -100,7 +100,14 @@ async def lifespan(app: FastAPI):
     # plus APScheduler's synchronous jobstore would deadlock the event loop.
     background_sync = _engine.dialect.name != "sqlite" and os.getenv(
         "SYNC_AGENTS_BLOCKING", "false").strip().lower() not in ("1", "true", "yes")
-    if not background_sync:
+    # Pytest creates many TestClient lifespans in one process. Re-upserting all
+    # ~35 YAML agents into SQLite on every fixture is unnecessary (the cache is
+    # already authoritative) and can leave aiosqlite startup waiting behind
+    # repeated writer work. Production and ordinary local startup are unchanged.
+    test_sqlite_fast_start = _engine.dialect.name == "sqlite" and bool(
+        os.getenv("PYTEST_CURRENT_TEST")
+    )
+    if not background_sync and not test_sqlite_fast_start:
         await agent_registry.sync_base_agents()
 
     model_provider = ModelProvider(settings)
@@ -649,6 +656,9 @@ class AgentRunRequest(BaseModel):
     prompt_template: str = "default"
 
 
+_AGENT_RUN_FALLBACK: dict[str, dict] = {}
+
+
 async def _record_agent_run(
     slug: str,
     status: str,
@@ -656,17 +666,18 @@ async def _record_agent_run(
     error_type: Optional[str],
     latency_ms: Optional[int],
 ) -> None:
-    """Record an agent run so the console can answer "is this one working?".
+    """Record direct agent health telemetry.
 
-    Without this the dashboard's per-agent columns stay at zero forever, because
-    a direct agent run never touched the execution table. A failure to record
-    must never fail the run itself, so every error here is swallowed.
+    PostgreSQL is authoritative. If that write is temporarily unavailable,
+    keep a bounded in-memory rollup so the owner console never falsely reports
+    a just-run agent as idle. The fallback contains no prompt or customer data.
     """
-    try:
-        from datetime import datetime, timezone
+    from datetime import datetime, timezone
+    from src.utils.logger import get_logger
 
+    now = datetime.now(timezone.utc)
+    try:
         from src.models import WorkflowExecution
-        from src.utils.logger import get_logger
 
         async with app.state.session_factory() as session:
             session.add(
@@ -675,14 +686,30 @@ async def _record_agent_run(
                     trigger_type="agent",
                     status=status,
                     started_at=started,
-                    completed_at=datetime.now(timezone.utc),
+                    completed_at=now,
                     error=error_type,
                     context={"latency_ms": latency_ms} if latency_ms is not None else {},
                 )
             )
             await session.commit()
-    except Exception:
-        pass
+        return
+    except Exception as exc:
+        get_logger(__name__).warning(
+            "agent run telemetry DB write failed",
+            agent=slug,
+            status=status,
+            error_type=type(exc).__name__,
+        )
+
+    row = _AGENT_RUN_FALLBACK.setdefault(
+        slug,
+        {"runs": 0, "failures": 0, "last_status": None, "last_at": None},
+    )
+    row["runs"] += 1
+    if status == "failed":
+        row["failures"] += 1
+    row["last_status"] = status
+    row["last_at"] = now
 
 
 class WorkflowRunRequest(BaseModel):
@@ -1309,7 +1336,9 @@ async def owner_agents_status(limit: int = 500):
             )
         ).scalars().all()
 
-    history: dict = {}
+    history: dict = {
+        slug: dict(values) for slug, values in _AGENT_RUN_FALLBACK.items()
+    }
     for e in rows:
         h = history.setdefault(
             e.workflow_id, {"runs": 0, "failures": 0, "last_status": None, "last_at": None}
@@ -1491,19 +1520,20 @@ async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
 
     rendered = app.state.prompt_engine.render(tmpl.template_text, request.input_data)
 
-    from src.core.model_provider import ModelRequest
-    model_request = ModelRequest(
-        prompt=rendered.user_prompt,
-        system_prompt=rendered.system_prompt,
-        temperature=agent.default_parameters.get("temperature", 0.7),
-        max_tokens=agent.default_parameters.get("max_tokens", 2000),
-    )
-
     from datetime import datetime, timezone
+    from src.services import agent_runtime
 
     started = datetime.now(timezone.utc)
+    locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
     try:
-        response = await app.state.model_provider.complete(agent.default_model, model_request)
+        response = await agent_runtime.execute(
+            app.state.model_provider,
+            agent,
+            prompt=rendered.user_prompt,
+            system_prompt=rendered.system_prompt,
+            locale=locale,
+            quality_gate=True,
+        )
     except Exception as e:
         await _record_agent_run(
             agent.slug, "failed", started, type(e).__name__, None
@@ -1515,7 +1545,7 @@ async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
     )
     return {
         "content": response.content,
-        "structured_output": response.structured_output.model_dump() if response.structured_output else None,
+        "structured_output": response.structured_output,
         "tokens_used": response.tokens_used,
         "latency_ms": response.latency_ms,
         "model": response.model,
@@ -1921,10 +1951,9 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
             request.answers, (_catalog.EMPLOYEES.get(slug) or {}).get("questions"), project.client_name
         )
 
-        from src.services import agent_tools as _tools
-        brief += await _tools.run_context(session, slug, project, request.answers)
+        from src.services import agent_tools as _tools, agent_runtime
+        tool_context = await _tools.run_context(session, slug, project, request.answers)
 
-        from src.core.model_provider import ModelRequest
         locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
         lang_instruction = (
             "Respond in Modern Standard Arabic (اللغة العربية الفصحى) unless the user"
@@ -1933,15 +1962,25 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
             "Respond in clear, fluent business English. Use proper terminology and"
             " structure your answer clearly with headings."
         )
-        model_request = ModelRequest(
-            prompt=rendered.user_prompt + brief,
-            system_prompt=(
-                rendered.system_prompt + "\n\n" + agent_brief.SAUDI_CONTEXT + "\n\n" + lang_instruction
-            ).strip(),
-            temperature=agent_def.default_parameters.get("temperature", 0.7),
-            max_tokens=max(agent_def.default_parameters.get("max_tokens", 2000), agent_brief.MIN_MAX_TOKENS),
-        )
-        response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
+        base_system = (
+            rendered.system_prompt + "\n\n" + agent_brief.SAUDI_CONTEXT + "\n\n" + lang_instruction
+        ).strip()
+        try:
+            response = await agent_runtime.execute(
+                app.state.model_provider,
+                agent_def,
+                prompt=rendered.user_prompt + brief,
+                system_prompt=base_system,
+                tool_context=tool_context,
+                locale=locale,
+                client_name=project.client_name,
+                metadata={"project_id": str(project.id), "agent_slug": slug},
+                quality_gate=True,
+            )
+        except Exception:
+            agent.status = "failed"
+            await session.commit()
+            raise
 
         agent.result = response.content
         agent.status = "done"

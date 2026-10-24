@@ -25,7 +25,7 @@ prompts:
     \ lawyer:\" and the specific questions. Being\nprecise about what you cannot settle is\
     \ the most useful thing you do."
 is_system: true
-x_tasami:
+x_narjis:
   code: CO-02
   dept: CO
   authority: suggest

@@ -29,7 +29,7 @@ prompts:
 
     - Target platform (web, iOS, Android, all): {{platform}}'
 is_system: true
-x_tasami:
+x_narjis:
   code: PD-01
   dept: PD
   authority: suggest

@@ -200,27 +200,28 @@ class WorkflowEngine:
             self.state_manager.fail_step(workflow_id, step_id, error)
             return
 
-        request = ModelRequest(
-            prompt=rendered.user_prompt,
-            system_prompt=rendered.system_prompt,
-            temperature=agent_def.default_parameters.get("temperature", 0.7),
-            max_tokens=agent_def.default_parameters.get("max_tokens", 2000),
-            top_p=agent_def.default_parameters.get("top_p", 1.0),
-            metadata={"workflow_id": str(workflow_id), "step_id": step_id},
-        )
-
         try:
+            from src.services import agent_runtime
+
             start_time = time.perf_counter()
-            response = await asyncio.wait_for(
-                self.model_provider.complete(agent_def.default_model, request),
+            response = await agent_runtime.execute(
+                self.model_provider,
+                agent_def,
+                prompt=rendered.user_prompt,
+                system_prompt=rendered.system_prompt,
+                locale=str(state.global_context.get("locale") or "ar"),
+                metadata={"workflow_id": str(workflow_id), "step_id": step_id},
+                top_p=agent_def.default_parameters.get("top_p", 1.0),
                 timeout=step_def.timeout_seconds,
+                quality_gate=True,
             )
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
             output_data = {
                 "content": response.content,
-                "structured_output": response.structured_output.model_dump() if response.structured_output else None,
+                "structured_output": response.structured_output,
                 "tokens_used": response.tokens_used,
+                "quality": response.quality,
             }
 
             self.state_manager.complete_step(

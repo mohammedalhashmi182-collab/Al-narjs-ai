@@ -63,7 +63,7 @@ prompts:
 
     trimming the work to stay under it.'
 is_system: true
-x_tasami:
+x_narjis:
   code: GR-06
   dept: GR
   authority: execute_with_approval

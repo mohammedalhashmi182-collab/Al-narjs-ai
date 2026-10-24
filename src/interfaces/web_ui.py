@@ -173,21 +173,23 @@ async def run_agent(slug: str, request: AgentRunRequest):
 
     rendered = app.state.prompt_engine.render(tmpl.template_text, request.input_data)
 
-    from src.core.model_provider import ModelRequest
-    model_request = ModelRequest(
+    from src.services import agent_runtime
+
+    response = await agent_runtime.execute(
+        app.state.model_provider,
+        agent,
         prompt=rendered.user_prompt,
         system_prompt=rendered.system_prompt,
-        temperature=agent.default_parameters.get("temperature", 0.7),
-        max_tokens=agent.default_parameters.get("max_tokens", 2000),
+        locale="ar",
+        quality_gate=True,
     )
-
-    response = await app.state.model_provider.complete(agent.default_model, model_request)
     return {
         "content": response.content,
-        "structured_output": response.structured_output.model_dump() if response.structured_output else None,
+        "structured_output": response.structured_output,
         "tokens_used": response.tokens_used,
         "latency_ms": response.latency_ms,
         "model": response.model,
+        "quality": response.quality,
     }
 
 

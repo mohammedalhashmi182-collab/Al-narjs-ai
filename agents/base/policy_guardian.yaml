@@ -65,7 +65,7 @@ prompts:
 
     blocks routine work gets switched off, and then it guards nothing.'
 is_system: true
-x_tasami:
+x_narjis:
   code: EX-03
   dept: EX
   authority: suggest

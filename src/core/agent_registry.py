@@ -283,6 +283,16 @@ class AgentRegistry:
             result = await session.execute(query)
             agents = result.scalars().all()
 
+            # YAML is the system-agent source of truth. During lightweight
+            # SQLite/test startup the DB sync may intentionally be skipped; in
+            # that case serve the already-primed cache instead of returning an
+            # empty roster. A non-empty DB still wins for persisted/custom rows.
+            if not agents and self._cache:
+                defs = list(self._cache.values())
+                if category:
+                    defs = [d for d in defs if d.category == category]
+                return sorted(defs, key=lambda d: d.slug)
+
             defs = []
             for agent in agents:
                 defn = await self.get_agent(agent.slug)
