@@ -65,8 +65,8 @@ CEO_SLUG = "orchestrator"
 #    voice_minutes   - voice-agent minutes (0: not part of these plans)
 #    meta_cap        - Meta (WhatsApp) conversation fees we cover, halalas;
 #                      anything above is passed through at cost.
-#  ``setup_fee`` is a one-time fee (halalas) charged on the first monthly
-#  order only; it is waived for annual billing and for founding customers.
+#  ``setup_fee`` is a one-time fee (halalas) charged on the first order, on
+#  monthly AND annual billing alike; 0 only for founding customers.
 #  Public scope lists only what checkout and the weekly-report job actually do.
 # ---------------------------------------------------------------------
 PACKAGES = {
@@ -113,7 +113,7 @@ PACKAGES = {
             "٤٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ٢٥٠ ريال",
             "تقارير أسبوعية آلية",
-            "رسوم إعداد ٩٩٠ ريال لمرة واحدة، وتُلغى مع السنوي",
+            "رسوم إعداد ٩٩٠ ريال لمرة واحدة، في الشهري والسنوي",
             "فواتير رسمية",
             "دعم بالبريد الإلكتروني والهاتف",
         ],
@@ -122,7 +122,7 @@ PACKAGES = {
             "4,000 conversations a month",
             "Meta fees included up to 250 SAR",
             "Weekly automated reports",
-            "One-time setup fee of 990 SAR, waived on annual billing",
+            "One-time setup fee of 990 SAR, on monthly and annual billing",
             "Official invoices",
             "Email and phone support",
         ],
@@ -146,7 +146,7 @@ PACKAGES = {
             "رسوم ميتا مشمولة حتى ٥٠٠ ريال",
             "تقارير أسبوعية آلية",
             "الرد خلال يوم عمل واحد",
-            "رسوم إعداد ١٬٩٩٠ ريال لمرة واحدة، وتُلغى مع السنوي",
+            "رسوم إعداد ١٬٩٩٠ ريال لمرة واحدة، في الشهري والسنوي",
             "فواتير رسمية",
             "دعم بالبريد الإلكتروني والهاتف",
         ],
@@ -156,7 +156,7 @@ PACKAGES = {
             "Meta fees included up to 500 SAR",
             "Weekly automated reports",
             "A reply within one working day",
-            "One-time setup fee of 1,990 SAR, waived on annual billing",
+            "One-time setup fee of 1,990 SAR, on monthly and annual billing",
             "Official invoices",
             "Email and phone support",
         ],
@@ -387,8 +387,12 @@ def plan_amount(package_key: str, billing_period: str = "monthly", addons: int =
 
 
 def setup_fee(package_key: str, billing_period: str = "monthly", *, renewal: bool = False, founding: bool = False) -> int:
-    """One-time setup fee (halalas) for a first order; 0 when waived."""
-    if renewal or founding or resolve_billing_period(billing_period) == "annual":
+    """One-time setup fee (halalas) for a first order, monthly or annual.
+
+    Charged on annual billing too (owner decision 24 Oct 2026); 0 only on
+    renewals and for founding customers.
+    """
+    if renewal or founding:
         return 0
     return int(PACKAGES.get(package_key, {}).get("setup_fee", 0) or 0)
 
@@ -1010,7 +1014,7 @@ DIVISION_BLURBS: dict[str, tuple[str, str]] = {
         "Researches, writes, and publishes on schedule without gaps",
     ),
     "التجارة الإلكترونية": (
-        "يرفع التحويل من الزيارة السلة إلى الطلب",
+        "يرفع التحويل من الزيارة إلى السلة إلى الطلب",
         "Lifts conversion from visit and cart to order",
     ),
     "خدمة العملاء": (

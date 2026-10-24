@@ -625,8 +625,8 @@
                 const packs = (coConvPacks * convPrice + coVoicePacks * voicePrice) * months;
                 const base = planBase + packs;
                 const disc = pct ? Math.round(planBase * pct / 100) : 0;
-                // One-time setup fee on a first monthly order (waived on annual); outside the promo.
-                const setup = coBilling === 'annual' ? 0 : (Number(p.setup_fee) || 0) / 100;
+                // One-time setup fee on a first order, monthly or annual; outside the promo.
+                const setup = (Number(p.setup_fee) || 0) / 100;
                 const after = base - disc + setup;
                 const VAT_RATE = {{ vat_rate() | tojson }};
                 const vat = VAT_RATE > 0 ? Math.round(after * VAT_RATE) : 0;
@@ -635,7 +635,7 @@
                     '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
                     (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:var(--n-green);">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt({{ ('المبلغ قبل الضريبة: ' if vat_enabled() else 'المبلغ: ')|tojson }}, 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
                     {% if vat_enabled() %}(vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة ' + Math.round(VAT_RATE*100) + '%: ', 'VAT ' + Math.round(VAT_RATE*100) + '%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +{% endif %}
-                    (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة (تُلغى مع السنوي): ', 'One-time setup fee (waived on annual): ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
+                    (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة: ', 'One-time setup fee: ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
                     '' +
                     (coBilling === 'annual' ? '<div style="font-size:.85rem;color:var(--n-green);">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +

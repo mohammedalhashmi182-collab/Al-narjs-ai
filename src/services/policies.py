@@ -18,7 +18,8 @@ REFUND_CONSENT_EN = "The service starts immediately and the amount is non-refund
 POLICY_PROMPT = (
     "Al-Narjis policies (owner-approved, never contradict them):\n"
     f"- Refunds: none after activation. Before paying, the customer explicitly agrees to: «{REFUND_CONSENT_AR}». "
-    "Always refunded: a duplicate charge or a technical billing error. Cancellation stops the next renewal; "
+    "Always refunded: a duplicate charge or a technical billing error. Setup guarantee: only the one-time setup fee "
+    "is refunded, in full, if the first agent is not live within 10 business days of receiving the requirements. Cancellation stops the next renewal; "
     "the current period is not refunded. Every refund request is escalated to Mohammed.\n"
     "- Support: 24 hours a day, 7 days a week, through the AI assistant, including holidays. "
     "A human follows up by email.\n"
@@ -34,7 +35,7 @@ POLICY_PROMPT = (
 
 OWNER_FAQ_TITLE = "سياسات النرجس الرسمية"
 
-OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد بعد تفعيل الخدمة. قبل الدفع يوافق العميل صراحة على «{REFUND_CONSENT_AR}». الاستثناء اللي يُسترد دائماً: الخصم المكرر أو خطأ تقني في الفوترة. طلبات الاسترداد ترفع لمحمد.
+OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد بعد تفعيل الخدمة. قبل الدفع يوافق العميل صراحة على «{REFUND_CONSENT_AR}». الاستثناء اللي يُسترد دائماً: الخصم المكرر أو خطأ تقني في الفوترة. ضمان الإعداد: إذا لم يعمل أول وكيل خلال 10 أيام عمل من استلام المتطلبات تُرد رسوم الإعداد فقط كاملة. طلبات الاسترداد ترفع لمحمد.
 
 الإلغاء: تقدر تلغي في أي وقت، والإلغاء يوقف التجديد القادم، وتبقى الخدمة شغالة حتى نهاية الفترة الحالية بدون استرداد لها.
 
