@@ -325,6 +325,26 @@ def moyasar_collects_money() -> bool:
     return not MOYASAR_ON_HOLD and moyasar_secret_is_live() and moyasar_publishable_is_live()
 
 
+def payments_open() -> bool:
+    """Whether a customer can actually pay right now (card or PayPal).
+
+    Drives the public "payment is not open yet" banner and CTA labels, so they
+    switch back on their own the moment a real payment method opens.
+    """
+    return moyasar_collects_money() or (customer_paypal_enabled() and paypal_collects_money())
+
+
+# Plain-language notice shown while payments_open() is False. No dates, no
+# gateway names, no contact details beyond the site assistant and email.
+PAYMENTS_CLOSED_AR = (
+    "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك عبر مساعد النرجس والبريد عند فتح الدفع."
+)
+PAYMENTS_CLOSED_EN = (
+    "Online payment is not open yet. Register your interest now and we will contact you through the "
+    "Al-Narjis assistant and email when payment opens."
+)
+
+
 def moyasar_secret_is_live() -> bool:
     """Whether the configured Moyasar secret can actually take a payment.
 

@@ -72,9 +72,10 @@
             <div class="portal-heading">
                 <div class="n-divider mb-4 portal-heading-icon" aria-hidden="true">✺</div>
                 <h1 class="n-title portal-title">{% if _lang == 'ar' %}<span>فعّل فريقك <span class="gold">الذكي</span></span>{% else %}<span data-inline>Wake Up Your <span class="gold">Smart</span> Team</span>{% endif %}</h1>
-                {% if _lang == 'ar' %}<p class="n-sub portal-description mt-3">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>{% else %}<p class="n-sub portal-description mt-3" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>{% endif %}
+                {% if not payments_open() %}{% if _lang == 'ar' %}<p class="n-sub portal-description mt-3">اختر باقتك وسجّل اهتمامك، وسنتواصل معك لتفعيل فريقك عند فتح الدفع.</p>{% else %}<p class="n-sub portal-description mt-3" data-inline>Choose your plan and register your interest; we will contact you to activate your team when payment opens.</p>{% endif %}{% else %}{% if _lang == 'ar' %}<p class="n-sub portal-description mt-3">اختر باقتك، وستستيقظ فرقة من الموظفين الخبراء (نائمون الآن) ليبدؤوا خدمتك فوراً.</p>{% else %}<p class="n-sub portal-description mt-3" data-inline>Choose your plan, and a crew of expert employees (currently asleep) will wake up to serve you instantly.</p>{% endif %}{% endif %}
             </div>
 
+            {% set _ar = _lang == 'ar' %}{% include "partials/_payments_closed_banner.html" %}
             {% call alert(class_name='mb-4', attrs={'id': 'pkg-status'}) %}{% if _lang == 'ar' %}<span>جارٍ تحميل الباقات…</span>{% else %}<span data-inline>Loading plans…</span>{% endif %}{% endcall %}
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10 portal-grid--plans" id="pkg-grid" aria-busy="true">
                 {% for _ in range(3) %}<div class="package-skeleton" aria-hidden="true"></div>{% endfor %}
@@ -108,7 +109,7 @@
                             <span>{% if _lang == 'ar' %}<span>أوافق على معالجة بياناتي وفق <a href="/privacy" class="portal-text-link">سياسة الخصوصية</a>، بما يشمل معالجة استفساراتي آلياً عبر موفري الذكاء الاصطناعي.</span>{% else %}<span data-inline>I agree to my data being processed per the <a href="/privacy" class="portal-text-link">Privacy Policy</a>, including automated processing of my enquiries via AI providers.</span>{% endif %}</span>
                         </label>
                         {% call button(variant='primary', class_name='w-full mt-4', type='submit') %}
-                            {% if _lang == 'ar' %}<span>استقبل فريقي الذكي</span>{% else %}<span data-inline>Receive My Smart Team</span>{% endif %}
+                            {% if not payments_open() %}{% if _lang == 'ar' %}<span>سجّل اهتمامك</span>{% else %}<span data-inline>Register interest</span>{% endif %}{% else %}{% if _lang == 'ar' %}<span>استقبل فريقي الذكي</span>{% else %}<span data-inline>Receive My Smart Team</span>{% endif %}{% endif %}
                             {{ icon('rocket') }}
                         {% endcall %}
                     </div>
@@ -134,7 +135,7 @@
                 <div class="portal-notice-layout flex flex-col sm:flex-row items-center gap-3 justify-between text-center sm:text-start">
                     <div class="text-sm">
                         {{ icon('moon') }}
-                        {% if _lang == 'ar' %}<span><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>{% else %}<span data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>{% endif %}
+                        {% if not payments_open() %}{% if _lang == 'ar' %}<span><b>فريقك جاهز لكنه نائم.</b> {{ payments_closed_ar }}</span>{% else %}<span data-inline><b>Your team is ready but asleep.</b> {{ payments_closed_en }}</span>{% endif %}{% else %}{% if _lang == 'ar' %}<span><b>فريقك جاهز لكنه نائم.</b> فعّل اشتراكك الآن ليستيقظ الموظفون ويبدأون العمل لك فوراً.</span>{% else %}<span data-inline><b>Your team is ready but asleep.</b> Activate your subscription now to wake them and start working for you instantly.</span>{% endif %}{% endif %}
                     </div>
                     {% call button(variant='primary', attrs={'id': 'pendingCta'}) %}
                         {{ icon('credit-card') }}
@@ -680,8 +681,8 @@ if (hidden) {
                                 let msg;
                                 if (cap.moyasar_on_hold) {
                                     msg = ar
-                                        ? 'ميسّر: معلّق حالياً (Pending / On Hold). الدفع بالبطاقة قريباً؛ تواصل معنا عبر مساعد النرجس في الموقع.'
-                                        : 'Moyasar: Pending / On Hold. Card payments coming soon; contact us through the site assistant.';
+                                        ? {{ payments_closed_ar | tojson }}
+                                        : {{ payments_closed_en | tojson }};
                                 } else if (!cap.card) {
                                     msg = ar
                                         ? 'الدفع غير متاح مؤقتاً. تواصل معنا عبر مساعد النرجس في الموقع.'

@@ -397,7 +397,7 @@
                     <div><small>{% if ar %}الباقة المرشّحة{% else %}Recommended plan{% endif %}</small><span id="ceoPlanName"></span></div>
                     <div style="text-align:end"><b id="ceoPlanPrice"></b><small id="ceoPlanVat"></small></div>
                 </div>
-                <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}</a>
+                <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% else %}{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}{% endif %}</a>
                 <p class="ceo-alt">{% if ar %}سؤال عن التوصية؟ <a href="/consult" data-open-assistant>ناقش هدفك مع CEO</a>{% else %}Questions about the recommendation? <a href="/consult" data-open-assistant>Discuss your goal with the CEO</a>{% endif %}</p>
             </div>
         </div>

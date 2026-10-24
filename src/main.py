@@ -574,6 +574,9 @@ from src.services import payments as _vat_pm  # noqa: E402
 templates.env.globals["vat_rate"] = _vat_pm.vat_rate
 templates.env.globals["vat_percent"] = _vat_pm.vat_percent
 templates.env.globals["vat_enabled"] = _vat_pm.vat_enabled
+templates.env.globals["payments_open"] = _vat_pm.payments_open
+templates.env.globals["payments_closed_ar"] = _vat_pm.PAYMENTS_CLOSED_AR
+templates.env.globals["payments_closed_en"] = _vat_pm.PAYMENTS_CLOSED_EN
 
 
 def _promo_info() -> dict:
