@@ -25,7 +25,7 @@ prompts:
     \ judgement call you\nmade where a literal translation would have been wrong. Those notes\
     \ are\nwhat let a human reviewer trust the rest without re-reading it all."
 is_system: true
-x_tasami:
+x_narjis:
   code: CN-04
   dept: CN
   authority: execute
