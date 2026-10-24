@@ -230,11 +230,13 @@ async def lifespan(app: FastAPI):
         except (asyncio.CancelledError, Exception):  # noqa: BLE001
             pass
     await agent_registry.stop_background_sync()
-    # Stop the queue first: in-flight tasks still need the model provider.
-    await queue_worker.stop()
-    await model_provider.close()
+    # Stop task producers before draining consumers. Scheduled/triggered work may
+    # call agents directly and therefore still needs the model provider.
     await scheduler.stop()
     await trigger_engine.stop()
+    # Drain queued/in-flight work while the model provider is still available.
+    await queue_worker.stop()
+    await model_provider.close()
     await close_db()
 
 
