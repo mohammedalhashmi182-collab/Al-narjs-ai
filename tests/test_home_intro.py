@@ -81,3 +81,17 @@ def test_intro_reduced_motion_never_shows(browser, client):
     assert page.locator('#njIntro').is_hidden()
     page.locator('#heroCeo').click(trial=True, timeout=1000)
     ctx.close()
+
+
+@pytest.mark.parametrize('lang,main,sub,other', [
+    ('ar', 'النرجس', 'للذكاء الاصطناعي', 'AlNarjis'),
+    ('en', 'AlNarjis', 'AI agents', 'النرجس'),
+])
+def test_intro_text_matches_page_language(browser, client, lang, main, sub, other):
+    ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844})
+    page = ctx.new_page()
+    page.goto(f'http://testserver/{lang}/home')
+    text = page.locator('#njIntro').inner_text()
+    assert main in text and sub in text
+    assert other not in text
+    ctx.close()

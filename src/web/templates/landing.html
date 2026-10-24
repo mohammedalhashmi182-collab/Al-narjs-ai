@@ -142,12 +142,19 @@
             <rect class="node" x="34" y="514" width="12" height="12" transform="rotate(45 40 520)"/>
             <rect class="node" x="969" y="164" width="12" height="12" transform="rotate(45 975 170)"/>
         </svg>
-        <div class="nj-stack" dir="ltr">
+        {% if ar %}<div class="nj-stack nj-stack-ar" dir="rtl" lang="ar">
+            <p class="nj-word nj-ghost">النرجس</p>
+            <p class="nj-word nj-main">النرجس</p>
+            <p class="nj-word nj-ghost">النرجس</p>
+        </div>
+        <p class="nj-ar" lang="ar" dir="rtl"><span class="nj-diamond"></span>للذكاء الاصطناعي<span class="nj-diamond"></span></p>
+        {% else %}<div class="nj-stack" dir="ltr" lang="en">
             <p class="nj-word nj-ghost">AlNarjis</p>
             <p class="nj-word nj-main">AlNarjis</p>
             <p class="nj-word nj-ghost">AlNarjis</p>
         </div>
-        <p class="nj-ar" lang="ar" dir="rtl"><span class="nj-diamond"></span>النرجس للذكاء الاصطناعي<span class="nj-diamond"></span></p>
+        <p class="nj-ar nj-en" lang="en" dir="ltr"><span class="nj-diamond"></span>AI agents &amp; automation<span class="nj-diamond"></span></p>
+        {% endif %}
         <div class="nj-tiles"></div>
     </div>
 </div>
