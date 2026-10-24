@@ -100,7 +100,14 @@ async def lifespan(app: FastAPI):
     # plus APScheduler's synchronous jobstore would deadlock the event loop.
     background_sync = _engine.dialect.name != "sqlite" and os.getenv(
         "SYNC_AGENTS_BLOCKING", "false").strip().lower() not in ("1", "true", "yes")
-    if not background_sync:
+    # Pytest creates many TestClient lifespans in one process. Re-upserting all
+    # ~35 YAML agents into SQLite on every fixture is unnecessary (the cache is
+    # already authoritative) and can leave aiosqlite startup waiting behind
+    # repeated writer work. Production and ordinary local startup are unchanged.
+    test_sqlite_fast_start = _engine.dialect.name == "sqlite" and bool(
+        os.getenv("PYTEST_CURRENT_TEST")
+    )
+    if not background_sync and not test_sqlite_fast_start:
         await agent_registry.sync_base_agents()
 
     model_provider = ModelProvider(settings)
