@@ -2197,7 +2197,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
     _pkgs = " | ".join(
         f"{p['name']} ({p['name_en']}): {p['price']} SAR/month{' before VAT' if _vat_pm.vat_enabled() else ''}, "
-        f"setup {int(p.get('setup_fee') or 0) // 100} SAR waived on annual billing. "
+        f"setup {int(p.get('setup_fee') or 0) // 100} SAR one-time, charged on monthly and annual billing alike. "
         + "; ".join(p.get("scope_en") or [])
         for p in _catalog.PACKAGES.values()
     )

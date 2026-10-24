@@ -148,7 +148,7 @@ def package_amount(package: str, billing_period: Optional[str] = None, addons: i
 
 
 def setup_fee_amount(package: str, billing_period: Optional[str] = None, renewal: bool = False, founding: bool = False) -> int:
-    """One-time setup fee (halalas, pre-VAT) a new order adds; 0 when waived."""
+    """One-time setup fee (halalas, pre-VAT) a new monthly or annual order adds; 0 on renewals/founding."""
     if package in catalog.DOMAINS:
         package = catalog.resolve_tier(package)
     return catalog.setup_fee(package, _validate_period(billing_period), renewal=renewal, founding=founding)
@@ -602,8 +602,8 @@ async def create_payment(
 
     # ``amount`` is the whole period's pre-VAT base (annual = 10 x monthly)
     # plus usage add-on packs (never discounted) plus the one-time setup fee
-    # on a first monthly order (never discounted by a promo, never on
-    # renewals, annual or founding); VAT, the Moyasar charge and the gateway
+    # on a first order, monthly or annual (never discounted by a promo,
+    # never on renewals or founding); VAT, the Moyasar charge and the gateway
     # amount check all derive from it.
     if founding:
         amount = catalog.founding_amount(package, period, addons)

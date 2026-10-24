@@ -179,7 +179,7 @@ async def test_founding_disabled_by_default_no_discount_full_setup(maker, monkey
             assert not m.founding and m.amount == catalog.PACKAGES[key]["amount"] + setup
             assert "المؤسسين" not in m.description
             a = await pm.create_payment(s, key, "b", "0555000151", None, billing_period="annual", founding=None)
-            assert not a.founding and a.amount == catalog.plan_amount(key, "annual")
+            assert not a.founding and a.amount == catalog.plan_amount(key, "annual") + setup  # no annual waiver
         assert not await founding.eligible_for_order(s, "bidaya", is_renewal=False)
         assert (await founding.status(s))["enabled"] is False
 
@@ -283,7 +283,7 @@ async def test_usage_packs_are_billed_and_carried_to_the_project(maker, monkeypa
         proj = await _project(s, package="numuw", status="pending")
         pay = await pm.create_payment(s, "numuw", "x", "0555000500", None, project_id=proj.id,
                                       billing_period="annual", conversation_packs=2, voice_packs=1)
-        assert pay.amount == 1490000 + 3 * 9900 * 10
+        assert pay.amount == 1490000 + 3 * 9900 * 10 + 99000  # + setup fee (no annual waiver)
         assert "محادثة إضافية" in pay.description and "دقيقة صوت" in pay.description
         pay.status = "paid"
         await s.commit()

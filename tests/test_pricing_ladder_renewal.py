@@ -128,7 +128,7 @@ async def maker():
 async def test_annual_order_amount_vat_and_gateway_check_agree(maker):
     async with maker() as s:
         p = await pm.create_payment(s, "numuw", "x", "0555000000", None, billing_period="annual", addons=1)
-    assert p.amount == (149000 + 14900) * 10  # annual: setup fee waived
+    assert p.amount == (149000 + 14900) * 10 + 99000  # annual: 10 months + setup fee (no waiver)
     assert p.billing_period == "annual" and p.addon_agents == 1
     assert "سنوي" in p.description and "وكيل إضافي" in p.description
     total = pm.total_with_vat(p.amount)
@@ -160,7 +160,7 @@ async def test_initiate_moyasar_charges_the_annual_total(maker, monkeypatch):
     async with maker() as s:
         p = await pm.create_payment(s, "numuw", "x", None, None, billing_period="annual")
         await pm.initiate_moyasar(s, p, pm.source_mada())
-    assert captured["amount"] == pm.total_with_vat(1490000) == 1713500
+    assert captured["amount"] == pm.total_with_vat(1490000 + 99000) == 1827350  # 10 months + setup fee
 
 
 async def _project(s, *, end, period="monthly", addons=0, status="active", package="team"):
@@ -349,10 +349,12 @@ def test_usage_addons_and_enterprise():
     assert "enterprise" not in catalog.PACKAGES  # by quote only, never a checkout key
 
 
-def test_setup_fee_first_monthly_order_only():
+def test_setup_fee_first_order_monthly_and_annual():
     assert [catalog.PACKAGES[k]["setup_fee"] for k in catalog.PACKAGE_ORDER] == [0, 99000, 199000]
     assert catalog.setup_fee("numuw") == 99000
-    assert catalog.setup_fee("numuw", "annual") == 0
+    assert catalog.setup_fee("numuw", "annual") == 99000
+    assert catalog.setup_fee("sharikat", "annual") == 199000
+    assert catalog.setup_fee("numuw", "annual", renewal=True) == 0
     assert catalog.setup_fee("numuw", renewal=True) == 0
     assert catalog.setup_fee("sharikat", founding=True) == 0
 

@@ -32,7 +32,7 @@ def docs() -> list[tuple[str, str]]:
         setup = int(p.get("setup_fee") or 0) // 100
         out.append((f"باقة {p['name']} ({p['name_en']})",
                     f"سعر باقة {p['name']} ({p['name_en']} plan): {p['price']} ريال شهريًا{_vat_note()}. "
-                    f"رسوم الإعداد: {setup} ريال (تُعفى في الاشتراك السنوي).\n"
+                    f"رسوم الإعداد: {setup} ريال لمرة واحدة، تُدفع في الاشتراك الشهري والسنوي.\n"
                     + "\n".join(p.get("scope", []))))
     a = catalog.ADDON_AGENT
     out.append(("وكيل إضافي", f"{a['name']}: {a['price']} ريال شهريًا لكل وكيل، بحد أقصى {catalog.MAX_ADDON_AGENTS} وكيلًا."))
