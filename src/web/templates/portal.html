@@ -639,7 +639,11 @@
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
                     '' +
                     (coBilling === 'annual' ? '<div style="font-size:.85rem;color:var(--n-green);">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
-                    '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>';
+                    (setup
+                        // A one-time fee is not monthly: show what is due today, then the recurring amount.
+                        ? '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('المستحق اليوم: ', 'Due today: ') + total.toLocaleString() + ' ' + cur + '</div>' +
+                          '<div style="font-size:.85rem;opacity:.8;">' + txt('ثم ', 'then ') + (base - disc).toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>'
+                        : '<div class="mt-1 text-lg" style="color:var(--n-gold-2);">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>');
                 window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
             }
             function openCheckout() {

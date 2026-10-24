@@ -3862,7 +3862,9 @@ async def invoice_page(request: Request, payment_id: str):
             "consent_needed": payment.status != "paid" and payment.refund_consent_at is None,
             "refund_consent_ar": policies.REFUND_CONSENT_AR,
             "refund_consent_en": policies.REFUND_CONSENT_EN,
-            "card_enabled": payment.status != "paid" and (
+            # Server refuses card while Moyasar is on hold / not live (503), so
+            # never render a card button the buyer cannot use.
+            "card_enabled": payment.status != "paid" and pm.moyasar_collects_money() and (
                 (payment.gateway == "moyasar" and bool(payment.gateway_payment_id))
                 or (payment.gateway == "invoice" and bool(settings.moyasar_api_secret))
             ),
