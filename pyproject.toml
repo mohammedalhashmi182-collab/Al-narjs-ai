@@ -37,6 +37,7 @@ dependencies = [
 dev = [
     "playwright==1.51.0",
     "pytest-socket>=0.7.0",
+    "pytest-timeout>=2.3.1",
     "pytest>=7.4.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
@@ -73,3 +74,8 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+# A hang fails the test loudly with a stack dump instead of eating the
+# 15-minute CI budget. faulthandler dumps stacks a little earlier.
+timeout = 60
+timeout_method = "thread"
+faulthandler_timeout = 50

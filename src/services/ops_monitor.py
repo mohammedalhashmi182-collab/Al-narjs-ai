@@ -63,10 +63,19 @@ async def check_db(session_factory) -> dict:
         return {"ok": False, "error": type(exc).__name__}
 
 
+def _moyasar_on_hold() -> bool:
+    from src.services import payments
+
+    return bool(payments.MOYASAR_ON_HOLD)
+
+
 async def _probe(url: str) -> dict:
     """GET a public endpoint (no credentials) and report reachability."""
     import httpx
 
+    if _moyasar_on_hold() and url.startswith(EXTERNAL_PROBES["moyasar"]):
+        # Zero-call hold: never touch Moyasar, not even its public host.
+        return {"ok": None, "status": "on_hold"}
     started = time.perf_counter()
     try:
         async with httpx.AsyncClient(timeout=EXTERNAL_TIMEOUT) as c:
@@ -100,6 +109,10 @@ async def check_external(probe=None) -> dict:
     probe = probe or _probe
     out = {}
     for name, configured in configured_externals().items():
+        if name == "moyasar" and _moyasar_on_hold():
+            # Release hold: report it, make no network call at all.
+            out[name] = {"ok": None, "configured": configured, "status": "on_hold"}
+            continue
         if not configured:
             out[name] = {"ok": None, "configured": False}
             continue
