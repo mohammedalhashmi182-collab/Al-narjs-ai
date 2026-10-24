@@ -656,6 +656,9 @@ class AgentRunRequest(BaseModel):
     prompt_template: str = "default"
 
 
+_AGENT_RUN_FALLBACK: dict[str, dict] = {}
+
+
 async def _record_agent_run(
     slug: str,
     status: str,
@@ -663,17 +666,18 @@ async def _record_agent_run(
     error_type: Optional[str],
     latency_ms: Optional[int],
 ) -> None:
-    """Record an agent run so the console can answer "is this one working?".
+    """Record direct agent health telemetry.
 
-    Without this the dashboard's per-agent columns stay at zero forever, because
-    a direct agent run never touched the execution table. A failure to record
-    must never fail the run itself, so every error here is swallowed.
+    PostgreSQL is authoritative. If that write is temporarily unavailable,
+    keep a bounded in-memory rollup so the owner console never falsely reports
+    a just-run agent as idle. The fallback contains no prompt or customer data.
     """
-    try:
-        from datetime import datetime, timezone
+    from datetime import datetime, timezone
+    from src.utils.logger import get_logger
 
+    now = datetime.now(timezone.utc)
+    try:
         from src.models import WorkflowExecution
-        from src.utils.logger import get_logger
 
         async with app.state.session_factory() as session:
             session.add(
@@ -682,14 +686,30 @@ async def _record_agent_run(
                     trigger_type="agent",
                     status=status,
                     started_at=started,
-                    completed_at=datetime.now(timezone.utc),
+                    completed_at=now,
                     error=error_type,
                     context={"latency_ms": latency_ms} if latency_ms is not None else {},
                 )
             )
             await session.commit()
-    except Exception:
-        pass
+        return
+    except Exception as exc:
+        get_logger(__name__).warning(
+            "agent run telemetry DB write failed",
+            agent=slug,
+            status=status,
+            error_type=type(exc).__name__,
+        )
+
+    row = _AGENT_RUN_FALLBACK.setdefault(
+        slug,
+        {"runs": 0, "failures": 0, "last_status": None, "last_at": None},
+    )
+    row["runs"] += 1
+    if status == "failed":
+        row["failures"] += 1
+    row["last_status"] = status
+    row["last_at"] = now
 
 
 class WorkflowRunRequest(BaseModel):
@@ -1316,7 +1336,9 @@ async def owner_agents_status(limit: int = 500):
             )
         ).scalars().all()
 
-    history: dict = {}
+    history: dict = {
+        slug: dict(values) for slug, values in _AGENT_RUN_FALLBACK.items()
+    }
     for e in rows:
         h = history.setdefault(
             e.workflow_id, {"runs": 0, "failures": 0, "last_status": None, "last_at": None}
