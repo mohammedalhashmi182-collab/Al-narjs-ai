@@ -19,7 +19,7 @@ prompts:
     Test the claim, not the code's intent. Code that does exactly what its\nauthor meant and\
     \ still loses an order is a blocker, not a difference of\nopinion."
 is_system: true
-x_tasami:
+x_narjis:
   code: PD-04
   dept: PD
   authority: execute
