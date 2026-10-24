@@ -5,6 +5,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
+from itertools import count
 from typing import Any, Callable, Optional
 from collections import deque
 
@@ -73,12 +74,15 @@ class QueueWorker:
         self._completed_tasks: deque = deque(maxlen=1000)
         self._workers: list[asyncio.Task] = []
         self._running = False
+        self._accepting = True
+        self._sequence = count()
         self._semaphore = asyncio.Semaphore(concurrency)
 
     async def start(self):
         if self._running:
             return
         self._running = True
+        self._accepting = True
         for i in range(self.concurrency):
             worker = asyncio.create_task(self._worker_loop(i))
             self._workers.append(worker)
@@ -87,10 +91,12 @@ class QueueWorker:
     async def stop(self, wait: bool = True):
         if not self._running:
             return
-        self._running = False
+        self._accepting = False
 
         if wait:
+            # Workers must remain alive until every accepted item is accounted for.
             await self._queue.join()
+        self._running = False
 
         for worker in self._workers:
             worker.cancel()
@@ -100,12 +106,14 @@ class QueueWorker:
         logger.info("Queue worker stopped")
 
     async def enqueue(self, task: QueueTask) -> str:
+        if not self._accepting:
+            raise RuntimeError("Queue is stopping")
         if self._queue.full():
             raise RuntimeError("Queue is full")
 
         task.status = TaskStatus.QUEUED
         priority = -task.priority.value
-        await self._queue.put((priority, task.created_at, task))
+        await self._queue.put((priority, next(self._sequence), task))
         logger.debug(f"Task {task.id} enqueued with priority {task.priority.name}")
         return task.id
 
@@ -161,10 +169,11 @@ class QueueWorker:
         return None
 
     async def cancel_task(self, task_id: str) -> bool:
-        for i, (_, _, task) in enumerate(self._queue._queue):
+        for _, _, task in self._queue._queue:
             if task.id == task_id:
                 task.status = TaskStatus.CANCELLED
-                self._queue._queue.pop(i)
+                # Keep the heap and unfinished-task accounting intact; the
+                # worker consumes this tombstone and calls task_done().
                 return True
 
         if task_id in self._running_tasks:
@@ -269,14 +278,20 @@ class QueueWorker:
                 task.status = TaskStatus.QUEUED
                 priority = -task.priority.value
                 await asyncio.sleep(2 ** task.retry_count)
-                await self._queue.put((priority, time.time(), task))
-                logger.info(f"Task {task.id} requeued for retry {task.retry_count}/{task.max_retries}")
+                try:
+                    self._queue.put_nowait((priority, next(self._sequence), task))
+                except asyncio.QueueFull:
+                    task.status = TaskStatus.FAILED
+                    task.error = "Retry queue is full"
+                else:
+                    logger.info(f"Task {task.id} requeued for retry {task.retry_count}/{task.max_retries}")
             else:
                 task.status = TaskStatus.FAILED
                 logger.exception(f"Task {task.id} failed after {task.retry_count} retries: {e}")
 
         finally:
-            task.completed_at = time.time()
+            task.completed_at = None if task.status == TaskStatus.QUEUED else time.time()
             self._running_tasks.pop(task.id, None)
-            self._completed_tasks.append(task)
+            if task.status != TaskStatus.QUEUED:
+                self._completed_tasks.append(task)
             self._queue.task_done()

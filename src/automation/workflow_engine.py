@@ -127,26 +127,32 @@ class WorkflowEngine:
         while True:
             executable_steps = self.state_manager.get_next_executable_steps(workflow_id, {s.id: s.model_dump() for s in workflow_def.steps})
 
+            if state.status == WorkflowStatus.CANCELLED:
+                break
             if not executable_steps:
-                if state.is_complete():
+                failed = state.get_failed_steps()
+                if failed:
+                    self.state_manager.update_workflow_status(
+                        workflow_id, WorkflowStatus.FAILED,
+                        f"Steps failed: {[s.step_id for s in failed]}",
+                    )
+                elif state.is_complete():
                     self.state_manager.update_workflow_status(workflow_id, WorkflowStatus.COMPLETED)
                 else:
-                    failed = state.get_failed_steps()
-                    if failed:
-                        self.state_manager.update_workflow_status(
-                            workflow_id,
-                            WorkflowStatus.FAILED,
-                            f"Steps failed: {[s.step_id for s in failed]}"
-                        )
-                    else:
-                        self.state_manager.update_workflow_status(workflow_id, WorkflowStatus.COMPLETED)
+                    self.state_manager.update_workflow_status(
+                        workflow_id, WorkflowStatus.FAILED,
+                        "Workflow blocked: unresolved or cyclic dependencies",
+                    )
                 break
 
             semaphore = asyncio.Semaphore(self.max_concurrent_steps)
 
             async def execute_step_with_semaphore(step_id: str):
                 async with semaphore:
-                    await self._execute_step(workflow_id, step_id, step_map[step_id], state)
+                    try:
+                        await self._execute_step(workflow_id, step_id, step_map[step_id], state)
+                    except Exception as exc:
+                        self.state_manager.fail_step(workflow_id, step_id, str(exc))
 
             tasks = [execute_step_with_semaphore(step_id) for step_id in executable_steps]
             await asyncio.gather(*tasks, return_exceptions=True)
@@ -205,9 +211,9 @@ class WorkflowEngine:
 
         try:
             start_time = time.perf_counter()
-            response = await self.model_provider.complete(
-                agent_def.default_model,
-                request,
+            response = await asyncio.wait_for(
+                self.model_provider.complete(agent_def.default_model, request),
+                timeout=step_def.timeout_seconds,
             )
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
