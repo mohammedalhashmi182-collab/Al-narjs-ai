@@ -157,10 +157,12 @@ def test_home_without_javascript(browser):
         page.route('**/*', lambda route: route.abort())
         page.route('http://testserver/**', serve)
         page.goto('http://testserver/home')
-        for counter in page.locator('.hero-facts b').all():
+        counters = page.locator('#team .facts b[data-target]').all()
+        assert len(counters) >= 2
+        for counter in counters:
             assert int(counter.inner_text()) > 0
         assert page.locator('#team').is_visible()
-        assert page.locator('.dv-card').count() > 0
+        assert page.locator('#team details.dv').count() > 0
         assert page.locator('#pricing .plan').count() == 3
         assert page.locator('#team .rv').first.evaluate('(el) => getComputedStyle(el).opacity') == '1'
         page.close()
