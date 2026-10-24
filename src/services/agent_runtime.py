@@ -164,7 +164,13 @@ async def execute(
             )
         except Exception as exc:
             review_error = type(exc).__name__
-            review = {"verdict": "RETURN" if issues else "PASS", "issues": list(issues)}
+            if profile.evidence_mode == "strict":
+                review = {
+                    "verdict": "RETURN",
+                    "issues": list(issues) + ["strict quality review unavailable"],
+                }
+            else:
+                review = {"verdict": "RETURN" if issues else "PASS", "issues": list(issues)}
 
     all_issues = list(dict.fromkeys(issues + list(review.get("issues") or [])))
     corrected = False
