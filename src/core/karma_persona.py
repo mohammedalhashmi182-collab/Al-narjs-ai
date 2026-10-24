@@ -178,6 +178,12 @@ _INTEG_NOTE_AR = "الربط مع أنظمة خارجية محددة غير مؤ
 _INTEG_NOTE_EN = "Integration with specific outside systems isn't confirmed in our sources; press \u201cAsk a person to contact me\u201d and the team will check."
 
 
+# A line that already denies phone support or tax invoices is correct; rewriting
+# or dropping it turned "no phone support" into "no support via the site".
+_NEGATION = re.compile(r"(?:^|[\s«(])(?:لا|ما|ليس|ليست|لسنا|بدون|غير|مافي|ما فيه|ولا)(?=[\s»)]|$)|"
+                       r"\b(?:no|not|don't|doesn't|do not|does not|never|without|isn't|aren't)\b", re.I)
+
+
 def _names_unverified(line: str, sources: str) -> bool:
     for name in UNVERIFIED_INTEGRATIONS:
         pat = r"(?<![\w\u0600-\u06FF])" + re.escape(name) + r"(?![\w\u0600-\u06FF])"
@@ -191,15 +197,17 @@ def enforce_reply_policy(reply: str, *, locale: str = "ar", sources: str = "") -
     invented integrations from a consult reply. Idempotent."""
     ar = locale != "en"
     text = reply or ""
-    for pat, rep in _PHONE_SUPPORT:
-        text = pat.sub(rep if ar or rep.isascii() else rep, text)
     out: list[str] = []
     notes: list[str] = []
     for line in text.split("\n"):
+        negated = bool(_NEGATION.search(line))
+        if not negated:
+            for pat, rep in _PHONE_SUPPORT:
+                line = pat.sub(rep, line)
         if _ASKS_CONTACT.search(line):
             notes.append(_ASK_CONTACT_AR if ar else _ASK_CONTACT_EN)
             continue
-        if _VAT_CLAIM.search(line):
+        if _VAT_CLAIM.search(line) and not negated:
             notes.append(_VAT_FACT_AR if ar else _VAT_FACT_EN)
             continue
         if _names_unverified(line, sources):
