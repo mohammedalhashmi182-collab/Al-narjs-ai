@@ -41,7 +41,7 @@ def _prompt(locale="ar"):
 def test_prompt_states_tax_and_setup_facts():
     p = _prompt()
     assert "NOT VAT-registered" in p and "NO VAT" in p and "tax invoices" in p
-    assert "ONE-TIME" in p and "WAIVED on annual billing" in p and "not part of the monthly" in p
+    assert "ONE-TIME" in p and "NO annual waiver" in p and "WAIVED" not in p and "not part of the monthly" in p
 
 
 def test_wrong_vat_claim_is_replaced():
@@ -115,7 +115,7 @@ def test_consult_endpoint_answers_plan_question_and_cleans_reply(monkeypatch):
     assert "1,490" in body["reply"] and "الهاتف" not in body["reply"] and "بريدك" not in body["reply"]
     sp = _M.req.system_prompt
     assert "Email and phone support" not in sp and "no phone support" in sp
-    assert "one-time setup fee of 990 SAR" in sp and "waived on annual billing" in sp
+    assert "one-time setup fee of 990 SAR" in sp and "charged on monthly and annual billing alike" in sp and "waived" not in sp.lower()
     assert "790" in sp and "1490" in sp and "2990" in sp
 
 

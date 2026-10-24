@@ -2209,7 +2209,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         f"{p['name']} ({p['name_en']}): {p['price']} SAR/month"
         f"{' before VAT' if _vat_pm.vat_enabled() else ' (no VAT; operator not VAT-registered)'}, "
         + (f"plus a separate one-time setup fee of {int(p.get('setup_fee') or 0) // 100} SAR on the first "
-           f"month (not part of the monthly price), waived on annual billing. "
+           f"order (not part of the monthly price), charged on monthly and annual billing alike. "
            if int(p.get("setup_fee") or 0) else "no setup fee. ")
         + f"Specialist agents included: {', '.join(_catalog.EMPLOYEES[a]['title_en'] for a in _catalog.PACKAGE_TEAMS.get(k, []) if a in _catalog.EMPLOYEES and a != _catalog.CEO_SLUG)}. "
         + "; ".join(_consult_scope_line(x) for x in (p.get("scope_en") or []))
