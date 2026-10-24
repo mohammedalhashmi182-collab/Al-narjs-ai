@@ -942,16 +942,19 @@ async def public_agent_page(slug: str, request: Request):
     if not employee:
         raise HTTPException(404, "Agent not found")
 
+    # Catalog entries carry no "slug" key, so attach it for the card links.
     same_dept = [
-        emp
+        {**emp, "slug": key}
         for key, emp in catalog.EMPLOYEES.items()
         if key != slug and emp.get("dept") == employee.get("dept")
     ]
     related = same_dept[:6]
     if len(related) < 6:
+        taken = {r["slug"] for r in related}
         for key, emp in catalog.EMPLOYEES.items():
-            if key != slug and emp not in related:
-                related.append(emp)
+            if key != slug and key not in taken:
+                related.append({**emp, "slug": key})
+                taken.add(key)
             if len(related) >= 6:
                 break
 
