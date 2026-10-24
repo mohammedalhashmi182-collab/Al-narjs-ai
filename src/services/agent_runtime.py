@@ -116,9 +116,13 @@ async def execute(
     quality_gate: bool = True,
 ) -> RuntimeResult:
     """Execute one agent with skills, evidence discipline, fallback and QA."""
-    slug = str(agent_def.slug)
+    metadata = metadata or {}
+    slug = str(getattr(agent_def, "slug", None) or metadata.get("agent_slug") or "general")
     category = _category(agent_def)
     profile = profile_for(slug, category)
+    model_spec = str(
+        getattr(agent_def, "default_model", None) or "gemini:gemini-3.6-flash"
+    )
     runtime_system = system_block(
         slug,
         category,
@@ -137,11 +141,11 @@ async def execute(
         temperature=min(requested_temp, profile.temperature_cap),
         max_tokens=max(requested_tokens, profile.min_tokens),
         top_p=top_p if top_p is not None else float((getattr(agent_def, "default_parameters", {}) or {}).get("top_p", 1.0)),
-        metadata=metadata or {},
+        metadata=metadata,
     )
 
     started = time.perf_counter()
-    call = _complete(model_provider, str(agent_def.default_model), request)
+    call = _complete(model_provider, model_spec, request)
     response = await asyncio.wait_for(call, timeout=timeout) if timeout else await call
     draft = (getattr(response, "content", "") or "").strip()
     if not draft:
@@ -150,7 +154,8 @@ async def execute(
     issues = deterministic_issues(draft)
     review = {"verdict": "PASS", "issues": []}
     review_error = None
-    if quality_gate and profile.quality_gate:
+    qa_supported = callable(getattr(model_provider, "complete_with_fallback", None))
+    if quality_gate and profile.quality_gate and qa_supported:
         try:
             review = await _review(
                 model_provider,
@@ -171,6 +176,10 @@ async def execute(
                 }
             else:
                 review = {"verdict": "RETURN" if issues else "PASS", "issues": list(issues)}
+    elif quality_gate and profile.quality_gate:
+        # Test seams or custom providers may implement only complete(). The
+        # production ModelProvider always supports complete_with_fallback().
+        review_error = "quality_provider_not_supported"
 
     all_issues = list(dict.fromkeys(issues + list(review.get("issues") or [])))
     corrected = False
@@ -189,21 +198,22 @@ async def execute(
             + "\n- ".join(all_issues or ["quality review requested correction"])
             + "\n\nReturn only the corrected final deliverable."
         )
-        fix = await model_provider.complete_with_fallback(
-            "gemini",
-            ModelRequest(
-                prompt=correction_prompt,
-                system_prompt=correction_system,
-                temperature=min(0.2, profile.temperature_cap),
-                max_tokens=max(profile.min_tokens, 2600),
-                metadata=metadata or {},
-            ),
+        correction_request = ModelRequest(
+            prompt=correction_prompt,
+            system_prompt=correction_system,
+            temperature=min(0.2, profile.temperature_cap),
+            max_tokens=max(profile.min_tokens, 2600),
+            metadata=metadata,
         )
+        if qa_supported:
+            fix = await model_provider.complete_with_fallback("gemini", correction_request)
+        else:
+            fix = await _complete(model_provider, model_spec, correction_request)
         final = (getattr(fix, "content", "") or "").strip()
         remaining = deterministic_issues(final)
         if not final or remaining:
             raise RuntimeError("Al-Narjis Quality Gate rejected the corrected deliverable")
-        if profile.evidence_mode == "strict" and quality_gate:
+        if profile.evidence_mode == "strict" and quality_gate and qa_supported:
             try:
                 second = await _review(
                     model_provider,
@@ -226,7 +236,7 @@ async def execute(
         structured = structured.model_dump()
     return RuntimeResult(
         content=final,
-        model=str(getattr(response, "model", "") or agent_def.default_model),
+        model=str(getattr(response, "model", "") or model_spec),
         tokens_used=int(getattr(response, "tokens_used", 0) or 0),
         latency_ms=latency,
         structured_output=structured,
@@ -237,5 +247,8 @@ async def execute(
             "skills": list(profile.skills),
             "tools": list(profile.tools),
             "review_error": review_error,
+            "verified": bool(
+                not quality_gate or not profile.quality_gate or qa_supported
+            ),
         },
     )
