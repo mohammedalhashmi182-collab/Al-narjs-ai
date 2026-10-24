@@ -26,7 +26,7 @@ prompts:
 
     - What to examine (site, store, accounts, infrastructure): {{scope}}'
 is_system: true
-x_tasami:
+x_narjis:
   code: CO-01
   dept: CO
   authority: suggest
