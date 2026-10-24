@@ -38,6 +38,7 @@ must(health.get("status")=="healthy",f"liveness={health}")
 deep=jget("/health?deep=1")
 must((deep.get("db") or {}).get("ok") is True,f"db={deep.get('db')}")
 external=deep.get("external") or {}
+capabilities=deep.get("capabilities") or {}
 
 agents=jget("/api/agents").get("agents") or []
 must(len(agents)==35,f"expected 35 public agents, got {len(agents)}")
@@ -109,6 +110,7 @@ print(json.dumps({
   "agents":len(agents),
   "db":deep.get("db"),
   "externals":external,
+  "capabilities":capabilities,
   "channels":channels,
   "moyasar_card":caps.get("card"),
   "stores":store_routes,
