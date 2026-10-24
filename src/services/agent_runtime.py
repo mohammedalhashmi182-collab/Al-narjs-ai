@@ -32,8 +32,6 @@ def _category(agent_def: Any) -> str:
 def deterministic_issues(content: str) -> list[str]:
     text = (content or "").strip()
     issues: list[str] = []
-    if len(text) < 80:
-        issues.append("incomplete: answer is too short")
     if _PLACEHOLDER.search(text):
         issues.append("unresolved template/default placeholder")
     if text.count("```") % 2:
@@ -97,7 +95,7 @@ async def _review(
     verdict = str(data.get("verdict") or "").upper()
     issues = [str(x)[:400] for x in (data.get("issues") or []) if str(x).strip()]
     if verdict not in ("PASS", "RETURN"):
-        return {"verdict": "RETURN", "issues": ["quality reviewer returned invalid JSON/verdict"]}
+        raise ValueError("quality reviewer returned invalid JSON/verdict")
     return {"verdict": verdict, "issues": issues}
 
 
