@@ -38,23 +38,25 @@ async def execute_agent(
     prompt_engine = PromptEngine()
     rendered = prompt_engine.render(tmpl.template_text, input_data)
 
-    settings = agent.default_parameters
-    request = ModelRequest(
-        prompt=rendered.user_prompt,
-        system_prompt=rendered.system_prompt,
-        temperature=settings.get("temperature", 0.7),
-        max_tokens=settings.get("max_tokens", 2000),
-    )
+    from src.services import agent_runtime
 
     model_provider = ModelProvider(get_settings())
-    response = await model_provider.complete(agent.default_model, request)
+    response = await agent_runtime.execute(
+        model_provider,
+        agent,
+        prompt=rendered.user_prompt,
+        system_prompt=rendered.system_prompt,
+        locale=str(input_data.get("locale") or "ar"),
+        quality_gate=True,
+    )
 
     return {
         "content": response.content,
-        "structured_output": response.structured_output.model_dump() if response.structured_output else None,
+        "structured_output": response.structured_output,
         "tokens_used": response.tokens_used,
         "latency_ms": response.latency_ms,
         "model": response.model,
+        "quality": response.quality,
     }
 
 
