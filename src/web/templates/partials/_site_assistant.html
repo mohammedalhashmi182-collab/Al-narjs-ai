@@ -19,6 +19,7 @@
 #saLog{padding:12px;max-height:46vh;min-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 #saLog .m{padding:8px 11px;border-radius:12px;white-space:pre-wrap;max-width:90%}
 #saLog .bot{background:#efe6d6;align-self:flex-start}
+#saLog .bot p{margin:0 0 .35em}#saLog .bot p:last-child{margin-bottom:0}#saLog .bot ul,#saLog .bot ol{margin:.2em 0 .4em;padding-inline-start:1.2em}#saLog .bot .sa-h{display:block}
 #saLog .me{background:#2f4a2a;color:#fff;align-self:flex-end}
 #saForm{display:flex;gap:6px;padding:10px;border-top:1px solid rgba(0,0,0,.08)}
 #saForm input{flex:1;min-width:0;border:1px solid rgba(0,0,0,.18);border-radius:10px;padding:8px 10px;font:inherit}
@@ -128,7 +129,33 @@
         e.preventDefault(); openAssistant();
     });
     if (location.hash === '#assistant') openAssistant();
-    function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
+    // Safe mini-markdown for bot replies: built only with createElement +
+    // textContent (no HTML parsing), so model or visitor text can't inject HTML.
+    // Supports **bold**, "#" headings, "-"/"*"/"1." lists; anything else is plain text.
+    function inl(parent, s) {
+        var parts = String(s).split('**');
+        for (var i = 0; i < parts.length; i++) {
+            if (!parts[i]) continue;
+            if (i % 2 === 1 && i < parts.length - 1) { var b = document.createElement('strong'); b.textContent = parts[i]; parent.appendChild(b); }
+            else parent.appendChild(document.createTextNode((i % 2 === 1 ? '**' : '') + parts[i]));
+        }
+    }
+    function renderMd(box, t) {
+        var lines = String(t).replace(/\r/g, '').split('\n'), list = null, m;
+        for (var i = 0; i < lines.length; i++) {
+            var ln = lines[i].replace(/\s+$/, '');
+            if ((m = /^\s*(?:[-*\u2022]|\d{1,2}[.)])\s+(.*)$/.exec(ln))) {
+                if (!list) { list = document.createElement(/^\s*\d/.test(ln) ? 'ol' : 'ul'); box.appendChild(list); }
+                var li = document.createElement('li'); inl(li, m[1]); list.appendChild(li); continue;
+            }
+            list = null;
+            if (!ln.trim()) continue;
+            if ((m = /^\s*#{1,6}\s+(.*)$/.exec(ln))) { var h = document.createElement('strong'); h.className = 'sa-h'; inl(h, m[1].replace(/\*\*/g, '')); var p0 = document.createElement('p'); p0.appendChild(h); box.appendChild(p0); continue; }
+            var p = document.createElement('p'); inl(p, ln); box.appendChild(p);
+        }
+    }
+    window.narjisRenderMd = renderMd;
+    function add(cls, t) { var d = document.createElement('div'); d.className = 'm ' + cls; if (cls === 'bot') renderMd(d, t); else d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
     form.addEventListener('submit', function (e) {
         e.preventDefault(); var t = inp.value.trim(); if (!t) return;
         inp.value = ''; add('me', t); lastQ = t; if (COMPLAINT.test(t) || HUMAN.test(t)) offerHandoff(); history.push({ role: 'user', content: t });
