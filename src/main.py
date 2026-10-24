@@ -811,6 +811,7 @@ async def _pricing_context() -> dict:
         "founding_offer": catalog.FOUNDING_OFFER if catalog.founding_enabled() else None,
         "founding": await _founding_status_safe() if catalog.founding_enabled() else None,
         "setup_guarantee": catalog.SETUP_GUARANTEE,
+        "payments_pending": not _pm.moyasar_collects_money(),
     }
 
 
@@ -1164,6 +1165,7 @@ async def client_portal_page(request: Request):
             "contact": transfer.contact_channels(),
             "bank_transfer_enabled": _pm.customer_bank_transfer_enabled(),
             "paypal_customer_enabled": _pm.customer_paypal_enabled(),
+            "payments_pending": not _pm.moyasar_collects_money(),
         },
     )
 
