@@ -185,7 +185,7 @@
                 {% endif %}
                 <label id="refundConsentRow" for="refundConsent" class="portal-consent flex items-start gap-2 mb-4 text-sm">
                     <input type="checkbox" id="refundConsent" name="refund_consent" required class="mt-0.5">
-                    <span>{% if _lang == 'ar' %}<span>أوافق على أن: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span>{% else %}<span data-inline>I agree that: “The service starts immediately and the amount is non-refundable after activation.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span>{% endif %}</span>
+                    <span>{% if _lang == 'ar' %}<span>أوافق على أن: «الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)</span>{% else %}<span data-inline>I agree that: “The service starts once it is activated and the amount is non-refundable after activation, except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>)</span>{% endif %}</span>
                 </label>
                 <div class="grid sm:grid-cols-2 gap-4" id="coMethods"></div>
                 <p id="coCardNote" hidden class="mt-4 text-sm portal-description" role="status"></p>
@@ -745,7 +745,7 @@ note.textContent = msg;
                 msg.style.display = 'block';
                 const consentBox = $('refundConsent');
                 if (!consentBox || !consentBox.checked) {
-                    msg.textContent = txt('لازم توافق على أن الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل قبل الدفع.', 'Please tick the non-refundable consent before paying.');
+                    msg.textContent = txt('لازم توافق على أن الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط، قبل الدفع.', 'Please agree that: The service starts once it is activated and the amount is non-refundable after activation, except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only, before paying.');
                     if (consentBox) consentBox.focus();
                     release();
                     return;

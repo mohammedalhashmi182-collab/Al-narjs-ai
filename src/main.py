@@ -2970,7 +2970,7 @@ class PaymentCreateRequest(BaseModel):
     addons: int = 0                  # extra agents on top of the tier, 299 SAR/month each (an integer count)
     conversation_packs: int = 0      # +1,000 conversations / month, 99 SAR each
     voice_packs: int = 0             # +100 voice minutes / month, 99 SAR each
-    # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
+    # Mandatory: buyer ticked policies.REFUND_CONSENT_AR (setup-fee exception included).
     refund_consent: bool = False
 
 
@@ -2998,7 +2998,7 @@ def _record_refund_consent(payment) -> None:
 
 
 class InvoiceConsentRequest(BaseModel):
-    # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
+    # Mandatory: buyer ticked policies.REFUND_CONSENT_AR (setup-fee exception included).
     refund_consent: bool = False
 
 

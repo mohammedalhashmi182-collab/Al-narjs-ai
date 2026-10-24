@@ -3,13 +3,13 @@
     checkout consent (services/policies.py) and the setup guarantee
     (catalog.SETUP_GUARANTEE). Do not add terms that are not in those. -#}
 {% block title %}{% if ar %}سياسة الاسترداد | النرجس للذكاء الاصطناعي{% else %}Refund Policy | Al-Narjis AI{% endif %}{% endblock %}
-{% block description %}{% if ar %}سياسة الاسترداد في النرجس للذكاء الاصطناعي: لا استرداد بعد التفعيل، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني.{% else %}Al-Narjis AI refund policy: no refunds after activation; duplicate charges and technical billing errors are always refunded.{% endif %}{% endblock %}
+{% block description %}{% if ar %}سياسة الاسترداد في النرجس للذكاء الاصطناعي: لا استرداد بعد التفعيل باستثناء رسوم الإعداد، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني.{% else %}Al-Narjis AI refund policy: no refunds after activation except the setup fee; duplicate charges and technical billing errors are always refunded.{% endif %}{% endblock %}
 {% block h1 %}{% if ar %}سياسة الاسترداد{% else %}Refund Policy{% endif %}{% endblock %}
 {% block body %}
 {% if ar %}
 <p>هذه السياسة جزء من <a href="/terms">الشروط والأحكام</a> ومأخوذة منها.</p>
 <h2 class="n-title text-lg">1. بعد التفعيل</h2>
-<p>لا يوجد استرداد بعد تفعيل الخدمة. تفعيل الخدمة يبدأ فور استلام الدفعة. قبل الدفع يوافق العميل صراحة على أن «{{ refund_consent_ar }}»، ولا يكتمل الدفع بدون هذه الموافقة.</p>
+<p>لا يوجد استرداد بعد تفعيل الخدمة باستثناء رسوم الإعداد (البند 4). تفعيل الخدمة يبدأ بعد استلام الدفعة. قبل الدفع يوافق العميل صراحة على أن «{{ refund_consent_ar }}»، ولا يكتمل الدفع بدون هذه الموافقة.</p>
 <h2 class="n-title text-lg">2. ما يُسترد دائماً</h2>
 <p>يُسترد المبلغ دائماً في حالتين:</p>
 <ul><li>الخصم المكرر.</li><li>خطأ تقني في الفوترة.</li></ul>
@@ -24,7 +24,7 @@
 {% else %}
 <p>This policy is part of, and taken from, our <a href="/terms">Terms of Service</a>.</p>
 <h2 class="n-title text-lg">1. After activation</h2>
-<p>No refunds after activation. Service starts as soon as payment is received. Before paying, the customer explicitly agrees that “{{ refund_consent_en }}”; payment cannot be completed without this consent.</p>
+<p>No refunds after activation, except the setup fee (section 4). Service activation begins after payment is received. Before paying, the customer explicitly agrees that “{{ refund_consent_en }}”; payment cannot be completed without this consent.</p>
 <h2 class="n-title text-lg">2. Always refunded</h2>
 <p>Amounts are always refunded in two cases:</p>
 <ul><li>A duplicate charge.</li><li>A technical billing error.</li></ul>

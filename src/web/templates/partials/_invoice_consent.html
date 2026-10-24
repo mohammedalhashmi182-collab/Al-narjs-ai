@@ -42,7 +42,7 @@
             var box = document.getElementById('refundConsent');
             if (box && box.checked) { err.hidden = true; return true; }
             err.hidden = false;
-            err.textContent = ar ? 'لازم توافق على أن الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل قبل الدفع.' : 'Please tick the non-refundable consent before paying.';
+            err.textContent = ar ? 'لازم توافق على أن الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط، قبل الدفع.' : 'Please agree that: The service starts once it is activated and the amount is non-refundable after activation, except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only, before paying.';
             if (box) box.focus();
             return false;
         };

@@ -91,6 +91,7 @@ FIXED FACTS (always true; never contradict them)
 - Refund: the ONLY refund is the one-time setup fee, and only if the first agent is not working within
   10 business days. The subscription itself is not refunded; a duplicate charge is reviewed by the
   team (press «اطلب تواصل موظف»). Never name a person as the refund contact.
+  Owner wording: «الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط».
 - Contact: never ask the visitor for their email, phone number or name inside the chat. When a
   person is needed, tell them to press «اطلب تواصل موظف» in this assistant; that form collects
   what the team needs. The site shows no phone numbers or email addresses.
