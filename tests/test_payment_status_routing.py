@@ -115,9 +115,12 @@ async def test_api_paypal_status_and_gateway_error_is_502(maker, monkeypatch, no
     monkeypatch.setattr(pm, "get_paypal_order", fake_get)
     app.state.session_factory = maker
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
-        ok = await c.get(f"/api/payments/{p.id}")
+        from src.core.portal_auth import make_payment_token
+
+        auth = {"X-Payment-Token": make_payment_token(p.id)}
+        ok = await c.get(f"/api/payments/{p.id}", headers=auth)
         state["fail"] = True
-        bad = await c.get(f"/api/payments/{p.id}")
+        bad = await c.get(f"/api/payments/{p.id}", headers=auth)
         missing = await c.get("/api/payments/00000000-0000-0000-0000-000000000000")
         junk = await c.get("/api/payments/not-a-uuid")
     assert ok.status_code == 200 and ok.json()["status"] == "pending" and ok.json()["gateway"] == "paypal"

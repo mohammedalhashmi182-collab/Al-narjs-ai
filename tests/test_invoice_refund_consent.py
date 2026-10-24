@@ -8,6 +8,9 @@ from uuid import UUID
 
 import httpx
 import pytest
+
+# Retain mocked integration coverage for the separately approved future release.
+pytestmark = pytest.mark.usefixtures("moyasar_release")
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 

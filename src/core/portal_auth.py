@@ -79,6 +79,20 @@ def make_magic_token(project_id, nonce: str, now: float | None = None) -> str:
     return _encode({"p": str(project_id), "n": nonce, "exp": int((now or time.time()) + MAGIC_TTL)}, "magic")
 
 
+PAYMENT_TOKEN_TTL = 24 * 3600
+
+
+def make_payment_token(payment_id, now: float | None = None) -> str:
+    """Short-lived bearer for one payment, carried in the gateway return URL so
+    the buyer can read/capture it before any portal session exists."""
+    return _encode({"pay": str(payment_id), "exp": int((now or time.time()) + PAYMENT_TOKEN_TTL)}, "payment")
+
+
+def payment_token_valid(token: Optional[str], payment_id) -> bool:
+    body = _decode(token, "payment")
+    return bool(body) and body.get("pay") == str(payment_id)
+
+
 def read_magic_token(token: str) -> Optional[dict]:
     return _decode(token, "magic")
 
@@ -129,6 +143,24 @@ def session_valid_for(claims: Optional[dict], project) -> bool:
     if claims.get("lg") and not legacy_allowed(project):
         return False  # legacy UUID session: never-paid projects only
     return True
+
+
+async def can_access_payment(session, request: Request, payment) -> bool:
+    """Owner, a portal session bound to the payment's project, or the signed
+    payment token from the return URL (``pt`` query param / X-Payment-Token)."""
+    from src.core.owner_auth import check_owner
+    from src.models import ClientProject
+
+    if check_owner(request):
+        return True
+    token = request.query_params.get("pt") or request.headers.get("x-payment-token")
+    if payment_token_valid(token, payment.id):
+        return True
+    if payment.project_id:
+        project = await session.get(ClientProject, payment.project_id)
+        if session_valid_for(session_claims(request), project):
+            return True
+    return False
 
 
 async def require_portal_project(session, request: Request, pid: str):

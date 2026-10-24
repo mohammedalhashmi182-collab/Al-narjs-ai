@@ -223,8 +223,9 @@ async def lifespan(app: FastAPI):
         except (asyncio.CancelledError, Exception):  # noqa: BLE001
             pass
     await agent_registry.stop_background_sync()
-    await model_provider.close()
+    # Stop the queue first: in-flight tasks still need the model provider.
     await queue_worker.stop()
+    await model_provider.close()
     await scheduler.stop()
     await trigger_engine.stop()
     await close_db()
@@ -2909,6 +2910,14 @@ async def owner_payment_readiness():
     return await pm.readiness_async()
 
 
+def _payment_return_qs(payment) -> str:
+    """Query string for gateway return URLs: the id plus a signed, short-lived
+    token that authorizes GET /api/payments/{id} and /capture for that buyer."""
+    from src.core.portal_auth import make_payment_token
+
+    return f"id={payment.id}&pt={make_payment_token(payment.id)}"
+
+
 def _public_base_url(request: Request) -> str:
     """Origin for URLs handed to a gateway: PUBLIC_BASE_URL, else the request
     origin with the proxy's X-Forwarded-Proto honoured (TLS ends at the proxy)."""
@@ -3071,8 +3080,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     session,
                     payment,
                     amount_halalas=charge,
-                    return_url=f"{base}/payment/success?id={payment.id}",
-                    cancel_url=f"{base}/payment/failure?id={payment.id}",
+                    return_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
+                    cancel_url=f"{base}/payment/failure?{_payment_return_qs(payment)}",
                 )
                 return {
                     "payment_id": str(payment.id),
@@ -3130,8 +3139,8 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     session,
                     payment,
                     source,
-                    success_url=f"{base}/payment/success?id={payment.id}",
-                    back_url=f"{base}/payment/failure?id={payment.id}",
+                    success_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
+                    back_url=f"{base}/payment/failure?{_payment_return_qs(payment)}",
                     callback_url=f"{base}/webhooks/moyasar",
                 )
                 return {
@@ -3206,7 +3215,10 @@ async def capture_payment(payment_id: str, request: Request):
     async with app.state.session_factory() as session:
         result = await session.execute(select(Payment).where(Payment.id == payment_uuid))
         payment = result.scalar_one_or_none()
-        if not payment:
+        from src.core.portal_auth import can_access_payment
+
+        # Same 404 for "missing" and "not yours": the UUID is no credential.
+        if not payment or not await can_access_payment(session, request, payment):
             raise HTTPException(404, "Payment not found")
 
         if payment.gateway == "paypal" and payment.gateway_payment_id:
@@ -3226,13 +3238,7 @@ async def capture_payment(payment_id: str, request: Request):
 
     email_sent = False
     if payment.status == "paid" and payment.customer_email:
-        from src.services import email_service
-        email_sent = await email_service.send_invoice(
-            payment,
-            base_halalas=payment.amount,
-            total_halalas=pm.payment_total(payment),
-            locale=locale,
-        )
+        email_sent = await _send_invoice_once(payment, locale)
 
     return {
         "payment_id": str(payment.id),
@@ -3244,6 +3250,44 @@ async def capture_payment(payment_id: str, request: Request):
         "invoice_url": f"/invoice/{payment.id}" if payment.status == "paid" else None,
         "email_sent": email_sent,
     }
+
+
+async def _send_invoice_once(payment, locale: str) -> bool:
+    """Email the paid invoice at most once. The row is claimed atomically
+    (invoice_emailed_at NULL -> now) before sending, and released on failure."""
+    from datetime import datetime as _dt, timezone as _tz
+
+    from sqlalchemy import update as _upd
+
+    from src.models import Payment as _Payment
+    from src.services import email_service
+    from src.services import payments as pm
+
+    async with app.state.session_factory() as session:
+        claimed = await session.execute(
+            _upd(_Payment)
+            .where(_Payment.id == payment.id, _Payment.invoice_emailed_at.is_(None))
+            .values(invoice_emailed_at=_dt.now(_tz.utc))
+        )
+        await session.commit()
+        if claimed.rowcount != 1:
+            return False
+    sent = False
+    try:
+        sent = await email_service.send_invoice(
+            payment,
+            base_halalas=payment.amount,
+            total_halalas=pm.payment_total(payment),
+            locale=locale,
+        )
+    finally:
+        if not sent:
+            async with app.state.session_factory() as session:
+                await session.execute(
+                    _upd(_Payment).where(_Payment.id == payment.id).values(invoice_emailed_at=None)
+                )
+                await session.commit()
+    return sent
 
 
 async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> dict:
@@ -3736,7 +3780,7 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
                 session,
                 payment,
                 _pm.source_credit_card(),
-                success_url=f"{base}/payment/success?id={payment.id}",
+                success_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
                 back_url=f"{base}/invoice/{payment.id}",
                 callback_url=f"{base}/webhooks/moyasar",
             )
@@ -3835,13 +3879,23 @@ async def invoice_page(request: Request, payment_id: str):
 
 
 @app.get("/api/payments/{payment_id}")
-async def get_payment(payment_id: str):
+async def get_payment(payment_id: str, request: Request):
     from uuid import UUID
+    from src.core.portal_auth import can_access_payment
+    from src.models import Payment as _Payment
     from src.services import payments as pm
 
     async with app.state.session_factory() as session:
         try:
-            payment = await pm.verify_payment(session, UUID(payment_id))
+            pid = UUID(payment_id)
+        except ValueError:
+            raise HTTPException(404, "Payment not found")
+        # Authorize before verify_payment: a stranger must not trigger a gateway call.
+        row = await session.get(_Payment, pid)
+        if row is None or not await can_access_payment(session, request, row):
+            raise HTTPException(404, "Payment not found")
+        try:
+            payment = await pm.verify_payment(session, pid)
         except ValueError:
             raise HTTPException(404, "Payment not found")
         except pm.PaymentNotFound as e:
@@ -3944,7 +3998,7 @@ async def pay_invoice_with_paypal(payment_id: str, body: InvoiceConsentRequest, 
             order = await pm.create_paypal_order(
                 session,
                 payment,
-                return_url=f"{base}/payment/success?id={payment.id}",
+                return_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
                 cancel_url=f"{base}/invoice/{payment.id}",
             )
         except pm.PaymentError as exc:

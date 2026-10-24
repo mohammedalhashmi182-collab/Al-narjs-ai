@@ -143,6 +143,13 @@ async def _checkout(client, consent=True):
     }, headers={"idempotency-key": uuid.uuid4().hex})
 
 
+def _pt(pid) -> dict:
+    # The buyer's return URL carries this signed token (see _payment_return_qs).
+    from src.core.portal_auth import make_payment_token
+
+    return {"X-Payment-Token": make_payment_token(pid)}
+
+
 async def _payment(maker, pid) -> Payment:
     async with maker() as s:
         return (await s.execute(select(Payment).where(Payment.id == __import__("uuid").UUID(pid)))).scalar_one()
@@ -186,9 +193,9 @@ class TestCheckout:
 
     async def test_capture_marks_paid_once(self, client, maker, paypal):
         data = (await _checkout(client)).json()
-        r = await client.post(f"/api/payments/{data['payment_id']}/capture", json={"order_id": "IGNORED"})
+        r = await client.post(f"/api/payments/{data['payment_id']}/capture", headers=_pt(data['payment_id']), json={"order_id": "IGNORED"})
         assert r.json()["status"] == "paid"
-        r2 = await client.post(f"/api/payments/{data['payment_id']}/capture", json={})
+        r2 = await client.post(f"/api/payments/{data['payment_id']}/capture", headers=_pt(data['payment_id']), json={})
         assert r2.json()["status"] == "paid"
         captures = [c for c in paypal.calls if c[1].endswith("/capture")]
         assert len(captures) == 1
@@ -199,7 +206,7 @@ class TestCheckout:
     async def test_amount_mismatch_goes_to_review(self, client, maker, paypal):
         paypal.capture_value_override = "1.00"
         data = (await _checkout(client)).json()
-        r = await client.post(f"/api/payments/{data['payment_id']}/capture", json={})
+        r = await client.post(f"/api/payments/{data['payment_id']}/capture", headers=_pt(data['payment_id']), json={})
         assert r.json()["status"] == pm.REVIEW_STATUS
         async with maker() as s:
             assert (await s.execute(select(ClientProject))).scalars().first() is None
@@ -207,7 +214,7 @@ class TestCheckout:
     async def test_currency_mismatch_goes_to_review(self, client, paypal):
         paypal.capture_currency_override = "SAR"
         data = (await _checkout(client)).json()
-        r = await client.post(f"/api/payments/{data['payment_id']}/capture", json={})
+        r = await client.post(f"/api/payments/{data['payment_id']}/capture", headers=_pt(data['payment_id']), json={})
         assert r.json()["status"] == pm.REVIEW_STATUS
 
 

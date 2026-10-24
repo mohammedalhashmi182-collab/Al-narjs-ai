@@ -248,6 +248,8 @@ class Payment(Base):
     # SAR halalas billed (base + VAT at the rate in force when the order was
     # created). Confirmation and invoices use this, never the current rate.
     total_halalas: Mapped[Optional[int]] = mapped_column(nullable=True)
+    # Set once the paid invoice email went out: /capture never re-sends it.
+    invoice_emailed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     # Usage add-on packs bought with the order (+1000 conversations / +100 voice min each).
     addon_conversation_packs: Mapped[int] = mapped_column(default=0, server_default="0")
     addon_voice_packs: Mapped[int] = mapped_column(default=0, server_default="0")

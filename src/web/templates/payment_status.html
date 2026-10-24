@@ -66,6 +66,9 @@
             var qp = new URLSearchParams(window.location.search);
             var id = qp.get('id');
             var oid = qp.get('order_id');
+            var pt = qp.get('pt') || sessionStorage.getItem('narjis-pt-' + id);
+            if (pt) { try { sessionStorage.setItem('narjis-pt-' + id, pt); } catch (e) { } }
+            var auth = pt ? { 'X-Payment-Token': pt } : {};
             var fallback = oid ? null : sessionStorage.getItem('narjis-order-' + id);
             if (!id || (oid === null && !fallback)) return;
             if (oid === null) oid = fallback;
@@ -82,12 +85,12 @@
                     if (oid) {
                         var cap = await fetch('/api/payments/' + id + '/capture', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: Object.assign({ 'Content-Type': 'application/json' }, auth),
                             body: JSON.stringify({ order_id: oid })
                         }).then(function (r) { return r.json(); });
                         st = cap;
                     } else {
-                        st = await fetch('/api/payments/' + id).then(function (r) { return r.json(); });
+                        st = await fetch('/api/payments/' + id, { headers: auth }).then(function (r) { return r.json(); });
                     }
                 } catch (e) { return; }
                 var ok = st && st.status === 'paid';

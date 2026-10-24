@@ -17,7 +17,7 @@ pytestmark = pytest.mark.skipif(
 def browser():
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(executable_path=os.environ.get('BROWSER_EXECUTABLE_PATH'))
         yield browser
         browser.close()
 
@@ -38,6 +38,8 @@ def context(browser):
                                       headers={'content-type': req.headers.get('content-type', 'application/json')})
             route.fulfill(status=response.status_code, body=response.content,
                           headers={'content-type': response.headers.get('content-type', 'text/plain')})
+        # Keep browser checks offline too (pytest-socket only covers Python).
+        context.route('**/*', lambda route: route.abort())
         context.route('http://testserver/**', serve)
         yield context
         context.close()
@@ -65,7 +67,7 @@ def wait_for_preloader(page, timeout=15000):
     )
 
 
-@pytest.mark.parametrize('width', [320, 390])
+@pytest.mark.parametrize('width', [320, 390, 768, 1440])
 @pytest.mark.parametrize('path', ['/home', '/consult', '/portal'])
 def test_mobile_pages_and_language_switch(context, width, path):
     from playwright.sync_api import expect
@@ -152,6 +154,7 @@ def test_home_without_javascript(browser):
             response = client.get(urlsplit(route.request.url).path)
             route.fulfill(status=response.status_code, body=response.content,
                           headers={'content-type': response.headers.get('content-type', 'text/plain')})
+        page.route('**/*', lambda route: route.abort())
         page.route('http://testserver/**', serve)
         page.goto('http://testserver/home')
         for counter in page.locator('.hero-facts b').all():
