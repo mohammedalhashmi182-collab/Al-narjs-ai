@@ -542,10 +542,17 @@
 (function () {
     document.documentElement.classList.add('js');
     var AR = document.body.dataset.lang === 'ar';
+    // Reveal is decoration only: content must never stay invisible.
+    var rvs = document.querySelectorAll('.rv');
+    function revealAll() { rvs.forEach(function (el) { el.classList.add('in'); }); }
     var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
         es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-    }, { threshold: 0.1 }) : null;
-    document.querySelectorAll('.rv').forEach(function (el) { io ? io.observe(el) : el.classList.add('in'); });
+    }, { threshold: 0, rootMargin: '0px 0px 10% 0px' }) : null;
+    rvs.forEach(function (el) {
+        if (!io || el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in'); else io.observe(el);
+    });
+    window.addEventListener('beforeprint', revealAll);
+    setTimeout(revealAll, 3000);
 
     var heroCeo = document.getElementById('heroCeo');
     if (heroCeo) heroCeo.addEventListener('click', function () { setTimeout(function () { var t = document.getElementById('ceoProblem'); if (t) t.focus({ preventScroll: true }); }, 350); });
