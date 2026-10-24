@@ -9,7 +9,7 @@ on:
 jobs:
   production-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,3 +17,9 @@ jobs:
           python-version: "3.12"
       - name: Verify live production
         run: python scripts/production_smoke.py
+      - name: Install browser smoke dependencies
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Verify live launch buttons
+        run: python scripts/production_browser_smoke.py
