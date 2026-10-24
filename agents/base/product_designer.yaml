@@ -29,7 +29,7 @@ prompts:
 
     - What is being designed (landing page, product card, app screen): {{surface}}'
 is_system: true
-x_tasami:
+x_narjis:
   code: PD-02
   dept: PD
   authority: suggest
