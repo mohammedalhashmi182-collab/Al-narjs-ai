@@ -380,6 +380,16 @@ class LocaleMiddleware:
                     for i, (n, v) in enumerate(headers):
                         if n.lower() == b"location" and v:
                             loc = v.decode("latin-1", "ignore")
+                            # A handler redirect that already names a locale
+                            # (e.g. "/" -> "/ar/home") must swap to the request's
+                            # locale, not be prefixed again ("/en/ar/home" 404).
+                            for other in _SUPPORTED_LOCALES:
+                                if other != locale and (
+                                    loc == f"/{other}" or loc.startswith(f"/{other}/")
+                                ):
+                                    loc = loc[len(other) + 1:] or "/"
+                                    headers[i] = (n, f"/{locale}{loc}".encode("latin-1"))
+                                    break
                             if loc.startswith("/") and not (
                                 loc.startswith(f"/{locale}/")
                                 or loc == f"/{locale}"

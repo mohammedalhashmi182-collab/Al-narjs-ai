@@ -50,7 +50,9 @@ p{text-wrap:pretty}
 
 /* quieter ambient layers: the old mesh/grid competed with the content */
 .mesh{opacity:.55}
-.grid{opacity:.25}
+/* .grid ambient rule removed: it collided with Tailwind's .grid utility
+   (e.g. #pkg-grid in /portal) and dimmed the plan cards to 25%. No template
+   uses a .grid ambient layer. */
 
 /* ---------- nav ---------- */
 .nav{background:rgba(8,9,8,.72);backdrop-filter:saturate(140%) blur(16px);

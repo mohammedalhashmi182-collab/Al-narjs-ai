@@ -139,7 +139,7 @@ def test_flag_defaults_off_and_site_copy_stays_coming_soon(monkeypatch):
     assert enabled() is False
     with pytest.raises(StoreTokenKeyError):
         seal("must-not-derive-from-secret-key")
-    bay = catalog.PACKAGES["bay"]
+    bay = catalog.PACKAGES["numuw"]  # "bay" was renamed to "numuw" in Pricing v2
     scope = [item for item in bay.get("scope") or [] if "سلة" in item or "زد" in item]
     coming = [item for item in bay.get("coming") or [] if "سلة" in item or "زد" in item]
     assert scope or coming
