@@ -604,9 +604,29 @@ async def create_payment(
     description = order_description(package, period, addons, discount_pct, renewal=is_renewal, setup_fee=fee,
                                     conversation_packs=conversation_packs, voice_packs=voice_packs, founding=founding)
 
+    total = total_with_vat(amount)
+    applied_promo = None
+    if not founding and promo and discount_pct:
+        applied_promo = promo.strip().upper()
     payment = Payment(
         amount=amount,
-        total_halalas=total_with_vat(amount),
+        total_halalas=total,
+        pricing_snapshot={
+            "v": 1,
+            "amount": amount,
+            "expected_total_halalas": total,
+            "currency": "SAR",
+            "package": package,
+            "billing_period": period,
+            "addon_agents": addons,
+            "conversation_packs": conversation_packs,
+            "voice_packs": voice_packs,
+            "promo_code": applied_promo,
+            "discount_pct": discount_pct,
+            "founding": founding,
+            "is_renewal": bool(is_renewal),
+            "setup_fee": fee,
+        },
         currency="SAR",
         package=package,
         billing_period=period,
@@ -760,8 +780,20 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
 REVIEW_STATUS = "review"
 
 
+def pricing_snapshot(payment) -> Optional[dict]:
+    """The pricing frozen by ``create_payment``, or None for legacy rows."""
+    snap = getattr(payment, "pricing_snapshot", None)
+    if isinstance(snap, dict) and snap.get("expected_total_halalas") is not None:
+        return snap
+    return None
+
+
 def expected_charge(payment: Payment) -> int:
-    """Halalas Moyasar must report for this order: the total stored at creation."""
+    """Halalas the gateway must report for this order: the snapshot taken at
+    creation, else (legacy rows) the total stored at creation."""
+    snap = pricing_snapshot(payment)
+    if snap is not None:
+        return int(snap["expected_total_halalas"])
     return payment_total(payment)
 
 
@@ -1197,6 +1229,21 @@ def order_mismatch(payment: Payment, project) -> Optional[str]:
     proj_addons = int(getattr(project, "addon_agents", 0) or 0)
     if pay_addons != proj_addons:
         return f"addons {pay_addons} != project {proj_addons}"
+    snap = pricing_snapshot(payment)
+    if snap is not None:
+        # The order was priced by the server at creation: verify against that,
+        # not today's promo settings (promo drift).
+        if str(snap.get("currency") or "").upper() != "SAR":
+            return f"snapshot currency {snap.get('currency')!r} != 'SAR'"
+        if catalog.resolve_tier(str(snap.get("package") or "")) != pay_pkg:
+            return f"package {payment.package!r} != snapshot {snap.get('package')!r}"
+        if int(snap.get("addon_agents") or 0) != pay_addons:
+            return f"addons {pay_addons} != snapshot {snap.get('addon_agents')}"
+        if int(payment.amount or 0) != int(snap.get("amount") or -1):
+            return f"amount {payment.amount} != snapshot {snap.get('amount')}"
+        if payment_total(payment) != int(snap["expected_total_halalas"]):
+            return f"total {payment_total(payment)} != snapshot {snap['expected_total_halalas']}"
+        return None
     period = catalog.resolve_billing_period(getattr(payment, "billing_period", None))
     expected = expected_order_amounts(
         proj_pkg, period, proj_addons,

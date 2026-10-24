@@ -423,3 +423,136 @@ def test_grounding_facts_do_not_contain_support_email(monkeypatch):
     monkeypatch.setattr(generate, "grounded", fake)
     main._consult_grounded("x", [], "pkgs")
     assert SUPPORT_EMAIL not in seen["facts"] and not _PHONE.search(seen["facts"])
+
+
+# --- addendum 2: promo snapshot (no promo drift) -----------------------------
+
+_PROMO = dict(promo_code="LAUNCH", promo_percent=30, promo_expires="2099-01-01")
+
+
+async def _promo_order(maker, project):
+    with _settings(**_PROMO):
+        async with maker() as s:
+            pay = await pm.create_payment(s, catalog.resolve_tier(project.package), promo="launch",
+                                          project_id=project.id, founding=False)
+    full = pm.total_with_vat(catalog.plan_amount(catalog.resolve_tier(project.package), "monthly", 0)
+                             + catalog.setup_fee(catalog.resolve_tier(project.package), "monthly"))
+    assert pay.total_halalas < full  # the promo really discounted the order
+    return pay
+
+
+async def _mark_paid(maker, pay):
+    async with maker() as s:
+        p = await s.get(Payment, pay.id)
+        p.status = "paid"
+        await s.commit()
+
+
+async def test_snapshot_records_server_price(maker):
+    project = await _project(maker, package="numuw")
+    pay = await _promo_order(maker, project)
+    snap = pay.pricing_snapshot
+    assert snap["expected_total_halalas"] == pay.total_halalas == pm.total_with_vat(pay.amount)
+    assert snap["amount"] == pay.amount and snap["currency"] == "SAR"
+    assert snap["package"] == pay.package and snap["addon_agents"] == 0
+    assert snap["promo_code"] == "LAUNCH" and snap["discount_pct"] == 30
+
+
+@pytest.mark.parametrize("change", [
+    dict(promo_code=None),
+    dict(promo_percent=10),
+    dict(promo_code="OTHER"),
+    dict(promo_expires="2000-01-01"),
+])
+async def test_promo_changed_after_creation_still_activates(maker, change):
+    project = await _project(maker, package="numuw")
+    pay = await _promo_order(maker, project)
+    await _mark_paid(maker, pay)
+    with _settings(**{**_PROMO, **change}):
+        async with maker() as s:
+            out = await pm.activate_subscription(s, await s.get(Payment, pay.id))
+    assert out["activated"] is True, out
+    async with maker() as s:
+        assert (await s.get(ClientProject, project.id)).status == "active"
+
+
+@pytest.mark.parametrize("change", [dict(promo_code=None), dict(promo_percent=10)])
+def test_gateway_accepts_exact_snapshot_amount_after_promo_change(change):
+    snap_total = 34_500
+    pay = Payment(amount=30_000, total_halalas=snap_total, currency="SAR", package="numuw",
+                  pricing_snapshot={"amount": 30_000, "expected_total_halalas": snap_total, "currency": "SAR"})
+    with _settings(**{**_PROMO, **change}):
+        assert pm.gateway_amount_matches(pay, {"amount": snap_total, "currency": "SAR"})
+        assert not pm.gateway_amount_matches(pay, {"amount": snap_total + 1, "currency": "SAR"})
+        assert not pm.gateway_amount_matches(pay, {"amount": snap_total, "currency": "USD"})
+
+
+def test_gateway_amount_differing_from_snapshot_goes_to_review(monkeypatch):
+    monkeypatch.setattr(pm, "moyasar_collects_money", lambda: True)
+    pay = Payment(amount=30_000, total_halalas=34_500, currency="SAR", package="numuw", status="pending",
+                  pricing_snapshot={"amount": 30_000, "expected_total_halalas": 34_500, "currency": "SAR"})
+    pm.apply_gateway_status(pay, {"status": "paid", "amount": 34_400, "currency": "SAR"})
+    assert pay.status == pm.REVIEW_STATUS
+    pay.status = "pending"
+    pm.apply_gateway_status(pay, {"status": "paid", "amount": 34_500, "currency": "SAR"})
+    assert pay.status == "paid"
+
+
+@pytest.mark.parametrize("tamper", ["amount", "total", "package", "addons", "snapshot_currency"])
+async def test_payment_differing_from_snapshot_goes_to_review(maker, tamper):
+    project = await _project(maker, package="numuw")
+    pay = await _promo_order(maker, project)
+    async with maker() as s:
+        p = await s.get(Payment, pay.id)
+        p.status = "paid"
+        snap = dict(p.pricing_snapshot)
+        if tamper == "amount":
+            p.amount = p.amount + 100
+        elif tamper == "total":
+            p.total_halalas = p.total_halalas + 1
+        elif tamper == "package":
+            snap["package"] = "team"
+        elif tamper == "addons":
+            snap["addon_agents"] = 2
+        else:
+            snap["currency"] = "USD"
+        p.pricing_snapshot = snap
+        await s.commit()
+    with _settings(**_PROMO):
+        async with maker() as s:
+            out = await pm.activate_subscription(s, await s.get(Payment, pay.id))
+    assert out["activated"] is False and out.get("review") is True
+    async with maker() as s:
+        assert (await s.get(Payment, pay.id)).status == pm.REVIEW_STATUS
+        assert (await s.get(ClientProject, project.id)).status == "pending"
+
+
+async def test_snapshot_order_still_rejects_non_sar(maker):
+    project = await _project(maker, package="numuw")
+    pay = await _promo_order(maker, project)
+    async with maker() as s:
+        p = await s.get(Payment, pay.id)
+        p.status, p.currency = "paid", "USD"
+        await s.commit()
+    async with maker() as s:
+        out = await pm.activate_subscription(s, await s.get(Payment, pay.id))
+    assert out["activated"] is False and "currency" in out["reason"]
+
+
+async def test_legacy_row_without_snapshot_uses_current_rules(maker):
+    project = await _project(maker, package="numuw")
+    pay = await _paid(maker, project, "numuw")  # no pricing_snapshot
+    assert pay.pricing_snapshot is None and pm.pricing_snapshot(pay) is None
+    assert pm.expected_charge(pay) == pm.payment_total(pay)
+    async with maker() as s:
+        out = await pm.activate_subscription(s, await s.get(Payment, pay.id))
+    assert out["activated"] is True
+    bad = await _paid(maker, await _project(maker, package="numuw"), "numuw", amount=100)
+    async with maker() as s:
+        out = await pm.activate_subscription(s, await s.get(Payment, bad.id))
+    assert out.get("review") is True
+
+
+def test_migration_0015_chains_on_0014():
+    src = (ROOT / "alembic/versions/0015_payment_pricing_snapshot.py").read_text()
+    assert 'revision: str = "0015"' in src and 'down_revision: str | None = "0014"' in src
