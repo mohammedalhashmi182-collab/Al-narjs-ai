@@ -1,4 +1,3 @@
-import re
 from playwright.sync_api import sync_playwright, expect
 
 BASE = "https://karmaai.online"
@@ -19,6 +18,9 @@ with sync_playwright() as p:
     expect(toggle).to_be_visible()
     toggle.click()
     assert "open" in (page.locator("#siteAssistant").get_attribute("class") or "")
+    # While open, the assistant correctly owns pointer events. Close it before testing page CTAs.
+    toggle.click()
+    page.wait_for_function("() => !document.getElementById('siteAssistant').classList.contains('open')")
 
     # CEO CTA opens the consultation; one harmless live request proves the AI path.
     page.locator("#heroCeo").click()
@@ -49,7 +51,7 @@ with sync_playwright() as p:
     # Contact-page button opens the same site assistant.
     page.goto(BASE + "/ar/contact", wait_until="networkidle")
     page.locator("#contactOpenAssistant").click()
-    expect(page.locator("#siteAssistant")).to_have_class(lambda c: c and "open" in c)
+    assert "open" in (page.locator("#siteAssistant").get_attribute("class") or "")
 
     assert not errors, errors
     print("PRODUCTION_BROWSER_SMOKE_PASS")
