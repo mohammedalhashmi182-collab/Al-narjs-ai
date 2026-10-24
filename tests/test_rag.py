@@ -192,6 +192,38 @@ async def test_openai_and_gemini_payloads(monkeypatch):
     assert "taskType" not in req and "outputDimensionality" not in req
 
 
+
+async def test_gemini_batch_failure_retries_individual_embed_content(monkeypatch):
+    import httpx
+
+    calls = []
+
+    class R:
+        def __init__(self, status, body):
+            self.status_code, self._body = status, body
+
+        def json(self):
+            return self._body
+
+    async def post(self, url, headers=None, json=None):
+        calls.append((url, json))
+        if url.endswith(":batchEmbedContents"):
+            return R(400, {"error": {"status": "INVALID_ARGUMENT"}})
+        return R(200, {"embedding": {"values": [0.0, 3.0]}})
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    vecs = await embeddings.GeminiEmbedder("g-test").embed(["أ", "ب"], kind="doc")
+    assert vecs == [[0.0, 1.0], [0.0, 1.0]]
+    assert calls[0][0].endswith(":batchEmbedContents")
+    singles = [item for item in calls[1:] if item[0].endswith(":embedContent")]
+    assert len(singles) == 2
+    for _url, payload in singles:
+        cfg = payload["embedContentConfig"]
+        assert cfg["taskType"] == "RETRIEVAL_DOCUMENT"
+        assert cfg["outputDimensionality"] == 768
+        assert cfg["autoTruncate"] is True
+
+
 async def test_provider_failure_tries_the_next_real_provider(monkeypatch):
     class Boom:
         name, dim = "openai:text-embedding-3-small", 3
