@@ -55,8 +55,8 @@ def test_never_claims_phone_support():
         out = enforce_reply_policy(s)
         assert "الهاتف" not in out and "البريد الإلكتروني" in out, out
     assert "phone" not in enforce_reply_policy("We offer email and phone support.", locale="en").lower()
-    # Catalog text is unchanged (owner approval needed) but the prompt version drops phone.
-    assert any("phone" in x for p in catalog.PACKAGES.values() for x in p["scope_en"])
+    # Catalog no longer claims phone support (owner-approved 24 Oct 2026); the guard stays.
+    assert not any("phone" in x.lower() for p in catalog.PACKAGES.values() for x in p["scope_en"])
     assert "no phone support" in _consult_scope_line("Email and phone support")
 
 
@@ -114,7 +114,7 @@ def test_consult_endpoint_answers_plan_question_and_cleans_reply(monkeypatch):
     assert r.status_code == 200 and "handoff" not in body, body
     assert "1,490" in body["reply"] and "الهاتف" not in body["reply"] and "بريدك" not in body["reply"]
     sp = _M.req.system_prompt
-    assert "Email and phone support" not in sp and "no phone support" in sp
+    assert "Email and phone support" not in sp and "Email support" in sp
     assert "one-time setup fee of 990 SAR" in sp and "charged on monthly and annual billing alike" in sp and "waived" not in sp.lower()
     assert "790" in sp and "1490" in sp and "2990" in sp
 
@@ -180,3 +180,15 @@ def test_consult_model_override_is_optional_and_validated(monkeypatch):
 def test_no_contact_numbers_or_emails_in_assistant_widget():
     src = PARTIAL.read_text(encoding="utf-8")
     assert not re.search(r"\+?9665\d{8}|05\d{8}|mailto:", src)
+
+
+def test_plans_make_no_phone_or_official_invoice_claim():
+    """Owner decision 24 Oct 2026: no phone support, no 'official'/tax invoices (not VAT-registered)."""
+    bad_ar = ("هاتف", "رسمية", "ضريبية")
+    bad_en = ("phone", "official invoice", "tax invoice")
+    for key, p in catalog.PACKAGES.items():
+        ar = " ".join([p.get("tagline", "")] + p.get("scope", []) + p.get("coming", []))
+        en = " ".join([p.get("tagline_en", "")] + p.get("scope_en", []) + p.get("coming_en", [])).lower()
+        assert not any(b in ar for b in bad_ar), (key, ar)
+        assert not any(b in en for b in bad_en), (key, en)
+        assert "دعم بالبريد الإلكتروني" in p["scope"] and "Email support" in p["scope_en"], key

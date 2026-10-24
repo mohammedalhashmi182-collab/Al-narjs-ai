@@ -2150,9 +2150,10 @@ def _consult_model_metadata() -> dict:
 def _consult_scope_line(line: str) -> str:
     """Plan feature text as the assistant may state it.
 
-    The catalog text (owner-approved, unchanged here) says "Email and phone
-    support", but there is no public phone line: the assistant states support
-    via the site and email instead. "Official invoices" are not tax invoices.
+    The catalog no longer claims phone support or "official" invoices (owner
+    decision, 24 Oct 2026). These rewrites stay as a guard in case old text
+    reappears: support is via the site assistant and email, and invoices are
+    ordinary invoices, not tax invoices.
     """
     line = re.sub(r"(?i)email and phone support", "Support via the site assistant and email (no phone support)", line)
     return re.sub(r"(?i)^official invoices$", "Ordinary invoices (not tax invoices; no VAT)", line)
