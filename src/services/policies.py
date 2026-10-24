@@ -29,8 +29,8 @@ POLICY_PROMPT = (
     "- Data (Saudi PDPL): we collect the minimum; data is processed by AI providers outside Saudi Arabia; after "
     "cancellation conversations and files are kept 30 days, then deleted; invoices and payment records are retained "
     "as ZATCA requires; we delete on customer request except invoices; no selling and no marketing use without consent.\n"
-    "- Web search, CSV/Excel uploads, Salla/Zid read-only connectors and the knowledge base are available; they are "
-    "switched on for an account during setup, on request."
+    "- Web search, CSV/Excel uploads and the knowledge base are available; they are switched on for an account "
+    "during setup, on request. Salla/Zid store connection is coming soon and is not included today; never say it is available."
 )
 
 OWNER_FAQ_TITLE = "سياسات النرجس الرسمية"
@@ -49,7 +49,7 @@ OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد �
 
 الاحتفاظ بالبيانات بعد الإلغاء: نحتفظ بالمحادثات والملفات 30 يوماً بعد الإلغاء ثم نحذفها. الفواتير وسجلات الدفع نحتفظ فيها حسب متطلبات هيئة الزكاة والضريبة والجمارك. وتقدر تطلب حذف بياناتك في أي وقت ما عدا الفواتير.
 
-الأدوات: البحث في الويب، رفع ملفات CSV وExcel، ربط سلة وزد بصلاحية قراءة فقط (يُعدّ يدوياً عند الطلب؛ ربط كل متجر ذاتياً قريباً)، وقاعدة المعرفة متاحة وتتفعّل لحسابك بالإعداد عند الطلب."""
+الأدوات: البحث في الويب، رفع ملفات CSV وExcel، وقاعدة المعرفة متاحة وتتفعّل لحسابك بالإعداد عند الطلب. ربط سلة أو زد «قريباً» وغير مشمول حالياً."""
 
 
 async def seed_owner_faq(session: AsyncSession) -> bool:
