@@ -161,11 +161,8 @@ class GeminiEmbedder:
                 payload = {
                     "model": f"models/{model}",
                     "content": {"parts": [{"text": canonical_text(text)}]},
-                    "embedContentConfig": {
-                        "taskType": task,
-                        "outputDimensionality": self.dim,
-                        "autoTruncate": True,
-                    },
+                    "taskType": task,
+                    "outputDimensionality": self.dim,
                 }
                 one = await c.post(
                     single_url,
