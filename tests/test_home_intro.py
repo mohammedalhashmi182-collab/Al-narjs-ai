@@ -1,4 +1,4 @@
-"""Browser checks for the first-visit home intro. Run with RUN_BROWSER_TESTS=1."""
+"""Browser checks for the home intro (plays on every visit). Run with RUN_BROWSER_TESTS=1."""
 import os
 from urllib.parse import urlsplit
 
@@ -46,7 +46,7 @@ def _errors(page):
 
 
 @pytest.mark.parametrize('lang,width', [('ar', 390), ('en', 1440)])
-def test_intro_first_visit_only_and_auto_dismiss(browser, client, lang, width):
+def test_intro_plays_every_visit_and_auto_dismiss(browser, client, lang, width):
     ctx = _ctx(browser, client, viewport={'width': width, 'height': 844})
     page = ctx.new_page()
     errs = _errors(page)
@@ -57,7 +57,8 @@ def test_intro_first_visit_only_and_auto_dismiss(browser, client, lang, width):
     page.wait_for_selector('#njIntro', state='detached', timeout=3500)
     page.locator('#heroCeo').click(trial=True, timeout=1000)
     page.reload()
-    assert page.locator('#njIntro').is_hidden()
+    assert page.locator('#njIntro').is_visible()
+    page.wait_for_selector('#njIntro', state='detached', timeout=3500)
     page.locator('#heroCeo').click(trial=True, timeout=1000)
     assert errs == []
     ctx.close()
