@@ -237,3 +237,36 @@ def test_motion_is_reduced_when_asked(css: str) -> None:
     reduced = css.split("prefers-reduced-motion: reduce")
     assert len(reduced) > 1, "the luxury layer has no reduced-motion block"
     assert ".lux-hero .stat" in reduced[-1]
+
+
+# --------------------------------------------------------------------------
+# WCAG AA 4.5:1 for the two pairs axe flagged on /pricing and /en/guide
+# --------------------------------------------------------------------------
+
+
+def _lum(hexc: str) -> float:
+    ch = [int(hexc.lstrip("#")[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+    lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in ch]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def _ratio(a: str, b: str) -> float:
+    hi, lo = sorted((_lum(a), _lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def test_v2_anchor_primary_button_keeps_white_label() -> None:
+    v2 = (REPO_ROOT / "src" / "web" / "static" / "css" / "narjis-v2.css").read_text(
+        encoding="utf-8"
+    )
+    body = rule_body(v2, ".v2 a.btn-primary")
+    assert "#ffffff" in body
+    green = re.search(r"--v2-green:\s*(#[0-9a-fA-F]{6})", v2)
+    assert green and _ratio("#ffffff", green.group(1)) >= 4.5
+
+
+def test_guide_step_titles_meet_aa_on_card() -> None:
+    guide = (REPO_ROOT / "src" / "web" / "templates" / "guide.html").read_text(encoding="utf-8")
+    fg = re.search(r"\.step b \{[^}]*color:\s*(#[0-9a-fA-F]{6})", guide)
+    bg = re.search(r"--bg2:\s*(#[0-9a-fA-F]{6})", guide)
+    assert fg and bg and _ratio(fg.group(1), bg.group(1)) >= 4.5
