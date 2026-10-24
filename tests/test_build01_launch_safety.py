@@ -268,3 +268,18 @@ async def test_owner_repeated_capture_emails_invoice_once(client, maker, paypal,
         r = await client.post(f"/api/payments/{data['payment_id']}/capture", json={})
         assert r.status_code == 200 and r.json()["status"] == "paid"
     assert len(sent) == 1
+
+
+def test_shutdown_stops_producers_before_provider_close():
+    from pathlib import Path
+
+    for name in ("src/main.py", "src/interfaces/web_ui.py"):
+        text = Path(name).read_text(encoding="utf-8")
+        scheduler = text.rfind("await scheduler.stop()")
+        trigger = text.rfind("await trigger_engine.stop()")
+        queue = text.rfind("await queue_worker.stop()")
+        provider = text.rfind("await model_provider.close()")
+        assert -1 not in (scheduler, trigger, queue, provider), name
+        assert scheduler < provider, name
+        assert trigger < provider, name
+        assert queue < provider, name
