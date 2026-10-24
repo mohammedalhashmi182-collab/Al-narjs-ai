@@ -133,8 +133,15 @@ class GeminiEmbedder:
 
         task = "RETRIEVAL_QUERY" if kind == "query" else "RETRIEVAL_DOCUMENT"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:batchEmbedContents"
-        reqs = [{"model": f"models/{model}", "content": {"parts": [{"text": canonical_text(t)}]},
-                 "taskType": task, "outputDimensionality": self.dim} for t in texts]
+        reqs = [{
+            "model": f"models/{model}",
+            "content": {"parts": [{"text": canonical_text(t)}]},
+            "embedContentConfig": {
+                "taskType": task,
+                "outputDimensionality": self.dim,
+                "autoTruncate": True,
+            },
+        } for t in texts]
         async with httpx.AsyncClient(timeout=TIMEOUT) as c:
             r = await c.post(url, headers={"x-goog-api-key": self.api_key}, json={"requests": reqs})
         if r.status_code != 200:
