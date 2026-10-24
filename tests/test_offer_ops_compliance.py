@@ -313,6 +313,34 @@ async def test_deep_health_reports_db_and_externals(maker, monkeypatch):
     assert r["status"] == "degraded" and r["degraded"] == ["telegram"]
 
 
+def test_capability_readiness_never_exposes_secret_values(monkeypatch):
+    from src.integrations import config as store_config
+    from src.integrations import crypto as store_crypto
+    from src.services import email_service
+    from src.services.agent_tools import web_search
+
+    monkeypatch.setattr(email_service, "is_configured", lambda: True)
+    monkeypatch.setattr(web_search, "status", lambda: {"enabled": True, "provider": "tavily", "env_vars": ["INTERNAL_VAR"]})
+    monkeypatch.setattr(store_config, "enabled", lambda: False)
+    monkeypatch.setattr(store_crypto, "key_ready", lambda: True)
+    monkeypatch.setattr(store_config, "salla_oauth_ready", lambda: True)
+    monkeypatch.setattr(store_config, "zid_oauth_ready", lambda: False)
+
+    data = ops_monitor.capability_readiness()
+    assert data == {
+        "email": {"configured": True},
+        "web_search": {"enabled": True, "provider": "tavily"},
+        "stores": {
+            "enabled": False,
+            "store_crypto_ready": True,
+            "salla_oauth_ready": True,
+            "zid_oauth_ready": False,
+        },
+    }
+    text = str(data).lower()
+    assert "secret" not in text and "token" not in text and "key" not in text
+
+
 async def test_health_endpoint_stays_cheap_and_deep_is_opt_in(maker, monkeypatch):
     monkeypatch.setattr(ops_monitor, "configured_externals", lambda: {})
     async with _client(maker, owner=False) as c:
