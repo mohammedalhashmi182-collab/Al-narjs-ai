@@ -1,7 +1,7 @@
 """Centralized agent catalog for capability matching and dynamic routing.
 
 Loads the system agents once from ``agents/base/*.yaml`` (including the
-:code:`x_tasami` operating metadata), tokenizes each identity into searchable
+:code:`x_narjis` operating metadata), tokenizes each identity into searchable
 keywords, and answers "which agent can do this task?" deterministically.
 
 The catalog never touches the database and performs no network I/O at import
@@ -51,7 +51,7 @@ def _has_arabic(text: Any) -> bool:
 
 @dataclass
 class AgentCapability:
-    """Searchable identity of one agent, enriched from YAML ``x_tasami``."""
+    """Searchable identity of one agent, enriched from YAML ``x_narjis``."""
 
     slug: str
     name: str
@@ -128,7 +128,7 @@ class AgentCatalog:
             data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
             if not isinstance(data, dict):
                 return None
-            meta = data.get("x_tasami") or {}
+            meta = data.get("x_narjis") or {}
             entry = AgentCapability(
                 slug=yaml_path.stem,
                 name=str(data.get("name") or yaml_path.stem),
