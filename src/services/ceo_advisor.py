@@ -368,6 +368,19 @@ def _has_cloud_model(provider) -> bool:
     return any(getattr(k, "value", str(k)) in _CLOUD_PROVIDERS for k in clients)
 
 
+_INTERNAL_LEAK = re.compile(r"محمد|Mohammed|تصعيد|escalat", re.I)
+_ARABIC = re.compile(r"[\u0600-\u06FF]")
+
+
+def _safe_summary(text: str, fallback: str, *, arabic: bool) -> str:
+    """Model summaries are shown to visitors: drop internal escalation notes and
+    an "Arabic" summary that came back in another language."""
+    t = (text or "").strip()[:600]
+    if not t or _INTERNAL_LEAK.search(t) or (arabic and not _ARABIC.search(t)):
+        return fallback
+    return t
+
+
 async def diagnose(problem: str, *, provider=None, locale: str = "ar") -> dict:
     """Full CEO consultation result. Never raises for model trouble."""
     rules = diagnose_rules(problem)
@@ -395,8 +408,8 @@ async def diagnose(problem: str, *, provider=None, locale: str = "ar") -> dict:
                     agents=slugs,
                     full_company=bool(data.get("full_company")) or rules.full_company,
                     source="llm",
-                    summary_ar=str(data.get("diagnosis_ar") or "")[:600],
-                    summary_en=str(data.get("diagnosis_en") or "")[:600],
+                    summary_ar=_safe_summary(str(data.get("diagnosis_ar") or ""), rules.summary_ar, arabic=True),
+                    summary_en=_safe_summary(str(data.get("diagnosis_en") or ""), rules.summary_en, arabic=False),
                 )
         except Exception:  # noqa: BLE001 - any model failure falls back to rules
             final = rules
