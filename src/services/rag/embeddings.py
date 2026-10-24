@@ -424,7 +424,8 @@ async def embed_safe(embedder: Embedder, texts: list[str], *, kind: str = "doc")
         except Exception as exc:  # noqa: BLE001
             last = exc
             last_name = item.name
-            log.warning("embedding provider %s failed (%s)", item.name, type(exc).__name__)
+            detail = str(exc) if isinstance(exc, RuntimeError) and str(exc).startswith("gemini embeddings") else type(exc).__name__
+            log.warning("embedding provider %s failed (%s)", item.name, detail)
     if last is not None:
         _log_hash_fallback_once(last_name, last)
     raise EmbeddingUnavailable(last_name)
