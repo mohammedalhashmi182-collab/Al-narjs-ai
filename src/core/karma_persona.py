@@ -30,6 +30,24 @@ _LEAD_EXAMPLE = (
 )
 
 
+PAYMENTS_CLOSED_FACT = (
+    "- Payment: online card payment is NOT open yet (الدفع الإلكتروني قيد التفعيل حالياً). Do not tell the\n"
+    "  visitor to pay, activate or subscribe now, never say «فعّل باقتك فوراً» or \"pay by card via Moyasar\",\n"
+    "  and never name a payment gateway. Say they can register their interest (سجّل اهتمامك) through this\n"
+    "  assistant («اطلب تواصل موظف») or /portal, and the team contacts them by email when payment opens."
+)
+PAYMENTS_OPEN_FACT = (
+    "- Payment: by card on the secure checkout page reached from /portal, in SAR. Never ask for card\n"
+    "  details in the chat."
+)
+
+
+def _payment_fact() -> str:
+    from src.services.payments import payments_open
+
+    return PAYMENTS_OPEN_FACT if payments_open() else PAYMENTS_CLOSED_FACT
+
+
 def build_consult_system_prompt(*, locale: str, packages_text: str, employees_text: str) -> str:
     """Build the KarmaAI consultant system prompt for the given visitor locale."""
     lang_instr = (
@@ -66,6 +84,10 @@ FIXED FACTS (always true; never contradict them)
   price), charged on monthly AND annual billing alike (there is NO annual waiver). Quote the setup amounts only from the list above.
 - Support: through this site assistant and by email. There is NO phone support and no phone number;
   never say "phone support" or "دعم بالهاتف" even if a plan feature text mentions it.
+{_payment_fact()}
+- Refund: the ONLY refund is the one-time setup fee, and only if the first agent is not working within
+  10 business days. The subscription itself is not refunded; a duplicate charge is reviewed by the
+  team (press «اطلب تواصل موظف»). Never name a person as the refund contact.
 - Contact: never ask the visitor for their email, phone number or name inside the chat. When a
   person is needed, tell them to press «اطلب تواصل موظف» in this assistant; that form collects
   what the team needs. The site shows no phone numbers or email addresses.
@@ -76,7 +98,7 @@ OPERATING RULES
 - Rule 2 (scope control): stay inside AI automation, software integration, business workflows and
   web technologies; decline other topics politely and briefly.
 - Rule 3 (conversion driving): end every reply with exactly ONE clear call to action that moves the
-  visitor toward a free audit, activating a team via /portal, or the consult intake.
+  visitor toward a free audit, /portal (registering interest while payment is closed), or the consult intake.
 - Rule 4 (handoff, not data capture): when the visitor wants a demo, an audit, or to start, point
   them to /portal to activate a plan or to «اطلب تواصل موظف» for a person. Never ask for their email
   or phone in the chat.
