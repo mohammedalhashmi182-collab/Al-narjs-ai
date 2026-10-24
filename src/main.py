@@ -230,11 +230,17 @@ async def lifespan(app: FastAPI):
     await close_db()
 
 
+_IS_PRODUCTION = (settings.environment or "").strip().lower() == "production"
+
 app = FastAPI(
     title="AI Agent System",
     description="AI Agent Automation System API",
     version="0.1.0",
     lifespan=lifespan,
+    # The interactive API docs and schema are never public in production.
+    docs_url=None if _IS_PRODUCTION else "/docs",
+    redoc_url=None if _IS_PRODUCTION else "/redoc",
+    openapi_url=None if _IS_PRODUCTION else "/openapi.json",
 )
 
 app.add_middleware(
@@ -725,7 +731,11 @@ async def login_submit(request: Request):
     if not isinstance(body, dict):
         return JSONResponse({"error": "wrong_password"}, status_code=400)
     password = body.get("password", "")
-    if password == settings.owner_password:
+    import hmac as _hmac
+
+    if isinstance(password, str) and settings.owner_password and _hmac.compare_digest(
+        password.encode("utf-8"), settings.owner_password.encode("utf-8")
+    ):
         resp = RedirectResponse("/", status_code=303)
         return set_owner_cookie(resp)
     return {"error": "wrong_password"}
@@ -1890,9 +1900,34 @@ async def portal_run_agent(project_id: str, slug: str, request: PortalAnswers, h
 
         agent.result = response.content
         agent.status = "done"
+        agent.result_emailed_at = None
         await session.commit()
 
-        return {"result": response.content, "status": "done"}
+        emailed = await _email_agent_result(project, slug, response.content)
+        if emailed:
+            from datetime import datetime as _dt, timezone as _tz
+
+            agent.result_emailed_at = _dt.now(_tz.utc)
+            await session.commit()
+
+        return {"result": response.content, "status": "done", "emailed": emailed,
+                "emailed_to": project.email if emailed else None}
+
+
+async def _email_agent_result(project, slug: str, content: str) -> bool:
+    """Send an agent's result to the project's email. True only when the send
+    succeeded; never raises (an email failure must not break the run)."""
+    if not project.email or not content:
+        return False
+    try:
+        from src.services import catalog as _cat, email_service
+
+        name = (_cat.EMPLOYEES.get(slug) or {}).get("name") or slug
+        subject = f"نتيجة عمل {name} — النرجس"
+        return bool(await email_service.send_email(project.email, subject, content))
+    except Exception:
+        logger.exception("emailing agent result failed for project %s agent %s", project.id, slug)
+        return False
 
 
 async def portal_project_payload(session, project) -> dict:
@@ -2156,12 +2191,12 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
             status_code=503,
             content={
                 "reply": (
-                    "المستشار الذكي غير متاح الآن. راسل فريقنا على "
-                    "AlNarjisai@gmail.com وسيرد عليك بالبريد."
+                    "المستشار الذكي غير متاح الآن. اضغط «اطلب تواصل موظف» "
+                    "في المساعد وسيرد عليك فريقنا بالبريد."
                     if locale == "ar"
                     else
-                    "The smart consultant is temporarily unavailable. Email our "
-                    "team at AlNarjisai@gmail.com and they will reply by email."
+                    "The smart consultant is temporarily unavailable. Press "
+                    "\u201cAsk a person to contact me\u201d in the assistant and our team will reply by email."
                 ),
                 "error": "consult_unavailable",
                 "retryable": True,
@@ -2903,6 +2938,24 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         raise HTTPException(400, "Conversation packs are not for sale")
     if body.voice_packs and not _cat_vp.USAGE_ADDONS["voice_minutes"].get("purchasable", True):
         raise HTTPException(400, "Voice-minute packs are not available yet (voice agent coming soon)")
+    if body.project_id:
+        # The project decides what is bought: package and add-on agents come
+        # from the server-side project row, never from the client body.
+        from uuid import UUID as _PUUID
+
+        from sqlalchemy import select as _psel
+
+        from src.models import ClientProject as _CPm
+
+        try:
+            _proj_uuid = _PUUID(body.project_id)
+        except ValueError:
+            raise HTTPException(422, "project_id must be a valid UUID")
+        async with app.state.session_factory() as _s:
+            _proj = (await _s.execute(_psel(_CPm).where(_CPm.id == _proj_uuid))).scalar_one_or_none()
+        if _proj is None:
+            raise HTTPException(404, "project not found")
+        body = body.model_copy(update={"package": _proj.package, "addons": int(_proj.addon_agents or 0)})
     try:
         base_amount = pm.package_amount(body.package, body.billing_period, body.addons)
         packs_amount = pm.usage_packs_amount(body.conversation_packs, body.voice_packs, body.billing_period)

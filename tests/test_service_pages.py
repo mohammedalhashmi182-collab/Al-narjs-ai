@@ -47,10 +47,9 @@ def test_service_page_is_canonical_and_marked_up(client: TestClient, slug: str) 
     assert 'hreflang="x-default" href="https://karmaai.online/ar/services/' in ar.text
     assert service["title_en"] in en.text
     assert "wa.me/" not in ar.text
-    assert "tel:+966540799266" in ar.text
-    assert ar.text.count("tel:") == ar.text.count("tel:+966540799266")
+    assert "tel:" not in ar.text and "0540799266" not in ar.text
     assert 'href="#"' not in ar.text
-    assert "mailto:AlNarjisai@gmail.com" in ar.text
+    assert "mailto:" not in ar.text and "data-open-assistant" in ar.text
     assert "تحدث مع بوت النرجس" in ar.text
     assert "CEO" not in ar.text.split("<footer", 1)[0]
 

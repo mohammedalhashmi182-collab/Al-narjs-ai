@@ -308,6 +308,8 @@ class ClientAgent(Base):
     status: Mapped[str] = mapped_column(String(50), default="dormant", nullable=False)  # dormant | interviewing | running | done
     answers: Mapped[dict] = mapped_column(JSON, default=dict)
     result: Mapped[Optional[str]] = mapped_column(Text)
+    # Set only after email_service.send_email confirmed the result was sent to project.email.
+    result_emailed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     project: Mapped["ClientProject"] = relationship("ClientProject", back_populates="agents")

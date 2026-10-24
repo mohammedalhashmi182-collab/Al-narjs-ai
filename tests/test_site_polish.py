@@ -151,4 +151,6 @@ def test_support_handoff_is_the_company_phone():
 
 def test_assistant_offers_customer_service_handoff(client):
     html = client.get("/ar/home").text
-    assert 'id="saHandoff"' in html and "تحويل لخدمة العملاء" in html
+    # Public pages no longer carry a phone hand-off; the assistant's staff ticket does.
+    assert 'id="saHandoff"' not in html and "tel:" not in html
+    assert 'id="siteAssistant"' in html

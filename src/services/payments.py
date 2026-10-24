@@ -298,8 +298,7 @@ def paypal_collects_money() -> bool:
 
 # Shown when checkout has no live Moyasar key. Bank transfer and PayPal stay off.
 CARD_ACTIVATING_AR = (
-    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر المساعد في الموقع "
-    "أو راسلنا على AlNarjisai@gmail.com."
+    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر مساعد النرجس في الموقع."
 )
 
 
@@ -432,7 +431,7 @@ def capabilities(card_state: Optional[str] = None) -> dict:
         "paypal_test_mode": paypal_ready() and settings.paypal_mode != "live",
         "invoice": invoice,
         "bank": transfer.bank_details() if invoice else {},
-        "contact": transfer.contact_channels(),
+        # No "contact" block: the site assistant is the only public contact channel.
     }
 
 
@@ -1168,6 +1167,46 @@ async def handle_paypal_webhook(session: AsyncSession, event: dict) -> dict:
     return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": False}
 
 
+def expected_order_amounts(package: str, period: str, addons: int, *, conversation_packs: int = 0,
+                           voice_packs: int = 0, renewal: bool = False, founding: bool = False) -> set[int]:
+    """Pre-VAT amounts ``create_payment`` could legitimately charge for this order
+    (with and without the active promo code). Pricing lives in ``catalog``."""
+    try:
+        packs = catalog.usage_packs_amount(int(conversation_packs or 0), int(voice_packs or 0), period)
+        fee = catalog.setup_fee(package, period, renewal=renewal, founding=founding)
+        if founding:
+            bases = {catalog.founding_amount(package, period, addons)}
+        else:
+            plan = catalog.plan_amount(package, period, addons)
+            bases = {plan, apply_promo(plan, get_settings().promo_code)[0]}
+    except Exception:  # unknown/legacy tier etc.: nothing matches
+        return set()
+    return {b + packs + fee for b in bases}
+
+
+def order_mismatch(payment: Payment, project) -> Optional[str]:
+    """Why this paid order may not activate ``project`` (None when it matches)."""
+    pay_pkg = catalog.resolve_tier(payment.package)
+    proj_pkg = catalog.resolve_tier(project.package)
+    if pay_pkg != proj_pkg:
+        return f"package {payment.package!r} != project {project.package!r}"
+    pay_addons = int(getattr(payment, "addon_agents", 0) or 0)
+    proj_addons = int(getattr(project, "addon_agents", 0) or 0)
+    if pay_addons != proj_addons:
+        return f"addons {pay_addons} != project {proj_addons}"
+    period = catalog.resolve_billing_period(getattr(payment, "billing_period", None))
+    expected = expected_order_amounts(
+        proj_pkg, period, proj_addons,
+        conversation_packs=int(getattr(payment, "addon_conversation_packs", 0) or 0),
+        voice_packs=int(getattr(payment, "addon_voice_packs", 0) or 0),
+        renewal=bool(getattr(payment, "is_renewal", False)),
+        founding=bool(getattr(payment, "founding", False)),
+    )
+    if int(payment.amount or 0) not in expected:
+        return f"amount {payment.amount} not in expected {sorted(expected)}"
+    return None
+
+
 async def activate_subscription(session: AsyncSession, payment: Payment) -> dict:
     """Activate the client's portal project once a payment is confirmed paid.
 
@@ -1216,6 +1255,16 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
     # Idempotent: the same paid order never extends the period twice.
     if project.last_payment_id is not None and str(project.last_payment_id) == str(payment.id):
         return {"activated": True, "already_active": True, "project_id": str(project.id)}
+
+    # The paid order must be for exactly what the project was created with:
+    # same tier, same add-on agents and the amount that configuration costs.
+    # Otherwise a cheap order could unlock a bigger team; park it for review.
+    mismatch = order_mismatch(payment, project)
+    if mismatch:
+        logger.warning("refusing activation of %s for payment %s: %s", project.id, payment.id, mismatch)
+        payment.status = REVIEW_STATUS
+        await session.commit()
+        return {"activated": False, "reason": f"order does not match project: {mismatch}", "review": True}
 
     now = datetime.now(timezone.utc)
     period = catalog.resolve_billing_period(getattr(payment, "billing_period", None))

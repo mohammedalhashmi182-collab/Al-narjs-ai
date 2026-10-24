@@ -1,26 +1,22 @@
 {% extends "partials/_simple_page.html" %}
 {% block title %}{% if ar %}تواصل معنا | النرجس للذكاء الاصطناعي{% else %}Contact us | Al-Narjis AI{% endif %}{% endblock %}
-{% block description %}{% if ar %}تواصل مع النرجس للذكاء الاصطناعي عبر مساعد النرجس الذكي أو البريد الإلكتروني.{% else %}Contact Al-Narjis AI through the Al-Narjis AI assistant or by email.{% endif %}{% endblock %}
+{% block description %}{% if ar %}تواصل مع النرجس للذكاء الاصطناعي عبر مساعد النرجس الذكي.{% else %}Contact Al-Narjis AI through the Al-Narjis AI assistant.{% endif %}{% endblock %}
 {% block h1 %}{% if ar %}تواصل معنا{% else %}Contact us{% endif %}{% endblock %}
 {% block body %}
 {% if ar %}
 <h2 class="n-title text-lg">مساعد النرجس الذكي</h2>
 <p>الدعم متاح 24 ساعة طوال أيام الأسبوع عبر المساعد، بما فيها الإجازات. اسأل عن الباقات والخدمة، وإذا احتاج سؤالك مراجعة بشرية نتابع معك بالبريد.</p>
 <p><button type="button" class="btn btn-gold" id="contactOpenAssistant">افتح المساعد</button></p>
-<h2 class="n-title text-lg">البريد الإلكتروني</h2>
-<p><a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a> — المتابعة البشرية تتم بالبريد.</p>
 <h2 class="n-title text-lg">خدمة العملاء</h2>
-<p><a href="tel:+966540799266" dir="ltr">0540799266</a></p>
+<p>التواصل عبر مساعد النرجس فقط. اطلب «تواصل موظف» من داخل المساعد وسيتابع معك فريقنا، وتصلك النتائج والردود على بريدك الإلكتروني.</p>
 <h2 class="n-title text-lg">الجهة المشغّلة</h2>
 <p>أحمد عبدالله الزهراني — النرجس للذكاء الاصطناعي · وثيقة عمل حر رقم FL-272182297 · الرياض.</p>
 {% else %}
 <h2 class="n-title text-lg">Al-Narjis AI assistant</h2>
 <p>Support is available 24 hours a day, 7 days a week, through the assistant, including holidays. Ask about plans and the service; a human follows up by email when a question needs a person.</p>
 <p><button type="button" class="btn btn-gold" id="contactOpenAssistant">Open the assistant</button></p>
-<h2 class="n-title text-lg">Email</h2>
-<p><a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a> — human follow-up is by email.</p>
 <h2 class="n-title text-lg">Customer service</h2>
-<p><a href="tel:+966540799266" dir="ltr">0540799266</a></p>
+<p>We are reached only through the Al-Narjis assistant. Ask for a person inside the assistant and our team follows up; results and replies are delivered to your email.</p>
 <h2 class="n-title text-lg">Operator</h2>
 <p>أحمد عبدالله الزهراني — Al-Narjis AI (النرجس) · Freelance document No. FL-272182297 · Riyadh.</p>
 {% endif %}

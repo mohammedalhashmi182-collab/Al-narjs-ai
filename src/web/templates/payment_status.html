@@ -56,8 +56,8 @@
             <a href="/home#pricing" class="btn btn-green w-full">
                 {% if _lang == 'ar' %}<span>العودة إلى الأسعار</span>{% else %}<span data-inline>Back to Pricing</span>{% endif %}
             </a>
-            <a id="emailContact" href="mailto:AlNarjisai@gmail.com" class="btn btn-outline w-full">
-                {% if _lang == 'ar' %}<span>راسلنا بالبريد</span>{% else %}<span data-inline>Email us</span>{% endif %}
+            <a id="assistantContact" href="#assistant" data-open-assistant class="btn btn-outline w-full">
+                {% if _lang == 'ar' %}<span>تحدث مع مساعد النرجس</span>{% else %}<span data-inline>Chat with the assistant</span>{% endif %}
             </a>
         </div>
     </div>
@@ -119,5 +119,6 @@
             })();
         })();
     </script>
+{% include "partials/_site_assistant.html" %}
 </body>
 </html>

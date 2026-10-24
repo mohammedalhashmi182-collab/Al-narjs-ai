@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 
 from src.db.session import engine
+from src.services import catalog
 from src.models import ClientAgent, ClientProject, Payment
 from src.services import payments as pm
 
@@ -39,7 +40,10 @@ async def _paid_payment(package: str = "team", project_id=None, phone="050000000
     from src.db.session import async_session_factory
     async with async_session_factory() as session:
         payment = Payment(
-            amount=999900,
+            # The real computed total: activation now refuses amounts that do
+            # not match the project's order (package-mismatch exploit guard).
+            amount=min(pm.expected_order_amounts(
+                catalog.resolve_tier(package), catalog.resolve_billing_period(None), 0)),
             currency="SAR",
             package=package,
             customer_name="Test Client",

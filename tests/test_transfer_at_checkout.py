@@ -53,7 +53,7 @@ def test_a_down_card_checkout_asks_the_buyer_to_contact_us(portal: str) -> None:
     assert "استخدم التحويل البنكي" not in portal
     assert "Payment is temporarily unavailable" in portal
     assert "الدفع غير متاح مؤقتاً" in portal
-    assert "AlNarjisai@gmail.com" in portal
+    assert "AlNarjisai@gmail.com" not in portal and "0540799266" not in portal
 
 
 # --------------------------------------------------------------------------
@@ -100,17 +100,14 @@ def test_an_invoice_response_does_not_send_the_buyer_to_a_transfer(portal: str) 
     segment = portal[portal.find("data.gateway === 'invoice'"):][:800]
     assert "افتح الفاتورة" not in segment
     assert "invoice_url" not in segment
-    assert "0540799266" in segment
-    assert "AlNarjisai@gmail.com" in segment
+    assert "0540799266" not in segment
+    assert "AlNarjisai@gmail.com" not in segment
 
 
-def test_capabilities_publishes_the_company_phone(client: TestClient) -> None:
-    contact = client.get(CAPABILITIES).json()["contact"]
-    assert contact["whatsapp"] == ""
-    assert contact["telegram"] == ""
-    assert contact["messenger"] == ""
-    assert contact["phone"] == "tel:+966540799266"
-    assert contact["phone_display"] == "0540799266"
+def test_capabilities_does_not_publish_contact_details(client: TestClient) -> None:
+    caps = client.get(CAPABILITIES).json()
+    assert "contact" not in caps
+    assert "0540799266" not in str(caps)
 
 
 # --------------------------------------------------------------------------
@@ -159,4 +156,4 @@ def test_the_landing_page_has_no_floating_channel_buttons(client: TestClient) ->
     for marker in ('id="waFloat"', 'id="tgFloat"', 'id="msFloat"', "wa.me/", "t.me/", "m.me/"):
         assert marker not in body, marker
     assert 'id="siteAssistant"' in body
-    assert "mailto:AlNarjisai@gmail.com" in body
+    assert "mailto:" not in body and "tel:" not in body

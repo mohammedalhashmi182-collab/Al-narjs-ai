@@ -48,7 +48,7 @@
             <h1>We could not load this invoice</h1>
             <p>
                 Your request reached us, but the invoice did not load. Nothing is
-                lost: keep the reference below, send it to us, and we will send
+                lost: keep the reference below, send it to us through the Al-Narjis assistant, and we will send
                 you the invoice and the payment details immediately.
             </p>
             <span class="ref">
@@ -56,10 +56,11 @@
                 <b>{{ _ref }}</b>
             </span>
             {% set _msg = 'Hello, I would like to complete invoice ' + _ref %}
-            <a class="btn" href="mailto:AlNarjisai@gmail.com?subject={{ ('Invoice ' ~ _ref)|urlencode }}&amp;body={{ _msg|urlencode }}">Email the reference</a>
+            <a class="btn" href="#assistant" data-open-assistant>Send it through the assistant</a>
             <p class="note">This reference is all we need — there is nothing else to send.</p>
         </div>
         <div class="foot">Thank you for trusting Al-Narjis AI ✺ · www.karmaai.online</div>
     </div>
+{% include "partials/_site_assistant.html" %}
 </body>
 </html>
