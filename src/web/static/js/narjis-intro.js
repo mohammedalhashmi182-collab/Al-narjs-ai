@@ -1,10 +1,8 @@
 /* First-visit intro for the home page. Adapted from the approved intro.js:
-   plays once (localStorage), skippable, auto-dismisses at ~3s, no video. */
+   plays on every visit, skippable, auto-dismisses at ~3s, no video. */
 (function(){
-var KEY='nj-intro-seen';
 var box=document.getElementById('njIntro');
 if(!box||!document.documentElement.classList.contains('nj-intro-on'))return;
-try{localStorage.setItem(KEY,'1')}catch(e){}
 var ICONS={
 bot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><circle cx="9.5" cy="10.5" r="1" fill="currentColor"/><circle cx="14.5" cy="10.5" r="1" fill="currentColor"/></svg>',
 gears:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="10" r="3"/><path d="M9 3v2M9 15v2M2 10h2M14 10h2M4 5l1.5 1.5M12.5 13.5L14 15M4 15l1.5-1.5M12.5 6.5L14 5"/><circle cx="17.5" cy="17.5" r="2"/><path d="M17.5 13.5v1M17.5 20.5v1M13.5 17.5h1M20.5 17.5h1"/></svg>',

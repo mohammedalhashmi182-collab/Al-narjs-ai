@@ -129,7 +129,7 @@
     <link rel="preload" as="image" href="/static/img/hero-najdi.webp" imagesrcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" imagesizes="100vw" fetchpriority="high">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
     <link rel="stylesheet" href="/static/css/narjis-intro.css">
-    <script>(function(){try{if(!localStorage.getItem('nj-intro-seen')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('nj-intro-on')}catch(e){}})();</script>
+    <script>(function(){try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('nj-intro-on')}catch(e){}})();</script>
 </head>
 <body class="nj" data-lang="{{ _lang }}">
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
