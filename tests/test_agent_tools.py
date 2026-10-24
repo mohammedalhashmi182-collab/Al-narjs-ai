@@ -74,8 +74,9 @@ def test_spending_limits_are_in_sar():
     for path in Path("agents/base").glob("*.yaml"):
         text = path.read_text(encoding="utf-8")
         assert "micro_budget_usd" not in text and "amount_usd" not in text and "$250" not in text, path
+        assert "x_tasami" not in text, path
     closer = yaml.safe_load(Path("agents/base/sales_closer.yaml").read_text(encoding="utf-8"))
-    assert closer["x_tasami"]["micro_budget_sar"] == 950
+    assert closer["x_narjis"]["micro_budget_sar"] == 950
     assert "ريال" in Path("agents/base/policy_guardian.yaml").read_text(encoding="utf-8")
 
 
