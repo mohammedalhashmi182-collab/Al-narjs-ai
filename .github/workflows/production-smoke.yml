@@ -1,0 +1,19 @@
+name: production-smoke
+
+on:
+  push:
+    branches:
+      - build-0.1-production-smoke
+  workflow_dispatch:
+
+jobs:
+  production-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify live production
+        run: python scripts/production_smoke.py
