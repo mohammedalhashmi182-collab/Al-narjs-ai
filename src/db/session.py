@@ -110,7 +110,7 @@ async def init_db():
                 ("payments", "charge_currency", "VARCHAR(3)"),
                 ("payments", "charge_amount", "INTEGER"),
                 ("payments", "total_halalas", "INTEGER"),
-                ("payments", "invoice_emailed_at", "TIMESTAMPTZ"),
+                ("payments", "invoice_emailed_at", "TIMESTAMPTZ"),  # alembic 0016
                 ("client_projects", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
                 ("client_projects", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
                 ("client_projects", "current_period_end", "TIMESTAMPTZ"),
