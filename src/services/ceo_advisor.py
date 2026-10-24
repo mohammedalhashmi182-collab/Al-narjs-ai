@@ -368,6 +368,19 @@ def _has_cloud_model(provider) -> bool:
     return any(getattr(k, "value", str(k)) in _CLOUD_PROVIDERS for k in clients)
 
 
+_INTERNAL_LEAK = re.compile(r"محمد|Mohammed|تصعيد|escalat", re.I)
+_ARABIC = re.compile(r"[\u0600-\u06FF]")
+
+
+def _safe_summary(text: str, fallback: str, *, arabic: bool) -> str:
+    """Model summaries are shown to visitors: drop internal escalation notes and
+    an "Arabic" summary that came back in another language."""
+    t = (text or "").strip()[:600]
+    if not t or _INTERNAL_LEAK.search(t) or (arabic and not _ARABIC.search(t)):
+        return fallback
+    return t
+
+
 async def diagnose(problem: str, *, provider=None, locale: str = "ar") -> dict:
     """Full CEO consultation result. Never raises for model trouble."""
     rules = diagnose_rules(problem)
@@ -395,12 +408,119 @@ async def diagnose(problem: str, *, provider=None, locale: str = "ar") -> dict:
                     agents=slugs,
                     full_company=bool(data.get("full_company")) or rules.full_company,
                     source="llm",
-                    summary_ar=str(data.get("diagnosis_ar") or "")[:600],
-                    summary_en=str(data.get("diagnosis_en") or "")[:600],
+                    summary_ar=_safe_summary(str(data.get("diagnosis_ar") or ""), rules.summary_ar, arabic=True),
+                    summary_en=_safe_summary(str(data.get("diagnosis_en") or ""), rules.summary_en, arabic=False),
                 )
         except Exception:  # noqa: BLE001 - any model failure falls back to rules
             final = rules
-    return build_result(final)
+    return public_output_check(build_result(final), problem)
+
+
+# ------------------------------------------------------- public output check
+# The CEO result is shown to anonymous visitors. These deterministic rules run
+# after the rules/LLM diagnosis and never call a model. Patterns match the
+# folded text (أ/إ/آ->ا, ة->ه, ى->ي, no tashkeel, lower case).
+_OUT_OF_SCOPE = re.compile(
+    r"(احجز|تحجز|نحجز|حجز|\bbook|\breserve)[^.?!؟]{0,25}(فندق|فنادق|طيران|رحله|تذكره|تذاكر|\bflights?\b|\bhotels?\b|\btickets?\b)|"
+    r"رحله طيران|تذكره طيران|تذاكر طيران|تاشيره سفر|plane ticket|\bflights? to\b"
+)
+_REFUND_OR_COMPLAINT = re.compile(
+    r"فلوسي|ابي استرداد|ابغي استرداد|اريد استرداد|استرداد المبلغ|استرجاع المبلغ|رجعوا لي|ارجعوا|"
+    r"دفعت لكم|بشتكي|راح اشتكي|بقدم شكوي|"
+    r"refund me|my money back|full refund|want (a|my) refund|i paid you|i will complain|file a complaint"
+)
+_TAX = re.compile(
+    r"فاتوره ضريبيه|فواتير ضريبيه|رقم ضريبي|رقمكم الضريبي|زاتكا|هيئه الزكاه|"
+    r"(اسعار|سعر|فاتوره|الباقه|الباقات)[^.?!؟]{0,30}ضريب|ضريب[^.?!؟]{0,30}(اسعار|سعر|فاتوره|الباقه|الباقات)|"
+    r"tax invoice|vat number|\bzatca\b|(price|invoice|plan)[^.?!]{0,30}\bvat\b|\bvat\b[^.?!]{0,30}(price|invoice|plan)"
+)
+_PAY_NOW = re.compile(
+    r"(ابي|ابغي|اريد|ودي|كيف|وين|ممكن|ابا)[^.?!؟]{0,20}(ادفع|اشترك|اشتري|الدفع)|رابط الدفع|رابط دفع|"
+    r"اذا دفعت|ادفع سنوي|كم سعر|كم اسعار|اسعار باقات|اسعار الباقات|اسعاركم|"
+    r"\bpay (now|by|for|with|online)|payment link|buy now|\bcheckout|subscribe now|how (do|can) i pay|"
+    r"how much|your prices|plan prices|want to (pay|buy|subscribe)"
+)
+# Never show visitors internal routing, owner names or tax promises.
+_PUBLIC_LEAK = re.compile(
+    r"محمد|mohammed|تصعيد|escalat|المالك|\bowner\b|حارس السياسات|policy guardian|"
+    r"ضريب|zatca|\bvat\b|tax invoice|هيئه الزكاه",
+    re.I,
+)
+_NON_PUBLIC_AGENTS = {"policy_guardian", "finance_pricing"}
+
+HANDOFF_AR = "اضغط «اطلب تواصل موظف» في مساعد النرجس، ويرد عليك الفريق بالبريد."
+HANDOFF_EN = "Press \u201cAsk a person\u201d in the Al-Narjis assistant and the team will reply by email."
+TAX_AR = "أسعارنا نهائية بدون ضريبة قيمة مضافة، لأن الجهة المشغّلة غير مسجّلة في ضريبة القيمة المضافة؛ لذلك لا نصدر فواتير ضريبية، ونرسل فاتورة دفع عادية."
+TAX_EN = "Our prices are final with no VAT, because the operator is not VAT-registered, so we do not issue tax invoices; you get a regular payment invoice."
+
+
+def _prices_line() -> tuple[str, str]:
+    months = catalog.BILLING_PERIODS["annual"]
+    ar, en = [], []
+    for pkg in catalog.PACKAGES.values():
+        fee = int(str(pkg["setup_fee"])) // 100
+        ar.append(f"{pkg['name']} {int(str(pkg['price'])):,} ر.س شهرياً" + (f" + إعداد {fee:,} ر.س مرة واحدة" if fee else " بدون رسوم إعداد"))
+        en.append(f"{pkg['name_en']} SAR {int(str(pkg['price'])):,}/month" + (f" + SAR {fee:,} one-time setup" if fee else ", no setup fee"))
+    return (
+        "الباقات: " + "، ".join(ar) + f". السنوي: تدفع {months['months_billed']} أشهر وتحصل على {months['months_granted']}.",
+        "Plans: " + "; ".join(en) + f". Yearly: pay {months['months_billed']} months, get {months['months_granted']}.",
+    )
+
+
+def _no_offer(result: dict, ar: str, en: str, reason: str) -> dict:
+    result.update(diagnosis_ar=ar, diagnosis_en=en, needs=[], agents=[], agent_count=0, offer=False, notice=reason)
+    result["cta"] = {**result.get("cta", {}), "subscribe": "", "whatsapp": ""}
+    return result
+
+
+def public_output_check(result: dict, problem: str) -> dict:
+    """Deterministic last pass over a CEO result before a visitor sees it.
+
+    (a) no internal escalation/owner wording, (b) no tax-invoice/ZATCA/VAT promise,
+    (c) pay/buy-now questions get the payments-closed notice and no purchase CTA,
+    (d) out-of-scope or refund/complaint requests get no sales offer.
+    """
+    text = _fold(problem)
+    result.setdefault("offer", True)
+    result.setdefault("notice", "")
+    closed = not payments.payments_open()
+
+    if _OUT_OF_SCOPE.search(text):
+        return _no_offer(
+            result,
+            "هذا الطلب خارج ما نقدمه: النرجس تبني وكلاء ذكاء اصطناعي لأتمتة أعمال الشركات، ولا تحجز فنادق أو رحلات.",
+            "This is outside what we do: Al-Narjis builds AI agents that automate business work; we do not book hotels or travel.",
+            "out_of_scope",
+        )
+    if _REFUND_OR_COMPLAINT.search(text):
+        return _no_offer(
+            result,
+            "نعتذر عن تجربتك. الاسترداد الوحيد هو رسوم الإعداد لمرة واحدة إذا لم يعمل أول وكيل خلال 10 أيام عمل. " + HANDOFF_AR,
+            "We are sorry about your experience. The only refund is the one-time setup fee if the first agent is not working within 10 business days. " + HANDOFF_EN,
+            "refund",
+        )
+    if _TAX.search(text):
+        return _no_offer(result, TAX_AR, TAX_EN, "tax")
+    if closed and _PAY_NOW.search(text):
+        prices_ar, prices_en = _prices_line()
+        return _no_offer(
+            result,
+            payments.PAYMENTS_CLOSED_AR + " " + prices_ar,
+            payments.PAYMENTS_CLOSED_EN + " " + prices_en,
+            "payments_closed",
+        )
+
+    # (a)/(b) on whatever text is left: fall back to the rule summary wording.
+    for key, fb in (("diagnosis_ar", "وصفك يحتاج فريقاً صغيراً نبدأ به ثم نوسّعه حسب النتائج."),
+                    ("diagnosis_en", "Your goal needs a small starting team that we grow on results.")):
+        if _PUBLIC_LEAK.search(_fold(result.get(key, ""))):
+            result[key] = fb
+    kept = [a for a in result.get("agents", []) if a.get("slug") not in _NON_PUBLIC_AGENTS]
+    if kept:
+        result["agents"], result["agent_count"] = kept, len(kept)
+    if closed:
+        result["notice"] = "payments_closed"
+    return result
 
 
 def validate_problem(problem: str) -> str:

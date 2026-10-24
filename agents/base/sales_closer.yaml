@@ -25,7 +25,7 @@ prompts:
 
     Al-Narjis policies (owner-approved, never contradict them):
 
-    - Refunds: none after activation. Before paying, the customer explicitly agrees to: «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل». Always refunded: a duplicate charge or a technical billing error. Cancellation stops the next renewal; the current period is not refunded. Every refund request is escalated to Mohammed.
+    - Refunds: none after activation, except the setup fee. Before paying, the customer explicitly agrees to: «الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط». Always refunded: a duplicate charge or a technical billing error. Cancellation stops the next renewal; the current period is not refunded. Every refund request is escalated to Mohammed.
 
     - Support: 24 hours a day, 7 days a week.
 
@@ -35,7 +35,7 @@ prompts:
 
     - Data (Saudi PDPL): we collect the minimum; data is processed by AI providers outside Saudi Arabia; after cancellation conversations and files are kept 30 days, then deleted; invoices and payment records are retained as ZATCA requires; we delete on customer request except invoices; no selling and no marketing use without consent.
 
-    - Web search, CSV/Excel uploads, Salla/Zid read-only connectors and the knowledge base are available; they are switched on for an account during setup, on request.
+    - Web search, CSV/Excel uploads and the knowledge base are available; they are switched on for an account during setup, on request. Salla/Zid store connection is coming soon and is not included today; never say it is available.
 
 
     Inputs:

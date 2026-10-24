@@ -22,6 +22,7 @@
                 <button type="button" data-billing="annual" aria-pressed="false">{% if ar %}سنوي{% else %}Annual{% endif %} <span class="save">{% if ar %}شهران مجاناً{% else %}2 months free{% endif %}</span></button>
             </div>
         </div>
+        {% set _ar = ar %}{% include "partials/_payments_closed_banner.html" %}
         <div class="plans">
             {% for plan in plans %}
             <article class="plan rv{% if plan.recommended %} is-rec{% endif %}" data-plan="{{ plan.key }}">
@@ -42,7 +43,7 @@
                     <ul>{% for line in _coming %}<li>{{ line }}</li>{% endfor %}</ul>
                 </div>
                 {% endif %}
-                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}" data-href-monthly="/portal?pkg={{ plan.key }}" data-href-annual="/portal?pkg={{ plan.key }}&amp;billing=annual">{% if ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
+                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}" data-href-monthly="/portal?pkg={{ plan.key }}" data-href-annual="/portal?pkg={{ plan.key }}&amp;billing=annual">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
             </article>
             {% endfor %}
         </div>

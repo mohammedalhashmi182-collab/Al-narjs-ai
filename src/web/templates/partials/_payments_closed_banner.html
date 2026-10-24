@@ -1,0 +1,6 @@
+{#- Shown above plans while no real payment method is open. Needs: _ar (bool). -#}
+{% if not payments_open() %}
+<div class="payments-closed-banner" id="paymentsClosedBanner" role="status" dir="{{ 'rtl' if _ar else 'ltr' }}" style="margin:0 auto 18px;max-width:880px;padding:14px 18px;border-radius:14px;border:1px solid #F5C26B;background:#FFF7E6;color:#5A3A00;font-weight:600;line-height:1.7;text-align:center;">
+    {% if _ar %}{{ payments_closed_ar }}{% else %}{{ payments_closed_en }}{% endif %}
+</div>
+{% endif %}

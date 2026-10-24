@@ -397,7 +397,7 @@
                     <div><small>{% if ar %}الباقة المرشّحة{% else %}Recommended plan{% endif %}</small><span id="ceoPlanName"></span></div>
                     <div style="text-align:end"><b id="ceoPlanPrice"></b><small id="ceoPlanVat"></small></div>
                 </div>
-                <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}</a>
+                <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% else %}{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}{% endif %}</a>
                 <p class="ceo-alt">{% if ar %}سؤال عن التوصية؟ <a href="/consult" data-open-assistant>ناقش هدفك مع CEO</a>{% else %}Questions about the recommendation? <a href="/consult" data-open-assistant>Discuss your goal with the CEO</a>{% endif %}</p>
             </div>
         </div>
@@ -647,9 +647,13 @@
         document.getElementById('ceoPlanPrice').textContent = Number(p.monthly_price || p.price).toLocaleString('en') + (AR ? ' ر.س/شهرياً' : ' SAR/mo');
         document.getElementById('ceoPlanVat').textContent = {% if vat_enabled() %}(AR ? 'الإجمالي مع ضريبة {{ vat_percent() }}٪: ' : 'Total with {{ vat_percent() }}% VAT: '){% else %}(AR ? 'الإجمالي: ' : 'Total: '){% endif %} + sar(p.total_halalas);
         document.getElementById('ceoSubscribe').href = r.cta.subscribe;
+        var offer = r.offer !== false;
+        document.querySelector('#ceoResult .ceo-plan').style.display = offer ? '' : 'none';
+        document.getElementById('ceoSubscribe').style.display = offer ? '' : 'none';
+        document.getElementById('ceoTeamTitle').style.display = offer ? '' : 'none';
         var res = document.getElementById('ceoResult'); res.hidden = false;
         res.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
-        if (window.fbq) fbq('track', 'Lead', { content_name: 'ceo_consult', content_category: p.key });
+        if (offer && window.fbq) fbq('track', 'Lead', { content_name: 'ceo_consult', content_category: p.key });
     }
     if (form) form.addEventListener('submit', function (e) {
         e.preventDefault();

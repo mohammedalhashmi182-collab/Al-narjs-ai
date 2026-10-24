@@ -30,6 +30,24 @@ _LEAD_EXAMPLE = (
 )
 
 
+PAYMENTS_CLOSED_FACT = (
+    "- Payment: online card payment is NOT open yet (الدفع الإلكتروني قيد التفعيل حالياً). Do not tell the\n"
+    "  visitor to pay, activate or subscribe now, never tell them to activate their plan instantly or \"pay by card via Moyasar\",\n"
+    "  and never name a payment gateway. Say they can register their interest (سجّل اهتمامك) through this\n"
+    "  assistant («اطلب تواصل موظف») or /portal, and the team contacts them by email when payment opens."
+)
+PAYMENTS_OPEN_FACT = (
+    "- Payment: by card on the secure checkout page reached from /portal, in SAR. Never ask for card\n"
+    "  details in the chat."
+)
+
+
+def _payment_fact() -> str:
+    from src.services.payments import payments_open
+
+    return PAYMENTS_OPEN_FACT if payments_open() else PAYMENTS_CLOSED_FACT
+
+
 def build_consult_system_prompt(*, locale: str, packages_text: str, employees_text: str) -> str:
     """Build the KarmaAI consultant system prompt for the given visitor locale."""
     lang_instr = (
@@ -37,7 +55,8 @@ def build_consult_system_prompt(*, locale: str, packages_text: str, employees_te
         "explicitly writes in another language, and keep short clear headings and bullets. "
         "Use correct Arabic spelling; never repeat a word twice in a row; proofread before answering."
         if locale == "ar" else
-        "Respond in clear, fluent business English with short clear headings and bullets."
+        "Respond ONLY in clear, fluent business English with short clear headings and bullets, even "
+        "though the sources below are in Arabic; translate facts, never reply in Arabic."
     )
     return f"""You are KarmaAI — the Smart Consultant (المستشار الذكي) of Al-Narjis AI
 (النرجس للذكاء الاصطناعي), the elite AI automation system operating at karmaai.online
@@ -66,6 +85,13 @@ FIXED FACTS (always true; never contradict them)
   price), charged on monthly AND annual billing alike (there is NO annual waiver). Quote the setup amounts only from the list above.
 - Support: through this site assistant and by email. There is NO phone support and no phone number;
   never say "phone support" or "دعم بالهاتف" even if a plan feature text mentions it.
+{_payment_fact()}
+- Store platforms: write Salla as «سلة» (never «سِلا») and Zid as «زد». Connecting a Salla or Zid store
+  is coming soon and is not included today; never say it is available.
+- Refund: the ONLY refund is the one-time setup fee, and only if the first agent is not working within
+  10 business days. The subscription itself is not refunded; a duplicate charge is reviewed by the
+  team (press «اطلب تواصل موظف»). Never name a person as the refund contact.
+  Owner wording: «الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط».
 - Contact: never ask the visitor for their email, phone number or name inside the chat. When a
   person is needed, tell them to press «اطلب تواصل موظف» in this assistant; that form collects
   what the team needs. The site shows no phone numbers or email addresses.
@@ -76,7 +102,7 @@ OPERATING RULES
 - Rule 2 (scope control): stay inside AI automation, software integration, business workflows and
   web technologies; decline other topics politely and briefly.
 - Rule 3 (conversion driving): end every reply with exactly ONE clear call to action that moves the
-  visitor toward a free audit, activating a team via /portal, or the consult intake.
+  visitor toward a free audit, /portal (registering interest while payment is closed), or the consult intake.
 - Rule 4 (handoff, not data capture): when the visitor wants a demo, an audit, or to start, point
   them to /portal to activate a plan or to «اطلب تواصل موظف» for a person. Never ask for their email
   or phone in the chat.
@@ -178,6 +204,12 @@ _INTEG_NOTE_AR = "الربط مع أنظمة خارجية محددة غير مؤ
 _INTEG_NOTE_EN = "Integration with specific outside systems isn't confirmed in our sources; press \u201cAsk a person to contact me\u201d and the team will check."
 
 
+# A line that already denies phone support or tax invoices is correct; rewriting
+# or dropping it turned "no phone support" into "no support via the site".
+_NEGATION = re.compile(r"(?:^|[\s«(])(?:لا|ما|ليس|ليست|لسنا|بدون|غير|مافي|ما فيه|ولا)(?=[\s»)]|$)|"
+                       r"\b(?:no|not|don't|doesn't|do not|does not|never|without|isn't|aren't)\b", re.I)
+
+
 def _names_unverified(line: str, sources: str) -> bool:
     for name in UNVERIFIED_INTEGRATIONS:
         pat = r"(?<![\w\u0600-\u06FF])" + re.escape(name) + r"(?![\w\u0600-\u06FF])"
@@ -186,20 +218,45 @@ def _names_unverified(line: str, sources: str) -> bool:
     return False
 
 
+# Models sometimes transliterate Salla as «سِلا»/«سلا»; the store platform is «سلة».
+_SALLA_MISSPELT = re.compile(r"(?<![\u0600-\u06FF])س\u0650?لا(?![\u0600-\u06FF])")
+_AR_LETTER = re.compile(r"[\u0600-\u06FF]")
+_LATIN_LETTER = re.compile(r"[A-Za-z]")
+
+
+def reply_locale(last_user_message: str, page_locale: str) -> str:
+    """Answer in the visitor's own language: Arabic letters -> ar, Latin only -> en,
+    neither (digits, emoji) -> the page locale."""
+    text = last_user_message or ""
+    if _AR_LETTER.search(text):
+        return "ar"
+    if _LATIN_LETTER.search(text):
+        return "en"
+    return "en" if page_locale == "en" else "ar"
+
+
+def mostly_arabic(text: str) -> bool:
+    ar = len(_AR_LETTER.findall(text or ""))
+    latin = len(_LATIN_LETTER.findall(text or ""))
+    return ar > latin
+
+
 def enforce_reply_policy(reply: str, *, locale: str = "ar", sources: str = "") -> str:
     """Remove phone-support claims, contact-detail requests, wrong VAT claims and
     invented integrations from a consult reply. Idempotent."""
     ar = locale != "en"
-    text = reply or ""
-    for pat, rep in _PHONE_SUPPORT:
-        text = pat.sub(rep if ar or rep.isascii() else rep, text)
+    text = _SALLA_MISSPELT.sub("سلة", reply or "")
     out: list[str] = []
     notes: list[str] = []
     for line in text.split("\n"):
+        negated = bool(_NEGATION.search(line))
+        if not negated:
+            for pat, rep in _PHONE_SUPPORT:
+                line = pat.sub(rep, line)
         if _ASKS_CONTACT.search(line):
             notes.append(_ASK_CONTACT_AR if ar else _ASK_CONTACT_EN)
             continue
-        if _VAT_CLAIM.search(line):
+        if _VAT_CLAIM.search(line) and not negated:
             notes.append(_VAT_FACT_AR if ar else _VAT_FACT_EN)
             continue
         if _names_unverified(line, sources):

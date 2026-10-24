@@ -159,7 +159,7 @@
     form.addEventListener('submit', function (e) {
         e.preventDefault(); var t = inp.value.trim(); if (!t) return;
         inp.value = ''; add('me', t); lastQ = t; if (COMPLAINT.test(t) || HUMAN.test(t)) offerHandoff(); history.push({ role: 'user', content: t });
-        fetch('/api/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-12) }) })
+        fetch('/api/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-12), lang: '{{ 'ar' if _sa_ar else 'en' }}' }) })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (d) {
                 if (!d || !d.reply) { add('bot', HANDOFF); offerHandoff(); return; }

@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
+from uuid import UUID
 
 from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -574,6 +575,9 @@ from src.services import payments as _vat_pm  # noqa: E402
 templates.env.globals["vat_rate"] = _vat_pm.vat_rate
 templates.env.globals["vat_percent"] = _vat_pm.vat_percent
 templates.env.globals["vat_enabled"] = _vat_pm.vat_enabled
+templates.env.globals["payments_open"] = _vat_pm.payments_open
+templates.env.globals["payments_closed_ar"] = _vat_pm.PAYMENTS_CLOSED_AR
+templates.env.globals["payments_closed_en"] = _vat_pm.PAYMENTS_CLOSED_EN
 
 
 def _promo_info() -> dict:
@@ -939,16 +943,19 @@ async def public_agent_page(slug: str, request: Request):
     if not employee:
         raise HTTPException(404, "Agent not found")
 
+    # Catalog entries carry no "slug" key, so attach it for the card links.
     same_dept = [
-        emp
+        {**emp, "slug": key}
         for key, emp in catalog.EMPLOYEES.items()
         if key != slug and emp.get("dept") == employee.get("dept")
     ]
     related = same_dept[:6]
     if len(related) < 6:
+        taken = {r["slug"] for r in related}
         for key, emp in catalog.EMPLOYEES.items():
-            if key != slug and emp not in related:
-                related.append(emp)
+            if key != slug and key not in taken:
+                related.append({**emp, "slug": key})
+                taken.add(key)
             if len(related) >= 6:
                 break
 
@@ -2064,6 +2071,7 @@ class ConsultMessage(BaseModel):
 
 class ConsultRequest(BaseModel):
     messages: list[ConsultMessage]
+    lang: Optional[str] = None
 
 
 class CeoConsultRequest(BaseModel):
@@ -2238,12 +2246,16 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
     if not request.messages:
         raise HTTPException(400, "No messages")
 
-    locale = http_request.cookies.get(_LOCALE_COOKIE, "ar")
+    page_locale = request.lang if request.lang in ("ar", "en") else http_request.cookies.get(_LOCALE_COOKIE, "ar")
 
     history = []
     for m in request.messages[-12:]:
         role = "user" if m.role in ("user", "client") else "assistant"
         history.append({"role": role, "content": m.content})
+    from src.core.karma_persona import mostly_arabic, reply_locale
+
+    last_user = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
+    locale = reply_locale(last_user, page_locale)
 
     from src.services import catalog as _catalog
 
@@ -2312,6 +2324,9 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
             get_logger(__name__).warning("consult: ungrounded number/link in reply; handing off")
             return {"reply": _CONSULT_HANDOFF_AR if locale == "ar" else _CONSULT_HANDOFF_EN, "handoff": "ungrounded"}
+        if content and locale == "en" and mostly_arabic(content):
+            # An English visitor must never get an Arabic answer.
+            return {"reply": _CONSULT_HANDOFF_EN, "handoff": "language"}
         if not content:
             # A model that answered with nothing usable is a failure, not a
             # success with an empty bubble in the transcript.
@@ -2956,7 +2971,7 @@ class PaymentCreateRequest(BaseModel):
     addons: int = 0                  # extra agents on top of the tier, 299 SAR/month each (an integer count)
     conversation_packs: int = 0      # +1,000 conversations / month, 99 SAR each
     voice_packs: int = 0             # +100 voice minutes / month, 99 SAR each
-    # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
+    # Mandatory: buyer ticked policies.REFUND_CONSENT_AR (setup-fee exception included).
     refund_consent: bool = False
 
 
@@ -2984,7 +2999,7 @@ def _record_refund_consent(payment) -> None:
 
 
 class InvoiceConsentRequest(BaseModel):
-    # Mandatory: buyer ticked «الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل».
+    # Mandatory: buyer ticked policies.REFUND_CONSENT_AR (setup-fee exception included).
     refund_consent: bool = False
 
 

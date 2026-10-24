@@ -9,15 +9,15 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-POLICY_VERSION = "2026-10-13"
+POLICY_VERSION = "2026-10-24"
 
 # Exact text the buyer must tick before any payment is created.
-REFUND_CONSENT_AR = "الخدمة تبدأ فوراً والمبلغ غير قابل للاسترداد بعد التفعيل"
-REFUND_CONSENT_EN = "The service starts immediately and the amount is non-refundable after activation"
+REFUND_CONSENT_AR = "الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط"
+REFUND_CONSENT_EN = "The service starts once it is activated and the amount is non-refundable after activation, except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only"
 
 POLICY_PROMPT = (
     "Al-Narjis policies (owner-approved, never contradict them):\n"
-    f"- Refunds: none after activation. Before paying, the customer explicitly agrees to: «{REFUND_CONSENT_AR}». "
+    f"- Refunds: none after activation, except the setup fee as below. Before paying, the customer explicitly agrees to: «{REFUND_CONSENT_AR}». "
     "Always refunded: a duplicate charge or a technical billing error. Setup guarantee: only the one-time setup fee "
     "is refunded, in full, if the first agent is not live within 10 business days of receiving the requirements. Cancellation stops the next renewal; "
     "the current period is not refunded. Every refund request is escalated to Mohammed.\n"
@@ -29,13 +29,13 @@ POLICY_PROMPT = (
     "- Data (Saudi PDPL): we collect the minimum; data is processed by AI providers outside Saudi Arabia; after "
     "cancellation conversations and files are kept 30 days, then deleted; invoices and payment records are retained "
     "as ZATCA requires; we delete on customer request except invoices; no selling and no marketing use without consent.\n"
-    "- Web search, CSV/Excel uploads, Salla/Zid read-only connectors and the knowledge base are available; they are "
-    "switched on for an account during setup, on request."
+    "- Web search, CSV/Excel uploads and the knowledge base are available; they are switched on for an account "
+    "during setup, on request. Salla/Zid store connection is coming soon and is not included today; never say it is available."
 )
 
 OWNER_FAQ_TITLE = "سياسات النرجس الرسمية"
 
-OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد بعد تفعيل الخدمة. قبل الدفع يوافق العميل صراحة على «{REFUND_CONSENT_AR}». الاستثناء اللي يُسترد دائماً: الخصم المكرر أو خطأ تقني في الفوترة. ضمان الإعداد: إذا لم يعمل أول وكيل خلال 10 أيام عمل من استلام المتطلبات تُرد رسوم الإعداد فقط كاملة. طلبات الاسترداد ترفع لمحمد.
+OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد بعد تفعيل الخدمة باستثناء رسوم الإعداد. قبل الدفع يوافق العميل صراحة على «{REFUND_CONSENT_AR}». الاستثناء اللي يُسترد دائماً: الخصم المكرر أو خطأ تقني في الفوترة. ضمان الإعداد: إذا لم يعمل أول وكيل خلال 10 أيام عمل من استلام المتطلبات تُرد رسوم الإعداد فقط كاملة. طلبات الاسترداد ترفع لمحمد.
 
 الإلغاء: تقدر تلغي في أي وقت، والإلغاء يوقف التجديد القادم، وتبقى الخدمة شغالة حتى نهاية الفترة الحالية بدون استرداد لها.
 
@@ -49,7 +49,7 @@ OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد �
 
 الاحتفاظ بالبيانات بعد الإلغاء: نحتفظ بالمحادثات والملفات 30 يوماً بعد الإلغاء ثم نحذفها. الفواتير وسجلات الدفع نحتفظ فيها حسب متطلبات هيئة الزكاة والضريبة والجمارك. وتقدر تطلب حذف بياناتك في أي وقت ما عدا الفواتير.
 
-الأدوات: البحث في الويب، رفع ملفات CSV وExcel، ربط سلة وزد بصلاحية قراءة فقط (يُعدّ يدوياً عند الطلب؛ ربط كل متجر ذاتياً قريباً)، وقاعدة المعرفة متاحة وتتفعّل لحسابك بالإعداد عند الطلب."""
+الأدوات: البحث في الويب، رفع ملفات CSV وExcel، وقاعدة المعرفة متاحة وتتفعّل لحسابك بالإعداد عند الطلب. ربط سلة أو زد «قريباً» وغير مشمول حالياً."""
 
 
 async def seed_owner_faq(session: AsyncSession) -> bool:
