@@ -25,7 +25,7 @@ prompts:
     \ are the last reader before a paying customer. Judge it the way they\nwill, not the way\
     \ a colleague would."
 is_system: true
-x_tasami:
+x_narjis:
   code: EX-04
   dept: EX
   authority: suggest
