@@ -1,3 +1,4 @@
+import re
 from playwright.sync_api import sync_playwright, expect
 
 BASE = "https://karmaai.online"
@@ -17,7 +18,7 @@ with sync_playwright() as p:
     toggle = page.locator("#saToggle")
     expect(toggle).to_be_visible()
     toggle.click()
-    expect(page.locator("#siteAssistant")).to_have_class(lambda c: c and "open" in c)
+    expect(page.locator("#siteAssistant")).to_have_class(re.compile(r"\\bopen\\b"))
 
     # CEO CTA opens the consultation; one harmless live request proves the AI path.
     page.locator("#heroCeo").click()
