@@ -51,10 +51,10 @@ def test_refund_policy_available_features_only(client):
 @pytest.mark.parametrize("path", ["/terms", "/privacy", "/blog", "/consult", "/refund-policy", "/about",
                                   "/pricing", "/contact", "/home", "/data-deletion", "/dpa", "/subprocessors"])
 @pytest.mark.parametrize("lang", ["ar", "en"])
-def test_assistant_on_public_pages(client, path, lang):
+def test_no_floating_assistant_on_public_pages(client, path, lang):
     r = client.get(f"/{lang}{path}")
     assert r.status_code == 200, path
-    assert 'id="siteAssistant"' in r.text, path
+    assert 'id="siteAssistant"' not in r.text, path
 
 
 def test_no_tailwind_cdn_and_moyasar_in_csp(client):
@@ -178,7 +178,8 @@ def test_ticket_rate_limited(client, monkeypatch):
 
 def test_ticket_reference_is_bidi_isolated_in_rtl(client):
     # "NRJ-000123" inside Arabic text wrapped/split into "-NRJ" + "000123"
-    html = client.get("/ar/home").text
+    from pathlib import Path  # partial kept in repo (not rendered) for later reuse
+    html = Path("src/web/templates/partials/_site_assistant.html").read_text(encoding="utf-8")
     assert ".sa-ref{white-space:nowrap;unicode-bidi:isolate" in html
     assert "r.className = 'sa-ref'; r.dir = 'ltr'; r.textContent = d.reference;" in html
     assert "' + d.reference + '" not in html

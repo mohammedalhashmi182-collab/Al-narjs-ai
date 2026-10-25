@@ -53,7 +53,7 @@
     <link rel="stylesheet" href="/static/css/narjis-v2.css">
     <style>.rv{opacity:1;transform:none}</style>
 </head>
-<body class="v2" data-lang="{{ _lang }}">
+<body class="v2 v2-dark" data-lang="{{ _lang }}">
 <header class="v2-nav">
     <div class="wrap">
         <a href="/home" class="brand"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="36" height="36"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %}<small>AI · RIYADH</small></span></a>
@@ -80,7 +80,6 @@
         </div>
     </div>
 </footer>
-{% include "partials/_site_assistant.html" %}
 <script>
 (function () {
     var btns = document.querySelectorAll('#billingToggle [data-billing]');

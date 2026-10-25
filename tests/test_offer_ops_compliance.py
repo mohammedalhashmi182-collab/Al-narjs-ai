@@ -396,7 +396,7 @@ async def test_public_compliance_pages_render(maker, path, needle):
     assert 'href="#"' not in r.text
     # site contact = the Al-Narjis assistant + email; no direct channels
     assert "t.me/" not in r.text and "wa.me/" not in r.text
-    assert 'id="siteAssistant"' in r.text
+    assert 'id="siteAssistant"' not in r.text
     for link in ("/privacy", "/terms", "/data-deletion"):
         assert f'href="{link}"' in r.text
 
