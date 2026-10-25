@@ -29,7 +29,7 @@ async def test_en_guide_is_english_ltr():
         for inner in re.findall(rf"<{tag}[^>]*>(.*?)</{tag}>", page, flags=re.S):
             assert not _AR.search(inner), (tag, inner[:80])
     assert 'A <span class="grad">30-day</span>' in html
-    assert "Salla/Zid store connection is available on request, set up by us, read-only" in html
+    assert "Salla/Zid store connection is coming soon" in html
     assert "محمد الهاشمي" not in html
 
 
@@ -37,7 +37,7 @@ async def test_ar_guide_stays_arabic_rtl():
     html = await _get("/ar/guide")
     assert '<html lang="ar" dir="rtl"' in html
     assert "للذكاء الاصطناعي</h1>" in html
-    assert "ربط متجر سلة أو زد متاح عند الطلب" in html
+    assert "ربط سلة أو زد قريباً" in html
     assert "محمد الهاشمي" not in html
 
 
@@ -85,8 +85,7 @@ def test_english_question_gets_english_prompt_and_never_an_arabic_reply(client, 
     assert r.status_code == 200
     assert not _AR.search(r.json()["reply"])
     assert "Respond ONLY in clear, fluent business English" in prov.system
-    assert "available on request" in prov.system and "«سلة»" in prov.system
-    assert "Salla or Zid store\n  is coming soon" not in prov.system
+    assert "coming soon" in prov.system and "«سلة»" in prov.system
 
 
 def test_site_assistant_sends_page_language():

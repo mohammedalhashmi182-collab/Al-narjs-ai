@@ -126,6 +126,9 @@ async def _post_message(record: OutboundMessage) -> dict:
                     code = ((resp.json() or {}).get("error") or {}).get("code")
                 except Exception:
                     code = None
+                from src.services import error_monitor
+
+                error_monitor.report("whatsapp", error_type=f"http_{resp.status_code}", message="", route="send")
                 return {
                     "ok": False,
                     "status_code": resp.status_code,
@@ -142,6 +145,9 @@ async def _post_message(record: OutboundMessage) -> dict:
                 "gateway": "meta_cloud",
             }
     except Exception as exc:  # network/timeout â€” record the failure, never a send
+        from src.services import error_monitor
+
+        error_monitor.report("whatsapp", exc, route="send")
         return {"ok": False, "status_code": None, "error": str(exc)[:500], "error_code": "network",
                 "gateway": "meta_cloud"}
 

@@ -57,3 +57,37 @@ class WhatsAppTemplate(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class FunnelEvent(Base):
+    """One anonymous conversion-funnel event (no message text, no PII, no raw IP).
+
+    ``session_hash`` is a salted, daily-rotating HMAC; ``props`` holds only
+    allow-listed keys (plan, lang, page, method). See services/funnel.py.
+    """
+
+    __tablename__ = "ops_funnel_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    event: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    session_hash: Mapped[Optional[str]] = mapped_column(String(32), index=True)
+    props: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class ErrorEvent(Base):
+    """Deduplicated server error / integration failure (scrubbed; no bodies or headers)."""
+
+    __tablename__ = "ops_error_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    source: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    route: Mapped[Optional[str]] = mapped_column(String(160))
+    error_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    message: Mapped[Optional[str]] = mapped_column(String(300))
+    last_request_id: Mapped[Optional[str]] = mapped_column(String(64))
+    environment: Mapped[Optional[str]] = mapped_column(String(20))
+    count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)

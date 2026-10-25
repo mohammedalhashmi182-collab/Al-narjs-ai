@@ -123,3 +123,7 @@ def rate_limit_ticket(request: Request) -> None:
             detail={"error": "Too many requests", "retry_after_seconds": retry_after},
             headers={"Retry-After": str(retry_after)},
         )
+
+
+# Public analytics beacon (/api/events): generous for real pages, tight for floods.
+beacon_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=60)

@@ -336,8 +336,8 @@
             <div data-pulse="agents"><b class="num" data-target="{{ agent_count }}">{{ agent_count }}</b><span>{% if ar %}وكيلاً متخصصاً{% else %}specialist agents{% endif %}</span></div>
             <div data-pulse="divisions"><b class="num" data-target="{{ division_count }}">{{ division_count }}</b><span>{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
             <div data-pulse="plans"><b class="num">{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
-            <div data-pulse="leads_received"><b class="num" id="pulseLeads">—</b><span>{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
-            <div data-pulse="projects"><b class="num" id="pulseProjects">—</b><span>{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
+            <div data-pulse="leads_received" hidden><b class="num" id="pulseLeads"></b><span>{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
+            <div data-pulse="projects" hidden><b class="num" id="pulseProjects"></b><span>{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
         </div>
         <p class="facts-note">{% if ar %}الأرقام تُقرأ مباشرة من النظام. لا نخترع آراء ولا أرقام.{% else %}These numbers are read live from the system. We don't invent reviews or numbers.{% endif %}</p>
         <div class="divs">
@@ -608,9 +608,23 @@
     dlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }); });
     dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
 
+    // First-party anonymous funnel beacon: event name + lang/page only, never text.
+    // Skipped under Do-Not-Track/GPC or a refused cookie banner; failures are ignored.
+    function narjsBeacon(name) {
+        try {
+            if (navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.globalPrivacyControl) return;
+            if (/(?:^|; )narjs_consent=denied/.test(document.cookie)) return;
+            var body = JSON.stringify({ event: name, props: { lang: AR ? 'ar' : 'en', page: location.pathname.slice(0, 80) } });
+            if (navigator.sendBeacon) navigator.sendBeacon('/api/events', new Blob([body], { type: 'application/json' }));
+            else fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true }).catch(function () {});
+        } catch (e) {}
+    }
+    narjsBeacon('landing_view');
     // Real CEO diagnosis (POST /api/ceo/consult).
     var form = document.getElementById('ceoForm');
     var box = document.getElementById('ceoProblem');
+    var consultOpened = false;
+    box.addEventListener('focus', function () { if (!consultOpened) { consultOpened = true; narjsBeacon('ceo_consult_open'); } });
     var msg = document.getElementById('ceoMsg');
     var btn = document.getElementById('ceoSubmit');
     document.querySelectorAll('.chip[data-example]').forEach(function (c) {
@@ -668,11 +682,17 @@
             .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
 
-    // Live counters: start empty, only ever filled from /api/pulse.
+    // Live counters: hidden until /api/pulse returns a real positive count
+    // (never "—" or 0 on the public page).
     fetch('/api/pulse').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
         if (!d) return;
-        if (typeof d.leads_received === 'number') document.getElementById('pulseLeads').textContent = d.leads_received.toLocaleString('en');
-        if (typeof d.projects === 'number') document.getElementById('pulseProjects').textContent = d.projects.toLocaleString('en');
+        [['leads_received', 'pulseLeads'], ['projects', 'pulseProjects']].forEach(function (k) {
+            var v = d[k[0]];
+            if (typeof v === 'number' && v > 0) {
+                document.getElementById(k[1]).textContent = v.toLocaleString('en');
+                document.querySelector('#pulse-live [data-pulse="' + k[0] + '"]').hidden = false;
+            }
+        });
     }).catch(function () {});
 })();
 </script>

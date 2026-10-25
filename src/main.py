@@ -903,7 +903,10 @@ async def public_pulse():
     }
 
     try:
-        payload["leads_received"] = await count("acquisition_leads")
+        # Only requests visitors really sent (site form, site assistant), never
+        # imported or outreach prospects, so the public label stays true.
+        payload["leads_received"] = await count(
+            "acquisition_leads WHERE source IN ('website', 'consult_assistant')")
     except Exception:  # a public page must never 500 on a database problem
         logger.warning("pulse: leads_received unavailable", exc_info=True)
     try:
@@ -1167,7 +1170,9 @@ async def client_portal_page(request: Request):
     # The checkout renders a WhatsApp escape hatch, so the number comes from the
     # same published contact source as the invoice rather than a second copy.
     from src.services import payments as _pm
+    from src.services import funnel
 
+    await funnel.track("portal_opened", request, {"lang": _request_locale(request)})
     return templates.TemplateResponse(
         request, "portal.html", {
             "contact": transfer.contact_channels(),
@@ -2095,7 +2100,16 @@ async def ceo_consult(request: CeoConsultRequest, http_request: Request):
         raise HTTPException(400, "Describe the problem in a sentence or two")
     locale = request.lang or http_request.cookies.get(_LOCALE_COOKIE, "ar")
     provider = getattr(app.state, "model_provider", None)
-    return await ceo_advisor.diagnose(problem, provider=provider, locale=locale)
+    from src.services import funnel
+
+    lang = "en" if str(locale).startswith("en") else "ar"
+    await funnel.track("ceo_problem_submitted", http_request, {"lang": lang})
+    result = await ceo_advisor.diagnose(problem, provider=provider, locale=locale)
+    plan = result.get("plan") if isinstance(result, dict) else None
+    if isinstance(plan, dict) and result.get("offer", True):
+        await funnel.track("ceo_plan_recommended", http_request,
+                           {"lang": lang, "plan": str(plan.get("key") or "")})
+    return result
 
 
 class SupportTicketRequest(BaseModel):
@@ -3007,6 +3021,61 @@ def _request_locale(request: Request) -> str:
     return request.cookies.get("narjis_lang") or "ar"
 
 
+# --------------------------------------------------------------------------- funnel analytics
+
+BEACON_MAX_BYTES = 1024
+
+
+@app.post("/api/events", status_code=204)
+async def funnel_beacon(request: Request):
+    """Public first-party beacon for landing_view / ceo_consult_open only.
+
+    Always 204 (also on bad input, DNT or a refused banner) so it can never
+    break a page; 429 when one client floods; 413 for oversized bodies.
+    """
+    import json
+
+    from fastapi import Response
+
+    from src.services import funnel
+    from src.utils.net import client_ip
+    from src.utils.rate_limit import beacon_limiter
+
+    ok, retry_after = beacon_limiter.check(f"{client_ip(request)}:beacon")
+    if not ok:
+        return Response(status_code=429, headers={"Retry-After": str(retry_after)})
+    try:
+        if int(request.headers.get("content-length") or 0) > BEACON_MAX_BYTES:
+            return Response(status_code=413)
+        raw = await request.body()
+        if len(raw) > BEACON_MAX_BYTES:
+            return Response(status_code=413)
+        data = json.loads(raw or b"{}")
+    except Exception:  # noqa: BLE001 - bad beacon input is ignored
+        return Response(status_code=204)
+    if isinstance(data, dict) and data.get("event") in funnel.CLIENT_EVENTS:
+        props = data.get("props") if isinstance(data.get("props"), dict) else {}
+        await funnel.track(data["event"], request, props)
+    return Response(status_code=204)
+
+
+@app.get("/api/owner/errors", dependencies=[Depends(require_owner_api)])
+async def owner_error_summary(limit: int = 50):
+    """Deduplicated, scrubbed server and integration failures (newest first)."""
+    from src.services import error_monitor
+
+    async with app.state.session_factory() as session:
+        return await error_monitor.summary(session, limit)
+
+
+@app.get("/api/owner/funnel", dependencies=[Depends(require_owner_api)])
+async def owner_funnel_report(days: int = 30):
+    from src.services import funnel
+
+    async with app.state.session_factory() as session:
+        return await funnel.funnel_report(session, days)
+
+
 # Declared before /api/payments/{payment_id} so the literal path wins.
 @app.get("/api/payments/capabilities")
 async def payment_capabilities():
@@ -3097,6 +3166,11 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     if not owner_invoice:
         _require_refund_consent(body.refund_consent)
     locale = _request_locale(request)
+    from src.services import funnel
+
+    _funnel_props = {"plan": body.package, "method": body.method, "lang": locale}
+    if not owner_invoice:
+        await funnel.track("checkout_started", request, _funnel_props)
     include_vat = pm.vat_enabled()
     base = _public_base_url(request)
     from src.services import catalog as _cat_vp
@@ -3139,6 +3213,10 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
     if method in pm.CARD_METHODS and not pm.moyasar_collects_money():
         raise HTTPException(503, pm.CARD_ACTIVATING_AR)
+    # Only reached when a payment method is really open (never while
+    # MOYASAR_ON_HOLD keeps card payments closed).
+    if not owner_invoice:
+        await funnel.track("payment_attempted", request, _funnel_props)
 
     async with app.state.session_factory() as session:
         from uuid import UUID as _UUID
@@ -3428,6 +3506,9 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
     if existing:
         return {"applied": True, "deduplicated": True}
 
+    from src.services import funnel
+
+    await funnel.track("payment_succeeded", None, {"plan": payment.package or "", "method": payment.gateway or ""})
     package = payment.package or "social"
     total_halalas = _pm.payment_total(payment)
 

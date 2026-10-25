@@ -72,7 +72,9 @@ def test_no_invented_social_proof(page: str) -> None:
     assert 'data-placeholder="testimonials"' not in page
     assert "فارغة عمداً" not in page
     # live counters start empty and are only filled from /api/pulse
-    assert 'id="pulseLeads">—<' in page and 'id="pulseProjects">—<' in page
+    # (hidden until a real positive count arrives; never "—" or 0)
+    assert 'data-pulse="leads_received" hidden><b class="num" id="pulseLeads"></b>' in page
+    assert 'data-pulse="projects" hidden><b class="num" id="pulseProjects"></b>' in page
 
 
 def test_risk_reversal_matches_the_refund_terms(page: str) -> None:

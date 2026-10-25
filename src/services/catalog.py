@@ -116,9 +116,8 @@ PACKAGES = {
             "رسوم إعداد ٩٩٠ ريال لمرة واحدة، في الشهري والسنوي",
             "فواتير",
             "دعم بالبريد الإلكتروني",
-            "ربط متجر سلة أو زد عند الطلب (قراءة فقط، نُعدّه لك)",
         ],
-        "coming": [],
+        "coming": ["ربط سلة أو زد (قريباً)"],
         "scope_en": [
             "4,000 conversations a month",
             "Meta fees included up to 250 SAR",
@@ -126,9 +125,8 @@ PACKAGES = {
             "One-time setup fee of 990 SAR, on monthly and annual billing",
             "Invoices",
             "Email support",
-            "Salla or Zid store connection on request (read-only, set up by us)",
         ],
-        "coming_en": [],
+        "coming_en": ["Salla or Zid connection (coming soon)"],
     },
     "sharikat": {
         "name": "الشركات",
