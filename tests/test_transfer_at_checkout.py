@@ -53,7 +53,7 @@ def test_a_down_card_checkout_asks_the_buyer_to_contact_us(portal: str) -> None:
     assert "استخدم التحويل البنكي" not in portal
     assert "Payment is temporarily unavailable" in portal
     assert "الدفع غير متاح مؤقتاً" in portal
-    assert "AlNarjisai@gmail.com" not in portal and "0540799266" not in portal
+    assert "AlNarjisai@gmail.com" in portal and "0540799266" not in portal
 
 
 # --------------------------------------------------------------------------
@@ -101,7 +101,6 @@ def test_an_invoice_response_does_not_send_the_buyer_to_a_transfer(portal: str) 
     assert "افتح الفاتورة" not in segment
     assert "invoice_url" not in segment
     assert "0540799266" not in segment
-    assert "AlNarjisai@gmail.com" not in segment
 
 
 def test_capabilities_does_not_publish_contact_details(client: TestClient) -> None:

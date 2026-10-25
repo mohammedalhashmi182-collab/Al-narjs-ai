@@ -106,7 +106,7 @@ def test_terms_and_privacy_carry_the_policies():
     terms = (TPL / "terms.html").read_text(encoding="utf-8")
     privacy = (TPL / "privacy.html").read_text(encoding="utf-8")
     assert policies.REFUND_CONSENT_AR in terms
-    assert "الخصم المكرر" in terms and "24/7" in terms
+    assert "الخصم المكرر" in terms and "mailto:AlNarjisai@gmail.com" in terms
     assert "30 يوماً" in privacy and "خارج المملكة" in privacy and "ZATCA" in privacy
 
 

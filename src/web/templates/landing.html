@@ -446,18 +446,7 @@
             </div>
             {% endfor %}
         </div>
-        <div class="it-cta"><button type="button" class="btn" id="tryAssistant">{% if ar %}جرّبه بنفسك{% else %}Try it yourself{% endif %}</button></div>
     </div>
-<script>
-(function () {
-    var b = document.getElementById('tryAssistant'); if (!b) return;
-    b.addEventListener('click', function () {
-        var root = document.getElementById('siteAssistant'), tg = document.getElementById('saToggle');
-        if (root && tg && !root.classList.contains('open')) tg.click();
-        var i = document.getElementById('saInput'); if (i) i.focus();
-    });
-})();
-</script>
 </section>
 {% endif %}
 
@@ -492,9 +481,9 @@
     </div>
 </footer>
 
-<!-- Mobile: the chat button lives in this bar (the floating toggle is hidden below 980px). -->
+<!-- Mobile bar: CEO consult + sample delivery. -->
 <div class="mbar">
-    <button class="btn" type="button" id="mbarChat" aria-controls="saPanel">{% if ar %}ناقش هدفك مع CEO{% else %}Discuss your goal with the CEO{% endif %}</button>
+    <a class="btn" href="/consult">{% if ar %}ناقش هدفك مع CEO{% else %}Discuss your goal with the CEO{% endif %}</a>
     <button class="btn-sec" type="button" data-open-sample>{% if ar %}نموذج تسليم{% else %}Sample delivery{% endif %}</button>
 </div>
 
@@ -561,14 +550,6 @@
         }, { rootMargin: '-45% 0px -50% 0px' });
         navLinks.forEach(function (a) { var s = document.querySelector(a.getAttribute('href')); if (s) spy.observe(s); });
     }
-
-    // Mobile chat bar toggles the site assistant (the only contact channel).
-    var mbarChat = document.getElementById('mbarChat');
-    if (mbarChat) mbarChat.addEventListener('click', function () {
-        var root = document.getElementById('siteAssistant'), tg = document.getElementById('saToggle');
-        if (root && root.classList.contains('open') && tg) tg.click();
-        else if (window.openNarjisAssistant) window.openNarjisAssistant();
-    });
 
     // Illustrative demo: 4-stage tablist.
     var tabs = Array.prototype.slice.call(document.querySelectorAll('#results [role=tab]'));
@@ -677,7 +658,7 @@
         fetch('/api/ceo/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem: text, lang: AR ? 'ar' : 'en' }) })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(render)
-            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو اسأل مساعد النرجس.' : 'Could not reach the CEO — try again or ask the Al-Narjis assistant.'; msg.hidden = false; })
+            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على AlNarjisai@gmail.com.' : 'Could not reach the CEO — try again or email AlNarjisai@gmail.com.'; msg.hidden = false; })
             .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
 

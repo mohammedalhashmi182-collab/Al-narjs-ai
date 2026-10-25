@@ -1,24 +1,17 @@
 {% extends "partials/_simple_page.html" %}
 {% block title %}{% if ar %}تواصل معنا | النرجس للذكاء الاصطناعي{% else %}Contact us | Al-Narjis AI{% endif %}{% endblock %}
-{% block description %}{% if ar %}تواصل مع النرجس للذكاء الاصطناعي عبر مساعد النرجس الذكي.{% else %}Contact Al-Narjis AI through the Al-Narjis AI assistant.{% endif %}{% endblock %}
+{% block description %}{% if ar %}تواصل مع النرجس للذكاء الاصطناعي عبر البريد الإلكتروني.{% else %}Contact Al-Narjis AI by email.{% endif %}{% endblock %}
 {% block h1 %}{% if ar %}تواصل معنا{% else %}Contact us{% endif %}{% endblock %}
 {% block body %}
 {% if ar %}
-<h2 class="n-title text-lg">مساعد النرجس الذكي</h2>
-<p>الدعم متاح 24 ساعة طوال أيام الأسبوع عبر المساعد، بما فيها الإجازات. اسأل عن الباقات والخدمة، وإذا احتاج سؤالك مراجعة بشرية نتابع معك بالبريد.</p>
-<p><button type="button" class="btn btn-gold" id="contactOpenAssistant">افتح المساعد</button></p>
 <h2 class="n-title text-lg">خدمة العملاء</h2>
-<p>التواصل عبر مساعد النرجس فقط. اطلب «تواصل موظف» من داخل المساعد وسيتابع معك فريقنا، وتصلك النتائج والردود على بريدك الإلكتروني.</p>
+<p>الدعم عبر البريد الإلكتروني الرسمي للشركة: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>. اكتب لنا عن الباقات أو الخدمة وسنرد عليك بالبريد.</p>
 <h2 class="n-title text-lg">الجهة المشغّلة</h2>
 <p>النرجس للذكاء الاصطناعي · وثيقة عمل حر رقم FL-272182297 · الرياض.</p>
 {% else %}
-<h2 class="n-title text-lg">Al-Narjis AI assistant</h2>
-<p>Support is available 24 hours a day, 7 days a week, through the assistant, including holidays. Ask about plans and the service; a human follows up by email when a question needs a person.</p>
-<p><button type="button" class="btn btn-gold" id="contactOpenAssistant">Open the assistant</button></p>
 <h2 class="n-title text-lg">Customer service</h2>
-<p>We are reached only through the Al-Narjis assistant. Ask for a person inside the assistant and our team follows up; results and replies are delivered to your email.</p>
+<p>Support is by email at our official company address: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>. Write to us about plans or the service and we will reply by email.</p>
 <h2 class="n-title text-lg">Operator</h2>
 <p>Al-Narjis AI (النرجس) · Freelance document No. FL-272182297 · Riyadh.</p>
 {% endif %}
-<script>document.getElementById('contactOpenAssistant').addEventListener('click',function(){var t=document.getElementById('saToggle');if(t&&!document.getElementById('siteAssistant').classList.contains('open'))t.click();});</script>
 {% endblock %}

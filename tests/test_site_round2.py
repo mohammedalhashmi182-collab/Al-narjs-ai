@@ -93,7 +93,7 @@ def test_internal_tests_section_labelled_when_enabled(client, monkeypatch):
     html = client.get("/ar/home").text
     assert 'id="tested"' in html
     assert "اختبارات داخلية من فريق النرجس — ليست آراء عملاء" in html
-    assert 'id="tryAssistant"' in html
+    assert 'id="tryAssistant"' not in html
     assert "Internal tests by the Al-Narjis team — not customer reviews" in client.get("/en/home").text
 
 

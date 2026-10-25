@@ -66,13 +66,13 @@
                    a transfer would be asking them to claim something that never happened.
                    Email becomes the primary action and the wording says what is true. #}
                 <strong>{% if xf_ar %}لم تُنشر بيانات الحساب بعد{% else %}Account details are not published yet{% endif %}</strong> —
-                {% if xf_ar %}أرسل رقم الفاتورة هذا عبر مساعد النرجس وسنرسل لك بيانات التحويل بالبريد.
-                {% else %}send this invoice reference through the Al-Narjis assistant and we will email you the transfer details.{% endif %}
+                {% if xf_ar %}أرسل رقم الفاتورة هذا إلى AlNarjisai@gmail.com وسنرسل لك بيانات التحويل بالبريد.
+                {% else %}email this invoice reference to AlNarjisai@gmail.com and we will email you the transfer details.{% endif %}
             {% endif %}
         </p>
         <div class="xfer-actions">
             {% if not xfer.bank.iban %}
-            <a class="xfer-btn xfer-main" id="xferMail" href="#assistant" data-open-assistant>{% if xf_ar %}أرسل رقم الفاتورة عبر المساعد{% else %}Send the reference via the assistant{% endif %}</a>
+            <a class="xfer-btn xfer-main" id="xferMail" href="mailto:AlNarjisai@gmail.com">{% if xf_ar %}أرسل رقم الفاتورة بالبريد{% else %}Email the reference{% endif %}</a>
             {% endif %}
             <button type="button" class="xfer-btn {% if xfer.bank.iban %}xfer-main{% else %}xfer-ghost{% endif %}" id="xferReport">
                 {% if xfer.bank.iban %}
@@ -97,7 +97,7 @@
         var t = {
             sent: ar ? 'تم إشعارنا. سنؤكد التحويل وتُفعَّل باقتك خلال دقائق.' : 'Notified. We verify the transfer and activate your plan within minutes.',
             again: ar ? 'وصلنا إشعارك سابقاً وسيتم التأكيد قريباً.' : 'We already have your report and will confirm shortly.',
-            failed: ar ? 'تعذر الإشعار. أرسل لنا رقم الفاتورة عبر مساعد النرجس.' : 'Could not notify us. Send the invoice reference through the Al-Narjis assistant.',
+            failed: ar ? 'تعذر الإشعار. أرسل لنا رقم الفاتورة على AlNarjisai@gmail.com.' : 'Could not notify us. Email the invoice reference to AlNarjisai@gmail.com.',
             copied: ar ? 'تم النسخ' : 'Copied'
         };
         var ok = document.getElementById('xferOk');

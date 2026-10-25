@@ -302,7 +302,7 @@ def paypal_collects_money() -> bool:
 
 # Shown when checkout has no live Moyasar key. Bank transfer and PayPal stay off.
 CARD_ACTIVATING_AR = (
-    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر مساعد النرجس في الموقع."
+    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر البريد AlNarjisai@gmail.com."
 )
 
 
@@ -337,11 +337,11 @@ def payments_open() -> bool:
 # Plain-language notice shown while payments_open() is False. No dates, no
 # gateway names, no contact details beyond the site assistant and email.
 PAYMENTS_CLOSED_AR = (
-    "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك عبر مساعد النرجس والبريد عند فتح الدفع."
+    "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك بالبريد الإلكتروني عند فتح الدفع."
 )
 PAYMENTS_CLOSED_EN = (
-    "Online payment is not open yet. Register your interest now and we will contact you through the "
-    "Al-Narjis assistant and email when payment opens."
+    "Online payment is not open yet. Register your interest now and we will contact you "
+    "by email when payment opens."
 )
 
 

@@ -1,6 +1,7 @@
 """Launch blockers: package-mismatch activation exploit, public contact leaks,
 agent-result email delivery, and API docs in production."""
 from __future__ import annotations
+import re
 
 import os
 import pathlib
@@ -154,7 +155,12 @@ async def test_create_payment_rejects_unknown_or_bad_project(maker):
 # --- 2. no phone / email on public pages --------------------------------------
 
 OWNER_ONLY = {"sales_dashboard.html", "sales_lead.html"}
-FORBIDDEN = ("tel:", "mailto:", "0540799266")
+FORBIDDEN = ("tel:", "0540799266")
+OFFICIAL_MAILTO = "mailto:AlNarjisai@gmail.com"  # owner decision Oct 2026: company email is the public contact
+
+
+def _only_official_mailto(text):
+    return [m for m in re.findall(r'mailto:[^"\s?]*', text) if m != OFFICIAL_MAILTO]
 
 
 def test_public_templates_have_no_phone_or_mailto():
@@ -164,6 +170,7 @@ def test_public_templates_have_no_phone_or_mailto():
             continue
         text = path.read_text(encoding="utf-8")
         bad += [f"{path.relative_to(ROOT)}: {n}" for n in FORBIDDEN if n in text]
+        bad += [f"{path.relative_to(ROOT)}: {m}" for m in _only_official_mailto(text)]
     assert not bad, bad
 
 
@@ -176,6 +183,7 @@ async def test_rendered_public_pages_have_no_phone_or_mailto(maker, path):
     assert r.status_code < 500
     for needle in FORBIDDEN:
         assert needle not in r.text, (path, needle)
+    assert not _only_official_mailto(r.text), path
 
 
 async def test_capabilities_has_no_contact(maker):

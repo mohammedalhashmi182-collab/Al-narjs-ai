@@ -685,8 +685,8 @@ if (hidden) {
                                         : {{ payments_closed_en | tojson }};
                                 } else if (!cap.card) {
                                     msg = ar
-                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا عبر مساعد النرجس في الموقع.'
-                                        : 'Payment is temporarily unavailable. Contact us through the site assistant.';
+                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا على AlNarjisai@gmail.com.'
+                                        : 'Payment is temporarily unavailable. Contact us at AlNarjisai@gmail.com.';
                                 } else if (cap.paypal_test_mode && allowPaypal) {
                                     msg = ar
                                         ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
@@ -713,7 +713,7 @@ note.textContent = msg;
                         const note = $('coCardNote');
                         if (note) {
                             note.hidden = false;
-                            note.textContent = txt('تعذر التحقق من توفر الدفع. حاول مجدداً أو تواصل معنا عبر المساعد في الموقع.', 'Unable to check payment availability. Try again or contact the site assistant.');
+                            note.textContent = txt('تعذر التحقق من توفر الدفع. حاول مجدداً أو تواصل معنا على AlNarjisai@gmail.com.', 'Unable to check payment availability. Try again or contact us at AlNarjisai@gmail.com.');
                         }
                         $('step-team').classList.add('hidden');
                         $('step-checkout').classList.remove('hidden');
@@ -789,8 +789,8 @@ note.textContent = msg;
                     }
                     if (data.gateway === 'invoice') {
                         msg.textContent = txt(
-                            'الدفع غير متاح مؤقتاً. تواصل معنا عبر مساعد النرجس في الموقع.',
-                            'Payment is temporarily unavailable. Contact us through the site assistant.'
+                            'الدفع غير متاح مؤقتاً. تواصل معنا على AlNarjisai@gmail.com.',
+                            'Payment is temporarily unavailable. Contact us at AlNarjisai@gmail.com.'
                         );
                         release();
                         return;
