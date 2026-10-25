@@ -131,7 +131,7 @@ async def _connect(maker, project, platform, token, *, merchant="111", authoriza
         return row
 
 
-def test_flag_defaults_off_and_site_copy_stays_coming_soon(monkeypatch):
+def test_flag_defaults_off_and_site_copy_is_on_request_read_only(monkeypatch):
     assert enabled() is False
     assert "write" not in SALLA_SCOPES
     monkeypatch.setenv("STORE_INTEGRATIONS_ENABLED", "true")
@@ -142,9 +142,9 @@ def test_flag_defaults_off_and_site_copy_stays_coming_soon(monkeypatch):
     bay = catalog.PACKAGES["numuw"]  # "bay" was renamed to "numuw" in Pricing v2
     scope = [item for item in bay.get("scope") or [] if "سلة" in item or "زد" in item]
     coming = [item for item in bay.get("coming") or [] if "سلة" in item or "زد" in item]
-    assert scope or coming
+    assert scope and not coming
     for item in scope:
-        assert "قريباً" in item
+        assert "قريباً" not in item and "عند الطلب" in item and "قراءة فقط" in item
 
 
 def test_phone_match_uses_the_last_nine_digits():
