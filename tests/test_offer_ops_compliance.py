@@ -394,8 +394,11 @@ async def test_public_compliance_pages_render(maker, path, needle):
         r = await c.get(path, follow_redirects=True)
     assert r.status_code == 200 and needle in r.text
     assert 'href="#"' not in r.text
-    # site contact = the Al-Narjis assistant + email; no direct channels
-    assert "t.me/" not in r.text and "wa.me/" not in r.text
+    # The owner reinstated WhatsApp; Telegram remains private.
+    from src.services.public_presence import presence
+    from html import escape
+    assert "t.me/" not in r.text
+    assert escape(presence()["whatsapp"], quote=True) in r.text
     assert 'id="siteAssistant"' in r.text
     for link in ("/privacy", "/terms", "/data-deletion"):
         assert f'href="{link}"' in r.text

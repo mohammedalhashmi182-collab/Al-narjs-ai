@@ -68,7 +68,7 @@ async def test_banner_disappears_when_payments_open(monkeypatch):
     monkeypatch.setitem(templates.env.globals, "payments_open", lambda: True)
     html = await _get("/ar/pricing")
     assert 'id="paymentsClosedBanner"' not in html
-    assert "اشترك في " in html
+    assert "اشترك الآن" in html
 
 
 def test_flag_follows_moyasar_hold(monkeypatch):

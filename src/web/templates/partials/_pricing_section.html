@@ -43,11 +43,11 @@
                     <ul>{% for line in _coming %}<li>{{ line }}</li>{% endfor %}</ul>
                 </div>
                 {% endif %}
-                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}" data-href-monthly="/portal?pkg={{ plan.key }}" data-href-annual="/portal?pkg={{ plan.key }}&amp;billing=annual">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
+                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="/portal?pkg={{ plan.key }}" data-href-monthly="/portal?pkg={{ plan.key }}" data-href-annual="/portal?pkg={{ plan.key }}&amp;billing=annual">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif ar %}اشترك الآن — {{ plan.name }}{% else %}Subscribe now — {{ plan.name_en }}{% endif %}</a>
             </article>
             {% endfor %}
         </div>
-        <p class="addon-note rv">{% if ar %}تحتاج وكيلاً زيادة؟ <b>وكيل إضافي بـ{{ addon.price }} ر.س</b> شهرياً. رسوم ميتا فوق السقف تُحسب بالتكلفة بدون أي زيادة.{% else %}Need another agent? <b>An extra agent is SAR {{ addon.price }}</b> a month. Meta fees above the cap are charged at cost, with no markup.{% endif %}</p>
+        <p class="addon-note rv">{% if ar %}هل تحتاج إلى وكيل إضافي؟ <b>وكيل إضافي بـ{{ addon.price }} ر.س</b> شهرياً. رسوم ميتا فوق السقف تُحسب بالتكلفة دون رسوم إضافية.{% else %}Need another agent? <b>An extra agent is SAR {{ addon.price }}</b> a month. Meta fees above the cap are charged at cost, with no markup.{% endif %}</p>
         <p class="addon-note rv">{% if ar %}<b>رسوم الإعداد لمرة واحدة:</b> {% for plan in plans %}{{ plan.name }} {% if plan.setup_fee %}{{ '{:,}'.format(plan.setup_fee // 100) }} ر.س{% else %}بدون رسوم{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — تُدفع في الاشتراك الشهري والسنوي. <b>ضمان الإعداد:</b> {{ setup_guarantee.text }}{% else %}<b>One-time setup fee:</b> {% for plan in plans %}{{ plan.name_en }} {% if plan.setup_fee %}SAR {{ '{:,}'.format(plan.setup_fee // 100) }}{% else %}free{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — charged on monthly and annual billing. <b>Setup guarantee:</b> {{ setup_guarantee.text_en }}{% endif %}</p>
         <div class="table-scroll rv">
         <table class="compare">

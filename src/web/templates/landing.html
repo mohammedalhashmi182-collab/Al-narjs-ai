@@ -375,7 +375,7 @@
                 <textarea id="ceoProblem" name="problem" required minlength="8" maxlength="2000" placeholder="{% if ar %}مثال: نرسل عروض أسعار على واتساب ولا أحد يتابعها، ونخسر عملاء.{% else %}Example: we send quotes on WhatsApp, nobody follows up, and we lose customers.{% endif %}"></textarea>
                 <div class="chips" role="group" aria-label="{% if ar %}أمثلة{% else %}Examples{% endif %}">
                     {% if ar %}
-                    <button type="button" class="chip" data-example="حساباتي على إنستغرام وتيك توك تفاعلها ضعيف ولا أعرف ماذا أنشر">سوشيال ضعيف</button>
+                    <button type="button" class="chip" data-example="حساباتي على إنستغرام وتيك توك تفاعلها ضعيف ولا أعرف ماذا أنشر">تحسين المحتوى الاجتماعي</button>
                     <button type="button" class="chip" data-example="متجري الإلكتروني على سلة مبيعاته أقل من المتوقع والعملاء يسألون كثيراً على الواتساب">متجر ومبيعات</button>
                     <button type="button" class="chip" data-example="أريد شركة كاملة: تسويق ومبيعات وخدمة عملاء وتحليل أرقام وتطوير الموقع">كل الأقسام</button>
                     {% else %}
@@ -397,7 +397,7 @@
                     <div><small>{% if ar %}الباقة المرشّحة{% else %}Recommended plan{% endif %}</small><span id="ceoPlanName"></span></div>
                     <div style="text-align:end"><b id="ceoPlanPrice"></b><small id="ceoPlanVat"></small></div>
                 </div>
-                <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% else %}{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}{% endif %}</a>
+                <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% else %}{% if ar %}اشترك الآن في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}{% endif %}</a>
                 <p class="ceo-alt">{% if ar %}سؤال عن التوصية؟ <a href="/consult" data-open-assistant>ناقش هدفك مع CEO</a>{% else %}Questions about the recommendation? <a href="/consult" data-open-assistant>Discuss your goal with the CEO</a>{% endif %}</p>
             </div>
         </div>
@@ -406,16 +406,19 @@
 
 {% if testimonials %}<section aria-label="{% if ar %}آراء العملاء{% else %}Client feedback{% endif %}"><div class="wrap">{% include "partials/_testimonials.html" %}</div></section>{% endif %}
 
+<section class="ivory" id="product-tour" aria-labelledby="product-tour-h"><div class="wrap"><div class="sh"><span class="simtag">{% if ar %}محاكاة افتراضية — ليست نتيجة عميل{% else %}Fictional simulation — not a customer result{% endif %}</span><h2 id="product-tour-h">{% if ar %}شاهد كيف يتحول الطلب إلى مخرج قابل للمراجعة{% else %}See a brief become a reviewable deliverable{% endif %}</h2><p>{% if ar %}عميل افتراضي، مستشار وفريق عمل: تعرّف على التشخيص والتوزيع والمراجعة والتسليم في مثال واحد واضح.{% else %}A fictional customer, consultant and team: explore diagnosis, delegation, review and delivery in one clear example.{% endif %}</p><a class="btn btn-primary" href="/tour">{% if ar %}شاهد الجولة وفيديو الدقيقة{% else %}Explore the tour and one-minute video{% endif %}</a></div></div></section>
+
 <!-- ==================== ABOUT + VISION ==================== -->
 <section id="about" aria-labelledby="about-h">
     <div class="wrap about">
         <div class="founder-card rv">
             <h2 id="about-h" class="sr-only">{% if ar %}من نحن{% else %}About us{% endif %}</h2>
-            <div class="founder">
+            <div class="founder">{% set founder_profile = public_presence() %}{% if founder_profile.founder_photo %}<img src="{{ founder_profile.founder_photo }}" alt="{% if ar %}كريم، مؤسس النرجس{% else %}Karim, founder of Al-Narjis{% endif %}" width="72" height="72" loading="lazy" style="border-radius:50%;object-fit:cover">{% endif %}
                 <span class="founder-disc" aria-hidden="true">{% if ar %}ك{% else %}K{% endif %}</span>
                 <div><b class="founder-name">{% if ar %}كريم{% else %}Karim{% endif %}</b><span class="founder-role">{% if ar %}مؤسس المنصة{% else %}Founder{% endif %}</span></div>
             </div>
             <p class="founder-story">{% if ar %}بدأت الفكرة على سيرفر محلي واحد، قبل أن تكون منصة أو شركة: سؤال واحد — كيف نجعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها فعلاً؟ كل ما هنا نما من ذلك السيرفر، وما زال يعمل على نفس المبدأ: أن يبني لك الفريق ما تحتاجه فعلاً.{% else %}This started on a single local server, before it was a platform or a company: one question — how do you make AI assistance genuinely available to the people who need it? Everything here grew out of that server, and it still runs on the same principle: build the team your work actually needs.{% endif %}</p>
+            <p class="founder-story">{% if ar %}نطوّر النرجس حول خطوات واضحة: فهم الاحتياج، تحديد نطاق العمل، إعداد المخرج ثم مراجعته. نختبر هذه الخطوات قبل عرضها، ونفصل ما يعمل اليوم عمّا لا يزال قيد التطوير، لتبقى توقعاتك مبنية على معلومات واضحة.{% else %}We build Al-Narjis around clear steps: understand the need, define the scope, prepare the output and review it. We test those steps and distinguish what works today from what remains in development, so your expectations rest on clear information.{% endif %}</p><a href="/about">{% if ar %}تعرّف على قصتنا وطريقة عملنا{% else %}Read our story and approach{% endif %}</a>
         </div>
         <div class="vision rv" id="vision">
             <span class="num big">2030</span>
@@ -477,8 +480,10 @@
 </section>
 </main>
 
+<section class="ivory" id="resources" aria-labelledby="resources-h"><div class="wrap"><div class="sh"><h2 id="resources-h">{% if ar %}ابدأ بقرار واضح، قبل اختيار الأداة{% else %}Start with a clear decision before choosing a tool{% endif %}</h2><p>{% if ar %}خمسة أدلة عملية من مدوّنتنا لأصحاب الأعمال في السعودية.{% else %}Five practical guides from our blog for businesses in Saudi Arabia.{% endif %}</p></div><div class="resource-links">{% for article in featured_articles %}<a class="card" href="/blog/{{ article.slug }}"><h3>{{ article.title_ar if ar else article.title_en }}</h3><p>{{ article.desc_ar if ar else article.desc_en }}</p></a>{% endfor %}</div><a class="btn" href="/blog">{% if ar %}جميع المقالات{% else %}All articles{% endif %}</a></div></section><style>.resource-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:16px;margin-bottom:24px}.resource-links a{text-decoration:none;color:inherit}.resource-links h3{font-size:1.05rem}.resource-links p{font-size:.9rem;line-height:1.8}</style>
 <footer class="nj-footer" id="site-footer">
     <div class="wrap">
+        {% include "partials/_public_navigation.html" %}
         <nav class="svc-links" aria-label="{% if ar %}روابط المنصة{% else %}Platform links{% endif %}">
             <a href="/portal">{% if ar %}بوابة العميل{% else %}Client portal{% endif %}</a>
             <a href="/ai-agents-saudi-businesses">{% if ar %}وكلاء الذكاء الاصطناعي في السعودية{% else %}AI agents in KSA{% endif %}</a>
@@ -507,7 +512,7 @@
             <div class="dcard"><h4>مجموعة رسائل المتابعة <span class="badge">مسودات</span></h4>
                 <div class="bub">أهلًا أبو خالد، أرسلنا لك عرض السعر أمس. هل تحب نوضح أي تفصيل؟<small>اليوم الأول</small></div>
                 <div class="bub">تذكير لطيف: العرض صالح حتى نهاية الأسبوع، ونقدر نعدّل الكمية لو تحتاج.<small>اليوم الثالث</small></div>
-                <div class="bub">شكرًا لوقتك. لو الوقت مو مناسب الحين، نتواصل معك الشهر الجاي؟<small>اليوم السابع</small></div></div>
+                <div class="bub">شكرًا لوقتك. إذا لم يكن الوقت مناسبًا الآن، هل تفضّل أن نتواصل معك الشهر المقبل؟<small>اليوم السابع</small></div></div>
             <div class="dcard"><h4>تقرير قصير</h4><ol><li>قائمة العروض المفتوحة وآخر تواصل مع كل عميل.</li><li>الاستفسارات التي صنّفها وكيل التأهيل جادة.</li><li>ثلاث حالات مقترحة لاتصال مباشر منك.</li><li>ما يحتاج موافقتك قبل الإرسال.</li></ol></div>
             {% else %}
             <div class="dcard"><h4>Follow-up message set <span class="badge">Drafts</span></h4>

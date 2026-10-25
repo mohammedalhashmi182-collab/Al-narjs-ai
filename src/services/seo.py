@@ -42,6 +42,7 @@ CORE_PAGES: list[tuple[str, str, float]] = [
     ("/pricing", "weekly", 0.9),
     ("/consult", "monthly", 0.9),
     ("/about", "monthly", 0.6),
+    ("/tour", "monthly", 0.8),
     ("/contact", "monthly", 0.5),
     ("/guide", "monthly", 0.8),
     ("/early-access", "monthly", 0.7),
