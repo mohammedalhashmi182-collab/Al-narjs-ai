@@ -6,9 +6,10 @@ far-future timestamp is rejected.
 
 Salla's ``created_at`` sits inside the HMAC, so the window is bound to the
 signed body. Zid's signed mode uses the same body field and ignores an unsigned
-timestamp header. Zid's unsigned mode (Basic or static header) accepts
-``X-Zid-Timestamp`` or a body field; that header is not bound to the body, so
-the window only stops a later replay of a captured request.
+timestamp header. Zid's unsigned mode (Basic or static header) checks only
+``X-Zid-Timestamp`` when present (body ``created_at`` is the order date there);
+with no header it relies on the raw-body dedupe. An authenticated Zid uninstall
+skips the window so tokens are always cleared.
 """
 
 from __future__ import annotations
@@ -86,7 +87,10 @@ def zid_fresh(headers, payload: dict, *, now: Optional[datetime] = None) -> bool
     if signed:
         moment = parse_timestamp(payload.get("created_at")) or parse_timestamp(payload.get("timestamp"))
         return within_window(moment, now=now)
-    moment = parse_timestamp(headers.get("x-zid-timestamp") if headers else None)
-    if moment is None:
-        moment = parse_timestamp(payload.get("created_at")) or parse_timestamp(payload.get("timestamp"))
-    return within_window(moment, now=now)
+    # Basic-auth deliveries: the body's created_at is the order/product date,
+    # not the delivery time, so it is never used here. A missing timestamp is
+    # allowed; exact replays are dropped by the raw-body dedupe (claim_event).
+    raw_header = (headers.get("x-zid-timestamp") if headers else None) or ""
+    if not str(raw_header).strip():
+        return True
+    return within_window(parse_timestamp(raw_header), now=now)
