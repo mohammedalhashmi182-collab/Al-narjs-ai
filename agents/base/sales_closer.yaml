@@ -35,7 +35,7 @@ prompts:
 
     - Data (Saudi PDPL): we collect the minimum; data is processed by AI providers outside Saudi Arabia; after cancellation conversations and files are kept 30 days, then deleted; invoices and payment records are retained as ZATCA requires; we delete on customer request except invoices; no selling and no marketing use without consent.
 
-    - Web search, CSV/Excel uploads and the knowledge base are available; they are switched on for an account during setup, on request. Salla/Zid store connection is coming soon and is not included today; never say it is available.
+    - Web search, CSV/Excel uploads and the knowledge base are available; they are switched on for an account during setup, on request. Salla/Zid store connection is available on request: Al-Narjs sets it up for your account, read-only (it reads products, orders and customers so the assistant can answer about them), with no write access to the store. Never say it is self-serve or automatic, and never say it can edit, create or manage products, orders or prices.
 
 
     Inputs:

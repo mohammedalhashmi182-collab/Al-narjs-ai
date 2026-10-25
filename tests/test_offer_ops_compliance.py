@@ -66,10 +66,10 @@ def test_catalog_no_longer_sells_unbuilt_features_as_live():
     text = "\n".join(line for p in catalog.PACKAGES.values() for line in p["scope"] + p["scope_en"])
     for claim in UNBUILT_LIVE_CLAIMS:
         assert claim not in text
-    # Salla/Zid is labelled coming soon and is not sold as included.
+    # Salla/Zid is offered on request, read-only, never as coming soon.
     growth = catalog.PACKAGES["numuw"]
-    assert any("قريباً" in line for line in growth["coming"])
-    assert any("coming soon" in line.lower() for line in growth["coming_en"])
+    assert any("سلة" in line and "عند الطلب" in line and "قراءة فقط" in line for line in growth["scope"])
+    assert any("Salla" in line and "on request" in line and "read-only" in line for line in growth["scope_en"])
     for key in catalog.PACKAGE_ORDER:
         for line in catalog.PACKAGES[key]["scope"] + catalog.PACKAGES[key]["scope_en"]:
             low = line.lower()
@@ -79,13 +79,13 @@ def test_catalog_no_longer_sells_unbuilt_features_as_live():
             assert "voice agent" not in low and "voice minute" not in low
 
 
-def test_salla_zid_scope_line_stays_coming_soon():
-    """النمو lists the store connection as coming soon, not as included."""
-    line = next(item for item in catalog.PACKAGES["numuw"]["coming"] if "سلة" in item)
-    assert line == "ربط سلة أو زد (قريباً)"
-    en = next(item for item in catalog.PACKAGES["numuw"]["coming_en"] if "Salla" in item)
-    assert "coming soon" in en.lower()
-    assert not any("سلة" in item for item in catalog.PACKAGES["numuw"]["scope"])
+def test_salla_zid_scope_line_is_on_request_read_only():
+    """النمو lists the store connection as available on request, read-only, set up by us."""
+    line = next(item for item in catalog.PACKAGES["numuw"]["scope"] if "سلة" in item)
+    assert line == "ربط متجر سلة أو زد عند الطلب (قراءة فقط، نُعدّه لك)"
+    en = next(item for item in catalog.PACKAGES["numuw"]["scope_en"] if "Salla" in item)
+    assert "on request" in en and "read-only" in en and "coming soon" not in en.lower()
+    assert not any("سلة" in item for item in catalog.PACKAGES["numuw"]["coming"])
 
 
 def test_prices_and_limits_unchanged():

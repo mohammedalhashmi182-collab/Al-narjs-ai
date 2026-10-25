@@ -6,9 +6,11 @@ Deterministic checks (no model call):
   ريال / ر.س / SAR / ﷼) must be a price the catalog can produce (plans,
   annual, founding, VAT totals, add-ons, setup fees, Meta caps) or appear in
   the project's knowledge base. Anything else costs 40 points.
-* **Unbuilt features promised as live** - voice agent/calls, per-customer
-  Salla/Zid, abandoned carts, Instagram DMs - without a "قريباً"/"coming soon"
-  qualifier costs 25 points.
+* **Unbuilt features promised as live** - voice agent/calls, abandoned carts,
+  Instagram DMs - without a "قريباً"/"coming soon" qualifier costs 25 points.
+* **Store write access** - the Salla/Zid connection is read-only and set up
+  by us on request; a draft that says it edits/manages store products, orders
+  or prices, or installs itself automatically, costs 25 points.
 * **Guarantees / invented results** - "نضمن لك" / "guaranteed" / "% زيادة"
   style claims cost 20 points (the setup guarantee from the catalog is allowed).
 * Empty or unfinished placeholders ("{...}" other than {payment_url}) cost 30.
@@ -33,10 +35,17 @@ _MONEY_RE = re.compile(rf"{_NUM}\s*{_CURRENCY}|{_CURRENCY}\s*{_NUM}", re.IGNOREC
 
 UNBUILT = {
     "voice": (r"وكيل\s*صوت|خط\s*صوت|مكالمات|المكالمات|voice agent|voice line|phone calls",),
-    "store_link": (r"ربط\s*(?:متجرك\s*على\s*)?سلة|ربط\s*زد|Salla integration|Zid integration",),
     "abandoned_cart": (r"السلات?\s*المتروكة|سلة\s*متروكة|abandoned[- ]cart",),
     "instagram_dm": (r"رسائل\s*(?:ال)?(?:إنستغرام|انستقرام|انستغرام)|خاص\s*(?:ال)?(?:إنستغرام|انستقرام)|Instagram DMs?",),
 }
+_STORE_WRITE = re.compile(
+    r"(?:يعدّ?ل|يضيف|يحذف|يدير|تعديل|إدارة)\s*(?:\S+\s+){0,2}(?:منتجات|المنتجات|طلبات|الطلبات|أسعار|الأسعار)\s*(?:\S+\s+){0,3}(?:سلة|زد)"
+    r"|(?:سلة|زد)\s*(?:\S+\s+){0,4}(?:يعدّ?ل|يضيف|يحذف|يدير|تعديل|إدارة)\s*(?:\S+\s+){0,1}(?:منتجات|المنتجات|طلبات|الطلبات|أسعار|الأسعار)"
+    r"|(?:Salla|Zid)\b[^.\n]{0,60}\b(?:edit|update|create|delete|manage)s?\b[^.\n]{0,20}\b(?:products|orders|prices)"
+    r"|(?:edit|update|create|delete|manage)s?\s+(?:your\s+)?(?:products|orders|prices)\s+(?:on|in)\s+(?:your\s+)?(?:Salla|Zid)"
+    r"|(?:Salla|Zid)\b[^.\n]{0,40}\b(?:self-serve|installs? (?:itself|automatically)|one-click)",
+    re.IGNORECASE,
+)
 _SOON = re.compile(r"قريباً|قريبا|coming soon", re.IGNORECASE)
 _GUARANTEE = re.compile(r"نضمن\s*لك|مضمون(?:ة)?\s*100|guarantee[sd]?\s+(?:you|results|sales)|\d+\s*[%٪]\s*(?:زيادة|أكثر|more|increase)",
                         re.IGNORECASE)
@@ -112,6 +121,11 @@ def score_draft(text: str, kb_texts: Iterable[str] = ()) -> dict:
     if promised and not soon:
         score -= 25
         issues.append({"code": "unbuilt_feature", "detail": promised})
+
+    w = _STORE_WRITE.search(text)
+    if w:
+        score -= 25
+        issues.append({"code": "store_write_claim", "detail": w.group(0)})
 
     g = _GUARANTEE.search(text)
     if g and catalog.SETUP_GUARANTEE["text"][:20] not in text:

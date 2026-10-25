@@ -22,24 +22,26 @@ def test_coming_features_not_listed_as_included():
         for line in p["scope"] + p["scope_en"]:
             lowered = line.lower()
             if any(w in line for w in ("سلة", "زد")) or "salla" in lowered or "zid" in lowered:
-                assert "قريباً" in line or "coming soon" in lowered, (key, line)
-                continue
+                assert "عند الطلب" in line or "on request" in lowered, (key, line)
+                assert "قراءة فقط" in line or "read-only" in lowered, (key, line)
             assert "قريباً" not in line and "coming soon" not in lowered, (key, line)
         assert len(p.get("coming", [])) == len(p.get("coming_en", []))
-    assert catalog.PACKAGES["numuw"]["coming"]
 
 
-def test_pricing_page_splits_now_and_coming(client):
+def test_pricing_page_has_no_coming_soon_block_once_salla_zid_is_available(client):
     html = client.get("/ar/pricing").text
-    assert "متاح الآن" in html and "قادم قريباً" in html and "feat-coming" in html
+    assert "متاح الآن" in html and "قادم قريباً" not in html and 'class="feat-coming"' not in html
+    assert "ربط متجر سلة أو زد عند الطلب (قراءة فقط، نُعدّه لك)" in html
     en = client.get("/en/pricing").text
-    assert "Available now" in en and "Coming soon" in en
+    assert "Available now" in en and "Coming soon" not in en
+    assert "Salla or Zid store connection on request (read-only, set up by us)" in en
 
 
 def test_portal_api_exposes_features_and_coming(client):
     pk = client.get("/api/portal/packages").json()["packages"]
     growth = next(p for p in pk if p["key"] == "numuw")
-    assert growth["features"] and growth["coming"] and growth["coming_en"]
+    assert growth["features"] and growth["coming"] == [] and growth["coming_en"] == []
+    assert any("سلة" in f and "عند الطلب" in f for f in growth["features"])
     assert all(p["key"] not in {"radd", "bay", "tashgheel"} for p in pk)
 
 

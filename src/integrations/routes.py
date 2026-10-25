@@ -250,14 +250,18 @@ async def webhook(platform: str, request: Request):
         raise HTTPException(400, "Invalid JSON")
     if not isinstance(payload, dict):
         raise HTTPException(400, "Invalid JSON")
-    fresh = salla_fresh(payload) if platform == "salla" else zid_fresh(request.headers, payload)
+    uninstall = _uninstall(platform, payload)
+    if platform == "salla":
+        fresh = salla_fresh(payload)
+    else:
+        # An authenticated uninstall only clears tokens; always process it.
+        fresh = uninstall or zid_fresh(request.headers, payload)
     if not fresh:
         raise HTTPException(401, "Stale webhook")
     if platform == "zid":
         from src.integrations.zid.webhooks import warn_unsigned
 
         warn_unsigned(request.headers, payload)
-    uninstall = _uninstall(platform, payload)
     if not enabled() and not uninstall:
         return {"ok": True, "ignored": True}
     async with _factory(request)() as session:

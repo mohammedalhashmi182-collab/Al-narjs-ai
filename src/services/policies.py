@@ -30,7 +30,8 @@ POLICY_PROMPT = (
     "cancellation conversations and files are kept 30 days, then deleted; invoices and payment records are retained "
     "as ZATCA requires; we delete on customer request except invoices; no selling and no marketing use without consent.\n"
     "- Web search, CSV/Excel uploads and the knowledge base are available; they are switched on for an account "
-    "during setup, on request. Salla/Zid store connection is coming soon and is not included today; never say it is available."
+    "during setup, on request. "
+    "Salla/Zid store connection is available on request: Al-Narjs sets it up for your account, read-only (it reads products, orders and customers so the assistant can answer about them), with no write access to the store. Never say it is self-serve or automatic, and never say it can edit, create or manage products, orders or prices."
 )
 
 OWNER_FAQ_TITLE = "سياسات النرجس الرسمية"
@@ -49,7 +50,7 @@ OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد �
 
 الاحتفاظ بالبيانات بعد الإلغاء: نحتفظ بالمحادثات والملفات 30 يوماً بعد الإلغاء ثم نحذفها. الفواتير وسجلات الدفع نحتفظ فيها حسب متطلبات هيئة الزكاة والضريبة والجمارك. وتقدر تطلب حذف بياناتك في أي وقت ما عدا الفواتير.
 
-الأدوات: البحث في الويب، رفع ملفات CSV وExcel، وقاعدة المعرفة متاحة وتتفعّل لحسابك بالإعداد عند الطلب. ربط سلة أو زد «قريباً» وغير مشمول حالياً."""
+الأدوات: البحث في الويب، رفع ملفات CSV وExcel، وقاعدة المعرفة متاحة وتتفعّل لحسابك بالإعداد عند الطلب. ربط متجر سلة أو زد متاح عند الطلب: نُعدّه نحن لحسابك، بصلاحية قراءة فقط (يقرأ المنتجات والطلبات والعملاء ليجيب المساعد عنها)، وبدون أي صلاحية كتابة أو تعديل على متجرك."""
 
 
 async def seed_owner_faq(session: AsyncSession) -> bool:

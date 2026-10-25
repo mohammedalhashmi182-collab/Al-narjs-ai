@@ -36,8 +36,8 @@ TOKEN_B = "salla-access-BBBB"
 STATUS_A = "خرج للتوصيل"
 STATUS_B = "ملغى سرّي"
 PHONE_A = "966512345678"
-SECRET_SALLA = "salla-whsec-test"
-SECRET_ZID = "zid-whsec-test"
+SECRET_SALLA = "salla-whsec-test"  # pragma: allowlist secret
+SECRET_ZID = "zid-whsec-test"  # pragma: allowlist secret
 TEST_STORE_KEY = Fernet.generate_key().decode()
 
 
@@ -131,7 +131,7 @@ async def _connect(maker, project, platform, token, *, merchant="111", authoriza
         return row
 
 
-def test_flag_defaults_off_and_site_copy_stays_coming_soon(monkeypatch):
+def test_flag_defaults_off_and_site_copy_is_on_request_read_only(monkeypatch):
     assert enabled() is False
     assert "write" not in SALLA_SCOPES
     monkeypatch.setenv("STORE_INTEGRATIONS_ENABLED", "true")
@@ -142,9 +142,9 @@ def test_flag_defaults_off_and_site_copy_stays_coming_soon(monkeypatch):
     bay = catalog.PACKAGES["numuw"]  # "bay" was renamed to "numuw" in Pricing v2
     scope = [item for item in bay.get("scope") or [] if "سلة" in item or "زد" in item]
     coming = [item for item in bay.get("coming") or [] if "سلة" in item or "زد" in item]
-    assert scope or coming
+    assert scope and not coming
     for item in scope:
-        assert "قريباً" in item
+        assert "قريباً" not in item and "عند الطلب" in item and "قراءة فقط" in item
 
 
 def test_phone_match_uses_the_last_nine_digits():
@@ -203,7 +203,7 @@ async def test_salla_install_url_uses_documented_host_and_read_scopes(maker, mon
 async def test_salla_callback_stores_encrypted_tokens_without_pii(maker, monkeypatch, caplog):
     _salla_env(monkeypatch)
     project = await _project(maker)
-    secret = "salla-csecret-do-not-log"
+    secret = "salla-csecret-do-not-log"  # pragma: allowlist secret
     access = "ory_at_plaintext_access"
     email = "merchant-private@example.com"
 
@@ -751,7 +751,8 @@ async def test_webhooks_reject_a_stale_or_unbound_timestamp(maker, monkeypatch):
     monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
     old = _stamp({"event_name": "order.status.update", "store_id": 507530}, age=timedelta(hours=2))
     token = base64.b64encode(f"narjis:{SECRET_ZID}".encode()).decode()
-    assert (await _post_zid(maker, old, {"authorization": f"Basic {token}"})).status_code == 401
+    # Basic-auth: body created_at is the order date, not the delivery time.
+    assert (await _post_zid(maker, old, {"authorization": f"Basic {token}"})).status_code == 200
     signed_old = _stamp({"event_name": "order.status.update", "store_id": 9}, age=timedelta(minutes=30))
     digest = hmac.new(SECRET_ZID.encode(), signed_old, hashlib.sha256).hexdigest()
     forged_clock = await _post_zid(maker, signed_old, {
@@ -805,3 +806,61 @@ async def _post_zid(maker, raw: bytes, headers: dict):
         return await client.post("/webhooks/stores/zid", content=raw, headers={
             "content-type": "application/json", **headers,
         })
+
+
+def _basic(user: str, password: str) -> dict:
+    return {"authorization": "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode()}
+
+
+async def test_zid_basic_auth_works_without_the_unsigned_flag(maker, monkeypatch):
+    _zid_env(monkeypatch)
+    monkeypatch.delenv("ZID_WEBHOOK_ALLOW_UNSIGNED", raising=False)
+    project = await _project(maker)
+    await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
+    raw = _stamp({"event_name": "order.status.update", "store_id": 507530})
+    assert (await _post_zid(maker, raw, _basic("narjis", SECRET_ZID))).status_code == 200
+    for headers in ({}, _basic("narjis", "wrong"), _basic("other", SECRET_ZID), _basic("narjis", ""),
+                    {"authorization": "Bearer " + SECRET_ZID}, {"x-zid-webhook-token": SECRET_ZID}):
+        again = _stamp({"event_name": "order.status.update", "store_id": 507530, "n": len(str(headers))})
+        assert (await _post_zid(maker, again, headers)).status_code == 401, headers
+
+
+async def test_zid_empty_secret_never_authenticates(maker, monkeypatch):
+    _zid_env(monkeypatch)
+    monkeypatch.setenv("ZID_WEBHOOK_SECRET", "")
+    monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
+    raw = _stamp({"event_name": "order.status.update", "store_id": 1})
+    for headers in (_basic("narjis", ""), {"x-zid-webhook-token": ""}, {}):
+        assert (await _post_zid(maker, raw, headers)).status_code == 401
+
+
+async def test_zid_basic_auth_ignores_body_created_at_and_missing_timestamp(maker, monkeypatch):
+    _zid_env(monkeypatch)
+    project = await _project(maker)
+    await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
+    old_order = _stamp({"event_name": "order.status.update", "store_id": 507530}, age=timedelta(days=20))
+    assert (await _post_zid(maker, old_order, _basic("narjis", SECRET_ZID))).status_code == 200
+    no_time = json.dumps({"event_name": "product.update", "store_id": 507530}).encode()
+    first = await _post_zid(maker, no_time, _basic("narjis", SECRET_ZID))
+    assert first.status_code == 200
+    replay = await _post_zid(maker, no_time, _basic("narjis", SECRET_ZID))
+    assert replay.status_code == 200 and replay.json().get("duplicate") is True
+    stale_header = json.dumps({"event_name": "product.update", "store_id": 507530, "x": 1}).encode()
+    old_ts = str(int((datetime.now(UTC) - timedelta(hours=2)).timestamp()))
+    assert (await _post_zid(maker, stale_header, {**_basic("narjis", SECRET_ZID), "x-zid-timestamp": old_ts})).status_code == 401
+
+
+async def test_zid_authenticated_uninstall_always_processed(maker, monkeypatch):
+    _zid_env(monkeypatch)
+    project = await _project(maker)
+    await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
+    raw = json.dumps({"event_name": "app.market.application.uninstall", "store_id": 507530}).encode()
+    assert (await _post_zid(maker, raw, _basic("narjis", "wrong"))).status_code == 401
+    ok = await _post_zid(maker, raw, _basic("narjis", SECRET_ZID))
+    assert ok.status_code == 200 and ok.json()["action"] == "uninstalled"
+    async with maker() as session:
+        row = (await session.execute(select(StoreConnection))).scalar_one()
+    assert row.access_token_enc is None
+    signed_old = _stamp({"event_name": "app.market.application.uninstall", "store_id": 9}, age=timedelta(days=3))
+    digest = hmac.new(SECRET_ZID.encode(), signed_old, hashlib.sha256).hexdigest()
+    assert (await _post_zid(maker, signed_old, {"x-zid-signature": digest})).status_code == 200
