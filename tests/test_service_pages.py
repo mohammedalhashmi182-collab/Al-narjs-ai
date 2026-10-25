@@ -46,7 +46,7 @@ def test_service_page_is_canonical_and_marked_up(client: TestClient, slug: str) 
     assert f'rel="canonical" href="https://karmaai.online/ar/services/{slug}"' in ar.text
     assert 'hreflang="x-default" href="https://karmaai.online/ar/services/' in ar.text
     assert service["title_en"] in en.text
-    assert "wa.me/" not in ar.text
+    assert "https://wa.me/966540799266?" in ar.text
     assert "tel:" not in ar.text and "0540799266" not in ar.text
     assert 'href="#"' not in ar.text
     assert "mailto:" not in ar.text and "data-open-assistant" in ar.text
@@ -66,7 +66,7 @@ def test_service_page_is_canonical_and_marked_up(client: TestClient, slug: str) 
     assert service["h1_en"] in en.text
     # the language switch is the only intended Arabic on the English page
     assert "تقضي فرق" not in en_visible
-    assert "wa.me/" not in en.text
+    assert "https://wa.me/966540799266?" in en.text
 
 
 def test_home_links_to_services_and_uses_the_supplied_meta(client: TestClient) -> None:
@@ -93,4 +93,4 @@ def test_blog_posts_expose_article_schema_and_a_service_link(client: TestClient)
     assert posting["datePublished"] == "2026-09-26"
     assert posting["author"]["@type"] == "Organization"
     assert 'href="/services/chatbots"' in html
-    assert "wa.me/" not in html
+    assert "https://wa.me/966540799266?" in html

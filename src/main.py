@@ -571,6 +571,8 @@ from src.services.support import support_contact as _support_contact  # noqa: E4
 
 templates.env.globals["support_contact"] = _support_contact
 templates.env.globals["settings"] = get_settings()
+from src.services.public_presence import presence as _public_presence
+templates.env.globals["public_presence"] = _public_presence
 from src.services import payments as _vat_pm  # noqa: E402
 templates.env.globals["vat_rate"] = _vat_pm.vat_rate
 templates.env.globals["vat_percent"] = _vat_pm.vat_percent
@@ -856,6 +858,7 @@ async def landing_page(request: Request):
             **(await _pricing_context()),
             "testimonials": _testimonials.load(),
             "services": public_services.SERVICES,
+            "featured_articles": __import__("src.services.blog_articles_1", fromlist=["ARTICLES"]).ARTICLES[:5],
             "internal_tests": __import__("src.services.internal_tests", fromlist=["load"]).load(),
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
             "contact_prefilled": transfer.contact_channels(
@@ -1104,6 +1107,11 @@ async def refund_policy_page(request: Request):
             "setup_guarantee": catalog.SETUP_GUARANTEE,
         },
     )
+
+
+@app.get("/tour", response_class=HTMLResponse)
+async def tour_page(request: Request):
+    return templates.TemplateResponse(request, "tour.html", {"ar": _page_lang(request) == "ar"})
 
 
 @app.get("/about", response_class=HTMLResponse)

@@ -17,7 +17,7 @@ EN: dict[str, dict] = {
             {
                 "h": "Start with the conclusion",
                 "p": [
-                    "An AI agent is a digital employee that performs one defined job: it writes, answers, analyses, or organises. It does not request leave and it does not send a payroll.",
+                    "An AI agent is software that performs a defined task: preparing a draft, organizing information or assisting with repeated replies within approved permissions.",
                     "A business does not need a full department to begin. It needs one measurable task and one agent whose output you can check. This guide explains the difference, when to start, and what it costs.",
                 ],
             },
@@ -53,7 +53,7 @@ EN: dict[str, dict] = {
             {
                 "h": "Cost",
                 "p": [
-                    "A subscription is a monthly payment, not a salary, and it starts from the Starter plan on the pricing page. Starter, Growth, and Enterprise differ by the monthly conversation cap and the Meta fees covered, billed with an invoice, with no long-term contract and cancellation at any time.",
+                    "Published plans differ by monthly conversation limits, covered Meta fees and setup fees. Read the pricing page for the current scope, payment availability and subscription terms before making a decision.",
                     "The fair question is not \"how cheap is it\" but: does this task slip every week? That is the real cost being removed.",
                 ],
             },
@@ -102,7 +102,7 @@ EN: dict[str, dict] = {
             {
                 "h": "Protecting your voice",
                 "p": [
-                    "Send ten to twenty replies you wrote yourself, and a tone guide for your team is built from them. That is where the visible difference comes from after two weeks.",
+                    "Start with a sample of your approved replies to build a clear style guide. Compare drafts against that sample, and review information accuracy and tone before approval.",
                 ],
             },
         ],

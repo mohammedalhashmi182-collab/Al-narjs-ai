@@ -47,7 +47,7 @@
         <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
     </div>
 
-    <h1>{% if _lang == 'ar' %}مدوّبة الذكاء الاصطناعي بالعربي{% else %}The AI blog, in Arabic first{% endif %}</h1>
+    <h1>{% if _lang == 'ar' %}أدلة أتمتة الأعمال بالذكاء الاصطناعي{% else %}The AI blog, in Arabic first{% endif %}</h1>
     <p style="color:#B9B8C0;max-width:640px">
         {% if _lang == 'ar' %}
         مقالات عملية عن وكلاء الذكاء الاصطناعي في السعودية: متى تستخدمهم، وما الذي يخرجونه، وأين تتوقف الأتمتة.
@@ -73,6 +73,7 @@
         <a class="btn btn-ghost" href="/ai-agents-saudi-businesses">{% if _lang == 'ar' %}وكلاء الذكاء الاصطناعي في السعودية{% else %}AI agents for Saudi businesses{% endif %}</a>
     </div>
 
+    {% set ar = _lang == "ar" %}{% include "partials/_public_navigation.html" %}
     <footer>
         النرجس للذكاء الاصطناعي — الرياض ·
         <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·

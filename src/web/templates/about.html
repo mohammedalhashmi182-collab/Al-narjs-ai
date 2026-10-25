@@ -18,6 +18,8 @@
 .ab-card h3{margin:0 0 6px;font-size:1rem;color:#1b1712}
 .ab-card p{margin:0;font-size:.92rem;color:#4a3f2e}
 </style>
+{% set founder_profile = public_presence() %}
+{% if founder_profile.founder_photo %}<img src="{{ founder_profile.founder_photo }}" width="160" height="160" alt="{% if ar %}كريم، مؤسس النرجس{% else %}Karim, founder of Al-Narjis{% endif %}" style="border-radius:20px;object-fit:cover" loading="lazy">{% endif %}
 <figure class="ab-hero" data-slot="brand-illustration">
     <img src="/static/logo.svg" alt="{% if ar %}شعار النرجس: نجمة ثمانية بتلات سوداء وذهبية{% else %}Al-Narjis logo: a black and gold eight-point star{% endif %}" width="112" height="112">
     <figcaption class="t">{% if ar %}<b>النرجس للذكاء الاصطناعي</b><span>صُنع في السعودية، من الرياض.</span>{% else %}<b>Al-Narjis AI</b><span>Built in Saudi Arabia, from Riyadh.</span>{% endif %}</figcaption>
@@ -25,6 +27,9 @@
 {% if ar %}
 <h2 class="n-title text-lg">قصتنا</h2>
 <p>أسّس <b>كريم</b> النرجس للذكاء الاصطناعي في الرياض بفكرة بسيطة: صاحب العمل السعودي يستحق أدوات ذكاء اصطناعي تفهم لهجته وسوقه، وتخدمه هو وفريقه بدل أن تحلّ محلّهم. بدأنا من سيرفر محلي واحد، وكل ما نبنيه اليوم يمشي على نفس المبدأ: نبني لك الفريق الذي تحتاجه فعلاً، وتبقى القرارات بيدك.</p>
+<h2 class="n-title text-lg">من الفكرة إلى طريقة عمل واضحة</h2>
+<p>يركّز تطوير النرجس على ما يحتاجه صاحب العمل قبل أي أداة: هدف محدد، ومعلومات معتمدة، ومخرج يمكن مراجعته. لذلك نبدأ بالمستشار، ثم نحدّد نطاق المهمة والفريق المناسب، ونضع نقاط اعتماد قبل الإجراءات الحساسة. هذه هي الطريقة التي نبني بها المنتج، وليست ادعاءً بنتائج عملاء لم نوثّقها.</p>
+<p><a href="/tour">شاهد مثالاً افتراضياً كاملاً لطريقة العمل</a>.</p>
 <h2 class="n-title text-lg">رسالتنا</h2>
 <p><b>الذكاء الاصطناعي يساعد الناس، ولا يستبدلهم.</b> الوكلاء يتولّون المهام المتكررة — الردود، المتابعة، المسودات — وأنت وفريقك تعتمدون وتقررون.</p>
 <h2 class="n-title text-lg">ماذا نقدّم</h2>
@@ -47,6 +52,9 @@
 {% else %}
 <h2 class="n-title text-lg">Our story</h2>
 <p><b>Karim</b> founded Al-Narjis AI in Riyadh with a simple idea: Saudi business owners deserve AI tools that understand their dialect and their market, and that serve them and their teams instead of replacing them. We started on a single local server, and everything we build today follows the same principle: we build the team you actually need, and the decisions stay with you.</p>
+<h2 class="n-title text-lg">From an idea to a clear working method</h2>
+<p>Al-Narjis development focuses on what a business needs before any tool: a specific goal, approved information and a reviewable output. We start with the consultant, define the task and team, and add approval points before sensitive actions. This describes our product approach, not unverified customer outcomes.</p>
+<p><a href="/tour">Explore a complete fictional example of the workflow</a>.</p>
 <h2 class="n-title text-lg">Our mission</h2>
 <p><b>AI helps people, it doesn't replace them.</b> Agents handle the repetitive work — replies, follow-ups, drafts — while you and your team approve and decide.</p>
 <h2 class="n-title text-lg">What we do</h2>

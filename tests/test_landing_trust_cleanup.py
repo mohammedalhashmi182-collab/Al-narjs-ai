@@ -50,7 +50,6 @@ def test_no_fake_social_proof_or_forbidden_claims(home):
         "trusted by",
         "فاتورة ضريبية",
         "tax invoice",
-        "wa.me/",
         "tel:",
         "whatsapp support",
         "دعم عبر واتساب",

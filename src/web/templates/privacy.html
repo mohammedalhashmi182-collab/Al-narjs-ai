@@ -22,9 +22,10 @@
         <div class="max-w-3xl mx-auto">
             <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; {% if _lang == 'ar' %}<span>العودة للرئيسية</span>{% else %}<span data-inline>Back to home</span>{% endif %}</a>
             <h1 class="n-title text-3xl mt-4">{% if _lang == 'ar' %}<span>سياسة الخصوصية</span>{% else %}<span data-inline>Privacy Policy</span>{% endif %}</h1>
-            <p class="n-sub mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>آخر تحديث: 13 أكتوبر 2026</span>{% else %}<span data-inline>Last updated: 13 October 2026</span>{% endif %}</p>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>آخر تحديث: 25 أكتوبر 2026</span>{% else %}<span data-inline>Last updated: 25 October 2026</span>{% endif %}</p>
 
             <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
+                {% if _lang == "ar" %}<p>التواصل الاختياري عبر واتساب: الضغط على زر واتساب ينقلك إلى خدمة خارجية. لا يرسل الموقع محتوى محادثتك مع المساعد إلى واتساب تلقائياً؛ أنت تختار ما ترسله، وتخضع معالجة الرسائل هناك لسياسة الخدمة.</p>{% else %}<p>Optional WhatsApp contact: selecting the WhatsApp button opens an external service. This site does not automatically forward your assistant conversation to WhatsApp; you choose what to send, and that service processes messages under its own policy.</p>{% endif %}
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg">1. من نحن</h2>{% else %}<h2 class="n-title text-lg" data-inline>1. Who we are</h2>{% endif %}
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">«النرجس للذكاء الاصطناعي» هي منصة تجارية يقدمها أحمد عبدالله الزهراني (وثيقة عمل حر FL-272182297)، الرياض، المملكة العربية السعودية.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>Al-Narjis AI (النرجس) is a platform operated by أحمد عبدالله الزهراني (وثيقة عمل حر FL-272182297), Riyadh, Kingdom of Saudi Arabia.</p>{% endif %}
 

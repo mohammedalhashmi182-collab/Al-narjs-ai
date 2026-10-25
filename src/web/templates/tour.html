@@ -1,0 +1,27 @@
+{% extends "partials/_simple_page.html" %}
+{% block title %}{% if ar %}جولة توضيحية: من الطلب إلى التسليم | النرجس{% else %}From brief to delivery: product walkthrough | Al-Narjis{% endif %}{% endblock %}
+{% block description %}{% if ar %}استكشف رحلة افتراضية واضحة داخل النرجس: تشخيص الاحتياج، اختيار الفريق، إعداد المسودة ومراجعتها وتسليمها. محاكاة تعليمية وليست نتيجة عميل حقيقي.{% else %}Explore a clearly labelled fictional Al-Narjis journey: diagnosis, team selection, drafting, review and delivery. An educational simulation, not a customer result.{% endif %}{% endblock %}
+{% block h1 %}{% if ar %}من طلبك إلى مخرج واضح{% else %}From your brief to a clear deliverable{% endif %}{% endblock %}
+{% block body %}
+<link rel="stylesheet" href="/static/css/narjis-tour.css">
+<div class="nt" id="narjisTour" data-lang="{{ 'ar' if ar else 'en' }}">
+ <header class="nt-top"><b>{% if ar %}النرجس · تجربة المنتج{% else %}Al-Narjis · product experience{% endif %}</b><span class="nt-badge">{% if ar %}محاكاة افتراضية{% else %}Fictional simulation{% endif %}</span></header>
+ <p class="nt-disclosure">{% if ar %}شخصيات ومتجر وبيانات افتراضية لأغراض الشرح. الحوارات معدّة مسبقاً؛ لا تُنشئ اشتراكاً ولا تخصم أموالاً ولا تُرسل رسائل. هذه ليست شهادة عميل أو نتيجة تجارية فعلية.{% else %}Fictional people, store and data for illustration. Scripted conversations; no subscription, payment or message is created. This is not a customer testimonial or an actual business outcome.{% endif %}</p>
+ <div class="nt-layout">
+  <ol class="nt-steps" aria-label="{% if ar %}مراحل الجولة{% else %}Walkthrough steps{% endif %}">
+  {% set steps = ['فهم الهدف','تشخيص الاحتياج','اختيار الفريق','إعداد المسودة','مراجعة الجودة','التسليم والمتابعة'] if ar else ['Understand the goal','Diagnose the need','Select the team','Draft the work','Review quality','Deliver and follow up'] %}
+  {% for label in steps %}<li><button type="button" data-tour-step="{{ loop.index0 }}" aria-current="{{ 'step' if loop.first else 'false' }}"><span>{{ loop.index }}</span>{{ label }}</button></li>{% endfor %}
+  </ol>
+  <section class="nt-workspace" aria-label="{% if ar %}حوار افتراضي{% else %}Fictional conversation{% endif %}">
+   <div class="nt-person"><span class="nt-avatar" aria-hidden="true">ن</span><div><b id="tourRole"></b><small id="tourSubtitle"></small></div><span class="nt-mode">{% if ar %}بيئة عرض{% else %}Demo environment{% endif %}</span></div>
+   <div class="nt-messages" id="tourMessages" aria-live="polite"></div>
+   <div class="nt-output" id="tourOutput"></div>
+   <div class="nt-controls"><button type="button" id="tourPrev">{% if ar %}السابق{% else %}Previous{% endif %}</button><span id="tourProgress" dir="ltr" aria-live="polite"></span><button type="button" id="tourNext">{% if ar %}الخطوة التالية{% else %}Next step{% endif %}</button></div>
+  </section>
+ </div>
+ <footer class="nt-bottom"><span>{% if ar %}لا وعود بمبيعات أو وفورات زمنية غير مقاسة.{% else %}No unmeasured sales or time-saving claims.{% endif %}</span><a href="/consult">{% if ar %}ابدأ استشارة حقيقية{% else %}Start a real consultation{% endif %}</a></footer>
+</div>
+<section aria-labelledby="virtualCaseTitle"><h2 id="virtualCaseTitle">{% if ar %}دراسة حالة افتراضية: متجر المثال{% else %}Fictional case study: Example Store{% endif %}</h2><p>{% if ar %}البداية: طلب عام لإعداد محتوى وردود للمتجر. نضيّق النطاق إلى مسودة منشور وردّ معتمد على وصف المنتج، ثم نفصل المراجعة عن النشر.{% else %}Starting point: a broad request for store content and replies. We narrow the scope to a post and a reply draft based on the product description, then separate review from publishing.{% endif %}</p><ul><li>{% if ar %}المدخلات: جمهور افتراضي ووصف منتج وسياسة عناية للتوضيح.{% else %}Inputs: a fictional audience, product brief and care policy for illustration.{% endif %}</li><li>{% if ar %}المخرجات الظاهرة: مسودة منشور، ورد نموذجي، وقائمة مراجعة.{% else %}Visible outputs: a post draft, a suggested reply and a review checklist.{% endif %}</li><li>{% if ar %}ما يمكن تقييمه هنا: وضوح الخطوات والمخرج وحدود المسؤولية. لا نقيس مبيعات أو وفراً زمنياً من هذه المحاكاة.{% else %}What this demonstrates: clear steps, deliverables and responsibility boundaries. This simulation measures no sales or time savings.{% endif %}</li></ul></section>
+<section class="nt-video" aria-labelledby="tourVideoTitle"><h2 id="tourVideoTitle">{% if ar %}شاهد الرحلة في دقيقة{% else %}Watch the journey in one minute{% endif %}</h2><p>{% if ar %}تسجيل شاشة للمحاكاة أعلاه، وليس لمشروع عميل أو لعملية دفع حقيقية. الفيديو صامت والنص ظاهر على الشاشة.{% else %}A screen recording of the simulation above, not a customer project or a real payment. This silent video includes on-screen text.{% endif %}</p><video controls playsinline preload="none" width="1280" height="800" aria-label="{% if ar %}فيديو محاكاة رحلة العميل{% else %}Simulated customer journey video{% endif %}"><source src="/static/video/narjis-tour-60s.mp4" type="video/mp4"><track kind="captions" src="/static/video/narjis-tour-ar.vtt" srclang="ar" label="العربية"{% if ar %} default{% endif %}><track kind="captions" src="/static/video/narjis-tour-en.vtt" srclang="en" label="English"{% if not ar %} default{% endif %}></video><p><a href="/guide">{% if ar %}اقرأ دليل الاستخدام{% else %}Read the user guide{% endif %}</a></p></section>
+<script src="/static/js/narjis-tour.js" defer></script>
+{% endblock %}

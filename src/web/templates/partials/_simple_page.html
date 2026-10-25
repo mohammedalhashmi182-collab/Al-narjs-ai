@@ -39,6 +39,7 @@
             <div class="n-card sp mt-6" style="padding:28px;line-height:1.9;">
                 {% block body %}{% endblock %}
             </div>
+            {% include "partials/_public_navigation.html" %}
             <p class="n-sub mt-6" style="font-size:0.85rem;">
                 {% if ar %}يُدار بواسطة أحمد عبدالله الزهراني · وثيقة عمل حر رقم FL-272182297 · الرياض{% else %}Operated by أحمد عبدالله الزهراني · Freelance document No. FL-272182297 · Riyadh{% endif %}
                 · <a href="#assistant" data-open-assistant>{% if ar %}مساعد النرجس{% else %}the Al-Narjis assistant{% endif %}</a><br>

@@ -1,0 +1,11 @@
+<nav class="public-navigation" aria-label="{% if ar %}روابط سريعة{% else %}Quick links{% endif %}">
+<a href="/home#how">{% if ar %}كيف نعمل{% else %}How it works{% endif %}</a>
+<a href="/tour">{% if ar %}جولة توضيحية{% else %}Product walkthrough{% endif %}</a>
+<a href="/pricing">{% if ar %}الأسعار{% else %}Pricing{% endif %}</a>
+<a href="/blog">{% if ar %}الأدلة والمقالات{% else %}Guides and articles{% endif %}</a>
+<a href="/about">{% if ar %}قصتنا{% else %}Our story{% endif %}</a>
+<a href="/sitemap.xml">{% if ar %}خريطة الموقع{% else %}Sitemap{% endif %}</a>
+{% set presence = public_presence() %}
+{% for social in presence.social_links %}<a href="{{ social.url }}" target="_blank" rel="noopener noreferrer">{{ social.label }}</a>{% endfor %}
+</nav>
+<style>.public-navigation{display:flex;flex-wrap:wrap;gap:12px 22px;padding:20px 0;line-height:1.8}.public-navigation a{text-decoration:underline;text-underline-offset:4px;color:inherit}.public-navigation a:focus-visible{outline:2px solid currentColor;outline-offset:4px}</style>

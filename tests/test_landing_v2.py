@@ -90,9 +90,10 @@ def test_trust_badges_and_vision_disclaimer(page: str) -> None:
 
 
 def test_contact_links_are_real_or_absent(page: str) -> None:
-    # Owner decision (Oct 2026): the site's contact is the Al-Narjis assistant
-    # and email only; no direct WhatsApp/Telegram/Messenger links.
-    assert "wa.me/" not in page
+    # Owner explicitly reinstated a public WhatsApp button on 25 Oct 2026.
+    from src.services.public_presence import presence
+    from html import escape
+    assert escape(presence()["whatsapp"], quote=True) in page
     assert "t.me/" not in page
     assert "m.me/" not in page
     assert 'id="siteAssistant"' in page

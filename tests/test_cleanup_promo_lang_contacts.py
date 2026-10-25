@@ -302,7 +302,11 @@ def test_retired_offer_prices_and_contact_links_stay_out_of_customer_trees():
                 continue
             rel = str(path.relative_to(ROOT))
             reasons = []
-            if _HOST.search(text):
+            # The owner reinstated one validated WhatsApp URL builder.
+            contact_text = text
+            if rel == "src/services/public_presence.py":
+                contact_text = text.replace('"https://wa.me/"', '""')
+            if _HOST.search(contact_text):
                 reasons.append("contact-link")
             if any(p.search(text) for p in _DISCOUNT):
                 reasons.append("discount")
