@@ -36,8 +36,8 @@ TOKEN_B = "salla-access-BBBB"
 STATUS_A = "خرج للتوصيل"
 STATUS_B = "ملغى سرّي"
 PHONE_A = "966512345678"
-SECRET_SALLA = "salla-whsec-test"
-SECRET_ZID = "zid-whsec-test"
+SECRET_SALLA = "salla-whsec-test"  # pragma: allowlist secret
+SECRET_ZID = "zid-whsec-test"  # pragma: allowlist secret
 TEST_STORE_KEY = Fernet.generate_key().decode()
 
 
@@ -203,7 +203,7 @@ async def test_salla_install_url_uses_documented_host_and_read_scopes(maker, mon
 async def test_salla_callback_stores_encrypted_tokens_without_pii(maker, monkeypatch, caplog):
     _salla_env(monkeypatch)
     project = await _project(maker)
-    secret = "salla-csecret-do-not-log"
+    secret = "salla-csecret-do-not-log"  # pragma: allowlist secret
     access = "ory_at_plaintext_access"
     email = "merchant-private@example.com"
 
