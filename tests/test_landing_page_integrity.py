@@ -160,6 +160,6 @@ def test_single_how_section_and_explicit_sample_disclosure() -> None:
     assert body.count('id="how"') == 1
     assert body.index('id="how"') < body.index('id="pricing"')
     for name in ['landing.html', 'consult.html', 'portal.html']:
-        assert 'يُدار بواسطة أحمد عبدالله الزهراني' in _read(name)
+        assert 'منصة النرجس' in _read(name)
         assert 'وثيقة عمل حر رقم FL-272182297' in _read(name)
-        assert 'Operated by أحمد عبدالله الزهراني' in _read(name)
+        assert 'Operated by Al-Narjs' in _read(name)
