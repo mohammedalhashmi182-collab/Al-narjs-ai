@@ -136,8 +136,8 @@ class Settings(BaseSettings):
     # placeholder and /api/owner/billing/zatca/status flags it.
     # The legal operator is a freelance-document holder. SELLER_CR_NUMBER keeps
     # its env-var name and stores the freelance document number (not a CR).
-    seller_name_ar: str = Field(default="أحمد عبدالله الزهراني", alias="SELLER_NAME_AR")
-    seller_name_en: str = Field(default="أحمد عبدالله الزهراني", alias="SELLER_NAME_EN")
+    seller_name_ar: str = Field(default="النرجس", alias="SELLER_NAME_AR")
+    seller_name_en: str = Field(default="Al-Narjs", alias="SELLER_NAME_EN")
     seller_vat_number: str | None = Field(default=None, alias="SELLER_VAT_NUMBER")
     seller_cr_number: str = Field(default="FL-272182297", alias="SELLER_CR_NUMBER")
     seller_address_ar: str = Field(
