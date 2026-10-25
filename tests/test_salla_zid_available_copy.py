@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from src.services import catalog, policies
+from src.services import catalog, draft_qa, policies
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -75,3 +75,11 @@ def test_catalog_lists_connection_as_available_on_request():
     assert en == ["Salla or Zid store connection on request (read-only, set up by us)"]
     assert not any("سلة" in s for s in g["coming"]) and not any("Salla" in s for s in g["coming_en"])
 
+
+def test_draft_qa_flags_write_or_self_serve_claims():
+    bad = ["الوكيل على سلة يعدل المنتجات بنفسه", "The Zid connection can manage orders for you",
+           "Salla installs itself automatically"]
+    for s in bad:
+        assert any(i["code"] == "store_write_claim" for i in draft_qa.score_draft(s)["issues"]), s
+    ok = "ربط متجر سلة متاح عند الطلب بصلاحية قراءة فقط، نُعدّه لك."
+    assert not any(i["code"] in ("store_write_claim", "unbuilt_feature") for i in draft_qa.score_draft(ok)["issues"])
