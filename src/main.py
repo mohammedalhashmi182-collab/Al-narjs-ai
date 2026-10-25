@@ -522,6 +522,20 @@ CONTENT_SECURITY_POLICY = "; ".join(
         "object-src 'none'",
     ]
 )
+# The live voice demo page connects to ElevenLabs and loads its audio worklets from
+# blob: URLs. Those extra sources are granted to that single page only, never to the
+# rest of the site.
+VOICE_LIVE_PATHS = frozenset({"/static/voice-live.html"})
+VOICE_LIVE_CSP = (
+    CONTENT_SECURITY_POLICY.replace(
+        "script-src 'self' 'unsafe-inline'", "script-src 'self' 'unsafe-inline' blob:", 1
+    ).replace(
+        "connect-src 'self'",
+        "connect-src 'self' wss://api.elevenlabs.io https://api.elevenlabs.io",
+        1,
+    )
+    + "; worker-src 'self' blob:; media-src 'self' blob: mediastream:"
+)
 SECURITY_HEADERS = {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
     "Content-Security-Policy": CONTENT_SECURITY_POLICY,
@@ -545,6 +559,9 @@ class SecurityHeadersMiddleware:
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
+                if scope.get("path") in VOICE_LIVE_PATHS:
+                    headers["Content-Security-Policy"] = VOICE_LIVE_CSP
+                    headers["Permissions-Policy"] = "microphone=(self)"
                 for name, value in SECURITY_HEADERS.items():
                     headers.setdefault(name, value)
             await send(message)
