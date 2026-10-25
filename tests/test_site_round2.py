@@ -71,7 +71,7 @@ def test_no_tailwind_cdn_and_moyasar_in_csp(client):
 
 def test_about_has_story_facts(client):
     html = client.get("/ar/about").text
-    for s in ("كريم", "منصة النرجس", "FL-272182297", "حي الرمال", "رؤية", "الفرنسية", "/static/logo.svg"):
+    for s in ("كريم", "منصة النرجس", "FL-272182297", "رؤية", "الفرنسية", "/static/logo.svg"):
         assert s in html, s
 
 

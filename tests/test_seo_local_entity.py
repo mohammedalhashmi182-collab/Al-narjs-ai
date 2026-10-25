@@ -90,7 +90,7 @@ def test_the_two_addresses_on_the_page_agree(client: TestClient) -> None:
     assert len(addresses) >= 2, "expected the address on both entities"
     first = addresses[0]
     for other in addresses[1:]:
-        for field in ("streetAddress", "postalCode", "addressLocality", "addressCountry"):
+        for field in ("addressLocality", "addressCountry"):
             assert other.get(field) == first.get(field), (
                 f"{field} differs between two entities on one page: "
                 f"{other.get(field)!r} vs {first.get(field)!r}"
@@ -99,8 +99,12 @@ def test_the_two_addresses_on_the_page_agree(client: TestClient) -> None:
     privacy = (REPO / "src" / "web" / "templates" / "privacy.html").read_text(
         encoding="utf-8"
     )
-    assert "Riyadh" in privacy and "Al Rimal" in privacy
-    assert "الرياض" in privacy and "الرمال" in privacy
+    assert "Riyadh" in privacy and "الرياض" in privacy
+    # Owner decision (Oct 2026): no street address / district / postal code on public pages.
+    for t in (privacy, (REPO / "src" / "web" / "templates" / "landing.html").read_text(encoding="utf-8"),
+              (REPO / "src" / "web" / "templates" / "about.html").read_text(encoding="utf-8")):
+        for s in ("2371", "13263", "Rimal", "الرمال", "streetAddress", "postalCode"):
+            assert s not in t, s
 
 
 def test_the_offer_catalog_lists_the_six_services_without_invented_prices(

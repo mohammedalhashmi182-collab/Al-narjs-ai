@@ -48,7 +48,7 @@
       "url": "https://karmaai.online",
       "legalName": {{ ("النرجس" if ar else "Al-Narjs") | tojson }},
       "foundingLocation": "Riyadh, Saudi Arabia",
-      "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"}
+      "address": {"@type": "PostalAddress", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"}
     }
     </script>
     <script type="application/ld+json">
@@ -73,7 +73,7 @@
       "foundingLocation": "Riyadh, Saudi Arabia",
       "currenciesAccepted": "SAR",
       "paymentAccepted": "Moyasar",
-      "address": {"@type": "PostalAddress", "streetAddress": "Building 2371, Muhammad Al Amri, Al Rimal District", "postalCode": "13263", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"},
+      "address": {"@type": "PostalAddress", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"},
       "geo": {"@type": "GeoCoordinates", "latitude": 24.7136, "longitude": 46.6753},
       "areaServed": [{"@type": "Country", "name": "Saudi Arabia"}, {"@type": "Country", "name": "United Arab Emirates"}, {"@type": "Country", "name": "Kuwait"}, {"@type": "Country", "name": "Bahrain"}, {"@type": "Country", "name": "Qatar"}, {"@type": "Country", "name": "Oman"}],
       "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], "opens": "00:00", "closes": "23:59"}],
