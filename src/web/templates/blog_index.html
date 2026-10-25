@@ -1,4 +1,5 @@
 {% set _lang = page_lang(request) %}
+{% set ar = _lang == 'ar' %}
 {% import "partials/_seo.html" as seo with context %}
 {% set _head = seo.head(
   'مدونة النرجس: ذكاء اصطناعي بالعربي للأعمال السعودية',
@@ -18,37 +19,44 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
+    {% include "partials/_theme_head.html" %}
     <style>
-        body { font-family: "Cairo", sans-serif; background: #060607; color: #F6F5F4; line-height: 1.9; }
+        body { font-family: "Cairo", sans-serif; background: var(--b-bg); color: var(--b-fg); line-height: 1.9; }
         .wrap { max-width: 900px; margin-inline: auto; padding-inline: 22px; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(246,245,244,.09); }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--b-line); }
         .brand { font-weight: 800; font-family: "Cairo", sans-serif; color: #FF5A36; text-decoration: none; }
-        .back { color: #B9B8C0; text-decoration: none; font-size: .92rem; }
+        .back { color: var(--b-muted); text-decoration: none; font-size: .92rem; }
         h1 { font-family: "Cairo", sans-serif; font-size: clamp(1.8rem, 4.6vw, 2.6rem); line-height: 1.32; margin: 30px 0 12px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 30px 0; }
-        .post { display: block; text-decoration: none; color: #F6F5F4; background: #101014; border: 1px solid rgba(246,245,244,.1); border-radius: 20px; padding: 20px; }
+        .post { display: block; text-decoration: none; color: var(--b-fg); background: var(--b-card); border: 1px solid var(--b-line); border-radius: 20px; padding: 20px; }
         .post:hover { border-color: #D93F1E; }
         .post .cat { color: #FF5A36; font-size: .82rem; }
         .post h2 { font-family: "Cairo", sans-serif; font-size: 1.08rem; margin: 8px 0; line-height: 1.45; }
-        .post p { color: #B9B8C0; font-size: .9rem; margin: 0; }
-        .post .meta { color: #8E8D96; font-size: .8rem; margin-top: 10px; }
+        .post p { color: var(--b-muted); font-size: .9rem; margin: 0; }
+        .post .meta { color: var(--b-faint); font-size: .8rem; margin-top: 10px; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 10px; }
         .btn { display: inline-block; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 700; }
         .btn-gold { background:linear-gradient(135deg,#D93F1E,#FF5A36); color:#05231D; box-shadow: 0 0 26px rgba(255, 90, 54,.34); }
-        .btn-ghost { border: 1px solid rgba(246,245,244,.16); color: #F6F5F4; }
-        footer { border-top: 1px solid rgba(246,245,244,.09); margin-top: 40px; padding: 22px 0 40px; color: #B9B8C0; font-size: .86rem; }
-        footer a { color: #B9B8C0; }
+        .btn-ghost { border: 1px solid var(--b-line); color: var(--b-fg); }
+        footer { border-top: 1px solid var(--b-line); margin-top: 40px; padding: 22px 0 40px; color: var(--b-muted); font-size: .86rem; }
+        footer a { color: var(--b-muted); }
+        .topr { display: flex; align-items: center; gap: 14px; }
+        .soon-h { font-size: 1.3rem; margin: 40px 0 4px; }
+        .post.is-soon { cursor: default; opacity: .92; }
+        .post.is-soon:hover { border-color: var(--b-line); }
+        .post .tag-soon { display: inline-block; margin-inline-start: 8px; font-size: .72rem; font-weight: 700; color: #12100d; background: #c9a27a; padding: 1px 9px; border-radius: 99px; vertical-align: middle; }
+        .post .cat svg { width: 15px; height: 15px; vertical-align: -2px; margin-inline-end: 6px; }
     </style>
 </head>
-<body class="luxury">
+<body class="luxury nj-themeable nj-blog">
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#F6F5F4">AI</span></a>
-        <a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
+        <a class="brand" href="/home">النرجس <span style="color:var(--b-fg)">AI</span></a>
+        <div class="topr"><a class="back" href="/home">&larr; {% if _lang == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>{% include "partials/_theme_toggle.html" %}</div>
     </div>
 
-    <h1>{% if _lang == 'ar' %}مدوّبة الذكاء الاصطناعي بالعربي{% else %}The AI blog, in Arabic first{% endif %}</h1>
-    <p style="color:#B9B8C0;max-width:640px">
+    <h1>{% if _lang == 'ar' %}مدوّنة الذكاء الاصطناعي بالعربي{% else %}The AI blog, in Arabic first{% endif %}</h1>
+    <p style="color:var(--b-muted);max-width:640px">
         {% if _lang == 'ar' %}
         مقالات عملية عن وكلاء الذكاء الاصطناعي في السعودية: متى تستخدمهم، وما الذي يخرجونه، وأين تتوقف الأتمتة.
         {% else %}
@@ -64,6 +72,41 @@
             <p>{{ a.desc_ar if _lang == 'ar' else a.desc_en }}</p>
             <div class="meta">{{ a.date }} · {{ a.reading_minutes }} {% if _lang == 'ar' %}دقائق{% else %}min{% endif %}</div>
         </a>
+        {% endfor %}
+    </div>
+
+    {#- Owner pack item 11: upcoming topics. Not written yet, so the cards are
+        not links and carry «قريباً». Card 3 no longer claims a "comparative
+        study" (there is none). -#}
+    <h2 class="soon-h">{% if ar %}مقالات قادمة{% else %}Coming articles{% endif %}</h2>
+    <p style="color:var(--b-muted);margin:0">{% if ar %}مواضيع نكتب عنها الآن، وستُنشر هنا عند جاهزيتها.{% else %}Topics we are writing now; they will appear here when ready.{% endif %}</p>
+    {% if ar %}
+    {% set upcoming = [
+        ["ذكاء اصطناعي", "كيف تختار الوكيل المناسب لعملك؟ دليل شامل للمبتدئين", "شرح مبسط لأنواع وكلاء الذكاء الاصطناعي ومتى تستخدم كل نوع في عملك التجاري.", "٥ دقائق قراءة"],
+        ["أتمتة أعمال", "5 مهام يمكنك أتمتتها اليوم بدون خبرة تقنية", "مهام يومية في أي متجر أو مكتب يمكن تحويلها لأتمتة بسيطة توفر عليك ساعات من العمل.", "٧ دقائق قراءة"],
+        ["بوتات محادثة", "لماذا بوت المحادثة بالعربية أنسب لعملائك من الإنجليزي", "مقارنة عملية بين تجربة العملاء مع البوتات العربية والإنجليزية في السوق السعودي.", "٦ دقائق قراءة"],
+        ["استراتيجية", "كيف تحوّل استفسارات واتساب إلى مبيعات فعلية", "خطوات عملية لتحويل الرسائل الواردة على واتساب إلى عملاء مدفوعين باستخدام الأتمتة الذكية.", "٨ دقائق قراءة"],
+        ["خصوصية وأمان", "كيف نحافظ على خصوصية بياناتك في عصر الذكاء الاصطناعي", "شرح نظام حماية البيانات الشخصية PDPL وكيف يطبقه النرجس في تعامله مع بيانات العملاء.", "٤ دقائق قراءة"],
+        ["نمو أعمال", "من سيرفر واحد إلى " ~ agent_count ~ " وكيل: قصة بناء منصة AI من الصفر", "رحلة مؤسس النرجس من فكرة على سيرفر محلي إلى منصة متكاملة تخدم منشآت صغيرة.", "١٠ دقائق قراءة"],
+    ] %}
+    {% else %}
+    {% set upcoming = [
+        ["AI", "How do you choose the right agent for your business? A beginner's guide", "A simple explanation of the types of AI agents and when to use each one in your business.", "5 min read"],
+        ["Business automation", "5 tasks you can automate today without technical skills", "Everyday tasks in any shop or office that can become simple automation and save you hours of work.", "7 min read"],
+        ["Chatbots", "Why an Arabic chatbot suits your customers better than an English one", "A practical comparison of customer experience with Arabic and English bots in the Saudi market.", "6 min read"],
+        ["Strategy", "How to turn WhatsApp enquiries into real sales", "Practical steps to turn incoming WhatsApp messages into paying customers with smart automation.", "8 min read"],
+        ["Privacy & security", "How we keep your data private in the age of AI", "An explanation of the Personal Data Protection Law (PDPL) and how Al-Narjis applies it to customer data.", "4 min read"],
+        ["Business growth", "From one server to " ~ agent_count ~ " agents: building an AI platform from scratch", "The Al-Narjis founder's journey from an idea on a local server to a complete platform serving small businesses.", "10 min read"],
+    ] %}
+    {% endif %}
+    <div class="grid" aria-label="{% if ar %}مقالات قادمة{% else %}Coming articles{% endif %}">
+        {% for cat, title, desc, mins in upcoming %}
+        <article class="post is-soon" data-reveal>
+            <div class="cat"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4h10l4 4v12H5z M14 4v5h5 M8 13h8 M8 17h6" fill="none" stroke="#FF5A36" stroke-width="1.6" stroke-linejoin="round"/></svg>{{ cat }}<span class="tag-soon">{% if ar %}قريباً{% else %}Coming soon{% endif %}</span></div>
+            <h2>{{ title }}</h2>
+            <p>{{ desc }}</p>
+            <div class="meta">{{ mins }}</div>
+        </article>
         {% endfor %}
     </div>
 
@@ -84,5 +127,7 @@
     </footer>
 </div>
 {% include "partials/_site_assistant.html" %}
+{% include "partials/_newsletter_popup.html" %}
+<script src="/static/js/narjis-site.js" defer></script>
 </body>
 </html>

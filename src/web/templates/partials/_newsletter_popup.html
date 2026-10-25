@@ -1,0 +1,21 @@
+{#- Owner pack items 05 + 09: newsletter popup. Hidden by default; the script
+    only opens it after /api/newsletter/status says storage is ready, so when
+    the table is missing it never appears (fail closed, no fake success).
+    Shown once: after ~20s or on desktop exit intent; dismissal kept 30 days. -#}
+<div class="nj-nl" id="njNewsletter" hidden data-newsletter data-lang="{{ 'ar' if ar else 'en' }}">
+    <div class="nj-nl-back" data-nl-close></div>
+    <div class="nj-nl-box" role="dialog" aria-modal="true" aria-labelledby="njNlTitle" aria-describedby="njNlDesc" dir="{{ 'rtl' if ar else 'ltr' }}">
+        <button type="button" class="nj-nl-x" data-nl-close aria-label="{% if ar %}إغلاق{% else %}Close{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+        <span class="nj-nl-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 6.5l8.5 7 8.5-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+        <h2 id="njNlTitle">{% if ar %}نشرة النرجس{% else %}The Al-Narjis newsletter{% endif %}</h2>
+        <p id="njNlDesc">{% if ar %}مقالات عملية عن وكلاء الذكاء الاصطناعي للأعمال السعودية، تصلك على بريدك. بدون إزعاج.{% else %}Practical articles on AI agents for Saudi businesses, in your inbox. No spam.{% endif %}</p>
+        <form class="nj-nl-form" novalidate data-nl-form>
+            <label for="njNlEmail">{% if ar %}بريدك الإلكتروني{% else %}Your email{% endif %}</label>
+            <input id="njNlEmail" name="email" type="email" inputmode="email" autocomplete="email" dir="ltr" required maxlength="254" placeholder="name@example.com">
+            <div class="nj-nl-hp" aria-hidden="true"><label for="njNlWebsite">Website</label><input id="njNlWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+            <label class="nj-nl-consent"><input type="checkbox" name="consent" required> <span>{% if ar %}أوافق على استلام النشرة ويمكنني إلغاء الاشتراك في أي وقت وفق <a href="/privacy">سياسة الخصوصية</a>{% else %}I agree to receive the newsletter and can unsubscribe at any time under the <a href="/privacy">privacy policy</a>{% endif %}</span></label>
+            <button type="submit" class="nj-nl-submit">{% if ar %}اشترك{% else %}Subscribe{% endif %}</button>
+            <p class="nj-nl-msg" role="status" aria-live="polite"></p>
+        </form>
+    </div>
+</div>

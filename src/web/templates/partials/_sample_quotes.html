@@ -1,0 +1,38 @@
+{#- Owner pack item 04. The five quotes are ILLUSTRATIVE, not verified
+    customer reviews: the heading and the visible note say so, there are no
+    star ratings, no personal names and no Review/AggregateRating schema.
+    Real, owner-approved testimonials go through partials/_testimonials.html. -#}
+<section class="nj-quotes" id="sample-stories" aria-labelledby="quotes-h">
+    <div class="wrap">
+        <div class="sh rv">
+            <div><h2 id="quotes-h">{% if ar %}نماذج توضيحية من تجارب العملاء{% else %}Illustrative customer-experience samples{% endif %}</h2></div>
+            <p class="nj-quotes-note"><span class="simtag">{% if ar %}أمثلة توضيحية وليست آراء موثّقة{% else %}Illustrative examples, not verified reviews{% endif %}</span></p>
+        </div>
+        {% if ar %}
+        {% set quotes = [
+            ["كنت أرسل عروض أسعار وما أحد يتابع. بعد شهر من تشغيل فريق النرجس، رجعت عملاء كنت فاقدتهم. الفرق واضح جدا في الإيرادات.", "صاحب متجر إلكتروني · الرياض"],
+            ["البوت اللي صممه النرجس لعيادتنا يغطي 90% من الأسئلة بدون تدخل. الموظفات الحين يركزون على المرضى بدل الرد على نفس الأسئلة 50 مرة باليوم.", "مديرة عيادة · جدة"],
+            ["الفريق يشتغل كأنه موظفين حقيقيين عندنا. المحتوى ينزل يوميا بدون ما أفكر فيه، والتقارير الأسبوعية تعطيني صورة واضحة عن الأداء.", "مؤسس وكالة تسويقية · الدمام"],
+            ["أعجبني إنهم ما وعدوني بأشياء ما يقدر عليها. الشرح كان واضح والنتائج ظهرت خلال أول أسبوعين. أنصح أي صاحب مشروع صغير يبدأ معهم.", "صاحبة محل ملابس · الرياض"],
+            ["التجربة من البداية كانت سلسة. شرحت احتياجي للرئيس التنفيذي الافتراضي وخلال دقائق عرض علي الفريق المناسب والسعر. ما احتجت أتعامل مع نماذج طويلة.", "مدير شركة مقاولات · الرياض"],
+        ] %}
+        {% else %}
+        {% set quotes = [
+            ["I used to send quotes and nobody followed up. A month after running the Al-Narjis team, I won back customers I had lost. The difference in revenue is very clear.", "Online store owner · Riyadh"],
+            ["The bot Al-Narjis designed for our clinic covers 90% of questions without help. The staff now focus on patients instead of answering the same question 50 times a day.", "Clinic manager · Jeddah"],
+            ["The team works like real employees of ours. Content goes out daily without me thinking about it, and the weekly reports give me a clear picture of performance.", "Marketing agency founder · Dammam"],
+            ["I liked that they didn't promise things they can't deliver. The explanation was clear and results showed within the first two weeks. I'd recommend any small business owner start with them.", "Clothing shop owner · Riyadh"],
+            ["The experience was smooth from the start. I explained my need to the virtual CEO and within minutes it showed me the right team and the price. No long forms.", "Contracting company manager · Riyadh"],
+        ] %}
+        {% endif %}
+        <div class="nj-quote-grid">
+            {% for text, who in quotes %}
+            <figure class="nj-quote rv">
+                <span class="nj-quote-mark" aria-hidden="true">”</span>
+                <blockquote><p>{{ text }}</p></blockquote>
+                <figcaption><span class="nj-quote-av" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 21c1.5-4.5 14.5-4.5 16 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><span>{{ who }}<small>{% if ar %}نموذج توضيحي{% else %}Illustrative sample{% endif %}</small></span></figcaption>
+            </figure>
+            {% endfor %}
+        </div>
+    </div>
+</section>

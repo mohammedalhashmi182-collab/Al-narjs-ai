@@ -1,0 +1,5 @@
+{#- Owner pack item 06 (head part). Runs before first paint so a saved light
+    choice never flashes dark. Default is dark; nothing here reads
+    prefers-color-scheme, so the site never switches on its own. -#}
+<script>(function(){try{if(localStorage.getItem('nj-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();</script>
+<link rel="stylesheet" href="/static/css/narjis-site-pack.css">

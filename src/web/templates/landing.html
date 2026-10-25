@@ -128,6 +128,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap">
     <link rel="preload" as="image" href="/static/img/hero-najdi.webp" imagesrcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" imagesizes="100vw" fetchpriority="high">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
+    {% include "partials/_theme_head.html" %}
     <link rel="stylesheet" href="/static/css/narjis-intro.css">
     <script>(function(){try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('nj-intro-on')}catch(e){}})();</script>
 </head>
@@ -174,11 +175,13 @@
             <a href="#pricing">{% if ar %}الاشتراكات{% else %}Plans{% endif %}</a>
         </nav>
         <div class="navr">
+            {% include "partials/_theme_toggle.html" %}
             <a class="lang" data-lang-btn="ar" href="/ar{{ _base_path }}"{% if ar %} aria-current="true" hidden{% endif %}>العربية</a><a class="lang" data-lang-btn="en" href="/en{{ _base_path }}"{% if not ar %} aria-current="true" hidden{% endif %}>English</a>
             <a class="btn-login" href="/portal"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="5" r="3"/><path d="M2 15c1-3.5 11-3.5 12 0"/></svg>{% if ar %}دخول العملاء{% else %}Client login{% endif %}</a>
             <a class="btn nav-cta" href="/consult" data-open-assistant>{% if ar %}ناقش هدفك مع CEO{% else %}Discuss your goal with the CEO{% endif %}</a>
         </div>
     </div>
+    {% include "partials/_trust_bar.html" %}
 </header>
 
 <main id="main">
@@ -235,6 +238,8 @@
         </ol>
     </div>
 </section>
+
+{% include "partials/_case_studies.html" %}
 
 <!-- ==================== SAMPLE RESULT (illustrative simulation, not a real client) ==================== -->
 <section class="scene" id="results" aria-labelledby="sc-h">
@@ -351,6 +356,8 @@
         </div>
     </div>
 </section>
+
+{% include "partials/_sample_quotes.html" %}
 
 <!-- ==================== PLANS (shared partial: prices and plan content from src/services/catalog.py) ==================== -->
 {% include "partials/_pricing_section.html" %}
@@ -477,6 +484,8 @@
 </section>
 </main>
 
+{% include "partials/_referral_soon.html" %}
+
 <footer class="nj-footer" id="site-footer">
     <div class="wrap">
         <nav class="svc-links" aria-label="{% if ar %}روابط المنصة{% else %}Platform links{% endif %}">
@@ -522,6 +531,8 @@
 </dialog>
 
 {% include "partials/_site_assistant.html" %}
+{% include "partials/_newsletter_popup.html" %}
+<script src="/static/js/narjis-site.js" defer></script>
 
 <script>
 (function () {

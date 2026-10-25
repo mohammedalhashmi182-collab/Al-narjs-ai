@@ -127,3 +127,18 @@ def rate_limit_ticket(request: Request) -> None:
 
 # Public analytics beacon (/api/events): generous for real pages, tight for floods.
 beacon_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=60)
+
+
+# Newsletter popup: a person subscribes once; 5 attempts per 10 minutes per IP
+# is generous for typos and stops list-bombing scripts.
+newsletter_limiter = SlidingWindowLimiter(max_requests=5, window_seconds=600)
+
+
+def rate_limit_newsletter(request: Request) -> None:
+    ok, retry_after = newsletter_limiter.check(f"{client_ip(request)}:/api/newsletter/subscribe")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )

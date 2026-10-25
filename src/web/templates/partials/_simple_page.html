@@ -26,15 +26,18 @@
     <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
+    {% include "partials/_theme_head.html" %}
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     {% include "partials/_analytics.html" %}
     <style>.sp p,.sp li{font-size:.95rem}.sp h2{margin-top:20px}.sp ul{padding-inline-start:20px;list-style:disc}.sp a{color:var(--n-gold)}</style>
 </head>
-<body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
+<body data-lang="{{ _lang }}" class="luxury nj-themeable bg-sand min-h-screen">
     <div class="n-hero" style="padding:56px 20px 40px;">
         <div class="max-w-3xl mx-auto">
             <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">{% if ar %}&rarr; العودة للرئيسية{% else %}&larr; Back to home{% endif %}</a>
             · <a href="/{{ 'en' if ar else 'ar' }}{{ _base_path }}" style="color:var(--n-brown-2);font-size:0.9rem;">{% if ar %}English{% else %}العربية{% endif %}</a>
+            <span style="float:inline-end">{% include "partials/_theme_toggle.html" %}</span>
+            {% set trust_extra_class = " is-strip" %}{% include "partials/_trust_bar.html" %}
             <h1 class="n-title text-3xl mt-4">{% block h1 %}{% endblock %}</h1>
             <div class="n-card sp mt-6" style="padding:28px;line-height:1.9;">
                 {% block body %}{% endblock %}
@@ -53,5 +56,6 @@
         </div>
     </div>
     {% include "partials/_site_assistant.html" %}
+    <script src="/static/js/narjis-site.js" defer></script>
 </body>
 </html>

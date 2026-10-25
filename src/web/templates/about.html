@@ -1,6 +1,7 @@
 {% extends "partials/_simple_page.html" %}
 {#- Only facts the owner stated: operator, freelance document, city/district, founder, mission,
-    services. No invented numbers, clients or stock photos of people.
+    services, the owner's story/vision/values text. Counts come from the live catalog
+    (agent_count / division_count), never typed by hand. No client counts, no stock photos.
     Testimonials render only from real records (see partials/_testimonials). -#}
 {% block title %}{% if ar %}من نحن | النرجس للذكاء الاصطناعي{% else %}About us | Al-Narjis AI{% endif %}{% endblock %}
 {% block description %}{% if ar %}النرجس للذكاء الاصطناعي منصة سعودية من الرياض أسسها كريم. رسالتنا: الذكاء الاصطناعي يساعد الناس ولا يستبدلهم.{% else %}Al-Narjis AI is a Saudi platform from Riyadh, founded by Karim. Our mission: AI helps people, it doesn't replace them.{% endif %}{% endblock %}
@@ -17,16 +18,47 @@
 .ab-card{padding:14px;border-radius:14px;background:#fffaf2;border:1px solid rgba(0,0,0,.08);color:#1b1712}
 .ab-card h3{margin:0 0 6px;font-size:1rem;color:#1b1712}
 .ab-card p{margin:0;font-size:.92rem;color:#4a3f2e}
+.ab-founder{display:flex;gap:14px;align-items:flex-start;margin:16px 0;padding:16px;border-radius:14px;border:1px solid rgba(255,90,54,.35)}
+.ab-av{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:#FF5A36;color:#12100d;font-weight:800;font-size:1.3rem}
+.ab-founder b{display:block;font-size:1.05rem}.ab-founder span{font-size:.85rem;opacity:.8}.ab-founder p{margin:6px 0 0}
+.ab-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.ab-stats div{padding:14px;border-radius:14px;border:1px solid rgba(255,90,54,.35);text-align:center}
+.ab-stats b{display:block;font-size:2rem;color:#FF5A36;line-height:1.2}.ab-stats span{font-size:.9rem}
+.sp ul.ab-why{list-style:none;padding:0}
+.ab-why li{display:flex;gap:10px;align-items:flex-start;margin:6px 0}.ab-why svg{flex:none;width:20px;height:20px;margin-top:5px}
+.ab-cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin:22px 0 10px;padding:18px;border-radius:16px;background:#12100d;color:#f4eee2;border:1px solid rgba(255,90,54,.45)}
+.ab-cta b{display:block;font-size:1.1rem}.ab-cta span{font-size:.9rem;color:#bdb4a5}
+.sp .ab-btn{display:inline-block;padding:10px 18px;border-radius:999px;background:#FF5A36;color:#12100d;font-weight:700;text-decoration:none}
 </style>
 <figure class="ab-hero" data-slot="brand-illustration">
     <img src="/static/logo.svg" alt="{% if ar %}شعار النرجس: نجمة ثمانية بتلات سوداء وذهبية{% else %}Al-Narjis logo: a black and gold eight-point star{% endif %}" width="112" height="112">
     <figcaption class="t">{% if ar %}<b>النرجس للذكاء الاصطناعي</b><span>صُنع في السعودية، من الرياض.</span>{% else %}<b>Al-Narjis AI</b><span>Built in Saudi Arabia, from Riyadh.</span>{% endif %}</figcaption>
 </figure>
+{% set svg_check %}<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#FF5A36" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endset %}
 {% if ar %}
 <h2 class="n-title text-lg">قصتنا</h2>
-<p>أسّس <b>كريم</b> النرجس للذكاء الاصطناعي في الرياض بفكرة بسيطة: صاحب العمل السعودي يستحق أدوات ذكاء اصطناعي تفهم لهجته وسوقه، وتخدمه هو وفريقه بدل أن تحلّ محلّهم. بدأنا من سيرفر محلي واحد، وكل ما نبنيه اليوم يمشي على نفس المبدأ: نبني لك الفريق الذي تحتاجه فعلاً، وتبقى القرارات بيدك.</p>
-<h2 class="n-title text-lg">رسالتنا</h2>
-<p><b>الذكاء الاصطناعي يساعد الناس، ولا يستبدلهم.</b> الوكلاء يتولّون المهام المتكررة — الردود، المتابعة، المسودات — وأنت وفريقك تعتمدون وتقررون.</p>
+<p>بدأت الفكرة على سيرفر محلي واحد، قبل أن تكون منصة أو شركة. سؤال واحد فقط كان يدور في ذهني: كيف نجعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها فعلاً؟ لا للشركات الكبرى التي لديها ميزانيات ضخمة، بل لصاحب المتجر الصغير الذي يضيع عملاءه لأنه ما عنده وقت يتابعهم.</p>
+<p>اليوم، نما هذا السيرفر إلى منصة متكاملة تضم <b>{{ agent_count }}</b> وكيل ذكاء اصطناعي متخصص في <b>{{ division_count }}</b> أقسام، يقودهم رئيس تنفيذي افتراضي يفهم احتياجك ويختار لك الفريق المناسب. كل شيء هنا مبني على مبدأ واحد: أن يبني لك الفريق ما تحتاجه فعلاً، لا ما نريد بيعه لك.</p>
+<p>نخدم المنشآت الصغيرة والمتوسطة في السعودية والخليج، ونؤمن بأن الذكاء الاصطناعي يجب أن يكون أداة في خدمة الإنسان لا بديلاً عنه. القرار دائماً يبقى معك.</p>
+<div class="ab-founder"><span class="ab-av" aria-hidden="true">ك</span><div><b>كريم</b><span>المؤسس والرئيس التنفيذي</span><p>مطوّر ومهندس برمجيات من الرياض. بدأت رحلتي في عالم التقنية وأنا أبحث عن حلول لمشاكل حقيقية أعيشها في يومي. اليوم أعمل على جعل الذكاء الاصطناعي أداة عملية لكل صاحب مشروع صغير في السعودية.</p></div></div>
+<div class="ab-stats" aria-label="أرقام من كتالوج الوكلاء">
+    <div><b class="num">{{ agent_count }}</b><span>وكيل متخصص</span></div>
+    <div><b class="num">{{ division_count }}</b><span>أقسام متخصصة</span></div>
+</div>
+<div class="ab-grid">
+    <div class="ab-card"><h3>رؤيتنا</h3><p>أن نكون الشريك التقني الأول للمنشآت الصغيرة والمتوسطة في العالم العربي، وأن نجعل الذكاء الاصطناعي أداة يومية في كل مكتب.</p></div>
+    <div class="ab-card"><h3>مهمتنا</h3><p>تقديم حلول ذكاء اصطناعي عملية وقابلة للتنفيذ فوراً، بأسعار مناسبة وبواجهة عربية سهلة الاستخدام. <b>الذكاء الاصطناعي يساعد الناس، ولا يستبدلهم.</b></p></div>
+    <div class="ab-card"><h3>قيمنا</h3><p>الشفافية التامة · القرار عند العميل · الجودة قبل الكمية · العربية أولاً · لا وعود زائفة</p></div>
+</div>
+<h2 class="n-title text-lg">لماذا النرجس؟</h2>
+<ul class="ab-why">
+<li>{{ svg_check }}تشخيص مجاني قبل أي التزام مالي</li>
+<li>{{ svg_check }}فريق مختار حسب احتياجك الفعلي، لا باقة جاهزة</li>
+<li>{{ svg_check }}إلغاء الاشتراك قبل التجديد، ولا تُسترد دفعات الفترة المنقضية</li>
+<li>{{ svg_check }}ضمان الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط</li>
+<li>{{ svg_check }}نتعامل مع بياناتك وفق نظام PDPL لحماية البيانات الشخصية</li>
+<li>{{ svg_check }}لا نبيع بياناتك أبداً، ويمكنك طلب حذفها في أي وقت</li>
+</ul>
 <h2 class="n-title text-lg">ماذا نقدّم</h2>
 <div class="ab-grid">
     <div class="ab-card"><h3>وكلاء ذكاء اصطناعي وأتمتة</h3><p>فريق وكلاء بقيادة الرئيس التنفيذي الذكي: ردود العملاء، متابعة الطلبات، والأتمتة بين أنظمتك.</p></div>
@@ -34,7 +66,7 @@
     <div class="ab-card"><h3>المحتوى والترجمة</h3><p>كتابة محتوى وترجمة بين العربية والإنجليزية والفرنسية.</p></div>
 </div>
 <h2 class="n-title text-lg">سعودي الصنع، ومتوافق مع رؤية 2030</h2>
-<p>نحن فريق سعودي يبني من الرياض، ونعمل بما يتماشى مع مستهدفات رؤية المملكة 2030 في التحول الرقمي: تمكين المنشآت الصغيرة والمتوسطة من أدوات رقمية بلغتها، مع احترام نظام حماية البيانات الشخصية.</p>
+<p>نحن فريق سعودي يبني من الرياض، ونعمل بما يتماشى مع مستهدفات رؤية المملكة 2030 في التحول الرقمي: تمكين المنشآت الصغيرة والمتوسطة من أدوات رقمية بلغتها، وفق نظام حماية البيانات الشخصية.</p>
 <h2 class="n-title text-lg">الجهة المشغّلة</h2>
 <ul>
 <li>منصة النرجس</li>
@@ -42,13 +74,32 @@
 <li>العنوان: الرياض، حي الرمال، المملكة العربية السعودية</li>
 <li>المؤسس: كريم</li>
 </ul>
-<h2 class="n-title text-lg">تواصل</h2>
-<p>اسأل <a href="#assistant" data-open-assistant>مساعد النرجس</a> من الزر أسفل الصفحة.</p>
+<div class="ab-cta"><div><b>جاهز تبدأ؟</b><span>ناقش هدفك مع الرئيس التنفيذي الافتراضي مجاناً</span></div><a class="ab-btn" href="/home#ceo">ناقش هدفك مع الرئيس التنفيذي <span aria-hidden="true">←</span></a></div>
+<p>أو اسأل <a href="#assistant" data-open-assistant>مساعد النرجس</a> من الزر أسفل الصفحة.</p>
 {% else %}
 <h2 class="n-title text-lg">Our story</h2>
-<p><b>Karim</b> founded Al-Narjis AI in Riyadh with a simple idea: Saudi business owners deserve AI tools that understand their dialect and their market, and that serve them and their teams instead of replacing them. We started on a single local server, and everything we build today follows the same principle: we build the team you actually need, and the decisions stay with you.</p>
-<h2 class="n-title text-lg">Our mission</h2>
-<p><b>AI helps people, it doesn't replace them.</b> Agents handle the repetitive work — replies, follow-ups, drafts — while you and your team approve and decide.</p>
+<p>The idea started on a single local server, before it was a platform or a company. One question kept going round in my head: how do we make AI help available to the people who really need it? Not to big companies with huge budgets, but to the small shop owner who loses customers because there's no time to follow them up.</p>
+<p>Today that server has grown into a complete platform with <b>{{ agent_count }}</b> specialised AI agents across <b>{{ division_count }}</b> divisions, led by a virtual CEO that understands your need and picks the right team for you. Everything here follows one principle: the team builds what you actually need, not what we want to sell you.</p>
+<p>We serve small and medium businesses in Saudi Arabia and the Gulf, and we believe AI should be a tool that serves people, not a replacement for them. The decision always stays with you.</p>
+<div class="ab-founder"><span class="ab-av" aria-hidden="true">K</span><div><b>Karim</b><span>Founder &amp; CEO</span><p>A software developer and engineer from Riyadh. I started in tech looking for solutions to real problems I lived with every day. Today I work on making AI a practical tool for every small business owner in Saudi Arabia.</p></div></div>
+<div class="ab-stats" aria-label="Figures from the agent catalogue">
+    <div><b class="num">{{ agent_count }}</b><span>specialised agents</span></div>
+    <div><b class="num">{{ division_count }}</b><span>specialised divisions</span></div>
+</div>
+<div class="ab-grid">
+    <div class="ab-card"><h3>Our vision</h3><p>To be the leading technology partner for small and medium businesses in the Arab world, and to make AI an everyday tool in every office.</p></div>
+    <div class="ab-card"><h3>Our mission</h3><p>Practical AI solutions you can put to work right away, at fair prices, with an easy Arabic-first interface. <b>AI helps people, it doesn't replace them.</b></p></div>
+    <div class="ab-card"><h3>Our values</h3><p>Full transparency · The customer decides · Quality over quantity · Arabic first · No false promises</p></div>
+</div>
+<h2 class="n-title text-lg">Why Al-Narjis?</h2>
+<ul class="ab-why">
+<li>{{ svg_check }}A free diagnosis before any financial commitment</li>
+<li>{{ svg_check }}A team picked for your actual need, not a ready-made bundle</li>
+<li>{{ svg_check }}Cancel before renewal; payments for periods already elapsed are not refunded</li>
+<li>{{ svg_check }}Setup guarantee: if the agent doesn't work within 10 business days, we refund the setup fee only</li>
+<li>{{ svg_check }}We handle your data in line with the PDPL (Saudi Personal Data Protection Law)</li>
+<li>{{ svg_check }}We never sell your data, and you can ask us to delete it at any time</li>
+</ul>
 <h2 class="n-title text-lg">What we do</h2>
 <div class="ab-grid">
     <div class="ab-card"><h3>AI agents &amp; automation</h3><p>A team of agents led by an AI CEO: customer replies, order follow-up and automation between your systems.</p></div>
@@ -56,7 +107,7 @@
     <div class="ab-card"><h3>Content &amp; translation</h3><p>Content writing and translation between Arabic, English and French.</p></div>
 </div>
 <h2 class="n-title text-lg">Saudi-built, aligned with Vision 2030</h2>
-<p>We are a Saudi team building from Riyadh, working in line with Saudi Vision 2030's digital-transformation goals: giving small and medium businesses digital tools in their own language, while respecting the Personal Data Protection Law (PDPL).</p>
+<p>We are a Saudi team building from Riyadh, working in line with Saudi Vision 2030's digital-transformation goals: giving small and medium businesses digital tools in their own language, in line with the Personal Data Protection Law (PDPL).</p>
 <h2 class="n-title text-lg">Operator</h2>
 <ul>
 <li>Al-Narjs</li>
@@ -64,8 +115,8 @@
 <li>Address: Al-Rimal district, Riyadh, Saudi Arabia</li>
 <li>Founder: Karim</li>
 </ul>
-<h2 class="n-title text-lg">Contact</h2>
-<p>Ask <a href="#assistant" data-open-assistant>the Al-Narjis assistant</a> from the button at the bottom of the page.</p>
+<div class="ab-cta"><div><b>Ready to start?</b><span>Discuss your goal with the virtual CEO for free</span></div><a class="ab-btn" href="/home#ceo">Discuss your goal with the CEO <span aria-hidden="true">→</span></a></div>
+<p>Or ask <a href="#assistant" data-open-assistant>the Al-Narjis assistant</a> from the button at the bottom of the page.</p>
 {% endif %}
 {% include "partials/_testimonials.html" %}
 {% endblock %}
