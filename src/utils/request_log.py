@@ -83,6 +83,12 @@ class RequestLogMiddleware:
             await self.app(scope, receive, send)
             return
         rid = _request_id(scope)
+        try:
+            from src.services.error_monitor import request_id_var
+
+            request_id_var.set(rid)
+        except Exception:  # noqa: BLE001
+            pass
         method = scope.get("method") or "-"
         raw_path = scope.get("path") or "/"
         if raw_path.startswith("/static/"):

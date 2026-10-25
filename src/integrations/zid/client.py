@@ -32,6 +32,9 @@ API = "https://api.zid.sa/v1"
 def _json(resp, operation: str) -> dict:
     if resp.status_code >= 400:
         log.warning("zid %s failed status=%s", operation, resp.status_code)
+        from src.services import error_monitor
+
+        error_monitor.report("zid", error_type=f"http_{resp.status_code}", message=operation, route=operation)
         raise StoreApiError(operation, resp.status_code)
     try:
         body = resp.json()

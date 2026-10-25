@@ -3056,6 +3056,15 @@ async def funnel_beacon(request: Request):
     return Response(status_code=204)
 
 
+@app.get("/api/owner/errors", dependencies=[Depends(require_owner_api)])
+async def owner_error_summary(limit: int = 50):
+    """Deduplicated, scrubbed server and integration failures (newest first)."""
+    from src.services import error_monitor
+
+    async with app.state.session_factory() as session:
+        return await error_monitor.summary(session, limit)
+
+
 @app.get("/api/owner/funnel", dependencies=[Depends(require_owner_api)])
 async def owner_funnel_report(days: int = 30):
     from src.services import funnel

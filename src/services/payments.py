@@ -732,6 +732,9 @@ async def initiate_moyasar(
         )
 
     if resp.status_code not in (200, 201):
+        from src.services import error_monitor
+
+        error_monitor.report("moyasar", error_type=f"http_{resp.status_code}", route="moyasar_error")
         raise PaymentError(f"Moyasar error {resp.status_code}: {resp.text}")
 
     data = resp.json()
@@ -799,6 +802,9 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
         )
 
     if resp.status_code != 200:
+        from src.services import error_monitor
+
+        error_monitor.report("moyasar", error_type=f"http_{resp.status_code}", route="moyasar_verify_error")
         raise PaymentError(f"Moyasar verify error {resp.status_code}: {resp.text}")
 
     data = resp.json()

@@ -92,6 +92,9 @@ async def _post(method: str, payload: dict) -> dict:
                 "provider_message_id": _message_id_from(data.get("result")),
             }
     except Exception as exc:  # network/timeout — record the failure, never a send
+        from src.services import error_monitor
+
+        error_monitor.report("telegram", exc, route="send")
         return {"ok": False, "status_code": None, "error": str(exc)[:500], "error_code": "network"}
 
 

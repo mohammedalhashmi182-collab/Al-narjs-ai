@@ -222,6 +222,17 @@ async def on_unhandled_error(path: str, exc: BaseException) -> None:
                       f"🔥 خطأ غير معالج في {path[:120]}: {type(exc).__name__}")
 
 
+def _capture(source: str, scope: dict, exc: BaseException | None, error_type: str | None = None) -> None:
+    """Central exception tracking (error_monitor); never raises."""
+    try:
+        from src.services import error_monitor
+        from src.utils.request_log import route_for_log
+
+        error_monitor.report(source, exc, error_type=error_type, route=route_for_log(scope))
+    except Exception:  # noqa: BLE001
+        pass
+
+
 class OpsAlertMiddleware:
     """Pure ASGI middleware: alerts on 5xx/exceptions for webhooks and 5xx elsewhere.
 
@@ -245,6 +256,7 @@ class OpsAlertMiddleware:
         try:
             await self.app(scope, receive, send_wrapper)
         except Exception as exc:
+            _capture("webhook" if path.startswith("/webhooks/") else "server", scope, exc)
             if path.startswith("/webhooks/"):
                 await on_webhook_failure(path, "exception", type(exc).__name__)
             else:
@@ -252,6 +264,7 @@ class OpsAlertMiddleware:
             raise
         status = status_box.get("status", 0)
         if status >= 500:
+            _capture("webhook" if path.startswith("/webhooks/") else "server", scope, None, f"http_{status}")
             if path.startswith("/webhooks/"):
                 await on_webhook_failure(path, status)
             elif not path.startswith("/health"):

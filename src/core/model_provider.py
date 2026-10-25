@@ -854,6 +854,13 @@ class ModelProvider:
                     spec,
                     type(e).__name__,
                 )
+                from src.services import error_monitor
+
+                # Type only: the provider message may echo the API key.
+                error_monitor.report(
+                    "gemini" if "gemini" in str(spec.provider).lower() else "llm",
+                    error_type=type(e).__name__, message="", route=str(spec.provider)[:40],
+                )
                 last_error = e
                 continue
 
