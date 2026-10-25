@@ -608,9 +608,23 @@
     dlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }); });
     dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
 
+    // First-party anonymous funnel beacon: event name + lang/page only, never text.
+    // Skipped under Do-Not-Track/GPC or a refused cookie banner; failures are ignored.
+    function narjsBeacon(name) {
+        try {
+            if (navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.globalPrivacyControl) return;
+            if (/(?:^|; )narjs_consent=denied/.test(document.cookie)) return;
+            var body = JSON.stringify({ event: name, props: { lang: AR ? 'ar' : 'en', page: location.pathname.slice(0, 80) } });
+            if (navigator.sendBeacon) navigator.sendBeacon('/api/events', new Blob([body], { type: 'application/json' }));
+            else fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true }).catch(function () {});
+        } catch (e) {}
+    }
+    narjsBeacon('landing_view');
     // Real CEO diagnosis (POST /api/ceo/consult).
     var form = document.getElementById('ceoForm');
     var box = document.getElementById('ceoProblem');
+    var consultOpened = false;
+    box.addEventListener('focus', function () { if (!consultOpened) { consultOpened = true; narjsBeacon('ceo_consult_open'); } });
     var msg = document.getElementById('ceoMsg');
     var btn = document.getElementById('ceoSubmit');
     document.querySelectorAll('.chip[data-example]').forEach(function (c) {

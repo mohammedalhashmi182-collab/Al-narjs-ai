@@ -1381,6 +1381,10 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
         f"({period}) until {project.current_period_end.isoformat()}"
     )
     await session.commit()
+    if verb == "activated":
+        from src.services import funnel
+
+        await funnel.track("project_activated", None, {"plan": project.package or ""})
     return {
         "activated": True,
         "already_active": was_active,
