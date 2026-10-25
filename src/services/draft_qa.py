@@ -6,10 +6,11 @@ Deterministic checks (no model call):
   ريال / ر.س / SAR / ﷼) must be a price the catalog can produce (plans,
   annual, founding, VAT totals, add-ons, setup fees, Meta caps) or appear in
   the project's knowledge base. Anything else costs 40 points.
-* **Unbuilt features promised as live** - voice agent/calls, abandoned carts,
-  Instagram DMs - without a "قريباً"/"coming soon" qualifier costs 25 points.
-* **Store write access** - the Salla/Zid connection is read-only and set up
-  by us on request; a draft that says it edits/manages store products, orders
+* **Unbuilt features promised as live** - voice agent/calls, Salla/Zid store
+  connection, abandoned carts, Instagram DMs - without a "قريباً"/"coming soon"
+  qualifier costs 25 points.
+* **Store write access** - the Salla/Zid connection (coming soon) will be
+  read-only; a draft that says it edits/manages store products, orders
   or prices, or installs itself automatically, costs 25 points.
 * **Guarantees / invented results** - "نضمن لك" / "guaranteed" / "% زيادة"
   style claims cost 20 points (the setup guarantee from the catalog is allowed).
@@ -35,6 +36,7 @@ _MONEY_RE = re.compile(rf"{_NUM}\s*{_CURRENCY}|{_CURRENCY}\s*{_NUM}", re.IGNOREC
 
 UNBUILT = {
     "voice": (r"وكيل\s*صوت|خط\s*صوت|مكالمات|المكالمات|voice agent|voice line|phone calls",),
+    "store_link": (r"ربط\s*(?:متجرك?\s*(?:على\s*)?)?سلة|ربط\s*زد|Salla (?:store )?(?:integration|connection)|Zid (?:store )?(?:integration|connection)",),
     "abandoned_cart": (r"السلات?\s*المتروكة|سلة\s*متروكة|abandoned[- ]cart",),
     "instagram_dm": (r"رسائل\s*(?:ال)?(?:إنستغرام|انستقرام|انستغرام)|خاص\s*(?:ال)?(?:إنستغرام|انستقرام)|Instagram DMs?",),
 }
