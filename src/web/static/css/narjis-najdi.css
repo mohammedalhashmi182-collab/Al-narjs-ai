@@ -269,8 +269,9 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .mdl .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 
 /* team + proof */
-.nj .facts{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--nj-line);border:1px solid var(--nj-line);border-radius:16px;overflow:hidden}
+.nj .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--nj-line);border:1px solid var(--nj-line);border-radius:16px;overflow:hidden}
 .nj .facts>div{background:var(--nj-ink);padding:22px 20px}
+.nj .facts>div[hidden]{display:none}
 .nj .facts b{display:block;font-size:34px;font-weight:600;line-height:1.1;color:var(--nj-ivory)}
 .nj .facts span{color:var(--nj-ivory2);font-size:14px}
 .nj .facts-note{color:var(--nj-ivory2);font-size:14px;margin:12px 0 32px}
@@ -339,6 +340,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj .tk b{font-size:14px}
   .nj .tk .sub{display:none}
   .nj .facts{grid-template-columns:repeat(2,1fr)}
+  .nj .facts>div:nth-child(3):has(+[hidden]+[hidden]){grid-column:1/-1}
   .nj .divs,.nj .about,.nj .agents,.nj .deliv,.nj .plans,.nj .mdl .grid2{grid-template-columns:1fr}
   .nj .plans{gap:26px}
   .nj .box,.nj .mdl,.nj .ceo-box{padding:20px}

@@ -903,7 +903,10 @@ async def public_pulse():
     }
 
     try:
-        payload["leads_received"] = await count("acquisition_leads")
+        # Only requests visitors really sent (site form, site assistant), never
+        # imported or outreach prospects, so the public label stays true.
+        payload["leads_received"] = await count(
+            "acquisition_leads WHERE source IN ('website', 'consult_assistant')")
     except Exception:  # a public page must never 500 on a database problem
         logger.warning("pulse: leads_received unavailable", exc_info=True)
     try:

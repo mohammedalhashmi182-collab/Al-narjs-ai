@@ -30,7 +30,8 @@ def _ctx(browser, client, **kw):
     ctx = browser.new_context(**kw)
     def serve(route):
         url = urlsplit(route.request.url)
-        r = client.get(url.path + ('?' + url.query if url.query else ''))
+        r = client.request(route.request.method, url.path + ('?' + url.query if url.query else ''),
+                           content=route.request.post_data_buffer)
         route.fulfill(status=r.status_code, body=r.content,
                       headers={'content-type': r.headers.get('content-type', 'text/plain')})
     ctx.route('**/*', lambda route: route.abort())
