@@ -16,7 +16,8 @@ def test_alembic_has_one_linear_head() -> None:
     cfg = Config(str(ROOT / "alembic.ini"))
     cfg.set_main_option("script_location", str(ROOT / "alembic"))
     script = ScriptDirectory.from_config(cfg)
-    assert script.get_heads() == ["0016"]
+    assert script.get_heads() == ["0017"]
+    assert script.get_revision("0017").down_revision == "0016"
     revs = [r.revision for r in script.walk_revisions()]
     assert len(revs) == len(set(revs))
     assert script.get_revision("0016").down_revision == "0015"
