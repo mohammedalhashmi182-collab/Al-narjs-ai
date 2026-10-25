@@ -1,4 +1,8 @@
-{% macro head(title_ar, title_en, desc_ar, desc_en, path, og_type='website', jsonld=None) %}
+{#- Owner pack item 01. Structured data from facts only: who operates the site,
+    where, the founder and the freelance document. No ratings, reviews or
+    aggregateRating anywhere (there are none to cite). `faq` is an optional
+    list of (question, answer) pairs already shown on the page. -#}
+{% macro head(title_ar, title_en, desc_ar, desc_en, path, og_type='website', jsonld=None, faq=None) %}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ title_ar if _lang == 'ar' else title_en }}</title>
@@ -20,4 +24,21 @@
 <meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 {% if jsonld %}<script type="application/ld+json">{{ jsonld | tojson }}</script>{% endif %}
+{% set _org = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://karmaai.online/#org",
+  "name": "النرجس للذكاء الاصطناعي" if _lang == 'ar' else "Al-Narjis AI",
+  "alternateName": "Al-Narjis AI" if _lang == 'ar' else "النرجس للذكاء الاصطناعي",
+  "url": "https://karmaai.online",
+  "logo": "https://karmaai.online/brand/logo.png",
+  "identifier": {"@type": "PropertyValue", "propertyID": "Freelance document", "value": "FL-272182297"},
+  "founder": {"@type": "Person", "@id": "https://karmaai.online/#founder", "name": "كريم" if _lang == 'ar' else "Karim"},
+  "address": {"@type": "PostalAddress", "addressLocality": "الرياض" if _lang == 'ar' else "Riyadh", "addressCountry": "SA"},
+  "areaServed": {"@type": "Country", "name": "Saudi Arabia"},
+  "knowsLanguage": ["ar", "en"]
+} %}
+<script type="application/ld+json">{{ _org | tojson }}</script>
+{% if faq %}{% set _qs = [] %}{% for q, a in faq %}{% set _ = _qs.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}}) %}{% endfor %}
+<script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": _qs} | tojson }}</script>{% endif %}
 {% endmacro %}

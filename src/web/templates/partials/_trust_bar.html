@@ -1,0 +1,10 @@
+{#- Trust badges (owner pack item 02). Facts only: the freelance document
+    number (no personal names), Moyasar as the card processor, open-source
+    building blocks, and PDPL phrased as «وفق» — there is no certification,
+    so no certification wording of any kind. -#}
+<div class="nj-trust{{ trust_extra_class or "" }}" role="list" aria-label="{% if ar %}معلومات الثقة{% else %}Trust information{% endif %}">
+    <span class="nj-trust-i" role="listitem"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h9l4 4v14H6z M15 3v4h4 M9 12h7 M9 16h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>{% if ar %}وثيقة عمل حر رقم <span class="num" dir="ltr">FL-272182297</span>{% else %}Freelance document No. <span class="num">FL-272182297</span>{% endif %}</span>
+    <span class="nj-trust-i" role="listitem"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>{% if ar %}دفع آمن عبر ميسر{% else %}Secure payment via Moyasar{% endif %}</span>
+    <span class="nj-trust-i" role="listitem"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 7l-5 5 5 5 M16 7l5 5-5 5 M14 4l-4 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>{% if ar %}مبني بتقنيات مفتوحة المصدر{% else %}Built with open-source technology{% endif %}</span>
+    <span class="nj-trust-i" role="listitem"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>{% if ar %}وفق نظام حماية البيانات الشخصية PDPL{% else %}In line with Saudi Arabia's Personal Data Protection Law (PDPL){% endif %}</span>
+</div>

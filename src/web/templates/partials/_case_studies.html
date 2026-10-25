@@ -1,0 +1,63 @@
+{#- Owner pack item 03. These are ILLUSTRATIVE examples of what we build, not
+    client projects: the heading, the tag on every card and the note say so.
+    Do not relabel them as real results. -#}
+<section class="nj-cases" id="examples" aria-labelledby="cases-h">
+    <div class="wrap">
+        <div class="sh rv">
+            <div><span class="simtag">{% if ar %}أمثلة توضيحية{% else %}Illustrative examples{% endif %}</span><h2 id="cases-h" style="margin-top:14px">{% if ar %}أمثلة توضيحية لما نبنيه{% else %}Illustrative examples of what we build{% endif %}</h2></div>
+            <p>{% if ar %}سيناريوهات توضيحية لفرق وكلاء نبنيها. الأرقام فيها تقديرات للتوضيح، وليست نتائج عملاء فعلية.{% else %}Illustrative scenarios of agent teams we build. The figures are estimates for illustration, not actual client results.{% endif %}</p>
+        </div>
+        {% if ar %}
+        {% set cases = [
+            {"title": "متجر إلكتروني — متابعة عروض الأسعار", "meta": "مثال توضيحي · الرياض", "sector": "تجارة إلكترونية", "icon": "cart",
+             "stats": [["+47%", "زيادة في معدل المتابعة"], ["-65%", "وقت أقل في المتابعة اليدوية"], ["3", "وكلاء تم تشغيلهم"], ["أسبوع", "مدة التنفيذ"]],
+             "story": "صاحب متجر كان يرسل عروض أسعار لعملاء يسألون على واتساب ثم لا أحد يتابعهم. بنينا له فريق من 3 وكلاء: وكيل تأهيل يفرز الاستفسارات، وكيل متابعة يكتب رسائل بنبرة المتجر، ووكيل تقارير يلخص الأسبوع.",
+             "agents": ["وكيل التأهيل", "وكيل المتابعة", "وكيل التقارير"]},
+            {"title": "عيادة طبية — بوت خدمة العملاء", "meta": "مثال توضيحي · جدة", "sector": "رعاية صحية", "icon": "care",
+             "stats": [["89%", "من الأسئلة يجاوبها البوت تلقائياً"], ["-70%", "في المكالمات الهاتفية"], ["24/7", "خدمة متواصلة"], ["5 أيام", "من الإعداد للتشغيل"]],
+             "story": "عيادة كانت تستقبل مئات الاستفسارات اليومية عن المواعيد والأسعار والأدوية. أنشأنا بوت يفهم اللهجة السعودية ويجيب من معلومات العيادة الموثوقة، ويحيل الحالات المعقدة لموظف بشري.",
+             "agents": ["موظف خدمة العملاء", "مدير علاقات العملاء", "خبير التعريب والتوطين"]},
+            {"title": "مؤسسة تسويقية — إدارة السوشيال ميديا", "meta": "مثال توضيحي · الدمام", "sector": "تسويق رقمي", "icon": "social",
+             "stats": [["+120%", "زيادة التفاعل على الحسابات"], ["30+", "منشور أسبوعياً آلياً"], ["5", "وكلاء نشطين"], ["شهرين", "مدة التشغيل"]],
+             "story": "مؤسسة تسويقية تدير حسابات 12 عميل وكانت تعاني من فراغ المحتوى وعدم الانتظام. بنينا لها فريق متكامل: مولّد أفكار + كاتب محتوى + مدير محتوى + مسؤول سوشيال ميديا + خبير SEO.",
+             "agents": ["مولّد أفكار المحتوى", "كاتب المحتوى", "مدير المحتوى", "مدير حسابات السوشيال ميديا", "خبير تحسين البحث SEO"]},
+        ] %}
+        {% else %}
+        {% set cases = [
+            {"title": "Online store — following up on quotes", "meta": "Illustrative example · Riyadh", "sector": "E-commerce", "icon": "cart",
+             "stats": [["+47%", "higher follow-up rate"], ["-65%", "less time on manual follow-up"], ["3", "agents deployed"], ["1 week", "to deliver"]],
+             "story": "A store owner sent quotes to customers who asked on WhatsApp, and then nobody followed up. We built a team of 3 agents: a qualification agent that sorts enquiries, a follow-up agent that writes in the store's tone, and a reporting agent that sums up the week.",
+             "agents": ["Qualification agent", "Follow-up agent", "Reporting agent"]},
+            {"title": "Medical clinic — customer service bot", "meta": "Illustrative example · Jeddah", "sector": "Healthcare", "icon": "care",
+             "stats": [["89%", "of questions answered automatically"], ["-70%", "fewer phone calls"], ["24/7", "always-on service"], ["5 days", "from setup to launch"]],
+             "story": "A clinic received hundreds of daily questions about appointments, prices and medication. We built a bot that understands the Saudi dialect, answers from the clinic's approved information, and hands complex cases to a human.",
+             "agents": ["Customer service agent", "Customer relations manager", "Arabisation & localisation expert"]},
+            {"title": "Marketing agency — social media management", "meta": "Illustrative example · Dammam", "sector": "Digital marketing", "icon": "social",
+             "stats": [["+120%", "more engagement on accounts"], ["30+", "automated posts a week"], ["5", "active agents"], ["2 months", "in operation"]],
+             "story": "A marketing agency managing 12 clients' accounts struggled with content gaps and an irregular schedule. We built it a complete team: an idea generator, a content writer, a content manager, a social media manager and an SEO expert.",
+             "agents": ["Content idea generator", "Content writer", "Content manager", "Social media manager", "SEO expert"]},
+        ] %}
+        {% endif %}
+        <div class="nj-case-grid">
+            {% for c in cases %}
+            <article class="nj-case rv">
+                <div class="nj-case-top">
+                    <span class="nj-case-ic" aria-hidden="true">{% if c.icon == 'cart' %}<svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2L20 8H7 M10 20a1 1 0 1 0 0-.01 M17 20a1 1 0 1 0 0-.01" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>{% elif c.icon == 'care' %}<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z M12 10v5 M9.5 12.5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>{% else %}<svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 17h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>{% endif %}</span>
+                    <span class="nj-case-sector">{{ c.sector }}</span>
+                    <span class="nj-case-tag">{% if ar %}توضيحي{% else %}Illustrative{% endif %}</span>
+                </div>
+                <h3>{{ c.title }}</h3>
+                <p class="nj-case-meta">{{ c.meta }}</p>
+                <dl class="nj-case-stats">
+                    {% for v, l in c.stats %}<div><dt class="num">{{ v }}</dt><dd>{{ l }}</dd></div>{% endfor %}
+                </dl>
+                <p class="nj-case-story">{{ c.story }}</p>
+                <ul class="nj-case-agents" aria-label="{% if ar %}الوكلاء في هذا المثال{% else %}Agents in this example{% endif %}">
+                    {% for a in c.agents %}<li>{{ a }}</li>{% endfor %}
+                </ul>
+            </article>
+            {% endfor %}
+        </div>
+        <p class="nj-cases-cta rv"><a class="nj-botcta" href="/home#ceo" data-bot-cta>{% if ar %}اشرح هدفك للرئيس التنفيذي وشاهد الفريق المناسب لك <span aria-hidden="true">←</span>{% else %}Explain your goal to the CEO and see the team that fits you <span aria-hidden="true">→</span>{% endif %}</a></p>
+    </div>
+</section>

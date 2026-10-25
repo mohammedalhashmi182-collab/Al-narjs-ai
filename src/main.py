@@ -26,6 +26,7 @@ from src.utils.rate_limit import (
     rate_limit_ticket,
     rate_limit_login,
     rate_limit_transfer_report,
+    rate_limit_newsletter,
 )
 from src.db.session import close_db, ensure_pgvector, get_session_factory, init_db
 
@@ -999,10 +1000,12 @@ async def public_agent_page(slug: str, request: Request):
 
 @app.get("/blog", response_class=HTMLResponse)
 async def blog_index_page(request: Request):
-    from src.services import blog_articles_1
+    from src.services import blog_articles_1, catalog
 
     return templates.TemplateResponse(
-        request, "blog_index.html", {"articles": blog_articles_1.ARTICLES}
+        request,
+        "blog_index.html",
+        {"articles": blog_articles_1.ARTICLES, "agent_count": len(catalog.EMPLOYEES)},
     )
 
 
@@ -1125,12 +1128,20 @@ async def refund_policy_page(request: Request):
 
 @app.get("/about", response_class=HTMLResponse)
 async def about_page(request: Request):
+    from src.services import catalog
     from src.services import testimonials as _testimonials
 
     return templates.TemplateResponse(
         request,
         "about.html",
-        {"ar": _page_lang(request) == "ar", "testimonials": _testimonials.load()},
+        {
+            "ar": _page_lang(request) == "ar",
+            "testimonials": _testimonials.load(),
+            # real counts from the live roster (src/services/catalog.py), never typed by hand
+            "agent_count": len(catalog.EMPLOYEES),
+            "division_count": catalog.DIVISION_COUNT,
+            "setup_guarantee": catalog.SETUP_GUARANTEE,
+        },
     )
 
 
@@ -2099,6 +2110,75 @@ class ConsultRequest(BaseModel):
 class CeoConsultRequest(BaseModel):
     problem: str
     lang: Optional[str] = None
+
+
+@app.get("/api/newsletter/status")
+async def newsletter_status():
+    """The popup asks first and stays hidden unless sign-ups can be stored."""
+    from src.db.session import engine as _engine
+    from src.services import newsletter
+
+    return {"available": await newsletter.table_ready(_engine)}
+
+
+@app.post("/api/newsletter/subscribe", dependencies=[Depends(rate_limit_newsletter)])
+async def newsletter_subscribe(http_request: Request):
+    """Newsletter sign-up: e-mail + required consent, honeypot, per-IP limit,
+    dedupe. Fails closed (503) until the reviewed migration creates the table."""
+    from src.db.session import engine as _engine
+    from src.services import newsletter
+    from src.utils.net import client_ip
+
+    try:
+        body = await http_request.json()
+    except Exception:  # noqa: BLE001
+        body = None
+    if not isinstance(body, dict):
+        body = {}
+    lang = "en" if body.get("lang") == "en" else "ar"
+    ar = lang == "ar"
+
+    if not await newsletter.table_ready(_engine):
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False, "error": "unavailable",
+                     "message": newsletter.UNAVAILABLE_AR if ar else newsletter.UNAVAILABLE_EN},
+        )
+    # Honeypot: a hidden field people never see. Bots that fill it get a bland
+    # 200 and nothing is stored.
+    if str(body.get("website") or "").strip():
+        return {"ok": True}
+    email = newsletter.normalize_email(body.get("email"))
+    if email is None:
+        return JSONResponse(
+            status_code=422,
+            content={"ok": False, "error": "invalid_email",
+                     "message": "اكتب بريداً إلكترونياً صحيحاً." if ar else "Enter a valid e-mail address."},
+        )
+    if body.get("consent") is not True:
+        return JSONResponse(
+            status_code=422,
+            content={"ok": False, "error": "consent_required",
+                     "message": "الموافقة مطلوبة للاشتراك." if ar else "Consent is required to subscribe."},
+        )
+    try:
+        result = await newsletter.subscribe(
+            _engine, email=email, lang=lang,
+            iphash=newsletter.ip_hash(client_ip(http_request), settings.secret_key),
+        )
+    except Exception:  # noqa: BLE001  storage failed: say so, never a fake success
+        logger.exception("newsletter_subscribe_failed")
+        newsletter.reset_cache()
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False, "error": "unavailable",
+                     "message": newsletter.UNAVAILABLE_AR if ar else newsletter.UNAVAILABLE_EN},
+        )
+    if result == "exists":
+        msg = "هذا البريد مشترك مسبقاً. شكراً لك." if ar else "This e-mail is already subscribed. Thank you."
+    else:
+        msg = "تم الاشتراك. شكراً لك." if ar else "You're subscribed. Thank you."
+    return {"ok": True, "status": result, "message": msg}
 
 
 @app.post("/api/ceo/consult", dependencies=[Depends(rate_limit_consult)])

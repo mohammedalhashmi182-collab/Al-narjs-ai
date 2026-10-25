@@ -1,0 +1,18 @@
+{#- Owner pack item 12. The programme is not live: status «قريباً», no
+    referral code, no copy button. Amounts are the owner's figures. -#}
+<section class="nj-ref" id="referral" aria-labelledby="ref-h">
+    <div class="wrap">
+        <div class="nj-ref-card rv">
+            <span class="nj-ref-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 13h18 M12 9v12 M12 9c-2-4-6-4-6-1.5S10 9 12 9c2 0 6 0 6-1.5S14 5 12 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+            <div class="nj-ref-body">
+                <p><span class="nj-soon">{% if ar %}قريباً{% else %}Coming soon{% endif %}</span></p>
+                <h2 id="ref-h">{% if ar %}ارشح صديق واحصل على مكافأة{% else %}Refer a friend and get a reward{% endif %}</h2>
+                <p>{% if ar %}شارك رابط إحالتك مع أصحاب المشاريع. إذا سجّل واستخدم الخدمة، تحصل أنت وصديقك على مكافأة. برنامج الإحالة غير مفعّل بعد، وسنعلن عنه عند إطلاقه.{% else %}Share your referral link with business owners. If they sign up and use the service, you and your friend both get a reward. The referral programme is not live yet; we will announce it at launch.{% endif %}</p>
+            </div>
+            <dl class="nj-ref-amts">
+                <div><dt class="num">149 {% if ar %}ر.س{% else %}SAR{% endif %}</dt><dd>{% if ar %}مكافأتك{% else %}Your reward{% endif %}</dd></div>
+                <div><dt class="num">149 {% if ar %}ر.س{% else %}SAR{% endif %}</dt><dd>{% if ar %}مكافأة صديقك{% else %}Your friend's reward{% endif %}</dd></div>
+            </dl>
+        </div>
+    </div>
+</section>
