@@ -40,11 +40,10 @@ def enabled() -> bool:
 
 
 def zid_unsigned_fallback() -> bool:
-    """Basic auth and the dashboard static header do not bind the body.
+    """Allow the Partner Dashboard static header (``X-Zid-Webhook-Token``).
 
-    Zid's documented check is that header (create-a-webhook Basic, or a custom
-    header on app events). Accept it only when ``ZID_WEBHOOK_ALLOW_UNSIGNED``
-    is explicitly on. A present ``X-Zid-Signature`` is still HMAC-only.
+    Basic auth no longer needs this flag. A present ``X-Zid-Signature`` is
+    still HMAC-only, and an empty secret never authenticates.
     """
     return _on("ZID_WEBHOOK_ALLOW_UNSIGNED")
 

@@ -805,3 +805,29 @@ async def _post_zid(maker, raw: bytes, headers: dict):
         return await client.post("/webhooks/stores/zid", content=raw, headers={
             "content-type": "application/json", **headers,
         })
+
+
+def _basic(user: str, password: str) -> dict:
+    return {"authorization": "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode()}
+
+
+async def test_zid_basic_auth_works_without_the_unsigned_flag(maker, monkeypatch):
+    _zid_env(monkeypatch)
+    monkeypatch.delenv("ZID_WEBHOOK_ALLOW_UNSIGNED", raising=False)
+    project = await _project(maker)
+    await _connect(maker, project, "zid", "m", merchant="507530", authorization="a")
+    raw = _stamp({"event_name": "order.status.update", "store_id": 507530})
+    assert (await _post_zid(maker, raw, _basic("narjis", SECRET_ZID))).status_code == 200
+    for headers in ({}, _basic("narjis", "wrong"), _basic("other", SECRET_ZID), _basic("narjis", ""),
+                    {"authorization": "Bearer " + SECRET_ZID}, {"x-zid-webhook-token": SECRET_ZID}):
+        again = _stamp({"event_name": "order.status.update", "store_id": 507530, "n": len(str(headers))})
+        assert (await _post_zid(maker, again, headers)).status_code == 401, headers
+
+
+async def test_zid_empty_secret_never_authenticates(maker, monkeypatch):
+    _zid_env(monkeypatch)
+    monkeypatch.setenv("ZID_WEBHOOK_SECRET", "")
+    monkeypatch.setenv("ZID_WEBHOOK_ALLOW_UNSIGNED", "true")
+    raw = _stamp({"event_name": "order.status.update", "store_id": 1})
+    for headers in (_basic("narjis", ""), {"x-zid-webhook-token": ""}, {}):
+        assert (await _post_zid(maker, raw, headers)).status_code == 401

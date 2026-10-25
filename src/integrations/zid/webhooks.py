@@ -12,8 +12,9 @@ Documented checks (no body HMAC in Zid's docs):
 
 When ``X-Zid-Signature`` is present it must be HMAC-SHA256 hex of the raw body.
 That binds the body. The documented Basic header and the dashboard static
-header do not, so they are accepted only when ``ZID_WEBHOOK_ALLOW_UNSIGNED``
-is explicitly on (see ``config.zid_unsigned_fallback``). A signature header is
+header do not. Basic auth (username ``narjis``, password
+``ZID_WEBHOOK_SECRET``) is always accepted when the secret is set; the
+dashboard static header still needs ``ZID_WEBHOOK_ALLOW_UNSIGNED``. A signature header is
 never downgraded to those fallbacks. The timestamp window still applies.
 """
 
@@ -46,22 +47,28 @@ def _basic_header(secret: str) -> str:
     return f"Basic {token}"
 
 
-def _documented_fallback(headers, secret: str) -> bool:
-    """Constant-time check of Zid's documented Basic header or dashboard header.
+def _basic_ok(headers, secret: str) -> bool:
+    """Constant-time check of ``Authorization: Basic narjis:<ZID_WEBHOOK_SECRET>``.
 
-    Does not authenticate the body. Caller must already have required the
-    explicit unsigned-fallback flag.
+    This is Zid's documented webhook auth. It does not bind the body; replays
+    of the same body are dropped by the raw-body dedupe in ``claim_event``.
     """
-    given = headers.get("authorization") or ""
-    expected = _basic_header(secret)
-    if _eq(given, expected):
-        return True
-    static = (headers.get("x-zid-webhook-token") or "").strip()
-    return _eq(static, secret)
+    return bool(secret) and _eq(headers.get("authorization") or "", _basic_header(secret))
+
+
+def _static_header_ok(headers, secret: str) -> bool:
+    """Partner Dashboard static header. Only with ``ZID_WEBHOOK_ALLOW_UNSIGNED``."""
+    if not secret or not zid_unsigned_fallback():
+        return False
+    return _eq((headers.get("x-zid-webhook-token") or "").strip(), secret)
 
 
 def signature_ok(raw: bytes, headers) -> bool:
-    """Authenticate the delivery. Does not check the timestamp window."""
+    """Authenticate the delivery. Does not check the timestamp window.
+
+    An empty ``ZID_WEBHOOK_SECRET`` never authenticates. A present
+    ``X-Zid-Signature`` is HMAC-only and is never downgraded.
+    """
     secret = env("ZID_WEBHOOK_SECRET")
     if not secret:
         return False
@@ -69,9 +76,7 @@ def signature_ok(raw: bytes, headers) -> bool:
     if signed:
         digest = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
         return _eq(signed, digest)
-    if not zid_unsigned_fallback():
-        return False
-    return _documented_fallback(headers, secret)
+    return _basic_ok(headers, secret) or _static_header_ok(headers, secret)
 
 
 def _store_id(payload: dict) -> str:
