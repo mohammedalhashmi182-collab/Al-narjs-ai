@@ -46,9 +46,9 @@ def get_components():
     global agent_registry, model_provider, prompt_engine, context_manager, state_manager
     global workflow_engine, queue_worker, scheduler, trigger_engine
 
-    from src.db.session import get_session_factory
-
-    session_factory = get_session_factory()
+    # get_session_factory() is ``async def``; calling it here without await
+    # handed every component a coroutine instead of the session factory.
+    from src.db.session import async_session_factory as session_factory
 
     if agent_registry is None:
         agent_registry = AgentRegistry(session_factory)

@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     from src.automation.trigger_engine import TriggerEngine
 
     await init_db()
-    session_factory = get_session_factory()
+    session_factory = await get_session_factory()
 
     agent_registry = AgentRegistry(session_factory)
     await agent_registry.sync_base_agents()
