@@ -108,13 +108,20 @@ def test_mobile_pages_and_language_switch(context, width, path):
         # bottom of the viewport; answer it the way a visitor would first
         if page.locator('#cookieReject').count():
             page.locator('#cookieReject').click()
-        # the hero CTA opens the CEO consultation and it actually answers
-        page.locator('#heroCeo').click()
-        page.fill('#ceoProblem', 'متجري على سلة والعملاء ينتظرون الرد على الواتساب')
-        page.locator('#ceoSubmit').click()
-        page.locator('#ceoResult').wait_for(state='visible')
-        assert page.locator('#ceoAgents li').count() >= 1
-        assert page.locator('#ceoSubscribe').get_attribute('href').startswith('/portal?pkg=')
+        # the hero CEO control is a normal link to the consult page
+        failed = []
+        page.on('requestfailed', lambda req: failed.append(req.url) if 'testserver' in req.url else None)
+        page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' and 'net::ERR_FAILED' not in msg.text else None)
+        with page.expect_navigation(wait_until='load') as navigation:
+            page.locator('#heroCeo').click()
+        response = navigation.value
+        assert response is not None and response.ok
+        assert urlsplit(page.url).path.rstrip('/').endswith('/consult')
+        wait_for_preloader(page)
+        expect(page.locator('body')).to_be_visible()
+        assert page.locator('body').get_attribute('data-lang') in ('ar', 'en')
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+        assert not failed
     if path == '/portal':
         page.locator('.pkg').first.click()
         assert page.locator('#regForm').is_visible()

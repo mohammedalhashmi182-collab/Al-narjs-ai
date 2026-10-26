@@ -38,10 +38,11 @@ def page_en() -> str:
 
 
 def test_ceo_consultation_is_reachable_and_posts_to_the_endpoint(page: str) -> None:
-    # Najdi homepage: the hero CTA opens the site assistant; the real CEO
-    # diagnosis form lives in the "start with one goal" section.
+    # The hero CTA is a normal link to /consult. The diagnosis form still
+    # lives in the "start with one goal" section.
     hero = page[page.index('id="top"'):page.index('id="how"')]
-    assert "data-open-assistant" in hero and "ناقش هدفك مع CEO" in hero
+    assert 'id="heroCeo"' in hero and 'href="/consult"' in hero and "ناقش هدفك مع CEO" in hero
+    assert "data-open-assistant" not in hero
     consult = page[page.index('id="consult"'):]
     assert 'id="ceo"' in consult and 'id="ceoForm"' in consult
     assert "/api/ceo/consult" in page
@@ -90,14 +91,15 @@ def test_trust_badges_and_vision_disclaimer(page: str) -> None:
 
 
 def test_contact_links_are_real_or_absent(page: str) -> None:
-    # Owner decision (Oct 2026): the site's contact is the Al-Narjis assistant
-    # and email only; no direct WhatsApp/Telegram/Messenger links.
+    # The floating assistant is gone. CEO calls to action are real /consult
+    # links. This page does not publish a phone number or an email address.
     assert "wa.me/" not in page
     assert "t.me/" not in page
     assert "m.me/" not in page
     assert 'id="siteAssistant"' not in page
     assert "mailto:" not in page and "tel:" not in page
-    assert "data-open-assistant" in page
+    assert "data-open-assistant" not in page
+    assert 'href="/consult"' in page
     assert 'href="#"' not in page
 
 

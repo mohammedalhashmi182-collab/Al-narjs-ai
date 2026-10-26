@@ -176,15 +176,6 @@ def test_ticket_rate_limited(client, monkeypatch):
     assert 429 in codes
 
 
-def test_ticket_reference_is_bidi_isolated_in_rtl(client):
-    # "NRJ-000123" inside Arabic text wrapped/split into "-NRJ" + "000123"
-    from pathlib import Path  # partial kept in repo (not rendered) for later reuse
-    html = Path("src/web/templates/partials/_site_assistant.html").read_text(encoding="utf-8")
-    assert ".sa-ref{white-space:nowrap;unicode-bidi:isolate" in html
-    assert "r.className = 'sa-ref'; r.dir = 'ltr'; r.textContent = d.reference;" in html
-    assert "' + d.reference + '" not in html
-
-
 def test_about_service_cards_set_dark_text_on_light_background(client):
     # cards had background #fffaf2 but inherited the dark page's light text -> unreadable
     import re as _re

@@ -176,7 +176,7 @@
         <div class="navr">
             <a class="lang" data-lang-btn="ar" href="/ar{{ _base_path }}"{% if ar %} aria-current="true" hidden{% endif %}>العربية</a><a class="lang" data-lang-btn="en" href="/en{{ _base_path }}"{% if not ar %} aria-current="true" hidden{% endif %}>English</a>
             <a class="btn-login" href="/portal"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="5" r="3"/><path d="M2 15c1-3.5 11-3.5 12 0"/></svg>{% if ar %}دخول العملاء{% else %}Client login{% endif %}</a>
-            <a class="btn nav-cta" href="/consult" data-open-assistant>{% if ar %}ناقش هدفك مع CEO{% else %}Discuss your goal with the CEO{% endif %}</a>
+            <a class="btn nav-cta" href="/consult">{% if ar %}ناقش هدفك مع CEO{% else %}Discuss your goal with the CEO{% endif %}</a>
         </div>
     </div>
 </header>
@@ -196,7 +196,7 @@
             <p class="lead">Talk your need through with the Al-Narjis AI CEO. It proposes the right agents and a work plan, and you follow the work until you receive an output ready for review.</p>
             {% endif %}
             <div class="ctas">
-                <a class="btn" href="/consult" data-open-assistant id="heroCeo">{% if ar %}ناقش هدفك مع CEO <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
+                <a class="btn" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع CEO <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
                 <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
             </div>
         </div>
@@ -354,7 +354,7 @@
 
 <!-- ==================== PLANS (shared partial: prices and plan content from src/services/catalog.py) ==================== -->
 {% include "partials/_pricing_section.html" %}
-<div class="wrap"><p class="ceo-pick">{% if ar %}يرشّح لك CEO الباقة المناسبة بعد النقاش. <a href="/consult" data-open-assistant style="color:var(--nj-accent)">ناقش هدفك مع CEO</a>{% else %}The CEO recommends the right plan after your conversation. <a href="/consult" data-open-assistant style="color:var(--nj-accent)">Discuss your goal with the CEO</a>{% endif %}</p></div>
+<div class="wrap"><p class="ceo-pick">{% if ar %}يرشّح لك CEO الباقة المناسبة بعد النقاش. <a href="/consult" style="color:var(--nj-accent)">ناقش هدفك مع CEO</a>{% else %}The CEO recommends the right plan after your conversation. <a href="/consult" style="color:var(--nj-accent)">Discuss your goal with the CEO</a>{% endif %}</p></div>
 <div class="wrap"><p class="guar">{% if ar %}التشخيص مجاني، وترى الفريق والسعر كاملاً قبل أي التزام. شهري وبلا عقد طويل: ألغِ في أي وقت قبل التجديد، كما في <a href="/terms">الشروط</a>. لا تُسترد دفعات الفترة المنقضية.{% else %}The diagnosis is free, and you see the team and the full price before any commitment. Monthly with no long contract: cancel any time before renewal, per the <a href="/terms">terms</a>. Payments for an elapsed period are not refunded.{% endif %}</p></div>
 
 <!-- ==================== START: real CEO diagnosis ==================== -->
@@ -398,7 +398,7 @@
                     <div style="text-align:end"><b id="ceoPlanPrice"></b><small id="ceoPlanVat"></small></div>
                 </div>
                 <a class="btn btn-primary btn-block" id="ceoSubscribe" href="/portal">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% else %}{% if ar %}اشترك في الباقة المرشّحة{% else %}Subscribe to the recommended plan{% endif %}{% endif %}</a>
-                <p class="ceo-alt">{% if ar %}سؤال عن التوصية؟ <a href="/consult" data-open-assistant>ناقش هدفك مع CEO</a>{% else %}Questions about the recommendation? <a href="/consult" data-open-assistant>Discuss your goal with the CEO</a>{% endif %}</p>
+                <p class="ceo-alt">{% if ar %}سؤال عن التوصية؟ <a href="/consult">ناقش هدفك مع CEO</a>{% else %}Questions about the recommendation? <a href="/consult">Discuss your goal with the CEO</a>{% endif %}</p>
             </div>
         </div>
     </div>
@@ -506,7 +506,7 @@
             <div class="dcard"><h4>Short report</h4><ol><li>Open quotes and the last contact with each customer.</li><li>Enquiries the qualification agent tagged as serious.</li><li>Three suggested cases for a direct call from you.</li><li>What needs your approval before sending.</li></ol></div>
             {% endif %}
         </div>
-        <div class="act"><a class="btn" href="/consult" data-open-assistant data-close>{% if ar %}ناقش هدفك مع CEO{% else %}Discuss your goal with the CEO{% endif %}</a><button class="btn-sec" type="button" data-close>{% if ar %}إغلاق{% else %}Close{% endif %}</button></div>
+        <div class="act"><a class="btn" href="/consult" data-close>{% if ar %}ناقش هدفك مع CEO{% else %}Discuss your goal with the CEO{% endif %}</a><button class="btn-sec" type="button" data-close>{% if ar %}إغلاق{% else %}Close{% endif %}</button></div>
     </div>
 </dialog>
 

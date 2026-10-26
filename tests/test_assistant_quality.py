@@ -1,13 +1,10 @@
 """Assistant quality fixes from the live agents test (24 Oct 2026).
 
-One test (or more) per fix: markdown rendering, tax/setup facts, no phone
+One test (or more) per fix: tax/setup facts, no phone
 support, no contact-detail requests, no invented integrations, less
 over-refusal, CEO plan coverage, clinic demo answers, consult model override.
 """
 from __future__ import annotations
-
-import re
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,22 +15,7 @@ from src.core.karma_persona import build_consult_system_prompt, enforce_reply_po
 from src.main import _consult_grounded, _consult_model_metadata, _consult_scope_line, _consult_visitor_numbers, app
 from src.services import catalog, ceo_advisor, live_demo
 
-PARTIAL = Path(__file__).resolve().parents[1] / "src/web/templates/partials/_site_assistant.html"
-
-
-# 1) markdown rendered safely ---------------------------------------------------------------
-def test_chat_ui_renders_markdown_without_innerhtml():
-    src = PARTIAL.read_text(encoding="utf-8")
-    script = src[src.index("<script"):]
-    assert "renderMd(d, t)" in script and "function renderMd" in script
-    # XSS: the renderer builds DOM nodes only; no HTML parsing sink anywhere in the widget.
-    for sink in ("innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "DOMParser"):
-        assert sink not in script, sink
-    assert "createTextNode" in script and "createElement('strong')" in script
-    assert "createElement('li')" in script
-
-
-# 2) tax + setup facts; no phone support ------------------------------------------------------
+# tax + setup facts; no phone support ---------------------------------------------------------
 def _prompt(locale="ar"):
     return build_consult_system_prompt(locale=locale, packages_text="P", employees_text="E")
 
@@ -175,11 +157,6 @@ def test_consult_model_override_is_optional_and_validated(monkeypatch):
     assert _consult_model_metadata() == {"gemini_model_override": "gemini-pro-latest"}
     monkeypatch.setenv("CONSULT_GEMINI_MODEL", "bad model; rm")
     assert _consult_model_metadata() == {}
-
-
-def test_no_contact_numbers_or_emails_in_assistant_widget():
-    src = PARTIAL.read_text(encoding="utf-8")
-    assert not re.search(r"\+?9665\d{8}|05\d{8}|mailto:", src)
 
 
 def test_plans_make_no_phone_or_official_invoice_claim():

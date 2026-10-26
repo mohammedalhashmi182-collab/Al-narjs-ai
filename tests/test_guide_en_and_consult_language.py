@@ -1,4 +1,4 @@
-"""/en/guide is English LTR, and the site assistant answers in the visitor's language."""
+"""/en/guide is English LTR, and the consult reply follows the visitor's language."""
 
 import re
 
@@ -24,7 +24,7 @@ async def _get(path):
 async def test_en_guide_is_english_ltr():
     html = await _get("/en/guide")
     assert '<html lang="en" dir="ltr"' in html
-    page = html.split('id="siteAssistant"')[0]
+    page = html
     for tag in ("title", "h1", "h2", "label", "button", "footer"):
         for inner in re.findall(rf"<{tag}[^>]*>(.*?)</{tag}>", page, flags=re.S):
             assert not _AR.search(inner), (tag, inner[:80])
@@ -87,9 +87,3 @@ def test_english_question_gets_english_prompt_and_never_an_arabic_reply(client, 
     assert "Respond ONLY in clear, fluent business English" in prov.system
     assert "coming soon" in prov.system and "«سلة»" in prov.system
 
-
-def test_site_assistant_sends_page_language():
-    from pathlib import Path
-
-    src = Path("src/web/templates/partials/_site_assistant.html").read_text(encoding="utf-8")
-    assert "lang: '{{ 'ar' if _sa_ar else 'en' }}'" in src
