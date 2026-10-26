@@ -38,7 +38,7 @@ def verify_session_token(token: Optional[str]) -> bool:
         payload = json.loads(base64.urlsafe_b64decode(raw.encode()))
         if payload.get("r") != "owner":
             return False
-        # 12-hour sliding expiry
+        # Fixed 12-hour expiry from issue time (not renewed on use)
         if time.time() - payload.get("t", 0) > 12 * 3600:
             return False
         return True
