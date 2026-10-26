@@ -1966,10 +1966,8 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
         if not agent_def:
             raise HTTPException(404, "Agent definition missing")
 
-        agent.answers = request.answers
-        agent.status = "running"
-        await session.commit()
-
+        # Prepare inputs before changing the persisted agent status.
+        # A missing template or failed tool context must not leave "running".
         tmpl = agent_def.prompt_templates.get("default")
         if not tmpl:
             raise HTTPException(404, "Prompt template not found")
@@ -1996,6 +1994,10 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
         base_system = (
             rendered.system_prompt + "\n\n" + agent_brief.SAUDI_CONTEXT + "\n\n" + lang_instruction
         ).strip()
+        agent.answers = request.answers
+        agent.status = "running"
+        await session.commit()
+
         try:
             response = await agent_runtime.execute(
                 app.state.model_provider,
