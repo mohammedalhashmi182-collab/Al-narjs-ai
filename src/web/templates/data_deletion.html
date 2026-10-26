@@ -29,7 +29,7 @@
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">إذا أردت حذف بياناتك الشخصية المخزنة في منصتنا، راسلنا على البريد أدناه واذكر صراحةً «أطلب حذف بياناتي». سنتحقق من هويتك عبر الرقم أو البريد المسجل لدينا.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>If you wish to delete your personal data stored on our platform, email us at the address below and state clearly: "I request deletion of my data." We verify your identity via the registered number or email.</p>{% endif %}
 
                 <ul class="n-sub" style="font-size:0.95rem;list-style:none;padding:0;">
-                    <li style="margin-block:10px;">{% if _lang == 'ar' %}<span>عبر</span>{% else %}<span data-inline>Through</span>{% endif %} <a href="#assistant" data-open-assistant style="color:var(--n-gold);">{% if _lang == 'ar' %}مساعد النرجس (زر «تواصل موظف»){% else %}the Al-Narjis assistant (“ask a person”){% endif %}</a></li>
+                    <li style="margin-block:10px;">{% if _lang == 'ar' %}<span>عبر البريد</span>{% else %}<span data-inline>By email to</span>{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a></li>
                 </ul>
 
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">ماذا يُحذف؟</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>What gets deleted?</h2>{% endif %}
@@ -45,6 +45,5 @@
             </div>
         </div>
     </div>
-{% include "partials/_site_assistant.html" %}
 </body>
 </html>

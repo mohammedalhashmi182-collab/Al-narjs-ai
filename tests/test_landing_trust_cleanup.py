@@ -70,9 +70,6 @@ def test_every_internal_link_on_home_resolves(home, client):
             broken.append((h, r.status_code))
     assert not broken, broken
     for anchor in set(re.findall(r'href="#([\w-]+)"', page)):
-        if anchor == "assistant":  # opened by the site-assistant script
-            assert 'a[href="#assistant"]' in page and 'id="saPanel"' in page
-            continue
         assert f'id="{anchor}"' in page, anchor
 
 
@@ -101,3 +98,9 @@ async def test_pulse_counts_only_real_inbound_requests(monkeypatch):
     assert d["leads_received"] == 2  # imported prospects are not "requests received"
     monkeypatch.setattr(app.state, "public_pulse_cache", None, raising=False)
     await engine.dispose()
+
+
+def test_floating_site_assistant_removed_from_public_pages(client):
+    for path in ("/ar", "/en", "/ar/pricing", "/en/pricing", "/ai-agent/social_media", "/ar/contact", "/privacy", "/terms"):
+        page = client.get(path, follow_redirects=True).text
+        assert 'id="siteAssistant"' not in page and 'id="saToggle"' not in page, path

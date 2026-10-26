@@ -388,15 +388,15 @@ def test_runbook_covers_required_incidents():
 
 # ------------------------------------------------------------------ 5. PDPL / contact pages
 
-@pytest.mark.parametrize("path,needle", [("/dpa", "PDPL"), ("/subprocessors", "Gemini"), ("/contact", "data-open-assistant")])
+@pytest.mark.parametrize("path,needle", [("/dpa", "PDPL"), ("/subprocessors", "Gemini"), ("/contact", "mailto:AlNarjisai@gmail.com")])
 async def test_public_compliance_pages_render(maker, path, needle):
     async with _client(maker, owner=False) as c:
         r = await c.get(path, follow_redirects=True)
     assert r.status_code == 200 and needle in r.text
     assert 'href="#"' not in r.text
-    # site contact = the Al-Narjis assistant + email; no direct channels
+    # site contact = the company email; no WhatsApp/Telegram
     assert "t.me/" not in r.text and "wa.me/" not in r.text
-    assert 'id="siteAssistant"' in r.text
+    assert 'id="siteAssistant"' not in r.text
     for link in ("/privacy", "/terms", "/data-deletion"):
         assert f'href="{link}"' in r.text
 

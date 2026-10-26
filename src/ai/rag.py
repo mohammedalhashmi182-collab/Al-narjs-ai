@@ -204,24 +204,50 @@ async def index_default(session) -> int:
             await conn.commit()
 
 
+async def _index_attempt(session_factory) -> int:
+    """One full indexing attempt in its own session (opened and closed here)."""
+    async with session_factory() as session:
+        try:
+            return await index_default(session)
+        except BaseException:
+            await session.rollback()
+            raise
+
+
 async def index_with_backoff(session_factory, *, sleep=None) -> int:
     """Index the public KB, retrying with backoff until it succeeds.
 
-    Sleep happens outside the database session. ``CancelledError`` propagates
-    so process shutdown is not turned into another attempt.
+    Each attempt runs in its own task and a cancel never interrupts it: we wait
+    (shielded) for the attempt to finish and close its session, then re-raise
+    ``CancelledError``. Cancelling mid-write used to tear the aiosqlite
+    connection down while its write transaction was open; the orphaned
+    ``sqlite3.Connection`` kept the database file write-locked until the garbage
+    collector happened to free it, so the next test's writes waited on the lock
+    (CI: test_build01 -> test_cleanup_promo_lang_contacts freeze).
+    Sleep happens outside the session, so cancelling during backoff is instant.
     """
     pause = sleep or asyncio.sleep
     delay = _INDEX_BACKOFF_S
     while True:
-        try:
-            async with session_factory() as session:
-                chunks = await index_default(session)
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:
-            log.warning("public kb index failed: %s; retry in %.0fs", type(exc).__name__, delay)
-            await pause(delay)
-            delay = min(delay * 2, _INDEX_BACKOFF_CAP_S)
-            continue
-        log.info("public kb index ready chunks=%s", chunks)
-        return chunks
+        attempt = asyncio.ensure_future(_index_attempt(session_factory))
+        cancelled = False
+        while not attempt.done():
+            try:
+                await asyncio.shield(attempt)
+            except asyncio.CancelledError:
+                cancelled = True  # let the attempt finish cleanly, then re-raise
+            except Exception:  # noqa: BLE001 - inspected below
+                break
+        if cancelled or attempt.cancelled():
+            if not attempt.cancelled():
+                attempt.exception()  # mark retrieved; shutdown wins anyway
+            raise asyncio.CancelledError
+        exc = attempt.exception()
+        if exc is None:
+            chunks = attempt.result()
+            log.info("public kb index ready chunks=%s", chunks)
+            return chunks
+        log.warning("public kb index failed: %s; retry in %.0fs", type(exc).__name__, delay)
+        # Session is closed here: the backoff never holds a connection.
+        await pause(delay)
+        delay = min(delay * 2, _INDEX_BACKOFF_CAP_S)

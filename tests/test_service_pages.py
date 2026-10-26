@@ -49,8 +49,8 @@ def test_service_page_is_canonical_and_marked_up(client: TestClient, slug: str) 
     assert "wa.me/" not in ar.text
     assert "tel:" not in ar.text and "0540799266" not in ar.text
     assert 'href="#"' not in ar.text
-    assert "mailto:" not in ar.text and "data-open-assistant" in ar.text
-    assert "تحدث مع بوت النرجس" in ar.text
+    assert "mailto:AlNarjisai@gmail.com" in ar.text and 'id="openAssistant"' not in ar.text
+    assert "راسلنا بالبريد" in ar.text
     assert "CEO" not in ar.text.split("<footer", 1)[0]
 
     blocks = [json.loads(raw) for raw in LD.findall(ar.text)]

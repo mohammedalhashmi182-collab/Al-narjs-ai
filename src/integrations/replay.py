@@ -14,6 +14,7 @@ skips the window so tokens are always cleared.
 
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime
 from typing import Optional
 
@@ -34,6 +35,9 @@ def max_age_seconds() -> int:
     if window < 30 or window > 86_400:
         return _DEFAULT_WINDOW
     return window
+
+
+_FRACTION = re.compile(r"([Tt ]\d{2}:\d{2}:\d{2})\.\d+")
 
 
 def parse_timestamp(value: object) -> Optional[datetime]:
@@ -57,9 +61,9 @@ def parse_timestamp(value: object) -> Optional[datetime]:
     if text.isdigit():
         return parse_timestamp(int(text))
     text = text.replace("Z", "+00:00")
-    if "." in text:
-        head, tail = text.split(".", 1)
-        text = head + (("+" + tail.split("+", 1)[1]) if "+" in tail else "")
+    # Drop fractional seconds only; keep the zone offset whatever its sign
+    # (the old split kept "+hh:mm" but silently lost "-hh:mm").
+    text = _FRACTION.sub(r"\1", text, count=1)
     try:
         moment = datetime.fromisoformat(text)
     except ValueError:

@@ -140,7 +140,7 @@
             </form>
             <div class="msg" id="eaMsg"></div>
             <p class="note">{% if _lang == 'ar' %}بالتسجيل أنت توافق على <a href="/privacy">سياسة الخصوصية</a> وحقك في <a href="/data-deletion">حذف بياناتك</a>{% else %}By registering you agree to our <a href="/privacy">Privacy Policy</a> and your <a href="/data-deletion">data-deletion rights</a>{% endif %}</p>
-            <p class="note">{% if _lang == 'ar' %}أو اسأل{% else %}Or ask{% endif %} <a href="#assistant" data-open-assistant>{% if _lang == 'ar' %}مساعد النرجس{% else %}the Al-Narjis assistant{% endif %}</a></p>
+            <p class="note">{% if _lang == 'ar' %}أو راسلنا على{% else %}Or email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a></p>
         </div>
 
         <div class="foot">
@@ -231,6 +231,5 @@
     });
 })();
 </script>
-{% include "partials/_site_assistant.html" %}
 </body>
 </html>

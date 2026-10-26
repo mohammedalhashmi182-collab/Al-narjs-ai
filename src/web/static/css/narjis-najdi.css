@@ -314,10 +314,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .js .nj .rv{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
 .js .nj .rv.in{opacity:1;transform:none}
 
-/* assistant: the page's only chat surface, in the page accent */
-.nj #saToggle{background:var(--nj-accent);color:var(--nj-ink)}
-
-/* mobile chat bar */
+/* mobile bar */
 .nj .mbar{display:none}
 @media (max-width:980px){
   .nj .links{display:none}
@@ -350,10 +347,6 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj .mbar .btn{flex:1}
   .nj .mbar .btn-sec{padding:13px 14px}
   body.nj{padding-bottom:84px}
-  /* the bar is the chat button on mobile: hide the floating one, lift the panel */
-  .nj #saToggle{display:none}
-  .nj #siteAssistant{bottom:80px}
-  .nj.has-consent-banner #siteAssistant{bottom:80px}
   .nj #cookieConsent{bottom:84px!important}
 }
 @media (max-width:600px){

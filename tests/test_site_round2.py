@@ -51,10 +51,10 @@ def test_refund_policy_available_features_only(client):
 @pytest.mark.parametrize("path", ["/terms", "/privacy", "/blog", "/consult", "/refund-policy", "/about",
                                   "/pricing", "/contact", "/home", "/data-deletion", "/dpa", "/subprocessors"])
 @pytest.mark.parametrize("lang", ["ar", "en"])
-def test_assistant_on_public_pages(client, path, lang):
+def test_no_floating_assistant_on_public_pages(client, path, lang):
     r = client.get(f"/{lang}{path}")
     assert r.status_code == 200, path
-    assert 'id="siteAssistant"' in r.text, path
+    assert 'id="siteAssistant"' not in r.text, path
 
 
 def test_no_tailwind_cdn_and_moyasar_in_csp(client):
@@ -71,7 +71,7 @@ def test_no_tailwind_cdn_and_moyasar_in_csp(client):
 
 def test_about_has_story_facts(client):
     html = client.get("/ar/about").text
-    for s in ("كريم", "منصة النرجس", "FL-272182297", "حي الرمال", "رؤية", "الفرنسية", "/static/logo.svg"):
+    for s in ("كريم", "منصة النرجس", "FL-272182297", "رؤية", "الفرنسية", "/static/logo.svg"):
         assert s in html, s
 
 
@@ -93,7 +93,7 @@ def test_internal_tests_section_labelled_when_enabled(client, monkeypatch):
     html = client.get("/ar/home").text
     assert 'id="tested"' in html
     assert "اختبارات داخلية من فريق النرجس — ليست آراء عملاء" in html
-    assert 'id="tryAssistant"' in html
+    assert 'id="tryAssistant"' not in html
     assert "Internal tests by the Al-Narjis team — not customer reviews" in client.get("/en/home").text
 
 
@@ -174,14 +174,6 @@ def test_ticket_rate_limited(client, monkeypatch):
     codes = [client.post("/api/support/ticket", json={"name": "علي", "email": "ali@example.com", "question": "سؤال",
                                                        "consent": True}).status_code for _ in range(5)]
     assert 429 in codes
-
-
-def test_ticket_reference_is_bidi_isolated_in_rtl(client):
-    # "NRJ-000123" inside Arabic text wrapped/split into "-NRJ" + "000123"
-    html = client.get("/ar/home").text
-    assert ".sa-ref{white-space:nowrap;unicode-bidi:isolate" in html
-    assert "r.className = 'sa-ref'; r.dir = 'ltr'; r.textContent = d.reference;" in html
-    assert "' + d.reference + '" not in html
 
 
 def test_about_service_cards_set_dark_text_on_light_background(client):

@@ -60,7 +60,7 @@
             <h1>لم نتمكن من عرض هذه الفاتورة</h1>
             <p>
                 وصلنا طلبك لكن تعذّر تحميل الفاتورة. لا يوجد أي ضرر: احتفظ بالرقم
-                المرجعي أدناه وأرسله لنا عبر مساعد النرجس، وسنرسل لك الفاتورة وبيانات التحويل
+                المرجعي أدناه وأرسله لنا على بريد الشركة AlNarjisai@gmail.com، وسنرسل لك الفاتورة وبيانات التحويل
                 فوراً.
             </p>
             <span class="ref">
@@ -68,11 +68,10 @@
                 <b>{{ _ref }}</b>
             </span>
             {% set _msg = 'السلام عليكم، أرغب في إتمام الفاتورة رقم ' + _ref %}
-            <a class="btn" href="#assistant" data-open-assistant>أرسل الرقم عبر مساعد النرجس</a>
+            <a class="btn" href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a>
             <p class="note">هذا الرقم مرجعي فقط ولا يحتاج أي بيانات إضافية منك.</p>
         </div>
         <div class="foot">شكراً لثقتك بالنرجس للذكاء الاصطناعي ✺ · www.karmaai.online</div>
     </div>
-{% include "partials/_site_assistant.html" %}
 </body>
 </html>

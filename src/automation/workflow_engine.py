@@ -92,8 +92,33 @@ class WorkflowEngine:
 
         self.state_manager.update_workflow_status(workflow_id, WorkflowStatus.RUNNING)
 
+        # Run as a registered task so cancel_workflow() can actually stop it.
+        run = asyncio.create_task(
+            self._execute_workflow(workflow_id, workflow_def, initial_context, state),
+            name=f"workflow-{workflow_id}",
+        )
+        self._running_workflows[workflow_id] = run
         try:
-            await self._execute_workflow(workflow_id, workflow_def, initial_context, state)
+            try:
+                await run
+            except asyncio.CancelledError:
+                if not run.cancelled():
+                    raise
+                current = asyncio.current_task()
+                if current is not None and current.cancelling():
+                    # The caller itself is being cancelled: stop and propagate.
+                    self.state_manager.update_workflow_status(workflow_id, WorkflowStatus.CANCELLED)
+                    raise
+                # Only the workflow was cancelled (cancel_workflow): report it.
+                state = self.state_manager.get_workflow(workflow_id)
+                return ExecutionResult(
+                    workflow_id=workflow_id,
+                    success=False,
+                    final_context=state.global_context if state else {},
+                    error="cancelled",
+                    steps_completed=len(state.get_completed_steps()) if state else 0,
+                    steps_failed=len(state.get_failed_steps()) if state else 0,
+                )
             state = self.state_manager.get_workflow(workflow_id)
             return ExecutionResult(
                 workflow_id=workflow_id,
@@ -113,6 +138,10 @@ class WorkflowEngine:
                 final_context={},
                 error=str(e),
             )
+        finally:
+            if not run.done():
+                run.cancel()
+            self._running_workflows.pop(workflow_id, None)
 
     async def _execute_workflow(
         self,
@@ -256,9 +285,10 @@ class WorkflowEngine:
             return False
 
         self.state_manager.update_workflow_status(workflow_id, WorkflowStatus.CANCELLED)
-        if workflow_id in self._running_workflows:
-            self._running_workflows[workflow_id].cancel()
-            del self._running_workflows[workflow_id]
+        # execute() owns the registry entry and removes it once the task ends.
+        run = self._running_workflows.get(workflow_id)
+        if run is not None and not run.done():
+            run.cancel()
         return True
 
     def get_workflow_status(self, workflow_id: UUID) -> Optional[dict]:

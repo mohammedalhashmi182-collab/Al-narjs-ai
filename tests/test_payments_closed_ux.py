@@ -6,7 +6,7 @@ import pytest
 from src.config.settings import get_settings
 from src.services import payments as pm
 
-AR = "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك عبر مساعد النرجس والبريد عند فتح الدفع."
+AR = "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك بالبريد الإلكتروني عند فتح الدفع."
 EN = "Online payment is not open yet."
 
 

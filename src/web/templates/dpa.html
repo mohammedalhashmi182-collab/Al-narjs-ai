@@ -56,7 +56,7 @@
 
             <div class="n-card mt-6" style="padding:24px;" id="contact-email">
                 <h2 class="n-title text-lg">{% if _lang == 'ar' %}تواصل معنا{% else %}Contact us{% endif %}</h2>
-                <p class="n-sub">{% if _lang == 'ar' %}اسأل{% else %}Ask{% endif %} <a href="#assistant" data-open-assistant>{% if _lang == 'ar' %}مساعد النرجس{% else %}the Al-Narjis assistant{% endif %}</a>{% if _lang == 'ar' %} من الزر أسفل الصفحة.{% else %} from the button below.{% endif %}</p>
+                <p class="n-sub">{% if _lang == 'ar' %}راسلنا على{% else %}Email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>
             </div>
             <p class="n-sub mt-6" style="font-size:0.85rem;">
                 <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·
@@ -69,6 +69,5 @@
             </p>
         </div>
     </div>
-    {% include "partials/_site_assistant.html" %}
 </body>
 </html>

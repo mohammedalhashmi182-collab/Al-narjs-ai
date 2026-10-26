@@ -385,3 +385,20 @@ a.card.svc:hover { border-color: var(--v2-lavender); }
 
 /* cookie consent banner open: keep page content clear of it */
 body.has-consent-banner { padding-bottom: 140px; }
+
+/* Al-Narjs dark identity (pricing): black field, #FF5A36 accent, light text.
+   Same palette as narjis-najdi.css (--nj-*). */
+body.v2.v2-dark {
+  --v2-canvas: #12100d; --v2-canvas-2: #1b1814; --v2-ivory: #12100d; --v2-paper: #1b1814;
+  --v2-beige: #1b1814; --v2-earth: #c9a27a;
+  --v2-ink: #f4eee2; --v2-muted: #bdb4a5;
+  --v2-green: #ff5a36; --v2-green-deep: #e84a28; --v2-lavender: #ff5a36; --v2-lavender-soft: #2a211b;
+  --v2-plum: #1b1814; --v2-saffron: #c9a27a; --v2-saffron-soft: #2a211b;
+  --v2-line: rgba(201,162,122,.2); --v2-line-dark: rgba(201,162,122,.25);
+  --v2-on-dark: #f4eee2; --v2-on-dark-muted: #bdb4a5;
+  --v2-shadow: 0 18px 40px -20px rgba(0,0,0,.6);
+  background: #12100d; color: #f4eee2;
+}
+body.v2-dark .v2-nav { background: rgba(18, 16, 13, .9); }
+body.v2-dark .v2-footer { background: #0c0b09; }
+body.v2-dark .payments-closed-banner { background: #1b1814 !important; color: #f4eee2 !important; border-color: rgba(255, 90, 54, .55) !important; }
