@@ -3,38 +3,36 @@
     checkout consent (services/policies.py) and the setup guarantee
     (catalog.SETUP_GUARANTEE). Do not add terms that are not in those. -#}
 {% block title %}{% if ar %}سياسة الاسترداد | النرجس للذكاء الاصطناعي{% else %}Refund Policy | Al-Narjis AI{% endif %}{% endblock %}
-{% block description %}{% if ar %}سياسة الاسترداد في النرجس للذكاء الاصطناعي: لا استرداد بعد التفعيل باستثناء رسوم الإعداد، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني.{% else %}Al-Narjis AI refund policy: no refunds after activation except the setup fee; duplicate charges and technical billing errors are always refunded.{% endif %}{% endblock %}
+{% block description %}{% if ar %}سياسة الاسترداد في النرجس للذكاء الاصطناعي: لا نعد بنتيجة استرداد، والأسئلة تُراجع عبر البريد.{% else %}Al-Narjis AI refund policy: we do not promise a refund outcome; questions are reviewed by email.{% endif %}{% endblock %}
 {% block h1 %}{% if ar %}سياسة الاسترداد{% else %}Refund Policy{% endif %}{% endblock %}
 {% block body %}
 {% if ar %}
 <p>هذه السياسة جزء من <a href="/terms">الشروط والأحكام</a> ومأخوذة منها.</p>
 <h2 class="n-title text-lg">1. بعد التفعيل</h2>
-<p>لا يوجد استرداد بعد تفعيل الخدمة باستثناء رسوم الإعداد (البند 4). تفعيل الخدمة يبدأ بعد استلام الدفعة. قبل الدفع يوافق العميل صراحة على أن «{{ refund_consent_ar }}»، ولا يكتمل الدفع بدون هذه الموافقة.</p>
-<h2 class="n-title text-lg">2. ما يُسترد دائماً</h2>
-<p>يُسترد المبلغ دائماً في حالتين:</p>
-<ul><li>الخصم المكرر.</li><li>خطأ تقني في الفوترة.</li></ul>
+<p>{{ refund_consent_ar }} قبل الدفع يوافق العميل على هذه الصياغة، ولا يكتمل الدفع بدون هذه الموافقة.</p>
+<h2 class="n-title text-lg">2. المراجعة</h2>
+<p>لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.</p>
 <h2 class="n-title text-lg">3. الإلغاء</h2>
-<p>يمكنك الإلغاء في أي وقت؛ الإلغاء يوقف التجديد القادم وتبقى الخدمة حتى نهاية الفترة الحالية دون استرداد لها، ويُغلق الفريق في نهاية الفترة المدفوعة.</p>
-<h2 class="n-title text-lg">4. ضمان رسوم الإعداد</h2>
+<p>يمكنك الإلغاء في أي وقت؛ الإلغاء يوقف التجديد القادم وتبقى الخدمة حتى نهاية الفترة المدفوعة، ويُغلق الفريق عندها.</p>
+<h2 class="n-title text-lg">4. أسئلة الاسترداد</h2>
 <p>{{ setup_guarantee.text }}</p>
 <h2 class="n-title text-lg">5. الميزات المتاحة والقادمة</h2>
-<p>الاشتراك يشمل فقط الميزات المعلنة تحت «متاح الآن» في كل باقة. الميزات المدرجة تحت «قادم قريباً» (مثل الوكيل الصوتي وربط سلة أو زد) ليست جزءاً مما تدفع مقابله، ولا تُعتمد في تقييم أي طلب استرداد أو ضمان؛ يُقيَّم الاسترداد والضمان على الميزات المتاحة فقط.</p>
+<p>الاشتراك يشمل فقط الميزات المعلنة تحت «متاح الآن» في كل باقة. الميزات المدرجة تحت «قادم قريباً» (مثل الوكيل الصوتي وربط سلة أو زد) ليست جزءاً مما تدفع مقابله. التقييم، إن طُلب، يقتصر على الميزات المتاحة فقط، ولا نعد هنا بنتيجة استرداد.</p>
 <h2 class="n-title text-lg">6. طلبات الاسترداد</h2>
-<p>تُرفع طلبات الاسترداد إلى الإدارة للمراجعة، ويعاد المبلغ المعتمد بنفس وسيلة الدفع. قدّم طلبك عبر البريد <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>، ونرد عليك بالبريد.</p>
+<p>قدّم سؤالك عبر البريد <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>. لا نعد هنا بنتيجة.</p>
 {% else %}
 <p>This policy is part of, and taken from, our <a href="/terms">Terms of Service</a>.</p>
 <h2 class="n-title text-lg">1. After activation</h2>
-<p>No refunds after activation, except the setup fee (section 4). Service activation begins after payment is received. Before paying, the customer explicitly agrees that “{{ refund_consent_en }}”; payment cannot be completed without this consent.</p>
-<h2 class="n-title text-lg">2. Always refunded</h2>
-<p>Amounts are always refunded in two cases:</p>
-<ul><li>A duplicate charge.</li><li>A technical billing error.</li></ul>
+<p>{{ refund_consent_en }} Before paying, the customer agrees to this wording, and payment cannot be completed without that agreement.</p>
+<h2 class="n-title text-lg">2. Review</h2>
+<p>We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.</p>
 <h2 class="n-title text-lg">3. Cancellation</h2>
-<p>You may cancel at any time; cancellation stops the next renewal, the service runs until the end of the current period, and the current period is not refunded. The team closes at the end of the paid period.</p>
-<h2 class="n-title text-lg">4. Setup-fee guarantee</h2>
+<p>You may cancel at any time; cancellation stops the next renewal and the service runs until the end of the paid period. The team closes then.</p>
+<h2 class="n-title text-lg">4. Refund questions</h2>
 <p>{{ setup_guarantee.text_en }}</p>
 <h2 class="n-title text-lg">5. Available vs. coming features</h2>
-<p>Your subscription covers only the features listed under “Available now” for each plan. Items listed under “Coming soon” (such as the voice agent and the Salla or Zid connection) are not part of what you pay for and are not considered in any refund or guarantee claim; refunds and the guarantee are assessed against available features only.</p>
+<p>Your subscription covers only the features listed under “Available now” for each plan. Items listed under “Coming soon” (such as the voice agent and the Salla or Zid connection) are not part of what you pay for. Any review is limited to available features only, and we do not promise a refund outcome.</p>
 <h2 class="n-title text-lg">6. Refund requests</h2>
-<p>Refund requests are reviewed by management, and approved refunds are returned via the original payment method. Submit your request by email to <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>; we reply by email.</p>
+<p>Email the question to <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>. We do not promise an outcome here.</p>
 {% endif %}
 {% endblock %}

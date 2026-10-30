@@ -495,8 +495,8 @@ def public_output_check(result: dict, problem: str) -> dict:
     if _REFUND_OR_COMPLAINT.search(text):
         return _no_offer(
             result,
-            "نعتذر عن تجربتك. لا يوجد استرداد بعد التفعيل إلا رسوم الإعداد لمرة واحدة إذا لم يعمل أول وكيل خلال 10 أيام عمل، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني. " + HANDOFF_AR,
-            "We are sorry about your experience. There is no refund after activation except the one-time setup fee if the first agent is not working within 10 business days, and a duplicate charge or a technical billing error is always refunded. " + HANDOFF_EN,
+            "نعتذر عن تجربتك. لا نعد هنا بنتيجة استرداد. " + HANDOFF_AR,
+            "We are sorry about your experience. We do not promise a refund outcome here. " + HANDOFF_EN,
             "refund",
         )
     if _TAX.search(text):

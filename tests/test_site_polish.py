@@ -44,7 +44,7 @@ def test_refund_policy_quotes_the_terms_and_is_linked(client):
 
     html = client.get("/ar/refund-policy").text
     assert policies.REFUND_CONSENT_AR in html
-    assert "الخصم المكرر" in html
+    assert "لا نعد هنا بنتيجة استرداد" in html
     assert 'href="/refund-policy"' in client.get("/terms").text
     assert 'href="/refund-policy"' in client.get("/home").text
 

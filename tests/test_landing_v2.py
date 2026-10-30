@@ -81,7 +81,7 @@ def test_no_invented_social_proof(page: str) -> None:
 def test_risk_reversal_matches_the_refund_terms(page: str) -> None:
     assert "ضمان استرداد" not in page and "money-back" not in page.lower()
     assert "قبل التجديد" in page
-    assert "لا يوجد استرداد بعد التفعيل إلا رسوم الإعداد" in page
+    assert "لا نعد هنا بنتيجة استرداد" in page
     assert "نهاية الفترة المدفوعة" in page
 
 

@@ -320,13 +320,12 @@ FOUNDING_OFFER = {
     "requires_testimonial": True,
 }
 
-# Setup guarantee: covers the setup fee only. The subscription itself stays
-# non-refundable after activation (see the refund policy).
+# Public setup note. The displayed text does not promise a refund outcome.
 SETUP_GUARANTEE = {
     "business_days": 10,
     "refunds": "setup_fee",
-    "text": "إذا لم يعمل أول وكيل على قناتك خلال ١٠ أيام عمل من استلامنا للمتطلبات، نعيد لك رسوم الإعداد كاملة. الضمان على رسوم الإعداد فقط؛ الاشتراك غير قابل للاسترداد بعد التفعيل.",
-    "text_en": "If your first agent is not working on your channel within 10 business days of us receiving your requirements, we refund the setup fee in full. The guarantee covers the setup fee only; the subscription is non-refundable after activation.",
+    "text": "لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.",
+    "text_en": "We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.",
 }
 
 # Existing subscribers keep their old price at renewal (grandfathering): a

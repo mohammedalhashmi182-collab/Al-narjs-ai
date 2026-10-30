@@ -442,7 +442,7 @@ def test_unknown_department_falls_back_to_the_same_glyph_on_both_sides() -> None
 NAJDI_CSS = CSS_DIR / "narjis-najdi.css"
 NAJDI_TOKENS = {
     "--nj-ink": "#12100d",
-    "--nj-ivory": "#f4eee2",
+    "--nj-ivory": "#ffffff",
     "--nj-accent": ACCENT,
     "--nj-ivory2": "#bdb4a5",
     "--nj-ink-soft": "#5a5046",

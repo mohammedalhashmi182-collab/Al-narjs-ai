@@ -3885,7 +3885,7 @@ async def report_transfer_sent(payment_id: str, request: Request):
             raise HTTPException(409, "This invoice is settled through its payment gateway")
         if payment.status != "paid" and payment.refund_consent_at is None:
             # Owner-raised invoices reach the buyer without checkout, so the
-            # non-refundable consent is collected here, on the invoice page.
+            # checkout consent is collected here, on the invoice page.
             try:
                 body = await request.json()
             except Exception:  # noqa: BLE001 - empty / non-JSON body = no consent

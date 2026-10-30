@@ -12,15 +12,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 POLICY_VERSION = "2026-10-24"
 
 # Exact text the buyer must tick before any payment is created.
-REFUND_CONSENT_AR = "الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط"
-REFUND_CONSENT_EN = "The service starts once it is activated and the amount is non-refundable after activation, except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only"
+REFUND_CONSENT_AR = "لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com."
+REFUND_CONSENT_EN = "We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com."
 
 POLICY_PROMPT = (
     "Al-Narjis policies (owner-approved, never contradict them):\n"
-    f"- Refunds: none after activation, except the setup fee as below. Before paying, the customer explicitly agrees to: «{REFUND_CONSENT_AR}». "
-    "Always refunded: a duplicate charge or a technical billing error. Setup guarantee: only the one-time setup fee "
-    "is refunded, in full, if the first agent is not live within 10 business days of receiving the requirements. Cancellation stops the next renewal; "
-    "the current period is not refunded. Every refund request is escalated to the owner.\n"
+    f"- Refunds: do not promise a refund outcome. Before paying, the customer explicitly agrees to: «{REFUND_CONSENT_AR}». "
+    "Cancellation stops the next renewal and the service runs until the end of the paid period. "
+    "Refund questions are reviewed by email at AlNarjisai@gmail.com.\n"
     "- Support: by email at AlNarjisai@gmail.com. The Enterprise plan gets a reply within one business day. "
     "There is no phone support and no round-the-clock assistant.\n"
     "- Free trial: none. The only free thing is the diagnosis by the CEO advisor.\n"
@@ -35,9 +34,9 @@ POLICY_PROMPT = (
 
 OWNER_FAQ_TITLE = "سياسات النرجس الرسمية"
 
-OWNER_FAQ_AR = f"""سياسة الاسترداد: لا يوجد استرداد بعد تفعيل الخدمة باستثناء رسوم الإعداد. قبل الدفع يوافق العميل صراحة على «{REFUND_CONSENT_AR}». الاستثناء اللي يُسترد دائماً: الخصم المكرر أو خطأ تقني في الفوترة. ضمان الإعداد: إذا لم يعمل أول وكيل خلال 10 أيام عمل من استلام المتطلبات تُرد رسوم الإعداد فقط كاملة. طلبات الاسترداد ترفع للمالك عبر البريد AlNarjisai@gmail.com.
+OWNER_FAQ_AR = f"""سياسة الاسترداد: {REFUND_CONSENT_AR}
 
-الإلغاء: تقدر تلغي في أي وقت، والإلغاء يوقف التجديد القادم، وتبقى الخدمة شغالة حتى نهاية الفترة الحالية بدون استرداد لها، ويُغلق الفريق في نهاية الفترة المدفوعة.
+الإلغاء: تقدر تلغي في أي وقت، والإلغاء يوقف التجديد القادم، وتبقى الخدمة شغالة حتى نهاية الفترة المدفوعة، ويُغلق الفريق عندها.
 
 أوقات الدعم: الدعم عبر البريد AlNarjisai@gmail.com. باقة الشركات يصلها الرد خلال يوم عمل. لا يوجد دعم هاتفي ولا مساعد على مدار الساعة.
 

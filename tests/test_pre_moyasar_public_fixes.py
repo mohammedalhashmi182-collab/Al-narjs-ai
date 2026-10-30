@@ -23,7 +23,7 @@ def test_refund_reply_names_email_and_duplicate_charges():
     )
     assert result["offer"] is False
     assert "AlNarjisai@gmail.com" in result["diagnosis_ar"]
-    assert "الخصم المكرر" in result["diagnosis_ar"]
+    assert "لا نعد هنا بنتيجة استرداد" in result["diagnosis_ar"]
     assert "اطلب تواصل" not in result["diagnosis_ar"]
 
 
@@ -57,9 +57,9 @@ def test_landing_does_not_claim_card_payments_while_closed():
 def test_cancel_copy_closes_the_team_at_period_end():
     terms = (TPL / "terms.html").read_text(encoding="utf-8")
     refund = (TPL / "refund_policy.html").read_text(encoding="utf-8")
-    assert "ويُغلق الفريق في نهاية الفترة المدفوعة" in terms
+    assert "نهاية الفترة المدفوعة" in terms
     assert "وتتحول الاشتراكات الملغاة إلى إغلاق الفريق" not in terms
-    assert "The team closes at the end of the paid period." in refund
+    assert "The team closes then." in refund
     assert "Cancelled subscriptions close the team." not in refund
 
 

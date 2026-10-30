@@ -434,7 +434,8 @@ def test_grounding_facts_do_not_contain_support_email(monkeypatch):
 
     monkeypatch.setattr(generate, "grounded", fake)
     main._consult_grounded("x", [], "pkgs")
-    assert SUPPORT_EMAIL not in seen["facts"] and not _PHONE.search(seen["facts"])
+    assert not _PHONE.search(seen["facts"])
+    assert {m.rstrip(".") for m in _EMAIL.findall(seen["facts"])} <= {SUPPORT_EMAIL}
 
 
 # --- addendum 2: promo snapshot (no promo drift) -----------------------------

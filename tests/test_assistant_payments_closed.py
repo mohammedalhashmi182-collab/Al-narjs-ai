@@ -33,8 +33,8 @@ def test_consult_instructions_switch_when_payment_opens(monkeypatch):
 
 def test_refund_fact_is_setup_fee_only():
     prompt = _prompt("ar")
-    assert "ONLY refund is the one-time setup fee" in prompt
-    assert "10 business days" in prompt
+    assert "do not promise a refund outcome" in prompt
+    assert "AlNarjisai@gmail.com" in prompt
 
 
 def test_kb_states_payments_closed_and_correct_refund():
@@ -44,7 +44,7 @@ def test_kb_states_payments_closed_and_correct_refund():
     for bad in FORBIDDEN:
         assert bad not in text, bad
     refund = text[text.index("### س37") : text.index("### س38")]
-    assert "رسوم الإعداد لمرة واحدة فقط" in refund and "10 أيام عمل" in refund
+    assert "لا نعد هنا بنتيجة استرداد" in refund and "AlNarjisai@gmail.com" in refund
     assert "الزهراني" not in refund
     assert "الخدمة تبدأ فوراً" not in refund
     for bad in ("الأحد إلى الخميس", "Sun–Thu", "Sun-Thu"):

@@ -39,7 +39,7 @@ def docs() -> list[tuple[str, str]]:
     c = catalog.USAGE_ADDONS["conversations"]
     if c.get("purchasable", True):
         out.append(("حزم المحادثات", f"حزمة {c['name']}: {c['price']} ريال. {c['note']}"))
-    out.append(("ضمان الإعداد والاسترداد", catalog.SETUP_GUARANTEE["text"]))
+    out.append(("أسئلة الاسترداد", catalog.SETUP_GUARANTEE["text"]))
     return out
 
 

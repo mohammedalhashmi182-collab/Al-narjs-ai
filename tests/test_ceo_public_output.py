@@ -68,7 +68,7 @@ async def test_probe6_angry_refund_hides_escalation_and_sales(monkeypatch):
     text = r["diagnosis_ar"] + r["diagnosis_en"]
     for bad in LEAK:
         assert bad not in text
-    assert "رسوم الإعداد" in r["diagnosis_ar"] and "10 أيام عمل" in r["diagnosis_ar"]
+    assert "لا نعد هنا بنتيجة استرداد" in r["diagnosis_ar"]
 
 
 async def test_probe9_price_question_gets_closed_notice_and_real_prices(monkeypatch):
