@@ -382,16 +382,20 @@
                     if (pc) pc.addEventListener('click', () => openCheckout());
                 }
                 const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال', bidaya: 'البداية', numuw: 'النمو', sharikat: 'الشركات', radd: 'البداية', bay: 'النمو', tashgheel: 'الشركات' };
+                const pkgNamesEn = { social: 'Social media', ecommerce: 'Online stores', content: 'Content marketing', growth: 'Business growth', bidaya: 'Starter', numuw: 'Growth', sharikat: 'Enterprise', radd: 'Starter', bay: 'Growth', tashgheel: 'Enterprise' };
             const DEPT_EN = {
                 'التسويق الرقمي': 'Digital Marketing',
                 'المحتوى': 'Content',
                 'التجارة الإلكترونية': 'E-commerce',
                 'خدمة العملاء': 'Customer Care',
                 'التحليلات': 'Analytics',
-                'نمو الأعمال': 'Business Growth'
+                'نمو الأعمال': 'Business Growth',
+                'الإدارة التنفيذية': 'Executive Office',
+                'المنتجات والهندسة': 'Product & Engineering',
+                'الشؤون المؤسسية': 'Corporate Affairs'
             };
             const deptEn = d => DEPT_EN[d] || d;
-                $('teamPkg').textContent = isAr() ? pkgNames[state.pkg] : (team[0]?.pkg_en || '');
+                $('teamPkg').textContent = isAr() ? (pkgNames[state.pkg] || state.pkg) : (pkgNamesEn[state.pkg] || team[0]?.pkg_en || state.pkg);
                 $('team-grid').innerHTML = team.map(a => `
                     {% call card(class_name='emp-card dormant cursor-pointer', attrs={'data-slug': '${a.slug}'}) %}
                         <div class="flex items-center gap-3 mb-3">

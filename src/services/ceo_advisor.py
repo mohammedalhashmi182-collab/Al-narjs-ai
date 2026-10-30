@@ -448,8 +448,8 @@ _PUBLIC_LEAK = re.compile(
 )
 _NON_PUBLIC_AGENTS = {"policy_guardian", "finance_pricing"}
 
-HANDOFF_AR = "اضغط «اطلب تواصل موظف» في مساعد النرجس، ويرد عليك الفريق بالبريد."
-HANDOFF_EN = "Press \u201cAsk a person\u201d in the Al-Narjis assistant and the team will reply by email."
+HANDOFF_AR = "راسلنا على AlNarjisai@gmail.com ويرد عليك الفريق بالبريد."
+HANDOFF_EN = "Email us at AlNarjisai@gmail.com and the team will reply by email."
 TAX_AR = "أسعارنا نهائية بدون ضريبة قيمة مضافة، لأن الجهة المشغّلة غير مسجّلة في ضريبة القيمة المضافة؛ لذلك لا نصدر فواتير ضريبية، ونرسل فاتورة دفع عادية."
 TAX_EN = "Our prices are final with no VAT, because the operator is not VAT-registered, so we do not issue tax invoices; you get a regular payment invoice."
 
@@ -495,8 +495,8 @@ def public_output_check(result: dict, problem: str) -> dict:
     if _REFUND_OR_COMPLAINT.search(text):
         return _no_offer(
             result,
-            "نعتذر عن تجربتك. الاسترداد الوحيد هو رسوم الإعداد لمرة واحدة إذا لم يعمل أول وكيل خلال 10 أيام عمل. " + HANDOFF_AR,
-            "We are sorry about your experience. The only refund is the one-time setup fee if the first agent is not working within 10 business days. " + HANDOFF_EN,
+            "نعتذر عن تجربتك. لا يوجد استرداد بعد التفعيل إلا رسوم الإعداد لمرة واحدة إذا لم يعمل أول وكيل خلال 10 أيام عمل، ويُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني. " + HANDOFF_AR,
+            "We are sorry about your experience. There is no refund after activation except the one-time setup fee if the first agent is not working within 10 business days, and a duplicate charge or a technical billing error is always refunded. " + HANDOFF_EN,
             "refund",
         )
     if _TAX.search(text):
@@ -516,8 +516,7 @@ def public_output_check(result: dict, problem: str) -> dict:
         if _PUBLIC_LEAK.search(_fold(result.get(key, ""))):
             result[key] = fb
     kept = [a for a in result.get("agents", []) if a.get("slug") not in _NON_PUBLIC_AGENTS]
-    if kept:
-        result["agents"], result["agent_count"] = kept, len(kept)
+    result["agents"], result["agent_count"] = kept, len(kept)
     if closed:
         result["notice"] = "payments_closed"
     return result

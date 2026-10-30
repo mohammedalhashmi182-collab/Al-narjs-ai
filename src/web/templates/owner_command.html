@@ -149,6 +149,10 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
     const empty = (n, t) => '<tr><td colspan="' + n + '" class="cc-empty">' + esc(t) + '</td></tr>';
     const STAGES = {new: 'جديد', qualified: 'مؤهَّل', offer_sent: 'عرض مُرسل', payment_link_sent: 'رابط دفع مُرسل', paid: 'مدفوع', lost: 'خسارة'};
     const PAY = {pending: 'بانتظار الدفع', initiated: 'بدأ', authorized: 'معلّق'};
+    const L = {pending:'قيد الانتظار', paid:'مدفوع', failed:'فشل', review:'مراجعة', authorized:'مُفوَّض', open:'مفتوح', closed:'مغلق', running:'قيد التشغيل', done:'مكتمل', converted:'تحوّل', contacted:'تم التواصل',
+        bidaya:'البداية', numuw:'النمو', sharikat:'الشركات', radd:'البداية', bay:'النمو', tashgheel:'الشركات', starter:'البداية', growth:'النمو', enterprise:'الشركات',
+        moyasar:'ميسر', paypal:'PayPal', invoice:'فاتورة'};
+    const lbl = k => esc(L[k] || k);
 
     function usageCell(m, money) {
         if (!m) return '—';
@@ -174,11 +178,11 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
         $('ordersNote').textContent = o.unpaid_count + ' طلب غير مدفوع بإجمالي ' + sar(o.unpaid_sar) + ' (قبل الضريبة).';
         const rows = o.awaiting_transfer_confirmation.map(p => '<tr><td>' + esc(p.customer) + (p.is_renewal ? ' ' + tag('mut', 'تجديد') : '') + '</td><td>' + esc(p.plan || '-') + '</td><td>' + sar(p.amount_sar)
             + '</td><td>' + tag('warn', 'تحويل بنكي') + '</td><td>' + day(p.created_at) + '</td><td><button type="button" class="cc-btn" data-confirm="' + esc(p.payment_id) + '">تأكيد الاستلام</button> <a class="cc-mut" href="' + esc(p.invoice_url) + '">الفاتورة</a></td></tr>')
-            .concat(o.pending_gateway.map(p => '<tr><td>' + esc(p.customer) + '</td><td>' + esc(p.plan || '-') + '</td><td>' + sar(p.amount_sar) + '</td><td>' + tag('mut', (PAY[p.status] || p.status) + ' · ' + p.gateway) + '</td><td>' + day(p.created_at) + '</td><td></td></tr>'));
+            .concat(o.pending_gateway.map(p => '<tr><td>' + esc(p.customer) + '</td><td>' + lbl(p.plan || '-') + '</td><td>' + sar(p.amount_sar) + '</td><td>' + tag('mut', (PAY[p.status] || L[p.status] || p.status) + ' · ' + (L[p.gateway] || p.gateway)) + '</td><td>' + day(p.created_at) + '</td><td></td></tr>'));
         $('tOrders').innerHTML = rows.join('') || empty(6, 'لا توجد طلبات معلّقة');
 
         $('tPlans').innerHTML = d.subscriptions.by_plan.map(b => '<tr><td>' + esc(b.name) + '</td><td>' + b.count + '</td><td>' + sar(b.mrr_sar) + '</td></tr>').join('') || empty(3, 'لا اشتراكات نشطة');
-        $('tRenew').innerHTML = d.renewals_due.items.map(r => '<tr><td>' + esc(r.client_name) + '</td><td>' + esc(r.plan) + '</td><td>' + day(r.period_end) + ' ' + (r.overdue ? tag('bad', 'متأخر') : tag('warn', r.days_left + ' يوم'))
+        $('tRenew').innerHTML = d.renewals_due.items.map(r => '<tr><td>' + esc(r.client_name) + '</td><td>' + lbl(r.plan) + '</td><td>' + day(r.period_end) + ' ' + (r.overdue ? tag('bad', 'متأخر') : tag('warn', r.days_left + ' يوم'))
             + '</td><td>' + (r.renewal_invoice_raised ? tag('ok', 'صدرت') : tag('mut', 'لم تصدر')) + '</td></tr>').join('') || empty(4, 'لا تجديدات خلال 7 أيام');
 
         const f = d.founding;
@@ -186,7 +190,7 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
         if (f && f.enabled) {
         $('fBar').style.width = (f.seats_total ? Math.round(f.seats_used * 100 / f.seats_total) : 0) + '%';
         $('fText').textContent = 'مستخدم ' + f.seats_used + ' من ' + f.seats_total + ' — متبقٍ ' + f.seats_remaining;
-        $('fList').innerHTML = f.customers.map(c => '<li><span>' + esc(c.client_name) + ' <span class="cc-mut">' + esc(c.package) + '</span></span>'
+        $('fList').innerHTML = f.customers.map(c => '<li><span>' + esc(c.client_name) + ' <span class="cc-mut">' + lbl(c.package) + '</span></span>'
             + (c.revoked_at ? tag('mut', 'أُلغي') : '<button type="button" class="cc-qa" data-revoke="' + esc(c.project_id) + '">إلغاء سعر المؤسس</button>') + '</li>').join('') || '<li class="cc-mut">لا يوجد مؤسسون بعد</li>';
         }
 
@@ -194,7 +198,7 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
         $('leads').innerHTML = Object.keys(p).map(k => '<div><b>' + p[k] + '</b><i style="width:' + Math.round(p[k] * 70 / max) + '%"></i><span class="cc-mut">' + esc(STAGES[k] || k) + '</span></div>').join('')
             + '<p class="cc-mut">إجمالي العملاء المحتملين: ' + d.leads.total_leads + '</p>';
 
-        $('tUsage').innerHTML = d.usage.customers.map(c => '<tr><td>' + esc(c.client_name) + '</td><td>' + esc(c.plan) + '</td><td>' + usageCell(c.metrics.conversations) + '</td><td>' + usageCell(c.metrics.voice_minutes)
+        $('tUsage').innerHTML = d.usage.customers.map(c => '<tr><td>' + esc(c.client_name) + '</td><td>' + lbl(c.plan) + '</td><td>' + usageCell(c.metrics.conversations) + '</td><td>' + usageCell(c.metrics.voice_minutes)
             + '</td><td>' + usageCell(c.metrics.meta_fees, true) + '</td><td>' + (c.flag === 'over' ? tag('bad', 'تجاوز 100٪') : c.flag === 'warn' ? tag('warn', 'تجاوز 80٪') : tag('ok', 'ضمن الحد')) + '</td></tr>').join('') || empty(6, 'لا يوجد استهلاك بعد');
 
         const rq = d.review_queue.by_project;
@@ -212,7 +216,7 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
             const r = await fetch('/api/owner/tickets', {credentials: 'same-origin'});
             if (!r.ok) throw new Error(r.status);
             const d = await r.json();
-            $('tTickets').innerHTML = d.tickets.map(t => '<tr><td dir="ltr"><b>' + esc(t.reference) + '</b></td><td>' + esc(t.name) + '</td><td dir="ltr"><a href="' + MAILTO + encodeURIComponent(t.email) + '?subject=' + encodeURIComponent('[' + t.reference + ']') + '">' + esc(t.email) + '</a></td><td>' + esc(String(t.question).slice(0, 300)) + '</td><td>' + esc(t.status) + '</td><td>' + day(t.created_at) + '</td></tr>').join('') || empty(6, 'لا تذاكر بعد');
+            $('tTickets').innerHTML = d.tickets.map(t => '<tr><td dir="ltr"><b>' + esc(t.reference) + '</b></td><td>' + esc(t.name) + '</td><td dir="ltr"><a href="' + MAILTO + encodeURIComponent(t.email) + '?subject=' + encodeURIComponent('[' + t.reference + ']') + '">' + esc(t.email) + '</a></td><td>' + esc(String(t.question).slice(0, 300)) + '</td><td>' + lbl(t.status) + '</td><td>' + day(t.created_at) + '</td></tr>').join('') || empty(6, 'لا تذاكر بعد');
         } catch (e) { $('tTickets').innerHTML = empty(6, 'تعذّر تحميل التذاكر'); }
     }
     loadTickets();

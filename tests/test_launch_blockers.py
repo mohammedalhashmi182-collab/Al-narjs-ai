@@ -413,7 +413,11 @@ def test_kb_and_grounding_have_no_phone_or_email():
     kb = pathlib.Path("data/kb/narjs_services.md").read_text(encoding="utf-8")
     src = inspect.getsource(main._consult_grounded)
     for text in (kb, src, pathlib.Path("content/contact.json").read_text(encoding="utf-8")):
-        assert not _PHONE.search(text) and not _EMAIL.search(text)
+        assert not _PHONE.search(text)
+    assert not _EMAIL.search(src)
+    assert not _EMAIL.search(pathlib.Path("content/contact.json").read_text(encoding="utf-8"))
+    # The published company address is the support channel. No other address.
+    assert {m.rstrip(".") for m in _EMAIL.findall(kb)} <= {"AlNarjisai@gmail.com"}
     assert "SUPPORT_EMAIL" not in src
 
 

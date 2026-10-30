@@ -50,7 +50,7 @@ def test_never_claims_phone_support():
 ])
 def test_contact_requests_become_handoff_button(ask):
     out = enforce_reply_policy("خطة مقترحة.\n" + ask)
-    assert "بريدك" not in out and "رقم" not in out and "«اطلب تواصل موظف»" in out
+    assert "بريدك" not in out and "رقم" not in out and "AlNarjisai@gmail.com" in out
     assert "Never ask for their email" in _prompt()
 
 

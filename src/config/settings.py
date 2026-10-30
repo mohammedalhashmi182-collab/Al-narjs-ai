@@ -141,7 +141,7 @@ class Settings(BaseSettings):
     seller_vat_number: str | None = Field(default=None, alias="SELLER_VAT_NUMBER")
     seller_cr_number: str = Field(default="FL-272182297", alias="SELLER_CR_NUMBER")
     seller_address_ar: str = Field(
-        default="بناية 2371 محمد العمري، حي الرمال 7369، الرياض 13263، المملكة العربية السعودية",
+        default="",
         alias="SELLER_ADDRESS_AR",
     )
     # Collections: customer-facing reminders/overage invoices are drafts for

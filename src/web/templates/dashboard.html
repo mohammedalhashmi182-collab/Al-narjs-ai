@@ -320,6 +320,9 @@ function escapeHtml(s) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
 }
+const OC_LABELS = {pending:'قيد الانتظار', paid:'مدفوع', failed:'فشل', review:'مراجعة', authorized:'مُفوَّض', open:'مفتوح', closed:'مغلق', running:'قيد التشغيل', done:'مكتمل', completed:'مكتمل', converted:'تحوّل', contacted:'تم التواصل',
+    bidaya:'البداية', numuw:'النمو', sharikat:'الشركات', radd:'البداية', bay:'النمو', tashgheel:'الشركات', moyasar:'ميسر', paypal:'PayPal', invoice:'فاتورة'};
+function ocLabel(k) { return escapeHtml(OC_LABELS[k] || k); }
 
 function when(iso) {
     return iso ? new Date(iso).toLocaleDateString('ar', { dateStyle: 'medium' }) : '—';
@@ -388,8 +391,8 @@ async function loadBusiness() {
                 const cls = l.status === 'converted' ? 'oc-ok'
                     : l.status === 'contacted' ? 'oc-idle' : 'oc-idle';
                 return '<tr><td>' + escapeHtml(l.name) + '</td>'
-                    + '<td class="oc-mut">' + escapeHtml(l.package || '—') + '</td>'
-                    + '<td>' + ocTag(cls, escapeHtml(l.status)) + '</td>'
+                    + '<td class="oc-mut">' + ocLabel(l.package || '—') + '</td>'
+                    + '<td>' + ocTag(cls, ocLabel(l.status)) + '</td>'
                     + '<td class="oc-mut">' + when(l.created_at) + '</td></tr>';
             }).join('')
             : '<tr><td colspan="4" class="oc-empty">لا توجد طلبات بعد</td></tr>';
@@ -399,7 +402,7 @@ async function loadBusiness() {
             ? d.recent_payments.map(function (p) {
                 return '<tr><td>' + escapeHtml(p.customer) + '</td>'
                     + '<td>' + Number(p.amount_sar).toLocaleString('en-US') + ' ' + escapeHtml(p.currency) + '</td>'
-                    + '<td>' + ocTag(p.status === 'paid' ? 'oc-ok' : 'oc-idle', escapeHtml(p.status)) + '</td>'
+                    + '<td>' + ocTag(p.status === 'paid' ? 'oc-ok' : 'oc-idle', ocLabel(p.status)) + '</td>'
                     + '<td class="oc-mut">' + when(p.created_at) + '</td></tr>';
             }).join('')
             : '<tr><td colspan="4" class="oc-empty">لا توجد مدفوعات بعد</td></tr>';
@@ -432,7 +435,7 @@ async function loadExecutions() {
                 const dur = x.completed_at && x.started_at
                     ? Math.round((new Date(x.completed_at) - new Date(x.started_at)) / 1000) + ' ث' : '—';
                 return '<tr><td>' + escapeHtml(x.workflow_id) + '</td>'
-                    + '<td>' + ocTag(cls, escapeHtml(x.status)) + '</td>'
+                    + '<td>' + ocTag(cls, ocLabel(x.status)) + '</td>'
                     + '<td class="oc-mut">' + when(x.started_at) + '</td>'
                     + '<td class="oc-mut">' + dur + '</td></tr>';
             }).join('')

@@ -40,7 +40,7 @@ def test_refund_fact_is_setup_fee_only():
 def test_kb_states_payments_closed_and_correct_refund():
     text = KB.read_text(encoding="utf-8")
     assert "الدفع الإلكتروني قيد التفعيل حالياً" in text
-    assert "سجّل اهتمامك عبر مساعد النرجس" in text
+    assert "سجّل اهتمامك عبر البريد AlNarjisai@gmail.com" in text
     for bad in FORBIDDEN:
         assert bad not in text, bad
     refund = text[text.index("### س37") : text.index("### س38")]
