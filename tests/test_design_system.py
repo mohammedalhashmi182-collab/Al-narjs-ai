@@ -125,7 +125,7 @@ def test_design_css_defines_the_odsf_tokens() -> None:
     for token in (
         f"--odsf-accent: {ACCENT}",
         f"--odsf-accent-deep: {ACCENT_DEEP}",
-        f"--tg-blue: {GREEN}",
+        f"--tg-blue: {ACCENT}",
         f"--n-sand: {BG}",
         f"--n-brown: {INK}",
         "--r-bubble: 20px",
@@ -253,7 +253,7 @@ def test_v2_layer_respects_reduced_motion_and_has_no_retired_palette() -> None:
 
 def test_owner_console_keeps_dark_surfaces_on_green() -> None:
     body = ADMIN_CSS.read_text(encoding="utf-8").lower()
-    assert f"--ad-gold: {GREEN}" in body, "admin accent is not the ODSF green"
+    assert f"--ad-gold: {ACCENT}" in body, "admin accent is not the vermilion action colour"
     assert f"--ad-action: {ACCENT}" in body, "admin has no accent primary action"
     for hexv in ("#c8a45e", "#e6c98a", "#a5803c", "#3dbd7d", "#2481cc", "#1b6fb3"):
         assert hexv not in body, f"admin css still carries {hexv}"
@@ -286,7 +286,7 @@ def test_telegram_mark_partial_exists_and_is_reusable() -> None:
     assert "macro tg_plane" in body
     assert "macro tg_badge" in body
     assert "M9.78 15.6" in body, "the paper-plane path changed"
-    assert f"var(--green, {GREEN.upper()})" in body, (
+    assert f"var(--green, {ACCENT.upper()})" in body, (
         "the brand disc must take its colour from a design token, not a hard-coded hex"
     )
 
@@ -444,7 +444,7 @@ NAJDI_TOKENS = {
     "--nj-ink": "#12100d",
     "--nj-ivory": "#ffffff",
     "--nj-accent": ACCENT,
-    "--nj-ivory2": "#bdb4a5",
+    "--nj-ivory2": "#b3b3b3",
     "--nj-ink-soft": "#5a5046",
 }
 

@@ -25,7 +25,7 @@
         <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</div>
         <div class="text-5xl mb-5">
             {% if result == "success" %}
-            <i class="fas fa-check-circle" style="color:var(--n-green);"></i>
+            <i class="fas fa-check-circle" style="color:#FF5A36;"></i>
             {% else %}
             <i class="fas fa-times-circle" style="color:#b91c1c;"></i>
             {% endif %}
@@ -53,7 +53,7 @@
                 <i class="fas fa-bolt"></i>
                 {% if _lang == 'ar' %}<span>افتح بوابة فريقك — أيقظ موظفيك</span>{% else %}<span data-inline>Open Your Team Portal — Wake Your Employees</span>{% endif %}
             </a>
-            <a href="/home#pricing" class="btn btn-green w-full">
+            <a href="/home#pricing" class="btn btn-gold w-full">
                 {% if _lang == 'ar' %}<span>العودة إلى الأسعار</span>{% else %}<span data-inline>Back to Pricing</span>{% endif %}
             </a>
             <a id="assistantContact" href="mailto:AlNarjisai@gmail.com" class="btn btn-outline w-full">
@@ -96,7 +96,7 @@
                 var ok = st && st.status === 'paid';
                 if (icon) {
                     icon.className = ok ? 'fas fa-check-circle' : 'fas fa-times-circle';
-                    icon.style.color = ok ? 'var(--n-green)' : '#b91c1c';
+                    icon.style.color = ok ? '#FF5A36' : '#b91c1c';
                 }
                 if (h1) h1.textContent = ok ? paidTitle : failTitle;
                 if (sub) sub.textContent = ok ? paidBody : failBody;

@@ -16,7 +16,7 @@ body.luxury {
   --n-sand-2: #0c0c0e;
   --n-cream: #101014;
   --n-cream-2: #141419;
-  --n-green-3: #0b0b0d;
+  --n-sidebar-bg: #0b0b0d;
   --tg-blue-tint: #172117;
   --tg-blue-tint-2: #0d1114;
   --tg-blue-soft: rgba(255, 90, 54, 0.22);
@@ -115,7 +115,7 @@ body.luxury .btn-gold:hover {
   transform: translateY(-1px);
   box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.55), 0 0 38px rgba(255, 90, 54, 0.28);
 }
-body.luxury .btn-green { background: var(--tg-blue, #b3922e); color: #ffffff; }
+body.luxury .btn-gold { background: var(--tg-blue, #ff5a36); color: #000000; }
 body.luxury .btn-outline {
   background: rgba(255, 255, 255, 0.03);
   color: #f6f5f4;
