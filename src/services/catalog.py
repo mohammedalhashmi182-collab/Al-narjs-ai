@@ -589,7 +589,7 @@ EMPLOYEES: dict[str, dict] = {
         "title_ar": "موظف خدمة العملاء",
         "title_en": "Customer Service Agent",
         "dept": "خدمة العملاء",
-        "intro_ar": "أنا موظف خدمة العملاء. أرد على استفسارات عملائك ورسائلهم باحترافية وسرعة على مدار الساعة.",
+        "intro_ar": "أنا موظف خدمة العملاء. أرد على استفسارات عملائك ورسائلهم باحترافية.",
         "intro_en": "I'm a customer service agent. I respond to your customers' inquiries and messages professionally around the clock.",
         "questions": [
             _q("customer_message", "الصق رسالة/استفسار العميل", "Paste the customer's message/inquiry"),

@@ -132,7 +132,7 @@ SERVICES: list[dict] = [
         "name_en": "Intelligent chatbots",
         "title_ar": "بوتات محادثة ذكية بالعربية للمنشآت في السعودية | النرجس",
         "title_en": "Arabic chatbots for organizations in Saudi Arabia | Al-Narjis",
-        "desc_ar": "نبني بوتات محادثة تفهم العربية واللهجة السعودية، تجيب عملاءك على مدار الساعة وتحيل الحالات المعقدة لفريقك.",
+        "desc_ar": "نبني بوتات محادثة تفهم العربية واللهجة السعودية، تجيب عملاءك وتحيل الحالات المعقدة لفريقك.",
         "desc_en": "We build chatbots that understand Arabic and the Saudi dialect, answer your customers around the clock, and hand complex cases to your team.",
         "h1_ar": "بوتات المحادثة الذكية بالعربية",
         "h1_en": "Intelligent chatbots in Arabic",
