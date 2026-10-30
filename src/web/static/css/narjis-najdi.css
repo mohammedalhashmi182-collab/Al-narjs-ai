@@ -203,6 +203,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .addon-note b{color:var(--nj-ivory)}
 .nj .table-scroll{margin-top:28px;overflow-x:auto;border:1px solid var(--nj-line);border-radius:14px}
 .nj .compare{width:100%;border-collapse:collapse;font-size:15px;min-width:560px}
+@media (max-width:600px){.nj .compare{min-width:0;font-size:13px}.nj .compare th,.nj .compare td{padding:8px}}
 .nj .compare th,.nj .compare td{padding:12px 16px;text-align:start;border-bottom:1px solid var(--nj-line)}
 .nj .compare thead th{color:var(--nj-ivory);font-weight:600;background:var(--nj-ink2)}
 .nj .compare td{color:var(--nj-ivory3)}

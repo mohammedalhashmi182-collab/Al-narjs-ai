@@ -488,7 +488,7 @@ def test_najdi_text_meets_wcag_aa() -> None:
 def test_najdi_hero_uses_the_approved_copy_and_a_real_image() -> None:
     body = read("landing.html")
     assert "اشرح هدفك." in body and "نختار فريقك <em>ونقود التنفيذ.</em>" in body
-    assert "ناقش هدفك مع CEO" in body and "شاهد نموذج تسليم" in body
+    assert "ناقش هدفك مع الرئيس التنفيذي" in body and "شاهد نموذج تسليم" in body
     assert "base64" not in body
     for img in ("hero-najdi.webp", "hero-najdi-800.webp"):
         assert f"/static/img/{img}" in body

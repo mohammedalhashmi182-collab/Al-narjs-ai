@@ -2,9 +2,9 @@
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% import "partials/_seo.html" as seo with context %}
 {% set _head = seo.head(
-  'الحجز المبكر — تفعيل فوري | النرجس للذكاء الاصطناعي',
+  'الحجز المبكر | النرجس للذكاء الاصطناعي',
   'Early Access — Instant Activation | Al-Narjis AI',
-  'انضم إلى قائمة الوصول المبكر وأطلق موظفيك الرقميين فوراً — سجل اسم منشأتك وبريدك ونوع الوكيل المطلوب، ونصلك على بريدك مباشرة.',
+  'انضم إلى قائمة الوصول المبكر — سجل اسم منشأتك وبريدك ونوع الوكيل المطلوب، ونصلك على بريدك مباشرة.',
   'Join the early-access list and launch your digital staff now — register your company name, email and the agent type you need, and we will reach you on your inbox.',
   request.url.path,
   'website') %}
@@ -110,7 +110,7 @@
         <div class="card">
             <div class="head">
                 <h1>{% if _lang == 'ar' %}النرجس لأتمتة الذكاء الاصطناعي{% else %}Al-Narjis AI Automation{% endif %}</h1>
-                <p>{% if _lang == 'ar' %}انضم إلى قائمة الوصول المبكر وأطلق موظفيك الرقميين فوراً{% else %}Join the early-access list and launch your digital staff now{% endif %}</p>
+                <p>{% if _lang == 'ar' %}انضم إلى قائمة الوصول المبكر{% else %}Join the early-access list{% endif %}</p>
             </div>
 
             <form id="registrationForm" class="form">
@@ -133,10 +133,10 @@
                     <select id="agentType" name="message">
                         <option>{% if _lang == 'ar' %}وكيل خدمة العملاء الذكي{% else %}Smart Customer-Service Agent{% endif %}</option>
                         <option>{% if _lang == 'ar' %}وكيل مبيعات وإغلاق صفقات{% else %}Sales &amp; Closing Agent{% endif %}</option>
-                        <option>{% if _lang == 'ar' %}منظومة الأتمتة الشاملة (AI CEO){% else %}Full Automation System (AI CEO){% endif %}</option>
+                        <option>{% if _lang == 'ar' %}منظومة الأتمتة الشاملة{% else %}Full Automation System{% endif %}</option>
                     </select>
                 </div>
-                <button type="submit" class="submit" id="eaSubmit">{% if _lang == 'ar' %}تفعيل الوصول المبكر الفوري{% else %}Start Early Access Now{% endif %}</button>
+                <button type="submit" class="submit" id="eaSubmit">{% if _lang == 'ar' %}تسجيل في قائمة الوصول المبكر{% else %}Join Early Access{% endif %}</button>
             </form>
             <div class="msg" id="eaMsg"></div>
             <p class="note">{% if _lang == 'ar' %}بالتسجيل أنت توافق على <a href="/privacy">سياسة الخصوصية</a> وحقك في <a href="/data-deletion">حذف بياناتك</a>{% else %}By registering you agree to our <a href="/privacy">Privacy Policy</a> and your <a href="/data-deletion">data-deletion rights</a>{% endif %}</p>

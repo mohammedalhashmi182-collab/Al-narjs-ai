@@ -41,7 +41,7 @@ def test_ceo_consultation_is_reachable_and_posts_to_the_endpoint(page: str) -> N
     # The hero CTA is a normal link to /consult. The diagnosis form still
     # lives in the "start with one goal" section.
     hero = page[page.index('id="top"'):page.index('id="how"')]
-    assert 'id="heroCeo"' in hero and 'href="/consult"' in hero and "ناقش هدفك مع CEO" in hero
+    assert 'id="heroCeo"' in hero and 'href="/consult"' in hero and "ناقش هدفك مع الرئيس التنفيذي" in hero
     assert "data-open-assistant" not in hero
     consult = page[page.index('id="consult"'):]
     assert 'id="ceo"' in consult and 'id="ceoForm"' in consult
