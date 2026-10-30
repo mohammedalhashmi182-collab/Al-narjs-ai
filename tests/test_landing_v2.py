@@ -81,23 +81,28 @@ def test_no_invented_social_proof(page: str) -> None:
 def test_risk_reversal_matches_the_refund_terms(page: str) -> None:
     assert "ضمان استرداد" not in page and "money-back" not in page.lower()
     assert "قبل التجديد" in page
-    assert "لا تُسترد دفعات الفترة المنقضية" in page
+    assert "لا نعد هنا بنتيجة استرداد" in page
+    assert "نهاية الفترة المدفوعة" in page
 
 
 def test_trust_badges_and_vision_disclaimer(page: str) -> None:
-    assert "FL-272182297" in page and "Moyasar" in page
+    assert "FL-272182297" in page
+    assert "الدفع الإلكتروني قيد التفعيل حالياً" in page
+    assert "Moyasar" not in page
     assert 'id="vision"' in page
     assert "لسنا جهة حكومية" in page
 
 
 def test_contact_links_are_real_or_absent(page: str) -> None:
     # The floating assistant is gone. CEO calls to action are real /consult
-    # links. This page does not publish a phone number or an email address.
+    # links, and the published contact is the company email.
     assert "wa.me/" not in page
     assert "t.me/" not in page
     assert "m.me/" not in page
     assert 'id="siteAssistant"' not in page
-    assert "mailto:" not in page and "tel:" not in page
+    assert "tel:" not in page
+    assert "mailto:AlNarjisai@gmail.com" in page
+    assert "mailto:" not in page.replace("mailto:AlNarjisai@gmail.com", "")
     assert "data-open-assistant" not in page
     assert 'href="/consult"' in page
     assert 'href="#"' not in page

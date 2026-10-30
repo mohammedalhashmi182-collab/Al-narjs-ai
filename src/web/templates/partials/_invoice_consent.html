@@ -19,8 +19,8 @@
     {% if consent_needed %}
     <label for="refundConsent">
         <input type="checkbox" id="refundConsent" name="refund_consent" required>
-        <span>{% if ic_ar %}أوافق على أن: «{{ refund_consent_ar }}». (يُسترد دائماً الخصم المكرر أو خطأ الفوترة التقني — <a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)
-        {% else %}I agree that: “{{ refund_consent_en }}.” (Duplicate charges and technical billing errors are always refunded — <a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>){% endif %}</span>
+        <span>{% if ic_ar %}أوافق على أن: «{{ refund_consent_ar }}» (<a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)
+        {% else %}I agree that: “{{ refund_consent_en }}” (<a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>){% endif %}</span>
     </label>
     {% endif %}
     {% if card_enabled %}
@@ -42,7 +42,7 @@
             var box = document.getElementById('refundConsent');
             if (box && box.checked) { err.hidden = true; return true; }
             err.hidden = false;
-            err.textContent = ar ? 'لازم توافق على أن الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط، قبل الدفع.' : 'Please agree that: The service starts once it is activated and the amount is non-refundable after activation, except the setup fee: if the agent is not working within 10 business days, we refund the setup fee only, before paying.';
+            err.textContent = ar ? 'لازم توافق على أن: لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.' : 'Please agree that: We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.';
             if (box) box.focus();
             return false;
         };

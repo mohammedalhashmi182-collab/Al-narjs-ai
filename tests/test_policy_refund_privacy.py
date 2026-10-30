@@ -106,7 +106,7 @@ def test_terms_and_privacy_carry_the_policies():
     terms = (TPL / "terms.html").read_text(encoding="utf-8")
     privacy = (TPL / "privacy.html").read_text(encoding="utf-8")
     assert policies.REFUND_CONSENT_AR in terms
-    assert "الخصم المكرر" in terms and "mailto:AlNarjisai@gmail.com" in terms
+    assert "لا نعد هنا بنتيجة استرداد" in terms and "mailto:AlNarjisai@gmail.com" in terms
     assert "30 يوماً" in privacy and "خارج المملكة" in privacy and "ZATCA" in privacy
 
 
@@ -116,11 +116,11 @@ def test_prompts_carry_the_policies():
     from types import SimpleNamespace
 
     system, _ = ceo_advisor._llm_prompt("عندي متجر", SimpleNamespace(agents=["customer_service"]), "ar")
-    assert "Refunds: none after activation" in system
+    assert "do not promise a refund outcome" in system
     for slug in ("sales_closer", "customer_service"):
         d = yaml.safe_load((ROOT / "agents" / "base" / f"{slug}.yaml").read_text(encoding="utf-8"))
-        assert "Refunds: none after activation" in d["prompts"]["default"], slug
-        assert "24 hours a day, 7 days a week" in d["prompts"]["default"], slug
+        assert "do not promise a refund outcome" in d["prompts"]["default"], slug
+        assert "AlNarjisai@gmail.com" in d["prompts"]["default"], slug
 
 
 async def test_owner_faq_seed_is_idempotent(maker):
@@ -138,4 +138,4 @@ async def test_smart_reply_answers_policy_without_seed(maker):
 
     async with maker() as s:
         hits = await smart_reply._kb_hits(s, "متى أوقات الدعم عندكم؟")
-    assert hits and "24/7" in smart_reply.compose_kb_answer(hits)
+    assert hits and "AlNarjisai@gmail.com" in smart_reply.compose_kb_answer(hits)

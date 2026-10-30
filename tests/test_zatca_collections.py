@@ -69,6 +69,7 @@ def test_vat_placeholder_flagged_until_configured(monkeypatch):
     assert s["vat_placeholder"] and s["vat_number"] == zatca.VAT_PLACEHOLDER
     assert not zatca.readiness()["ready"]
     monkeypatch.setattr(st, "seller_vat_number", "310122393500003")
+    monkeypatch.setattr(st, "seller_address_ar", "الرياض، المملكة العربية السعودية")
     assert zatca.seller()["vat_number"] == "310122393500003"
     assert zatca.readiness()["ready"]
     monkeypatch.setattr(st, "seller_vat_number", "12345")  # malformed -> still placeholder

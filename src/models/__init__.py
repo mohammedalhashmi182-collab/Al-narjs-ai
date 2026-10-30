@@ -239,7 +239,7 @@ class Payment(Base):
     addon_agents: Mapped[int] = mapped_column(default=0, server_default="0")
     # Set when the order was raised by the renewal job for an existing project.
     is_renewal: Mapped[bool] = mapped_column(default=False, server_default=text("false"))
-    # Buyer ticked the non-refundable consent at checkout (policies.REFUND_CONSENT_AR).
+    # Buyer ticked the refund-question consent at checkout (policies.REFUND_CONSENT_AR).
     refund_consent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     refund_consent_version: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     # What the gateway actually charged when it is not SAR (PayPal: USD cents).

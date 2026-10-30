@@ -5,11 +5,11 @@
 :root{
   --nj-ink: #12100d;      /* warm black page */
   --nj-ink2: #1b1814;     /* raised surface */
-  --nj-ivory: #f4eee2;    /* text + light section */
+  --nj-ivory: #ffffff;    /* text on the black page */
   --nj-ivory2: #bdb4a5;   /* secondary text on dark */
   --nj-ivory3: #e9e1d3;   /* body text on dark */
   --nj-accent: #ff5a36;   /* action */
-  --nj-mud: #c9a27a;      /* Najdi mud-brick detail */
+  --nj-mud: #ff5a36;      /* action, same as --nj-accent */
   --nj-ink-soft: #5a5046; /* secondary text on ivory */
   --nj-line: rgba(201,162,122,.2);
   --nj-lineD: rgba(18,16,13,.14);
@@ -220,7 +220,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .ceo-avatar{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--nj-accent);color:var(--nj-ink);font-weight:700;font-size:13px;flex:none}
 .nj .ceo-head b{display:block}
 .nj .ceo-head span{color:var(--nj-ivory2);font-size:14px}
-.nj .ceo-online{display:inline-block;width:8px;height:8px;border-radius:50%;background:#6fae6a;margin-inline-end:6px}
+.nj .ceo-online{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5a36;margin-inline-end:6px}
 .nj #ceoForm label{display:block;font-weight:600;margin-bottom:8px}
 .nj #ceoForm textarea{width:100%;min-height:110px;resize:vertical;border-radius:12px;border:1px solid var(--nj-line);background:var(--nj-ink);color:var(--nj-ivory);font:inherit;font-size:16px;padding:12px 14px}
 .nj #ceoForm textarea::placeholder{color:#8f8678}

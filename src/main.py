@@ -844,15 +844,9 @@ async def landing_page(request: Request):
     from src.services import testimonials as _testimonials
     from src.services import payments as _pm
     employees = list(catalog.EMPLOYEES.values())
-    agent_count = len(employees)
-    registry = getattr(app.state, "agent_registry", None)
-    if registry is not None:
-        try:
-            registered = await registry.list_agents()
-            if registered:
-                agent_count = len(registered)
-        except Exception:  # DB unavailable -> catalog stays the source of truth
-            pass
+    # Catalog is the public source. A lagging registry must not print 30
+    # agents while the division list still shows nine departments.
+    agent_count = catalog.AGENT_COUNT
     return templates.TemplateResponse(
         request,
         "landing.html",
@@ -1213,15 +1207,7 @@ async def guide_page(request: Request):
 async def early_access_page(request: Request):
     from src.services import catalog
 
-    agent_count = len(catalog.EMPLOYEES)
-    registry = getattr(app.state, "agent_registry", None)
-    if registry is not None:
-        try:
-            registered = await registry.list_agents()
-            if registered:
-                agent_count = len(registered)
-        except Exception:  # DB unavailable -> catalog stays the source of truth
-            pass
+    agent_count = catalog.AGENT_COUNT
     return templates.TemplateResponse(
         request,
         "early_access.html",
@@ -2381,12 +2367,12 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
             status_code=503,
             content={
                 "reply": (
-                    "المستشار الذكي غير متاح الآن. اضغط «اطلب تواصل موظف» "
-                    "في المساعد وسيرد عليك فريقنا بالبريد."
+                    "المستشار الذكي غير متاح الآن. راسلنا على AlNarjisai@gmail.com "
+                    "ويرد عليك الفريق بالبريد."
                     if locale == "ar"
                     else
-                    "The smart consultant is temporarily unavailable. Press "
-                    "\u201cAsk a person to contact me\u201d in the assistant and our team will reply by email."
+                    "The smart consultant is temporarily unavailable. Email "
+                    "AlNarjisai@gmail.com and the team will reply by email."
                 ),
                 "error": "consult_unavailable",
                 "retryable": True,
@@ -3899,7 +3885,7 @@ async def report_transfer_sent(payment_id: str, request: Request):
             raise HTTPException(409, "This invoice is settled through its payment gateway")
         if payment.status != "paid" and payment.refund_consent_at is None:
             # Owner-raised invoices reach the buyer without checkout, so the
-            # non-refundable consent is collected here, on the invoice page.
+            # checkout consent is collected here, on the invoice page.
             try:
                 body = await request.json()
             except Exception:  # noqa: BLE001 - empty / non-JSON body = no consent
@@ -3986,7 +3972,7 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
         if payment.gateway == "paypal" and payment.gateway_payment_id:
             raise HTTPException(409, "This invoice is settled through PayPal")
         if not settings.moyasar_api_secret:
-            raise HTTPException(503, "Card payment is not available; use bank transfer")
+            raise HTTPException(503, "Card payment is not open yet; email AlNarjisai@gmail.com")
         try:
             data = await _pm.initiate_moyasar(
                 session,
@@ -3997,7 +3983,8 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
                 callback_url=f"{base}/webhooks/moyasar",
             )
         except _pm.PaymentError as e:
-            raise HTTPException(502, f"card payment unavailable: {str(e)[:200]}")
+            get_logger(__name__).warning("moyasar invoice start failed: %s", type(e).__name__)
+            raise HTTPException(502, "card payment unavailable")
         return {
             "payment_id": str(payment.id),
             "gateway": "moyasar",

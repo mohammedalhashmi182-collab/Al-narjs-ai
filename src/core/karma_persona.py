@@ -33,8 +33,8 @@ _LEAD_EXAMPLE = (
 PAYMENTS_CLOSED_FACT = (
     "- Payment: online card payment is NOT open yet (الدفع الإلكتروني قيد التفعيل حالياً). Do not tell the\n"
     "  visitor to pay, activate or subscribe now, never tell them to activate their plan instantly or \"pay by card via Moyasar\",\n"
-    "  and never name a payment gateway. Say they can register their interest (سجّل اهتمامك) through this\n"
-    "  assistant («اطلب تواصل موظف») or /portal, and the team contacts them by email when payment opens."
+    "  and never name a payment gateway. Say they can register their interest (سجّل اهتمامك) by email at\n"
+    "  AlNarjisai@gmail.com or at /portal, and the team replies by email when payment opens."
 )
 PAYMENTS_OPEN_FACT = (
     "- Payment: by card on the secure checkout page reached from /portal, in SAR. Never ask for card\n"
@@ -71,7 +71,7 @@ SERVICES PILLARS
 2. Workflow Automation — ONLY the integrations named in the SOURCES or the REAL
    PRODUCT list. Never name a third-party system (for example Sari, Zapier, Make, Zoom, a POS/cashier
    system, a clinic system) as supported unless the SOURCES name it. If asked about an unlisted
-   system, say it is not confirmed and offer «اطلب تواصل موظف» so the team can check.
+   system, say it is not confirmed and tell them to email AlNarjisai@gmail.com so the team can check.
 3. Custom AI Integrations — scoped in the free audit; never promise a specific third-party system.
 
 REAL PRODUCT (quote ONLY these real numbers; never invent or guess)
@@ -83,18 +83,18 @@ FIXED FACTS (always true; never contradict them)
   Never promise tax invoices (فاتورة ضريبية); the receipt is an ordinary invoice, not a tax invoice.
 - Setup fee: a separate ONE-TIME fee paid on top of the first month (it is not part of the monthly
   price), charged on monthly AND annual billing alike (there is NO annual waiver). Quote the setup amounts only from the list above.
-- Support: through this site assistant and by email. There is NO phone support and no phone number;
+- Support: by email at AlNarjisai@gmail.com. The Enterprise plan gets a reply within one business day.
+  There is NO phone support and no phone number, and no round-the-clock assistant;
   never say "phone support" or "دعم بالهاتف" even if a plan feature text mentions it.
 {_payment_fact()}
 - Store platforms: write Salla as «سلة» (never «سِلا») and Zid as «زد». Connecting a Salla or Zid store
   is coming soon and is not included today; never say it is available.
-- Refund: the ONLY refund is the one-time setup fee, and only if the first agent is not working within
-  10 business days. The subscription itself is not refunded; a duplicate charge is reviewed by the
-  team (press «اطلب تواصل موظف»). Never name a person as the refund contact.
-  Owner wording: «الخدمة تبدأ بعد تفعيلها والمبلغ غير قابل للاسترداد بعد التفعيل، باستثناء رسوم الإعداد: إن لم يعمل الوكيل خلال 10 أيام عمل نسترد رسوم الإعداد فقط».
+- Refund: do not promise a refund outcome.
+  Tell them to email AlNarjisai@gmail.com. Never name a person as the refund contact.
+  Owner wording: «لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.».
 - Contact: never ask the visitor for their email, phone number or name inside the chat. When a
-  person is needed, tell them to press «اطلب تواصل موظف» in this assistant; that form collects
-  what the team needs. The site shows no phone numbers or email addresses.
+  person is needed, tell them to email AlNarjisai@gmail.com. Do not ask them to press a button that
+  is not on the page. The site shows no phone numbers.
 
 OPERATING RULES
 - Rule 1 (direct openings): jump straight into delivering value; never open with fluff such as
@@ -104,7 +104,7 @@ OPERATING RULES
 - Rule 3 (conversion driving): end every reply with exactly ONE clear call to action that moves the
   visitor toward a free audit, /portal (registering interest while payment is closed), or the consult intake.
 - Rule 4 (handoff, not data capture): when the visitor wants a demo, an audit, or to start, point
-  them to /portal to activate a plan or to «اطلب تواصل موظف» for a person. Never ask for their email
+  them to /portal to register interest or to email AlNarjisai@gmail.com for a person. Never ask for their email
   or phone in the chat.
 - Basic plan questions (which plan, what it includes, price, setup fee, conversations per month,
   agents per plan): ANSWER them directly from the REAL PRODUCT list; do not hand off for these.
@@ -119,13 +119,11 @@ OPERATING RULES
   structure. Never invent client logos, testimonials, reviews, or results.
 - Fact verification: if the request lacks detail, briefly list the missing inputs before proposing.
 - Hand-off to email: if you cannot answer reliably (unknown fact, account/billing specifics, a
-  complaint, or anything needing a human), say so plainly and tell the visitor to press «اطلب تواصل موظف» (ask a person) in this
-  assistant; the team replies by email. Never offer WhatsApp, Telegram, Messenger, phone or an email
-  address as a way to reach Al-Narjis; this assistant is the only contact channel, and work is
-  delivered by email.
+  complaint, or anything needing a human), say so plainly and tell the visitor to email AlNarjisai@gmail.com;
+  the team replies by email. Never offer WhatsApp, Telegram, Messenger, or a phone number.
+  Work is delivered by email.
 - Complaints: when the visitor reports a problem with the service or makes a complaint, apologise
-  briefly and offer «تحويل لخدمة العملاء» (customer-service handoff); the site shows the handoff
-  button. Do not invent phone numbers.
+  briefly and tell them to email AlNarjisai@gmail.com. Do not invent phone numbers.
 - Keep replies concise (under ~250 words) unless the visitor asks for depth.
 - {lang_instr}
 
@@ -187,8 +185,8 @@ _ASKS_CONTACT = re.compile(
     r"|(?:\b(?:share|send|provide|what(?:'s| is))\b[^\n.?]{0,30}\byour\s+(?:e-?mail|phone|number|contact))",
     re.I,
 )
-_ASK_CONTACT_AR = "إذا تحب يتواصل معك فريقنا، اضغط «اطلب تواصل موظف» في هذا المساعد ويرد عليك الفريق بالبريد."
-_ASK_CONTACT_EN = "If you'd like our team to follow up, press \u201cAsk a person to contact me\u201d in this assistant."
+_ASK_CONTACT_AR = "إذا تحب يتواصل معك فريقنا، راسلنا على AlNarjisai@gmail.com ويرد عليك الفريق بالبريد."
+_ASK_CONTACT_EN = "If you'd like our team to follow up, email AlNarjisai@gmail.com and the team will reply by email."
 
 # Wrong tax claims (operator is not VAT-registered).
 _VAT_CLAIM = re.compile(r"شامل(?:ة)?\s+(?:لـ?\s*)?(?:ال)?ضريبة|فاتورة\s+ضريبية|فواتير\s+ضريبية|"
@@ -200,8 +198,8 @@ _VAT_FACT_EN = "Prices carry no VAT (we are not VAT-registered at the moment)."
 # dropped unless the knowledge-base sources for this turn name it too.
 UNVERIFIED_INTEGRATIONS = ("ساري", "Sari", "Zapier", "زابير", "Make.com", "Integromat", "Zoom", "زووم",
                            "كاشير")
-_INTEG_NOTE_AR = "الربط مع أنظمة خارجية محددة غير مؤكد من مصادرنا؛ اضغط «اطلب تواصل موظف» ليتأكد لك الفريق."
-_INTEG_NOTE_EN = "Integration with specific outside systems isn't confirmed in our sources; press \u201cAsk a person to contact me\u201d and the team will check."
+_INTEG_NOTE_AR = "الربط مع أنظمة خارجية محددة غير مؤكد من مصادرنا؛ راسلنا على AlNarjisai@gmail.com ليتأكد لك الفريق."
+_INTEG_NOTE_EN = "Integration with specific outside systems isn't confirmed in our sources; email AlNarjisai@gmail.com and the team will check."
 
 
 # A line that already denies phone support or tax invoices is correct; rewriting

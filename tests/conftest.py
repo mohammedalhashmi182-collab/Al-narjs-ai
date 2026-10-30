@@ -18,6 +18,34 @@ if not _db_now or _shared_sqlite:
 import pytest as _pytest
 
 
+def _keep_starlette_state_across_monkeypatch() -> None:
+    """pytest 9.2 reads the old value from ``instance.__dict__``.
+
+    Starlette ``State`` stores attributes in ``_state`` instead, so undo
+    treated every patched key as brand new, called ``delattr``, and either
+    raised ``KeyError`` or wiped lifespan state for the rest of the process.
+    """
+    from _pytest.monkeypatch import NOTSET, MonkeyPatch
+    from starlette.datastructures import State
+
+    original = MonkeyPatch.setattr
+
+    def setattr(self, target, name=NOTSET, value=NOTSET, raising=True):  # noqa: ANN001
+        if isinstance(target, State) and isinstance(name, str):
+            oldval = getattr(target, name, NOTSET)
+            if raising and oldval is NOTSET:
+                raise AttributeError(f"{target!r} has no attribute {name!r}")
+            State.__setattr__(target, name, value)
+            self._setattr.append((target, name, oldval))
+            return None
+        return original(self, target, name, value, raising)
+
+    MonkeyPatch.setattr = setattr
+
+
+_keep_starlette_state_across_monkeypatch()
+
+
 @_pytest.fixture
 def founding_full(monkeypatch):
     """All founding seats taken: checkout prices at the regular rate.

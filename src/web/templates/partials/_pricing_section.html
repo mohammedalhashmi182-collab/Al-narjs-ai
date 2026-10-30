@@ -3,7 +3,7 @@
     setup_guarantee. -#}
 <!-- ==================== PRICING ==================== -->
 <style>
-.plan .feat-h{font-size:.78rem;font-weight:700;margin:12px 0 4px;color:var(--v2-ink,#2a2234)}
+.plan .feat-h{font-size:.78rem;font-weight:700;margin:12px 0 4px;color:var(--v2-ink,#000000)}
 .plan .feat-coming{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(0,0,0,.12);opacity:.62}
 .plan .feat-coming .feat-h{color:inherit;font-weight:600}
 .plan .feat-coming ul li{font-size:.82rem}
@@ -48,7 +48,7 @@
             {% endfor %}
         </div>
         <p class="addon-note rv">{% if ar %}تحتاج وكيلاً زيادة؟ <b>وكيل إضافي بـ{{ addon.price }} ر.س</b> شهرياً. رسوم ميتا فوق السقف تُحسب بالتكلفة بدون أي زيادة.{% else %}Need another agent? <b>An extra agent is SAR {{ addon.price }}</b> a month. Meta fees above the cap are charged at cost, with no markup.{% endif %}</p>
-        <p class="addon-note rv">{% if ar %}<b>رسوم الإعداد لمرة واحدة:</b> {% for plan in plans %}{{ plan.name }} {% if plan.setup_fee %}{{ '{:,}'.format(plan.setup_fee // 100) }} ر.س{% else %}بدون رسوم{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — تُدفع في الاشتراك الشهري والسنوي. <b>ضمان الإعداد:</b> {{ setup_guarantee.text }}{% else %}<b>One-time setup fee:</b> {% for plan in plans %}{{ plan.name_en }} {% if plan.setup_fee %}SAR {{ '{:,}'.format(plan.setup_fee // 100) }}{% else %}free{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — charged on monthly and annual billing. <b>Setup guarantee:</b> {{ setup_guarantee.text_en }}{% endif %}</p>
+        <p class="addon-note rv">{% if ar %}<b>رسوم الإعداد لمرة واحدة:</b> {% for plan in plans %}{{ plan.name }} {% if plan.setup_fee %}{{ '{:,}'.format(plan.setup_fee // 100) }} ر.س{% else %}بدون رسوم{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — تُدفع في الاشتراك الشهري والسنوي. {{ setup_guarantee.text }}{% else %}<b>One-time setup fee:</b> {% for plan in plans %}{{ plan.name_en }} {% if plan.setup_fee %}SAR {{ '{:,}'.format(plan.setup_fee // 100) }}{% else %}free{% endif %}{% if not loop.last %} · {% endif %}{% endfor %} — charged on monthly and annual billing. {{ setup_guarantee.text_en }}{% endif %}</p>
         <div class="table-scroll rv">
         <table class="compare">
             <thead><tr><th>{% if ar %}المقارنة{% else %}Compare{% endif %}</th>{% for plan in plans %}<th{% if plan.recommended %} class="is-rec"{% endif %}>{% if ar %}{{ plan.name }}{% else %}{{ plan.name_en }}{% endif %}</th>{% endfor %}</tr></thead>
