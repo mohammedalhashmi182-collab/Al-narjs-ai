@@ -39,7 +39,11 @@ def verify_session_token(token: Optional[str]) -> bool:
         if payload.get("r") != "owner":
             return False
         # Fixed 12-hour expiry from issue time (not renewed on use)
-        if time.time() - payload.get("t", 0) > 12 * 3600:
+        issued_at = payload.get("t")
+        if type(issued_at) is not int:
+            return False
+        age = time.time() - issued_at
+        if age < 0 or age > 12 * 3600:
             return False
         return True
     except Exception:
