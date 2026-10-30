@@ -542,6 +542,7 @@ SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-Frame-Options": "DENY",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(self)",
 }
 
 
@@ -570,6 +571,52 @@ class SecurityHeadersMiddleware:
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+
+
+class HTTPSRedirectByProxyMiddleware:
+    """301 to https when the proxy says the client used http.
+
+    GET and HEAD only, and never ``/health`` (Render's probe). A missing
+    header, https, or any other method is left unchanged.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        proto = _first_header(scope, b"x-forwarded-proto").split(",")[0].strip().lower()
+        method = (scope.get("method") or "GET").upper()
+        path = scope.get("path") or "/"
+        if proto == "http" and method in {"GET", "HEAD"} and path != "/health":
+            host = _first_header(scope, b"host") or "localhost"
+            query = (scope.get("query_string") or b"").decode("latin-1")
+            location = f"https://{host}{path}"
+            if query:
+                location += "?" + query
+            await send({
+                "type": "http.response.start",
+                "status": 301,
+                "headers": [
+                    (b"location", location.encode("latin-1")),
+                    (b"content-length", b"0"),
+                ],
+            })
+            await send({"type": "http.response.body", "body": b""})
+            return
+        await self.app(scope, receive, send)
+
+
+def _first_header(scope, name: bytes) -> str:
+    for key, value in scope.get("headers") or ():
+        if key.lower() == name:
+            return value.decode("latin-1")
+    return ""
+
+
+app.add_middleware(HTTPSRedirectByProxyMiddleware)
 
 from src.utils.request_log import RequestLogMiddleware  # noqa: E402
 
@@ -2961,6 +3008,10 @@ async def health(request: Request, deep: bool = False, ai: bool = False):
         return body
     if not deep:
         return {"status": "healthy", "version": "0.1.0"}
+    from src.core.owner_auth import check_owner
+
+    if not check_owner(request):
+        return {"status": "healthy"}
     from src.services import ops_monitor
 
     result = await ops_monitor.deep_health(app.state.session_factory)
