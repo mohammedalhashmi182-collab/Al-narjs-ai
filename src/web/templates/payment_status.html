@@ -20,7 +20,7 @@
     <style>
         .pay-kicker { display:inline-block; margin-bottom:12px; padding:4px 12px; border-radius:999px; font-size:13px; font-weight:800; letter-spacing:.04em; }
         .pay-kicker.ok { background:#FF5A36; color:#000000; }
-        .pay-kicker.bad { background:#10233f; color:#8eb4ff; border:1px solid #8eb4ff; }
+        .pay-kicker.bad { background:#e6e6e6; color:#1a1a1a; border:1px solid #8a8a8a; }
         .pay-title.ok { font-weight:800; }
         .pay-title.bad { font-weight:500; }
     </style>
@@ -34,7 +34,7 @@
             {% if result == "success" %}
             <i id="payIcon" class="fas fa-check-circle" style="color:#FF5A36;"></i>
             {% else %}
-            <i id="payIcon" class="fas fa-times-circle" style="color:#8eb4ff;"></i>
+            <i id="payIcon" class="fas fa-times-circle" style="color:#cfcfcf;"></i>
             {% endif %}
         </div>
         <p id="payKicker" class="pay-kicker {{ 'ok' if result == 'success' else 'bad' }}">{% if result == "success" %}{% if _lang == 'ar' %}تم الدفع{% else %}Paid{% endif %}{% else %}{% if _lang == 'ar' %}لم يكتمل{% else %}Not completed{% endif %}{% endif %}</p>
@@ -107,7 +107,7 @@
                 var ok = st && st.status === 'paid';
                 if (icon) {
                     icon.className = ok ? 'fas fa-check-circle' : 'fas fa-times-circle';
-                    icon.style.color = ok ? '#FF5A36' : '#8eb4ff';
+                    icon.style.color = ok ? '#FF5A36' : '#cfcfcf';
                 }
                 if (kicker) {
                     kicker.textContent = ok ? paidKicker : failKicker;

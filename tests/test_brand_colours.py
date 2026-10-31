@@ -119,3 +119,34 @@ def test_public_surfaces_have_no_green_purple_gold_or_beige():
                     hits.append(f"{rel}:{number} {family} rgb({red},{green},{blue})")
                     break
     assert not hits, hits
+
+
+def _is_blue(red: int, green: int, blue: int) -> bool:
+    chroma = max(red, green, blue) - min(red, green, blue)
+    if chroma < 18:
+        return False
+    hue, _light, sat = colorsys.rgb_to_hls(red / 255, green / 255, blue / 255)
+    return 185 <= hue * 360 <= 255 and sat >= 0.15
+
+
+def test_payment_pages_have_no_blue():
+    """Failure state is neutral grey. Blue, including #8eb4ff and #10233f, is not allowed."""
+    pages = sorted((ROOT / "templates").glob("payment*.html"))
+    assert pages, "payment templates disappeared"
+    hits = []
+    for path in pages:
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            colours: list[tuple[int, int, int]] = []
+            for match in HEX.finditer(line):
+                channels = _channels(match.group(1))
+                if channels:
+                    colours.append(channels)
+            for match in RGB.finditer(line):
+                channels = tuple(int(part) for part in match.groups())
+                if all(0 <= channel <= 255 for channel in channels):
+                    colours.append(channels)  # type: ignore[arg-type]
+            for red, green, blue in colours:
+                if _is_blue(red, green, blue):
+                    hits.append(f"{path.name}:{number} blue rgb({red},{green},{blue})")
+                    break
+    assert not hits, hits

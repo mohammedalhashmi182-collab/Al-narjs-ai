@@ -108,7 +108,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--nj-lineD)}
 .nj .step{padding:34px 28px 8px;border-inline-start:1px solid var(--nj-lineD)}
 .nj .step:first-child{border-inline-start:0;padding-inline-start:0}
-.nj .step .n{font-weight:300;font-size:54px;line-height:1;color:#b3b3b3}
+.nj .step .n{font-weight:300;font-size:54px;line-height:1;color:#757575}
 .nj .step h3{font-size:23px;margin:18px 0 8px}
 .nj .step p{color:var(--nj-ink-soft);font-size:17px}
 
