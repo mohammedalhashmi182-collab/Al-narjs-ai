@@ -12,14 +12,15 @@
   --muted: #f5f5f4;
   --muted-foreground: #57534e;
   --accent: #f3f3f3;
-  --accent-foreground: #c2410c; /* small text on #fafaf9 / #fff. #FF5A36 is 2.97:1 / 3.10:1. */
+  /* Portal surfaces are dark. #C2410C on #0B0B0D is 3.8:1; #FF5A36 is 6.3:1. */
+  --accent-foreground: #ff5a36;
   --structural: #ff5a36;
   --border: #e7e5e4;
   --input: #d6d3d1;
   --ring: #ff5a36;
   --danger: #9b2c2c;
-  --warning: #fff4ed;
-  --warning-border: #f1d0be;
+  --warning: #f6f5f4;
+  --warning-border: #e7e5e4;
   --warning-foreground: #7c3521;
   --radius: 0.625rem;
   --radius-sm: 0.375rem;
@@ -436,7 +437,7 @@
   line-height: 1.9;
 }
 .portal-page .chat-box .msg-client { background: var(--accent); border-start-start-radius: var(--radius-lg); border-start-end-radius: var(--radius-sm); }
-.portal-page .chat-box .msg-complete { background: var(--accent); color: var(--accent-foreground); font-weight: 600; }
+.portal-page .chat-box .msg-complete { background: var(--accent); color: #c2410c; font-weight: 600; }
 .portal-page .chat-box .portal-upload { border-style: dashed; }
 .portal-page .portal-chat-compose { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .portal-page .portal-chat-compose input { flex: 1 1 12rem; }
@@ -445,7 +446,8 @@
 /* Footer and loading states */
 .portal-page .portal-footer {
   padding-block: var(--space-6);
-  color: var(--muted-foreground);
+  /* #57534E on #0B0B0D is 2.58:1. #B3B3B3 clears 4.5:1 on that dark footer. */
+  color: #b3b3b3;
   background: var(--card);
   border-block-start: 1px solid var(--border);
   text-align: center;
