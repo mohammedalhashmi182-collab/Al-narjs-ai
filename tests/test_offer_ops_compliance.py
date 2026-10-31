@@ -345,6 +345,10 @@ async def test_health_endpoint_stays_cheap_and_deep_is_opt_in(maker, monkeypatch
     monkeypatch.setattr(ops_monitor, "configured_externals", lambda: {})
     async with _client(maker, owner=False) as c:
         assert (await c.get("/health")).json() == {"status": "healthy", "version": "0.1.0"}
+        public = (await c.get("/health/deep")).json()
+        assert public == {"status": "healthy"}
+        assert (await c.get("/health", params={"deep": "1"})).json() == {"status": "healthy"}
+    async with _client(maker, owner=True) as c:
         deep = (await c.get("/health/deep")).json()
         assert deep["status"] == "healthy" and deep["db"]["ok"] is True
         text = str(deep).lower()

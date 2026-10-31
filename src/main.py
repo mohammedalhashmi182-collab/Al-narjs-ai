@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
+from urllib.parse import quote, urlsplit
 from uuid import UUID
 
 from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
@@ -542,6 +543,7 @@ SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-Frame-Options": "DENY",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(self)",
 }
 
 
@@ -570,6 +572,131 @@ class SecurityHeadersMiddleware:
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+
+
+class HTTPSRedirectByProxyMiddleware:
+    """301 to https when the proxy says the client used http.
+
+    GET and HEAD only, and never ``/health`` (Render's probe). A missing
+    header, https, or any other method is left unchanged. The Location origin
+    comes from PUBLIC_BASE_URL, or from a fixed allowlist of our own hosts.
+    The request Host is never copied into the URL. Location uses the
+    percent-encoded ``raw_path`` and query, so a decoded path never reaches
+    the header.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        proto = _first_header(scope, b"x-forwarded-proto").split(",")[0].strip().lower()
+        method = (scope.get("method") or "GET").upper()
+        path = scope.get("path") or "/"
+        if proto == "http" and method in {"GET", "HEAD"} and path != "/health":
+            await send({
+                "type": "http.response.start",
+                "status": 301,
+                "headers": [
+                    (b"location", _redirect_location_bytes(scope)),
+                    (b"content-length", b"0"),
+                ],
+            })
+            await send({"type": "http.response.body", "body": b""})
+            return
+        await self.app(scope, receive, send)
+
+
+# Exact hostnames we may reflect. Anything else, including a lookalike, is ignored.
+_OWN_HTTPS_HOSTS = frozenset({"karmaai.online", "www.karmaai.online"})
+_CANONICAL_HTTPS_ORIGIN = "https://karmaai.online"
+
+
+def _header_safe(raw: bytes) -> bytes:
+    """Keep visible ASCII. Percent-encode controls and non-ASCII in place."""
+    out = bytearray()
+    for byte in raw:
+        if byte < 0x20 or byte >= 0x7F:
+            out.extend(f"%{byte:02X}".encode("ascii"))
+        else:
+            out.append(byte)
+    return bytes(out)
+
+
+def _redirect_location_bytes(scope) -> bytes:
+    """Location as bytes. Path and query stay percent-encoded; never decoded."""
+    origin = _https_redirect_origin(scope).encode("ascii")
+    raw_path = scope.get("raw_path") or b""
+    if isinstance(raw_path, (bytes, bytearray)):
+        raw_path = bytes(raw_path).split(b"?", 1)[0]
+    else:
+        raw_path = b""
+    if not raw_path:
+        raw_path = quote(scope.get("path") or "/", safe="/").encode("ascii")
+    path = _header_safe(raw_path)
+    if not path.startswith(b"/"):
+        path = b"/" + path
+    query = scope.get("query_string") or b""
+    if not isinstance(query, (bytes, bytearray)):
+        query = b""
+    query = _header_safe(bytes(query))
+    if query:
+        return origin + path + b"?" + query
+    return origin + path
+
+
+def _https_redirect_origin(scope) -> str:
+    """https origin for the redirect. Never the raw Host header."""
+    configured = _origin_from_public_base(settings.public_base_url)
+    if configured:
+        return configured
+    hostname = _hostname_from_host_header(_first_header(scope, b"host"))
+    if hostname in _OWN_HTTPS_HOSTS:
+        return "https://" + hostname
+    return _CANONICAL_HTTPS_ORIGIN
+
+
+def _origin_from_public_base(value: str | None) -> str:
+    """scheme + host from PUBLIC_BASE_URL, forced to https. Empty if unset."""
+    raw = (value or "").strip()
+    if not raw or any(ch in raw for ch in " \t\r\n"):
+        return ""
+    if "://" not in raw:
+        raw = "https://" + raw
+    parts = urlsplit(raw)
+    host = (parts.hostname or "").rstrip(".").lower()
+    if not host:
+        return ""
+    try:
+        port = parts.port
+    except ValueError:
+        return ""
+    if port and port != 443:
+        return f"https://{host}:{port}"
+    return f"https://{host}"
+
+
+def _hostname_from_host_header(value: str) -> str:
+    """Hostname only, for an allowlist compare. Not safe to put into a URL."""
+    raw = (value or "").strip().lower()
+    if not raw or any(ch in raw for ch in " \t\r\n/@\\"):
+        return ""
+    if raw.startswith("["):
+        end = raw.find("]")
+        return raw[1:end] if end > 1 else ""
+    return raw.split(":", 1)[0].rstrip(".")
+
+
+def _first_header(scope, name: bytes) -> str:
+    for key, value in scope.get("headers") or ():
+        if key.lower() == name:
+            return value.decode("latin-1")
+    return ""
+
+
+app.add_middleware(HTTPSRedirectByProxyMiddleware)
 
 from src.utils.request_log import RequestLogMiddleware  # noqa: E402
 
@@ -2961,6 +3088,10 @@ async def health(request: Request, deep: bool = False, ai: bool = False):
         return body
     if not deep:
         return {"status": "healthy", "version": "0.1.0"}
+    from src.core.owner_auth import check_owner
+
+    if not check_owner(request):
+        return {"status": "healthy"}
     from src.services import ops_monitor
 
     result = await ops_monitor.deep_health(app.state.session_factory)
