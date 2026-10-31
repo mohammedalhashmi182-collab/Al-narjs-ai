@@ -19,7 +19,10 @@
 
 :root {
   /* --- brand: gold is the action colour, never a background ------------- */
-  --tg-blue: #ff5a36;              /* active accent */
+  --tg-blue: #ff5a36;              /* fills, large type, accents */
+  /* Small text on white / #FAFAF9. #FF5A36 is 3.10:1 / 2.97:1 (fails AA).
+     #C2410C is 5.18:1 on #FFFFFF and 4.96:1 on #FAFAF9. #D93F1E is only 4.49:1. */
+  --tg-blue-ink: #c2410c;
   --tg-blue-press: #d93f1e;
   --tg-blue-deep: #b83316;
   --tg-blue-tint: #f3f3f3;
@@ -133,9 +136,9 @@ a { text-decoration: none; color: inherit; }
 
 .n-geo {
   background-image:
-    linear-gradient(45deg, rgba(79, 121, 66, 0.05) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(79, 121, 66, 0.05) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(79, 121, 66, 0.05) 75%),
+    linear-gradient(45deg, rgba(255, 90, 54, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 90, 54, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 90, 54, 0.05) 75%),
     linear-gradient(-45deg, transparent 75%, rgba(36, 129, 204, 0.05) 75%);
   background-size: 48px 48px;
   background-position: 0 0, 0 24px, 24px -24px, -24px 0;
@@ -159,7 +162,7 @@ a { text-decoration: none; color: inherit; }
   gap: 14px;
   font-size: var(--fs-sm);
   letter-spacing: 3px;
-  color: var(--tg-blue);
+  color: var(--tg-blue-ink);
   font-weight: 700;
 }
 .n-divider::before,
@@ -178,7 +181,7 @@ a { text-decoration: none; color: inherit; }
   color: var(--n-brown);
   letter-spacing: -0.4px;
 }
-.n-title .gold { color: var(--tg-blue); }
+.n-title .gold { color: var(--tg-blue-ink); }
 .n-sub { color: var(--n-brown-2); font-size: var(--fs-md); }
 
 /* --- buttons: flat Telegram blue, rounder, no heavy lift ---------------- */
@@ -199,16 +202,16 @@ a { text-decoration: none; color: inherit; }
 }
 .btn-gold {
   background: var(--tg-blue);
-  color: #ffffff;
+  color: #000000;
   box-shadow: var(--shadow);
   border-color: transparent;
 }
 .btn-outline {
   background: var(--n-sand-2);
-  color: var(--tg-blue-press);
+  color: var(--tg-blue-ink);
   border: 1px solid var(--n-line-2);
 }
-.btn-outline:hover { border-color: var(--tg-blue); color: var(--tg-blue); }
+.btn-outline:hover { border-color: var(--tg-blue); color: var(--tg-blue-ink); }
 .btn-gold:hover { background: var(--tg-blue-press); transform: translateY(-1px); box-shadow: var(--shadow-md); }
 .btn:active { background: var(--tg-blue-deep); transform: translateY(0); }
 
@@ -247,10 +250,10 @@ a { text-decoration: none; color: inherit; }
   border-radius: var(--r-md);
   transition: background 0.15s ease, color 0.15s ease;
 }
-.n-sidebar nav a:hover { background: var(--tg-blue-soft); color: var(--tg-blue-press); }
+.n-sidebar nav a:hover { background: var(--tg-blue-soft); color: var(--tg-blue-ink); }
 .n-sidebar nav a.active {
   background: var(--tg-blue);
-  color: #ffffff;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -282,7 +285,7 @@ a { text-decoration: none; color: inherit; }
   cursor: pointer;
   transition: all 0.15s ease;
 }
-.lang-pill button.active { background: var(--tg-blue); color: #ffffff; }
+.lang-pill button.active { background: var(--tg-blue); color: #000000; }
 [dir="ltr"] .lang-pill button.arabic { order: 1; }
 [dir="ltr"] .lang-pill button.english { order: 0; }
 
@@ -343,7 +346,7 @@ body[data-lang="ar"] [data-lang="ar"][data-inline] { display: inline; }
   top: 14px;
   right: 18px;
   font-size: 1.1rem;
-  color: var(--tg-blue);
+  color: var(--tg-blue-ink);
 }
 [dir="ltr"] .pkg.featured::after { right: auto; left: 18px; }
 .pkg.selected {
@@ -371,7 +374,7 @@ body[data-lang="ar"] [data-lang="ar"][data-inline] { display: inline; }
   content: "\25C6";
   position: absolute;
   left: 0;
-  color: var(--tg-blue);
+  color: var(--tg-blue-ink);
   font-size: 0.7rem;
   top: 13px;
 }
@@ -444,7 +447,7 @@ select option { background: #ffffff; color: var(--n-brown); }
   height: 56px;
   border-radius: 50%;
   background: var(--tg-blue);
-  color: #ffffff;
+  color: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -460,29 +463,29 @@ select option { background: #ffffff; color: var(--n-brown); }
 .tg-agent,
 .m-tg {
   background: var(--tg-blue);
-  color: #ffffff;
+  color: #000000;
   border-color: transparent;
 }
 .btn-tg:hover,
 .tg-agent:hover { background: var(--tg-blue-press); }
 .btn-tg .tg-icon,
 .tg-agent .tg-icon,
-.m-tg .tg-icon { color: #ffffff; }
+.m-tg .tg-icon { color: #000000; }
 
 .n-footer {
   background: var(--n-cream);
   color: var(--n-brown-2);
   border-block-start: 1px solid var(--n-line);
 }
-.n-footer a { color: var(--tg-blue); text-decoration: none; }
+.n-footer a { color: var(--tg-blue-ink); text-decoration: none; }
 .n-footer a:hover { text-decoration: underline; }
 
 .bg-sand { background: var(--n-sand); }
 .bg-cream { background: var(--n-cream); }
 .bg-green { background: var(--tg-blue); }
 .bg-green-3 { background: var(--n-sidebar-bg); }
-.text-green { color: var(--tg-blue); }
-.text-gold { color: var(--tg-blue); }
+.text-green { color: var(--tg-blue-ink); }
+.text-gold { color: var(--tg-blue-ink); }
 
 .emp-card.dormant { filter: none; opacity: 0.94; }
 .emp-card.dormant .emp-ava { background: repeating-linear-gradient(45deg, rgba(36,129,204,0.10) 0 12px, rgba(36,129,204,0.03) 12px 24px); }
@@ -506,7 +509,7 @@ select option { background: #ffffff; color: var(--n-brown); }
   transition: 0.15s;
   font-family: var(--font-ar);
 }
-.chip:hover { background: var(--tg-blue); color: #ffffff; border-color: var(--tg-blue); }
+.chip:hover { background: var(--tg-blue); color: #000000; border-color: var(--tg-blue); }
 
 /* --- conversation surfaces: rounder, Telegram bubbles ------------------- */
 .cmsg,

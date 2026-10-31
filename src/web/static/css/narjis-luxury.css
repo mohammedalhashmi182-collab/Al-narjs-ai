@@ -75,7 +75,7 @@ body.luxury button:focus-visible,
 body.luxury input:focus-visible,
 body.luxury select:focus-visible,
 body.luxury textarea:focus-visible {
-  outline: 2px solid var(--tg-blue, #b3922e);
+  outline: 2px solid var(--tg-blue, #ff5a36);
   outline-offset: 2px;
 }
 
@@ -105,13 +105,13 @@ body.luxury .n-card:hover::after {
 /* --- brand actions on dark: HUMAIN mint is the single primary ----------------- */
 body.luxury .btn-gold {
   background: linear-gradient(135deg, var(--odsf-gold-deep, #d93f1e), var(--odsf-gold, #ff5a36));
-  color: #05231d;
+  color: #000000;
   border-color: transparent;
   box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.45), 0 0 28px rgba(255, 90, 54, 0.28);
 }
 body.luxury .btn-gold:hover {
   background: var(--odsf-gold, #ff5a36);
-  color: #05231d;
+  color: #000000;
   transform: translateY(-1px);
   box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.55), 0 0 38px rgba(255, 90, 54, 0.28);
 }
@@ -121,7 +121,7 @@ body.luxury .btn-outline {
   color: #f6f5f4;
   border: 1px solid rgba(246, 245, 244, 0.16);
 }
-body.luxury .btn-outline:hover { border-color: var(--tg-blue, #b3922e); color: #f6f5f4; }
+body.luxury .btn-outline:hover { border-color: var(--tg-blue, #ff5a36); color: #f6f5f4; }
 
 /* --- chrome: nav, divides, pills, chips ---------------------------------- */
 body.luxury .n-nav {
@@ -130,7 +130,7 @@ body.luxury .n-nav {
   -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid rgba(246, 245, 244, 0.08);
 }
-body.luxury .n-divider { color: var(--tg-blue, #b3922e); }
+body.luxury .n-divider { color: var(--tg-blue, #ff5a36); }
 body.luxury .n-title { color: #f6f5f4; }
 body.luxury .n-sub { color: #b9b8c0; }
 
@@ -168,10 +168,10 @@ body.luxury .n-form label { color: #b9b8c0; }
 /* --- pricing / listings / bubbles ----------------------------------------- */
 body.luxury .pkg { border-color: rgba(246, 245, 244, 0.09); }
 body.luxury .pkg.featured {
-  border-color: var(--tg-blue, #b3922e);
+  border-color: var(--tg-blue, #ff5a36);
   background: linear-gradient(180deg, rgba(255, 90, 54, 0.12), rgba(16, 16, 20, 0.1) 45%);
 }
-body.luxury .pkg .price { color: var(--tg-blue, #b3922e); }
+body.luxury .pkg .price { color: var(--tg-blue, #ff5a36); }
 body.luxury .pkg .price small { color: #b9b8c0; }
 body.luxury .pkg ul li { color: #b9b8c0; border-bottom-color: rgba(246, 245, 244, 0.08); }
 
@@ -520,7 +520,7 @@ body.luxury .lux-hero h1 {
 body.luxury .grad {
   -webkit-text-fill-color: transparent;
   color: transparent;
-  background-image: linear-gradient(100deg, #fff4cc, #ff5a36 58%, #d93f1e);
+  background-image: linear-gradient(100deg, #ffffff, #ff5a36 58%, #d93f1e);
   -webkit-background-clip: text;
   background-clip: text;
   display: inline-block;

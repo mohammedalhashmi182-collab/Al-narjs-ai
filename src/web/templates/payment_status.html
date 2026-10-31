@@ -27,7 +27,7 @@
             {% if result == "success" %}
             <i class="fas fa-check-circle" style="color:#FF5A36;"></i>
             {% else %}
-            <i class="fas fa-times-circle" style="color:#b91c1c;"></i>
+            <i class="fas fa-times-circle" style="color:#ff8f8f;"></i>
             {% endif %}
         </div>
         {% if result == "success" %}
@@ -96,7 +96,7 @@
                 var ok = st && st.status === 'paid';
                 if (icon) {
                     icon.className = ok ? 'fas fa-check-circle' : 'fas fa-times-circle';
-                    icon.style.color = ok ? '#FF5A36' : '#b91c1c';
+                    icon.style.color = ok ? '#FF5A36' : '#ff8f8f';
                 }
                 if (h1) h1.textContent = ok ? paidTitle : failTitle;
                 if (sub) sub.textContent = ok ? paidBody : failBody;

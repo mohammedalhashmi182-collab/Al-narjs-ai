@@ -277,7 +277,7 @@
                 $('pkg-status').textContent = '';
                 $('pkg-grid').innerHTML = data.packages.map(p => `
                     {% call card(class_name='pkg cursor-pointer selectable', attrs={'data-pkg': '${p.key}'}) %}
-                        <div class="portal-plan-icon mb-2" data-icon="${p.icon}" style="color:var(--n-gold);"><i class="${p.icon}"></i></div>
+                        <div class="portal-plan-icon mb-2" data-icon="${p.icon}" style="color:var(--accent-foreground);"><i class="${p.icon}"></i></div>
                         <h3 class="n-title text-lg">
                             {% if _lang == 'ar' %}<span>${p.name}</span>{% else %}<span data-inline>${p.name_en}</span>{% endif %}
                         </h3>
@@ -638,17 +638,17 @@
                 const total = after + vat;
                 $('coSummary').innerHTML =
                     '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
-                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:#FF5A36;">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt({{ ('المبلغ قبل الضريبة: ' if vat_enabled() else 'المبلغ: ')|tojson }}, 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
+                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:#c2410c;">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt({{ ('المبلغ قبل الضريبة: ' if vat_enabled() else 'المبلغ: ')|tojson }}, 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
                     {% if vat_enabled() %}(vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة ' + Math.round(VAT_RATE*100) + '%: ', 'VAT ' + Math.round(VAT_RATE*100) + '%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +{% endif %}
                     (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة: ', 'One-time setup fee: ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
                     '' +
-                    (coBilling === 'annual' ? '<div style="font-size:.85rem;color:#FF5A36;">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
+                    (coBilling === 'annual' ? '<div style="font-size:.85rem;color:#c2410c;">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
                     (setup
                         // A one-time fee is not monthly: show what is due today, then the recurring amount.
-                        ? '<div class="mt-1 text-lg" style="color:#FF5A36;">' + txt('المستحق اليوم: ', 'Due today: ') + total.toLocaleString() + ' ' + cur + '</div>' +
+                        ? '<div class="mt-1 text-lg" style="color:#c2410c;">' + txt('المستحق اليوم: ', 'Due today: ') + total.toLocaleString() + ' ' + cur + '</div>' +
                           '<div style="font-size:.85rem;opacity:.8;">' + txt('ثم ', 'then ') + (base - disc).toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>'
-                        : '<div class="mt-1 text-lg" style="color:#FF5A36;">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>');
+                        : '<div class="mt-1 text-lg" style="color:#c2410c;">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>');
                 window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
             }
             function openCheckout() {
@@ -801,7 +801,7 @@ note.textContent = msg;
                     }
                     throw new Error(txt('تعذر إتمام الدفع', 'Payment failed'));
                 } catch (err) {
-                    msg.innerHTML = '<span style="color:#FF5A36;">' + txt('خطأ: ', 'Error: ') + err.message + '</span>';
+                    msg.innerHTML = '<span style="color:#b91c1c;">' + txt('✕ خطأ: ', '✕ Error: ') + err.message + '</span>';
                     release();
                 }
             }

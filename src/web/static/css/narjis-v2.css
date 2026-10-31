@@ -15,14 +15,14 @@
   --v2-earth: #a77b52;           /* Najdi soil, details only */
   --v2-ink: #2b2340;             /* deep plum ink */
   --v2-muted: #6b6280;
-  --v2-green: #7a5cb8;           /* THE action colour: lavender (white label 5.2:1) */
-  --v2-green-deep: #5e4a8c;
+  --v2-green: #c2410c;           /* light-theme action. #FF5A36 with a white label is 3.10:1; #C2410C is 5.18:1. Dark pricing overrides this to #FF5A36 with black labels. */
+  --v2-green-deep: #9a3412;
   --v2-lavender: #8a6fc4;        /* display accent ("Your AI CEO") */
   --v2-lavender-soft: #ece5f7;
   --v2-plum: #3b2d5c;            /* the one dark surface: the recommended-plan bar */
-  --v2-saffron: #c9a35b;         /* a little gold for detail */
+  --v2-saffron: #ff5a36;         /* detail accent, same hue as the action colour */
   --v2-saffron-soft: #f5ecd9;
-  --v2-saudi: #4f6b3f;           /* olive/sage: confirmations and leaves */
+  --v2-saudi: #c2410c;           /* confirmation marks on light surfaces; dark pricing overrides this to ivory */
   --v2-sage: #a9b98f;
   --v2-line: rgba(43, 35, 64, .10);
   --v2-line-dark: rgba(43, 35, 64, .12);
@@ -393,7 +393,7 @@ body.v2.v2-dark {
   --v2-beige: #0b0b0b; --v2-earth: #ff5a36;
   --v2-ink: #ffffff; --v2-muted: #b3b3b3;
   --v2-green: #ff5a36; --v2-green-deep: #e84a28; --v2-lavender: #ff5a36; --v2-lavender-soft: #1a1a1a;
-  --v2-plum: #0b0b0b; --v2-saffron: #ff5a36; --v2-saffron-soft: #1a1a1a;
+  --v2-plum: #0b0b0b; --v2-saffron: #ff5a36; --v2-saffron-soft: #1a1a1a; --v2-saudi: #fafaf9;
   --v2-line: rgba(255,255,255,.2); --v2-line-dark: rgba(255,255,255,.2);
   --v2-on-dark: #ffffff; --v2-on-dark-muted: #b3b3b3;
   --v2-shadow: 0 18px 40px -20px rgba(0,0,0,.6);
@@ -402,3 +402,8 @@ body.v2.v2-dark {
 body.v2-dark .v2-nav { background: rgba(18, 16, 13, .9); }
 body.v2-dark .v2-footer { background: #0c0b09; }
 body.v2-dark .payments-closed-banner { background: #0b0b0b !important; color: #ffffff !important; border-color: rgba(255, 90, 54, .55) !important; }
+/* #FF5A36 with a white label is 3.10:1. Black on the same fill is 6.77:1. */
+body.v2-dark .btn-primary,
+body.v2-dark a.btn-primary,
+body.v2-dark .billing-toggle button[aria-pressed="true"],
+body.v2-dark .plan .ribbon { color: #000000; }

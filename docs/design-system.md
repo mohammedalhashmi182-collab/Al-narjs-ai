@@ -3,8 +3,8 @@
 Single source of truth for the visual identity of [karmaai.online](https://karmaai.online).
 `tests/test_design_system.py` enforces this file. If a test fails, fix the CSS — not the test.
 
-**ODSF v0.4** keeps the green/Cairo brand DNA (sections 2–7 below), replaces the gold
-action hue with vermilion, and adds the
+**ODSF v0.4** keeps Cairo as the only type family (sections 2–7 below), uses vermilion
+`#FF5A36` as the only action hue, and adds the
 **Luxury Dark** public presentation (section 8): the whole public site is a cinematic,
 near-black, glassmorphic storefront inspired by premium product films. The light palette in
 section 2 remains the canonical neutral reference (printed invoices) and the single source
@@ -24,14 +24,16 @@ Arabic is the primary language and the layout is RTL. Type is **Cairo** (see §5
 
 ## 2. Core colors (canonical brand tokens)
 
-The light values below are the canonical brand palette — the single source of the brand hues
-(vermilion accent, green) and the neutral surfaces for printed invoices. Public pages present them in the
-Luxury Dark mode of §8.
+The light values below are the canonical brand palette — the single source of the brand hue
+(vermilion accent) and the neutral surfaces for printed invoices. Public pages present them in the
+Luxury Dark mode of §8. Visible colour is black, white, and `#FF5A36`, plus the darker text orange
+and the status red documented below.
 
 | Token | Value | Role |
 | --- | --- | --- |
-| `--accent` | `#FF5A36` | Primary — vermilion. Primary buttons, active states, key emphasis. |
-| `--accent-deep` | `#D93F1E` | Pressed / hover state, accent text on light surfaces (contrast-safe). |
+| `--accent` | `#FF5A36` | Primary — vermilion. Large text, button fills, active states, key emphasis. |
+| `--accent-ink` | `#C2410C` | Small text and small UI marks on white and ivory. |
+| `--accent-deep` | `#D93F1E` | Pressed / hover fill only. Not for small text. |
 | `--accent-wash` | `#FFEAE4` | Tinted background for highlighted blocks. |
 
 **Why vermilion and not gold.** Gold (`#F4C430`) was the action hue until the owner
@@ -44,14 +46,11 @@ every claim below is measured:
 | Ink text on an accent-filled control | 5.62:1 — AA at body size |
 | **White text on the accent fill** | **3.10:1 — fails AA. Every accent-filled control therefore uses the dark ink, never `#fff`.** |
 | Outside the 220°–280° band that research now identifies as AI-generated convergence (indigo, blue→purple gradients) | `#FF5A36` sits at ~14° |
-| Clear of the Telegram blue `#229ED9` and green, so a CTA never reads as a chat link | no collision |
+| Clear of the Telegram blue `#229ED9`, so a CTA never reads as a chat link | no collision |
 
 The old names are **retired, not deleted**: `--gold`, `--gold-deep`, `--gold-wash`,
 `--n-gold*` and `--odsf-gold*` all resolve to the accent family so nothing breaks.
 New code must use the accent names.
-| `--green` | `#4F7942` | Secondary — calm herbal green. Outlines, links, "organic/automation" accents, success. |
-| `--green-deep` | `#3D5F33` | Pressed state, green text on light surfaces. |
-| `--green-wash` | `#EEF3EA` | Tinted background. |
 | `--bg` | `#FAFAF9` | Page background — very light ivory. Wide, restful whitespace. |
 | `--surface` | `#FFFFFF` | Cards, panels, sheets. |
 | `--ink` | `#292524` | Primary text. High-contrast warm dark grey. |
@@ -62,22 +61,20 @@ New code must use the accent names.
 
 **Rules**
 
-- The accent is the *action* colour. Never place body text in `--accent` on `--bg`
-  (fails contrast) — use `--accent-deep` for accent text on light surfaces, and
-  reserve the full accent for fills that carry dark ink.
-- Green is the *structure* colour: secondary buttons, links, informational accents.
+- `#FF5A36` on white is **3.10:1** and on `#FAFAF9` is **2.97:1**. It fails WCAG AA for normal text.
+- Small text and small UI marks on those light surfaces use `--accent-ink` (`#C2410C`): **5.18:1** on `#FFFFFF` and **4.96:1** on `#FAFAF9`. `#D93F1E` is only 4.49:1 on white, so it is a hover fill, not body text.
+- Keep `#FF5A36` for large text (24px, or bold at 18.67px and up), for button and accent fills, and for orange on near-black (**6.53:1** on `#060607`).
+- Accent-filled controls use `#000000` (**6.77:1**) or `#292524` (**4.89:1**). White on `#FF5A36` is 3.10:1 and is not used for labels.
+- Success and error do not share a colour. Success is a neutral — near-white on dark, near-black on light — with a check mark or its own wording. Error is red: `#B91C1C` on light (**6.47:1** on white) and `#FF8F8F` on the dark console (**7.98:1** on `#1C1917`), with a different icon or label.
 - Exactly one accent primary button per view. A second one halves its power.
-- Do not introduce a third brand hue. Status colours (`--ok`, `--warn`, `--err`) are the only
-  permitted exception and must not be used decoratively.
+- Do not introduce another brand hue. Status red is the only permitted exception and must not be used decoratively.
 
 ```css
 :root {
   --accent:      #FF5A36;
+  --accent-ink:  #C2410C;
   --accent-deep: #D93F1E;
   --accent-wash: #FFEAE4;
-  --green:      #4F7942;
-  --green-deep: #3D5F33;
-  --green-wash: #EEF3EA;
   --bg:         #FAFAF9;
   --surface:    #FFFFFF;
   --ink:        #292524;
@@ -137,12 +134,12 @@ separates top-level sections.
 
 | Class | Style |
 | --- | --- |
-| `.btn-primary` | `--gold` background, `--ink` text, `rounded-lg` (12px), weight 600. Hover `--gold-deep`. |
-| `.btn-secondary` | Transparent background, 1px `--green` border, `--green-deep` text, `rounded-lg`. |
+| `.btn-primary` | `--accent` (`#FF5A36`) background, `#000000` text, `rounded-lg` (12px), weight 600. Hover `--accent-deep`. |
+| `.btn-secondary` | Transparent background, 1px `--line` border, `--ink` text, `rounded-lg`. |
 | `.btn-ghost` | No border, `--ink-2` text. Tertiary actions only. |
 
 Every button: 48px min touch height, 16px×24px padding, visible `:focus-visible` ring in
-`--green` at 2px offset. Disabled state uses `--ink-3` on `--bg`.
+`--accent-ink` at 2px offset. Disabled state uses `--ink-3` on `--bg`.
 
 ### Cards
 
@@ -202,25 +199,22 @@ surfaces. Printed invoices (`invoice.html`, `invoice_en.html`) stay light on pur
 | `--lux-ink` | `#F6F5F4` | Primary text — near-white, warm. |
 | `--lux-ink-2` | `#B9B8C0` | Secondary text. |
 | `--lux-ink-3` | `#8E8D96` | Muted text, captions. |
-| `--lux-glow` | `rgba(244,196,48,.28)` | Aura behind gold actions (public dark). |
+| `--lux-glow` | `rgba(255,90,54,.28)` | Aura behind vermilion actions (public dark). |
 
-> **Owner revision (2026-10-07, supersedes the Humain-mint revision):** on the public
-> dark presentation the single action hue is **Narcissus gold** — `#F4C430` (action) /
-> `#E0B824` (hover) / `#B3922E` (pressed) with the signature gold→warm-white gradient on
-> key headlines and CTAs. The earlier mint/teal direction (`#00D49C` / `#00AD92` /
-> `#00879F`) came from a Humain-inspired dark theme and has been **retired on the owner's
-> instruction**; those values must not appear in public tokens. Gold is the brand
-> differentiator — it is the flower the company is named for — so on the dark surfaces it
-> reads as the action colour rather than as decoration. The owner console keeps its own
-> dark admin accent, and gold also remains the action colour on printed light surfaces.
+> **Owner revision (2026-10-31, supersedes gold and the Humain mint):** the visible palette
+> is black, white, and `#FF5A36`. Kouki confirmed the star mark is `#FF5A36`, not gold.
+> Small text on light surfaces uses `#C2410C`. The earlier mint/teal direction
+> (`#00D49C` / `#00AD92` / `#00879F`) and the herbal structure colour are retired and
+> must not appear on a visible surface. Gold (`#F4C430` and the star's old `#E9C873` /
+> `#C9A24A`) is retired the same way.
 >
 > Tokens that historically named a retired hue are kept for compatibility; only their
 > values change. `tests/test_design_system.py` enforces this section.
 
 **Rules**
 
-- Brand hues, radii, Cairo type and the one-single-action rule carry over unchanged from §1–§5,
-  with the action hue resolved to the Humain mint family on the public dark surfaces (see revision note above).
+- Brand hues, radii, Cairo type and the one-single-action rule carry over unchanged from §1–§5.
+  On the public dark surfaces the action hue is `#FF5A36` (see the revision note above).
 - Cards: `--lux-glass` fill, 1px `--lux-glass-line` border, `--lux-surface` fallback,
   `backdrop-filter: blur(14px)`, radius 16px, and a faint border glow that brightens on hover
   — never a hard neon, always a whisper (alpha ≤ `.28`).
@@ -254,9 +248,9 @@ App pages (portal, consult, invoices, owner console) keep ODSF v0.2 above until 
 | `--v2-canvas` | `#0c0a08` | deep warm black: hero, dark sections, footer, `theme-color` |
 | `--v2-ivory` | `#f6f3ea` | reading canvas |
 | `--v2-ink` | `#10201a` | body text |
-| `--v2-green` | `#c2410c` | **the** action colour (rich orange, white label 5.2:1). Token name kept for API stability |
-| `--v2-saffron` | `#d9a441` | warm gold highlight, never a large field |
-| `--v2-saudi` | `#0f7b53` | Saudi green for confirmations (checks, online dot, trust icons) |
+| `--v2-green` | `#c2410c` | Light-theme action fill (white label 5.18:1). The name is historical; the value is not green. Dark pricing overrides it to `#FF5A36` with a black label. |
+| `--v2-saffron` | `#ff5a36` | Detail accent on the dark pricing page. Not a large field. |
+| `--v2-saudi` | `#c2410c` on the light layer, `#fafaf9` on dark pricing | Confirmation marks. Not a green. |
 
 Type: **Alexandria** (display) + **Noto Sans Arabic** (text). One primary button per block.
 The page is rendered in one language server-side (`/ar/...`, `/en/...`), RTL first.
