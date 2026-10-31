@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
+from urllib.parse import urlsplit
 from uuid import UUID
 
 from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
@@ -577,7 +578,9 @@ class HTTPSRedirectByProxyMiddleware:
     """301 to https when the proxy says the client used http.
 
     GET and HEAD only, and never ``/health`` (Render's probe). A missing
-    header, https, or any other method is left unchanged.
+    header, https, or any other method is left unchanged. The Location origin
+    comes from PUBLIC_BASE_URL, or from a fixed allowlist of our own hosts.
+    The request Host is never copied into the URL.
     """
 
     def __init__(self, app):
@@ -591,9 +594,8 @@ class HTTPSRedirectByProxyMiddleware:
         method = (scope.get("method") or "GET").upper()
         path = scope.get("path") or "/"
         if proto == "http" and method in {"GET", "HEAD"} and path != "/health":
-            host = _first_header(scope, b"host") or "localhost"
             query = (scope.get("query_string") or b"").decode("latin-1")
-            location = f"https://{host}{path}"
+            location = _https_redirect_origin(scope) + path
             if query:
                 location += "?" + query
             await send({
@@ -607,6 +609,53 @@ class HTTPSRedirectByProxyMiddleware:
             await send({"type": "http.response.body", "body": b""})
             return
         await self.app(scope, receive, send)
+
+
+# Exact hostnames we may reflect. Anything else, including a lookalike, is ignored.
+_OWN_HTTPS_HOSTS = frozenset({"karmaai.online", "www.karmaai.online"})
+_CANONICAL_HTTPS_ORIGIN = "https://karmaai.online"
+
+
+def _https_redirect_origin(scope) -> str:
+    """https origin for the redirect. Never the raw Host header."""
+    configured = _origin_from_public_base(settings.public_base_url)
+    if configured:
+        return configured
+    hostname = _hostname_from_host_header(_first_header(scope, b"host"))
+    if hostname in _OWN_HTTPS_HOSTS:
+        return "https://" + hostname
+    return _CANONICAL_HTTPS_ORIGIN
+
+
+def _origin_from_public_base(value: str | None) -> str:
+    """scheme + host from PUBLIC_BASE_URL, forced to https. Empty if unset."""
+    raw = (value or "").strip()
+    if not raw or any(ch in raw for ch in " \t\r\n"):
+        return ""
+    if "://" not in raw:
+        raw = "https://" + raw
+    parts = urlsplit(raw)
+    host = (parts.hostname or "").rstrip(".").lower()
+    if not host:
+        return ""
+    try:
+        port = parts.port
+    except ValueError:
+        return ""
+    if port and port != 443:
+        return f"https://{host}:{port}"
+    return f"https://{host}"
+
+
+def _hostname_from_host_header(value: str) -> str:
+    """Hostname only, for an allowlist compare. Not safe to put into a URL."""
+    raw = (value or "").strip().lower()
+    if not raw or any(ch in raw for ch in " \t\r\n/@\\"):
+        return ""
+    if raw.startswith("["):
+        end = raw.find("]")
+        return raw[1:end] if end > 1 else ""
+    return raw.split(":", 1)[0].rstrip(".")
 
 
 def _first_header(scope, name: bytes) -> str:
