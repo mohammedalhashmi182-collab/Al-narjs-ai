@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 from src.config.settings import settings
 from src.core.owner_auth import make_session_token
-from src.main import SECURITY_HEADERS, _https_redirect_origin, app
+from src.main import SECURITY_HEADERS, _https_redirect_origin, _redirect_location_bytes, app
 
 
 def _host_scope(host: str) -> dict:
@@ -121,6 +121,67 @@ def test_proxy_header_rules_still_apply(monkeypatch):
             headers={"X-Forwarded-Proto": "http", "Host": "evil.example"},
         )
         assert probe.status_code == 200
+
+
+def test_non_ascii_and_control_paths_redirect_without_touching_the_header(monkeypatch):
+    monkeypatch.setattr(settings, "public_base_url", None)
+    with TestClient(app, follow_redirects=False) as client:
+        arabic = client.get(
+            "/ar/%D9%85%D8%AF",
+            headers={"X-Forwarded-Proto": "http"},
+        )
+        assert arabic.status_code == 301
+        assert arabic.headers["location"] == "https://karmaai.online/ar/%D9%85%D8%AF"
+        assert arabic.headers["location"].isascii()
+
+        with_query = client.get(
+            "/ar/%D9%85%D8%AF?src=ad",
+            headers={"X-Forwarded-Proto": "http"},
+        )
+        assert with_query.status_code == 301
+        assert with_query.headers["location"] == "https://karmaai.online/ar/%D9%85%D8%AF?src=ad"
+
+        injected = client.get(
+            "/ar/%0d%0aX-Injected:%20pwned",
+            headers={"X-Forwarded-Proto": "http"},
+        )
+        assert injected.status_code == 301
+        location = injected.headers["location"]
+        assert "\r" not in location and "\n" not in location
+        assert location.startswith("https://karmaai.online/")
+        assert "%0d%0a" in location.lower()
+        assert "x-injected" not in {name.lower() for name in injected.headers}
+
+        still = client.get("/ar/home", headers={"X-Forwarded-Proto": "http"})
+        assert still.status_code == 301
+        assert still.headers["location"] == "https://karmaai.online/ar/home"
+
+        posted = client.post(
+            "/webhooks/moyasar",
+            headers={"X-Forwarded-Proto": "http", "Host": "evil.example"},
+            json={"secret_token": "nope"},
+        )
+        assert posted.status_code != 301
+        assert posted.headers.get("location") is None
+
+    raw_break = _redirect_location_bytes({
+        "type": "http",
+        "path": "/ar/\r\nX-Injected: pwned",
+        "raw_path": b"/ar/\r\nX-Injected: pwned",
+        "query_string": b"ok=1\r\nSet-Cookie: a=b",
+        "headers": [],
+    })
+    assert raw_break == (
+        b"https://karmaai.online/ar/%0D%0AX-Injected: pwned?ok=1%0D%0ASet-Cookie: a=b"
+    )
+
+    fallback = _redirect_location_bytes({
+        "type": "http",
+        "path": "/ar/\u0645\u062f",
+        "query_string": b"src=ad",
+        "headers": [],
+    })
+    assert fallback == b"https://karmaai.online/ar/%D9%85%D8%AF?src=ad"
 
 
 def test_deep_health_hides_integrations_from_everyone_but_the_owner():

@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 from uuid import UUID
 
 from fastapi import BackgroundTasks, FastAPI, Depends, HTTPException, Request, WebSocket
@@ -580,7 +580,9 @@ class HTTPSRedirectByProxyMiddleware:
     GET and HEAD only, and never ``/health`` (Render's probe). A missing
     header, https, or any other method is left unchanged. The Location origin
     comes from PUBLIC_BASE_URL, or from a fixed allowlist of our own hosts.
-    The request Host is never copied into the URL.
+    The request Host is never copied into the URL. Location uses the
+    percent-encoded ``raw_path`` and query, so a decoded path never reaches
+    the header.
     """
 
     def __init__(self, app):
@@ -594,15 +596,11 @@ class HTTPSRedirectByProxyMiddleware:
         method = (scope.get("method") or "GET").upper()
         path = scope.get("path") or "/"
         if proto == "http" and method in {"GET", "HEAD"} and path != "/health":
-            query = (scope.get("query_string") or b"").decode("latin-1")
-            location = _https_redirect_origin(scope) + path
-            if query:
-                location += "?" + query
             await send({
                 "type": "http.response.start",
                 "status": 301,
                 "headers": [
-                    (b"location", location.encode("latin-1")),
+                    (b"location", _redirect_location_bytes(scope)),
                     (b"content-length", b"0"),
                 ],
             })
@@ -614,6 +612,39 @@ class HTTPSRedirectByProxyMiddleware:
 # Exact hostnames we may reflect. Anything else, including a lookalike, is ignored.
 _OWN_HTTPS_HOSTS = frozenset({"karmaai.online", "www.karmaai.online"})
 _CANONICAL_HTTPS_ORIGIN = "https://karmaai.online"
+
+
+def _header_safe(raw: bytes) -> bytes:
+    """Keep visible ASCII. Percent-encode controls and non-ASCII in place."""
+    out = bytearray()
+    for byte in raw:
+        if byte < 0x20 or byte >= 0x7F:
+            out.extend(f"%{byte:02X}".encode("ascii"))
+        else:
+            out.append(byte)
+    return bytes(out)
+
+
+def _redirect_location_bytes(scope) -> bytes:
+    """Location as bytes. Path and query stay percent-encoded; never decoded."""
+    origin = _https_redirect_origin(scope).encode("ascii")
+    raw_path = scope.get("raw_path") or b""
+    if isinstance(raw_path, (bytes, bytearray)):
+        raw_path = bytes(raw_path).split(b"?", 1)[0]
+    else:
+        raw_path = b""
+    if not raw_path:
+        raw_path = quote(scope.get("path") or "/", safe="/").encode("ascii")
+    path = _header_safe(raw_path)
+    if not path.startswith(b"/"):
+        path = b"/" + path
+    query = scope.get("query_string") or b""
+    if not isinstance(query, (bytes, bytearray)):
+        query = b""
+    query = _header_safe(bytes(query))
+    if query:
+        return origin + path + b"?" + query
+    return origin + path
 
 
 def _https_redirect_origin(scope) -> str:
