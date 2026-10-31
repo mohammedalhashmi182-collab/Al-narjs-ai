@@ -16,7 +16,7 @@ body.luxury {
   --n-sand-2: #0c0c0e;
   --n-cream: #101014;
   --n-cream-2: #141419;
-  --n-green-3: #0b0b0d;
+  --n-sidebar-bg: #0b0b0d;
   --tg-blue-tint: #172117;
   --tg-blue-tint-2: #0d1114;
   --tg-blue-soft: rgba(255, 90, 54, 0.22);
@@ -34,7 +34,7 @@ body.luxury {
   --odsf-accent-deep: #d93f1e;
   --odsf-accent-wash: rgba(255, 90, 54, 0.22);
   --n-accent: #ff5a36;
-  --n-accent-2: #d93f1e;
+  --n-accent-2: #ff5a36;
   --n-accent-soft: rgba(255, 90, 54, 0.28);
 
   --odsf-gold: var(--odsf-accent);
@@ -47,8 +47,9 @@ body.luxury {
   /* The Telegram button carries the accent on this canvas, as it did when the
      accent was gold: the dark storefront has one action colour, and the chat
      entry point is the primary action on every page. */
-  --tg-blue: #d93f1e;
-  --green: #d93f1e;
+  /* #D93F1E on #0B0B0D is 4.38:1 at body size. The dark canvas uses #FF5A36 (6.3:1). */
+  --tg-blue: #ff5a36;
+  --green: #ff5a36;
   --green-deep: #ff5a36;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -58,7 +59,7 @@ body.luxury {
   background-image:
     radial-gradient(1200px 620px at 85% -12%, rgba(255, 90, 54, 0.16), transparent 60%),
     radial-gradient(900px 520px at -8% 28%, rgba(255, 90, 54, 0.06), transparent 55%),
-    radial-gradient(700px 500px at 50% 115%, rgba(0, 135, 159, 0.14), transparent 60%);
+    radial-gradient(700px 500px at 50% 115%, rgba(255, 90, 54, 0.08), transparent 60%);
   background-attachment: local;
   color: #f6f5f4;
   line-height: 1.75;
@@ -75,7 +76,7 @@ body.luxury button:focus-visible,
 body.luxury input:focus-visible,
 body.luxury select:focus-visible,
 body.luxury textarea:focus-visible {
-  outline: 2px solid var(--tg-blue, #b3922e);
+  outline: 2px solid var(--tg-blue, #ff5a36);
   outline-offset: 2px;
 }
 
@@ -105,23 +106,23 @@ body.luxury .n-card:hover::after {
 /* --- brand actions on dark: HUMAIN mint is the single primary ----------------- */
 body.luxury .btn-gold {
   background: linear-gradient(135deg, var(--odsf-gold-deep, #d93f1e), var(--odsf-gold, #ff5a36));
-  color: #05231d;
+  color: #000000;
   border-color: transparent;
   box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.45), 0 0 28px rgba(255, 90, 54, 0.28);
 }
 body.luxury .btn-gold:hover {
   background: var(--odsf-gold, #ff5a36);
-  color: #05231d;
+  color: #000000;
   transform: translateY(-1px);
   box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.55), 0 0 38px rgba(255, 90, 54, 0.28);
 }
-body.luxury .btn-green { background: var(--tg-blue, #b3922e); color: #ffffff; }
+body.luxury .btn-gold { background: var(--tg-blue, #ff5a36); color: #000000; }
 body.luxury .btn-outline {
   background: rgba(255, 255, 255, 0.03);
   color: #f6f5f4;
   border: 1px solid rgba(246, 245, 244, 0.16);
 }
-body.luxury .btn-outline:hover { border-color: var(--tg-blue, #b3922e); color: #f6f5f4; }
+body.luxury .btn-outline:hover { border-color: var(--tg-blue, #ff5a36); color: #f6f5f4; }
 
 /* --- chrome: nav, divides, pills, chips ---------------------------------- */
 body.luxury .n-nav {
@@ -130,7 +131,7 @@ body.luxury .n-nav {
   -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid rgba(246, 245, 244, 0.08);
 }
-body.luxury .n-divider { color: var(--tg-blue, #b3922e); }
+body.luxury .n-divider { color: var(--tg-blue, #ff5a36); }
 body.luxury .n-title { color: #f6f5f4; }
 body.luxury .n-sub { color: #b9b8c0; }
 
@@ -140,6 +141,7 @@ body.luxury .chip {
   border: 1px solid rgba(246, 245, 244, 0.12);
 }
 body.luxury .lang-pill button { color: #b9b8c0; }
+body.luxury .lang-pill button.active { background: #ff5a36; color: #000000; }
 body.luxury .n-hero {
   background:
     radial-gradient(1000px 560px at 82% 8%, rgba(255, 90, 54, 0.2), transparent 60%),
@@ -168,10 +170,10 @@ body.luxury .n-form label { color: #b9b8c0; }
 /* --- pricing / listings / bubbles ----------------------------------------- */
 body.luxury .pkg { border-color: rgba(246, 245, 244, 0.09); }
 body.luxury .pkg.featured {
-  border-color: var(--tg-blue, #b3922e);
+  border-color: var(--tg-blue, #ff5a36);
   background: linear-gradient(180deg, rgba(255, 90, 54, 0.12), rgba(16, 16, 20, 0.1) 45%);
 }
-body.luxury .pkg .price { color: var(--tg-blue, #b3922e); }
+body.luxury .pkg .price { color: var(--tg-blue, #ff5a36); }
 body.luxury .pkg .price small { color: #b9b8c0; }
 body.luxury .pkg ul li { color: #b9b8c0; border-bottom-color: rgba(246, 245, 244, 0.08); }
 
@@ -520,7 +522,7 @@ body.luxury .lux-hero h1 {
 body.luxury .grad {
   -webkit-text-fill-color: transparent;
   color: transparent;
-  background-image: linear-gradient(100deg, #fff4cc, #ff5a36 58%, #d93f1e);
+  background-image: linear-gradient(100deg, #ffffff, #ff5a36 58%, #d93f1e);
   -webkit-background-clip: text;
   background-clip: text;
   display: inline-block;

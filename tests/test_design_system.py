@@ -1,8 +1,8 @@
 """Design-system guards — ODSF v0.2 for the app pages and the v2 "Najd Night"
 layer for the public landing page (see docs/design-system.md).
 
-The visual identity is the accent (vermilion #FF5A36) for action, green (#4F7942) for
-structure and Telegram, on ivory (#FAFAF9) with Cairo type. These tests fail
+The visual identity is the accent (vermilion #FF5A36) for action, #C2410C for small
+text on light surfaces, on ivory (#FAFAF9) with Cairo type. These tests fail
 loudly if a template or stylesheet reintroduces the previous blue identity,
 regresses to a retired font, or drops the Telegram mark.
 """
@@ -57,7 +57,7 @@ ALL_TEMPLATES = PUBLIC_TEMPLATES + [
 # the dark canvas and for staying outside the AI-convergence hue band.
 ACCENT = "#ff5a36"
 ACCENT_DEEP = "#d93f1e"
-GREEN = "#4f7942"
+ACCENT_INK = "#c2410c"
 BG = "#fafaf9"
 INK = "#292524"
 
@@ -115,8 +115,9 @@ def test_every_listed_template_exists() -> None:
 def test_design_doc_exists_and_is_the_source_of_truth() -> None:
     assert DESIGN_DOC.exists(), "docs/design-system.md is the design contract"
     body = DESIGN_DOC.read_text(encoding="utf-8").lower()
-    for token in (ACCENT, GREEN, BG, INK):
+    for token in (ACCENT, ACCENT_INK, BG, INK):
         assert token in body, f"{token} is missing from the design doc"
+    assert "#4f7942" not in body, "the herbal green is no longer a brand colour"
     assert "cairo" in body, "the design doc does not name Cairo as the type family"
 
 
@@ -125,7 +126,7 @@ def test_design_css_defines_the_odsf_tokens() -> None:
     for token in (
         f"--odsf-accent: {ACCENT}",
         f"--odsf-accent-deep: {ACCENT_DEEP}",
-        f"--tg-blue: {GREEN}",
+        f"--tg-blue: {ACCENT}",
         f"--n-sand: {BG}",
         f"--n-brown: {INK}",
         "--r-bubble: 20px",
@@ -203,10 +204,10 @@ V2_TOKENS = {
     "--v2-earth": "#a77b52",     # Najdi soil detail
     "--v2-ink": "#2b2340",
     "--v2-muted": "#6b6280",
-    "--v2-green": "#7a5cb8",     # action: lavender (token name kept for the API)
+    "--v2-green": "#c2410c",     # light-theme action (token name kept; value is not green)
     "--v2-lavender": "#8a6fc4",  # display serif accent
     "--v2-saffron": "#c9a35b",   # gold, detail only
-    "--v2-saudi": "#4f6b3f",     # olive/sage
+    "--v2-saudi": "#c2410c",     # confirmation marks on the light layer
 }
 
 
@@ -229,6 +230,7 @@ def _contrast(a: str, b: str) -> float:
 
 def test_v2_action_button_text_meets_wcag_aa() -> None:
     assert _contrast(V2_TOKENS["--v2-green"], "#ffffff") >= 4.5
+    assert "--v2-green: #c2410c" in _v2()
     assert ".btn-primary { background: var(--v2-green); color: #ffffff; }" in _v2()
 
 
@@ -253,7 +255,7 @@ def test_v2_layer_respects_reduced_motion_and_has_no_retired_palette() -> None:
 
 def test_owner_console_keeps_dark_surfaces_on_green() -> None:
     body = ADMIN_CSS.read_text(encoding="utf-8").lower()
-    assert f"--ad-gold: {GREEN}" in body, "admin accent is not the ODSF green"
+    assert f"--ad-gold: {ACCENT}" in body, "admin accent is not the vermilion action colour"
     assert f"--ad-action: {ACCENT}" in body, "admin has no accent primary action"
     for hexv in ("#c8a45e", "#e6c98a", "#a5803c", "#3dbd7d", "#2481cc", "#1b6fb3"):
         assert hexv not in body, f"admin css still carries {hexv}"
@@ -286,7 +288,7 @@ def test_telegram_mark_partial_exists_and_is_reusable() -> None:
     assert "macro tg_plane" in body
     assert "macro tg_badge" in body
     assert "M9.78 15.6" in body, "the paper-plane path changed"
-    assert f"var(--green, {GREEN.upper()})" in body, (
+    assert f"var(--green, {ACCENT.upper()})" in body, (
         "the brand disc must take its colour from a design token, not a hard-coded hex"
     )
 
@@ -444,7 +446,7 @@ NAJDI_TOKENS = {
     "--nj-ink": "#12100d",
     "--nj-ivory": "#ffffff",
     "--nj-accent": ACCENT,
-    "--nj-ivory2": "#bdb4a5",
+    "--nj-ivory2": "#b3b3b3",
     "--nj-ink-soft": "#5a5046",
 }
 

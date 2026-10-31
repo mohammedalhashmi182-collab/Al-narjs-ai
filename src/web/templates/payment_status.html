@@ -17,6 +17,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
+    <style>
+        .pay-kicker { display:inline-block; margin-bottom:12px; padding:4px 12px; border-radius:999px; font-size:13px; font-weight:800; letter-spacing:.04em; }
+        .pay-kicker.ok { background:#FF5A36; color:#000000; }
+        .pay-kicker.bad { background:#e6e6e6; color:#1a1a1a; border:1px solid #8a8a8a; }
+        .pay-title.ok { font-weight:800; }
+        .pay-title.bad { font-weight:500; }
+    </style>
     {% include "partials/_analytics.html" %}
 </head>
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen flex items-center justify-center p-6 n-geo">
@@ -25,20 +32,21 @@
         <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</div>
         <div class="text-5xl mb-5">
             {% if result == "success" %}
-            <i class="fas fa-check-circle" style="color:var(--n-green);"></i>
+            <i id="payIcon" class="fas fa-check-circle" style="color:#FF5A36;"></i>
             {% else %}
-            <i class="fas fa-times-circle" style="color:#b91c1c;"></i>
+            <i id="payIcon" class="fas fa-times-circle" style="color:#cfcfcf;"></i>
             {% endif %}
         </div>
+        <p id="payKicker" class="pay-kicker {{ 'ok' if result == 'success' else 'bad' }}">{% if result == "success" %}{% if _lang == 'ar' %}تم الدفع{% else %}Paid{% endif %}{% else %}{% if _lang == 'ar' %}لم يكتمل{% else %}Not completed{% endif %}{% endif %}</p>
         {% if result == "success" %}
-        <h1 class="n-title text-2xl mb-2">
+        <h1 id="payTitle" class="n-title text-2xl mb-2 pay-title ok">
             {% if _lang == 'ar' %}<span>تم استلام الدفع بنجاح ✓</span>{% else %}<span data-inline>Payment Received ✓</span>{% endif %}
         </h1>
         <p class="n-sub mb-4">
             {% if _lang == 'ar' %}<span>تم تفعيل باقتك فعلياً — فريقك جاهز الآن ويستطيع العمل. افتح بوابتك وابدأ.</span>{% else %}<span data-inline>Your plan is now active — your team is awake and ready. Open your portal and start.</span>{% endif %}
         </p>
         {% else %}
-        <h1 class="n-title text-2xl mb-2">
+        <h1 id="payTitle" class="n-title text-2xl mb-2 pay-title bad">
             {% if _lang == 'ar' %}<span>تعذر إتمام الدفع</span>{% else %}<span data-inline>Payment Failed</span>{% endif %}
         </h1>
         <p class="n-sub mb-4">
@@ -53,7 +61,7 @@
                 <i class="fas fa-bolt"></i>
                 {% if _lang == 'ar' %}<span>افتح بوابة فريقك — أيقظ موظفيك</span>{% else %}<span data-inline>Open Your Team Portal — Wake Your Employees</span>{% endif %}
             </a>
-            <a href="/home#pricing" class="btn btn-green w-full">
+            <a href="/home#pricing" class="btn btn-gold w-full">
                 {% if _lang == 'ar' %}<span>العودة إلى الأسعار</span>{% else %}<span data-inline>Back to Pricing</span>{% endif %}
             </a>
             <a id="assistantContact" href="mailto:AlNarjisai@gmail.com" class="btn btn-outline w-full">
@@ -72,8 +80,11 @@
             var fallback = oid ? null : sessionStorage.getItem('narjis-order-' + id);
             if (!id || (oid === null && !fallback)) return;
             if (oid === null) oid = fallback;
-            var icon = document.querySelector('.text-5xl i');
-            var h1 = document.querySelector('h1');
+            var icon = document.getElementById('payIcon');
+            var h1 = document.getElementById('payTitle');
+            var kicker = document.getElementById('payKicker');
+            var paidKicker = {{ ('تم الدفع' if _lang == 'ar' else 'Paid') | tojson }};
+            var failKicker = {{ ('لم يكتمل' if _lang == 'ar' else 'Not completed') | tojson }};
             var sub = document.querySelector('.n-sub');
             var paidTitle = {{ ('تم استلام الدفع بنجاح ✓' if _lang == 'ar' else 'Payment Received ✓') | tojson }};
             var failTitle = {{ ('لم يكتمل الدفع' if _lang == 'ar' else 'Payment Not Completed') | tojson }};
@@ -96,9 +107,17 @@
                 var ok = st && st.status === 'paid';
                 if (icon) {
                     icon.className = ok ? 'fas fa-check-circle' : 'fas fa-times-circle';
-                    icon.style.color = ok ? 'var(--n-green)' : '#b91c1c';
+                    icon.style.color = ok ? '#FF5A36' : '#cfcfcf';
                 }
-                if (h1) h1.textContent = ok ? paidTitle : failTitle;
+                if (kicker) {
+                    kicker.textContent = ok ? paidKicker : failKicker;
+                    kicker.className = ok ? 'pay-kicker ok' : 'pay-kicker bad';
+                }
+                if (h1) {
+                    h1.textContent = ok ? paidTitle : failTitle;
+                    h1.classList.toggle('ok', ok);
+                    h1.classList.toggle('bad', !ok);
+                }
                 if (sub) sub.textContent = ok ? paidBody : failBody;
                 if (ok) {
                     try {

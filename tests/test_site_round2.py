@@ -177,10 +177,10 @@ def test_ticket_rate_limited(client, monkeypatch):
 
 
 def test_about_service_cards_set_dark_text_on_light_background(client):
-    # cards had background #fffaf2 but inherited the dark page's light text -> unreadable
+    # Cards are a black field with white text and grey secondary copy.
     import re as _re
     for path in ("/ar/about", "/en/about"):
         html = client.get(path).text
         rule = _re.search(r"\.ab-card\{[^}]*\}", html).group(0)
-        assert "background:#fffaf2" in rule and "color:#1b1712" in rule
-        assert _re.search(r"\.ab-card p\{[^}]*color:#", html)
+        assert "background:#0b0b0b" in rule and "color:#ffffff" in rule
+        assert _re.search(r"\.ab-card p\{[^}]*color:#b3b3b3", html)
