@@ -520,19 +520,18 @@ CONTENT_SECURITY_POLICY = "; ".join(
         "object-src 'none'",
     ]
 )
-# The live voice demo page connects to ElevenLabs and loads its audio worklets from
-# blob: URLs. Those extra sources are granted to that single page only, never to the
-# rest of the site.
-VOICE_LIVE_PATHS = frozenset({"/static/voice-live.html"})
-VOICE_LIVE_CSP = (
-    CONTENT_SECURITY_POLICY.replace(
-        "script-src 'self' 'unsafe-inline'", "script-src 'self' 'unsafe-inline' blob:", 1
-    ).replace(
-        "connect-src 'self'",
-        "connect-src 'self' wss://api.elevenlabs.io https://api.elevenlabs.io",
-        1,
-    )
-    + "; worker-src 'self' blob:; media-src 'self' blob: mediastream:"
+# The public voice page opens a browser WebSocket to xAI. The API key stays on
+# the server. These sources are granted to that page only.
+VOICE_LIVE_PATHS = frozenset({
+    "/static/voice-live.html",
+    "/voice",
+    "/ar/voice",
+    "/en/voice",
+})
+VOICE_LIVE_CSP = CONTENT_SECURITY_POLICY.replace(
+    "connect-src 'self'",
+    "connect-src 'self' wss://api.x.ai https://api.x.ai",
+    1,
 )
 SECURITY_HEADERS = {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
@@ -1862,6 +1861,45 @@ async def _founding_status_safe() -> dict:
 class LiveDemoChatRequest(BaseModel):
     session_id: str = Field(default="", max_length=64)
     text: str = Field(..., min_length=1, max_length=1000)
+
+
+@app.get("/voice", response_class=HTMLResponse)
+async def voice_page(request: Request):
+    """Public live voice agent. Arabic at /ar/voice, English at /en/voice."""
+    from src.services.voice_live import render_page
+
+    return HTMLResponse(render_page(_page_lang(request)))
+
+
+@app.get("/api/voice/status")
+async def voice_status(request: Request):
+    from src.services.voice_live import status_payload
+    from src.utils.net import client_ip
+
+    return JSONResponse(
+        status_payload(client_ip(request)),
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.post("/api/voice/session")
+async def voice_session(request: Request):
+    """Grant one live call. Does not spend a slot when xAI cannot start."""
+    from src.services.voice_live import open_session
+    from src.utils.net import client_ip
+
+    payload = await open_session(client_ip(request))
+    if payload.get("ok"):
+        code = 200
+    elif payload.get("reason") in ("unconfigured", "upstream"):
+        code = 503
+    else:
+        code = 429
+    headers = {"Cache-Control": "no-store"}
+    retry = payload.get("retry_after")
+    if retry:
+        headers["Retry-After"] = str(retry)
+    return JSONResponse(payload, status_code=code, headers=headers)
 
 
 @app.get("/api/live-demo")

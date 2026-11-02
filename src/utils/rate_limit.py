@@ -16,7 +16,12 @@ class SlidingWindowLimiter:
         self._hits: dict[str, deque[float]] = defaultdict(deque)
         self._lock = threading.Lock()
 
-    def check(self, key: str) -> tuple[bool, int]:
+    def check(self, key: str, *, commit: bool = True) -> tuple[bool, int]:
+        """Return whether ``key`` is inside the window.
+
+        ``commit=False`` only inspects. A failed upstream call can then avoid
+        spending a slot that was never used.
+        """
         now = time.monotonic()
         with self._lock:
             q = self._hits[key]
@@ -25,7 +30,8 @@ class SlidingWindowLimiter:
             if len(q) >= self.max_requests:
                 retry_after = max(1, int(self.window_seconds - (now - q[0])))
                 return False, retry_after
-            q.append(now)
+            if commit:
+                q.append(now)
             return True, 0
 
     def reset(self) -> None:

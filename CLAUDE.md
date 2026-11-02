@@ -39,12 +39,12 @@ For local coding agents only, `opencode.json` exposes the optional **Genspark LL
 - Side effects (welcome message, owner alert) run inside a `try` that swallows exceptions; a failure there silently rolls back send rows. Keep that block minimal and exception-free.
 - Agent YAML files must use a valid `AgentCategory` (`support`, `marketing`, `content`, `analysis`, `automation`, `general`). An invalid value makes the agent fail to register silently in the logs.
 
-## Visual identity: ODSF v0.2 — gold action, green structure
+## Visual identity
 
 `docs/design-system.md` is the contract. Summary:
 
-- The public site is a **premium ivory** design: gold `#F4C430` is the action colour, green `#4F7942` is structure and Telegram, page `#FAFAF9`, surface `#FFFFFF`, text `#292524`, secondary `#57534E`. Tokens live in `src/web/static/css/narjis.css`.
-- The owner console is the dark counterpart (`narjis-dark-admin.css`): dark warm surfaces, green accent, gold reserved for the single primary action.
+- The public site is **black, white, and orange `#FF5A36`**. Do not restore gold `#F4C430` or green `#4F7942` as the action colours. Tokens live in `src/web/static/css/narjis.css`.
+- The owner console is the dark counterpart (`narjis-dark-admin.css`): dark surfaces, with `#FF5A36` reserved for the single primary action.
 - Fonts are **Cairo** only. `Tajawal`, `Almarai`, `Manrope` and the previous IBM Plex/Inter pairing are retired.
 - Layout is an 8pt grid. Cards use a soft radius with one quiet shadow step; gold is never a large background field.
 - Conversation surfaces use `--r-bubble: 20px` with one `8px` corner, on purpose. Do not flatten them.
@@ -55,8 +55,8 @@ For local coding agents only, `opencode.json` exposes the optional **Genspark LL
 ## Front-end rules
 
 - Arabic-first, RTL. All public copy is Arabic; keep it professional and consistent.
-- **Customer contact is the on-site assistant only; work is delivered by email.** No phone number or email address is published as a public contact channel (the operator legal identity, Ahmed Abdullah Al-Zahrani, FL-272182297, stays). Do not publish WhatsApp or Telegram as contact channels, and do not add their short-link hosts to public copy. The Telegram bot and the WhatsApp Cloud API remain owner-enabled product channels: keep their routes live but never assume they are the public contact path; `/webhooks/whatsapp/health` reports `configured/connected` without leaking secrets. Historical lead records and verified third-party contact sheets are data, not UI, and keep whatever they say.
-- New pages must include: the on-site assistant, the email, the phone, a working mobile CTA, and matching `privacy.html` / `data_deletion.html` policy text.
+- **Public contact is the live voice agent at `/voice` (the owner's published xAI Voice Agent), plus the company email `AlNarjisai@gmail.com`.** `XAI_API_KEY` stays on the server; the page uses a short-lived client secret. `XAI_VOICE_AGENT_ID` is that agent's id from console.x.ai → Voice Agents. Work is still delivered by email. The on-site text chat widget stays removed (do not bring back `openAssistant` or a site chat widget). The voice page also shows the company phone `0540799266` when a call cannot start. Do not put that phone number, or `tel:`, on other public templates — `tests/test_launch_blockers.py` forbids both. Do not publish WhatsApp or Telegram as contact channels, and do not add their short-link hosts to public copy. The Telegram bot and the WhatsApp Cloud API remain owner-enabled product channels: keep their routes live but never assume they are the public contact path; `/webhooks/whatsapp/health` reports `configured/connected` without leaking secrets. Historical lead records and verified third-party contact sheets are data, not UI, and keep whatever they say. The operator legal identity, Ahmed Abdullah Al-Zahrani, FL-272182297, stays.
+- New pages must include: a link to the live voice agent, the company email, a working mobile CTA, and matching `privacy.html` / `data_deletion.html` policy text. The phone number belongs on the voice page only.
 - **No dead CTAs.** No `href="#"` on public pages, no invented numbers. Agent counts, prices, and plan names are rendered from `src/services/catalog.py` (never hard-coded), and the landing page reads the live registry count.
 - New public pages reuse the SEO head macro: `{% import "partials/_seo.html" as seo with context %}` then `seo.head(title_ar, title_en, desc_ar, desc_en, request.url.path, og_type, extra_head)`. Note `with context` is required, and the path must be passed explicitly.
 - SEO routes are generated in code: `src/services/seo.py` owns the sitemap, robots.txt, and the public/private path policy. `sitemap.xml` must only ever contain `https://karmaai.online/...` (apex is canonical; `www` redirects) and only paths that return 200. `tests/test_seo_surface.py` enforces both.

@@ -195,6 +195,15 @@ class Settings(BaseSettings):
     dialog_base_url: str = Field(default="https://waba.360dialog.io", alias="DIALOG_BASE_URL")
     dialog_phone_id: str | None = Field(default=None, alias="DIALOG_PHONE_ID")
 
+    # Public live voice (xAI Voice Agents). The API key never reaches the browser.
+    # The server mints a short-lived client secret. XAI_VOICE_AGENT_ID is the
+    # published agent from console.x.ai → Voice Agents. Both empty disables the call.
+    xai_api_key: str = Field(default="", alias="XAI_API_KEY")
+    xai_voice_agent_id: str = Field(default="", alias="XAI_VOICE_AGENT_ID")
+    xai_voice_daily_call_limit: int = Field(default=100, alias="XAI_VOICE_DAILY_CALL_LIMIT")
+    xai_voice_ip_daily_call_limit: int = Field(default=10, alias="XAI_VOICE_IP_DAILY_CALL_LIMIT")
+    xai_voice_ip_burst_limit: int = Field(default=8, alias="XAI_VOICE_IP_BURST_LIMIT")
+
     # Telegram Bot API — parallel inbound/outbound channel (no approval queue).
     # Sending needs TELEGRAM_TOKEN; the webhook stays disabled until
     # TELEGRAM_WEBHOOK_SECRET is set (it is sent as the X-Telegram-Bot-Api-Secret-Token
