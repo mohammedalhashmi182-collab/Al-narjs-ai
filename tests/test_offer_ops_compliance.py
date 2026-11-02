@@ -306,7 +306,7 @@ async def _down_probe(url):
 
 async def test_deep_health_reports_db_and_externals(maker, monkeypatch):
     monkeypatch.setattr(ops_monitor, "configured_externals", lambda: {"telegram": True, "whatsapp": False,
-                                                                     "moyasar": False, "gemini": False})
+                                                                     "paypal": False, "gemini": False})
     r = await ops_monitor.deep_health(maker, _ok_probe)
     assert r["status"] == "healthy" and r["db"]["ok"] and r["external"]["whatsapp"]["configured"] is False
     r = await ops_monitor.deep_health(maker, _down_probe)
@@ -368,20 +368,14 @@ async def test_uptime_check_alerts_owner_once(maker, monkeypatch, alerts):
 async def test_webhook_5xx_alerts_owner(maker, alerts, monkeypatch):
     from src.services import payments as pm
 
-    async def _boom(session, event):
-        raise pm.PaymentError("moyasar down")
+    async def _boom(headers, event):
+        raise pm.PaymentError("paypal down")
 
-    from src.config import settings as st
-
-    object.__setattr__(st, "moyasar_webhook_secret", "S")
-    monkeypatch.setattr(pm, "handle_moyasar_webhook", _boom)
-    try:
-        async with _client(maker, owner=False) as c:
-            r = await c.post("/webhooks/moyasar", json={"secret_token": "S", "id": "x"})
-        assert r.status_code == 502
-        assert len(alerts) == 1 and "ميسّر" in alerts[0] and "502" in alerts[0] and "secret" not in alerts[0].lower()
-    finally:
-        object.__setattr__(st, "moyasar_webhook_secret", None)
+    monkeypatch.setattr(pm, "verify_paypal_webhook", _boom)
+    async with _client(maker, owner=False) as c:
+        r = await c.post("/webhooks/paypal", json={"id": "x", "event_type": "CHECKOUT.ORDER.APPROVED"})
+    assert r.status_code == 502
+    assert len(alerts) == 1 and "PayPal" in alerts[0] and "502" in alerts[0] and "secret" not in alerts[0].lower()
 
 
 def test_runbook_covers_required_incidents():

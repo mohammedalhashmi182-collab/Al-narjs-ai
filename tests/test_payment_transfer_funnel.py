@@ -17,8 +17,6 @@ from uuid import uuid4
 import httpx
 import pytest
 
-# Retain mocked integration coverage for the separately approved future release.
-pytestmark = pytest.mark.usefixtures("moyasar_release")
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -86,35 +84,20 @@ _UNSET = object()
 @contextmanager
 def _gateway_config(moyasar=None, paypal_id=None, paypal_secret=None, paypal_mode="sandbox",
                     publishable=_UNSET):
-    """Override the settings singleton deterministically, restore afterwards.
-
-    A live secret is paired with a live publishable key unless the test passes
-    ``publishable`` itself. An empty publishable key must not look live.
-    """
+    """Override PayPal settings. Card-gateway arguments are ignored."""
+    del moyasar, publishable
     from src.config import settings as s
 
-    names = ("moyasar_api_secret", "moyasar_publishable_key", "paypal_client_id",
-             "paypal_client_secret", "paypal_mode")
+    names = ("paypal_client_id", "paypal_client_secret", "paypal_mode")
     old = {n: getattr(s, n) for n in names}
-    if publishable is _UNSET:
-        if isinstance(moyasar, str) and moyasar.startswith("sk_" + "live_"):
-            publishable = PUBLIC_MOYASAR_KEY
-        else:
-            publishable = old["moyasar_publishable_key"]
-    object.__setattr__(s, "moyasar_api_secret", moyasar)
-    object.__setattr__(s, "moyasar_publishable_key", publishable)
     object.__setattr__(s, "paypal_client_id", paypal_id)
     object.__setattr__(s, "paypal_client_secret", paypal_secret)
     object.__setattr__(s, "paypal_mode", paypal_mode)
-    # The credential verdict is cached at module level; drop it on both edges so
-    # one test can never hand the next one a "rejected" gateway.
-    pm._credential_cache.clear()
     try:
         yield
     finally:
         for n, v in old.items():
             object.__setattr__(s, n, v)
-        pm._credential_cache.clear()
 
 
 @contextmanager
@@ -163,26 +146,16 @@ async def _insert_payment(maker, **kw) -> Payment:
 
 
 class TestCapabilities:
-    def test_no_gateway_means_only_bank_transfer_is_offered(self, monkeypatch):
+    def test_no_gateway_means_bank_transfer_follows_the_flag(self, monkeypatch):
         monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _gateway_config():
             caps = pm.capabilities()
         assert caps["methods"]["invoice"] is False
         assert caps["card"] is False and caps["paypal"] is False
-        for method in pm.CARD_METHODS:
-            assert caps["methods"][method] is False
+        assert set(caps["methods"]) == {"paypal", "invoice"}
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         with _gateway_config():
-            assert pm.capabilities()["methods"]["invoice"] is False
-
-    def test_moyasar_secret_switches_on_every_card_method(self, monkeypatch):
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            caps = pm.capabilities()
-        assert caps["card"] is True
-        for method in pm.CARD_METHODS:
-            assert caps["methods"][method] is True
-        assert caps["methods"]["invoice"] is False
+            assert pm.capabilities()["methods"]["invoice"] is True
 
     def test_paypal_needs_both_halves_of_the_credential(self, monkeypatch):
         monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
@@ -205,9 +178,9 @@ class TestCapabilities:
         assert caps["methods"]["paypal"] is False
 
     def test_capabilities_never_expose_a_secret(self):
-        with _gateway_config(moyasar=MOYASAR_SECRET, paypal_id="id", paypal_secret=PAYPAL_SECRET):
+        with _gateway_config(paypal_id="id", paypal_secret=PAYPAL_SECRET):
             blob = str(pm.capabilities())
-        assert MOYASAR_SECRET not in blob and PAYPAL_SECRET not in blob
+        assert PAYPAL_SECRET not in blob
 
     def test_an_empty_or_broken_file_yields_no_bank_details(self, tmp_path, monkeypatch):
         from src.services import transfer as t
@@ -227,230 +200,25 @@ class TestCapabilities:
 
 
 class TestReadiness:
-    def test_names_the_env_vars_the_owner_still_has_to_set(self):
+    def test_names_nothing_required_until_a_method_is_switched_on(self, monkeypatch):
+        monkeypatch.delenv("CUSTOMER_PAYPAL_ENABLED", raising=False)
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _gateway_config():
             report = pm.readiness()
         assert report["collect_money_now"] is False
-        assert "MOYASAR_API_SECRET" in report["missing_env"]
+        assert report["missing_env"] == []
+        assert report["card"] is False
 
-    def test_reports_no_missing_env_once_card_is_configured(self):
-        with _gateway_config(moyasar=MOYASAR_SECRET, paypal_id="a", paypal_secret="b", paypal_mode="live"):
+    def test_live_paypal_collects_when_the_customer_flag_is_on(self, monkeypatch):
+        monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
+        with _gateway_config(paypal_id="a", paypal_secret="b", paypal_mode="live"):
             report = pm.readiness()
         assert report["collect_money_now"] is True and report["missing_env"] == []
 
     def test_never_carries_a_credential_value(self):
-        with _gateway_config(moyasar=MOYASAR_SECRET, paypal_id="id", paypal_secret=PAYPAL_SECRET):
+        with _gateway_config(paypal_id="id", paypal_secret=PAYPAL_SECRET):
             blob = str(pm.readiness())
-        assert MOYASAR_SECRET not in blob and PAYPAL_SECRET not in blob
-
-
-# ---------------------------------------------------------------------------
-# A configured secret is not a working secret
-#
-# Production answered 401 "Invalid authorization credentials" on a set
-# MOYASAR_API_SECRET, so the checkout advertised mada/Visa/Mastercard/Apple Pay
-# and failed every payment while reporting card: true. These pin the probe that
-# made the capability honest.
-# ---------------------------------------------------------------------------
-
-
-class _FakeResponse:
-    def __init__(self, status_code: int):
-        self.status_code = status_code
-        self.text = '{"type":"authentication_error"}'
-
-
-class _FakeClient:
-    """Records calls so the cache can be asserted, and replays a status."""
-
-    calls: list[str] = []
-    status = 200
-    boom = False
-
-    def __init__(self, *args, **kwargs):
-        pass
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *args):
-        return False
-
-    async def get(self, url, params=None, headers=None):
-        type(self).calls.append(url)
-        if type(self).boom:
-            raise RuntimeError("network down")
-        return _FakeResponse(type(self).status)
-
-
-@pytest.fixture
-def fake_moyasar(monkeypatch):
-    _FakeClient.calls = []
-    _FakeClient.status = 200
-    _FakeClient.boom = False
-    monkeypatch.setattr(httpx, "AsyncClient", _FakeClient)
-    return _FakeClient
-
-
-class TestGatewayCredentialProbe:
-    async def test_a_rejected_secret_hides_every_card_method(self, fake_moyasar):
-        fake_moyasar.status = 401
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            state = await pm.probe_moyasar_credentials()
-            caps = await pm.capabilities_async()
-        assert state == "rejected"
-        assert caps["card"] is False and caps["card_configured"] is True
-        for method in pm.CARD_METHODS:
-            assert caps["methods"][method] is False
-        # Bank transfer is not a customer method unless the flag is on.
-        assert caps["methods"]["invoice"] is False
-
-    async def test_an_accepted_secret_keeps_the_card_methods(self, fake_moyasar):
-        fake_moyasar.status = 200
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            state = await pm.probe_moyasar_credentials()
-            caps = await pm.capabilities_async()
-        assert state == "ok" and caps["card"] is True
-
-    async def test_a_network_blip_does_not_remove_a_working_method(self, fake_moyasar):
-        """Only positive proof of rejection may hide a payment method."""
-        fake_moyasar.boom = True
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            state = await pm.probe_moyasar_credentials()
-            caps = await pm.capabilities_async()
-        assert state == "unknown"
-        assert caps["card"] is True
-
-    async def test_the_verdict_is_cached_so_a_visitor_never_waits_twice(self, fake_moyasar):
-        fake_moyasar.status = 401
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            await pm.probe_moyasar_credentials()
-            await pm.probe_moyasar_credentials()
-            await pm.capabilities_async()
-        assert len(fake_moyasar.calls) == 1
-
-    async def test_the_probe_uses_an_endpoint_that_creates_nothing(self, fake_moyasar):
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            await pm.probe_moyasar_credentials()
-        assert fake_moyasar.calls == [pm.MOYASAR_INVOICES_URL]
-
-    async def test_no_secret_means_no_probe_at_all(self, fake_moyasar):
-        with _gateway_config():
-            assert await pm.probe_moyasar_credentials() == "unset"
-        assert fake_moyasar.calls == []
-
-    async def test_the_owner_is_told_the_credential_is_the_problem(self, fake_moyasar):
-        fake_moyasar.status = 401
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            report = await pm.readiness_async()
-        assert report["collect_money_now"] is False
-        assert any("MOYASAR_API_SECRET" in issue for issue in report["blocking_issues"])
-
-    async def test_sandbox_paypal_is_named_as_a_blocking_issue(self, fake_moyasar):
-        with _gateway_config(
-            moyasar=MOYASAR_SECRET,
-            paypal_id="id",
-            paypal_secret=PAYPAL_SECRET,
-            paypal_mode="sandbox",
-        ):
-            report = await pm.readiness_async()
-        assert any("PAYPAL_MODE" in issue for issue in report["blocking_issues"])
-
-    def test_missing_bank_details_are_named_as_a_blocking_issue(self):
-        with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file():
-            report = pm.readiness()
-        assert any("transfer.json" in issue for issue in report["blocking_issues"])
-
-    async def test_the_capabilities_endpoint_reports_the_rejection(self, api, fake_moyasar):
-        anon, _ = api
-        fake_moyasar.status = 401
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            response = await anon.get("/api/payments/capabilities")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["card_credentials"] == "rejected"
-        assert body["card"] is False
-        assert body["methods"]["mada"] is False
-        assert MOYASAR_SECRET not in str(body)
-
-
-# ---------------------------------------------------------------------------
-# A gateway failure must not hand the buyer a dead invoice link
-#
-# Production returned 200 with an invoice_url for a payment that was never
-# persisted: GET /invoice/{id} answered "Invoice not found". The buyer was told
-# an invoice existed and could not open it.
-# ---------------------------------------------------------------------------
-
-
-class TestGatewayFailureFallback:
-    async def _post_card(self, api, error: str):
-        """Post a card payment with the gateway forced to fail.
-
-        The stub is installed with monkeypatch, not by assigning to the module.
-        A bare ``pm.initiate_moyasar = _boom`` leaks into every later test in the
-        session: the real function never comes back, so a later test that exercises
-        initiate_moyasar directly calls the stub instead and fails for a reason that
-        has nothing to do with what it asserts.
-        """
-        anon, _ = api
-        from src.services import payments as payments_module
-
-        async def _boom(*args, **kwargs):
-            raise pm.PaymentError(error)
-
-        monkey = pytest.MonkeyPatch()
-        monkey.setattr(payments_module, "initiate_moyasar", _boom)
-        monkey.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-        try:
-            with _gateway_config(moyasar=MOYASAR_SECRET), _bank_file(iban="SA0380000000608010167519"):
-                return await anon.post(
-                    "/api/payments",
-                    json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
-                )
-        finally:
-            monkey.undo()
-
-    async def test_a_card_failure_never_becomes_a_bank_invoice(self, api, monkeypatch):
-        r = await self._post_card(api, "Moyasar error 401: Invalid authorization credentials")
-        assert r.status_code == 502
-        assert "invoice_url" not in r.text
-        assert "401" not in r.text
-        assert "Moyasar error" not in r.text
-
-    async def test_card_failure_stays_off_the_bank_invoice(self, api, monkeypatch):
-        """Customers are not offered a bank-transfer invoice."""
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        anon, _ = api
-        from src.services import payments as payments_module
-
-        async def _boom(*args, **kwargs):
-            raise pm.PaymentError("Moyasar error 401: Invalid authorization credentials")
-
-        monkeypatch.setattr(payments_module, "initiate_moyasar", _boom)
-        with _gateway_config(moyasar=MOYASAR_SECRET):
-            r = await anon.post(
-                "/api/payments",
-                json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
-            )
-        assert r.status_code == 502
-        assert "invoice_url" not in r.text
-
-    async def test_a_test_key_checkout_creates_no_payment(self, api, maker):
-        from sqlalchemy import func, select
-
-        anon, _ = api
-        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
-            r = await anon.post(
-                "/api/payments",
-                json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
-            )
-        assert r.status_code == 503
-        assert "قيد التفعيل" in r.text
-        assert "invoice_url" not in r.text
-        async with maker() as session:
-            count = (await session.execute(select(func.count()).select_from(Payment))).scalar_one()
-        assert count == 0
+        assert PAYPAL_SECRET not in blob
 
 
 class TestUnresolvableInvoiceLink:
@@ -511,45 +279,6 @@ class TestUnresolvableInvoiceLink:
 
 @pytest.mark.usefixtures("vat15")
 class TestVatInclusiveCharging:
-    async def test_moyasar_is_asked_to_charge_the_invoice_total(self, maker, monkeypatch):
-        captured: dict = {}
-
-        async def _fake_post(*args, **kwargs):
-            captured.update(kwargs.get("json") or {})
-            raise pm.PaymentError("stop before the network is needed")
-
-        monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
-        from src.services import catalog
-
-        base = catalog.PACKAGES["bidaya"]["amount"]
-        async with maker() as session:
-            payment = await pm.create_payment(session, "bidaya", "عميل", None, None)
-            with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
-                await pm.initiate_moyasar(session, payment, pm.source_mada())
-
-        assert captured["amount"] == pm.total_with_vat(base)
-        assert captured["amount"] == 90850  # 790 + 15% VAT
-        assert captured["amount"] != base, "charging the pre-VAT base under-collects 15%"
-
-    async def test_an_explicit_charge_amount_is_honoured(self, maker, monkeypatch):
-        captured: dict = {}
-
-        async def _fake_post(*args, **kwargs):
-            captured.update(kwargs.get("json") or {})
-            raise pm.PaymentError("stop")
-
-        monkeypatch.setattr(httpx.AsyncClient, "post", _fake_post)
-        async with maker() as session:
-            payment = await pm.create_payment(session, "bidaya", "عميل", None, None)
-            with _gateway_config(moyasar=MOYASAR_SECRET), pytest.raises(pm.PaymentError):
-                await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=99900)
-        assert captured["amount"] == 99900
-
-    async def test_a_charge_below_the_recorded_base_is_refused(self, maker):
-        async with maker() as session:
-            payment = await pm.create_payment(session, "bidaya", "عميل", None, None)
-            with pytest.raises(pm.PaymentError):
-                await pm.initiate_moyasar(session, payment, pm.source_mada(), amount_halalas=1)
 
     def test_the_invoice_and_the_charge_agree_for_every_package(self):
         from src.services import catalog
@@ -561,12 +290,12 @@ class TestVatInclusiveCharging:
 
     @pytest.mark.usefixtures("founding_full")
     async def test_the_api_reports_the_vat_inclusive_total_to_the_checkout(self, api, monkeypatch):
-        """Owner-raised invoices still quote VAT. Customers cannot open that path."""
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+        """Owner-raised invoices still quote VAT. Customers need the bank-transfer flag."""
         from src.core.owner_auth import make_session_token
         from src.services import catalog
 
         anon, _ = api
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _gateway_config():
             refused = await anon.post(
                 "/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice"}
@@ -584,91 +313,6 @@ class TestVatInclusiveCharging:
         assert r.json()["total"] == pm.total_with_vat(base)
         assert r.json()["amount"] == base
 
-
-class TestMoyasarTestKeyIsNotAPaymentMethod:
-    """A working credential is not the same as a working payment method.
-
-    Production was found holding an ``sk_test_`` secret beside a *live*
-    publishable key. Moyasar accepts the test secret and creates real invoices,
-    so the credential probe returns 200 and the card buttons come back -- and a
-    buyer completes a sandbox checkout that charges nothing.
-    """
-
-    def test_a_test_secret_is_not_offered_as_card_checkout(self):
-        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
-            caps = pm.capabilities()
-        assert caps["card_configured"] is True
-        assert caps["card_test_mode"] is True
-        assert caps["card"] is False
-        for method in pm.CARD_METHODS:
-            assert caps["methods"][method] is False
-
-    def test_a_live_secret_is_offered(self):
-        with _gateway_config(moyasar=LIVE_MOYASAR_KEY):
-            caps = pm.capabilities()
-        assert caps["card_test_mode"] is False
-        assert caps["card"] is True
-
-    def test_a_test_publishable_key_hides_card_beside_a_live_secret(self):
-        publishable = "pk_" + "test_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
-        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=publishable):
-            caps = pm.capabilities()
-        assert caps["card"] is False
-        assert caps["card_test_mode"] is True
-
-    def test_an_empty_publishable_key_disables_card(self):
-        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=""):
-            caps = pm.capabilities()
-        assert caps["card"] is False
-        assert caps["card_test_mode"] is True
-
-    def test_an_empty_publishable_key_never_marks_paid(self):
-        payment = Payment(amount=49900, currency="SAR", status="pending")
-        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=""):
-            pm.apply_gateway_status(payment, {"status": "paid", "amount": pm.total_with_vat(49900), "currency": "SAR"})
-        assert payment.status != "paid"
-
-    async def test_an_empty_publishable_key_checkout_creates_no_payment(self, api, maker):
-        from sqlalchemy import func, select
-
-        anon, _ = api
-        with _gateway_config(moyasar=LIVE_MOYASAR_KEY, publishable=""):
-            r = await anon.post(
-                "/api/payments",
-                json={"refund_consent": True, "package": "bidaya", "method": "mada", "customer_name": "مشتر"},
-            )
-        assert r.status_code == 503
-        assert "قيد التفعيل" in r.text
-        async with maker() as session:
-            count = (await session.execute(select(func.count()).select_from(Payment))).scalar_one()
-        assert count == 0
-
-    def test_the_bank_transfer_route_stays_closed_unless_enabled(self, monkeypatch):
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
-            caps = pm.capabilities()
-        assert caps["methods"]["invoice"] is False
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
-            assert pm.capabilities()["methods"]["invoice"] is False
-
-    def test_the_owner_is_told_a_test_key_is_the_reason(self):
-        with _gateway_config(moyasar=TEST_MOYASAR_KEY):
-            report = pm.readiness()
-        assert any("TEST key" in issue for issue in report["blocking_issues"])
-        assert report["collect_money_now"] is False
-
-    def test_the_secret_value_is_never_echoed(self):
-        secret = TEST_MOYASAR_KEY + "-SHOULD-NOT-LEAK"
-        with _gateway_config(moyasar=secret):
-            assert secret not in str(pm.capabilities())
-            assert secret not in str(pm.readiness())
-
-    def test_a_publishable_key_is_not_treated_as_a_secret_key(self):
-        """A pk_ value is not a secret and cannot charge anything."""
-        with _gateway_config(moyasar=PUBLIC_MOYASAR_KEY):
-            caps = pm.capabilities()
-        assert caps["card"] is False
 
 
 # ---------------------------------------------------------------------------
@@ -695,14 +339,15 @@ class TestTransferInstructions:
         assert out["contact"]["phone"] == "tel:+966540799266"
         assert out["reference"]
 
-    def test_bank_details_appear_only_when_the_owner_publishes_them(self, monkeypatch):
+    def test_bank_details_appear_only_when_the_flag_and_the_file_agree(self, monkeypatch):
         payment = Payment(id=uuid4(), amount=49900, currency="SAR", status="invoice")
         monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
             assert pm.transfer_instructions(payment)["bank"] == {}
         monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
-            assert pm.transfer_instructions(payment)["bank"] == {}
+            bank = pm.transfer_instructions(payment)["bank"]
+        assert bank.get("iban") == "SA0380000000608010167519"
 
 
 # ---------------------------------------------------------------------------
@@ -821,11 +466,11 @@ class TestTransferReported:
 class TestPublicSurface:
     async def test_capabilities_endpoint_is_public_and_secret_free(self, api):
         anon, _ = api
-        with _gateway_config(moyasar=MOYASAR_SECRET):
+        with _gateway_config(paypal_id="id", paypal_secret=PAYPAL_SECRET):
             r = await anon.get("/api/payments/capabilities")
         assert r.status_code == 200
-        assert MOYASAR_SECRET not in r.text
-        assert set(r.json()["methods"]) == {*pm.CARD_METHODS, "paypal", "invoice"}
+        assert PAYPAL_SECRET not in r.text
+        assert set(r.json()["methods"]) == {"paypal", "invoice"}
 
     async def test_readiness_is_owner_only(self, api):
         anon, owned = api
@@ -838,18 +483,25 @@ class TestPublicSurface:
         assert r.status_code == 400
 
     @pytest.mark.usefixtures("founding_full")
-    async def test_a_customer_cannot_fall_back_to_a_bank_invoice(self, api, monkeypatch):
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+    async def test_a_customer_bank_invoice_follows_the_flag(self, api, monkeypatch):
         anon, _ = api
-
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _gateway_config():
-            r = await anon.post(
+            closed = await anon.post(
                 "/api/payments",
                 json={"refund_consent": True, "package": "bidaya", "method": "invoice", "customer_name": "-buy-test"},
             )
-        assert r.status_code == 400
-        assert "invoice_url" not in r.text
-        assert "Bank transfer is not available" in r.text
+        assert closed.status_code == 400
+        assert "Bank transfer is not available" in closed.text
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+        with _gateway_config():
+            opened = await anon.post(
+                "/api/payments",
+                json={"refund_consent": True, "package": "bidaya", "method": "invoice", "customer_name": "-buy-test"},
+            )
+        assert opened.status_code == 200
+        assert opened.json()["gateway"] == "invoice"
+        assert opened.json()["invoice_url"]
 
     async def test_the_capabilities_route_is_not_shadowed_by_the_payment_id_route(self, api):
         anon, _ = api
@@ -882,18 +534,20 @@ class TestTemplates:
         assert "{% if not xfer.bank.iban %}" in partial and "data-open-assistant" not in partial
         assert "mailto:AlNarjisai@gmail.com" in partial
 
-    async def test_a_customer_invoice_page_does_not_publish_bank_details(self, api, maker, monkeypatch):
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+    async def test_a_customer_invoice_page_publishes_bank_details_only_when_enabled(self, api, maker, monkeypatch):
         anon, _ = api
         payment = await _insert_payment(maker)
+        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
         with _bank_file(iban="SA0380000000608010167519", bank_name="Al Rajhi"):
-            r = await anon.get(f"/invoice/{payment.id}")
-        assert r.status_code == 200
-        body = r.text
-        assert "SA0380000000608010167519" not in body
-        assert "نسخ الآيبان" not in body
-        assert "لم تُنشر بيانات الحساب بعد" not in body
-        assert "wa.me" not in body
+            hidden = await anon.get(f"/invoice/{payment.id}")
+        assert hidden.status_code == 200
+        assert "SA0380000000608010167519" not in hidden.text
+        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+        with _bank_file(iban="SA0380000000608010167519", bank_name="Al Rajhi"):
+            shown = await anon.get(f"/invoice/{payment.id}")
+        assert shown.status_code == 200
+        assert "SA0380000000608010167519" in shown.text
+        assert "wa.me" not in shown.text
 
     def test_the_checkout_asks_the_server_which_methods_are_real(self):
         portal = self._read("portal.html")
@@ -902,12 +556,12 @@ class TestTemplates:
 
     def test_a_hidden_method_is_explained_rather_than_silently_dropped(self):
         portal = self._read("portal.html")
-        assert "if (hidden) {" in portal
+        assert "if (!live.length || hidden)" in portal
         assert "coCardNote" in portal
 
-    def test_the_invoice_branch_does_not_send_the_buyer_to_a_transfer(self):
+    def test_the_invoice_branch_opens_the_invoice_when_one_exists(self):
         portal = self._read("portal.html")
-        assert "data.invoice_url || ('/invoice/' + data.payment_id)" not in portal
+        assert "data.invoice_url" in portal
         assert "الدفع غير متاح مؤقتاً" in portal
 
     def test_checkout_fires_the_money_event_for_the_pixel(self):

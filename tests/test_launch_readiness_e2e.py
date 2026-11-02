@@ -1,5 +1,5 @@
-"""Launch readiness: diagnosis -> portal project -> checkout -> mocked Moyasar
-paid webhook -> activation -> staffed team, for every tier (+ add-ons)."""
+"""Launch readiness: diagnosis -> portal project -> bank-transfer invoice ->
+owner confirms receipt -> activation -> staffed team, for every tier (+ add-ons)."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -15,9 +15,6 @@ from src.models import ClientAgent, ClientProject, Payment
 from src.services import catalog, ceo_advisor, renewals
 from src.services import payments as pm
 
-SECRET = "whsec-test"
-
-
 @pytest.fixture
 async def maker():
     engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)
@@ -28,35 +25,8 @@ async def maker():
 
 
 @pytest.fixture
-def mock_moyasar(monkeypatch, moyasar_release):
-    """Fake Moyasar: invoice creation + a GET that reports the exact paid total."""
-    from src.config import settings as st
-
-    monkeypatch.setattr(st, "moyasar_api_secret", "sk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY")
-    monkeypatch.setattr(st, "moyasar_publishable_key", "pk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY")
-    monkeypatch.setattr(st, "moyasar_webhook_secret", SECRET)
-    state = {"amount": 0, "n": 0}
-
-    class _R:
-        def __init__(self, code, body):
-            self.status_code, self._b, self.text = code, body, ""
-
-        def json(self):
-            return self._b
-
-    async def _post(self, url, *a, **k):
-        state["n"] += 1
-        state["amount"] = (k.get("json") or {}).get("amount", 0)
-        iid = f"inv_{state['n']}"
-        return _R(201, {"id": iid, "url": f"https://checkout.moyasar.com/invoices/{iid}"})
-
-    async def _get(self, url, *a, **k):
-        return _R(200, {"id": url.rsplit("/", 1)[-1], "status": "paid",
-                        "amount": state["amount"], "currency": "SAR"})
-
-    monkeypatch.setattr(httpx.AsyncClient, "post", _post)
-    monkeypatch.setattr(httpx.AsyncClient, "get", _get)
-    return state
+def bank_transfer(monkeypatch):
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
 
 
 CASES = [
@@ -72,7 +42,7 @@ CASES = [
 
 @pytest.mark.parametrize("problem,tier,extra", CASES)
 @pytest.mark.usefixtures("founding_full")
-async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
+async def test_every_tier_end_to_end(maker, bank_transfer, problem, tier, extra):
     from src.main import app
 
     diag = ceo_advisor.build_result(ceo_advisor.diagnose_rules(problem))
@@ -87,10 +57,13 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
     registry = AgentRegistry(maker)
     await registry.sync_base_agents()
     app.state.agent_registry = registry
+    from src.core.owner_auth import make_session_token
+
     transport = httpx.ASGITransport(app=app)
-    # httpx.AsyncClient.post is mocked for Moyasar; drive the app through the transport directly.
-    async def call(method, path, json):
-        req = httpx.Request(method, f"http://test{path}", json=json)
+    owner_cookie = {"cookie": f"narjis_owner={make_session_token()}"}
+
+    async def call(method, path, json, headers=None):
+        req = httpx.Request(method, f"http://test{path}", json=json, headers=headers)
         resp = await transport.handle_async_request(req)
         await resp.aread()
         return resp.status_code, __import__("json").loads(resp.content)
@@ -109,15 +82,15 @@ async def test_every_tier_end_to_end(maker, mock_moyasar, problem, tier, extra):
             assert slug in staffed, f"diagnosed agent {slug} not staffed"
 
     code, pay = await call("POST", "/api/payments", {
-        "refund_consent": True, "package": tier, "method": "creditcard", "customer_name": "عميل تجريبي",
+        "refund_consent": True, "package": tier, "method": "invoice", "customer_name": "عميل تجريبي",
         "customer_phone": "0555123456", "project_id": proj["project_id"], "addons": addons})
     assert code == 200, pay
     # a first monthly order carries the tier's one-time setup fee
     assert pay["total"] == pm.total_with_vat(catalog.plan_amount(tier, "monthly", addons) + catalog.setup_fee(tier))
 
-    code, hook = await call("POST", "/webhooks/moyasar", {
-        "type": "payment_paid", "secret_token": SECRET,
-        "data": {"metadata": {"order_id": pay["payment_id"]}}})
+    code, hook = await call(
+        "POST", f"/api/payments/{pay['payment_id']}/confirm-received",
+        {"note": "received"}, headers=owner_cookie)
     assert code == 200 and hook["status"] == "paid", hook
 
     async with maker() as s:

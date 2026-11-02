@@ -1,7 +1,7 @@
 """Lead pipeline: new -> qualified -> offer_sent -> payment_link_sent -> paid | lost.
 
 Follow-ups are drafts like any other reply, so the owner's channel mode still
-decides whether they reach the customer. Moyasar invoices are created only at
+decides whether they reach the customer. The invoice link is created only at
 the moment a payment-link draft is actually sent (owner approval or auto mode),
 never speculatively.
 """
@@ -124,9 +124,9 @@ async def ensure_payment_link(session: AsyncSession, draft: ReplyDraft, *, base_
         voice_packs=int((draft.meta or {}).get("voice_packs") or 0),
         founding=None,  # founding price auto-applies while seats remain
     )
-    # The link is our invoice page, not a raw Moyasar checkout: the buyer must
-    # tick the refund consent there before card or bank transfer (see
-    # /api/payments/<id>/pay-card and /transfer-reported).
+    # The link is our invoice page: the buyer ticks the refund consent there
+    # before PayPal or bank transfer (see /api/payments/<id>/pay-paypal and
+    # /transfer-reported).
     payment.status = "invoice"
     url = f"{_base_url(base_url)}/invoice/{payment.id}"
     if pipe is not None:

@@ -96,13 +96,3 @@ def vat15(monkeypatch):
     yield
 
 
-@_pytest.fixture
-def moyasar_release(monkeypatch):
-    """Exercise the preserved gateway implementation after a future approved release.
-
-    Only explicitly opted-in gateway tests lift the release hold; default and
-    launch-hold tests keep the shipped Pending policy. No real gateway calls.
-    """
-    from src.services import payments
-
-    monkeypatch.setattr(payments, "MOYASAR_ON_HOLD", False)

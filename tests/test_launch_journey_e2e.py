@@ -1,8 +1,7 @@
-"""Launch journey end to end (sandbox/mock gateway only):
-landing -> CEO consult (HTTP) -> plan -> portal project -> checkout ->
-paid webhook -> activation exactly once (duplicate webhook is idempotent) ->
-agents assigned. Real Moyasar is never called; the release hold is lifted only
-inside this test via the existing ``moyasar_release`` fixture."""
+"""Launch journey end to end:
+landing -> CEO consult (HTTP) -> plan -> portal project -> bank-transfer invoice ->
+owner confirms receipt -> activation exactly once (a second confirm is idempotent) ->
+agents assigned. No card gateway is called."""
 
 from __future__ import annotations
 
@@ -20,9 +19,6 @@ from src.models.ops import FunnelEvent
 from src.services import catalog, funnel
 from src.utils.rate_limit import consult_limiter
 
-SECRET = "whsec-test"  # pragma: allowlist secret
-
-
 @pytest.fixture
 async def maker(monkeypatch):
     engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)
@@ -35,50 +31,12 @@ async def maker(monkeypatch):
 
 
 @pytest.fixture
-def fake_gateway(monkeypatch, moyasar_release):
-    from src.config import settings as st
-
-    monkeypatch.setattr(
-        st, "moyasar_api_secret", "sk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
-    )
-    monkeypatch.setattr(
-        st, "moyasar_publishable_key", "pk_" + "live_" + "FAKE-VALUE-FOR-TESTS-ONLY-NOT-A-REAL-KEY"
-    )
-    monkeypatch.setattr(st, "moyasar_webhook_secret", SECRET)
-    state = {"amount": 0, "n": 0}
-
-    class _R:
-        def __init__(self, code, body):
-            self.status_code, self._b, self.text = code, body, ""
-
-        def json(self):
-            return self._b
-
-    async def _post(self, url, *a, **k):
-        state["n"] += 1
-        state["amount"] = (k.get("json") or {}).get("amount", 0)
-        return _R(
-            201, {"id": f"inv_{state['n']}", "url": "https://checkout.moyasar.com/invoices/x"}
-        )
-
-    async def _get(self, url, *a, **k):
-        return _R(
-            200,
-            {
-                "id": url.rsplit("/", 1)[-1],
-                "status": "paid",
-                "amount": state["amount"],
-                "currency": "SAR",
-            },
-        )
-
-    monkeypatch.setattr(httpx.AsyncClient, "post", _post)
-    monkeypatch.setattr(httpx.AsyncClient, "get", _get)
-    return state
+def bank_transfer(monkeypatch):
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
 
 
 @pytest.mark.usefixtures("founding_full")
-async def test_full_launch_journey_activates_exactly_once(maker, fake_gateway):
+async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer):
     from src.core.agent_registry import AgentRegistry
     from src.main import app
 
@@ -89,11 +47,15 @@ async def test_full_launch_journey_activates_exactly_once(maker, fake_gateway):
     consult_limiter.reset()
     transport = httpx.ASGITransport(app=app)
 
-    async def call(method, path, body=None):
+    from src.core.owner_auth import make_session_token
+
+    owner_cookie = {"cookie": f"narjis_owner={make_session_token()}"}
+
+    async def call(method, path, body=None, headers=None):
         req = (
-            httpx.Request(method, f"http://test{path}", json=body)
+            httpx.Request(method, f"http://test{path}", json=body, headers=headers)
             if body is not None
-            else httpx.Request(method, f"http://test{path}")
+            else httpx.Request(method, f"http://test{path}", headers=headers)
         )
         resp = await transport.handle_async_request(req)
         await resp.aread()
@@ -136,7 +98,7 @@ async def test_full_launch_journey_activates_exactly_once(maker, fake_gateway):
         {
             "refund_consent": True,
             "package": tier,
-            "method": "creditcard",
+            "method": "invoice",
             "customer_name": "عميل تجريبي",
             "customer_phone": "0555123456",
             "project_id": proj["project_id"],
@@ -145,14 +107,14 @@ async def test_full_launch_journey_activates_exactly_once(maker, fake_gateway):
     )
     assert code == 200, raw
     pay = json.loads(raw)
-    hook = {
-        "type": "payment_paid",
-        "secret_token": SECRET,
-        "data": {"metadata": {"order_id": pay["payment_id"]}},
-    }
-    # 6. paid webhook, then the same webhook delivered again
+    # 6. owner confirms the transfer, then the same confirm delivered again
     for _ in range(2):
-        code, raw = await call("POST", "/webhooks/moyasar", hook)
+        code, raw = await call(
+            "POST",
+            f"/api/payments/{pay['payment_id']}/confirm-received",
+            {"note": "received"},
+            headers=owner_cookie,
+        )
         assert code == 200, raw
 
     async with maker() as s:

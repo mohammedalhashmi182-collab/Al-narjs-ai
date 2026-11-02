@@ -205,10 +205,11 @@ def setup_status(base_url: str) -> dict:
                     "MESSENGER_VERIFY_TOKEN": have(s.messenger_verify_token)},
             "webhook_url": f"{base_url}/webhooks/messenger",
         },
-        "payments": {"env": {"MOYASAR_API_SECRET": have(s.moyasar_api_secret),
-                             "MOYASAR_WEBHOOK_SECRET": have(s.moyasar_webhook_secret),
+        "payments": {"env": {"PAYPAL_CLIENT_ID": have(s.paypal_client_id),
+                             "PAYPAL_CLIENT_SECRET": have(s.paypal_client_secret),
+                             "PAYPAL_WEBHOOK_ID": have(s.paypal_webhook_id),
                              "PUBLIC_BASE_URL": have(s.public_base_url)},
-                     "webhook_url": f"{base_url}/webhooks/moyasar"},
+                     "webhook_url": f"{base_url}/webhooks/paypal"},
         "llm": {"env": {k: have(getattr(s, k.lower())) for k in
                         ("GEMINI_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY", "GROQ_API_KEY", "ANTHROPIC_API_KEY")}},
     }

@@ -229,7 +229,9 @@ class Payment(Base):
         PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="SET NULL"), nullable=True, index=True
     )
     status: Mapped[str] = mapped_column(String(50), default="pending", index=True)
-    gateway: Mapped[str] = mapped_column(String(50), default="moyasar")
+    # Historical rows may still store gateway="moyasar". The column and those
+    # values stay; new rows default to a manual invoice. No migration drops data.
+    gateway: Mapped[str] = mapped_column(String(50), default="invoice")
     gateway_payment_id: Mapped[Optional[str]] = mapped_column(String(100))
     gateway_source: Mapped[Optional[str]] = mapped_column(String(50))
     description: Mapped[Optional[str]] = mapped_column(Text)

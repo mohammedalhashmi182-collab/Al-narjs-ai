@@ -128,26 +128,13 @@ def test_testclient_shutdown_with_retrying_task_is_fast(monkeypatch):
 # --------------------------------------------------------------------- moyasar hold
 
 
-async def test_ops_monitor_makes_zero_moyasar_calls_while_on_hold(monkeypatch):
-    from src.config import settings as s
-    from src.services import ops_monitor, payments
+async def test_ops_monitor_does_not_probe_a_retired_card_gateway():
+    from src.services import ops_monitor
 
-    assert payments.MOYASAR_ON_HOLD is True
-    # Fake live-shaped keys: "configured" must not lead to a call.
-    monkeypatch.setattr(s, "moyasar_api_secret", "sk_live_" + "x" * 40, raising=False)
-    monkeypatch.setattr(s, "moyasar_publishable_key", "pk_live_" + "y" * 40, raising=False)
-    monkeypatch.setattr(ops_monitor, "configured_externals", lambda: {"moyasar": True})
-
-    def boom(*a, **kw):
-        raise AssertionError("network touched while Moyasar is on hold")
-
-    monkeypatch.setattr(socket, "getaddrinfo", boom)
-    monkeypatch.setattr(socket.socket, "connect", boom)
-    monkeypatch.setattr(httpx.AsyncClient, "send", boom)
-    out = await ops_monitor.check_external()  # default real _probe
-    assert out["moyasar"]["status"] == "on_hold" and out["moyasar"]["ok"] is None
-    direct = await ops_monitor._probe(ops_monitor.EXTERNAL_PROBES["moyasar"])
-    assert direct["status"] == "on_hold"
+    assert "moyasar" not in ops_monitor.configured_externals()
+    assert "moyasar" not in ops_monitor.EXTERNAL_PROBES
+    out = await ops_monitor.check_external(probe=lambda url: {"ok": True, "status_code": 200})
+    assert "moyasar" not in out
 
 
 # --------------------------------------------------------------------- payments

@@ -151,7 +151,7 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
     const PAY = {pending: 'بانتظار الدفع', initiated: 'بدأ', authorized: 'معلّق'};
     const L = {pending:'قيد الانتظار', paid:'مدفوع', failed:'فشل', review:'مراجعة', authorized:'مُفوَّض', open:'مفتوح', closed:'مغلق', running:'قيد التشغيل', done:'مكتمل', converted:'تحوّل', contacted:'تم التواصل',
         bidaya:'البداية', numuw:'النمو', sharikat:'الشركات', radd:'البداية', bay:'النمو', tashgheel:'الشركات', starter:'البداية', growth:'النمو', enterprise:'الشركات',
-        moyasar:'ميسر', paypal:'PayPal', invoice:'فاتورة'};
+        moyasar:'بطاقة (سابق)', paypal:'PayPal', invoice:'فاتورة'};
     const lbl = k => esc(L[k] || k);
 
     function usageCell(m, money) {
@@ -205,8 +205,9 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
         $('review').innerHTML = Object.keys(rq).map(k => '<li><span>' + (k === 'karma' ? 'صندوق مبيعات كارما' : esc(k)) + '</span><b>' + rq[k] + '</b></li>').join('') || '<li class="cc-mut">لا شيء بانتظار المراجعة</li>';
 
         const hl = d.health;
-        $('healthLine').innerHTML = 'قاعدة البيانات: ' + (hl.database ? tag('ok', 'متصلة') : tag('bad', 'متوقفة')) + ' · أخطاء آخر 24 ساعة: <b>' + hl.errors_24h + '</b> · الدفع بالبطاقة: '
-            + (hl.payment_methods.creditcard ? tag('ok', 'مفعّل') : tag('mut', 'غير مفعّل'));
+        $('healthLine').innerHTML = 'قاعدة البيانات: ' + (hl.database ? tag('ok', 'متصلة') : tag('bad', 'متوقفة')) + ' · أخطاء آخر 24 ساعة: <b>' + hl.errors_24h + '</b> · PayPal: '
+            + (hl.payment_methods.paypal ? tag('ok', 'مفعّل') : tag('mut', 'غير مفعّل'))
+            + ' · التحويل البنكي: ' + (hl.payment_methods.invoice ? tag('ok', 'مفعّل') : tag('mut', 'غير مفعّل'));
         $('errors').innerHTML = hl.recent_errors.map(e => '<li><span>' + esc(e.message || 'فشل غير موصوف') + '</span><span class="cc-mut">' + day(e.at) + '</span></li>').join('') || '<li class="cc-mut">لا أخطاء حديثة</li>';
     }
 

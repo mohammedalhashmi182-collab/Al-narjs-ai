@@ -660,13 +660,10 @@
                     showCoSummary();
                     const ar = isAr();
                     const allowPaypal = {{ 'true' if paypal_customer_enabled else 'false' }};
-                    const all = [
-                        { m: 'mada', i: 'fas fa-credit-card', t: ar ? 'مدى / بطاقة مصرفية' : 'mada / Bank Card' },
-                        { m: 'applepay', i: 'fab fa-apple', t: 'Apple Pay' },
-                    ];
-                    if (allowPaypal) all.unshift({ m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' });
-                    // Moyasar card methods only. A button must never promise a
-                    // transfer the server will not settle.
+                    const allowTransfer = {{ 'true' if bank_transfer_enabled else 'false' }};
+                    const all = [];
+                    if (allowPaypal) all.push({ m: 'paypal', i: 'fab fa-paypal', t: ar ? 'باي بال' : 'PayPal' });
+                    if (allowTransfer) all.push({ m: 'invoice', i: 'fas fa-university', t: ar ? 'تحويل بنكي' : 'Bank transfer' });
                     $('coMethods').innerHTML = '';
                     fetch('/api/payments/capabilities').then(r => {
                         if (!r.ok) throw new Error('Payment availability check failed');
@@ -678,19 +675,15 @@
                             <button class="btn btn-outline co-method" data-m="${x.m}" style="padding:16px;justify-content:center;">
                                 <i class="${x.i}"></i><span style="margin-inline-start:8px;">${x.t}</span>
                             </button>`).join('');
-if (hidden) {
+                        if (!live.length || hidden) {
                             const note = document.getElementById('coCardNote');
                             if (note) {
                                 note.hidden = false;
                                 let msg;
-                                if (cap.moyasar_on_hold) {
+                                if (!live.length) {
                                     msg = ar
                                         ? {{ payments_closed_ar | tojson }}
                                         : {{ payments_closed_en | tojson }};
-                                } else if (!cap.card) {
-                                    msg = ar
-                                        ? 'الدفع غير متاح مؤقتاً. تواصل معنا على AlNarjisai@gmail.com.'
-                                        : 'Payment is temporarily unavailable. Contact us at AlNarjisai@gmail.com.';
                                 } else if (cap.paypal_test_mode && allowPaypal) {
                                     msg = ar
                                         ? 'دفع باي بال في وضع الاختبار، لذلك نعرض وسائل الدفع المفعّلة فقط.'
@@ -698,7 +691,7 @@ if (hidden) {
                                 } else {
                                     msg = ar ? 'وسائل الدفع المفعّلة فقط.' : 'Only the enabled payment methods are shown.';
                                 }
-note.textContent = msg;
+                                note.textContent = msg;
                             }
                         }
                         document.querySelectorAll('.co-method').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.m)));
@@ -789,6 +782,11 @@ note.textContent = msg;
                             await new Promise(res => setTimeout(res, 2500));
                         }
                         window.location.href = data.redirect_url;
+                        return;
+                    }
+                    if (data.gateway === 'invoice' && data.invoice_url) {
+                        msg.textContent = txt('جارٍ فتح الفاتورة...', 'Opening the invoice...');
+                        window.location.href = data.invoice_url;
                         return;
                     }
                     if (data.gateway === 'invoice') {

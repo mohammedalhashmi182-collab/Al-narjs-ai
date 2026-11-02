@@ -71,8 +71,9 @@ def _plan_name(key: Optional[str]) -> str:
 
 
 def _is_bank_transfer(p) -> bool:
-    # Manual payments: gateway "invoice" not yet handed to a card gateway.
-    return p.gateway not in ("moyasar", "paypal")
+    # Manual payments only. Historical rows may still store gateway="moyasar";
+    # those are not bank transfers, and the column is left intact.
+    return (p.gateway or "") not in ("moyasar", "paypal")
 
 
 async def _revenue(session, now) -> dict:

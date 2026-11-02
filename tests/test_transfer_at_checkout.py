@@ -1,9 +1,7 @@
-"""Customer checkout is Moyasar only.
+"""Customer checkout offers PayPal and bank transfer only when their flags are on.
 
-Bank transfer used to appear on the portal before the buyer chose a method.
-That path is gone: the checkout has no IBAN block, the retired
-CUSTOMER_BANK_TRANSFER_ENABLED switch cannot turn it back on, and a buyer
-whose card checkout is down is asked to contact us.
+The checkout has no IBAN block. Bank details stay on the invoice page, and only
+when CUSTOMER_BANK_TRANSFER_ENABLED is set.
 """
 
 from __future__ import annotations
@@ -36,12 +34,10 @@ def client():
 # --------------------------------------------------------------------------
 
 
-def test_the_checkout_screen_has_no_transfer_block(portal: str) -> None:
+def test_the_checkout_screen_has_no_iban_block(portal: str) -> None:
     assert 'id="coXfer"' not in portal
     assert "xfIban" not in portal
-    assert "allowInvoice" not in portal
-    assert "تحويل بنكي" not in portal
-    assert "bank_transfer_enabled" not in portal
+    assert "bank_transfer_enabled" in portal
 
 
 # --------------------------------------------------------------------------
@@ -61,26 +57,26 @@ def test_a_down_card_checkout_asks_the_buyer_to_contact_us(portal: str) -> None:
 # --------------------------------------------------------------------------
 
 
-def test_capabilities_never_offers_customer_bank_transfer(client: TestClient, monkeypatch) -> None:
+def test_capabilities_offer_bank_transfer_only_when_enabled(client: TestClient, monkeypatch) -> None:
     monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
     off = client.get(CAPABILITIES).json()
     assert off["methods"]["invoice"] is False
     assert off["bank"] == {}
+    assert off["card"] is False
     monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
     forced = client.get(CAPABILITIES).json()
-    assert forced["methods"]["invoice"] is False
-    assert forced["bank"] == {}
+    assert forced["methods"]["invoice"] is True
 
 
 def test_capabilities_never_leaks_a_secret(client: TestClient) -> None:
     body = client.get(CAPABILITIES).text
-    for secret in ("sk_live", "sk_test", "pk_live", "moyasar_api_secret", "PAYPAL_CLIENT_SECRET"):
+    for secret in ("sk_live", "sk_test", "pk_live", "PAYPAL_CLIENT_SECRET"):
         assert secret not in body, f"{secret} reached the public capabilities payload"
 
 
-def test_checkout_methods_are_card_and_optional_paypal(portal: str) -> None:
-    assert "m: 'mada'" in portal and "m: 'applepay'" in portal
-    assert "m: 'invoice'" not in portal
+def test_checkout_methods_are_paypal_and_bank_transfer(portal: str) -> None:
+    assert "m: 'mada'" not in portal and "m: 'applepay'" not in portal
+    assert "m: 'paypal'" in portal and "m: 'invoice'" in portal
 
 
 # --------------------------------------------------------------------------
@@ -96,10 +92,9 @@ def test_checkout_methods_are_card_and_optional_paypal(portal: str) -> None:
 
 
 
-def test_an_invoice_response_does_not_send_the_buyer_to_a_transfer(portal: str) -> None:
+def test_an_invoice_response_opens_the_invoice_page(portal: str) -> None:
     segment = portal[portal.find("data.gateway === 'invoice'"):][:800]
-    assert "افتح الفاتورة" not in segment
-    assert "invoice_url" not in segment
+    assert "invoice_url" in segment
     assert "0540799266" not in segment
 
 

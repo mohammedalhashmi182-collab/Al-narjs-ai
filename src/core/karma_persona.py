@@ -31,21 +31,33 @@ _LEAD_EXAMPLE = (
 
 
 PAYMENTS_CLOSED_FACT = (
-    "- Payment: online card payment is NOT open yet (الدفع الإلكتروني قيد التفعيل حالياً). Do not tell the\n"
-    "  visitor to pay, activate or subscribe now, never tell them to activate their plan instantly or \"pay by card via Moyasar\",\n"
-    "  and never name a payment gateway. Say they can register their interest (سجّل اهتمامك) by email at\n"
-    "  AlNarjisai@gmail.com or at /portal, and the team replies by email when payment opens."
+    "- Payment: online payment is NOT open yet (الدفع الإلكتروني قيد التفعيل حالياً). Do not tell the\n"
+    "  visitor to pay, activate or subscribe now, and never name a payment gateway. Say they can register their interest\n"
+    "  (سجّل اهتمامك) by email at AlNarjisai@gmail.com or at /portal, and the team replies\n"
+    "  by email when payment opens."
 )
-PAYMENTS_OPEN_FACT = (
-    "- Payment: by card on the secure checkout page reached from /portal, in SAR. Never ask for card\n"
-    "  details in the chat."
+PAYMENTS_PAYPAL_FACT = (
+    "- Payment: PayPal on the secure checkout reached from /portal. Prices stay in SAR; PayPal charges USD\n"
+    "  at the published peg. Never ask for card or account details in the chat."
+)
+PAYMENTS_TRANSFER_FACT = (
+    "- Payment: bank transfer against the invoice from /portal. Never ask for card details in the chat and\n"
+    "  never invent bank details; the invoice page shows them."
 )
 
 
 def _payment_fact() -> str:
-    from src.services.payments import payments_open
+    from src.services.payments import customer_bank_transfer_enabled, paypal_checkout_open
 
-    return PAYMENTS_OPEN_FACT if payments_open() else PAYMENTS_CLOSED_FACT
+    paypal = paypal_checkout_open()
+    transfer = customer_bank_transfer_enabled()
+    if paypal and transfer:
+        return PAYMENTS_PAYPAL_FACT + "\n" + PAYMENTS_TRANSFER_FACT
+    if paypal:
+        return PAYMENTS_PAYPAL_FACT
+    if transfer:
+        return PAYMENTS_TRANSFER_FACT
+    return PAYMENTS_CLOSED_FACT
 
 
 def build_consult_system_prompt(*, locale: str, packages_text: str, employees_text: str) -> str:

@@ -9,7 +9,7 @@ chat, tickets or commits while following these steps.
 | Signal | Where |
 |---|---|
 | Liveness (Render health check) | `GET /health` → `{"status":"healthy"}` (cheap, no dependencies) |
-| Deep check | `GET /health/deep` or `/health?deep=1` → db latency + reachability of configured providers (Telegram, Meta, Moyasar, Gemini). 503 only when the DB is down. Booleans only, no secrets. |
+| Deep check | `GET /health/deep` or `/health?deep=1` → db latency + reachability of configured providers (Telegram, Meta, PayPal, Gemini). 503 only when the DB is down. Booleans only, no secrets. |
 | Owner view | `GET /api/owner/ops/health` (owner cookie) |
 | Uptime self-check | schedule `ops-uptime-self-check`, every 5 min: deep check + `PUBLIC_BASE_URL/health`; alerts owner on failure (throttled 30 min per issue) |
 | Errors | `OpsAlertMiddleware`: any 5xx / unhandled exception → owner alert; `/webhooks/*` failures get a named alert |
@@ -39,12 +39,14 @@ Symptoms: WhatsApp sends fail with Meta error code `190` (OAuthException) or HTT
 4. Verify by checking `/webhooks/whatsapp/health` and sending a test message to your own number.
 5. Resend the queued fallbacks: messages with status `awaiting_manual` (re-trigger the send from the owner queue).
 
-## Payment webhook failure (Moyasar / PayPal)
+## Payment webhook failure (PayPal)
 
 Symptoms: owner alert "فشل webhook الدفع"; a customer paid but the order is not activated.
 
-1. Moyasar returns are retried by Moyasar on non-2xx. Check Render logs for `/webhooks/moyasar` status: 401 = `MOYASAR_WEBHOOK_SECRET` mismatch with the Moyasar dashboard secret; 502 = could not verify with Moyasar's API (outage or `MOYASAR_API_SECRET` invalid).
-2. PayPal: 401 = signature verification failed (`PAYPAL_WEBHOOK_ID` wrong); 502 = PayPal API unreachable.
-3. Fix the env var in Render if needed (never share values).
-4. For a specific paid order that did not activate: confirm the payment in the Moyasar/PayPal dashboard, then activate it through the existing owner payment flow in the owner console. Do not hand-edit payment rows.
-5. In Moyasar dashboard → Webhooks, use "resend" for the failed events once fixed. Confirm the customer project shows `active`.
+Card checkout (Moyasar) was removed. Historical payment rows may still say `gateway=moyasar`; do not call that provider, and do not delete the rows.
+
+1. PayPal: 401 = signature verification failed (`PAYPAL_WEBHOOK_ID` wrong); 502 = PayPal API unreachable. Check Render logs for `/webhooks/paypal`.
+2. Fix the env var in Render if needed (never share values). PayPal is offered to customers only when `CUSTOMER_PAYPAL_ENABLED` is on and `PAYPAL_MODE=live`.
+3. Bank transfer stays a manual invoice. The owner confirms receipt with the existing confirm-received flow. It is offered to customers only when `CUSTOMER_BANK_TRANSFER_ENABLED` is on.
+4. For a specific paid order that did not activate: confirm the payment in the PayPal dashboard (or the bank statement for a transfer), then activate it through the existing owner payment flow. Do not hand-edit payment rows.
+5. In the PayPal dashboard, resend the failed webhook once the secret is fixed. Confirm the customer project shows `active`.

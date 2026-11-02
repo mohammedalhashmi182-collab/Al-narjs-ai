@@ -71,10 +71,16 @@ async def test_banner_disappears_when_payments_open(monkeypatch):
     assert "اشترك في " in html
 
 
-def test_flag_follows_moyasar_hold(monkeypatch):
+def test_payments_open_follows_paypal_or_bank_transfer(monkeypatch):
     s = get_settings()
-    monkeypatch.setattr(s, "moyasar_api_secret", "sk_" + "live_FAKE")
-    monkeypatch.setattr(s, "moyasar_publishable_key", "pk_" + "live_FAKE")
-    assert pm.payments_open() is False  # MOYASAR_ON_HOLD keeps it closed
-    monkeypatch.setattr(pm, "MOYASAR_ON_HOLD", False)
+    monkeypatch.delenv("CUSTOMER_PAYPAL_ENABLED", raising=False)
+    monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
+    monkeypatch.setattr(s, "paypal_client_id", "id")
+    monkeypatch.setattr(s, "paypal_client_secret", "secret")
+    monkeypatch.setattr(s, "paypal_mode", "live")
+    assert pm.payments_open() is False
+    monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
+    assert pm.payments_open() is True
+    monkeypatch.delenv("CUSTOMER_PAYPAL_ENABLED", raising=False)
+    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
     assert pm.payments_open() is True
