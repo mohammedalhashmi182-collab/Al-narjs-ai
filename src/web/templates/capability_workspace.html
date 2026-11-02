@@ -1,0 +1,195 @@
+{% extends "partials/_simple_page.html" %}
+{% set _kind = slug %}
+{% block title %}{% if ar %}{{ employee.title_ar }} | النرجس للذكاء الاصطناعي{% else %}{{ employee.title_en }} | Al-Narjis AI{% endif %}{% endblock %}
+{% block description %}{% if ar %}{{ employee.intro_ar }}{% else %}{{ employee.intro_en }}{% endif %}{% endblock %}
+{% block h1 %}{% if ar %}{{ employee.title_ar }}{% else %}{{ employee.title_en }}{% endif %}{% endblock %}
+{% block extra_head %}
+<style>
+    .cap-form label{display:block;font-weight:700;margin:12px 0 4px}
+    .cap-form input,.cap-form select,.cap-form textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);font:inherit;background:#fff}
+    .cap-form textarea{min-height:120px}
+    .cap-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 700px){.cap-row{grid-template-columns:1fr}}
+    .cap-note{padding:12px 14px;border-radius:12px;background:#fff7f4;border:1px solid rgba(255,90,54,.35);color:#292524}
+    .cap-note p,.cap-note th,.cap-note td,.cap-note li,.cap-note pre{color:#292524}
+    .cap-table{width:100%;border-collapse:collapse;font-size:.92rem}
+    .cap-table th,.cap-table td{padding:8px 6px;border-bottom:1px solid rgba(0,0,0,.08);text-align:start;color:#292524}
+    .cap-error{color:#9f1239;font-weight:700}
+    .cap-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+    .cap-mobile{display:none}
+    @media (max-width: 640px){
+        .cap-mobile{display:block;position:fixed;inset-inline:12px;bottom:12px;z-index:40;text-align:center}
+        body{padding-bottom:76px}
+    }
+    .cap-pre{white-space:pre-wrap;font-family:"Cairo",sans-serif;background:#fafaf9;padding:12px;border-radius:12px}
+</style>
+{% endblock %}
+{% block body %}
+<p class="n-sub">{{ employee.no }} · {% if ar %}{{ employee.dept }}{% else %}{{ employee.dept_en }}{% endif %}</p>
+<p>{% if ar %}{{ employee.intro_ar }}{% else %}{{ employee.intro_en }}{% endif %}</p>
+<p>{% if ar %}هذه الأداة جزء من الكتالوج. أرقام التوقع تقديرات من مدخلاتك، وليست نتائج فعلية. العمل يُسلَّم بالبريد بعد الاشتراك، والمستشار في الموقع يجيب قبل ذلك.{% else %}This tool is part of the catalogue. Forecast figures are estimates from your inputs, not actual results. Subscribed work is delivered by email, and the on-site consultant answers before that.{% endif %}</p>
+
+{% if error %}<p class="cap-error">{{ error }}</p>{% endif %}
+
+{% if _kind == "financial_forecast" %}
+<form class="cap-form" method="post" action="/{{ 'ar' if ar else 'en' }}{{ request.url.path }}">
+    <div class="cap-row">
+        <div><label>{% if ar %}اسم الباقة{% else %}Plan name{% endif %}</label><input name="plan_name" value="Plan" required></div>
+        <div><label>{% if ar %}السعر قبل الضريبة (ر.س){% else %}Price before VAT (SAR){% endif %}</label><input name="price_sar" inputmode="decimal" required></div>
+    </div>
+    <div class="cap-row">
+        <div><label>{% if ar %}عدد العملاء الآن{% else %}Customers now{% endif %}</label><input name="customers" inputmode="decimal" required></div>
+        <div><label>{% if ar %}النمو الشهري ٪{% else %}Monthly growth %{% endif %}</label><input name="growth_percent" value="8" inputmode="decimal"></div>
+    </div>
+    <div class="cap-row">
+        <div><label>{% if ar %}التسرب الشهري ٪{% else %}Monthly churn %{% endif %}</label><input name="churn_percent" value="3" inputmode="decimal"></div>
+        <div><label>{% if ar %}تكاليف ثابتة شهرية (ر.س){% else %}Monthly fixed costs (SAR){% endif %}</label><input name="fixed_costs_sar" value="0" inputmode="decimal"></div>
+    </div>
+    <div class="cap-row">
+        <div><label>{% if ar %}تكلفة متغيرة لكل عميل (ر.س){% else %}Variable cost per customer (SAR){% endif %}</label><input name="variable_cost_sar" value="0" inputmode="decimal"></div>
+        <div><label>{% if ar %}ضريبة القيمة المضافة ٪{% else %}VAT %{% endif %}</label><input name="vat_percent" value="15" inputmode="decimal"></div>
+    </div>
+    <label>{% if ar %}أفق التوقع بالأشهر{% else %}Horizon in months{% endif %}</label>
+    <input name="horizon_months" value="12" inputmode="numeric">
+    <div class="cap-actions"><button class="btn btn-gold" type="submit">{% if ar %}احسب السيناريوهات{% else %}Calculate scenarios{% endif %}</button></div>
+</form>
+{% elif _kind == "arabic_ocr" %}
+<form class="cap-form" method="post" enctype="multipart/form-data" action="/{{ 'ar' if ar else 'en' }}{{ request.url.path }}">
+    <label>{% if ar %}ملف PDF أو صورة{% else %}PDF or image{% endif %}</label>
+    <input type="file" name="file" accept="application/pdf,image/png,image/jpeg,image/webp" required>
+    <p class="n-sub">{% if ar %}أرقام البطاقات والهوية الوطنية تُحذف من النتيجة ولا تُحفظ. صورة بلا محرك رؤية تُرجع تحذيراً بلا حقول مخترعة.{% else %}Card numbers and national IDs are removed from the result and are not stored. An image without the vision switch returns a warning and no invented fields.{% endif %}</p>
+    <div class="cap-actions"><button class="btn btn-gold" type="submit">{% if ar %}استخرج الحقول{% else %}Extract fields{% endif %}</button></div>
+</form>
+{% elif _kind == "style_memory" %}
+<form class="cap-form" method="post" action="/{{ 'ar' if ar else 'en' }}{{ request.url.path }}">
+    <div class="cap-row">
+        <div><label>{% if ar %}اسم العلامة بالعربية{% else %}Brand spelling in Arabic{% endif %}</label><input name="brand_ar"></div>
+        <div><label>{% if ar %}اسم العلامة بالإنجليزية{% else %}Brand spelling in English{% endif %}</label><input name="brand_en"></div>
+    </div>
+    <div class="cap-row">
+        <div>
+            <label>{% if ar %}المستوى اللغوي{% else %}Register{% endif %}</label>
+            <select name="voice">
+                <option value="msa">{% if ar %}فصحى{% else %}Modern Standard Arabic{% endif %}</option>
+                <option value="saudi">{% if ar %}لهجة سعودية{% else %}Saudi dialect{% endif %}</option>
+            </select>
+        </div>
+        <div><label>{% if ar %}النبرة{% else %}Tone{% endif %}</label><input name="tone"></div>
+    </div>
+    <label>{% if ar %}كلمات ممنوعة، مفصولة بفاصلة{% else %}Banned words, comma-separated{% endif %}</label>
+    <input name="banned_words">
+    <div class="cap-row">
+        <div><label>{% if ar %}الألوان{% else %}Colours{% endif %}</label><input name="colours"></div>
+        <div><label>{% if ar %}الخطوط{% else %}Fonts{% endif %}</label><input name="fonts"></div>
+    </div>
+    <label>{% if ar %}التوقيع{% else %}Signature{% endif %}</label>
+    <input name="signature">
+    <label>{% if ar %}النص قبل التعديل المعتمد{% else %}Text before the approved edit{% endif %}</label>
+    <textarea name="original"></textarea>
+    <label>{% if ar %}النص بعد موافقتك{% else %}Text after your approval{% endif %}</label>
+    <textarea name="approved"></textarea>
+    <p class="n-sub">{% if ar %}المعاينة لا تُحفظ. الحفظ لعميل مشترك يتم من الجلسة بعد تسجيل الدخول إلى البوابة، ويُحقن بعدها في كل وكيل لهذا العميل.{% else %}Preview is not saved. A subscribed client's profile is saved from a portal session and then injected into every agent for that client.{% endif %}</p>
+    <div class="cap-actions"><button class="btn btn-gold" type="submit">{% if ar %}اعرض ما سيُحقن{% else %}Show what will be injected{% endif %}</button></div>
+</form>
+{% else %}
+<form class="cap-form" method="post" action="/{{ 'ar' if ar else 'en' }}{{ request.url.path }}">
+    <label>{% if ar %}لغة المخرج{% else %}Output language{% endif %}</label>
+    <select name="locale">
+        <option value="ar"{% if ar %} selected{% endif %}>{% if ar %}العربية{% else %}Arabic{% endif %}</option>
+        <option value="en"{% if not ar %} selected{% endif %}>{% if ar %}الإنجليزية{% else %}English{% endif %}</option>
+    </select>
+    <label>{% if ar %}المخرج المراد تقييمه{% else %}Deliverable to score{% endif %}</label>
+    <textarea name="text" required></textarea>
+    <p class="n-sub">{% if ar %}يُقيَّم الاكتمال والمصادر وجودة العربية واتجاه الكتابة والالتزام بالعلامة وخلو النص من الفراغات، ثم تُصحَّح العلامات الناقصة حتى ثلاث جولات. التصحيح بنموذج مدفوع لا يعمل إلا إذا فُعّل المتغير الخاص به.{% else %}Scores completeness, sources, Arabic quality, RTL, brand rules and unfinished markers, then strips unfinished markers for up to three rounds. A paid model reviser runs only when its environment switch is on.{% endif %}</p>
+    <div class="cap-actions"><button class="btn btn-gold" type="submit">{% if ar %}قيّم{% else %}Score{% endif %}</button></div>
+</form>
+{% endif %}
+
+{% if result %}
+<div class="cap-note" style="margin-top:18px">
+    {% if _kind == "financial_forecast" %}
+        <p>{{ result.note }}</p>
+        <table class="cap-table">
+            <thead><tr>
+                <th>{% if ar %}السيناريو{% else %}Scenario{% endif %}</th>
+                <th>{% if ar %}شهر التعادل{% else %}Break-even month{% endif %}</th>
+                <th>{% if ar %}عملاء آخر شهر{% else %}Ending customers{% endif %}</th>
+                <th>{% if ar %}إيراد قبل الضريبة{% else %}Revenue ex VAT{% endif %}</th>
+                <th>{% if ar %}ربح تراكمي{% else %}Cumulative profit{% endif %}</th>
+            </tr></thead>
+            <tbody>
+            {% for row in result.scenarios %}
+                <tr>
+                    <td>{{ row.label }}</td>
+                    <td>{% if row.break_even_month %}{{ row.break_even_month }}{% else %}{% if ar %}لا يتحقق ضمن الأفق{% else %}Not within the horizon{% endif %}{% endif %}</td>
+                    <td>{{ row.ending_customers }}</td>
+                    <td>{{ row.total_revenue_ex_vat_sar }}</td>
+                    <td>{{ row.total_profit_ex_vat_sar }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% elif _kind == "arabic_ocr" %}
+        {% if result.warning %}<p>{% if ar %}تنبيه:{% else %}Notice:{% endif %} {{ result.warning }}</p>{% endif %}
+        <table class="cap-table">
+            <thead><tr>
+                <th>{% if ar %}الحقل{% else %}Field{% endif %}</th>
+                <th>{% if ar %}القيمة{% else %}Value{% endif %}</th>
+                <th>{% if ar %}الثقة{% else %}Confidence{% endif %}</th>
+                <th>{% if ar %}منخفض{% else %}Low{% endif %}</th>
+            </tr></thead>
+            <tbody>
+            {% for name, item in result.fields.items() %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ item.value if item.value is not none else "—" }}</td>
+                    <td>{{ item.confidence }}</td>
+                    <td>{% if item.low_confidence %}{% if ar %}نعم{% else %}yes{% endif %}{% else %}{% if ar %}لا{% else %}no{% endif %}{% endif %}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% if result.text %}<pre class="cap-pre">{{ result.text }}</pre>{% endif %}
+    {% elif _kind == "style_memory" %}
+        <p>{% if ar %}المستوى:{% else %}Register:{% endif %} {{ result.register }}</p>
+        <pre class="cap-pre">{{ result.prompt }}</pre>
+    {% else %}
+        <p>{% if ar %}النتيجة:{% else %}Result:{% endif %} {% if result.passed %}{% if ar %}اجتاز{% else %}passed{% endif %}{% else %}{% if ar %}لم يجتز{% else %}not passed{% endif %}{% endif %}
+            · {% if ar %}التصحيحات{% else %}revisions{% endif %} {{ result.revisions }}
+            · {% if ar %}الدرجة{% else %}score{% endif %} {{ result.overall }}</p>
+        {% if result.issues %}<ul>{% for issue in result.issues %}<li>{{ issue }}</li>{% endfor %}</ul>{% endif %}
+        <pre class="cap-pre">{{ result.text }}</pre>
+    {% endif %}
+    {% if xlsx_base64 %}
+        <button type="button" class="btn btn-gold" id="capDownload" data-file="{{ xlsx_base64 }}" data-name="{% if _kind == 'financial_forecast' %}forecast{% else %}ocr{% endif %}.xlsx">{% if ar %}تنزيل إكسل{% else %}Download Excel{% endif %}</button>
+    {% endif %}
+</div>
+{% endif %}
+
+<p class="cap-actions">
+    <a class="btn btn-gold" href="/consult">{% if ar %}اسأل المستشار{% else %}Ask the consultant{% endif %}</a>
+    <a class="btn" href="mailto:AlNarjisai@gmail.com">{% if ar %}راسلنا بالبريد{% else %}Email us{% endif %}</a>
+    <a href="/ai-agent/{{ slug }}">{% if ar %}صفحة الوكيل{% else %}Agent page{% endif %}</a>
+</p>
+<p class="n-sub">
+    <a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a>
+    · <a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a>
+</p>
+<a class="btn btn-gold cap-mobile" href="/consult">{% if ar %}اسأل المستشار{% else %}Ask the consultant{% endif %}</a>
+<script>
+(function () {
+    var button = document.getElementById("capDownload");
+    if (!button) return;
+    button.addEventListener("click", function () {
+        var binary = atob(button.getAttribute("data-file") || "");
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        var blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = button.getAttribute("data-name") || "download.xlsx";
+        link.click();
+    });
+})();
+</script>
+{% endblock %}

@@ -111,6 +111,10 @@ async def init_db():
                 ("payments", "charge_amount", "INTEGER"),
                 ("payments", "total_halalas", "INTEGER"),
                 ("payments", "invoice_emailed_at", "TIMESTAMPTZ"),  # alembic 0016
+                ("payments", "transfer_receipt", "BYTEA"),  # alembic 0018
+                ("payments", "transfer_receipt_filename", "VARCHAR(120)"),
+                ("payments", "transfer_receipt_mime", "VARCHAR(80)"),
+                ("payments", "transfer_receipt_at", "TIMESTAMPTZ"),
                 ("client_projects", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
                 ("client_projects", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
                 ("client_projects", "current_period_end", "TIMESTAMPTZ"),
@@ -195,6 +199,10 @@ async def init_db():
                 ("payments", "charge_amount", "INTEGER"),
                 ("payments", "total_halalas", "INTEGER"),
                 ("payments", "invoice_emailed_at", "TIMESTAMP"),
+                ("payments", "transfer_receipt", "BLOB"),
+                ("payments", "transfer_receipt_filename", "VARCHAR(120)"),
+                ("payments", "transfer_receipt_mime", "VARCHAR(80)"),
+                ("payments", "transfer_receipt_at", "TIMESTAMP"),
                 ("client_projects", "billing_period", "VARCHAR(10) NOT NULL DEFAULT 'monthly'"),
                 ("client_projects", "addon_agents", "INTEGER NOT NULL DEFAULT 0"),
                 ("client_projects", "current_period_end", "TIMESTAMP"),

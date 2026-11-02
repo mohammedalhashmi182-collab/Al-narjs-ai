@@ -1,8 +1,8 @@
-{# Refund consent + card payment for an invoice link (owner-raised invoices).
+{# Refund consent + PayPal for an invoice link.
 
    Context: consent_needed, refund_consent_ar/_en (from services/policies.py —
-   never copy the wording here), card_enabled, payment. The server enforces the
-   same consent: /api/payments/<id>/pay-card, /pay-paypal and /transfer-reported answer 422
+   never copy the wording here), paypal_enabled, payment. The server enforces the
+   same consent: /api/payments/<id>/pay-paypal and /transfer-reported answer 422
    without it. #}
 {% if payment.status != 'paid' %}
 {% set ic_ar = (_lang | default('ar')) == 'ar' %}
@@ -22,9 +22,6 @@
         <span>{% if ic_ar %}أوافق على أن: «{{ refund_consent_ar }}» (<a href="/terms" target="_blank" rel="noopener">الشروط</a> · <a href="/refund-policy" target="_blank" rel="noopener">سياسة الاسترداد</a>)
         {% else %}I agree that: “{{ refund_consent_en }}” (<a href="/terms" target="_blank" rel="noopener">Terms</a> · <a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a>){% endif %}</span>
     </label>
-    {% endif %}
-    {% if card_enabled %}
-    <button type="button" class="ic-card" id="invoicePayCard">{% if ic_ar %}ادفع بالبطاقة (مدى / فيزا / ماستركارد){% else %}Pay by card (mada / Visa / Mastercard){% endif %}</button>
     {% endif %}
     {% if paypal_enabled %}
     <button type="button" class="ic-card" id="invoicePayPayPal" style="background:#0070ba;">{% if ic_ar %}ادفع عبر PayPal — {{ paypal_usd }} دولار (PayPal لا يدعم الريال){% else %}Pay with PayPal — USD {{ paypal_usd }} (PayPal does not support SAR){% endif %}</button>
@@ -64,26 +61,6 @@
                     pp.disabled = false;
                     err.hidden = false;
                     err.textContent = ar ? 'تعذر فتح PayPal. الدفع غير متاح مؤقتاً، تواصل معنا.' : 'Could not open PayPal. Payment is temporarily unavailable, contact us.';
-                });
-        });
-        var card = document.getElementById('invoicePayCard');
-        if (!card) return;
-        card.addEventListener('click', function () {
-            if (!window.narjisInvoiceConsent()) return;
-            card.disabled = true;
-            fetch('/api/payments/' + root.dataset.payment + '/pay-card', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refund_consent: true })
-            })
-                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-                .then(function (res) {
-                    if (!res.ok || !res.d.redirect_url) throw new Error('pay');
-                    window.location.href = res.d.redirect_url;
-                })
-                .catch(function () {
-                    card.disabled = false;
-                    err.hidden = false;
-                    err.textContent = ar ? 'تعذر فتح صفحة الدفع بالبطاقة. الدفع غير متاح مؤقتاً، تواصل معنا.' : 'Could not open card payment. Payment is temporarily unavailable, contact us.';
                 });
         });
     })();

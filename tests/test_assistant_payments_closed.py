@@ -25,10 +25,12 @@ def test_consult_instructions_say_payment_closed_while_flag_on():
 
 
 def test_consult_instructions_switch_when_payment_opens(monkeypatch):
-    monkeypatch.setattr(pm, "payments_open", lambda: True)
+    monkeypatch.setattr(pm, "paypal_checkout_open", lambda: True)
+    monkeypatch.setattr(pm, "customer_bank_transfer_enabled", lambda: False)
     prompt = _prompt("ar")
     assert "قيد التفعيل" not in prompt
-    assert "secure checkout page" in prompt
+    assert "PayPal" in prompt
+    assert "Never ask for card" in prompt
 
 
 def test_refund_fact_is_setup_fee_only():

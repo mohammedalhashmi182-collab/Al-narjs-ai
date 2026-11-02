@@ -6,8 +6,6 @@ from datetime import datetime, timedelta, timezone
 import httpx
 import pytest
 
-# Retain mocked integration coverage for the separately approved future release.
-pytestmark = pytest.mark.usefixtures("moyasar_release")
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
@@ -139,29 +137,10 @@ async def test_annual_order_amount_vat_and_gateway_check_agree(maker):
 
 
 @pytest.mark.usefixtures("vat15")
-async def test_initiate_moyasar_charges_the_annual_total(maker, monkeypatch):
-    from src.config import settings as st
-
-    captured = {}
-
-    class _R:
-        status_code = 201
-        text = ""
-
-        def json(self):
-            return {"id": "inv_1", "url": "https://checkout.moyasar.com/invoices/inv_1"}
-
-    async def _post(self, url, *a, **k):
-        captured.update(k.get("json") or {})
-        return _R()
-
-    monkeypatch.setattr(httpx.AsyncClient, "post", _post)
-    monkeypatch.setattr(st, "moyasar_api_secret", "sk_" + "live_FAKE-FOR-TESTS")
-    monkeypatch.setattr(st, "moyasar_publishable_key", "pk_" + "live_FAKE-FOR-TESTS")
+async def test_annual_expected_charge_includes_setup_and_vat(maker):
     async with maker() as s:
         p = await pm.create_payment(s, "numuw", "x", None, None, billing_period="annual")
-        await pm.initiate_moyasar(s, p, pm.source_mada())
-    assert captured["amount"] == pm.total_with_vat(1490000 + 99000) == 1827350  # 10 months + setup fee
+    assert pm.expected_charge(p) == pm.total_with_vat(1490000 + 99000) == 1827350
 
 
 async def _project(s, *, end, period="monthly", addons=0, status="active", package="team"):
@@ -228,37 +207,18 @@ async def test_renewal_ignores_far_and_legacy_projects(maker):
         assert out["invoiced"] == [] and out["expired"] == []
 
 
-async def test_renewal_uses_moyasar_when_configured(maker, monkeypatch):
-    seen = {}
-
-    async def _initiate(session, payment, source, **kw):
-        seen["amount"] = pm.total_with_vat(payment.amount)
-        seen["callback"] = kw.get("callback_url")
-        payment.gateway = "moyasar"
-        payment.gateway_payment_id = "inv_r1"
-        await session.commit()
-        return {"id": "inv_r1", "checkout_url": "https://checkout.moyasar.com/invoices/inv_r1"}
-
-    monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
+async def test_renewal_is_a_manual_invoice(maker):
     async with maker() as s:
         await _project(s, end=NOW + timedelta(days=1))
         out = await renewals.run_renewals(s, now=NOW, use_gateway=True, base_url="https://karmaai.online")
-    assert out["invoiced"][0]["gateway"] == "moyasar"
-    assert seen["amount"] == pm.total_with_vat(149900)
-    assert seen["callback"] == "https://karmaai.online/webhooks/moyasar"
+    assert out["invoiced"][0]["gateway"] == "invoice"
+    assert out["invoiced"][0]["total"] == pm.total_with_vat(out["invoiced"][0]["amount"])
 
 
-async def test_renewal_reminder_links_only_to_consent_gated_invoice(maker, monkeypatch):
+async def test_renewal_reminder_links_only_to_consent_gated_invoice(maker):
     from sqlalchemy import select
     from src.models.company import OutboundMessage
 
-    async def _initiate(session, payment, source, **kw):
-        payment.gateway = "moyasar"
-        payment.gateway_payment_id = "inv_r2"
-        await session.commit()
-        return {"id": "inv_r2", "checkout_url": "https://checkout.moyasar.com/invoices/inv_r2"}
-
-    monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
     async with maker() as s:
         await _project(s, end=NOW + timedelta(days=1))
         out = await renewals.run_renewals(s, now=NOW, use_gateway=True, base_url="https://karmaai.online")
@@ -266,7 +226,7 @@ async def test_renewal_reminder_links_only_to_consent_gated_invoice(maker, monke
         msgs = (await s.execute(select(OutboundMessage))).scalars().all()
     assert msgs
     for m in msgs:
-        assert "moyasar.com" not in m.text and "inv_r2" not in m.text
+        assert "moyasar.com" not in m.text
         assert f"https://karmaai.online/invoice/{pid}" in m.text
 
 

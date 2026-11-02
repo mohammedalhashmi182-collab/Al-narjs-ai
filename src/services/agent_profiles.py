@@ -56,6 +56,10 @@ AGENT_SKILLS = {
     "prototype_engineer": ("rapid_prototyping", "technical_feasibility", "integration_planning", "testability"),
     "policy_guardian": ("policy_interpretation", "approval_boundaries", "risk_escalation", "auditability"),
     "orchestrator": ("executive_synthesis", "delegation", "cross_agent_coordination", "decision_quality"),
+    "financial_forecast": ("scenario_modeling", "vat_arithmetic", "break_even", "assumption_labeling"),
+    "arabic_ocr": ("arabic_ocr", "field_extraction", "confidence_flags", "pii_redaction"),
+    "style_memory": ("brand_voice", "dialect_control", "terminology_control", "edit_learning"),
+    "evaluation_loop": ("factuality_review", "arabic_review", "rtl_review", "brand_review", "revision_loop"),
 }
 TOOL_AGENTS = {
     "web_search": frozenset({
@@ -64,7 +68,9 @@ TOOL_AGENTS = {
         "marketing_agent", "lead_acquisition", "content_writer", "article_writer", "content_ideas",
         "social_media", "software_engineer", "integrations_engineer",
     }),
-    "data_files": frozenset({"data_analyst", "finance_pricing", "market_analyst", "competitor_analyst"}),
+    "data_files": frozenset({
+        "data_analyst", "finance_pricing", "market_analyst", "competitor_analyst", "financial_forecast",
+    }),
     "store": frozenset({"store_manager", "product_describer", "marketing_agent", "data_analyst"}),
     "knowledge_base": frozenset({
         "customer_service", "customer_manager", "sales_closer", "lead_acquisition",
@@ -82,7 +88,7 @@ TOOL_AGENTS = {
 }
 STRICT_EVIDENCE_AGENTS = frozenset({
     "market_analyst", "competitor_analyst", "data_analyst", "search_discovery",
-    "finance_pricing", "legal_privacy", "security_compliance",
+    "finance_pricing", "legal_privacy", "security_compliance", "financial_forecast",
 })
 CREATIVE_AGENTS = frozenset({
     "ad_writer", "content_ideas", "social_media", "content_writer", "article_writer", "product_describer",
@@ -121,7 +127,7 @@ def profile_for(slug: str, category: str | None = None) -> AgentRuntimeProfile:
         skills=skills,
         tools=tools,
         evidence_mode=evidence_mode,
-        quality_gate=slug != "quality_gate",
+        quality_gate=slug not in {"quality_gate", "evaluation_loop"},
         temperature_cap=0.35 if evidence_mode == "strict" else (0.65 if evidence_mode == "creative" else 0.5),
         min_tokens=2400 if evidence_mode == "strict" else 2200,
     )

@@ -57,5 +57,5 @@ def test_gemini_flash_is_used_for_all_agents():
         assert data["model"] == "gemini:gemini-3.6-flash", f"{yaml_path.name}: unexpected model {data['model']}"
 
 
-def test_known_agent_count_stays_35():
-    assert len(list(BASE.glob("*.yaml"))) == 35
+def test_known_agent_count_includes_the_capability_agents():
+    assert len(list(BASE.glob("*.yaml"))) == 39

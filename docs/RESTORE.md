@@ -19,7 +19,7 @@ Ref: https://neon.com/branching/recovery-workflows.md , https://neon.com/docs/po
 ## C. Checklist — accidental deletion
 - [ ] Stop the bleeding: identify actor (owner console / agent / migration / script); disable it.
 - [ ] Record T (UTC + Riyadh), affected tables, approximate row count.
-- [ ] Check T is inside the Neon history window (plan!). If not → data unrecoverable from Neon; check exports/emails/payment provider (Moyasar/PayPal) for reconstruction.
+- [ ] Check T is inside the Neon history window (plan!). If not → data unrecoverable from Neon; check exports/emails/PayPal (and any historical card-gateway export already on file) for reconstruction.
 - [ ] Create restore branch at T-1min (A.2). Never in place.
 - [ ] Validate (A.4). Choose partial copy (A.5) vs cutover (A.6, owner OK).
 - [ ] Verify app (A.7); notify affected customers if needed; post-mortem.

@@ -39,13 +39,13 @@ SUBPROCESSORS = [
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Moonshot AI (Kimi)", "purpose_ar": "مزود ذكاء اصطناعي احتياطي", "purpose_en": "Fallback AI provider",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
+    {"name": "xAI", "purpose_ar": "المكالمة الصوتية الحية مع المستشار", "purpose_en": "Live voice call with the agent",
+     "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Meta Platforms (WhatsApp Cloud API)", "purpose_ar": "استقبال وإرسال رسائل واتساب",
      "purpose_en": "Receiving and sending WhatsApp messages", "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Brevo (SMTP / email API)", "purpose_ar": "إرسال البريد الإلكتروني (عند تفعيله)", "purpose_en": "Sending email (when enabled)",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
-    {"name": "Moyasar", "purpose_ar": "معالجة المدفوعات بالبطاقة", "purpose_en": "Card payment processing",
-     "region_ar": "شركة سعودية", "region_en": "Saudi company"},
-    {"name": "PayPal", "purpose_ar": "مسار دفع غير متاح للعملاء (الدفع عبر ميسر فقط)", "purpose_en": "Payment path not offered to customers (Moyasar only)",
+    {"name": "PayPal", "purpose_ar": "دفع دولي عند تفعيله للعملاء", "purpose_en": "International checkout when enabled for customers",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
 ]
 

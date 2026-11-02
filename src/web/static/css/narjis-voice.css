@@ -1,0 +1,62 @@
+/* Floating entry to the public live-voice page. Black label on #FF5A36. */
+.nj-voice-launch {
+  position: fixed;
+  z-index: 60;
+  inset-inline-end: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+  min-height: 48px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #FF5A36;
+  color: #000000;
+  font: 800 15px/1.2 inherit;
+  text-decoration: none;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+.nj-voice-launch svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+.nj-voice-launch:hover,
+.nj-voice-launch:focus-visible {
+  background: #ff704f;
+  color: #000000;
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+/* Landing keeps a full-width mobile bar and its own voice button in the hero.
+   The floating pill would cover that button, so the hero link is the mobile entry. */
+@media (max-width: 980px) {
+  .nj .nj-voice-launch,
+  .nj #heroVoice { display: none; }
+  .nj .mbar #mbarVoice {
+    border-color: #FF5A36;
+    color: #FF5A36;
+    font-weight: 800;
+  }
+}
+#heroVoice {
+  border-color: #FF5A36;
+  color: #FF5A36;
+  font-weight: 800;
+}
+/* Landing keeps the pill above the desktop fold, and above the cookie note. */
+.nj .nj-voice-launch {
+  bottom: calc(78px + env(safe-area-inset-bottom));
+}
+body:has(#cookieConsent) .nj-voice-launch {
+  bottom: calc(132px + env(safe-area-inset-bottom));
+}
+.nj:has(#cookieConsent) .nj-voice-launch {
+  bottom: calc(196px + env(safe-area-inset-bottom));
+}
+@media (prefers-reduced-motion: reduce) {
+  .nj-voice-launch {
+    transition: none;
+  }
+}

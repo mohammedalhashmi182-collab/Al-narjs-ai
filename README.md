@@ -133,6 +133,25 @@ ai-agent schedule add "Daily Report" --cron "0 9 * * *" --target workflow:daily_
 ai-agent queue stats
 ```
 
+### Guest bank transfer
+
+After Moyasar was removed, a guest pays an unpaid invoice by bank transfer when these three variables are all set:
+
+| Variable | Meaning |
+| --- | --- |
+| `PAYMENT_IBAN` | Saudi IBAN (`SA` plus 22 digits). Spaces are ignored. |
+| `PAYMENT_ACCOUNT_NAME` | Account holder name printed next to the IBAN. |
+| `PAYMENT_BANK_NAME` | Bank name shown on the Arabic invoice. |
+| `PAYMENT_BANK_NAME_EN` | Optional. English bank name. When empty, the English invoice repeats `PAYMENT_BANK_NAME`. |
+
+Do not commit a real IBAN. A local check can use the dummy `SA0000000000000000000000`.
+
+The invoice then shows a QR code (IBAN, holder, bank, amount, order reference, plan), the same IBAN as copyable text, and an optional receipt upload. The upload is stored on the payment for the owner to confirm; it does not mark the order paid.
+
+If any of the three required variables is missing or the IBAN is not a Saudi IBAN, the QR block is omitted and the invoice says to contact us to pay (on-site assistant or AlNarjisai@gmail.com). No account is invented.
+
+`CUSTOMER_BANK_TRANSFER_ENABLED=1` still decides whether a guest can start that invoice from checkout. PayPal stays behind `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live`.
+
 ### Web UI
 
 Production: https://karmaai.online · Local: `http://localhost:8000`
@@ -195,6 +214,37 @@ TELEGRAM_WEBHOOK_SECRET=...
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_DEFAULT_MODEL=deepseek-r1
 ```
+
+### Capability agents (forecast, OCR, style, evaluation)
+
+These four agents (AG-036 .. AG-039) read the variables below. Each one has a default, so a deploy does not fail when the variable is absent. `CRON_SECRET` is the exception that stays closed: until it is set, `POST /webhooks/cron/daily` answers 503 and does not run.
+
+```bash
+# Required only to open the daily job. Send it as X-Cron-Secret or Authorization: Bearer.
+# Render cron command (do not put the secret in the repo):
+#   curl -fsS -X POST -H "X-Cron-Secret: $CRON_SECRET" https://karmaai.online/webhooks/cron/daily
+CRON_SECRET=
+CAPABILITY_CRON_EVAL_LIMIT=20
+CAPABILITY_CRON_REVISE=0
+
+# Style profile injection into agent prompts (on by default)
+CAPABILITY_STYLE_ENABLED=1
+
+# Score every agent reply inside the runtime (on). Does not call a paid model.
+CAPABILITY_EVAL_RUNTIME=1
+# Paid-model revision of a failed score (off). Public eval then uses local placeholder cleanup only.
+CAPABILITY_EVAL_USE_MODEL=0
+CAPABILITY_EVAL_MAX_ROUNDS=3
+CAPABILITY_EVAL_MIN_SCORE=0.72
+
+CAPABILITY_FORECAST_MAX_HORIZON=36
+CAPABILITY_FORECAST_VAT=0.15
+CAPABILITY_OCR_MAX_BYTES=8000000
+# Image OCR calls Gemini only when this is on AND GEMINI_API_KEY is set. PDFs use their text layer either way.
+OCR_VISION_ENABLED=0
+```
+
+Workspaces: `/capabilities/forecast`, `/capabilities/ocr`, `/capabilities/style`, `/capabilities/eval` (Arabic and English via `/ar` and `/en`).
 
 ## Adding Custom Agents
 

@@ -157,7 +157,7 @@ def test_non_ascii_and_control_paths_redirect_without_touching_the_header(monkey
         assert still.headers["location"] == "https://karmaai.online/ar/home"
 
         posted = client.post(
-            "/webhooks/moyasar",
+            "/webhooks/paypal",
             headers={"X-Forwarded-Proto": "http", "Host": "evil.example"},
             json={"secret_token": "nope"},
         )

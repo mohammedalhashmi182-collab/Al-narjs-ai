@@ -16,7 +16,7 @@ Status: v1, 14 Oct 2026. Engineering draft. **Owner and a qualified Saudi privac
 | End-customer messages | WhatsApp, Telegram and Messenger text sent to a subscriber's agent | Usually no; can incidentally contain health (clinics), financial or ID data | channel webhooks |
 | Contact identifiers | phone numbers, display names | No | channel webhooks |
 | Knowledge-base content | FAQ, prices, policies uploaded by the subscriber | Normally business data | portal |
-| Billing | invoices, payment status (no card numbers stored by us) | No (financial) | Moyasar / PayPal |
+| Billing | invoices, payment status (no card numbers stored by us) | No (financial) | PayPal when enabled; bank transfer stays on our invoice |
 | Operational logs | request paths, error types (no message bodies or secrets by policy) | No | app |
 
 We do not deliberately collect sensitive data (health, religion, criminal, genetic, credit). Clinic tenants must be told in onboarding not to collect diagnoses over chat.
@@ -34,8 +34,7 @@ Risk scale: L / M / H. It weighs data volume, sensitivity, the recipient country
 | **Meta** (WhatsApp Cloud API, Messenger) | message delivery | USA / global | message text, phone numbers | Required by the channel the subscriber chose. Meta's WhatsApp Business terms and data processing terms. TLS. | M (inherent to the channel; disclosed) |
 | **Telegram** | channel + owner alerts | UAE / global | message text, chat ids; alerts carry no secrets | TLS. Owner alerts are minimised (ids, statuses) | L–M |
 | **Brevo** (email, when enabled) | transactional email | EU (France) | email address, invoice/notice content | GDPR-grade DPA, TLS | L |
-| **PayPal** (optional payment method) | card / PayPal payment | USA / Luxembourg | payer name, email, amount | PCI-DSS. We never see card data. Only sent when the buyer chooses PayPal | L |
-| Moyasar | card payments | KSA (Saudi company) | payer data, amount | domestic, PCI-DSS | not a cross-border transfer |
+| **PayPal** (optional payment method) | PayPal checkout | USA / Luxembourg | payer name, email, amount | PCI-DSS. We never see card data. Only sent when the buyer chooses PayPal | L |
 
 ## 3. Safeguards (technical and organisational)
 

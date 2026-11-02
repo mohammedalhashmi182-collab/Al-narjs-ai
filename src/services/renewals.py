@@ -8,11 +8,10 @@ How it works (one pass of :func:`run_renewals`):
 2. From ``days_before`` days before the end (default
    :data:`RENEWAL_LEAD_DAYS`) the job raises ONE renewal order per period:
    same tier, billing period and add-on agents, at today's catalog price, no
-   promo. When Moyasar is configured a hosted invoice is created for the
-   stored total (base + VAT at the rate in force at creation) (the same ``initiate_moyasar`` path and amount checks
-   as a first purchase); otherwise, or when Moyasar errors, it stays a manual
-   invoice (``/invoice/<id>``). The order id is kept on
-   ``project.renewal_payment_id`` so later passes never duplicate it.
+   promo. The order is always a manual invoice (``/invoice/<id>``). When PayPal
+   or bank transfer is enabled for customers, the buyer pays from that page.
+   The order id is kept on ``project.renewal_payment_id`` so later passes never
+   duplicate it.
 3. A renewal reminder is recorded as an ``OutboundMessage`` with status
    ``draft``. No sender flushes ``draft`` rows: nothing is sent to the client
    until the owner reviews it and moves it to ``queued``.
@@ -59,8 +58,8 @@ def _aware(dt: Optional[datetime]) -> Optional[datetime]:
 
 
 def reminder_text(project, payment, period_end: datetime, base_url: str = "") -> str:
-    """Customer-facing reminder. It links ONLY to our consent-gated /invoice page,
-    never to a raw Moyasar checkout, so the refund-policy checkbox cannot be skipped."""
+    """Customer-facing reminder. It links ONLY to our consent-gated /invoice page
+    so the refund-policy checkbox cannot be skipped."""
     pkg = catalog.PACKAGES.get(project.package) or catalog.get_package(project.package) or {}
     total = payments.payment_total(payment) / 100
     period = "سنوي" if payment.billing_period == "annual" else "شهري"
@@ -91,24 +90,12 @@ async def _raise_renewal(session: AsyncSession, project, *, base_url: str, use_g
         voice_packs=int(getattr(project, "addon_voice_packs", 0) or 0),
         founding=None,  # a founding project keeps its price until founding_locked_until
     )
+    # Card checkout was removed. ``use_gateway`` is accepted so older callers
+    # keep working; a renewal is always a manual invoice. PayPal, when enabled,
+    # starts from the invoice page after refund consent.
+    del use_gateway
     gateway = "invoice"
-    if use_gateway:
-        try:
-            await payments.initiate_moyasar(
-                session,
-                payment,
-                payments.source_credit_card(),
-                success_url=f"{base_url}/payment/success?id={payment.id}",
-                back_url=f"{base_url}/payment/failure?id={payment.id}",
-                callback_url=f"{base_url}/webhooks/moyasar",
-            )
-            # The Moyasar invoice is reused by /api/payments/<id>/pay-card only
-            # after the customer ticks the refund consent on /invoice/<id>.
-            gateway = "moyasar"
-        except payments.PaymentError as exc:
-            logger.warning("renewal %s: Moyasar invoice failed, manual invoice instead: %s", payment.id, exc)
-    if gateway == "invoice":
-        payment.status = "invoice"
+    payment.status = "invoice"
 
     project.renewal_payment_id = payment.id
     text = reminder_text(project, payment, _aware(project.current_period_end), base_url)
@@ -146,8 +133,7 @@ async def run_renewals(
     from src.models import ClientProject, Payment
 
     now = _aware(now) or datetime.now(timezone.utc)
-    if use_gateway is None:
-        use_gateway = bool(get_settings().moyasar_api_secret)
+    use_gateway = False if use_gateway is None else bool(use_gateway)
     base_url = (base_url or get_settings().public_base_url or "https://karmaai.online").rstrip("/")
     horizon = now + timedelta(days=max(0, int(days_before)))
 

@@ -23,7 +23,7 @@ cost money, data or trust.
 
 | Defect | How it was actually found | Cost |
 | --- | --- | --- |
-| `MOYASAR_API_SECRET` rejected (401) | POSTing a **real payment** to production to read the error | Test rows in the production DB, later wiped |
+| Retired card-gateway credential rejected (401) | POSTing a **real payment** to production to read the error | Test rows in the production DB, later wiped |
 | Production DB is an ephemeral container file | Three payments confirmed present, each gone after a deploy | Silent, undetected for weeks; site returned 200 throughout |
 | Owner alerts routed to the wrong Telegram account (`c4_be`) | Live configuration audit | Real alerts misdelivered; the owner's own chat recorded as a lead |
 | Changing an env var restarts the service | Triggering a restart to load the correct chat id | Another data wipe |

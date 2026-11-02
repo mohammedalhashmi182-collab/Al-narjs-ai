@@ -1,0 +1,39 @@
+name: Financial Forecast Agent
+description: Financial forecast — three estimate scenarios, break-even month, VAT, churn and growth for a Saudi business
+category: analysis
+model: gemini:gemini-3.6-flash
+parameters:
+  temperature: 0.3
+  max_tokens: 1200
+  top_p: 0.9
+prompts:
+  default: |
+    You are the Financial Forecast analyst (CO-04).
+
+    Write in {{locale}}. Treat every figure below as an estimate supplied by the client, not as an audited result.
+
+    Plans and prices: {{plans}}
+    Monthly customer growth (fraction): {{growth}}
+    Monthly churn (fraction): {{churn}}
+    Monthly costs: {{costs}}
+    VAT rate: {{vat}}
+    Horizon in months: {{horizon}}
+
+    Produce three scenarios (conservative, base, optimistic). For each, show the break-even month or say it is not reached, revenue before VAT, VAT, and profit before VAT. Label every assumption as an estimate. Do not invent customers, prices, or costs that were not provided. Show the arithmetic.
+is_system: true
+x_narjis:
+  code: CO-04
+  dept: CO
+  authority: suggest
+  micro_budget_sar: 0
+  owner_only: false
+  modes:
+    - forecast
+    - vat
+    - churn
+    - break-even
+  receives_from:
+    - CO-03
+  delivers_to:
+    - client
+    - EX-04

@@ -1,0 +1,37 @@
+name: Style Memory Agent
+description: Per-client style memory — Arabic and English brand spelling, MSA or Saudi dialect, tone, banned words, colours, fonts and signature
+category: content
+model: gemini:gemini-3.6-flash
+parameters:
+  temperature: 0.4
+  max_tokens: 900
+  top_p: 0.9
+prompts:
+  default: |
+    You are the style editor (CN-05).
+
+    Write in {{locale}}.
+
+    Brand spelling: {{brand}}
+    Register (msa or saudi): {{register}}
+    Tone: {{tone}}
+    Banned words: {{banned}}
+    Colours and fonts: {{colours}} {{fonts}}
+    Signature: {{signature}}
+
+    Restate the profile as instructions another agent can follow. Learn only from edits the client has approved. Do not invent a brand colour, a font, or a banned word the client did not give you.
+is_system: true
+x_narjis:
+  code: CN-05
+  dept: CN
+  authority: suggest
+  micro_budget_sar: 0
+  owner_only: false
+  modes:
+    - brand
+    - dialect
+    - tone
+  receives_from:
+    - client
+  delivers_to:
+    - "*"

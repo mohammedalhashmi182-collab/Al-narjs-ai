@@ -15,24 +15,24 @@ The platform is built, tested (756 passing) and live. It cannot take a single
 riyal, and it cannot keep a single record. Both facts were reproduced on
 production, not inferred.
 
-**1.1 No payment method can complete.**
+**1.1 Customer payment methods are PayPal and bank transfer.**
+
+The owner removed the Moyasar card gateway. Card buttons (mada, Visa, Mastercard,
+Apple Pay, STC Pay) are gone. Historical `payments.gateway = moyasar` rows stay
+in the database; there is no destructive migration.
 
 ```
 GET /api/payments/capabilities
-methods      : mada false · stcpay false · creditcard false · applepay false
-               paypal false · invoice true
-card_config  : true      card_credentials : "rejected"
-paypal       : false     paypal_test_mode: true
-bank         : {}
+methods : paypal · invoice
+card    : false
 ```
 
-- `MOYASAR_API_SECRET` **is set**, and Moyasar answers `401 authentication_error /
-  Invalid authorization credentials`. The checkout previously advertised mada,
-  Visa, Mastercard and Apple Pay; every such payment failed.
-- PayPal runs in **sandbox**. The checkout it authorised completed flows that
-  charged no money and started no subscription.
-- `content/transfer.json` publishes **no account details**, so the one remaining
-  method — bank transfer — cannot be completed by a buyer alone.
+- PayPal is offered only when `CUSTOMER_PAYPAL_ENABLED` is on and `PAYPAL_MODE=live`.
+  A sandbox PayPal stays hidden.
+- Bank transfer / manual invoice is offered only when `CUSTOMER_BANK_TRANSFER_ENABLED`
+  is on. Owner-raised invoices stay a separate authenticated path.
+- With both flags off, public pages show the payments-closed banner and the
+  checkout does not create a customer payment.
 
 **1.2 Production data is destroyed on every deploy.**
 
@@ -91,7 +91,7 @@ method, at any point. No leads, sales or testimonials may be claimed.
 
 | ID | Requirement | Acceptance |
 | --- | --- | --- |
-| R1.1 | A valid Moyasar credential, or the card buttons removed permanently | `card_credentials != "rejected"` on production, or no card method rendered |
+| R1.1 | Card checkout removed with Moyasar | `card` is false and no card method is rendered |
 | R1.2 | Published account details for manual transfer | `GET /api/payments/capabilities` returns a non-empty `bank` object |
 | R1.3 | The buyer can settle an invoice unaided | Invoice page shows reference, amount, IBAN, copy buttons, WhatsApp |
 | R1.4 | PayPal offered only when it collects money | `PAYPAL_MODE=live` → `paypal: true`; otherwise hidden |
@@ -101,8 +101,9 @@ method, at any point. No leads, sales or testimonials may be claimed.
 blip never does), the self-serve invoice, `transfer-reported` with owner alert,
 the invoice-link recovery page, and the halalas-as-SAR and Pixel-value fixes.
 
-**Blocked on owner:** a working `MOYASAR_API_SECRET`; the real bank details; the
-VAT decision (§7, D3).
+**Blocked on owner:** the real bank details if bank transfer is enabled; the
+VAT decision (§7, D3). PayPal stays off until the owner sets live credentials
+and `CUSTOMER_PAYPAL_ENABLED`.
 
 ### R2 — Data durability *(blocking, owner decision required)*
 
@@ -186,8 +187,8 @@ Telegram primary, WhatsApp second, both untouched by this work.
 | ID | Decision | Options and cost |
 | --- | --- | --- |
 | D1 | Persistent storage | **A.** Disk 1 GB — $0.25/mo, keeps SQLite, zero migration risk, requires a paid instance. **B.** Render Postgres basic — $6/mo, matches `render.yaml`, adds dialect risk. Free Postgres expires in 30 days and is not a fix |
-| D2 | Card gateway | Supply a valid `MOYASAR_API_SECRET`, or remove the card methods entirely |
-| D3 | VAT treatment | Invoice bills base + 15%; Moyasar and transfer paths record pre-VAT base. Currently a 15% discrepancy on card sales. Owner decides which figure is authoritative |
+| D2 | Card gateway | **Decided:** Moyasar and card checkout are removed. PayPal and bank transfer remain, each behind its flag |
+| D3 | VAT treatment | Invoice bills base + VAT at `VAT_RATE`. PayPal and transfer paths record the pre-VAT base and the total frozen at creation |
 | D4 | Public action hue | Confirm mint/green per §8, or amend the design system to gold |
 | D5 | Manual settlement details | Publish the real account into `content/transfer.json` |
 | D6 | Botpress activation | Set `BOTPRESS_WEBHOOK_SECRET` in Render |

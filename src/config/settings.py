@@ -92,14 +92,9 @@ class Settings(BaseSettings):
     queue_max_retries: int = Field(default=3, alias="QUEUE_MAX_RETRIES")
     queue_retry_delay: float = Field(default=5.0, alias="QUEUE_RETRY_DELAY")
 
-    # Moyasar (Saudi payment gateway) — leave empty for bank-transfer fallback
-    moyasar_api_secret: str | None = Field(default=None, alias="MOYASAR_API_SECRET")
-    moyasar_publishable_key: str | None = Field(default=None, alias="MOYASAR_PUBLISHABLE_KEY")
     payment_success_url: str = Field(default="/payment/success", alias="PAYMENT_SUCCESS_URL")
     payment_failure_url: str = Field(default="/payment/failure", alias="PAYMENT_FAILURE_URL")
-    # Shared secret configured on the Moyasar dashboard webhook (secret_token).
-    moyasar_webhook_secret: str | None = Field(default=None, alias="MOYASAR_WEBHOOK_SECRET")
-    # Canonical public origin, e.g. https://alnarjs.com. Gateway return URLs are
+    # Canonical public origin, e.g. https://karmaai.online. Gateway return URLs are
     # built from it so they are never http:// behind the TLS-terminating proxy.
     public_base_url: str | None = Field(default=None, alias="PUBLIC_BASE_URL")
 
@@ -111,6 +106,13 @@ class Settings(BaseSettings):
     # PayPal does not settle SAR: the VAT-inclusive SAR total is charged in USD
     # at the fixed riyal peg (3.75 SAR per USD).
     paypal_sar_per_usd: float = Field(default=3.75, alias="PAYPAL_SAR_PER_USD")
+    # Guest bank-transfer QR. All three must be set or the QR stays hidden.
+    # An IBAN is printed on the invoice; it is not a secret, but it is still
+    # configuration, so it is not hard-coded.
+    payment_iban: str | None = Field(default=None, alias="PAYMENT_IBAN")
+    payment_account_name: str | None = Field(default=None, alias="PAYMENT_ACCOUNT_NAME")
+    payment_bank_name: str | None = Field(default=None, alias="PAYMENT_BANK_NAME")
+    payment_bank_name_en: str | None = Field(default=None, alias="PAYMENT_BANK_NAME_EN")
 
     # Launch promo (single code, percentage off first charge) — disabled when PROMO_CODE empty
     promo_code: str | None = Field(default=None, alias="PROMO_CODE")
@@ -192,6 +194,15 @@ class Settings(BaseSettings):
     dialog_api_key: str | None = Field(default=None, alias="DIALOG_API_KEY")
     dialog_base_url: str = Field(default="https://waba.360dialog.io", alias="DIALOG_BASE_URL")
     dialog_phone_id: str | None = Field(default=None, alias="DIALOG_PHONE_ID")
+
+    # Public live voice (xAI Voice Agents). The API key never reaches the browser.
+    # The server mints a short-lived client secret. XAI_VOICE_AGENT_ID is the
+    # published agent from console.x.ai → Voice Agents. Both empty disables the call.
+    xai_api_key: str = Field(default="", alias="XAI_API_KEY")
+    xai_voice_agent_id: str = Field(default="", alias="XAI_VOICE_AGENT_ID")
+    xai_voice_daily_call_limit: int = Field(default=100, alias="XAI_VOICE_DAILY_CALL_LIMIT")
+    xai_voice_ip_daily_call_limit: int = Field(default=10, alias="XAI_VOICE_IP_DAILY_CALL_LIMIT")
+    xai_voice_ip_burst_limit: int = Field(default=8, alias="XAI_VOICE_IP_BURST_LIMIT")
 
     # Telegram Bot API — parallel inbound/outbound channel (no approval queue).
     # Sending needs TELEGRAM_TOKEN; the webhook stays disabled until

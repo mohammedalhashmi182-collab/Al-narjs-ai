@@ -28,16 +28,8 @@ TPL = ROOT / "src" / "web" / "templates"
 
 @contextmanager
 def _no_gateway():
-    from src.config import settings as s
-
-    old = s.moyasar_api_secret
-    object.__setattr__(s, "moyasar_api_secret", None)
-    pm._credential_cache.clear()
-    try:
-        yield
-    finally:
-        object.__setattr__(s, "moyasar_api_secret", old)
-        pm._credential_cache.clear()
+    """Card checkout is gone; the context remains so callers stay unchanged."""
+    yield
 
 
 @pytest.fixture
@@ -75,9 +67,10 @@ async def test_payment_false_consent_is_blocked(anon):
     assert r.status_code == 422
 
 
-async def test_consent_timestamp_is_stored(anon, maker):
+async def test_consent_timestamp_is_stored(anon, maker, monkeypatch):
     from src.core.owner_auth import make_session_token
 
+    monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
     with _no_gateway():
         refused = await anon.post(
             "/api/payments", json={"package": "bidaya", "method": "invoice", "refund_consent": True}

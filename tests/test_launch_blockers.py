@@ -40,13 +40,11 @@ def _settings(**values):
     old = {k: getattr(s, k) for k in values}
     for k, v in values.items():
         object.__setattr__(s, k, v)
-    pm._credential_cache.clear()
     try:
         yield
     finally:
         for k, v in old.items():
             object.__setattr__(s, k, v)
-        pm._credential_cache.clear()
 
 
 def _client(maker, owner=False, project=None):
@@ -129,7 +127,7 @@ async def test_create_payment_takes_package_and_addons_from_the_project(maker):
     cheap, big = _cheapest_and_bigger()
     project = await _project(maker, package=big, addons=1)
     async with _client(maker, owner=True) as c:
-        with _settings(moyasar_api_secret=None):
+        with _settings():
             r = await c.post("/api/payments", json={
                 "refund_consent": True, "package": cheap, "addons": 0, "method": "invoice",
                 "project_id": str(project.id)})
@@ -143,7 +141,7 @@ async def test_create_payment_takes_package_and_addons_from_the_project(maker):
 
 async def test_create_payment_rejects_unknown_or_bad_project(maker):
     async with _client(maker, owner=True) as c:
-        with _settings(moyasar_api_secret=None):
+        with _settings():
             missing = await c.post("/api/payments", json={"refund_consent": True, "package": "bidaya",
                                    "method": "invoice", "project_id": "00000000-0000-0000-0000-000000000000"})
             bad = await c.post("/api/payments", json={"refund_consent": True, "package": "bidaya",
@@ -498,17 +496,6 @@ def test_gateway_accepts_exact_snapshot_amount_after_promo_change(change):
         assert pm.gateway_amount_matches(pay, {"amount": snap_total, "currency": "SAR"})
         assert not pm.gateway_amount_matches(pay, {"amount": snap_total + 1, "currency": "SAR"})
         assert not pm.gateway_amount_matches(pay, {"amount": snap_total, "currency": "USD"})
-
-
-def test_gateway_amount_differing_from_snapshot_goes_to_review(monkeypatch):
-    monkeypatch.setattr(pm, "moyasar_collects_money", lambda: True)
-    pay = Payment(amount=30_000, total_halalas=34_500, currency="SAR", package="numuw", status="pending",
-                  pricing_snapshot={"amount": 30_000, "expected_total_halalas": 34_500, "currency": "SAR"})
-    pm.apply_gateway_status(pay, {"status": "paid", "amount": 34_400, "currency": "SAR"})
-    assert pay.status == pm.REVIEW_STATUS
-    pay.status = "pending"
-    pm.apply_gateway_status(pay, {"status": "paid", "amount": 34_500, "currency": "SAR"})
-    assert pay.status == "paid"
 
 
 @pytest.mark.parametrize("tamper", ["amount", "total", "package", "addons", "snapshot_currency"])

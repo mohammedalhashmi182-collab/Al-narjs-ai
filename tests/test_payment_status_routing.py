@@ -96,8 +96,8 @@ async def test_invoice_record_calls_no_gateway(maker, monkeypatch, no_moyasar):
 
 def test_provider_routing():
     assert pm.payment_provider(Payment(gateway="paypal", gateway_payment_id="x")) == "paypal"
-    assert pm.payment_provider(Payment(gateway="moyasar", gateway_payment_id="x")) == "moyasar"
-    assert pm.payment_provider(Payment(gateway=None, gateway_payment_id="x")) == "moyasar"
+    assert pm.payment_provider(Payment(gateway="moyasar", gateway_payment_id="x")) == "none"
+    assert pm.payment_provider(Payment(gateway=None, gateway_payment_id="x")) == "none"
     assert pm.payment_provider(Payment(gateway="invoice", gateway_payment_id="x")) == "none"
 
 
