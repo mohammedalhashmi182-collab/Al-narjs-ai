@@ -39,6 +39,8 @@ SUBPROCESSORS = [
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Moonshot AI (Kimi)", "purpose_ar": "مزود ذكاء اصطناعي احتياطي", "purpose_en": "Fallback AI provider",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
+    {"name": "xAI", "purpose_ar": "المكالمة الصوتية الحية مع المستشار", "purpose_en": "Live voice call with the agent",
+     "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Meta Platforms (WhatsApp Cloud API)", "purpose_ar": "استقبال وإرسال رسائل واتساب",
      "purpose_en": "Receiving and sending WhatsApp messages", "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Brevo (SMTP / email API)", "purpose_ar": "إرسال البريد الإلكتروني (عند تفعيله)", "purpose_en": "Sending email (when enabled)",

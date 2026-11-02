@@ -15,6 +15,10 @@ services:
         value: production
       - key: GEMINI_API_KEY
         sync: false
+      - key: XAI_API_KEY
+        sync: false
+      - key: XAI_VOICE_AGENT_ID
+        sync: false
       - key: MOONSHOT_API_KEY
         sync: false
       - key: MOONSHOT_BASE_URL

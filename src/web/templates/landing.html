@@ -198,6 +198,7 @@
             <div class="ctas">
                 <a class="btn" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
                 <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
+                <a class="btn-sec" id="heroVoice" href="/{{ _lang }}/voice">{% if ar %}تحدث مع مستشارنا{% else %}Talk to our agent{% endif %}</a>
             </div>
         </div>
         <div class="portal" role="group" aria-label="{% if ar %}مثال: من الطلب إلى المخرج{% else %}Example: from request to output{% endif %}">
@@ -476,7 +477,7 @@
         </nav>
         <p>{% if ar %}منصة النرجس · وثيقة عمل حر رقم FL-272182297 · الرياض{% else %}Operated by Al-Narjs · Freelance document No. FL-272182297 · Riyadh{% endif %}</p>
         <nav class="fl" aria-label="{% if ar %}روابط قانونية{% else %}Legal links{% endif %}">
-            <a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a><a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a><a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a><a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a><a href="/pricing">{% if ar %}الباقات والأسعار{% else %}Pricing{% endif %}</a><a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a><a href="/dpa">{% if ar %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a><a href="/subprocessors">{% if ar %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a><a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a>
+            <a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a><a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a><a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a><a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a><a href="/pricing">{% if ar %}الباقات والأسعار{% else %}Pricing{% endif %}</a><a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a><a href="/dpa">{% if ar %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a><a href="/subprocessors">{% if ar %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a><a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a><a href="/{{ _lang }}/voice">{% if ar %}تحدث مع مستشارنا{% else %}Talk to our agent{% endif %}</a>
         </nav>
     </div>
 </footer>
@@ -484,7 +485,7 @@
 <!-- Mobile bar: CEO consult + sample delivery. -->
 <div class="mbar">
     <a class="btn" href="/consult">{% if ar %}ناقش هدفك مع الرئيس التنفيذي{% else %}Discuss your goal with the CEO{% endif %}</a>
-    <button class="btn-sec" type="button" data-open-sample>{% if ar %}نموذج تسليم{% else %}Sample delivery{% endif %}</button>
+    <a class="btn-sec" id="mbarVoice" href="/{{ _lang }}/voice">{% if ar %}تحدث مع مستشارنا{% else %}Talk to our agent{% endif %}</a>
 </div>
 
 <dialog id="sample" aria-labelledby="sm-h">
@@ -690,5 +691,6 @@
     }).catch(function () {});
 })();
 </script>
+{% include "partials/_voice_launcher.html" %}
 </body>
 </html>

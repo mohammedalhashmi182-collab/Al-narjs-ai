@@ -29,7 +29,9 @@
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">«النرجس للذكاء الاصطناعي» هي منصة تجارية (وثيقة عمل حر FL-272182297)، الرياض، المملكة العربية السعودية.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>Al-Narjis AI (النرجس) is a platform (Freelance document No. FL-272182297), Riyadh, Kingdom of Saudi Arabia.</p>{% endif %}
 
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">2. البيانات التي نجمعها</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>2. Data we collect</h2>{% endif %}
-                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">عند استخدامك الموقع (نموذج الطلب، المستشار الذكي، أو بوابة العميل) نجمع: الاسم، رقم الجوال، البريد الإلكتروني، ومحتوى استفساراتك، وأساس قانوني لذلك هو الموافقة وتنفيذ العقد. نجمع الحد الأدنى اللازم لتقديم الخدمة فقط.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>When you use this site (order form, Smart Consultant, or client portal) we collect: your name, phone, email, and the content of your enquiries. The legal bases are consent and contract performance. We collect only the minimum needed to provide the service.</p>{% endif %}
+                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">عند استخدامك الموقع (نموذج الطلب، المستشار الذكي، أو بوابة العميل) نجمع: الاسم، رقم الجوال، البريد الإلكتروني، ومحتوى استفساراتك، وأساس قانوني لذلك هو الموافقة وتنفيذ العقد. نجمع الحد الأدنى اللازم لتقديم الخدمة فقط.</p>
+                <p class="n-sub" style="font-size:0.95rem;">عند بدء مكالمة صوتية حية يرسل المتصفح صوت الميكروفون إلى xAI لمدة لا تتجاوز 3 دقائق ليجيب المستشار. لا نحتفظ بتسجيل المكالمة على خوادمنا. إن تعذّرت المكالمة فالتواصل عبر البريد المبين أدناه.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>When you use this site (order form, Smart Consultant, or client portal) we collect: your name, phone, email, and the content of your enquiries. The legal bases are consent and contract performance. We collect only the minimum needed to provide the service.</p>
+                <p class="n-sub" style="font-size:0.95rem;" data-inline>When you start a live voice call, the browser sends microphone audio to xAI for at most 3 minutes so the agent can answer. We do not keep the recording on our servers. If the call cannot start, contact us by the email below.</p>{% endif %}
 
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">3. كيف نستخدمها</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>3. How we use it</h2>{% endif %}
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">للتواصل معك، وإنشاء فريقك الرقمي، وتقديم الخدمات، وإرسال فواتيرك. قد تُعالج استفساراتك آلياً عبر موفري ذكاء اصطناعي خارجيين (مثل Google Gemini و Moonshot) لتوليد الإجابات؛ وهذه معاملة بيانات عابرة لا نبيعها ولا نشاركها لأغراض تسويقية.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>To contact you, create your digital team, provide our services, and send invoices. Your enquiries may be processed automatically through third-party AI providers (e.g. Google Gemini and Moonshot) to generate responses; this is transient processing — we never sell your data or use it for marketing.</p>{% endif %}
@@ -54,5 +56,6 @@
             </div>
         </div>
     </div>
+{% include "partials/_voice_launcher.html" %}
 </body>
 </html>
