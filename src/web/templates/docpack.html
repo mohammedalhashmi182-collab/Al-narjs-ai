@@ -1,0 +1,127 @@
+{% extends "partials/_simple_page.html" %}
+{% block title %}{% if ar %}حزمة المستندات من البيانات | النرجس للذكاء الاصطناعي{% else %}Data-to-Deck DocPack | Al-Narjis AI{% endif %}{% endblock %}
+{% block description %}{% if ar %}حوّل جدولاً أو وصفاً قصيراً إلى تقرير PDF وملف إكسل بصيغ حسابية وعرض تقديمي. الأرقام تُحسب في النظام، والنص يُكتب منها فقط.{% else %}Turn a spreadsheet or a short brief into a PDF report, an Excel workbook with formulas, and a slide deck. Figures are calculated by the system; the text is written from those figures only.{% endif %}{% endblock %}
+{% block extra_head %}
+<style>
+.dp-lead { color: var(--n-brown-2, #b9b8c0); margin-top: 0; }
+.dp-form { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+.dp-form label { display: block; font-weight: 700; margin-bottom: 8px; }
+.dp-form input[type="file"], .dp-form textarea {
+  width: 100%;
+  background: #101014;
+  color: #f6f5f4;
+  border: 1px solid rgba(246,245,244,.16);
+  border-radius: 16px;
+  padding: 12px 16px;
+  font-family: Cairo, sans-serif;
+  font-size: 1rem;
+}
+.dp-form textarea { min-height: 120px; resize: vertical; }
+.dp-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.dp-actions button {
+  font-family: Cairo, sans-serif;
+  font-weight: 800;
+  border-radius: 16px;
+  padding: 14px 22px;
+  cursor: pointer;
+}
+.dp-primary { background: #ff5a36; color: #141414; border: 0; }
+.dp-secondary { background: transparent; color: #f6f5f4; border: 1px solid rgba(246,245,244,.3); }
+.dp-note { font-size: .9rem; color: var(--n-brown-2, #b9b8c0); }
+.dp-msg { min-height: 1.4em; font-weight: 700; }
+.dp-links { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.dp-links a {
+  display: block;
+  background: #ff5a36;
+  color: #141414;
+  font-weight: 800;
+  text-align: center;
+  padding: 12px 16px;
+  border-radius: 16px;
+  text-decoration: none;
+}
+@media (max-width: 800px) {
+  .dp-actions { flex-direction: column; }
+  .dp-actions button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dp-actions button { transition: none; }
+}
+</style>
+{% endblock %}
+{% block h1 %}{% if ar %}من الجدول إلى الحزمة{% else %}From a sheet to the pack{% endif %}{% endblock %}
+{% block body %}
+<p class="dp-lead">{% if ar %}ارفع ملف إكسل أو CSV (حتى 10 ميجابايت) أو اكتب الأرقام في الوصف. النظام يحسب الإجمالي والمتوسط والنمو والتوقع الخطي، ثم يبني تقريراً وملفاً بصيغ حسابية وعرضاً تقديمياً. النص لا يضيف رقماً غير محسوب.{% else %}Upload an Excel or CSV file (up to 10 MB) or type the figures in the brief. The system calculates the total, average, growth and a linear forecast, then builds a report, a workbook whose totals are formulas, and a slide deck. The wording cannot add a figure that was not calculated.{% endif %}</p>
+<form id="dpForm" class="dp-form" action="/api/docpack/demo" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="lang" value="{{ 'ar' if ar else 'en' }}">
+  <input type="hidden" id="dpUseSample" name="sample" value="0">
+  <div>
+    <label for="dpFile">{% if ar %}الملف{% else %}File{% endif %}</label>
+    <input id="dpFile" name="file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
+  </div>
+  <div>
+    <label for="dpBrief">{% if ar %}وصف قصير (اختياري مع الملف){% else %}Short brief (optional when a file is attached){% endif %}</label>
+    <textarea id="dpBrief" name="brief" maxlength="4000" placeholder="{% if ar %}مثال: قارن الأشهر وركّز على المبيعات{% else %}Example: compare the months and focus on sales{% endif %}"></textarea>
+  </div>
+  <div class="dp-actions">
+    <button class="dp-primary dp-submit" type="submit">{% if ar %}أنشئ الحزمة{% else %}Build the pack{% endif %}</button>
+    <button class="dp-secondary" id="dpSample" type="button">{% if ar %}استخدم العيّنة التوضيحية{% else %}Use the illustrative sample{% endif %}</button>
+  </div>
+  <p class="dp-note">{% if ar %}العيّنة متجر توضيحي لستة أشهر، وليست نتائج عميل. الروابط تبقى ثلاثين دقيقة ثم تُحذف من الذاكرة. التفاصيل في <a href="/privacy">الخصوصية</a> و<a href="/data-deletion">حذف البيانات</a>. للعملاء على اشتراك نشط، نفس الحزمة تُرسل بالبريد من البوابة.{% else %}The sample is an illustrative six-month shop, not a client's results. Links stay for thirty minutes and are then dropped from memory. Details are in the <a href="/privacy">privacy policy</a> and the <a href="/data-deletion">data deletion</a> page. Clients on an active subscription receive the same pack by email from the portal.{% endif %}</p>
+  <p class="dp-msg" id="dpMsg" role="status"></p>
+  <div class="dp-links" id="dpLinks"></div>
+</form>
+<p class="dp-note"><a href="/portal">{% if ar %}ادخل إلى البوابة{% else %}Open the portal{% endif %}</a></p>
+<script>
+(function () {
+  var form = document.getElementById("dpForm");
+  var msg = document.getElementById("dpMsg");
+  var links = document.getElementById("dpLinks");
+  var sampleFlag = document.getElementById("dpUseSample");
+  var working = {{ 'جارٍ الحساب…' | tojson if ar else 'Calculating…' | tojson }};
+  var ready = {{ 'الحزمة جاهزة للتحميل.' | tojson if ar else 'The pack is ready to download.' | tojson }};
+  var failed = {{ 'تعذّر بناء الحزمة. تحقق من الملف أو اكتب وصفاً فيه أرقام.' | tojson if ar else 'The pack could not be built. Check the file, or write a brief that contains figures.' | tojson }};
+  var limited = {{ 'محاولات كثيرة. انتظر قليلاً ثم أعد المحاولة.' | tojson if ar else 'Too many attempts. Wait a moment and try again.' | tojson }};
+
+  document.getElementById("dpSample").addEventListener("click", function () {
+    sampleFlag.value = "1";
+    form.requestSubmit();
+  });
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    msg.textContent = working;
+    links.textContent = "";
+    fetch("/api/docpack/demo", { method: "POST", body: new FormData(form) })
+      .then(function (response) {
+        return response.json().then(function (body) {
+          return { ok: response.ok, status: response.status, body: body };
+        });
+      })
+      .then(function (result) {
+        sampleFlag.value = "0";
+        if (result.status === 429) {
+          msg.textContent = limited;
+          return;
+        }
+        if (!result.ok || !result.body || !result.body.files) {
+          var detail = result.body && result.body.detail;
+          msg.textContent = typeof detail === "string" ? detail : failed;
+          return;
+        }
+        msg.textContent = ready;
+        result.body.files.forEach(function (file) {
+          var link = document.createElement("a");
+          link.href = file.url;
+          link.textContent = file.label || file.filename;
+          link.setAttribute("download", file.filename);
+          links.appendChild(link);
+        });
+      })
+      .catch(function () {
+        sampleFlag.value = "0";
+        msg.textContent = failed;
+      });
+  });
+})();
+</script>
+{% endblock %}

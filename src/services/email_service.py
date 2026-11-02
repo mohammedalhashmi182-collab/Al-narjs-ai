@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import smtplib
 import urllib.request
@@ -29,6 +30,7 @@ def _build_message(
     subject: str,
     body: str,
     html: Optional[str] = None,
+    attachments: Optional[list[tuple[str, bytes, str]]] = None,
 ) -> EmailMessage:
     msg = EmailMessage()
     from_name = "النرجس للذكاء الاصطناعي | Al-Narjis AI"
@@ -41,10 +43,19 @@ def _build_message(
     msg.set_content(body)
     if html:
         msg.add_alternative(html, subtype="html")
+    for name, payload, mime in attachments or []:
+        maintype, _, subtype = (mime or "application/octet-stream").partition("/")
+        msg.add_attachment(payload, maintype=maintype or "application", subtype=subtype or "octet-stream", filename=name)
     return msg
 
 
-def _send_http_sync(to: str, subject: str, body: str, html: Optional[str]) -> None:
+def _send_http_sync(
+    to: str,
+    subject: str,
+    body: str,
+    html: Optional[str],
+    attachments: Optional[list[tuple[str, bytes, str]]] = None,
+) -> None:
     from_name = "النرجس للذكاء الاصطناعي | Al-Narjis AI"
     payload = {
         "sender": {"email": settings.smtp_from or settings.smtp_username, "name": from_name},
@@ -56,6 +67,11 @@ def _send_http_sync(to: str, subject: str, body: str, html: Optional[str]) -> No
         payload["htmlContent"] = html
     if settings.mail_reply_to:
         payload["replyTo"] = {"email": settings.mail_reply_to}
+    if attachments:
+        payload["attachment"] = [
+            {"name": name, "content": base64.b64encode(data).decode("ascii")}
+            for name, data, _mime in attachments
+        ]
     req = urllib.request.Request(
         _BREVO_SEND_URL,
         data=json.dumps(payload).encode("utf-8"),
@@ -71,9 +87,16 @@ def _send_http_sync(to: str, subject: str, body: str, html: Optional[str]) -> No
             raise RuntimeError(f"Brevo HTTP {resp.status}")
 
 
-def _send_sync(msg: EmailMessage, to: str, subject: str, body: str, html: Optional[str]) -> None:
+def _send_sync(
+    msg: EmailMessage,
+    to: str,
+    subject: str,
+    body: str,
+    html: Optional[str],
+    attachments: Optional[list[tuple[str, bytes, str]]] = None,
+) -> None:
     if _uses_http():
-        _send_http_sync(to, subject, body, html)
+        _send_http_sync(to, subject, body, html, attachments)
         return
     host = settings.smtp_host or "smtp.gmail.com"
     port = settings.smtp_port or 587
@@ -94,14 +117,15 @@ async def send_email(
     subject: str,
     body: str,
     html: Optional[str] = None,
+    attachments: Optional[list[tuple[str, bytes, str]]] = None,
 ) -> bool:
     if not is_configured():
         logger.warning("SMTP not configured — email not sent to %s", to)
         return False
 
     try:
-        msg = _build_message(to, subject, body, html)
-        await asyncio.to_thread(_send_sync, msg, to, subject, body, html)
+        msg = _build_message(to, subject, body, html, attachments)
+        await asyncio.to_thread(_send_sync, msg, to, subject, body, html, attachments)
         logger.info("Email sent to %s | subject=%s", to, subject)
         return True
     except Exception as e:

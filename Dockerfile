@@ -2,10 +2,18 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# pango, cairo and harfbuzz are required by WeasyPrint, which shapes Arabic
+# with the bundled Cairo font when a DocPack PDF is rendered.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     curl \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0 \
+    libcairo2 \
+    libgdk-pixbuf-2.0-0 \
+    shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml .

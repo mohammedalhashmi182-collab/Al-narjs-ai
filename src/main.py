@@ -770,6 +770,10 @@ from src.interfaces.agent_tools_routes import router as agent_tools_router  # no
 
 app.include_router(agent_tools_router)
 
+from src.interfaces.docpack_routes import router as docpack_router  # noqa: E402
+
+app.include_router(docpack_router)
+
 # Per-tenant Salla/Zid install, webhooks and store tools. Off until STORE_INTEGRATIONS_ENABLED.
 from src.integrations.routes import router as store_integration_router  # noqa: E402
 
@@ -1335,6 +1339,14 @@ async def consult_page(request: Request):
 @app.get("/guide", response_class=HTMLResponse)
 async def guide_page(request: Request):
     return templates.TemplateResponse(request, "guide.html")
+
+
+@app.get("/docpack", response_class=HTMLResponse)
+async def docpack_page(request: Request):
+    """Public sales demo: one sample sheet becomes a PDF, a workbook, and a deck."""
+    return templates.TemplateResponse(
+        request, "docpack.html", {"ar": _page_lang(request) == "ar"}
+    )
 
 
 @app.get("/early-access", response_class=HTMLResponse)
@@ -2184,8 +2196,51 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
             agent.result_emailed_at = _dt.now(_tz.utc)
             await session.commit()
 
-        return {"result": response.content, "status": "done", "emailed": emailed,
-                "emailed_to": project.email if emailed else None}
+        payload = {"result": response.content, "status": "done", "emailed": emailed,
+                   "emailed_to": project.email if emailed else None}
+        docpack_payload = await _maybe_docpack(slug, request.answers, project, http_request)
+        if docpack_payload is not None:
+            payload["docpack"] = docpack_payload
+        return payload
+
+
+async def _maybe_docpack(slug: str, answers: dict | None, project, http_request: Request) -> dict | None:
+    """Build a DocPack when one of the five file agents was explicitly asked.
+
+    A failure here must not fail the text result the client is already waiting on.
+    """
+    from src.services.agent_tools import docpack_tool
+    from src.utils.rate_limit import docpack_api_limiter
+    from src.utils.net import client_ip
+
+    if not docpack_tool.allowed(slug) or not docpack_tool.requested(answers):
+        return None
+    ok, _retry = docpack_api_limiter.check(f"{client_ip(http_request)}:/api/docpack")
+    if not ok:
+        return None
+    try:
+        brief = "\n".join(
+            f"{key}: {value}"
+            for key, value in (answers or {}).items()
+            if key != "docpack" and value not in (None, "")
+        )
+        pack = await docpack_tool.build(
+            slug=slug,
+            brief=brief,
+            model_provider=docpack_tool.usable_provider(getattr(app.state, "model_provider", None)),
+            client_name=getattr(project, "client_name", "") or "",
+        )
+        pack_emailed = False
+        if getattr(project, "email", None):
+            pack_emailed = await docpack_tool.email_pack(project.email, pack)
+        published = docpack_tool.publish(pack)
+        published["emailed"] = pack_emailed
+        for item in published["files"]:
+            item["label"] = item["label_ar"]
+        return published
+    except Exception:
+        logger.exception("docpack alongside agent run failed for %s", slug)
+        return None
 
 
 async def _email_agent_result(project, slug: str, content: str) -> bool:

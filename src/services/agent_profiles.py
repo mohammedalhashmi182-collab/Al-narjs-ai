@@ -80,6 +80,11 @@ TOOL_AGENTS = {
         "software_engineer", "integrations_engineer", "store_manager",
         "product_describer", "project_manager", "business_ideas",
     }),
+    # Branded PDF + formula workbook + deck. Narrative is checked against the
+    # figures the pipeline computes; these five are the ones that may call it.
+    "docpack": frozenset({
+        "data_analyst", "market_analyst", "finance_pricing", "project_manager", "orchestrator",
+    }),
 }
 STRICT_EVIDENCE_AGENTS = frozenset({
     "market_analyst", "competitor_analyst", "data_analyst", "search_discovery",

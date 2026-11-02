@@ -22,7 +22,7 @@
         <div class="max-w-3xl mx-auto">
             <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; {% if _lang == 'ar' %}<span>العودة للرئيسية</span>{% else %}<span data-inline>Back to home</span>{% endif %}</a>
             <h1 class="n-title text-3xl mt-4">{% if _lang == 'ar' %}<span>سياسة الخصوصية</span>{% else %}<span data-inline>Privacy Policy</span>{% endif %}</h1>
-            <p class="n-sub mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>آخر تحديث: 13 أكتوبر 2026</span>{% else %}<span data-inline>Last updated: 13 October 2026</span>{% endif %}</p>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>آخر تحديث: 2 نوفمبر 2026</span>{% else %}<span data-inline>Last updated: 2 November 2026</span>{% endif %}</p>
 
             <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg">1. من نحن</h2>{% else %}<h2 class="n-title text-lg" data-inline>1. Who we are</h2>{% endif %}
@@ -45,7 +45,10 @@
 
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">جدول الاحتفاظ الكامل وقائمة المعالجين الفرعيين في <a href="/subprocessors" style="color:var(--n-gold);">صفحة المعالجين الفرعيين</a>، والتزاماتنا كمعالج في <a href="/dpa" style="color:var(--n-gold);">اتفاقية معالجة البيانات</a>.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>The full retention table and subprocessor list are on the <a href="/subprocessors" style="color:var(--n-gold);">subprocessors page</a>; our processor obligations are in the <a href="/dpa" style="color:var(--n-gold);">Data Processing Agreement</a>.</p>{% endif %}
 
-                {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">4. ملفات تعريف الارتباط</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>4. Cookies</h2>{% endif %}
+                {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">3ج. حزمة المستندات التجريبية</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>3c. The document-pack demo</h2>{% endif %}
+{% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">صفحة حزمة المستندات تقبل جدولاً أو وصفاً لبناء تقرير وملف إكسل وعرض تقديمي. الملف المرفوع والنتيجة يبقيان في ذاكرة الخادم ثلاثين دقيقة حتى يكتمل التحميل، ثم يُحذفان. لا نستخدم هذه الملفات لتدريب النماذج، ولا نرسلها بالبريد إلا إلى بريد حساب العميل المسجّل عندما يبني الحزمة من البوابة وهو على اشتراك نشط. يمكنك طلب الحذف عبر <a href="/data-deletion" style="color:var(--n-gold);">تعليمات حذف البيانات</a>.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>The document-pack page accepts a spreadsheet or a brief and builds a report, an Excel file and a slide deck. The upload and the result stay in server memory for thirty minutes so the download can finish, then they are deleted. We do not use these files to train models, and we email them only to the email on the client's own account when they build the pack from the portal on an active subscription. You can ask for deletion via the <a href="/data-deletion" style="color:var(--n-gold);">data deletion instructions</a>.</p>{% endif %}
+
+{% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">4. ملفات تعريف الارتباط</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>4. Cookies</h2>{% endif %}
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">نستخدم ملفات تعريف ارتباط ضرورية فقط: لحفظ اختيار اللغة ولجلسة مالك النظام. لا نستخدم تتبعاً إعلانياً.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>We use only essential cookies: to remember your language choice and the owner's session. No advertising tracking.</p>{% endif %}
 
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">5. حقوقك</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>5. Your rights</h2>{% endif %}
