@@ -18,6 +18,7 @@
         limit: "The daily call limit has been reached, or the line is busy. Email or call us, or try again later.",
         missing: "The live call is not available right now. Email or call us and we will help.",
         down: "The connection failed. Check your internet and try again, or email or call us.",
+        dropped: "The call dropped before it started.",
         youHung: "The call has ended. You can start another one.",
         missingShort: "Unavailable",
         limitShort: "Daily limit reached",
@@ -38,6 +39,7 @@
         limit: "وصلنا للحد اليومي للمكالمات أو الخط مشغول. راسلنا أو اتصل، أو جرّب بعدين.",
         missing: "المكالمة الحية غير متاحة حالياً. راسلنا أو اتصل ونساعدك.",
         down: "صار خلل في الاتصال. تأكد من الإنترنت وجرّب مرة ثانية، أو راسلنا أو اتصل.",
+        dropped: "انقطعت المكالمة قبل أن تبدأ.",
         youHung: "انتهت المكالمة. تقدر تبدأ مكالمة جديدة.",
         missingShort: "غير متاحة",
         limitShort: "الحد اليومي",
@@ -82,6 +84,7 @@
   let outLevel = 0;
   let inLevel = 0;
   let agentRow = null;
+  let sessionReady = false;
 
   function setMode(name) {
     card.classList.remove("idle", "listening", "speaking", "ready", "ended", "connecting");
@@ -254,6 +257,7 @@
   function onEvent(event) {
     const type = event.type || "";
     if (type === "session.created" || type === "session.updated") {
+      sessionReady = true;
       if (!tick) startTimer();
       setMode("listening");
       return;
@@ -289,9 +293,17 @@
       return;
     }
     if (type === "error") {
-      add(T.down, "sys");
+      const detail = (event.error && (event.error.message || event.error.code)) || event.message || "";
+      console.warn("voice session error", { type: event.error && event.error.type, code: event.error && event.error.code, message: detail });
+      add(detail ? T.down + " (" + String(detail).slice(0, 160) + ")" : T.down, "sys");
       reveal("upstream", false);
     }
+  }
+
+  function closeMessage(event) {
+    const code = event && typeof event.code === "number" ? event.code : 0;
+    const reason = event && event.reason ? String(event.reason).replace(/\s+/g, " ").slice(0, 160) : "";
+    return T.dropped + (code ? " (" + code + ")" : "") + (reason ? " — " + reason : "");
   }
 
   function sessionOptions(payload) {
@@ -319,7 +331,7 @@
       let energy = 0;
       for (let i = 0; i < input.length; i++) energy += input[i] * input[i];
       inLevel = Math.min(1, Math.sqrt(energy / input.length) * 4);
-      if (!socket || socket.readyState !== WebSocket.OPEN) return;
+      if (!sessionReady || !socket || socket.readyState !== WebSocket.OPEN) return;
       if (mute.getAttribute("aria-pressed") === "true") return;
       if (audioCtx.currentTime < playAt) return;
       const samples = resample(input, audioCtx.sampleRate);
@@ -349,6 +361,7 @@
   start.onclick = async () => {
     if (socket || blocked) return;
     ending = false;
+    sessionReady = false;
     agentRow = null;
     playAt = 0;
     start.disabled = true;
@@ -386,20 +399,33 @@
         return;
       }
       socket = new WebSocket(options.url, [options.protocol]);
-      socket.onopen = () => configureSession();
+      socket.onopen = () => {
+        console.info("voice websocket open");
+        configureSession();
+      };
       socket.onmessage = (message) => {
         if (typeof message.data !== "string") return;
         try { onEvent(JSON.parse(message.data)); } catch (error) { /* ignore a bad frame */ }
       };
       socket.onerror = () => {
+        console.warn("voice websocket error");
         if (!ending) add(T.down, "sys");
       };
-      socket.onclose = () => {
+      socket.onclose = (event) => {
+        const code = event && event.code;
+        const reason = event && event.reason ? String(event.reason).slice(0, 160) : "";
+        console.warn("voice websocket closed", { code: code, reason: reason, wasClean: !!(event && event.wasClean), ready: sessionReady });
         socket = null;
         if (!ending) {
           ending = true;
+          const early = !sessionReady || (code && code !== 1000);
+          if (early) {
+            add(closeMessage(event), "sys");
+            reveal("upstream", false);
+          }
           stopMic();
           finish();
+          if (early) status.textContent = T.dropped;
         }
       };
       start.disabled = false;

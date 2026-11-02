@@ -104,6 +104,8 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert "elevenlabs" not in script.lower()
     assert "XAI_API_KEY" not in script
     assert "wss://api.x.ai/v1/realtime" in script
+    assert "voice websocket closed" in script
+    assert "model=grok-voice-latest&agent_id" not in script
 
 
 def test_sitemap_lists_the_voice_page(client: TestClient):
@@ -150,8 +152,8 @@ async def test_session_mints_a_client_secret_for_the_published_agent(monkeypatch
     granted = await voice_live.open_session("203.0.113.8")
     assert granted["ok"] is True
     assert granted["client_secret"] == "ephemeral-token-value"
-    assert granted["websocket_url"].startswith("wss://api.x.ai/v1/realtime?")
-    assert f"agent_id={AGENT}" in granted["websocket_url"]
+    assert granted["websocket_url"] == f"wss://api.x.ai/v1/realtime?agent_id={AGENT}"
+    assert "model=" not in granted["websocket_url"]
     assert "xai-test-key-not-real" not in str(granted)
     assert seen[0]["json"]["agent_id"] == AGENT
     assert seen[0]["headers"]["Authorization"] == "Bearer xai-test-key-not-real"
