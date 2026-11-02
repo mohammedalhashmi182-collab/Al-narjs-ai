@@ -3,7 +3,7 @@ outside world: web search and store connectors only fetch; nothing is sent or
 posted on anyone's behalf. Missing credentials disable a tool with a clear
 message instead of failing the agent run."""
 
-from src.services.agent_tools import data_files, knowledge_base, store_connectors, web_search  # noqa: F401
+from src.services.agent_tools import data_files, docpack_tool, knowledge_base, store_connectors, web_search  # noqa: F401
 
 # Which agents get which tool context injected into their run.
 # Runtime permissions are authoritative in agent_profiles. Keep these aliases
@@ -14,6 +14,7 @@ WEB_SEARCH_AGENTS = TOOL_AGENTS["web_search"]
 DATA_FILE_AGENTS = TOOL_AGENTS["data_files"]
 STORE_AGENTS = TOOL_AGENTS["store"]
 KNOWLEDGE_AGENTS = TOOL_AGENTS["knowledge_base"]
+DOCPACK_AGENTS = TOOL_AGENTS["docpack"]
 
 
 def status() -> dict:
@@ -23,6 +24,12 @@ def status() -> dict:
         "stores": store_connectors.status(),
         "data_files": {"enabled": True, "max_bytes": data_files.MAX_UPLOAD_BYTES, "types": list(data_files.ALLOWED)},
         "knowledge_base": {"enabled": True, "max_bytes": knowledge_base.MAX_UPLOAD_BYTES, "types": ["text", "pdf"]},
+        "docpack": {
+            "enabled": True,
+            "agents": sorted(DOCPACK_AGENTS),
+            "formats": ["pdf", "xlsx", "pptx", "docx"],
+            "max_bytes": 10 * 1024 * 1024,
+        },
     }
 
 
@@ -38,7 +45,7 @@ async def run_context(session, slug: str, project, answers: dict | None) -> str:
 
     from src.models.agent_tools import ProjectDataFile
 
-    out = ""
+    out = docpack_tool.CONTEXT if slug in DOCPACK_AGENTS else ""
     try:
         if slug in WEB_SEARCH_AGENTS:
             q = _query_from(answers, getattr(project, "client_name", ""))

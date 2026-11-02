@@ -127,3 +127,29 @@ def rate_limit_ticket(request: Request) -> None:
 
 # Public analytics beacon (/api/events): generous for real pages, tight for floods.
 beacon_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=60)
+
+# DocPack renders three office files per call. The public demo is the one a
+# visitor can hit without a session, so it is tighter than the signed-in API,
+# and a second global window stops a spray of addresses from pinning the CPU.
+docpack_demo_limiter = SlidingWindowLimiter(max_requests=6, window_seconds=600)
+docpack_demo_global_limiter = SlidingWindowLimiter(max_requests=24, window_seconds=600)
+docpack_api_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=3600)
+
+
+def _docpack_limited(limiter: SlidingWindowLimiter, key: str) -> None:
+    ok, retry_after = limiter.check(key)
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+def rate_limit_docpack_demo(request: Request) -> None:
+    _docpack_limited(docpack_demo_global_limiter, "docpack-demo")
+    _docpack_limited(docpack_demo_limiter, f"{client_ip(request)}:/api/docpack/demo")
+
+
+def rate_limit_docpack_api(request: Request) -> None:
+    _docpack_limited(docpack_api_limiter, f"{client_ip(request)}:/api/docpack")

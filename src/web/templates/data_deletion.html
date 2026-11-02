@@ -22,7 +22,7 @@
         <div class="max-w-3xl mx-auto">
             <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; {% if _lang == 'ar' %}<span>العودة للرئيسية</span>{% else %}<span data-inline>Back to home</span>{% endif %}</a>
             <h1 class="n-title text-3xl mt-4">{% if _lang == 'ar' %}<span>تعليمات حذف البيانات</span>{% else %}<span data-inline>Data Deletion Instructions</span>{% endif %}</h1>
-            <p class="n-sub mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>آخر تحديث: 19 سبتمبر 2026</span>{% else %}<span data-inline>Last updated: 19 September 2026</span>{% endif %}</p>
+            <p class="n-sub mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>آخر تحديث: 2 نوفمبر 2026</span>{% else %}<span data-inline>Last updated: 2 November 2026</span>{% endif %}</p>
 
             <div class="n-card mt-6" style="padding:28px;line-height:1.9;">
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg">كيف تطلب حذف بياناتك</h2>{% else %}<h2 class="n-title text-lg" data-inline>How to request deletion of your data</h2>{% endif %}
@@ -32,7 +32,10 @@
                     <li style="margin-block:10px;">{% if _lang == 'ar' %}<span>عبر البريد</span>{% else %}<span data-inline>By email to</span>{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a></li>
                 </ul>
 
-                {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">ماذا يُحذف؟</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>What gets deleted?</h2>{% endif %}
+                {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">حزمة المستندات التجريبية</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>The document-pack demo</h2>{% endif %}
+{% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">الملف الذي ترفعه في صفحة حزمة المستندات، والملفات الناتجة عنه، يُحذفان تلقائياً من ذاكرة الخادم خلال ثلاثين دقيقة دون الحاجة إلى طلب. إذا وُلدت الحزمة من البوابة وأُرسلت إلى بريد حسابك، يشمل طلب الحذف أدناه تلك الرسالة وما ترتبط به من بيانات الحساب، مع الاستثناء المالي المذكور.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>A file you upload on the document-pack page, and the files produced from it, are deleted from server memory within thirty minutes without a request. If the pack was built from the portal and sent to your account email, the deletion request below covers that message and the related account data, subject to the financial exception below.</p>{% endif %}
+
+{% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">ماذا يُحذف؟</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>What gets deleted?</h2>{% endif %}
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">بعد تأكيد الهوية، نحذف خلال 30 يوماً: الاسم، رقم الجوال، البريد الإلكتروني، محتوى الاستفسارات، ملفات التعريف، والمحادثات غير المتعلقة بالفواتير. كحد أدنى سنوقف جميع الاستخدامات التسويقية والتواصلية فوراً حتى اكتمال الحذف.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>After identity verification, we delete within 30 days: name, phone number, email, enquiry content, profiles, and non-invoice conversations. At a minimum, we stop all marketing and communication use immediately until deletion is complete.</p>{% endif %}
 
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">استثناء قانوني (الاحتفاظ الإلزامي)</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>Legal exception (mandatory retention)</h2>{% endif %}
