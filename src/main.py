@@ -782,6 +782,10 @@ from src.interfaces.ops_routes import api as ops_api, router as ops_router  # no
 app.include_router(ops_router)
 app.include_router(ops_api)
 
+from src.interfaces.capability_routes import router as capability_router  # noqa: E402
+
+app.include_router(capability_router)
+
 # LLM router + pgvector RAG: POST /api/ai/ask (fast/deep routing, review, handoff).
 from src.interfaces.ai_routes import router as ai_ask_router  # noqa: E402
 
@@ -1083,6 +1087,10 @@ async def public_agent_page(slug: str, request: Request):
     employee = catalog.get_employee(slug)
     if not employee:
         raise HTTPException(404, "Agent not found")
+    lang = _page_lang(request)
+    outputs = employee.get("outputs_ar" if lang == "ar" else "outputs_en") or employee.get("outputs") or []
+    workspace = employee.get("workspace") or ""
+    workspace_href = f"/{lang}{workspace}" if workspace else ""
 
     # Catalog entries carry no "slug" key, so attach it for the card links.
     same_dept = [
@@ -1113,7 +1121,8 @@ async def public_agent_page(slug: str, request: Request):
             "agent": employee,
             "related": related,
             "recommended_pkg": recommended_pkg,
-            "outputs": employee.get("outputs", []),
+            "outputs": outputs,
+            "workspace_href": workspace_href,
         },
     )
 

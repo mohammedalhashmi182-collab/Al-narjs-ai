@@ -129,6 +129,17 @@ async def execute(
         has_evidence=bool(tool_context.strip()),
     )
     full_system = (system_prompt + runtime_system).strip()
+    client_key = str((metadata or {}).get("project_id") or (metadata or {}).get("client_key") or "").strip()
+    if client_key:
+        try:
+            from src.services.capabilities.style_memory import prompt_block
+
+            style = await prompt_block(client_key)
+            if style:
+                full_system = (full_system + style).strip()
+        except Exception:
+            # A missing profile must not block the deliverable.
+            pass
     full_prompt = prompt + (tool_context or "")
 
     requested_temp = float((getattr(agent_def, "default_parameters", {}) or {}).get("temperature", 0.7))
@@ -228,6 +239,30 @@ async def execute(
             if second.get("verdict") != "PASS":
                 raise RuntimeError("strict evidence answer failed final Quality Gate")
 
+    eval_meta: dict[str, Any] = {}
+    try:
+        from src.services.capabilities.config import eval_runtime_enabled
+        from src.services.capabilities.eval_loop import run_eval_loop
+
+        if eval_runtime_enabled() and slug != "evaluation_loop":
+            outcome = run_eval_loop(
+                final,
+                locale=locale,
+                agent_slug=slug,
+                client_key=client_key,
+                source="runtime",
+            )
+            if outcome.passed and outcome.text.strip() and outcome.text != final:
+                final = outcome.text
+            eval_meta = {
+                "overall": outcome.scores[-1]["overall"] if outcome.scores else None,
+                "passed": outcome.passed,
+                "rounds": outcome.rounds,
+                "revisions": outcome.revisions,
+            }
+    except Exception:
+        eval_meta = {"error": "eval_unavailable"}
+
     latency = int((time.perf_counter() - started) * 1000)
     structured = getattr(response, "structured_output", None)
     if hasattr(structured, "model_dump"):
@@ -245,6 +280,7 @@ async def execute(
             "skills": list(profile.skills),
             "tools": list(profile.tools),
             "review_error": review_error,
+            "eval": eval_meta,
             "verified": bool(
                 not quality_gate or not profile.quality_gate or qa_supported
             ),
