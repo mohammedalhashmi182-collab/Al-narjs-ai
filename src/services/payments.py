@@ -396,9 +396,10 @@ def reference(payment: Payment) -> str:
 def transfer_instructions(payment: Payment) -> dict:
     """Everything a guest needs to settle a manual invoice unaided.
 
-    Bank lines and the QR come only from PAYMENT_IBAN / PAYMENT_ACCOUNT_NAME /
-    PAYMENT_BANK_NAME. When those are unset the bank dict and QR are empty and
-    the page shows the contact fallback.
+    Bank lines and the QR come only from PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME
+    and PAYMENT_BANK_NAME. PAYMENT_BANK_NAME_EN is optional. When a required
+    value is unset the bank dict and QR are empty and the page shows the
+    contact fallback.
     """
     from src.services import catalog as _catalog
     from src.services import transfer

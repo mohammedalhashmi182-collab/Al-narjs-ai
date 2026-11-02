@@ -141,11 +141,14 @@ After Moyasar was removed, a guest pays an unpaid invoice by bank transfer when 
 | --- | --- |
 | `PAYMENT_IBAN` | Saudi IBAN (`SA` plus 22 digits). Spaces are ignored. |
 | `PAYMENT_ACCOUNT_NAME` | Account holder name printed next to the IBAN. |
-| `PAYMENT_BANK_NAME` | Bank name, for example `Al Rajhi Bank`. |
+| `PAYMENT_BANK_NAME` | Bank name shown on the Arabic invoice. |
+| `PAYMENT_BANK_NAME_EN` | Optional. English bank name. When empty, the English invoice repeats `PAYMENT_BANK_NAME`. |
+
+Do not commit a real IBAN. A local check can use the dummy `SA0000000000000000000000`.
 
 The invoice then shows a QR code (IBAN, holder, bank, amount, order reference, plan), the same IBAN as copyable text, and an optional receipt upload. The upload is stored on the payment for the owner to confirm; it does not mark the order paid.
 
-If any of the three is missing or the IBAN is not a Saudi IBAN, the QR block is omitted and the invoice says to contact us to pay (on-site assistant or AlNarjisai@gmail.com). No account is invented.
+If any of the three required variables is missing or the IBAN is not a Saudi IBAN, the QR block is omitted and the invoice says to contact us to pay (on-site assistant or AlNarjisai@gmail.com). No account is invented.
 
 `CUSTOMER_BANK_TRANSFER_ENABLED=1` still decides whether a guest can start that invoice from checkout. PayPal stays behind `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live`.
 

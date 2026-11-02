@@ -5,8 +5,9 @@ The account the guest pays into is read from the environment:
 - ``PAYMENT_IBAN``
 - ``PAYMENT_ACCOUNT_NAME``
 - ``PAYMENT_BANK_NAME``
+- ``PAYMENT_BANK_NAME_EN`` (optional English bank name)
 
-All three are required. If any is missing or the IBAN is not a Saudi IBAN,
+The first three are required. If any of those is missing or the IBAN is not a Saudi IBAN,
 ``bank_details()`` is empty and the invoice hides the QR, showing a
 contact-us fallback instead. Nothing here invents an account.
 
@@ -56,13 +57,21 @@ def normalize_iban(raw: str) -> str:
 
 
 def bank_details() -> dict[str, str]:
-    """The guest account, or {} when the three env vars are not all set."""
+    """The guest account, or {} when the three required env vars are not all set.
+
+    ``PAYMENT_BANK_NAME_EN`` is optional. When it is empty the English page
+    repeats ``PAYMENT_BANK_NAME``.
+    """
     iban = normalize_iban(_configured("PAYMENT_IBAN", "payment_iban"))
     name = _configured("PAYMENT_ACCOUNT_NAME", "payment_account_name")
     bank = _configured("PAYMENT_BANK_NAME", "payment_bank_name")
+    bank_en = _configured("PAYMENT_BANK_NAME_EN", "payment_bank_name_en")
     if not (iban and name and bank and _SA_IBAN.fullmatch(iban)):
         return {}
-    return {"iban": iban, "account_name": name, "bank_name": bank}
+    details = {"iban": iban, "account_name": name, "bank_name": bank}
+    if bank_en:
+        details["bank_name_en"] = bank_en
+    return details
 
 
 def has_bank_details() -> bool:
@@ -86,11 +95,15 @@ def transfer_qr_payload(
     lines = [
         "SAR transfer",
         f"Bank: {bank.get('bank_name', '')}",
+    ]
+    if bank.get("bank_name_en"):
+        lines.append(f"Bank EN: {bank['bank_name_en']}")
+    lines.extend([
         f"Name: {bank.get('account_name', '')}",
         f"IBAN: {bank.get('iban', '')}",
         f"Amount: {amount_sar} SAR",
         f"Reference: {reference}",
-    ]
+    ])
     if plan:
         lines.append(f"Plan: {plan}")
     return "\n".join(lines)

@@ -57,7 +57,7 @@
         {% if xfer.bank.bank_name %}
         <div class="xfer-row">
             <span class="xfer-k">{% if xf_ar %}البنك{% else %}Bank{% endif %}</span>
-            <span class="xfer-v">{{ xfer.bank.bank_name }}</span>
+            <span class="xfer-v">{{ xfer.bank.bank_name if xf_ar else (xfer.bank.bank_name_en or xfer.bank.bank_name) }}</span>
         </div>
         {% endif %}
         {% if xfer.bank.account_name %}

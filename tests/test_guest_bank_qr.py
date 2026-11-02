@@ -14,7 +14,7 @@ from src.models import Payment
 from src.services import payments as pm
 from src.services import transfer
 
-DUMMY_IBAN = "SA0380000000608010167519"
+DUMMY_IBAN = "SA0000000000000000000000"
 
 
 @pytest.fixture
@@ -35,10 +35,14 @@ async def anon(maker):
         yield client
 
 
-def _arm(monkeypatch):
-    monkeypatch.setenv("PAYMENT_IBAN", "SA03 8000 0000 6080 1016 7519")
+def _arm(monkeypatch, *, bank_en=None):
+    monkeypatch.setenv("PAYMENT_IBAN", "SA00 0000 0000 0000 0000 0000")
     monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
-    monkeypatch.setenv("PAYMENT_BANK_NAME", "Al Rajhi Bank")
+    monkeypatch.setenv("PAYMENT_BANK_NAME", "مصرف تجريبي")
+    if bank_en:
+        monkeypatch.setenv("PAYMENT_BANK_NAME_EN", bank_en)
+    else:
+        monkeypatch.delenv("PAYMENT_BANK_NAME_EN", raising=False)
 
 
 def test_incomplete_or_invalid_account_hides_the_qr(monkeypatch):
@@ -55,7 +59,8 @@ def test_qr_payload_carries_amount_and_reference(monkeypatch):
     _arm(monkeypatch)
     payment = Payment(id=uuid4(), amount=79000, currency="SAR", package="bidaya", status="invoice", total_halalas=79000)
     out = pm.transfer_instructions(payment)
-    assert out["bank"]["bank_name"] == "Al Rajhi Bank"
+    assert out["bank"]["bank_name"] == "مصرف تجريبي"
+    assert "bank_name_en" not in out["bank"]
     assert out["reference"] in out["qr_svg"] or "xfer-qr-svg" in out["qr_svg"]
     payload = transfer.transfer_qr_payload(
         bank=out["bank"], amount_sar=out["amount_text"], reference=out["reference"], plan=out["plan_en"]
@@ -63,11 +68,11 @@ def test_qr_payload_carries_amount_and_reference(monkeypatch):
     assert DUMMY_IBAN in payload
     assert out["amount_text"] in payload
     assert out["reference"] in payload
-    assert "Al Rajhi Bank" in payload
+    assert "مصرف تجريبي" in payload
 
 
 async def test_english_invoice_is_ltr_and_arabic_invoice_keeps_rtl(anon, maker, monkeypatch):
-    _arm(monkeypatch)
+    _arm(monkeypatch, bank_en="Example Bank")
     async with maker() as session:
         payment = Payment(amount=79000, currency="SAR", package="bidaya", status="invoice", gateway="invoice", total_halalas=79000)
         session.add(payment)
@@ -78,9 +83,10 @@ async def test_english_invoice_is_ltr_and_arabic_invoice_keeps_rtl(anon, maker, 
     en = await anon.get(f"/invoice/{pid}", cookies={"narjis_lang": "en"})
     assert ar.status_code == 200 and 'dir="rtl"' in ar.text
     assert "تواصل معنا للدفع" not in ar.text
-    assert "نسخ الآيبان" in ar.text and "Al Rajhi Bank" in ar.text
+    assert "نسخ الآيبان" in ar.text and "مصرف تجريبي" in ar.text
+    assert "Example Bank" not in ar.text
     assert en.status_code == 200 and "Contact us to pay" not in en.text
-    assert "Copy IBAN" in en.text and 'dir="ltr"' in en.text
+    assert "Copy IBAN" in en.text and "Example Bank" in en.text and 'dir="ltr"' in en.text
     assert "xfer-qr" in ar.text and "xfer-qr" in en.text
 
 

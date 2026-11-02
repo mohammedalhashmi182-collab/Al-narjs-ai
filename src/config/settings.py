@@ -112,6 +112,7 @@ class Settings(BaseSettings):
     payment_iban: str | None = Field(default=None, alias="PAYMENT_IBAN")
     payment_account_name: str | None = Field(default=None, alias="PAYMENT_ACCOUNT_NAME")
     payment_bank_name: str | None = Field(default=None, alias="PAYMENT_BANK_NAME")
+    payment_bank_name_en: str | None = Field(default=None, alias="PAYMENT_BANK_NAME_EN")
 
     # Launch promo (single code, percentage off first charge) — disabled when PROMO_CODE empty
     promo_code: str | None = Field(default=None, alias="PROMO_CODE")

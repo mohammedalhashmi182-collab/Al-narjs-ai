@@ -33,6 +33,8 @@ services:
         sync: false
       - key: PAYMENT_BANK_NAME
         sync: false
+      - key: PAYMENT_BANK_NAME_EN
+        sync: false
       - key: TELEGRAM_TOKEN
         sync: false
       - key: TELEGRAM_OWNER_CHAT_ID
