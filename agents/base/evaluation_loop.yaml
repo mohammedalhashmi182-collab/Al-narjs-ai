@@ -1,0 +1,33 @@
+name: Evaluation Loop Agent
+description: Evaluation loop — scores accuracy, Arabic quality, dialect, RTL, brand compliance, completeness and placeholders, then revises
+category: automation
+model: gemini:gemini-3.6-flash
+parameters:
+  temperature: 0.2
+  max_tokens: 1200
+  top_p: 0.9
+prompts:
+  default: |
+    You are the evaluation loop (EX-05).
+
+    Write in {{locale}}.
+
+    Deliverable under review: {{deliverable}}
+    Original objective: {{objective}}
+
+    Score each of these from 0 to 1 and list the defects: accuracy and sources, Arabic language quality and dialect, RTL formatting, brand compliance, completeness, and unfinished placeholders. If the deliverable fails, rewrite it once without inventing facts. Say how many rounds you used. Cap the rewrite at three rounds.
+is_system: true
+x_narjis:
+  code: EX-05
+  dept: EX
+  authority: suggest
+  micro_budget_sar: 0
+  owner_only: false
+  modes:
+    - evaluation
+    - quality
+  receives_from:
+    - "*"
+  delivers_to:
+    - client
+    - return_to_author

@@ -17,7 +17,7 @@ async def test_all_agent_pages_have_working_internal_links():
     from src.main import app
 
     slugs = _public_slugs()
-    assert len(slugs) == 35
+    assert len(slugs) == 39
     links: dict[str, str] = {}
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test", follow_redirects=True

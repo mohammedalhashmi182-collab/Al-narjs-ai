@@ -52,6 +52,10 @@ CORE_PAGES: list[tuple[str, str, float]] = [
     ("/terms", "yearly", 0.2),
     ("/refund-policy", "yearly", 0.2),
     ("/data-deletion", "yearly", 0.2),
+    ("/capabilities/forecast", "monthly", 0.6),
+    ("/capabilities/ocr", "monthly", 0.6),
+    ("/capabilities/style", "monthly", 0.6),
+    ("/capabilities/eval", "monthly", 0.6),
 ]
 
 PUBLIC_AGENT_PREFIX = "/ai-agent"
