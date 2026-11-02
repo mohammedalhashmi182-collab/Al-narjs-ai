@@ -5,7 +5,8 @@ and https://docs.x.ai/developers/model-capabilities/audio/speech-to-speech
 
 The browser never receives ``XAI_API_KEY``. The server mints a short-lived
 client secret (``POST /v1/realtime/client_secrets``) and the page opens
-``wss://api.x.ai/v1/realtime`` with the ``xai-client-secret.`` subprotocol.
+``wss://api.x.ai/v1/realtime?agent_id=...`` with the ``xai-client-secret.``
+subprotocol. Do not also pass ``model=``; that mode is for an unnamed session.
 ``XAI_VOICE_AGENT_ID`` is the published agent from console.x.ai → Voice Agents.
 Both values must be set. Either one empty turns the call off and the page
 shows the company email and phone.
@@ -104,8 +105,13 @@ def public_contact() -> dict[str, str]:
 
 
 def websocket_url(agent: str) -> str:
-    """Browser socket for this published agent. The model alias follows xAI's docs."""
-    return f"{_REALTIME}?model=grok-voice-latest&agent_id={quote(agent, safe='')}"
+    """Socket for a console Voice Agent.
+
+    ``agent_id`` and ``model`` are different modes. A published agent is
+    opened with only ``?agent_id=``. Adding ``model=`` as well makes xAI
+    reject the handshake and the browser hangs up at once.
+    """
+    return f"{_REALTIME}?agent_id={quote(agent, safe='')}"
 
 
 def _valid_websocket_url(url: str) -> bool:
