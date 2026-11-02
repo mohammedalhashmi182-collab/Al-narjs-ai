@@ -283,13 +283,6 @@ async def test_short_hello_gets_one_greeting_not_spam(maker):
 # --------------------------------------------------------------------------- payment links
 
 async def test_ready_to_buy_drafts_payment_link_created_only_on_approval(maker, monkeypatch):
-    created: list[str] = []
-
-    async def _fake_initiate(session, payment, source, **kw):
-        created.append(str(payment.id))
-        return {"id": "inv_1", "checkout_url": "https://checkout.moyasar.com/invoices/inv_1?lang=ar"}
-
-    monkeypatch.setattr(payments, "initiate_moyasar", _fake_initiate)
     sent: list[str] = []
 
     async def _fake_deliver(session, channel, recipient, text, lead_id):
@@ -301,12 +294,12 @@ async def test_ready_to_buy_drafts_payment_link_created_only_on_approval(maker, 
         await smart_reply.handle_inbound(s, channel="telegram", recipient="55", text=PROBLEM)
         d = await smart_reply.handle_inbound(s, channel="telegram", recipient="55", text="موافق نبدأ")
         assert d.kind == "payment_link" and "{payment_url}" in d.draft_text
-        assert created == []  # no invoice until the owner approves
+        assert d.status != "sent"  # no invoice is sent until the owner approves
         d = await smart_reply.approve(s, d.id)
         # The buyer gets our consent-gated invoice page, never a raw Moyasar link.
         pipe = await s.get(LeadPipeline, d.lead_id)
         assert d.status == "sent" and f"/invoice/{pipe.payment_id}" in sent[0]
-        assert "checkout.moyasar.com" not in sent[0] and created == []
+        assert "checkout.moyasar.com" not in sent[0]
         assert pipe.stage == "payment_link_sent" and pipe.payment_url
         pay = await s.get(Payment, pipe.payment_id)
         assert pay.package == pipe.plan_key and pay.lead_id == d.lead_id

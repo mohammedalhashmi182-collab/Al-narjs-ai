@@ -28,7 +28,6 @@ def _paypal_live(webhook_id="WH-TEST", rate=3.75):
     from src.config import settings as s
 
     names = {
-        "moyasar_api_secret": None,
         "paypal_client_id": "client-id",
         "paypal_client_secret": "client-secret",
         "paypal_mode": "live",

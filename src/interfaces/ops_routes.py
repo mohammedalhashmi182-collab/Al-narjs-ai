@@ -43,9 +43,7 @@ SUBPROCESSORS = [
      "purpose_en": "Receiving and sending WhatsApp messages", "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
     {"name": "Brevo (SMTP / email API)", "purpose_ar": "إرسال البريد الإلكتروني (عند تفعيله)", "purpose_en": "Sending email (when enabled)",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
-    {"name": "Moyasar", "purpose_ar": "معالجة المدفوعات بالبطاقة", "purpose_en": "Card payment processing",
-     "region_ar": "شركة سعودية", "region_en": "Saudi company"},
-    {"name": "PayPal", "purpose_ar": "مسار دفع غير متاح للعملاء (الدفع عبر ميسر فقط)", "purpose_en": "Payment path not offered to customers (Moyasar only)",
+    {"name": "PayPal", "purpose_ar": "دفع دولي عند تفعيله للعملاء", "purpose_en": "International checkout when enabled for customers",
      "region_ar": "خارج المملكة", "region_en": "Outside KSA"},
 ]
 

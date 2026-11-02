@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, Numeric, String, Text, func, text
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, LargeBinary, Numeric, String, Text, func, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -229,7 +229,9 @@ class Payment(Base):
         PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="SET NULL"), nullable=True, index=True
     )
     status: Mapped[str] = mapped_column(String(50), default="pending", index=True)
-    gateway: Mapped[str] = mapped_column(String(50), default="moyasar")
+    # Historical rows may still store gateway="moyasar". The column and those
+    # values stay; new rows default to a manual invoice. No migration drops data.
+    gateway: Mapped[str] = mapped_column(String(50), default="invoice")
     gateway_payment_id: Mapped[Optional[str]] = mapped_column(String(100))
     gateway_source: Mapped[Optional[str]] = mapped_column(String(50))
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -250,6 +252,12 @@ class Payment(Base):
     total_halalas: Mapped[Optional[int]] = mapped_column(nullable=True)
     # Set once the paid invoice email went out: /capture never re-sends it.
     invoice_emailed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Optional guest transfer receipt. Bytes stay in the row so a redeploy
+    # does not drop the file. Never marks the payment paid.
+    transfer_receipt: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
+    transfer_receipt_filename: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    transfer_receipt_mime: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    transfer_receipt_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     # Usage add-on packs bought with the order (+1000 conversations / +100 voice min each).
     addon_conversation_packs: Mapped[int] = mapped_column(default=0, server_default="0")
     addon_voice_packs: Mapped[int] = mapped_column(default=0, server_default="0")

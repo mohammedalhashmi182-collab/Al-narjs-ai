@@ -1,7 +1,7 @@
 """Central exception tracking: one deduplicated, scrubbed row per failure kind.
 
 Captures uncaught server exceptions (via OpsAlertMiddleware) and important
-integration failures (Salla, Zid, Moyasar, WhatsApp, Telegram, Gemini/LLM).
+integration failures (Salla, Zid, PayPal, WhatsApp, Telegram, Gemini/LLM).
 Stored per row: source, route template, error type, a scrubbed and truncated
 message, the last request id, environment, count, first/last seen.
 Never stored: request bodies, headers, tokens, card data, customer messages.
@@ -34,7 +34,6 @@ SOURCES = frozenset(
         "webhook",
         "salla",
         "zid",
-        "moyasar",
         "paypal",
         "whatsapp",
         "telegram",

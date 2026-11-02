@@ -63,19 +63,10 @@ async def check_db(session_factory) -> dict:
         return {"ok": False, "error": type(exc).__name__}
 
 
-def _moyasar_on_hold() -> bool:
-    from src.services import payments
-
-    return bool(payments.MOYASAR_ON_HOLD)
-
-
 async def _probe(url: str) -> dict:
     """GET a public endpoint (no credentials) and report reachability."""
     import httpx
 
-    if _moyasar_on_hold() and url.startswith(EXTERNAL_PROBES["moyasar"]):
-        # Zero-call hold: never touch Moyasar, not even its public host.
-        return {"ok": None, "status": "on_hold"}
     started = time.perf_counter()
     try:
         async with httpx.AsyncClient(timeout=EXTERNAL_TIMEOUT) as c:
@@ -91,7 +82,7 @@ def configured_externals() -> dict[str, bool]:
     return {
         "telegram": bool(getattr(settings, "telegram_token", None)),
         "whatsapp": bool(settings.whatsapp_token and settings.whatsapp_phone_number_id),
-        "moyasar": bool(getattr(settings, "moyasar_api_secret", None)),
+        "paypal": bool(getattr(settings, "paypal_client_id", None) and getattr(settings, "paypal_client_secret", None)),
         "gemini": bool(getattr(settings, "gemini_api_key", None)),
     }
 
@@ -99,7 +90,7 @@ def configured_externals() -> dict[str, bool]:
 EXTERNAL_PROBES = {
     "telegram": "https://api.telegram.org",
     "whatsapp": "https://graph.facebook.com",
-    "moyasar": "https://api.moyasar.com",
+    "paypal": "https://api-m.paypal.com",
     "gemini": "https://generativelanguage.googleapis.com",
 }
 
@@ -109,10 +100,6 @@ async def check_external(probe=None) -> dict:
     probe = probe or _probe
     out = {}
     for name, configured in configured_externals().items():
-        if name == "moyasar" and _moyasar_on_hold():
-            # Release hold: report it, make no network call at all.
-            out[name] = {"ok": None, "configured": configured, "status": "on_hold"}
-            continue
         if not configured:
             out[name] = {"ok": None, "configured": False}
             continue
@@ -211,7 +198,7 @@ def webhook_name(path: str) -> str:
 
 async def on_webhook_failure(path: str, status: Any, detail: str = "") -> None:
     name = webhook_name(path)
-    hint = {"moyasar": "فشل webhook الدفع (ميسّر)", "paypal": "فشل webhook الدفع (PayPal)",
+    hint = {"paypal": "فشل webhook الدفع (PayPal)",
             "whatsapp": "فشل webhook واتساب", "telegram": "فشل webhook تيليجرام"}.get(name, f"فشل webhook {name}")
     await alert_owner(f"webhook:{name}:{status}",
                       f"⚠️ {hint} — الحالة {status}. {detail[:200]}\nراجع docs/runbooks.md")

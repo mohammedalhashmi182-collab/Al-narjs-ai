@@ -11,9 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 TPL = ROOT / "src" / "web" / "templates"
 
 
-def test_moyasar_stays_on_hold():
-    assert payments.MOYASAR_ON_HOLD is True
+def test_card_checkout_stays_closed_by_default():
     assert payments.payments_open() is False
+    assert payments.capabilities()["card"] is False
 
 
 def test_refund_reply_names_email_and_duplicate_charges():
@@ -76,19 +76,17 @@ def test_owner_surfaces_label_raw_keys():
     owner = (TPL / "owner_command.html").read_text(encoding="utf-8")
     dash = (TPL / "dashboard.html").read_text(encoding="utf-8")
     portal = (TPL / "portal.html").read_text(encoding="utf-8")
-    assert "moyasar:'ميسر'" in owner and "lbl(r.plan)" in owner and "lbl(t.status)" in owner
+    assert "moyasar:'بطاقة (سابق)'" in owner and "lbl(r.plan)" in owner and "lbl(t.status)" in owner
     assert "OC_LABELS" in dash and "ocLabel(p.status)" in dash
     assert "'المنتجات والهندسة': 'Product & Engineering'" in portal
     assert "sharikat: 'Enterprise'" in portal
 
 
-def test_card_errors_do_not_echo_the_gateway_body():
+def test_card_checkout_route_is_gone():
     src = (ROOT / "src" / "main.py").read_text(encoding="utf-8")
-    block = src.split("async def pay_invoice_by_card", 1)[1].split("@app.get", 1)[0]
-    assert "card payment unavailable: {str(e)" not in block
-    assert 'HTTPException(502, "card payment unavailable")' in block
-    assert "use bank transfer" not in block
-    assert "email AlNarjisai@gmail.com" in block
+    assert "async def pay_invoice_by_card" not in src
+    assert "/webhooks/moyasar" not in src
+    assert "Card payment is not available." in src
 
 
 def test_default_seller_address_is_empty():

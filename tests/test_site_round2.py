@@ -57,14 +57,13 @@ def test_no_floating_assistant_on_public_pages(client, path, lang):
     assert 'id="siteAssistant"' not in r.text, path
 
 
-def test_no_tailwind_cdn_and_moyasar_in_csp(client):
+def test_no_tailwind_cdn_and_no_retired_gateway_in_csp(client):
     r = client.get("/ar/home")
     csp = r.headers["content-security-policy"]
     assert "cdn.tailwindcss.com" not in csp
-    for d in ("https://api.moyasar.com", "https://cdn.moyasar.com", "https://*.moyasar.com"):
-        assert d in csp
+    assert "moyasar.com" not in csp
     form_action = next(p for p in csp.split("; ") if p.startswith("form-action"))
-    assert "moyasar.com" in form_action
+    assert "paypal.com" in form_action
     for path in ("/portal", "/login"):
         assert "cdn.tailwindcss.com" not in client.get(path).text
 

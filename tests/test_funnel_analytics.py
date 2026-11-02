@@ -140,7 +140,7 @@ async def test_server_side_consult_and_portal_events(api):
 async def test_checkout_started_but_no_payment_attempt_while_closed(api):
     from src.services import payments as pm
 
-    assert pm.MOYASAR_ON_HOLD is True
+    assert pm.payments_open() is False
     client, maker, _ = api
     r = await client.post(
         "/api/payments",

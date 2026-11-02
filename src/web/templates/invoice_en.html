@@ -82,7 +82,7 @@
             {% for cn in credit_notes %}
             <div class="meta">Credit note {{ cn.invoice_number }} on {{ cn.issued_at.strftime('%Y-%m-%d') }}: {{ "%.2f"|format(cn.total / 100) }} SAR{% if has_vat %} incl. VAT{% endif %}{% if cn.reason %} — {{ cn.reason }}{% endif %}</div>
             {% endfor %}
-            <div class="meta" style="margin-top:16px;">Paid via {{ 'PayPal' if payment.gateway == 'paypal' else ('Moyasar' if payment.gateway == 'moyasar' else 'Bank transfer') }}</div>
+            <div class="meta" style="margin-top:16px;">Paid via {{ 'PayPal' if payment.gateway == 'paypal' else ('Card (historical record)' if payment.gateway == 'moyasar' else 'Bank transfer') }}</div>
             {% include "partials/_invoice_consent.html" %}
             {% include "partials/_transfer.html" %}
         </div>

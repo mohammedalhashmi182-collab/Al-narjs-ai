@@ -8,7 +8,6 @@ import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from src.config import settings as st
 from src.db.session import Base
 from src.services import payments as pm
 
@@ -22,12 +21,10 @@ async def maker():
     await engine.dispose()
 
 
-async def test_invoice_page_hides_card_button_while_moyasar_on_hold(maker, monkeypatch):
+async def test_invoice_page_has_no_card_button(maker, monkeypatch):
     from src.main import app
 
     monkeypatch.setenv("VAT_RATE", "0")
-    monkeypatch.setattr(st, "moyasar_api_secret", "sk_" + "live_" + "FAKE-FOR-TESTS")
-    monkeypatch.setattr(pm, "MOYASAR_ON_HOLD", True)
     app.state.session_factory = maker
     async with maker() as s:
         p = await pm.create_payment(s, "bidaya", "a", "0555000001", None, founding=False)
