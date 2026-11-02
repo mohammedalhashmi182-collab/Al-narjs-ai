@@ -339,15 +339,21 @@ class TestTransferInstructions:
         assert out["contact"]["phone"] == "tel:+966540799266"
         assert out["reference"]
 
-    def test_bank_details_appear_only_when_the_flag_and_the_file_agree(self, monkeypatch):
-        payment = Payment(id=uuid4(), amount=49900, currency="SAR", status="invoice")
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
-            assert pm.transfer_instructions(payment)["bank"] == {}
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-        with _bank_file(iban="SA0380000000608010167519", bank_name="مصرف الراجحي"):
-            bank = pm.transfer_instructions(payment)["bank"]
-        assert bank.get("iban") == "SA0380000000608010167519"
+    def test_bank_details_come_from_the_environment(self, monkeypatch):
+        payment = Payment(id=uuid4(), amount=49900, currency="SAR", package="bidaya", status="invoice")
+        monkeypatch.delenv("PAYMENT_IBAN", raising=False)
+        monkeypatch.delenv("PAYMENT_ACCOUNT_NAME", raising=False)
+        monkeypatch.delenv("PAYMENT_BANK_NAME", raising=False)
+        assert pm.transfer_instructions(payment)["bank"] == {}
+        assert pm.transfer_instructions(payment)["qr_svg"] == ""
+        monkeypatch.setenv("PAYMENT_IBAN", "SA03 8000 0000 6080 1016 7519")
+        monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
+        monkeypatch.setenv("PAYMENT_BANK_NAME", "Al Rajhi Bank")
+        out = pm.transfer_instructions(payment)
+        assert out["bank"]["iban"] == "SA0380000000608010167519"
+        assert out["iban_spaced"].startswith("SA03")
+        assert "<svg" in out["qr_svg"]
+        assert "SA0380000000608010167519" in out["qr_svg"] or "xfer-qr-svg" in out["qr_svg"]
 
 
 # ---------------------------------------------------------------------------
@@ -534,19 +540,24 @@ class TestTemplates:
         assert "{% if not xfer.bank.iban %}" in partial and "data-open-assistant" not in partial
         assert "mailto:AlNarjisai@gmail.com" in partial
 
-    async def test_a_customer_invoice_page_publishes_bank_details_only_when_enabled(self, api, maker, monkeypatch):
+    async def test_a_guest_invoice_hides_the_qr_until_the_account_is_configured(self, api, maker, monkeypatch):
         anon, _ = api
         payment = await _insert_payment(maker)
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _bank_file(iban="SA0380000000608010167519", bank_name="Al Rajhi"):
-            hidden = await anon.get(f"/invoice/{payment.id}")
+        for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+            monkeypatch.delenv(key, raising=False)
+        hidden = await anon.get(f"/invoice/{payment.id}")
         assert hidden.status_code == 200
         assert "SA0380000000608010167519" not in hidden.text
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-        with _bank_file(iban="SA0380000000608010167519", bank_name="Al Rajhi"):
-            shown = await anon.get(f"/invoice/{payment.id}")
+        assert "<svg" not in hidden.text
+        assert "تواصل معنا للدفع" in hidden.text
+        monkeypatch.setenv("PAYMENT_IBAN", "SA0380000000608010167519")
+        monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
+        monkeypatch.setenv("PAYMENT_BANK_NAME", "Al Rajhi Bank")
+        shown = await anon.get(f"/invoice/{payment.id}")
         assert shown.status_code == 200
-        assert "SA0380000000608010167519" in shown.text
+        assert "SA03 8000 0000 6080 1016 7519" in shown.text
+        assert "<svg" in shown.text
+        assert 'dir="ltr"' in shown.text
         assert "wa.me" not in shown.text
 
     def test_the_checkout_asks_the_server_which_methods_are_real(self):

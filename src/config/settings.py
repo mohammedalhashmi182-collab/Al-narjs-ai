@@ -106,6 +106,12 @@ class Settings(BaseSettings):
     # PayPal does not settle SAR: the VAT-inclusive SAR total is charged in USD
     # at the fixed riyal peg (3.75 SAR per USD).
     paypal_sar_per_usd: float = Field(default=3.75, alias="PAYPAL_SAR_PER_USD")
+    # Guest bank-transfer QR. All three must be set or the QR stays hidden.
+    # An IBAN is printed on the invoice; it is not a secret, but it is still
+    # configuration, so it is not hard-coded.
+    payment_iban: str | None = Field(default=None, alias="PAYMENT_IBAN")
+    payment_account_name: str | None = Field(default=None, alias="PAYMENT_ACCOUNT_NAME")
+    payment_bank_name: str | None = Field(default=None, alias="PAYMENT_BANK_NAME")
 
     # Launch promo (single code, percentage off first charge) — disabled when PROMO_CODE empty
     promo_code: str | None = Field(default=None, alias="PROMO_CODE")

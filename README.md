@@ -133,6 +133,22 @@ ai-agent schedule add "Daily Report" --cron "0 9 * * *" --target workflow:daily_
 ai-agent queue stats
 ```
 
+### Guest bank transfer
+
+After Moyasar was removed, a guest pays an unpaid invoice by bank transfer when these three variables are all set:
+
+| Variable | Meaning |
+| --- | --- |
+| `PAYMENT_IBAN` | Saudi IBAN (`SA` plus 22 digits). Spaces are ignored. |
+| `PAYMENT_ACCOUNT_NAME` | Account holder name printed next to the IBAN. |
+| `PAYMENT_BANK_NAME` | Bank name, for example `Al Rajhi Bank`. |
+
+The invoice then shows a QR code (IBAN, holder, bank, amount, order reference, plan), the same IBAN as copyable text, and an optional receipt upload. The upload is stored on the payment for the owner to confirm; it does not mark the order paid.
+
+If any of the three is missing or the IBAN is not a Saudi IBAN, the QR block is omitted and the invoice says to contact us to pay (on-site assistant or AlNarjisai@gmail.com). No account is invented.
+
+`CUSTOMER_BANK_TRANSFER_ENABLED=1` still decides whether a guest can start that invoice from checkout. PayPal stays behind `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live`.
+
 ### Web UI
 
 Production: https://karmaai.online · Local: `http://localhost:8000`

@@ -27,6 +27,12 @@ services:
         sync: false
       - key: SMTP_FROM
         sync: false
+      - key: PAYMENT_IBAN
+        sync: false
+      - key: PAYMENT_ACCOUNT_NAME
+        sync: false
+      - key: PAYMENT_BANK_NAME
+        sync: false
       - key: TELEGRAM_TOKEN
         sync: false
       - key: TELEGRAM_OWNER_CHAT_ID

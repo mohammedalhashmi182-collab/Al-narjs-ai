@@ -26,7 +26,10 @@
     .xfer-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
     .xfer-note { margin:12px 0 0; font-size:12px; line-height:1.9; color:#57534E; }
     .xfer-ok { margin:12px 0 0; font-size:13px; font-weight:700; color:#c2410c; }
-    @media print { .xfer-actions, .xfer-main { display:none; } }
+    .xfer-qr { display:flex; justify-content:center; margin:8px 0 4px; }
+    .xfer-qr-svg { width:196px; height:196px; }
+    .xfer-file { width:100%; margin-top:10px; font-family:'Cairo',sans-serif; font-size:13px; }
+    @media print { .xfer-actions, .xfer-main, .xfer-file { display:none; } }
 </style>
 <div class="xfer" id="xfer" data-payment="{{ xfer.payment_id }}">
     <div class="xfer-h">{% if xf_ar %}كيف تُكمل الدفع{% else %}How to complete the payment{% endif %}</div>
@@ -36,13 +39,20 @@
             <span class="xfer-v" id="xferRef">{{ xfer.reference }}</span>
         </div>
         <div class="xfer-row">
+            <span class="xfer-k">{% if xf_ar %}الباقة{% else %}Plan{% endif %}</span>
+            <span class="xfer-v" id="xferPlan">{{ xfer.plan if xf_ar else xfer.plan_en }}</span>
+        </div>
+        <div class="xfer-row">
             <span class="xfer-k">{% if xf_ar %}المبلغ المستحق{% else %}Amount due{% endif %}</span>
-            <span class="xfer-v xfer-total">{{ "%.2f"|format(xfer.total_sar) }} {{ xfer.currency }}</span>
+            <span class="xfer-v xfer-total" id="xferAmount" dir="ltr" data-copy="{{ xfer.amount_text }}">{{ xfer.amount_text }} {{ xfer.currency }}</span>
         </div>
         {% if xfer.bank.iban %}
+        {% if xfer.qr_svg %}
+        <div class="xfer-qr" dir="ltr" role="img" aria-label="{% if xf_ar %}رمز تحويل بنكي{% else %}Bank transfer QR code{% endif %}">{{ xfer.qr_svg|safe }}</div>
+        {% endif %}
         <div class="xfer-row">
             <span class="xfer-k">{% if xf_ar %}الآيبان{% else %}IBAN{% endif %}</span>
-            <span class="xfer-v" id="xferIban">{{ xfer.bank.iban }}</span>
+            <span class="xfer-v" id="xferIban" dir="ltr" data-copy="{{ xfer.bank.iban }}">{{ xfer.iban_spaced }}</span>
         </div>
         {% if xfer.bank.bank_name %}
         <div class="xfer-row">
@@ -59,15 +69,15 @@
         {% endif %}
         <p class="xfer-note">
             {% if xfer.bank.iban %}
-                {% if xf_ar %}حوّل المبلغ إلى الآيبان أعلاه، ثم اضغط «أرسلت التحويل» ليتأكد الفريق فوراً.
-                {% else %}Transfer the amount to the IBAN above, then press “I sent the transfer” so the team can confirm it immediately.{% endif %}
+                {% if xf_ar %}امسح الرمز أو انسخ الآيبان والمبلغ ورقم الطلب، ثم حوّل من تطبيق البنك. اكتب رقم الطلب في بيان التحويل.
+                {% else %}Scan the code or copy the IBAN, amount and reference, then transfer from your bank app. Put the reference in the transfer note.{% endif %}
             {% else %}
-                {# No published IBAN: the buyer cannot transfer yet, so asking them to confirm
-                   a transfer would be asking them to claim something that never happened.
-                   Email becomes the primary action and the wording says what is true. #}
-                <strong>{% if xf_ar %}لم تُنشر بيانات الحساب بعد{% else %}Account details are not published yet{% endif %}</strong> —
-                {% if xf_ar %}أرسل رقم الفاتورة هذا إلى AlNarjisai@gmail.com وسنرسل لك بيانات التحويل بالبريد.
-                {% else %}email this invoice reference to AlNarjisai@gmail.com and we will email you the transfer details.{% endif %}
+                {# No account in the environment: hide the QR and do not ask the guest
+                   to confirm a transfer they cannot make. #}
+                <strong>{% if xf_ar %}تواصل معنا للدفع{% else %}Contact us to pay{% endif %}</strong> —
+                <strong>{% if xf_ar %}لم تُنشر بيانات الحساب بعد{% else %}Account details are not published yet{% endif %}</strong>.
+                {% if xf_ar %}أرسل رقم الطلب عبر المساعد في الموقع أو إلى AlNarjisai@gmail.com.
+                {% else %}Send this reference through the on-site assistant or to AlNarjisai@gmail.com.{% endif %}
             {% endif %}
         </p>
         <div class="xfer-actions">
@@ -81,9 +91,14 @@
                     {% if xf_ar %}دفعت بطريقة أخرى{% else %}I already paid another way{% endif %}
                 {% endif %}
             </button>
-            <button type="button" class="xfer-btn xfer-ghost" data-copy-target="xferRef">{% if xf_ar %}نسخ رقم الفاتورة{% else %}Copy reference{% endif %}</button>
+            <button type="button" class="xfer-btn xfer-ghost" data-copy-target="xferRef">{% if xf_ar %}نسخ رقم الطلب{% else %}Copy reference{% endif %}</button>
             {% if xfer.bank.iban %}
+            <button type="button" class="xfer-btn xfer-ghost" data-copy-target="xferAmount">{% if xf_ar %}نسخ المبلغ{% else %}Copy amount{% endif %}</button>
             <button type="button" class="xfer-btn xfer-ghost" data-copy-target="xferIban">{% if xf_ar %}نسخ الآيبان{% else %}Copy IBAN{% endif %}</button>
+            <label class="xfer-file">{% if xf_ar %}إرفاق إيصال التحويل (اختياري){% else %}Attach a transfer receipt (optional){% endif %}
+                <input type="file" id="xferReceiptFile" accept="image/jpeg,image/png,image/webp,application/pdf">
+            </label>
+            <button type="button" class="xfer-btn xfer-ghost" id="xferUpload">{% if xf_ar %}رفع الإيصال{% else %}Upload receipt{% endif %}</button>
             {% endif %}
         </div>
         <p class="xfer-ok" id="xferOk" hidden></p>
@@ -98,7 +113,9 @@
             sent: ar ? '✓ تم إشعارنا. سنؤكد التحويل وتُفعَّل باقتك خلال دقائق.' : '✓ Notified. We verify the transfer and activate your plan within minutes.',
             again: ar ? '✓ وصلنا إشعارك سابقاً وسيتم التأكيد قريباً.' : '✓ We already have your report and will confirm shortly.',
             failed: ar ? '✕ تعذر الإشعار. أرسل لنا رقم الفاتورة على AlNarjisai@gmail.com.' : '✕ Could not notify us. Email the invoice reference to AlNarjisai@gmail.com.',
-            copied: ar ? 'تم النسخ' : 'Copied'
+            copied: ar ? 'تم النسخ' : 'Copied',
+            uploaded: ar ? '✓ وصل الإيصال. الدفع يبقى بانتظار تأكيد الفريق.' : '✓ Receipt received. Payment stays pending until the team confirms it.',
+            uploadFail: ar ? '✕ تعذر رفع الإيصال. أرسل صورة أو PDF لا يتجاوز ٢ ميغابايت.' : '✕ Could not upload the receipt. Send a JPG, PNG, WEBP or PDF under 2 MB.'
         };
         var ok = document.getElementById('xferOk');
 
@@ -106,7 +123,7 @@
             btn.addEventListener('click', function () {
                 var el = document.getElementById(btn.dataset.copyTarget);
                 if (!el) return;
-                var text = el.textContent.trim();
+                var text = (el.getAttribute('data-copy') || el.textContent || '').trim();
                 var done = function () {
                     var old = btn.textContent;
                     btn.textContent = t.copied;
@@ -149,6 +166,37 @@
                     ok.hidden = false;
                     ok.style.color = '#b91c1c';
                     ok.textContent = t.failed;
+                });
+        });
+
+        var upload = document.getElementById('xferUpload');
+        var file = document.getElementById('xferReceiptFile');
+        if (upload && file) upload.addEventListener('click', function () {
+            if (window.narjisInvoiceConsent && !window.narjisInvoiceConsent()) return;
+            if (!file.files || !file.files[0]) {
+                ok.hidden = false;
+                ok.style.color = '#b91c1c';
+                ok.textContent = t.uploadFail;
+                return;
+            }
+            upload.disabled = true;
+            var body = new FormData();
+            body.append('file', file.files[0]);
+            body.append('refund_consent', 'true');
+            fetch('/api/payments/' + root.dataset.payment + '/transfer-receipt', { method: 'POST', body: body })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('upload');
+                    ok.hidden = false;
+                    ok.style.color = '#c2410c';
+                    ok.textContent = t.uploaded;
+                    upload.textContent = ar ? 'تم الرفع' : 'Uploaded';
+                })
+                .catch(function () {
+                    upload.disabled = false;
+                    ok.hidden = false;
+                    ok.style.color = '#b91c1c';
+                    ok.textContent = t.uploadFail;
                 });
         });
     })();

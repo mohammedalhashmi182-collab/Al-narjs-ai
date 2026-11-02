@@ -354,8 +354,8 @@ def readiness(card_state: Optional[str] = None) -> dict:
         )
     if customer_bank_transfer_enabled() and not caps["bank"].get("iban"):
         blocking.append(
-            "content/transfer.json has no bank details, so a bank-transfer "
-            "buyer cannot pay unaided and must be messaged."
+            "PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME and PAYMENT_BANK_NAME must all "
+            "be set (Saudi IBAN) or a bank-transfer guest sees only the contact fallback."
         )
     if not caps["paypal"] and not caps["invoice"]:
         blocking.append(
@@ -378,7 +378,12 @@ def readiness(card_state: Optional[str] = None) -> dict:
                 "PAYPAL_MODE=live",
                 "PAYPAL_WEBHOOK_ID",
             ],
-            "invoice": ["CUSTOMER_BANK_TRANSFER_ENABLED"],
+            "invoice": [
+                "CUSTOMER_BANK_TRANSFER_ENABLED",
+                "PAYMENT_IBAN",
+                "PAYMENT_ACCOUNT_NAME",
+                "PAYMENT_BANK_NAME",
+            ],
         },
     }
 
@@ -389,23 +394,42 @@ def reference(payment: Payment) -> str:
 
 
 def transfer_instructions(payment: Payment) -> dict:
-    """Everything the buyer needs to settle a manual invoice unaided."""
+    """Everything a guest needs to settle a manual invoice unaided.
+
+    Bank lines and the QR come only from PAYMENT_IBAN / PAYMENT_ACCOUNT_NAME /
+    PAYMENT_BANK_NAME. When those are unset the bank dict and QR are empty and
+    the page shows the contact fallback.
+    """
+    from src.services import catalog as _catalog
     from src.services import transfer
 
     ref = reference(payment)
     total = payment_total(payment)
+    total_sar = round(total / 100, 2)
     customer = payment.customer_name or payment.customer_phone or payment.customer_email
+    pkg = _catalog.PACKAGES.get(payment.package or "") or _catalog.LEGACY_TIERS.get(payment.package or "") or {}
+    plan_ar = pkg.get("name") or (payment.package or "")
+    plan_en = pkg.get("name_en") or plan_ar
+    bank = transfer.bank_details()
+    amount_text = f"{total_sar:.2f}"
     return {
         "payment_id": str(payment.id),
         "reference": ref,
+        "plan": plan_ar,
+        "plan_en": plan_en,
         "status": payment.status,
         "base_halalas": payment.amount,
         "vat_halalas": payment_vat(payment),
         "total_halalas": total,
-        "total_sar": round(total / 100, 2),
+        "total_sar": total_sar,
+        "amount_text": amount_text,
         "currency": payment.currency or "SAR",
-        "bank": transfer.bank_details() if customer_bank_transfer_enabled() else {},
-        "contact": transfer.contact_buttons(ref, round(total / 100, 2), customer),
+        "bank": bank,
+        "iban_spaced": transfer.format_iban(bank["iban"]) if bank.get("iban") else "",
+        "qr_svg": transfer.transfer_qr_svg(
+            bank=bank, amount_sar=amount_text, reference=ref, plan=plan_en or plan_ar
+        ) if bank else "",
+        "contact": transfer.contact_buttons(ref, total_sar, customer),
         "invoice_url": f"/invoice/{payment.id}",
     }
 

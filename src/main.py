@@ -4002,6 +4002,117 @@ async def report_transfer_sent(payment_id: str, request: Request):
     }
 
 
+@app.post(
+    "/api/payments/{payment_id}/transfer-receipt",
+    dependencies=[Depends(rate_limit_transfer_report)],
+)
+async def upload_transfer_receipt(payment_id: str, request: Request):
+    """Guest attaches a transfer receipt. Recorded for the owner; never marks paid."""
+    from datetime import datetime as _dt
+    from datetime import timezone as _tz
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _select
+
+    from src.models import Payment as _Payment
+    from src.services import payments as _pm
+    from src.services.transfer import sniff_receipt
+
+    try:
+        payment_uuid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+
+    form = await request.form()
+    upload = form.get("file")
+    consent = form.get("refund_consent")
+    if not hasattr(upload, "read"):
+        raise HTTPException(400, "receipt file is required")
+    raw = await upload.read()
+    mime = sniff_receipt(raw)
+    if mime is None:
+        raise HTTPException(400, "receipt must be a JPG, PNG, WEBP or PDF under 2 MB")
+
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+        ).scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+        if payment.status == "paid":
+            raise HTTPException(409, "This invoice is already paid")
+        if payment.gateway == "paypal" and payment.gateway_payment_id:
+            raise HTTPException(409, "This invoice is settled through PayPal")
+        if payment.refund_consent_at is None:
+            _require_refund_consent(consent in (True, "true", "1", "on"))
+            _record_refund_consent(payment)
+        name = (getattr(upload, "filename", None) or "receipt").rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+        safe = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in name)[:80] or "receipt"
+        payment.transfer_receipt = raw
+        payment.transfer_receipt_filename = safe
+        payment.transfer_receipt_mime = mime
+        payment.transfer_receipt_at = _dt.now(_tz.utc)
+        if payment.gateway_source != "transfer_reported":
+            payment.gateway_source = "transfer_receipt"
+        await session.commit()
+        instructions = _pm.transfer_instructions(payment)
+        status = payment.status
+
+    try:
+        from src.services import telegram_sender
+
+        await telegram_sender.send_owner_alert(
+            "📎 إيصال تحويل مرفق\n"
+            f"فاتورة: {instructions['reference']}\n"
+            f"المبلغ: {instructions['total_sar']} {instructions['currency']}\n"
+            "الإيصال محفوظ للمراجعة. فعّل الطلب بعد التأكد من الإيداع."
+        )
+    except Exception:  # noqa: BLE001 - storing the receipt must not depend on the alert
+        pass
+
+    return {
+        "payment_id": payment_id,
+        "recorded": True,
+        "filename": safe,
+        "content_type": mime,
+        "status": status,
+        "awaiting_verification": status != "paid",
+    }
+
+
+@app.get(
+    "/api/owner/payments/{payment_id}/transfer-receipt",
+    dependencies=[Depends(require_owner_api)],
+)
+async def download_transfer_receipt(payment_id: str):
+    """Owner downloads the receipt a guest attached. Guests cannot read it back."""
+    from uuid import UUID as _UUID
+
+    from fastapi.responses import Response
+    from sqlalchemy import select as _select
+
+    from src.models import Payment as _Payment
+
+    try:
+        payment_uuid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+        ).scalar_one_or_none()
+        if not payment or not payment.transfer_receipt:
+            raise HTTPException(404, "Receipt not found")
+        body = bytes(payment.transfer_receipt)
+        mime = payment.transfer_receipt_mime or "application/octet-stream"
+        name = payment.transfer_receipt_filename or "receipt"
+    return Response(
+        content=body,
+        media_type=mime,
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )
+
+
 @app.get("/invoice/{payment_id}")
 async def invoice_page(request: Request, payment_id: str):
     from uuid import UUID
@@ -4067,7 +4178,11 @@ async def invoice_page(request: Request, payment_id: str):
             "vat": int(tax_invoice.vat_total) if tax_invoice else pm.payment_vat(payment),
             "total": int(tax_invoice.total) if tax_invoice else pm.payment_total(payment),
             "has_vat": (int(tax_invoice.vat_total) if tax_invoice else pm.payment_vat(payment)) > 0,
-            "xfer": pm.transfer_instructions(payment) if payment.status != "paid" and pm.customer_bank_transfer_enabled() else None,
+            # Guests always see either the bank QR (when PAYMENT_* is set) or
+            # the contact-us fallback. PayPal orders keep their own button.
+            "xfer": pm.transfer_instructions(payment)
+            if payment.status not in ("paid", pm.REVIEW_STATUS) and payment.gateway != "paypal"
+            else None,
             "consent_needed": payment.status != "paid" and payment.refund_consent_at is None,
             "refund_consent_ar": policies.REFUND_CONSENT_AR,
             "refund_consent_en": policies.REFUND_CONSENT_EN,
