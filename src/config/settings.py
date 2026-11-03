@@ -142,6 +142,17 @@ class Settings(BaseSettings):
     seller_name_en: str = Field(default="Al-Narjs", alias="SELLER_NAME_EN")
     seller_vat_number: str | None = Field(default=None, alias="SELLER_VAT_NUMBER")
     seller_cr_number: str = Field(default="FL-272182297", alias="SELLER_CR_NUMBER")
+    # Public legal identity. A freelance document, not a commercial registration.
+    # Empty values render as the {{FREELANCE_*}} placeholder (see legal_identity).
+    freelance_doc_number: str = Field(default="FL-272182297", alias="FREELANCE_DOC_NUMBER")
+    freelance_holder_name: str = Field(
+        default="أحمد عبدالله غرم الله الزهراني",
+        alias="FREELANCE_HOLDER_NAME",
+    )
+    freelance_holder_name_en: str = Field(
+        default="Ahmed Abdullah Ghurmullah Alzahrani",
+        alias="FREELANCE_HOLDER_NAME_EN",
+    )
     seller_address_ar: str = Field(
         default="",
         alias="SELLER_ADDRESS_AR",

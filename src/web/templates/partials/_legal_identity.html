@@ -1,0 +1,3 @@
+{#- Freelance-document line. Pages set either `ar` or `_lang`. -#}
+{% set _legal_ar = ar if ar is defined else (_lang == 'ar') %}
+{% if _legal_ar %}منصة النرجس · وثيقة عمل حر رقم: {{ freelance_doc_number() }} · {{ freelance_holder_name() }}{% if not vat_enabled() %} · غير مسجل في ضريبة القيمة المضافة{% endif %} · الرياض{% else %}Operated by Al-Narjs · Freelance document No. {{ freelance_doc_number() }} · {{ freelance_holder_name_en() }}{% if not vat_enabled() %} · Not VAT-registered; prices are final{% endif %} · Riyadh{% endif %}

@@ -73,6 +73,12 @@ def seller() -> dict:
     number has not been configured (the invoice shows a warning)."""
     from src.config.settings import get_settings
 
+    from src.services.legal_identity import (
+        freelance_doc_number,
+        freelance_holder_name,
+        freelance_holder_name_en,
+    )
+
     s = get_settings()
     vat = (s.seller_vat_number or "").strip()
     ok = _valid_vat(vat)
@@ -81,7 +87,9 @@ def seller() -> dict:
         "name_en": s.seller_name_en,
         "vat_number": vat if ok else VAT_PLACEHOLDER,
         "vat_placeholder": not ok,
-        "cr_number": s.seller_cr_number,
+        "cr_number": freelance_doc_number(),
+        "holder_name": freelance_holder_name(),
+        "holder_name_en": freelance_holder_name_en(),
         "address_ar": s.seller_address_ar,
     }
 

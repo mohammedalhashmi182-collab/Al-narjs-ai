@@ -7,11 +7,11 @@
 <h2 class="n-title text-lg">خدمة العملاء</h2>
 <p>يمكنك التحدث مع المستشار الصوتي من <a href="/ar/voice">صفحة المكالمة</a>، أو مراسلتنا على البريد الرسمي للشركة: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>. العمل يُسلَّم بالبريد.</p>
 <h2 class="n-title text-lg">الجهة المشغّلة</h2>
-<p>النرجس للذكاء الاصطناعي · وثيقة عمل حر رقم FL-272182297 · الرياض.</p>
+<p>النرجس للذكاء الاصطناعي · وثيقة عمل حر رقم: {{ freelance_doc_number() }} · {{ freelance_holder_name() }} · الرياض.{% if not vat_enabled() %} غير مسجل في ضريبة القيمة المضافة.{% endif %}</p>
 {% else %}
 <h2 class="n-title text-lg">Customer service</h2>
 <p>Talk to our voice agent on the <a href="/en/voice">call page</a>, or email us at our official company address: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>. Work is delivered by email.</p>
 <h2 class="n-title text-lg">Operator</h2>
-<p>Al-Narjis AI (النرجس) · Freelance document No. FL-272182297 · Riyadh.</p>
+<p>Al-Narjis AI (النرجس) · Freelance document No. {{ freelance_doc_number() }} · {{ freelance_holder_name_en() }} · Riyadh.{% if not vat_enabled() %} Not VAT-registered; prices are final.{% endif %}</p>
 {% endif %}
 {% endblock %}

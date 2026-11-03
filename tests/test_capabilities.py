@@ -370,3 +370,39 @@ def test_cron_is_closed_without_a_secret_and_open_with_the_header(client: TestCl
     assert "cron-test-secret" not in allowed.text
     bearer = client.get("/webhooks/cron/daily", headers={"Authorization": "Bearer cron-test-secret"})
     assert bearer.status_code == 200
+
+
+def test_growth_and_enterprise_include_the_four_capabilities_starter_does_not():
+    from src.services import ceo_advisor
+
+    slugs = catalog.CAPABILITY_AGENTS
+    assert slugs == (
+        "financial_forecast",
+        "arabic_ocr",
+        "style_memory",
+        "evaluation_loop",
+    )
+    for key in ("numuw", "sharikat"):
+        included = set(catalog.included_specialists(key))
+        staffed = set(catalog.staff_team(key))
+        scope = "\n".join(catalog.PACKAGES[key]["scope"])
+        scope_en = "\n".join(catalog.PACKAGES[key]["scope_en"])
+        for slug in slugs:
+            assert slug in included
+            assert slug in staffed
+        assert "توقع مالي" in scope and "المستندات العربية" in scope
+        assert "ذاكرة أسلوب العميل" in scope and "تقييم جودة المخرجات" in scope
+        assert "Financial forecast" in scope_en and "Arabic document extraction" in scope_en
+        assert "Client style memory" in scope_en and "Output quality evaluation loop" in scope_en
+        assert catalog.plan_agent_count(key) in (15, 34)
+    starter_scope = "\n".join(catalog.PACKAGES["bidaya"]["scope"])
+    starter_en = "\n".join(catalog.PACKAGES["bidaya"]["scope_en"])
+    assert set(slugs).isdisjoint(catalog.included_specialists("bidaya"))
+    assert set(slugs).isdisjoint(catalog.staff_team("bidaya"))
+    assert "149" in starter_scope and "وكيل إضافي" in starter_scope
+    assert "149 SAR" in starter_en
+    assert [catalog.PACKAGES[k]["amount"] for k in catalog.PACKAGE_ORDER] == [79000, 149000, 299000]
+    assert catalog.ADDON_AGENT["amount"] == 14900
+    assert catalog.smallest_plan_for_agent("arabic_ocr") == "numuw"
+    assert ceo_advisor.recommend_offer(1, agents=["financial_forecast"]) == ("bidaya", 1)
+    assert ceo_advisor.recommend_offer(4, agents=list(slugs)) == ("numuw", 0)

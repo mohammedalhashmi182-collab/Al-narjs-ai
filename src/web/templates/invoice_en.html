@@ -53,6 +53,8 @@
                 <b>{{ seller.name_en }}</b> ({{ seller.name_ar }})<br>
                 {% if has_vat %}VAT No.: {{ seller.vat_number }}{% if seller.vat_placeholder %} <span style="color:#B91C1C">(not configured yet)</span>{% endif %}<br>{% endif %}
                 Freelance document No. {{ seller.cr_number }}<br>
+                {{ seller.holder_name_en }}<br>
+                {% if not has_vat %}Not VAT-registered. The price is final and no VAT is added.<br>{% endif %}
                 {{ seller.address_ar }}
             </div>
             <div class="meta">

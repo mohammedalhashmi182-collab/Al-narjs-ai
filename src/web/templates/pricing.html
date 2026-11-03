@@ -69,13 +69,13 @@
 <section class="sec" style="padding-bottom:0"><div class="wrap"><h1 style="text-align:center">{% if ar %}الباقات والأسعار{% else %}Plans and pricing{% endif %}</h1></div></section>
 {% include "partials/_pricing_section.html" %}
 <section class="sec" style="padding-top:0"><div class="wrap">
-    <p class="addon-note">{% if ar %}{% if vat_enabled() %}الأسعار قبل ضريبة القيمة المضافة {{ vat_percent() }}٪. {% else %}{% endif %}لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com — راجع <a href="/refund-policy">سياسة الاسترداد</a> و<a href="/terms">الشروط</a>.{% else %}{% if vat_enabled() %}Prices exclude {{ vat_percent() }}% VAT. {% else %}{% endif %}We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com — see the <a href="/refund-policy">refund policy</a> and <a href="/terms">terms</a>.{% endif %}</p>
+    <p class="addon-note">{% if ar %}{% if vat_enabled() %}الأسعار قبل ضريبة القيمة المضافة {{ vat_percent() }}٪. {% else %}الأسعار نهائية، والجهة غير مسجلة في ضريبة القيمة المضافة. {% endif %}لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com — راجع <a href="/refund-policy">سياسة الاسترداد</a> و<a href="/terms">الشروط</a>.{% else %}{% if vat_enabled() %}Prices exclude {{ vat_percent() }}% VAT. {% else %}Prices are final; the operator is not VAT-registered. {% endif %}We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com — see the <a href="/refund-policy">refund policy</a> and <a href="/terms">terms</a>.{% endif %}</p>
 </div></section>
 </main>
 <footer class="v2-footer">
     <div class="wrap">
         <div class="legal">
-            <span>{% if ar %}منصة النرجس · وثيقة عمل حر رقم FL-272182297 · الرياض{% else %}Operated by Al-Narjs · Freelance document No. FL-272182297 · Riyadh{% endif %} · <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a></span>
+            <span>{% include "partials/_legal_identity.html" %} · <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a></span>
             <span><a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a> · <a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a> · <a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a> · <a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a> · <a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a></span>
         </div>
     </div>

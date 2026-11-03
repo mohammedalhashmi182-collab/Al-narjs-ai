@@ -192,8 +192,12 @@ async def test_capabilities_has_no_contact(maker):
 
 
 def test_operator_identity_is_kept():
-    text = "".join(p.read_text(encoding="utf-8") for p in (ROOT / "src/web/templates").rglob("*.html"))
-    assert "FL-272182297" in text
+    from src.config.settings import Settings
+
+    assert Settings.model_fields["freelance_doc_number"].default == "FL-272182297"
+    text = (ROOT / "src/web/templates/partials/_legal_identity.html").read_text(encoding="utf-8")
+    assert "freelance_doc_number()" in text
+    assert "وثيقة عمل حر رقم:" in text
 
 
 # --- 3. agent results are emailed ---------------------------------------------

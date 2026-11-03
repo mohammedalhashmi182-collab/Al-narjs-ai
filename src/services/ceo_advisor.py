@@ -217,9 +217,12 @@ def recommend_offer(agent_count: int, full_company: bool = False,
         best: tuple[str, int] | None = None
         best_price = None
         for key in catalog.PACKAGE_ORDER:
-            team = set(catalog.PACKAGE_TEAMS.get(key, []))
-            missing = sum(1 for a in wanted if a not in team)
-            addons = max(missing, len(wanted) - catalog.plan_agent_count(key), 0)
+            bundled = set(catalog.bundled_capabilities(key))
+            team = set(catalog.PACKAGE_TEAMS.get(key, [])) | bundled
+            # Bundled capabilities are included and do not consume the allowance.
+            billable = [a for a in wanted if a not in bundled]
+            missing = sum(1 for a in billable if a not in team)
+            addons = max(missing, len(billable) - catalog.plan_agent_count(key), 0)
             if addons and (key == top or addons <= catalog.MAX_SUGGESTED_ADDONS):
                 pass
             elif addons:

@@ -71,7 +71,8 @@ async def test_zero_rate_invoice_page_is_plain_invoice(vat0, maker, monkeypatch)
         assert "فاتورة ضريبية" not in r.text and "Tax Invoice" not in r.text
         assert "15%" not in r.text and "ZATCA" not in r.text
         assert "الرقم الضريبي" not in r.text and "VAT No." not in r.text
-    assert "ضريبة القيمة المضافة" not in ar.text
+    assert "غير مسجل في ضريبة القيمة المضافة" in ar.text
+    assert "Not VAT-registered" in en.text
 
 
 async def test_zero_rate_portal_js_uses_setting(vat0):
