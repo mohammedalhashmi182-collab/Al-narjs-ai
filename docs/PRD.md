@@ -29,10 +29,12 @@ card    : false
 
 - PayPal is offered only when `CUSTOMER_PAYPAL_ENABLED` is on and `PAYPAL_MODE=live`.
   A sandbox PayPal stays hidden.
-- Bank transfer / manual invoice is offered only when `CUSTOMER_BANK_TRANSFER_ENABLED`
-  is on. Owner-raised invoices stay a separate authenticated path.
-- With both flags off, public pages show the payments-closed banner and the
-  checkout does not create a customer payment.
+- Bank transfer / manual invoice is offered when `content/transfer.json` has a
+  valid Saudi IBAN, account name, and bank name. Owner-raised invoices stay a
+  separate authenticated path.
+- With no published account and PayPal off, public pages show the
+  payments-closed banner and the checkout does not create a customer payment.
+  Card checkout stays closed.
 
 **1.2 Production data is destroyed on every deploy.**
 
@@ -187,10 +189,10 @@ Telegram primary, WhatsApp second, both untouched by this work.
 | ID | Decision | Options and cost |
 | --- | --- | --- |
 | D1 | Persistent storage | **A.** Disk 1 GB — $0.25/mo, keeps SQLite, zero migration risk, requires a paid instance. **B.** Render Postgres basic — $6/mo, matches `render.yaml`, adds dialect risk. Free Postgres expires in 30 days and is not a fix |
-| D2 | Card gateway | **Decided:** Moyasar and card checkout are removed. PayPal and bank transfer remain, each behind its flag |
+| D2 | Card gateway | **Decided:** Moyasar and card checkout stay removed. PayPal stays behind its flag. Bank transfer follows the published account in `content/transfer.json` |
 | D3 | VAT treatment | Invoice bills base + VAT at `VAT_RATE`. PayPal and transfer paths record the pre-VAT base and the total frozen at creation |
 | D4 | Public action hue | Confirm mint/green per §8, or amend the design system to gold |
-| D5 | Manual settlement details | Publish the real account into `content/transfer.json` |
+| D5 | Manual settlement details | **Published:** Al Rajhi account in `content/transfer.json`. The invoice QR encodes the IBAN, not a ZATCA tax code |
 | D6 | Botpress activation | Set `BOTPRESS_WEBHOOK_SECRET` in Render |
 | D7 | Legacy CRM records | `c4_be` and the owner's own Telegram chat exist as leads; decide whether to purge |
 

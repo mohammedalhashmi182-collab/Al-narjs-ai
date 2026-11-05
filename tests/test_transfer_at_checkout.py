@@ -1,7 +1,7 @@
-"""Customer checkout offers PayPal and bank transfer only when their flags are on.
+"""Customer checkout offers bank transfer when a Saudi account is published.
 
-The checkout has no IBAN block. Bank details stay on the invoice page, and only
-when CUSTOMER_BANK_TRANSFER_ENABLED is set.
+The checkout has no IBAN block. Bank details stay on the invoice page.
+Card checkout stays closed.
 """
 
 from __future__ import annotations
@@ -57,15 +57,14 @@ def test_a_down_card_checkout_asks_the_buyer_to_contact_us(portal: str) -> None:
 # --------------------------------------------------------------------------
 
 
-def test_capabilities_offer_bank_transfer_only_when_enabled(client: TestClient, monkeypatch) -> None:
-    monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-    off = client.get(CAPABILITIES).json()
-    assert off["methods"]["invoice"] is False
-    assert off["bank"] == {}
-    assert off["card"] is False
-    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-    forced = client.get(CAPABILITIES).json()
-    assert forced["methods"]["invoice"] is True
+def test_capabilities_offer_bank_transfer_when_the_account_is_published(client: TestClient, monkeypatch) -> None:
+    for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+        monkeypatch.delenv(key, raising=False)
+    live = client.get(CAPABILITIES).json()
+    assert live["methods"]["invoice"] is True
+    assert live["card"] is False
+    assert live["bank"]["iban"] == "SA5880000126608016363961"
+    assert live["bank"]["swift"] == "RJHISARI"
 
 
 def test_capabilities_never_leaks_a_secret(client: TestClient) -> None:

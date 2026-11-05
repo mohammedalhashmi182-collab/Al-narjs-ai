@@ -1,18 +1,18 @@
 """Guest bank-transfer details for the manual payment path.
 
-The account the guest pays into is read from the environment:
+The account a customer pays into is ``content/transfer.json``. These environment
+variables override that file only when at least one of them is set:
 
 - ``PAYMENT_IBAN``
 - ``PAYMENT_ACCOUNT_NAME``
 - ``PAYMENT_BANK_NAME``
 - ``PAYMENT_BANK_NAME_EN`` (optional English bank name)
 
-The first three are required. If any of those is missing or the IBAN is not a Saudi IBAN,
-``bank_details()`` is empty and the invoice hides the QR, showing a
-contact-us fallback instead. Nothing here invents an account.
-
-``content/transfer.json`` is no longer the public source. It is left on disk
-so older notes still have a file to point at; the invoice does not read it.
+A partial or invalid override hides the account. It does not fall through to
+the file, so a half-set environment cannot publish a different IBAN. If none
+of the three required values is set, the file is the account. An empty or
+invalid file makes ``bank_details()`` empty, the invoice hides the QR, and the
+page shows the contact fallback. Nothing here invents an account.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def _configured(env_name: str, attr: str) -> str:
 
 
 def _file_values() -> dict[str, str]:
-    """Legacy file. Not used for the guest invoice."""
+    """Published account. ``bank_name_en`` is optional."""
     try:
         raw = CONTENT_FILE.read_text(encoding="utf-8")
         data = json.loads(raw)
@@ -49,29 +49,49 @@ def _file_values() -> dict[str, str]:
         return {}
     if not isinstance(data, dict):
         return {}
-    return {name: str(data.get(name, "")).strip() for name in FIELDS}
+    keys = (*FIELDS, "bank_name_en")
+    return {name: str(data.get(name, "")).strip() for name in keys}
 
 
 def normalize_iban(raw: str) -> str:
     return re.sub(r"\s+", "", raw or "").upper()
 
 
-def bank_details() -> dict[str, str]:
-    """The guest account, or {} when the three required env vars are not all set.
-
-    ``PAYMENT_BANK_NAME_EN`` is optional. When it is empty the English page
-    repeats ``PAYMENT_BANK_NAME``.
-    """
-    iban = normalize_iban(_configured("PAYMENT_IBAN", "payment_iban"))
-    name = _configured("PAYMENT_ACCOUNT_NAME", "payment_account_name")
-    bank = _configured("PAYMENT_BANK_NAME", "payment_bank_name")
-    bank_en = _configured("PAYMENT_BANK_NAME_EN", "payment_bank_name_en")
+def _account(data: dict) -> dict[str, str]:
+    """A Saudi account, or {} when the IBAN, name, or bank is missing or invalid."""
+    iban = normalize_iban(str(data.get("iban") or ""))
+    name = str(data.get("account_name") or "").strip()
+    bank = str(data.get("bank_name") or "").strip()
     if not (iban and name and bank and _SA_IBAN.fullmatch(iban)):
         return {}
     details = {"iban": iban, "account_name": name, "bank_name": bank}
+    bank_en = str(data.get("bank_name_en") or "").strip()
+    swift = re.sub(r"\s+", "", str(data.get("swift") or "")).upper()
     if bank_en:
         details["bank_name_en"] = bank_en
+    if swift:
+        details["swift"] = swift
     return details
+
+
+def bank_details() -> dict[str, str]:
+    """The guest account, or {} when no valid Saudi account is published.
+
+    Environment values win only when one of the three required fields is set.
+    Otherwise the source is ``content/transfer.json``. ``bank_name_en`` is
+    optional; an empty English name repeats ``bank_name``.
+    """
+    iban = _configured("PAYMENT_IBAN", "payment_iban")
+    name = _configured("PAYMENT_ACCOUNT_NAME", "payment_account_name")
+    bank = _configured("PAYMENT_BANK_NAME", "payment_bank_name")
+    if iban or name or bank:
+        return _account({
+            "iban": iban,
+            "account_name": name,
+            "bank_name": bank,
+            "bank_name_en": _configured("PAYMENT_BANK_NAME_EN", "payment_bank_name_en"),
+        })
+    return _account(_file_values())
 
 
 def has_bank_details() -> bool:
@@ -91,22 +111,15 @@ def transfer_qr_payload(
     reference: str,
     plan: str,
 ) -> str:
-    """Plain text a phone camera can show. The page repeats the same fields."""
-    lines = [
-        "SAR transfer",
-        f"Bank: {bank.get('bank_name', '')}",
-    ]
-    if bank.get("bank_name_en"):
-        lines.append(f"Bank EN: {bank['bank_name_en']}")
-    lines.extend([
-        f"Name: {bank.get('account_name', '')}",
-        f"IBAN: {bank.get('iban', '')}",
-        f"Amount: {amount_sar} SAR",
-        f"Reference: {reference}",
-    ])
-    if plan:
-        lines.append(f"Plan: {plan}")
-    return "\n".join(lines)
+    """Compact Saudi IBAN for a bank-app scan.
+
+    Amount, reference and plan stay on the invoice as text. They are not put
+    in this code: a free-text note is not a transfer a Saudi banking app can
+    fill, and this is not a ZATCA tax QR. The extra arguments stay so callers
+    that already pass them do not change.
+    """
+    del amount_sar, reference, plan
+    return normalize_iban(bank.get("iban", ""))
 
 
 def transfer_qr_svg(
@@ -125,7 +138,7 @@ def transfer_qr_svg(
         transfer_qr_payload(bank=bank, amount_sar=amount_sar, reference=reference, plan=plan),
         error="m",
     )
-    return code.svg_inline(scale=4, dark="#292524", light="#ffffff", svgclass="xfer-qr-svg")
+    return code.svg_inline(scale=4, dark="#000000", light="#ffffff", svgclass="xfer-qr-svg")
 
 
 def sniff_receipt(data: bytes) -> str | None:

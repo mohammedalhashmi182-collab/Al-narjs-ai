@@ -135,22 +135,15 @@ ai-agent queue stats
 
 ### Guest bank transfer
 
-After Moyasar was removed, a guest pays an unpaid invoice by bank transfer when these three variables are all set:
+After Moyasar was removed, a guest pays an unpaid invoice by bank transfer. The published account is `content/transfer.json` (Al Rajhi). Customer checkout offers that transfer when the file has a valid Saudi IBAN, account name, and bank name. Card checkout stays closed.
 
-| Variable | Meaning |
-| --- | --- |
-| `PAYMENT_IBAN` | Saudi IBAN (`SA` plus 22 digits). Spaces are ignored. |
-| `PAYMENT_ACCOUNT_NAME` | Account holder name printed next to the IBAN. |
-| `PAYMENT_BANK_NAME` | Bank name shown on the Arabic invoice. |
-| `PAYMENT_BANK_NAME_EN` | Optional. English bank name. When empty, the English invoice repeats `PAYMENT_BANK_NAME`. |
+`PAYMENT_IBAN`, `PAYMENT_ACCOUNT_NAME`, and `PAYMENT_BANK_NAME` override the file only when at least one of them is set. A partial override hides the account instead of mixing it with the file. `PAYMENT_BANK_NAME_EN` is an optional English bank name for that override. A local check can still set those three to the dummy `SA0000000000000000000000`.
 
-Do not commit a real IBAN. A local check can use the dummy `SA0000000000000000000000`.
+The unpaid invoice shows the bank lines, the payment reference, and a QR code of the IBAN itself (not a ZATCA tax QR), plus an optional receipt upload. The upload is stored on the payment for the owner to confirm; it does not mark the order paid.
 
-The invoice then shows a QR code (IBAN, holder, bank, amount, order reference, plan), the same IBAN as copyable text, and an optional receipt upload. The upload is stored on the payment for the owner to confirm; it does not mark the order paid.
+If no valid account is published, the QR block is omitted and the invoice says to contact us to pay (email AlNarjisai@gmail.com). No account is invented.
 
-If any of the three required variables is missing or the IBAN is not a Saudi IBAN, the QR block is omitted and the invoice says to contact us to pay (on-site assistant or AlNarjisai@gmail.com). No account is invented.
-
-`CUSTOMER_BANK_TRANSFER_ENABLED=1` still decides whether a guest can start that invoice from checkout. PayPal stays behind `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live`.
+PayPal stays behind `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live`. Owner-raised invoices do not need the customer account to be published.
 
 ### Web UI
 

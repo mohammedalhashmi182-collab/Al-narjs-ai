@@ -11,9 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 TPL = ROOT / "src" / "web" / "templates"
 
 
-def test_card_checkout_stays_closed_by_default():
-    assert payments.payments_open() is False
+def test_card_checkout_stays_closed_while_bank_transfer_is_open():
     assert payments.capabilities()["card"] is False
+    assert payments.capabilities()["methods"]["invoice"] is True
+    assert payments.payments_open() is True
 
 
 def test_refund_reply_names_email_and_duplicate_charges():

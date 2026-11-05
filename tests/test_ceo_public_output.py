@@ -80,8 +80,10 @@ async def test_probe9_price_question_gets_closed_notice_and_real_prices(monkeypa
     r = await _run(
         "كم أسعار باقاتكم؟ وفيه رسوم تأسيس؟ وإذا دفعت سنوي فيه خصم؟", payload, monkeypatch
     )
-    _assert_no_sale(r)
-    assert r["diagnosis_ar"].startswith(pm.PAYMENTS_CLOSED_AR)
+    assert r["agents"] == [] and r["agent_count"] == 0
+    assert r["cta"]["subscribe"]
+    assert r["diagnosis_ar"].startswith("الدفع المتاح تحويل بنكي")
+    assert not r["diagnosis_ar"].startswith(pm.PAYMENTS_CLOSED_AR)
     for fact in ("790", "1,490", "2,990", "990", "1,990", "10 أشهر", "12"):
         assert fact in r["diagnosis_ar"]
 
@@ -103,12 +105,14 @@ async def test_probe10_vat_question_gets_no_tax_invoice_promise(monkeypatch):
     assert "لا نصدر فواتير ضريبية" in r["diagnosis_ar"]
 
 
-async def test_probe12_pay_now_gets_closed_notice_and_no_cta():
+async def test_probe12_pay_now_offers_bank_transfer_not_a_card():
     r = await _run(
         "I want to pay by credit card right now for the Growth plan. Send me the payment link."
     )
-    _assert_no_sale(r)
-    assert r["diagnosis_en"].startswith(pm.PAYMENTS_CLOSED_EN)
+    assert r["cta"]["subscribe"]
+    assert r["diagnosis_en"].startswith("Bank transfer is the available payment method.")
+    assert not r["diagnosis_en"].startswith(pm.PAYMENTS_CLOSED_EN)
+    assert "Moyasar" not in r["diagnosis_en"] and "card checkout" not in r["diagnosis_en"].lower()
 
 
 async def test_pay_now_gets_normal_offer_once_payments_open(monkeypatch):

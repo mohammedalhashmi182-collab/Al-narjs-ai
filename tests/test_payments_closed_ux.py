@@ -1,4 +1,8 @@
-"""While payments are closed, pricing and portal say so plainly and invite interest only."""
+"""Pricing and portal follow the published payment method.
+
+With the Al Rajhi account in content/transfer.json, bank transfer is a real
+checkout option. The closed banner remains only when no method can take money.
+"""
 
 import httpx
 import pytest
@@ -8,6 +12,8 @@ from src.services import payments as pm
 
 AR = "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك بالبريد الإلكتروني عند فتح الدفع."
 EN = "Online payment is not open yet."
+TRANSFER_AR = "الدفع المتاح: تحويل بنكي."
+TRANSFER_EN = "Payment available: bank transfer."
 
 
 async def _get(path):
@@ -22,33 +28,36 @@ async def _get(path):
 
 
 @pytest.mark.parametrize(
-    "path,banner,cta,old_cta",
+    "path,note,cta,closed_cta",
     [
-        ("/ar/pricing", AR, "سجّل اهتمامك", "اشترك في "),
-        ("/en/pricing", EN, "Register interest", ">Get "),
+        ("/ar/pricing", TRANSFER_AR, "اشترك في ", "سجّل اهتمامك"),
+        ("/en/pricing", TRANSFER_EN, ">Get ", "Register interest"),
     ],
 )
-async def test_pricing_shows_closed_banner_above_plans(path, banner, cta, old_cta):
-    assert not pm.payments_open()
+async def test_pricing_offers_bank_transfer_instead_of_interest_only(path, note, cta, closed_cta):
+    assert pm.payments_open()
+    assert pm.capabilities()["card"] is False
+    assert pm.capabilities()["invoice"] is True
     html = await _get(path)
-    assert banner in html
-    assert html.index('id="paymentsClosedBanner"') < html.index('class="plans"')
+    assert note in html
+    assert 'id="bankTransferNote"' in html
+    assert 'id="paymentsClosedBanner"' not in html
     assert cta in html
-    assert old_cta not in html
+    assert closed_cta not in html
 
 
 @pytest.mark.parametrize(
-    "path,banner,cta",
+    "path,cta,absent",
     [
-        ("/ar/portal", AR, "سجّل اهتمامك"),
-        ("/en/portal", EN, "Register interest"),
+        ("/ar/portal", "ادفع بتحويل بنكي", "سجّل اهتمامك"),
+        ("/en/portal", "Pay by bank transfer", "Register interest"),
     ],
 )
-async def test_portal_shows_closed_banner_and_no_instant_promise(path, banner, cta):
+async def test_portal_offers_bank_transfer_and_no_instant_promise(path, cta, absent):
     html = await _get(path)
-    assert banner in html
-    assert html.index('id="paymentsClosedBanner"') < html.index('id="pkg-grid"')
+    assert 'id="paymentsClosedBanner"' not in html
     assert cta in html
+    assert absent not in html
     for bad in (
         "Pending / On Hold",
         "معلّق حالياً",
@@ -61,26 +70,40 @@ async def test_portal_shows_closed_banner_and_no_instant_promise(path, banner, c
         assert bad not in html, bad
 
 
-async def test_banner_disappears_when_payments_open(monkeypatch):
-    monkeypatch.setattr(pm, "payments_open", lambda: True)
+async def test_banner_returns_when_no_payment_method_is_open(monkeypatch):
+    monkeypatch.setattr(pm, "payments_open", lambda: False)
     from src.main import templates
 
-    monkeypatch.setitem(templates.env.globals, "payments_open", lambda: True)
+    monkeypatch.setitem(templates.env.globals, "payments_open", lambda: False)
     html = await _get("/ar/pricing")
-    assert 'id="paymentsClosedBanner"' not in html
-    assert "اشترك في " in html
+    assert 'id="paymentsClosedBanner"' in html
+    assert AR in html
+    assert "سجّل اهتمامك" in html
 
 
-def test_payments_open_follows_paypal_or_bank_transfer(monkeypatch):
-    s = get_settings()
+def test_payments_open_follows_paypal_or_published_bank_transfer(monkeypatch, tmp_path):
+    from src.services import transfer as t
+
     monkeypatch.delenv("CUSTOMER_PAYPAL_ENABLED", raising=False)
-    monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-    monkeypatch.setattr(s, "paypal_client_id", "id")
-    monkeypatch.setattr(s, "paypal_client_secret", "secret")
-    monkeypatch.setattr(s, "paypal_mode", "live")
+    for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+        monkeypatch.delenv(key, raising=False)
+    empty = tmp_path / "transfer.json"
+    empty.write_text('{"bank_name":"","account_name":"","iban":"","swift":""}', encoding="utf-8")
+    monkeypatch.setattr(t, "CONTENT_FILE", empty)
+    cached = get_settings()
+    monkeypatch.setattr(cached, "paypal_client_id", "id")
+    monkeypatch.setattr(cached, "paypal_client_secret", "secret")
+    monkeypatch.setattr(cached, "paypal_mode", "live")
     assert pm.payments_open() is False
     monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
     assert pm.payments_open() is True
     monkeypatch.delenv("CUSTOMER_PAYPAL_ENABLED", raising=False)
-    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
+    published = tmp_path / "published.json"
+    published.write_text(
+        '{"bank_name":"مصرف الراجحي","account_name":"Holder","iban":"SA5880000126608016363961","swift":"RJHISARI"}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(t, "CONTENT_FILE", published)
+    assert pm.customer_bank_transfer_enabled() is True
     assert pm.payments_open() is True
+    assert pm.capabilities()["card"] is False

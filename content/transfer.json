@@ -1,6 +1,7 @@
 {
-  "bank_name": "",
-  "account_name": "",
-  "iban": "",
-  "swift": ""
+  "bank_name": "مصرف الراجحي",
+  "bank_name_en": "Al Rajhi Bank",
+  "account_name": "أحمد عبدالله غرم الله الزهراني",
+  "iban": "SA5880000126608016363961",
+  "swift": "RJHISARI"
 }

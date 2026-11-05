@@ -501,7 +501,9 @@ def public_output_check(result: dict, problem: str) -> dict:
         )
     if _TAX.search(text):
         return _no_offer(result, TAX_AR, TAX_EN, "tax")
-    if closed and _PAY_NOW.search(text):
+    pay_now = bool(_PAY_NOW.search(text))
+    transfer_only = payments.customer_bank_transfer_enabled() and not payments.paypal_checkout_open()
+    if pay_now and closed:
         prices_ar, prices_en = _prices_line()
         return _no_offer(
             result,
@@ -509,6 +511,15 @@ def public_output_check(result: dict, problem: str) -> dict:
             payments.PAYMENTS_CLOSED_EN + " " + prices_en,
             "payments_closed",
         )
+    if pay_now and transfer_only:
+        prices_ar, prices_en = _prices_line()
+        result["diagnosis_ar"] = (
+            "الدفع المتاح تحويل بنكي من صفحة الدفع، ورمز الآيبان يظهر في الفاتورة. " + prices_ar
+        )
+        result["diagnosis_en"] = (
+            "Bank transfer is the available payment method. The invoice shows an IBAN code. " + prices_en
+        )
+        result["notice"] = "bank_transfer"
 
     # (a)/(b) on whatever text is left: fall back to the rule summary wording.
     for key, fb in (("diagnosis_ar", "وصفك يحتاج فريقاً صغيراً نبدأ به ثم نوسّعه حسب النتائج."),
