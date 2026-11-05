@@ -15,13 +15,23 @@ def _prompt(locale):
     )
 
 
-def test_consult_instructions_say_payment_closed_while_flag_on():
-    assert not pm.payments_open()
+def test_consult_instructions_name_bank_transfer_when_the_account_is_published():
+    assert pm.payments_open()
+    assert pm.capabilities()["card"] is False
     for locale in ("ar", "en"):
         prompt = _prompt(locale)
-        assert "الدفع الإلكتروني قيد التفعيل حالياً" in prompt
-        assert "register their interest" in prompt
+        assert "bank transfer against the invoice" in prompt
+        assert "قيد التفعيل" not in prompt
         assert "pay by card on the secure checkout" not in prompt
+
+
+def test_consult_instructions_say_payment_closed_without_an_account(monkeypatch):
+    monkeypatch.setattr(pm, "customer_bank_transfer_enabled", lambda: False)
+    monkeypatch.setattr(pm, "paypal_checkout_open", lambda: False)
+    assert not pm.payments_open()
+    prompt = _prompt("en")
+    assert "الدفع الإلكتروني قيد التفعيل حالياً" in prompt
+    assert "register their interest" in prompt
 
 
 def test_consult_instructions_switch_when_payment_opens(monkeypatch):
@@ -39,10 +49,11 @@ def test_refund_fact_is_setup_fee_only():
     assert "AlNarjisai@gmail.com" in prompt
 
 
-def test_kb_states_payments_closed_and_correct_refund():
+def test_kb_states_bank_transfer_and_correct_refund():
     text = KB.read_text(encoding="utf-8")
-    assert "الدفع الإلكتروني قيد التفعيل حالياً" in text
-    assert "سجّل اهتمامك عبر البريد AlNarjisai@gmail.com" in text
+    assert "تحويل بنكي من صفحة الدفع" in text
+    assert "لا نقبل التحويل البنكي" not in text
+    assert "AlNarjisai@gmail.com" in text
     for bad in FORBIDDEN:
         assert bad not in text, bad
     refund = text[text.index("### س37") : text.index("### س38")]

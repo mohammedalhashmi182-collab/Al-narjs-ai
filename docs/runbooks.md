@@ -47,6 +47,6 @@ Card checkout (Moyasar) was removed. Historical payment rows may still say `gate
 
 1. PayPal: 401 = signature verification failed (`PAYPAL_WEBHOOK_ID` wrong); 502 = PayPal API unreachable. Check Render logs for `/webhooks/paypal`.
 2. Fix the env var in Render if needed (never share values). PayPal is offered to customers only when `CUSTOMER_PAYPAL_ENABLED` is on and `PAYPAL_MODE=live`.
-3. Bank transfer stays a manual invoice. The owner confirms receipt with the existing confirm-received flow. It is offered to customers only when `CUSTOMER_BANK_TRANSFER_ENABLED` is on.
+3. Bank transfer stays a manual invoice. The owner confirms receipt with the existing confirm-received flow. Customers can start it when `content/transfer.json` has a valid Saudi IBAN, account name, and bank name. Card checkout stays closed.
 4. For a specific paid order that did not activate: confirm the payment in the PayPal dashboard (or the bank statement for a transfer), then activate it through the existing owner payment flow. Do not hand-edit payment rows.
 5. In the PayPal dashboard, resend the failed webhook once the secret is fixed. Confirm the customer project shows `active`.

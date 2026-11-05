@@ -252,12 +252,16 @@ def customer_paypal_enabled() -> bool:
 
 
 def customer_bank_transfer_enabled() -> bool:
-    """Manual invoice / bank transfer for customers.
+    """Manual invoice / bank transfer for customers when a Saudi account is published.
 
-    Off unless ``CUSTOMER_BANK_TRANSFER_ENABLED`` is set. Owner-raised
-    invoices are a separate authenticated path and do not use this flag.
+    Published means ``content/transfer.json`` has a valid IBAN, account name and
+    bank, or ``PAYMENT_IBAN``, ``PAYMENT_ACCOUNT_NAME`` and ``PAYMENT_BANK_NAME``
+    are all set. Owner-raised invoices are a separate authenticated path and
+    do not use this check. Card checkout stays closed.
     """
-    return _customer_flag("CUSTOMER_BANK_TRANSFER_ENABLED")
+    from src.services import transfer
+
+    return transfer.has_bank_details()
 
 
 def paypal_ready() -> bool:
@@ -354,13 +358,14 @@ def readiness(card_state: Optional[str] = None) -> dict:
         )
     if customer_bank_transfer_enabled() and not caps["bank"].get("iban"):
         blocking.append(
-            "PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME and PAYMENT_BANK_NAME must all "
-            "be set (Saudi IBAN) or a bank-transfer guest sees only the contact fallback."
+            "A Saudi IBAN, account name and bank name must be published in "
+            "content/transfer.json (or PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME and "
+            "PAYMENT_BANK_NAME) or a bank-transfer guest sees only the contact fallback."
         )
     if not caps["paypal"] and not caps["invoice"]:
         blocking.append(
-            "No customer payment method is open. Enable live PayPal "
-            "(CUSTOMER_PAYPAL_ENABLED) or bank transfer (CUSTOMER_BANK_TRANSFER_ENABLED)."
+            "No customer payment method is open. Publish the Saudi account in "
+            "content/transfer.json, or enable live PayPal (CUSTOMER_PAYPAL_ENABLED)."
         )
 
     return {
@@ -379,7 +384,7 @@ def readiness(card_state: Optional[str] = None) -> dict:
                 "PAYPAL_WEBHOOK_ID",
             ],
             "invoice": [
-                "CUSTOMER_BANK_TRANSFER_ENABLED",
+                "content/transfer.json",
                 "PAYMENT_IBAN",
                 "PAYMENT_ACCOUNT_NAME",
                 "PAYMENT_BANK_NAME",
@@ -396,10 +401,11 @@ def reference(payment: Payment) -> str:
 def transfer_instructions(payment: Payment) -> dict:
     """Everything a guest needs to settle a manual invoice unaided.
 
-    Bank lines and the QR come only from PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME
-    and PAYMENT_BANK_NAME. PAYMENT_BANK_NAME_EN is optional. When a required
-    value is unset the bank dict and QR are empty and the page shows the
-    contact fallback.
+    Bank lines and the IBAN QR come from content/transfer.json, unless
+    PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME and PAYMENT_BANK_NAME override it.
+    The QR encodes the IBAN only. It is not a ZATCA tax QR. When no valid
+    account is published the bank dict and QR are empty and the page shows
+    the contact fallback.
     """
     from src.services import catalog as _catalog
     from src.services import transfer

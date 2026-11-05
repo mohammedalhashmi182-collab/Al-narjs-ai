@@ -146,16 +146,19 @@ async def _insert_payment(maker, **kw) -> Payment:
 
 
 class TestCapabilities:
-    def test_no_gateway_means_bank_transfer_follows_the_flag(self, monkeypatch):
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _gateway_config():
+    def test_published_account_opens_bank_transfer_and_card_stays_closed(self, monkeypatch):
+        for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+            monkeypatch.delenv(key, raising=False)
+        with _bank_file(), _gateway_config():
             caps = pm.capabilities()
         assert caps["methods"]["invoice"] is False
         assert caps["card"] is False and caps["paypal"] is False
         assert set(caps["methods"]) == {"paypal", "invoice"}
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         with _gateway_config():
-            assert pm.capabilities()["methods"]["invoice"] is True
+            live = pm.capabilities()
+        assert live["methods"]["invoice"] is True
+        assert live["card"] is False
+        assert live["bank"]["iban"] == "SA5880000126608016363961"
 
     def test_paypal_needs_both_halves_of_the_credential(self, monkeypatch):
         monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
@@ -202,8 +205,9 @@ class TestCapabilities:
 class TestReadiness:
     def test_names_nothing_required_until_a_method_is_switched_on(self, monkeypatch):
         monkeypatch.delenv("CUSTOMER_PAYPAL_ENABLED", raising=False)
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _gateway_config():
+        for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+            monkeypatch.delenv(key, raising=False)
+        with _bank_file(), _gateway_config():
             report = pm.readiness()
         assert report["collect_money_now"] is False
         assert report["missing_env"] == []
@@ -290,13 +294,14 @@ class TestVatInclusiveCharging:
 
     @pytest.mark.usefixtures("founding_full")
     async def test_the_api_reports_the_vat_inclusive_total_to_the_checkout(self, api, monkeypatch):
-        """Owner-raised invoices still quote VAT. Customers need the bank-transfer flag."""
+        """Owner-raised invoices still quote VAT when the customer account is unpublished."""
         from src.core.owner_auth import make_session_token
         from src.services import catalog
 
         anon, _ = api
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _gateway_config():
+        for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+            monkeypatch.delenv(key, raising=False)
+        with _bank_file(), _gateway_config():
             refused = await anon.post(
                 "/api/payments", json={"refund_consent": True, "package": "bidaya", "method": "invoice"}
             )
@@ -339,13 +344,16 @@ class TestTransferInstructions:
         assert out["contact"]["phone"] == "tel:+966540799266"
         assert out["reference"]
 
-    def test_bank_details_come_from_the_environment(self, monkeypatch):
+    def test_bank_details_come_from_the_file_unless_the_environment_overrides(self, monkeypatch):
         payment = Payment(id=uuid4(), amount=49900, currency="SAR", package="bidaya", status="invoice")
-        monkeypatch.delenv("PAYMENT_IBAN", raising=False)
-        monkeypatch.delenv("PAYMENT_ACCOUNT_NAME", raising=False)
-        monkeypatch.delenv("PAYMENT_BANK_NAME", raising=False)
-        assert pm.transfer_instructions(payment)["bank"] == {}
-        assert pm.transfer_instructions(payment)["qr_svg"] == ""
+        for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+            monkeypatch.delenv(key, raising=False)
+        with _bank_file():
+            assert pm.transfer_instructions(payment)["bank"] == {}
+            assert pm.transfer_instructions(payment)["qr_svg"] == ""
+        published = pm.transfer_instructions(payment)
+        assert published["bank"]["iban"] == "SA5880000126608016363961"
+        assert published["qr_svg"]
         monkeypatch.setenv("PAYMENT_IBAN", "SA00 0000 0000 0000 0000 0000")
         monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
         monkeypatch.setenv("PAYMENT_BANK_NAME", "Example Bank")
@@ -354,6 +362,9 @@ class TestTransferInstructions:
         assert out["iban_spaced"].startswith("SA00")
         assert "<svg" in out["qr_svg"]
         assert "xfer-qr-svg" in out["qr_svg"]
+        assert transfer.transfer_qr_payload(
+            bank=out["bank"], amount_sar=out["amount_text"], reference=out["reference"], plan=out["plan_en"]
+        ) == "SA0000000000000000000000"
 
 
 # ---------------------------------------------------------------------------
@@ -489,17 +500,17 @@ class TestPublicSurface:
         assert r.status_code == 400
 
     @pytest.mark.usefixtures("founding_full")
-    async def test_a_customer_bank_invoice_follows_the_flag(self, api, monkeypatch):
+    async def test_a_customer_bank_invoice_follows_the_published_account(self, api, monkeypatch):
         anon, _ = api
-        monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
-        with _gateway_config():
+        for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+            monkeypatch.delenv(key, raising=False)
+        with _bank_file(), _gateway_config():
             closed = await anon.post(
                 "/api/payments",
                 json={"refund_consent": True, "package": "bidaya", "method": "invoice", "customer_name": "-buy-test"},
             )
         assert closed.status_code == 400
         assert "Bank transfer is not available" in closed.text
-        monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
         with _gateway_config():
             opened = await anon.post(
                 "/api/payments",
@@ -545,7 +556,8 @@ class TestTemplates:
         payment = await _insert_payment(maker)
         for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
             monkeypatch.delenv(key, raising=False)
-        hidden = await anon.get(f"/invoice/{payment.id}")
+        with _bank_file():
+            hidden = await anon.get(f"/invoice/{payment.id}")
         assert hidden.status_code == 200
         assert "SA0000000000000000000000" not in hidden.text
         assert "<svg" not in hidden.text

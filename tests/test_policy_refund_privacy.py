@@ -67,10 +67,15 @@ async def test_payment_false_consent_is_blocked(anon):
     assert r.status_code == 422
 
 
-async def test_consent_timestamp_is_stored(anon, maker, monkeypatch):
+async def test_consent_timestamp_is_stored(anon, maker, monkeypatch, tmp_path):
     from src.core.owner_auth import make_session_token
+    from src.services import transfer as t
 
-    monkeypatch.delenv("CUSTOMER_BANK_TRANSFER_ENABLED", raising=False)
+    empty = tmp_path / "transfer.json"
+    empty.write_text('{"bank_name":"","account_name":"","iban":"","swift":""}', encoding="utf-8")
+    monkeypatch.setattr(t, "CONTENT_FILE", empty)
+    for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
+        monkeypatch.delenv(key, raising=False)
     with _no_gateway():
         refused = await anon.post(
             "/api/payments", json={"package": "bidaya", "method": "invoice", "refund_consent": True}

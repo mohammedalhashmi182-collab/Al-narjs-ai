@@ -137,10 +137,11 @@ async def test_server_side_consult_and_portal_events(api):
         assert set(e.props) <= {"plan", "lang", "page", "method"}
 
 
-async def test_checkout_started_but_no_payment_attempt_while_closed(api):
+async def test_card_checkout_is_refused_while_bank_transfer_is_open(api):
     from src.services import payments as pm
 
-    assert pm.payments_open() is False
+    assert pm.payments_open() is True
+    assert pm.capabilities()["card"] is False
     client, maker, _ = api
     r = await client.post(
         "/api/payments",
@@ -152,7 +153,7 @@ async def test_checkout_started_but_no_payment_attempt_while_closed(api):
             "refund_consent": True,
         },
     )
-    assert r.status_code >= 400  # payments stay closed
+    assert r.status_code >= 400  # card checkout stays closed
     names = [e.event for e in await _events(maker)]
     assert "payment_attempted" not in names and "payment_succeeded" not in names
 

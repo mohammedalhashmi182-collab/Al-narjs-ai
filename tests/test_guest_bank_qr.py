@@ -55,20 +55,20 @@ def test_incomplete_or_invalid_account_hides_the_qr(monkeypatch):
     assert transfer.bank_details() == {}
 
 
-def test_qr_payload_carries_amount_and_reference(monkeypatch):
+def test_qr_payload_is_the_iban_and_the_page_keeps_amount_and_reference(monkeypatch):
     _arm(monkeypatch)
     payment = Payment(id=uuid4(), amount=79000, currency="SAR", package="bidaya", status="invoice", total_halalas=79000)
     out = pm.transfer_instructions(payment)
     assert out["bank"]["bank_name"] == "مصرف تجريبي"
     assert "bank_name_en" not in out["bank"]
-    assert out["reference"] in out["qr_svg"] or "xfer-qr-svg" in out["qr_svg"]
+    assert "xfer-qr-svg" in out["qr_svg"]
     payload = transfer.transfer_qr_payload(
         bank=out["bank"], amount_sar=out["amount_text"], reference=out["reference"], plan=out["plan_en"]
     )
-    assert DUMMY_IBAN in payload
-    assert out["amount_text"] in payload
-    assert out["reference"] in payload
-    assert "مصرف تجريبي" in payload
+    assert payload == DUMMY_IBAN
+    assert out["amount_text"] not in payload and out["reference"] not in payload
+    assert out["amount_text"] and out["reference"]
+    assert "ZATCA" not in out["qr_svg"]
 
 
 async def test_english_invoice_is_ltr_and_arabic_invoice_keeps_rtl(anon, maker, monkeypatch):
