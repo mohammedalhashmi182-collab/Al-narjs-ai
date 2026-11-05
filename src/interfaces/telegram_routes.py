@@ -46,6 +46,10 @@ WELCOME_TEXT = (
 # Process-local (scraped, no secrets) diagnostics for rejected calls.
 _rx: dict = {"rejected_total": 0, "last_reject": None}
 
+# Telegram updates are JSON metadata; media contents are downloaded separately.
+# Bound memory consumption even if the reverse proxy has no request size limit.
+MAX_TELEGRAM_BODY_BYTES = 1024 * 1024
+
 
 def _record_reject(reason: str, body_len: int) -> None:
     _rx["rejected_total"] += 1
@@ -150,16 +154,20 @@ async def telegram_webhook(request: Request):
     processed transactionally inside one session and always answers quickly with
     a 200 so Telegram does not retry a well-formed delivery.
     """
-    raw = await request.body()
-
     if webhook_disabled_reason():
         log.warning("Telegram webhook disabled: %s", webhook_disabled_reason())
         return JSONResponse({"status": "disabled"}, status_code=200)
 
     header = request.headers.get(SIGNATURE_HEADER)
     if not verify_secret(header):
-        _record_reject("missing_header" if not header else "secret_mismatch", len(raw))
+        _record_reject("missing_header" if not header else "secret_mismatch", 0)
         return JSONResponse({"status": "invalid_secret"}, status_code=403)
+
+    raw = bytearray()
+    async for chunk in request.stream():
+        if len(raw) + len(chunk) > MAX_TELEGRAM_BODY_BYTES:
+            return JSONResponse({"status": "body_too_large"}, status_code=413)
+        raw.extend(chunk)
 
     try:
         payload = json.loads(raw)

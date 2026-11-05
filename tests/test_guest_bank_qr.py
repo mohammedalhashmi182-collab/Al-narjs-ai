@@ -14,7 +14,7 @@ from src.models import Payment
 from src.services import payments as pm
 from src.services import transfer
 
-DUMMY_IBAN = "SA0000000000000000000000"
+DUMMY_IBAN = "SA1000000000000000000000"  # synthetic; not a real account
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ async def anon(maker):
 
 
 def _arm(monkeypatch, *, bank_en=None):
-    monkeypatch.setenv("PAYMENT_IBAN", "SA00 0000 0000 0000 0000 0000")
+    monkeypatch.setenv("PAYMENT_IBAN", "SA10 0000 0000 0000 0000 0000")
     monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
     monkeypatch.setenv("PAYMENT_BANK_NAME", "مصرف تجريبي")
     if bank_en:
@@ -52,6 +52,26 @@ def test_incomplete_or_invalid_account_hides_the_qr(monkeypatch):
     assert transfer.bank_details() == {}
     monkeypatch.setenv("PAYMENT_BANK_NAME", "Al Rajhi Bank")
     monkeypatch.setenv("PAYMENT_IBAN", "NOT-AN-IBAN")
+    assert transfer.bank_details() == {}
+
+
+@pytest.mark.parametrize(
+    "iban,valid",
+    [
+        ("SA1000000000000000000000", True),
+        ("SA0000000000000000000000", False),
+        ("SA1000000000000000000001", False),
+        ("SA١٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠", False),
+        ("SA10", False),
+    ],
+)
+def test_saudi_iban_checksum(iban, valid):
+    assert transfer._valid_sa_iban(iban) is valid
+
+
+def test_wrong_checksum_hides_bank_details(monkeypatch):
+    _arm(monkeypatch)
+    monkeypatch.setenv("PAYMENT_IBAN", "SA0000000000000000000000")
     assert transfer.bank_details() == {}
 
 
