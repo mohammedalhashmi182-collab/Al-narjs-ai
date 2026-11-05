@@ -153,6 +153,39 @@ class TestStatus:
 # ---------------------------------------------------------------------------
 
 class TestWebhookSecurity:
+    async def test_invalid_secret_is_rejected_without_reading_body(self):
+        from starlette.requests import Request
+
+        from src.interfaces.telegram_routes import telegram_webhook
+
+        async def unexpected_receive():
+            raise AssertionError("unauthenticated request body was read")
+
+        request = Request(
+            {
+                "type": "http",
+                "method": "POST",
+                "path": "/webhooks/telegram",
+                "headers": [(b"x-telegram-bot-api-secret-token", b"wrong")],
+            },
+            unexpected_receive,
+        )
+        with _creds():
+            response = await telegram_webhook(request)
+        assert response.status_code == 403
+
+    async def test_valid_secret_rejects_oversized_body(self, api):
+        from src.interfaces.telegram_routes import MAX_TELEGRAM_BODY_BYTES
+
+        with _creds():
+            response = await api.post(
+                "/webhooks/telegram",
+                content=b"x" * (MAX_TELEGRAM_BODY_BYTES + 1),
+                headers={"X-Telegram-Bot-Api-Secret-Token": SECRET},
+            )
+        assert response.status_code == 413
+        assert response.json()["status"] == "body_too_large"
+
     async def test_missing_secret_header_rejected(self, api):
         with _creds():
             r = await api.post("/webhooks/telegram", content=json.dumps(_update(1, "مرحباً")).encode())
