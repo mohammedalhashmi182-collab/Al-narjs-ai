@@ -158,6 +158,51 @@ async def test_owner_magic_link_is_single_use(maker):
         assert (await c.get(f"/api/portal/projects/{p.id}/knowledge")).status_code == 200
 
 
+@pytest.mark.parametrize("kind", ["otp", "magic"])
+async def test_login_queries_lock_code_row_on_postgresql(monkeypatch, kind):
+    """The production database must serialize use and failed-attempt updates."""
+    from uuid import uuid4
+
+    from sqlalchemy.dialects import postgresql
+
+    from src.interfaces import portal_routes
+
+    class EmptyResult:
+        def scalar_one_or_none(self):
+            return None
+
+    class CapturingSession:
+        statement = None
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+        async def execute(self, statement):
+            self.statement = statement
+            return EmptyResult()
+
+    session = CapturingSession()
+    monkeypatch.setattr(portal_routes, "_factory", lambda request: lambda: session)
+    if kind == "otp":
+        with pytest.raises(portal_routes.HTTPException):
+            await portal_routes.login_verify(
+                portal_routes.IdentBody(identifier="customer@example.test", code="123456"),
+                request=None,
+            )
+    else:
+        monkeypatch.setattr(
+            portal_auth, "read_magic_token", lambda token: {"p": str(uuid4()), "n": "nonce"}
+        )
+        result = await portal_routes.magic_login("test-token", request=None)
+        assert result.status_code == 303
+
+    sql = str(session.statement.compile(dialect=postgresql.dialect()))
+    assert "FOR UPDATE" in sql
+
+
 async def test_legacy_uuid_exchange_only_for_unpaid_projects(maker):
     active = await _project(maker)
     pending = await _project(maker, status="pending")

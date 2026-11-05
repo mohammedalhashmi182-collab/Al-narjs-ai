@@ -145,7 +145,7 @@ async def login_verify(body: IdentBody, request: Request):
     async with _factory(request)() as session:
         row = (await session.execute(select(PortalLoginCode).where(
             PortalLoginCode.identifier == ident, PortalLoginCode.kind == "otp", PortalLoginCode.used_at.is_(None),
-        ).order_by(PortalLoginCode.created_at.desc()).limit(1))).scalar_one_or_none()
+        ).order_by(PortalLoginCode.created_at.desc()).limit(1).with_for_update())).scalar_one_or_none()
         if row is None or _aware(row.expires_at) < now or row.attempts >= portal_auth.OTP_MAX_ATTEMPTS:
             raise HTTPException(401, "الرمز غير صالح أو منتهي")
         if not code or portal_auth.hash_secret(code) != row.code_hash:
@@ -170,7 +170,7 @@ async def magic_login(token: str, request: Request):
             row = (await session.execute(select(PortalLoginCode).where(
                 PortalLoginCode.project_id == _uuid(claims["p"]), PortalLoginCode.kind == "magic",
                 PortalLoginCode.code_hash == portal_auth.hash_secret(str(claims.get("n"))),
-            ))).scalar_one_or_none()
+            ).with_for_update())).scalar_one_or_none()
         if row is None or row.used_at is not None or _aware(row.expires_at) < now:
             return RedirectResponse("/portal?login=expired", status_code=303)
         row.used_at = now

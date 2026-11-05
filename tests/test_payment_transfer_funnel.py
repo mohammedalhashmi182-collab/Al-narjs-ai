@@ -346,12 +346,12 @@ class TestTransferInstructions:
         monkeypatch.delenv("PAYMENT_BANK_NAME", raising=False)
         assert pm.transfer_instructions(payment)["bank"] == {}
         assert pm.transfer_instructions(payment)["qr_svg"] == ""
-        monkeypatch.setenv("PAYMENT_IBAN", "SA00 0000 0000 0000 0000 0000")
+        monkeypatch.setenv("PAYMENT_IBAN", "SA10 0000 0000 0000 0000 0000")
         monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
         monkeypatch.setenv("PAYMENT_BANK_NAME", "Example Bank")
         out = pm.transfer_instructions(payment)
-        assert out["bank"]["iban"] == "SA0000000000000000000000"
-        assert out["iban_spaced"].startswith("SA00")
+        assert out["bank"]["iban"] == "SA1000000000000000000000"
+        assert out["iban_spaced"].startswith("SA10")
         assert "<svg" in out["qr_svg"]
         assert "xfer-qr-svg" in out["qr_svg"]
 
@@ -547,15 +547,15 @@ class TestTemplates:
             monkeypatch.delenv(key, raising=False)
         hidden = await anon.get(f"/invoice/{payment.id}")
         assert hidden.status_code == 200
-        assert "SA0000000000000000000000" not in hidden.text
+        assert "SA1000000000000000000000" not in hidden.text
         assert "<svg" not in hidden.text
         assert "تواصل معنا للدفع" in hidden.text
-        monkeypatch.setenv("PAYMENT_IBAN", "SA0000000000000000000000")
+        monkeypatch.setenv("PAYMENT_IBAN", "SA1000000000000000000000")
         monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
         monkeypatch.setenv("PAYMENT_BANK_NAME", "Example Bank")
         shown = await anon.get(f"/invoice/{payment.id}")
         assert shown.status_code == 200
-        assert "SA00 0000 0000 0000 0000 0000" in shown.text
+        assert "SA10 0000 0000 0000 0000 0000" in shown.text
         assert "<svg" in shown.text
         assert 'dir="ltr"' in shown.text
         assert "wa.me" not in shown.text

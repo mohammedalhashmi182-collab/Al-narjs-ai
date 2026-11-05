@@ -27,7 +27,7 @@ CONTENT_FILE = Path(__file__).resolve().parents[2] / "content" / "transfer.json"
 FIELDS = ("bank_name", "account_name", "iban", "swift")
 
 # SA + 22 digits. Spaces are stripped before the check.
-_SA_IBAN = re.compile(r"^SA\d{22}$")
+_SA_IBAN = re.compile(r"^SA[0-9]{22}$")
 _RECEIPT_MAX_BYTES = 2 * 1024 * 1024
 
 
@@ -56,6 +56,14 @@ def normalize_iban(raw: str) -> str:
     return re.sub(r"\s+", "", raw or "").upper()
 
 
+def _valid_sa_iban(iban: str) -> bool:
+    """Check Saudi IBAN structure and ISO 13616 mod-97 check digits."""
+    if not _SA_IBAN.fullmatch(iban):
+        return False
+    # Rearrange the first four characters to the end, then map S/A to 28/10.
+    return int(iban[4:] + "2810" + iban[2:4]) % 97 == 1
+
+
 def bank_details() -> dict[str, str]:
     """The guest account, or {} when the three required env vars are not all set.
 
@@ -66,7 +74,7 @@ def bank_details() -> dict[str, str]:
     name = _configured("PAYMENT_ACCOUNT_NAME", "payment_account_name")
     bank = _configured("PAYMENT_BANK_NAME", "payment_bank_name")
     bank_en = _configured("PAYMENT_BANK_NAME_EN", "payment_bank_name_en")
-    if not (iban and name and bank and _SA_IBAN.fullmatch(iban)):
+    if not (iban and name and bank and _valid_sa_iban(iban)):
         return {}
     details = {"iban": iban, "account_name": name, "bank_name": bank}
     if bank_en:
