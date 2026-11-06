@@ -88,12 +88,13 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert 'lang="en"' in en.text and 'dir="ltr"' in en.text
     assert "ابدأ المكالمة" in _visible(ar.text)
     assert 'id="chat"' in ar.text and "دردشة" in _visible(ar.text)
-    assert 'id="chatPanel"' in ar.text and 'id="chatPanel" hidden' not in ar.text
-    assert 'id="log"' in ar.text and 'id="say"' in ar.text and 'id="composer"' in ar.text
+    assert 'id="chatPanel" hidden' in ar.text
+    assert 'id="log"' in ar.text and 'id="say"' in ar.text
+    assert "رجوع للصوت" in _visible(ar.text)
     assert ar.text.index('id="chatPanel"') < ar.text.index('id="log"')
-    assert "صوتًا ونصًا" in _visible(ar.text)
     assert "دردشة" not in _visible(en.text)
-    assert "Chat" in _visible(en.text) and "spoken and written" in _visible(en.text)
+    assert "رجوع للصوت" not in _visible(en.text)
+    assert "Chat" in _visible(en.text) and "Back to voice" in _visible(en.text)
     assert "تحدّث مع" in _visible(ar.text)
     assert "Start the call" in _visible(en.text)
     assert "Talk to" in _visible(en.text)
@@ -328,7 +329,10 @@ def test_configure_session_copies_server_instructions():
     assert "showMicProblem" in mic_fail
     assert "return false" not in mic_fail
     assert "finish()" not in mic_fail
-    assert "if (chatOpen) return" not in script
+    assert "if (chatOpen) return" in script
+    assert "رجوع للصوت" not in script
+    assert "function openChat" in script
+    assert "function closeChat" in script
     assert "model" not in update
     assert _ANTI_GROK not in script
 

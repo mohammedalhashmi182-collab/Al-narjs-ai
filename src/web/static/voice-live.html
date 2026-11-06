@@ -89,7 +89,7 @@ h1 b{color:var(--ac);display:block}
 #chat{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin:8px 0;background:transparent;color:#FF5A36;border:1.5px solid #FF5A36;border-radius:14px;font:800 18px/1 Cairo,Tahoma,sans-serif;cursor:pointer}
 .no-mic #chat{background:#FF5A36;color:#0B0908;min-height:56px;font-size:20px}
 .mic-note{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:#2a1712;border:1px solid #5a2a1e;color:#F5EFE6;font-size:15px}
-#chatPanel{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+#chatPanel[hidden]{display:none}#chatPanel:not([hidden]){display:flex;flex-direction:column;gap:10px;margin-top:8px}
 #chatPanel .log{min-height:160px;max-height:min(46dvh,420px)}
 #composer{display:flex;gap:8px;align-items:center}
 #composer input{min-height:48px}
@@ -126,20 +126,21 @@ KAFD_4_jpg.jpg | File:KAFD 4.jpg | Kolaiel | CC0 | https://commons.wikimedia.org
  <section class="hero">
   <h1 class="ar-only">تحدّث مع <b>مستشار النرجس</b></h1>
   <h1 class="en-only">Talk to <b>the Al-Narjis agent</b></h1>
-  <p class="sub ar-only">اسأل بصوتك أو اكتب. الرد يصل صوتًا ونصًا.</p>
-  <p class="sub en-only">Ask out loud or type. The reply is spoken and written.</p>
+  <p class="sub ar-only">اسأل عن خدماتنا بصوتك، مباشرة</p>
+  <p class="sub en-only">Ask about our services out loud, live</p>
   <div class="card idle" id="p" aria-label="مكالمة حية مع مستشار النرجس">
    <div class="st" aria-live="polite"><span class="ar-only">الحالة: </span><span class="en-only">Status: </span><b id="s"><span class="ar-only">جاهز</span><span class="en-only">Ready</span></b></div>
    <button class="startbtn" id="start" type="button"><span class="ar-only">ابدأ المكالمة</span><span class="en-only">Start the call</span></button>
    <button class="chatbtn" id="chat" type="button"><span class="ar-only">دردشة</span><span class="en-only">Chat</span></button>
    <p id="micNote" class="mic-note" hidden></p>
-   <div id="chatPanel">
+   <div id="chatPanel" hidden>
     <div class="log" id="log" role="log" aria-live="polite"></div>
     <form id="composer">
      <label class="sr" for="say"><span class="ar-only">اكتب رسالتك</span><span class="en-only">Type your message</span></label>
      <input id="say" type="text" maxlength="500" autocomplete="off" enterkeyhint="send" dir="auto">
      <button class="send" id="send" type="submit"><span class="ar-only">إرسال</span><span class="en-only">Send</span></button>
     </form>
+    <button class="back" id="voiceBack" type="button"><span class="ar-only">رجوع للصوت</span><span class="en-only">Back to voice</span></button>
    </div>
    <div class="incall">
     <div class="wave" id="wave" aria-hidden="true"></div>
