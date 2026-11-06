@@ -521,12 +521,17 @@ CONTENT_SECURITY_POLICY = "; ".join(
     ]
 )
 # The public voice page opens a browser WebSocket to xAI. The API key stays on
-# the server. These sources are granted to that page only.
+# the server. The same sources are granted to the home pages, which embed that
+# consultant. Locale middleware rewrites /ar/home and /en/home to /home before
+# this header is stamped, so /home is the path that match sees.
 VOICE_LIVE_PATHS = frozenset({
     "/static/voice-live.html",
     "/voice",
     "/ar/voice",
     "/en/voice",
+    "/home",
+    "/ar/home",
+    "/en/home",
 })
 VOICE_LIVE_CSP = CONTENT_SECURITY_POLICY.replace(
     "connect-src 'self'",

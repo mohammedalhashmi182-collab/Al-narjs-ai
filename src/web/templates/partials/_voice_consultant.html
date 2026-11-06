@@ -1,0 +1,41 @@
+{# Home-page voice consultant. Same widget as /ar/voice and /en/voice
+   (voice-live-app.js). Spoken reply is the default; «دردشة» opens text.
+   The microphone is requested only after the visitor presses start. #}
+<section class="nj-voice-hero" id="voiceConsultant" aria-labelledby="voice-h">
+    <div class="wrap">
+        <h2 id="voice-h">{% if ar %}مستشار النرجس{% else %}Talk to the Al-Narjis agent{% endif %}</h2>
+        <p class="voice-lead">{% if ar %}اسأل عن خدماتنا بصوتك. الرد صوتي، وزر دردشة يحوّل المحادثة إلى كتابة.{% else %}Ask about our services out loud. The reply is spoken, and Chat switches the conversation to text.{% endif %}</p>
+        <div class="voice-card idle" id="p" aria-label="{% if ar %}مكالمة حية مع مستشار النرجس{% else %}Live call with the Al-Narjis agent{% endif %}">
+            <div class="voice-orb" id="vid" role="img" aria-label="{% if ar %}مستشار النرجس{% else %}Al-Narjis voice agent{% endif %}"></div>
+            <div class="st" aria-live="polite"><span>{% if ar %}الحالة: {% else %}Status: {% endif %}</span><b id="s">{% if ar %}جاهز{% else %}Ready{% endif %}</b></div>
+            <div class="voice-actions">
+                <button class="startbtn" id="start" type="button">{% if ar %}ابدأ المكالمة{% else %}Start the call{% endif %}</button>
+                <button class="chatbtn" id="chat" type="button">{% if ar %}دردشة{% else %}Chat{% endif %}</button>
+            </div>
+            <p id="micNote" class="mic-note" hidden></p>
+            <div id="chatPanel" hidden>
+                <div class="log" id="log" role="log" aria-live="polite"></div>
+                <form id="composer">
+                    <label class="sr" for="say">{% if ar %}اكتب رسالتك{% else %}Type your message{% endif %}</label>
+                    <input id="say" type="text" maxlength="500" autocomplete="off" enterkeyhint="send" dir="auto">
+                    <button class="send" id="send" type="submit">{% if ar %}إرسال{% else %}Send{% endif %}</button>
+                </form>
+                <button class="back" id="voiceBack" type="button">{% if ar %}رجوع للصوت{% else %}Back to voice{% endif %}</button>
+            </div>
+            <div class="incall">
+                <div class="wave" id="wave" aria-hidden="true"></div>
+                <div class="timer" id="tm" aria-live="off">3:00</div>
+                <div class="btns">
+                    <button class="b" id="mute" type="button" aria-pressed="false" aria-label="{% if ar %}كتم المايك{% else %}Mute microphone{% endif %}">{% if ar %}كتم{% else %}Mute{% endif %}</button>
+                    <button class="b end" id="end" type="button" aria-label="{% if ar %}إنهاء المكالمة{% else %}End call{% endif %}">{% if ar %}إنهاء{% else %}End{% endif %}</button>
+                </div>
+            </div>
+            <p class="demo">{% if ar %}محادثة حية، بحد أقصى 3 دقائق. المايك لا يُطلب إلا بعد الضغط على ابدأ المكالمة.{% else %}A live call, 3 minutes at most. The microphone is requested only after you start the call.{% endif %}</p>
+            <div id="fallback" class="fallback" hidden>
+                <p id="fallbackMsg"></p>
+                <p class="fallback-links"><a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="/static/js/voice-live-app.js"></script>

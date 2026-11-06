@@ -25,4 +25,7 @@ def test_site_wide_csp_is_unchanged():
         "/voice",
         "/ar/voice",
         "/en/voice",
+        "/home",
+        "/ar/home",
+        "/en/home",
     }

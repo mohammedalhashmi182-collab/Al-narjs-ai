@@ -64,7 +64,7 @@
   const composer = $("composer");
   if (!card || !start || !wave || !chatBtn || !chatPanel || !say || !composer) return;
 
-  document.title = T.title;
+  if (!document.body || document.body.dataset.keepTitle !== "1") document.title = T.title;
   say.placeholder = T.placeholder;
   log.setAttribute("aria-label", EN ? "Chat with the Al-Narjis advisor" : "دردشة مستشار النرجس");
   if (EN) {
