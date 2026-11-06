@@ -13,8 +13,8 @@
         muted: "Microphone muted",
         again: "Start another call",
         endedTime: "The call reached its 3-minute limit.",
-        mic: "We could not use the microphone. Press Chat and type, and we will reply in text.",
-        noMic: "No microphone was found on this device. Press Chat and type, and we will reply in text.",
+        mic: "We could not use the microphone. Type below and we will answer out loud and in text.",
+        noMic: "No microphone was found on this device. Type below and we will answer out loud and in text.",
         limit: "The daily call limit has been reached, or the line is busy. Email or call us, or try again later.",
         missing: "The live call is not available right now. Email or call us and we will help.",
         down: "The connection failed. Check your internet and try again, or email or call us.",
@@ -35,8 +35,8 @@
         muted: "المايك مكتوم",
         again: "ابدأ مكالمة جديدة",
         endedTime: "انتهى وقت المكالمة (3 دقائق).",
-        mic: "ما قدرنا نستخدم المايك. اضغط «دردشة» واكتب، ونرد عليك كتابة.",
-        noMic: "ما لقينا مايك في جهازك. اضغط «دردشة» واكتب، ونرد عليك كتابة.",
+        mic: "ما قدرنا نستخدم المايك. اكتب رسالتك تحت، ونرد عليك صوتًا ونصًا.",
+        noMic: "ما لقينا مايك في جهازك. اكتب رسالتك تحت، ونرد عليك صوتًا ونصًا.",
         limit: "وصلنا للحد اليومي للمكالمات أو الخط مشغول. راسلنا أو اتصل، أو جرّب بعدين.",
         missing: "المكالمة الحية غير متاحة حالياً. راسلنا أو اتصل ونساعدك.",
         down: "صار خلل في الاتصال. تأكد من الإنترنت وجرّب مرة ثانية، أو راسلنا أو اتصل.",
@@ -99,7 +99,6 @@
   let greetingSent = false;
   let greetingDone = false;
   let openingSettled = false;
-  let chatOpen = false;
   let textMode = false;
   let starting = null;
   const blockedIds = {};
@@ -115,6 +114,8 @@
     vid.classList.toggle("talk", name === "speaking");
   }
 
+  let userRow = null;
+
   function add(text, cls) {
     const row = document.createElement("div");
     row.className = "row" + (cls ? " " + cls : "");
@@ -123,6 +124,18 @@
     log.append(row);
     log.scrollTop = 1e5;
     return row;
+  }
+
+  function userText(text, done) {
+    if (!userRow) userRow = add("", "u");
+    const node = userRow.querySelector(".m");
+    if (done) {
+      if (text) node.textContent = text;
+      userRow = null;
+    } else {
+      node.textContent = text || "";
+    }
+    log.scrollTop = 1e5;
   }
 
   function fmt(seconds) {
@@ -314,8 +327,7 @@
       return;
     }
     if (type === "session.updated") {
-      if (textMode) greetInText();
-      else speakGreeting();
+      speakGreeting();
       sessionReady = true;
       if (!tick) startTimer();
       setMode("listening");
@@ -323,6 +335,7 @@
     }
     if (type === "input_audio_buffer.speech_started") {
       agentRow = null;
+      userRow = null;
       setMode("listening");
       return;
     }
@@ -342,7 +355,6 @@
         return;
       }
       setMode("speaking");
-      if (chatOpen) return;
       if (event.delta) playPcm16(event.delta);
       return;
     }
@@ -363,10 +375,8 @@
         const probe = line.slice(0, 8);
         if ((probe && row.text.indexOf(probe) !== -1) || (done && row.text)) {
           openingSettled = true;
-          if (!chatOpen) {
-            setMode("speaking");
-            row.chunks.forEach((chunk) => playPcm16(chunk));
-          }
+          setMode("speaking");
+          row.chunks.forEach((chunk) => playPcm16(chunk));
           row.chunks = [];
           agentText(row.text, done);
         }
@@ -375,10 +385,15 @@
       agentText(done ? (event.transcript || row.text) : (event.delta || ""), done);
       return;
     }
+    if (type === "conversation.item.input_audio_transcription.updated") {
+      const text = event.transcript || (event.item && event.item.transcript) || "";
+      if (text) userText(text, false);
+      return;
+    }
     if (type === "conversation.item.input_audio_transcription.completed") {
       const text = event.transcript || (event.item && event.item.transcript) || "";
-      if (text) add(text, "u");
-      if (wantsChat(text)) openChat();
+      if (text) userText(text, true);
+      if (wantsChat(text)) say.focus();
       return;
     }
     if (type === "response.done") {
@@ -414,10 +429,15 @@
     return { url: url, protocol: protocol };
   }
 
-  async function attachMic() {
+  async function ensureAudio() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
     audioCtx = audioCtx || new Ctx();
     if (audioCtx.state === "suspended") await audioCtx.resume();
+  }
+
+  async function attachMic() {
+    await ensureAudio();
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
     });
@@ -481,31 +501,8 @@
     }));
   }
 
-  function greetInText() {
-    if (greetingSent) return;
-    greetingSent = true;
-    openingSettled = true;
-    greetingDone = true;
-    const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
-    if (line) add(line, "");
-    flushTyped();
-  }
-
   function wantsChat(text) {
     return /دردش|بالكتاب|اكتب|أكتب|كتابة|كتابه|شات|\bchat\b|\btyping\b|\btype\b/i.test(text || "");
-  }
-
-  function openChat() {
-    chatOpen = true;
-    card.classList.add("chat-open");
-    chatPanel.hidden = false;
-    if (say.focus) say.focus();
-  }
-
-  function closeChat() {
-    chatOpen = false;
-    card.classList.remove("chat-open");
-    chatPanel.hidden = true;
   }
 
   function showMicProblem(note) {
@@ -597,11 +594,9 @@
           const name = String(error && error.name || "");
           showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
           stopMic();
-          ending = true;
-          finish();
-          return false;
         }
       }
+      await ensureAudio();
       socket = new WebSocket(options.url, [options.protocol]);
       socket.onopen = () => {
         console.info("voice websocket open");
@@ -653,7 +648,7 @@
   };
 
   chatBtn.onclick = () => {
-    openChat();
+    say.focus();
     if (!socket && !blocked) beginCall({ mic: false, text: true, keepLog: true });
   };
 
@@ -666,22 +661,11 @@
     const line = say.value.trim();
     if (!line) return;
     say.value = "";
-    openChat();
     add(line, "u");
     typedQueue.push(line);
     const ok = await beginCall({ mic: false, text: !socket, keepLog: true });
-    if (ok) flushTyped();
-  };
-
-  $("voiceBack").onclick = async () => {
-    closeChat();
-    if (!socket || micStream || blocked) return;
-    try {
-      await attachMic();
-    } catch (error) {
-      const name = String(error && error.name || "");
-      showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
-    }
+    if (!ok) add(T.down, "sys");
+    else flushTyped();
   };
 
   mute.onclick = () => {

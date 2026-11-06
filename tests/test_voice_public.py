@@ -88,10 +88,12 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert 'lang="en"' in en.text and 'dir="ltr"' in en.text
     assert "ابدأ المكالمة" in _visible(ar.text)
     assert 'id="chat"' in ar.text and "دردشة" in _visible(ar.text)
-    assert 'id="chatPanel" hidden' in ar.text
+    assert 'id="chatPanel"' in ar.text and 'id="chatPanel" hidden' not in ar.text
+    assert 'id="log"' in ar.text and 'id="say"' in ar.text and 'id="composer"' in ar.text
     assert ar.text.index('id="chatPanel"') < ar.text.index('id="log"')
+    assert "صوتًا ونصًا" in _visible(ar.text)
     assert "دردشة" not in _visible(en.text)
-    assert "Chat" in _visible(en.text) and "Back to voice" in _visible(en.text)
+    assert "Chat" in _visible(en.text) and "spoken and written" in _visible(en.text)
     assert "تحدّث مع" in _visible(ar.text)
     assert "Start the call" in _visible(en.text)
     assert "Talk to" in _visible(en.text)
@@ -313,14 +315,20 @@ def test_configure_session_copies_server_instructions():
     assert 'type: "session.update"' in update
     assert 'type: "force_message"' in update
     assert 'type: "response.cancel"' in script
-    greet = script.split("function speakGreeting()", 1)[1].split("function greetInText()", 1)[0]
+    greet = script.split("function speakGreeting()", 1)[1].split("function wantsChat(", 1)[0]
     typed = script.split("function sendTyped(", 1)[1].split("function flushTyped(", 1)[0]
     assert 'type: "response.create"' not in greet
     assert 'type: "force_message"' in greet
     assert 'type: "input_text"' in typed
     assert 'type: "response.create"' in typed
     assert "function wantsChat" in script
+    assert "function userText" in script
     assert "no-mic" in script
+    mic_fail = script.split("await attachMic();", 1)[1].split("await ensureAudio();", 1)[0]
+    assert "showMicProblem" in mic_fail
+    assert "return false" not in mic_fail
+    assert "finish()" not in mic_fail
+    assert "if (chatOpen) return" not in script
     assert "model" not in update
     assert _ANTI_GROK not in script
 
