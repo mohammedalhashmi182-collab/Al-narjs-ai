@@ -147,7 +147,7 @@ def test_voice_instructions_name_al_narjis_and_forbid_grok():
     assert "Saudi-friendly Arabic" in text
     assert "Switch to English only if the caller speaks English." in text
     assert "Do not open in English." in text
-    assert voice_live.opening_greeting() == "هلا والله، معك مستشار النرجس، كيف أقدر أساعدك؟"
+    assert voice_live.opening_greeting() == "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟"
     assert "Grok" not in voice_live.opening_greeting()
     assert "Grok" not in voice_live.opening_greeting("en")
     assert "كريم" in text
@@ -296,7 +296,7 @@ def test_session_lang_selects_the_opening_line(client: TestClient, monkeypatch):
     arabic = client.post("/api/voice/session?lang=ar")
     english = client.post("/api/voice/session?lang=en")
     assert arabic.status_code == english.status_code == 200
-    assert arabic.json()["greeting"] == "هلا والله، معك مستشار النرجس، كيف أقدر أساعدك؟"
+    assert arabic.json()["greeting"] == "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟"
     assert "Grok" not in arabic.json()["greeting"]
     assert "Switch to English only if the caller speaks English." in arabic.json()["instructions"]
     assert english.json()["greeting"] == voice_live.opening_greeting("en")
@@ -463,6 +463,7 @@ vm.runInContext(`
   if (instructions !== payload.instructions) throw new Error("instructions were not copied");
   if (Object.prototype.hasOwnProperty.call(updates[0].session, "model")) throw new Error("model field was added");
   if (!instructions.includes("مستشار النرجس")) throw new Error("missing Al-Narjis identity");
+  if (!instructions.includes("كريم")) throw new Error("missing spoken name Karim");
   if (!instructions.includes("NEVER say you are Grok, Grok Voice, xAI, or ChatGPT.")) throw new Error("missing anti-Grok rule");
   if (!instructions.includes("Switch to English only if the caller speaks English.")) throw new Error("arabic default missing");
   sockets[0].onmessage({ data: JSON.stringify({ type: "response.created", response: { id: "resp_grok" } }) });
