@@ -13,8 +13,8 @@
         muted: "Microphone muted",
         again: "Start another call",
         endedTime: "The call reached its 3-minute limit.",
-        mic: "We could not use the microphone. Allow it in the browser and try again.",
-        noMic: "No microphone was found on this device.",
+        mic: "We could not use the microphone. Press Chat and type, and we will reply in text.",
+        noMic: "No microphone was found on this device. Press Chat and type, and we will reply in text.",
         limit: "The daily call limit has been reached, or the line is busy. Email or call us, or try again later.",
         missing: "The live call is not available right now. Email or call us and we will help.",
         down: "The connection failed. Check your internet and try again, or email or call us.",
@@ -24,6 +24,7 @@
         limitShort: "Daily limit reached",
         unavailable: "Call unavailable",
         title: "Talk to the Al-Narjis agent",
+        placeholder: "Type to the Al-Narjis advisor",
       }
     : {
         idle: "جاهز",
@@ -34,8 +35,8 @@
         muted: "المايك مكتوم",
         again: "ابدأ مكالمة جديدة",
         endedTime: "انتهى وقت المكالمة (3 دقائق).",
-        mic: "ما قدرنا نوصل للمايك. اسمح للمتصفح باستخدام المايك وجرّب مرة ثانية.",
-        noMic: "ما لقينا مايك في جهازك.",
+        mic: "ما قدرنا نستخدم المايك. اضغط «دردشة» واكتب، ونرد عليك كتابة.",
+        noMic: "ما لقينا مايك في جهازك. اضغط «دردشة» واكتب، ونرد عليك كتابة.",
         limit: "وصلنا للحد اليومي للمكالمات أو الخط مشغول. راسلنا أو اتصل، أو جرّب بعدين.",
         missing: "المكالمة الحية غير متاحة حالياً. راسلنا أو اتصل ونساعدك.",
         down: "صار خلل في الاتصال. تأكد من الإنترنت وجرّب مرة ثانية، أو راسلنا أو اتصل.",
@@ -45,6 +46,7 @@
         limitShort: "الحد اليومي",
         unavailable: "المكالمة غير متاحة",
         title: "تحدث مع مستشار النرجس",
+        placeholder: "اكتب لمستشار النرجس",
       };
 
   const $ = (id) => document.getElementById(id);
@@ -56,9 +58,15 @@
   const timer = $("tm");
   const start = $("start");
   const wave = $("wave");
-  if (!card || !start || !wave) return;
+  const chatBtn = $("chat");
+  const chatPanel = $("chatPanel");
+  const say = $("say");
+  const composer = $("composer");
+  if (!card || !start || !wave || !chatBtn || !chatPanel || !say || !composer) return;
 
   document.title = T.title;
+  say.placeholder = T.placeholder;
+  log.setAttribute("aria-label", EN ? "Chat with the Al-Narjis advisor" : "دردشة مستشار النرجس");
   if (EN) {
     mute.setAttribute("aria-label", "Mute microphone");
     $("end").setAttribute("aria-label", "End call");
@@ -89,9 +97,14 @@
   let sessionGreeting = "";
   let personaSent = false;
   let greetingSent = false;
+  let greetingDone = false;
   let openingSettled = false;
+  let chatOpen = false;
+  let textMode = false;
+  let starting = null;
   const blockedIds = {};
   const heldAudio = {};
+  const typedQueue = [];
 
   function setMode(name) {
     card.classList.remove("idle", "listening", "speaking", "ready", "ended", "connecting");
@@ -301,7 +314,8 @@
       return;
     }
     if (type === "session.updated") {
-      speakGreeting();
+      if (textMode) greetInText();
+      else speakGreeting();
       sessionReady = true;
       if (!tick) startTimer();
       setMode("listening");
@@ -328,6 +342,7 @@
         return;
       }
       setMode("speaking");
+      if (chatOpen) return;
       if (event.delta) playPcm16(event.delta);
       return;
     }
@@ -348,8 +363,10 @@
         const probe = line.slice(0, 8);
         if ((probe && row.text.indexOf(probe) !== -1) || (done && row.text)) {
           openingSettled = true;
-          setMode("speaking");
-          row.chunks.forEach((chunk) => playPcm16(chunk));
+          if (!chatOpen) {
+            setMode("speaking");
+            row.chunks.forEach((chunk) => playPcm16(chunk));
+          }
           row.chunks = [];
           agentText(row.text, done);
         }
@@ -361,9 +378,15 @@
     if (type === "conversation.item.input_audio_transcription.completed") {
       const text = event.transcript || (event.item && event.item.transcript) || "";
       if (text) add(text, "u");
+      if (wantsChat(text)) openChat();
       return;
     }
     if (type === "response.done") {
+      const doneId = responseId(event);
+      if (greetingSent && !greetingDone && !(doneId && blockedIds[doneId])) {
+        greetingDone = true;
+        flushTyped();
+      }
       setMode(mute.getAttribute("aria-pressed") === "true" ? "listening" : "listening");
       outLevel *= 0.4;
       return;
@@ -442,7 +465,11 @@
     const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
     greetingSent = true;
     playAt = 0;
-    if (!line) return;
+    if (!line) {
+      greetingDone = true;
+      flushTyped();
+      return;
+    }
     socket.send(JSON.stringify({
       type: "conversation.item.create",
       item: {
@@ -454,21 +481,91 @@
     }));
   }
 
-  start.onclick = async () => {
-    if (socket || blocked) return;
+  function greetInText() {
+    if (greetingSent) return;
+    greetingSent = true;
+    openingSettled = true;
+    greetingDone = true;
+    const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
+    if (line) add(line, "");
+    flushTyped();
+  }
+
+  function wantsChat(text) {
+    return /دردش|بالكتاب|اكتب|أكتب|كتابة|كتابه|شات|\bchat\b|\btyping\b|\btype\b/i.test(text || "");
+  }
+
+  function openChat() {
+    chatOpen = true;
+    card.classList.add("chat-open");
+    chatPanel.hidden = false;
+    if (say.focus) say.focus();
+  }
+
+  function closeChat() {
+    chatOpen = false;
+    card.classList.remove("chat-open");
+    chatPanel.hidden = true;
+  }
+
+  function showMicProblem(note) {
+    card.classList.add("no-mic");
+    const box = $("micNote");
+    if (box) {
+      box.hidden = false;
+      box.textContent = note;
+    }
+  }
+
+  function sendTyped(line) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: line }],
+      },
+    }));
+    socket.send(JSON.stringify({ type: "response.create" }));
+  }
+
+  function flushTyped() {
+    if (!greetingDone || !socket || socket.readyState !== WebSocket.OPEN) return;
+    while (typedQueue.length) sendTyped(typedQueue.shift());
+  }
+
+  async function beginCall(options) {
+    const useMic = !options || options.mic !== false;
+    const asText = !!(options && options.text);
+    const keepLog = !!(options && options.keepLog);
+    if (blocked) return false;
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return true;
+    if (starting) return starting;
+    starting = runCall();
+    try { return await starting; }
+    finally { starting = null; }
+
+    async function runCall() {
+    textMode = asText;
     ending = false;
     sessionReady = false;
     sessionInstructions = "";
     sessionGreeting = "";
     personaSent = false;
     greetingSent = false;
+    greetingDone = false;
     openingSettled = false;
+    typedQueue.splice(0, typedQueue.length);
     Object.keys(blockedIds).forEach((id) => { delete blockedIds[id]; });
     Object.keys(heldAudio).forEach((id) => { delete heldAudio[id]; });
     agentRow = null;
     playAt = 0;
     start.disabled = true;
-    log.innerHTML = "";
+    if (!keepLog) {
+      log.innerHTML = "";
+      typedQueue.splice(0, typedQueue.length);
+    }
     setMode("connecting");
     let payload = {};
     try {
@@ -481,7 +578,7 @@
         stopMic();
         ending = true;
         finish();
-        return;
+        return false;
       }
       sessionInstructions = typeof payload.instructions === "string" ? payload.instructions : "";
       sessionGreeting = typeof payload.greeting === "string" ? payload.greeting : "";
@@ -491,17 +588,19 @@
         reveal("unconfigured", true);
         ending = true;
         finish();
-        return;
+        return false;
       }
-      try {
-        await attachMic();
-      } catch (error) {
-        const name = String(error && error.name || "");
-        add(/NotFound|device/i.test(name) ? T.noMic : T.mic, "sys");
-        stopMic();
-        ending = true;
-        finish();
-        return;
+      if (useMic) {
+        try {
+          await attachMic();
+        } catch (error) {
+          const name = String(error && error.name || "");
+          showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
+          stopMic();
+          ending = true;
+          finish();
+          return false;
+        }
       }
       socket = new WebSocket(options.url, [options.protocol]);
       socket.onopen = () => {
@@ -533,6 +632,7 @@
         }
       };
       start.disabled = false;
+      return true;
     } catch (error) {
       add(T.down, "sys");
       reveal("upstream", false);
@@ -540,6 +640,47 @@
       closeSocket();
       ending = true;
       finish();
+      return false;
+    }
+    }
+  }
+
+  start.onclick = () => {
+    const note = $("micNote");
+    if (note) note.hidden = true;
+    card.classList.remove("no-mic");
+    return beginCall({ mic: true });
+  };
+
+  chatBtn.onclick = () => {
+    openChat();
+    if (!socket && !blocked) beginCall({ mic: false, text: true, keepLog: true });
+  };
+
+  composer.onsubmit = async (event) => {
+    event.preventDefault();
+    if (blocked) {
+      add(gateMessage("unconfigured"), "sys");
+      return;
+    }
+    const line = say.value.trim();
+    if (!line) return;
+    say.value = "";
+    openChat();
+    add(line, "u");
+    typedQueue.push(line);
+    const ok = await beginCall({ mic: false, text: !socket, keepLog: true });
+    if (ok) flushTyped();
+  };
+
+  $("voiceBack").onclick = async () => {
+    closeChat();
+    if (!socket || micStream || blocked) return;
+    try {
+      await attachMic();
+    } catch (error) {
+      const name = String(error && error.name || "");
+      showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
     }
   };
 

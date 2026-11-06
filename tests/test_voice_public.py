@@ -87,6 +87,11 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert 'lang="ar"' in ar.text and 'dir="rtl"' in ar.text
     assert 'lang="en"' in en.text and 'dir="ltr"' in en.text
     assert "ابدأ المكالمة" in _visible(ar.text)
+    assert 'id="chat"' in ar.text and "دردشة" in _visible(ar.text)
+    assert 'id="chatPanel" hidden' in ar.text
+    assert ar.text.index('id="chatPanel"') < ar.text.index('id="log"')
+    assert "دردشة" not in _visible(en.text)
+    assert "Chat" in _visible(en.text) and "Back to voice" in _visible(en.text)
     assert "تحدّث مع" in _visible(ar.text)
     assert "Start the call" in _visible(en.text)
     assert "Talk to" in _visible(en.text)
@@ -308,7 +313,14 @@ def test_configure_session_copies_server_instructions():
     assert 'type: "session.update"' in update
     assert 'type: "force_message"' in update
     assert 'type: "response.cancel"' in script
-    assert 'type: "response.create"' not in script
+    greet = script.split("function speakGreeting()", 1)[1].split("function greetInText()", 1)[0]
+    typed = script.split("function sendTyped(", 1)[1].split("function flushTyped(", 1)[0]
+    assert 'type: "response.create"' not in greet
+    assert 'type: "force_message"' in greet
+    assert 'type: "input_text"' in typed
+    assert 'type: "response.create"' in typed
+    assert "function wantsChat" in script
+    assert "no-mic" in script
     assert "model" not in update
     assert _ANTI_GROK not in script
 
@@ -341,18 +353,32 @@ class FakeSocket {
   close() { this.readyState = 3; }
 }
 function el() {
-  return {
+  const node = {
     classList: { remove() {}, add() {}, toggle() {}, contains() { return false; } },
     style: { setProperty() {} },
     setAttribute() {},
     getAttribute() { return "false"; },
-    append() {},
+    append(child) { node.childNodes.push(child); },
+    childNodes: [],
     hidden: false,
     disabled: false,
     textContent: "",
-    innerHTML: "",
+    value: "",
     onclick: null,
+    onsubmit: null,
+    focus() {},
+    placeholder: "",
   };
+  Object.defineProperty(node, "lastChild", { get() { return node.childNodes[node.childNodes.length - 1] || null; } });
+  Object.defineProperty(node, "innerHTML", {
+    get() { return node._html || ""; },
+    set(value) {
+      node._html = String(value);
+      node.childNodes = [el()];
+    },
+  });
+  node.querySelector = () => node.lastChild || node;
+  return node;
 }
 const els = {};
 const document = {
@@ -445,7 +471,18 @@ vm.runInContext(`
   sockets[0].onmessage({ data: JSON.stringify({ type: "response.output_audio_transcript.delta", delta: "Hello, I'm Grok Voice", response_id: "resp_late" }) });
   const late = messages.filter((message) => message.type === "response.cancel" && message.response_id === "resp_late");
   if (late.length !== 1) throw new Error("late Grok greeting was not cancelled");
-  console.log(JSON.stringify({ updates: updates.length, cancels: cancels.length, spoken, url }));
+  if (messages.some((message) => message.type === "response.create")) throw new Error("response.create lets the model greet");
+  els.say.value = "كم السعر؟";
+  await els.composer.onsubmit({ preventDefault() {} });
+  if (messages.some((message) => message.type === "response.create")) {
+    throw new Error("typed message was sent before the greeting finished");
+  }
+  sockets[0].onmessage({ data: JSON.stringify({ type: "response.done", response: { id: "resp_hi" } }) });
+  const typed = messages.filter((message) => message.item && message.item.role === "user" && message.item.content && message.item.content[0].type === "input_text");
+  if (typed.length !== 1 || typed[0].item.content[0].text !== "كم السعر؟") throw new Error("typed text was not delivered");
+  const replies = messages.filter((message) => message.type === "response.create");
+  if (replies.length !== 1) throw new Error("typed turn did not ask for a reply");
+  console.log(JSON.stringify({ updates: updates.length, cancels: cancels.length, spoken, url, typed: typed.length }));
   process.exit(0);
 })().catch((error) => { console.error(error && error.stack || error); process.exit(1); });
 `, context);
