@@ -100,7 +100,7 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert "Talk to" in _visible(en.text)
     assert "تحدّث مع" not in _visible(en.text)
     assert f"mailto:{SUPPORT_EMAIL}" in ar.text
-    assert f"tel:{COMPANY_PHONE_E164}" in ar.text
+    assert "https://wa.me/966552978753" in ar.text
     assert COMPANY_PHONE_DISPLAY in ar.text
     assert "elevenlabs" not in ar.text.lower()
     assert "XAI_API_KEY" not in ar.text
