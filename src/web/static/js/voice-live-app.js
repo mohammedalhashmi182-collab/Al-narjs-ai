@@ -85,6 +85,7 @@
   let inLevel = 0;
   let agentRow = null;
   let sessionReady = false;
+  let sessionInstructions = "";
 
   function setMode(name) {
     card.classList.remove("idle", "listening", "speaking", "ready", "ended", "connecting");
@@ -256,6 +257,10 @@
 
   function onEvent(event) {
     const type = event.type || "";
+    // The published agent is created first. Apply the server persona after that.
+    if (type === "session.created" && socket && socket.readyState === WebSocket.OPEN) {
+      configureSession();
+    }
     if (type === "session.created" || type === "session.updated") {
       sessionReady = true;
       if (!tick) startTimer();
@@ -346,22 +351,24 @@
 
   function configureSession() {
     const hint = EN ? "en" : "ar";
-    socket.send(JSON.stringify({
-      type: "session.update",
-      session: {
-        turn_detection: { type: "server_vad" },
-        audio: {
-          input: { format: { type: "audio/pcm", rate: RATE }, transcription: { language_hint: hint } },
-          output: { format: { type: "audio/pcm", rate: RATE } },
-        },
+    const session = {
+      turn_detection: { type: "server_vad" },
+      audio: {
+        input: { format: { type: "audio/pcm", rate: RATE }, transcription: { language_hint: hint } },
+        output: { format: { type: "audio/pcm", rate: RATE } },
       },
-    }));
+    };
+    if (typeof sessionInstructions === "string" && sessionInstructions.trim()) {
+      session.instructions = sessionInstructions;
+    }
+    socket.send(JSON.stringify({ type: "session.update", session: session }));
   }
 
   start.onclick = async () => {
     if (socket || blocked) return;
     ending = false;
     sessionReady = false;
+    sessionInstructions = "";
     agentRow = null;
     playAt = 0;
     start.disabled = true;
@@ -380,6 +387,7 @@
         finish();
         return;
       }
+      sessionInstructions = typeof payload.instructions === "string" ? payload.instructions : "";
       const options = sessionOptions(payload);
       if (!options) {
         add(T.missing, "sys");
