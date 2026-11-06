@@ -46,9 +46,9 @@ def test_home_templates_have_no_intro_markup() -> None:
 def test_voice_consultant_is_the_first_thing_on_both_home_pages() -> None:
     arabic = _home("ar")
     english = _home("en")
-    for page, heading, chat, start in (
-        (arabic, "مستشار النرجس", "دردشة", "ابدأ المكالمة"),
-        (english, "Talk to the Al-Narjis agent", "Chat", "Start the call"),
+    for page, heading, chat, start, idle in (
+        (arabic, "مستشار النرجس", "دردشة", "ابدأ المكالمة", "اضغط للبدء"),
+        (english, "Al-Narjis advisor", "Chat", "Start the call", "Tap to start"),
     ):
         for marker in INTRO_MARKERS:
             assert marker not in page, marker
@@ -58,11 +58,14 @@ def test_voice_consultant_is_the_first_thing_on_both_home_pages() -> None:
         assert voice_at < main.index('id="pricing"')
         block = main[voice_at:main.index('id="top"')]
         assert heading in block
+        assert idle in block
+        assert 'id="voiceOrb"' in block
+        assert 'class="scroll-hint"' in block and 'href="#top"' in block
         assert f'id="chat"' in block and chat in block
         assert 'id="start"' in block and start in block
         assert 'id="chatPanel" hidden' in block
         assert "/static/js/voice-live-app.js" in page
-        assert "Grok" not in block
+        assert "Grok" not in block and "xAI" not in block
         assert "tel:" not in page
         assert "0540799266" not in page
     assert "790" in arabic and "1,490" in arabic and "2,990" in arabic

@@ -1,17 +1,14 @@
-{# Home-page voice consultant. Same widget as /ar/voice and /en/voice
-   (voice-live-app.js). Spoken reply is the default; «دردشة» opens text.
-   The microphone is requested only after the visitor presses start. #}
+{# Full-viewport voice consultant on the home page. Same call logic as
+   /ar/voice and /en/voice. Spoken reply is the default; «دردشة» opens text.
+   The microphone is requested only after the visitor presses the round button. #}
 <section class="nj-voice-hero" id="voiceConsultant" aria-labelledby="voice-h">
-    <div class="wrap">
-        <h2 id="voice-h">{% if ar %}مستشار النرجس{% else %}Talk to the Al-Narjis agent{% endif %}</h2>
-        <p class="voice-lead">{% if ar %}اسأل عن خدماتنا بصوتك. الرد صوتي، وزر دردشة يحوّل المحادثة إلى كتابة.{% else %}Ask about our services out loud. The reply is spoken, and Chat switches the conversation to text.{% endif %}</p>
-        <div class="voice-card idle" id="p" aria-label="{% if ar %}مكالمة حية مع مستشار النرجس{% else %}Live call with the Al-Narjis agent{% endif %}">
-            <div class="voice-orb" id="vid" role="img" aria-label="{% if ar %}مستشار النرجس{% else %}Al-Narjis voice agent{% endif %}"></div>
-            <div class="st" aria-live="polite"><span>{% if ar %}الحالة: {% else %}Status: {% endif %}</span><b id="s">{% if ar %}جاهز{% else %}Ready{% endif %}</b></div>
-            <div class="voice-actions">
-                <button class="startbtn" id="start" type="button">{% if ar %}ابدأ المكالمة{% else %}Start the call{% endif %}</button>
-                <button class="chatbtn" id="chat" type="button">{% if ar %}دردشة{% else %}Chat{% endif %}</button>
+    <div class="voice-card idle" id="p" aria-label="{% if ar %}مكالمة حية مع مستشار النرجس{% else %}Live call with the Al-Narjis advisor{% endif %}">
+        <div class="voice-center">
+            <p class="kicker" id="voice-h">{% if ar %}مستشار النرجس{% else %}Al-Narjis advisor{% endif %}</p>
+            <div class="voice-orb" id="vid" role="img" aria-label="{% if ar %}مستشار النرجس{% else %}Al-Narjis voice{% endif %}">
+                <canvas id="voiceOrb" width="480" height="480" aria-hidden="true"></canvas>
             </div>
+            <p class="st" aria-live="polite"><span class="sr">{% if ar %}الحالة: {% else %}Status: {% endif %}</span><b id="s">{% if ar %}اضغط للبدء{% else %}Tap to start{% endif %}</b></p>
             <p id="micNote" class="mic-note" hidden></p>
             <div id="chatPanel" hidden>
                 <div class="log" id="log" role="log" aria-live="polite"></div>
@@ -22,6 +19,14 @@
                 </form>
                 <button class="back" id="voiceBack" type="button">{% if ar %}رجوع للصوت{% else %}Back to voice{% endif %}</button>
             </div>
+            <div id="fallback" class="fallback" hidden>
+                <p id="fallbackMsg"></p>
+                <p class="fallback-links"><a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a></p>
+            </div>
+        </div>
+        <div class="voice-dock">
+            <button class="chatbtn" id="chat" type="button">{% if ar %}دردشة{% else %}Chat{% endif %}</button>
+            <button class="startbtn" id="start" type="button" aria-label="{% if ar %}ابدأ المكالمة{% else %}Start the call{% endif %}">{% if ar %}ابدأ المكالمة{% else %}Start the call{% endif %}</button>
             <div class="incall">
                 <div class="wave" id="wave" aria-hidden="true"></div>
                 <div class="timer" id="tm" aria-live="off">3:00</div>
@@ -30,12 +35,99 @@
                     <button class="b end" id="end" type="button" aria-label="{% if ar %}إنهاء المكالمة{% else %}End call{% endif %}">{% if ar %}إنهاء{% else %}End{% endif %}</button>
                 </div>
             </div>
-            <p class="demo">{% if ar %}محادثة حية، بحد أقصى 3 دقائق. المايك لا يُطلب إلا بعد الضغط على ابدأ المكالمة.{% else %}A live call, 3 minutes at most. The microphone is requested only after you start the call.{% endif %}</p>
-            <div id="fallback" class="fallback" hidden>
-                <p id="fallbackMsg"></p>
-                <p class="fallback-links"><a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a></p>
-            </div>
+            <a class="scroll-hint" href="#top">{% if ar %}مرّر للأسفل{% else %}Scroll{% endif %}</a>
         </div>
     </div>
 </section>
 <script src="/static/js/voice-live-app.js"></script>
+<script>
+(function () {
+    var canvas = document.getElementById("voiceOrb");
+    var card = document.getElementById("p");
+    if (!canvas || !card || !canvas.getContext) return;
+    var ctx = canvas.getContext("2d");
+    var reduce = false;
+    try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (error) { reduce = false; }
+    var running = false;
+    var last = 0;
+    var clock = 0;
+
+    function level() {
+        var audio = 0;
+        try {
+            if (card.classList.contains("speaking") && typeof window.__outLvl === "function") audio = window.__outLvl();
+            else if ((card.classList.contains("listening") || card.classList.contains("ready")) && typeof window.__inLvl === "function") audio = window.__inLvl();
+        } catch (error) { audio = 0; }
+        if (audio < 0) return 0;
+        if (audio > 1) return 1;
+        return audio;
+    }
+
+    function fit() {
+        var box = canvas.parentElement.getBoundingClientRect();
+        var w = Math.max(120, Math.round(box.width || 280));
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(w * dpr);
+    }
+
+    function draw() {
+        var w = canvas.width;
+        var c = w / 2;
+        var audio = level();
+        var pulse = reduce ? 0.5 : 0.5 + 0.5 * Math.sin(clock * 1.7);
+        var energy = 0.42 + (reduce ? 0 : pulse * 0.06) + audio * 0.38;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, w, w);
+        var radius = c * (0.46 + (reduce ? 0 : pulse * 0.025) + audio * 0.08);
+        var glow = ctx.createRadialGradient(c, c, radius * 0.55, c, c, c * 0.98);
+        glow.addColorStop(0, "rgba(255,90,54," + (0.22 + audio * 0.28).toFixed(3) + ")");
+        glow.addColorStop(0.55, "rgba(122,28,48," + (0.18 + energy * 0.1).toFixed(3) + ")");
+        glow.addColorStop(1, "rgba(18,16,13,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, w);
+        var body = ctx.createRadialGradient(c - radius * 0.28, c - radius * 0.32, radius * 0.05, c, c, radius);
+        body.addColorStop(0, "#ff8a5c");
+        body.addColorStop(0.22, "#ff8a5c");
+        body.addColorStop(0.55, "#ff5a36");
+        body.addColorStop(0.82, "#8a2438");
+        body.addColorStop(1, "#3a1018");
+        ctx.beginPath();
+        ctx.arc(c, c, radius, 0, 6.2832);
+        ctx.fillStyle = body;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(c - radius * 0.28, c - radius * 0.32, radius * 0.28, radius * 0.16, -0.6, 0, 6.2832);
+        ctx.fillStyle = "rgba(255,255,255," + (0.28 + audio * 0.2).toFixed(3) + ")";
+        ctx.fill();
+    }
+
+    function frame(now) {
+        if (!running) return;
+        var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+        last = now;
+        clock += dt;
+        draw();
+        if (!reduce) requestAnimationFrame(frame);
+        else running = false;
+    }
+
+    function start() {
+        if (running) return;
+        running = true;
+        last = 0;
+        requestAnimationFrame(frame);
+    }
+
+    fit();
+    addEventListener("resize", function () { fit(); if (reduce) draw(); });
+    start();
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) running = false;
+        else if (!reduce) start();
+    });
+    if (reduce) {
+        new MutationObserver(function () { draw(); }).observe(card, { attributes: true, attributeFilter: ["class"] });
+    }
+})();
+</script>

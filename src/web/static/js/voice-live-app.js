@@ -49,6 +49,25 @@
         placeholder: "اكتب لمستشار النرجس",
       };
 
+  const HOME = !!(document.body && document.body.classList.contains("nj"));
+  if (HOME) {
+    if (EN) {
+      T.idle = "Tap to start";
+      T.connecting = "Connecting…";
+      T.listening = "Listening…";
+      T.speaking = "Speaking…";
+      T.ended = "Ended";
+      T.muted = "Muted";
+    } else {
+      T.idle = "اضغط للبدء";
+      T.connecting = "يتصل...";
+      T.listening = "يستمع...";
+      T.speaking = "يتكلم...";
+      T.ended = "انتهت";
+      T.muted = "مكتوم";
+    }
+  }
+
   const $ = (id) => document.getElementById(id);
   const card = $("p");
   const status = $("s");

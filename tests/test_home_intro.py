@@ -92,14 +92,17 @@ def test_home_shows_the_consultant_without_an_intro(browser, client, lang, width
     hero = page.locator("#top").bounding_box()
     assert box["y"] < 8
     assert box["y"] < hero["y"]
+    assert box["height"] >= page.viewport_size["height"] * 0.85
     assert page.locator("#start").is_visible()
     assert page.locator("#chat").is_visible()
+    assert page.locator("#voiceOrb").is_visible()
+    assert page.locator(".scroll-hint").is_visible()
     assert page.locator("#chatPanel").is_hidden()
     if lang == "ar":
         assert "مستشار النرجس" in consultant.inner_text()
         assert page.locator("#chat").inner_text().strip() == "دردشة"
     else:
-        assert "Talk to the Al-Narjis agent" in consultant.inner_text()
+        assert "Al-Narjis advisor" in consultant.inner_text()
         assert page.locator("#chat").inner_text().strip() == "Chat"
     assert page.evaluate("window.__micCalls") == 0
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
