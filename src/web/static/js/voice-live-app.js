@@ -86,6 +86,12 @@
   let agentRow = null;
   let sessionReady = false;
   let sessionInstructions = "";
+  let sessionGreeting = "";
+  let personaSent = false;
+  let greetingSent = false;
+  let openingSettled = false;
+  const blockedIds = {};
+  const heldAudio = {};
 
   function setMode(name) {
     card.classList.remove("idle", "listening", "speaking", "ready", "ended", "connecting");
@@ -255,13 +261,47 @@
     log.scrollTop = 1e5;
   }
 
+  function responseId(event) {
+    return (event && (event.response_id || (event.response && event.response.id))) || "";
+  }
+
+  function dropEarly(event) {
+    const id = responseId(event);
+    if (greetingSent && !(id && blockedIds[id])) return false;
+    if (id) blockedIds[id] = true;
+    return true;
+  }
+
+  function vendorLine(text) {
+    return /Grok|xAI|ChatGPT/.test(text || "");
+  }
+
+  function heldRow(id) {
+    const key = id || "_";
+    return heldAudio[key] || (heldAudio[key] = { chunks: [], text: "" });
+  }
+
+  function cancelResponse(id) {
+    if (id) blockedIds[id] = true;
+    const row = heldAudio[id || "_"];
+    if (row) row.chunks = [];
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const cancel = { type: "response.cancel" };
+    if (id) cancel.response_id = id;
+    socket.send(JSON.stringify(cancel));
+  }
+
   function onEvent(event) {
     const type = event.type || "";
-    // The published agent is created first. Apply the server persona after that.
-    if (type === "session.created" && socket && socket.readyState === WebSocket.OPEN) {
+    // The published agent's greeting is a separate console line. It can speak
+    // before instructions apply. Configure only after session.created, then
+    // speak our line after session.updated. Drop anything earlier.
+    if (type === "session.created") {
       configureSession();
+      return;
     }
-    if (type === "session.created" || type === "session.updated") {
+    if (type === "session.updated") {
+      speakGreeting();
       sessionReady = true;
       if (!tick) startTimer();
       setMode("listening");
@@ -272,19 +312,50 @@
       setMode("listening");
       return;
     }
-    if (type === "response.created" || type === "response.output_audio.delta" || type === "response.audio.delta") {
-      setMode("speaking");
+    if (type === "response.created") {
+      if (dropEarly(event)) {
+        cancelResponse(responseId(event));
+        return;
+      }
+      if (openingSettled) setMode("speaking");
+      return;
     }
     if (type === "response.output_audio.delta" || type === "response.audio.delta") {
+      if (dropEarly(event)) return;
+      if (!openingSettled) {
+        const row = heldRow(responseId(event));
+        if (event.delta) row.chunks.push(event.delta);
+        return;
+      }
+      setMode("speaking");
       if (event.delta) playPcm16(event.delta);
       return;
     }
-    if (type === "response.output_audio_transcript.delta" || type === "response.audio_transcript.delta") {
-      agentText(event.delta || "", false);
-      return;
-    }
-    if (type === "response.output_audio_transcript.done" || type === "response.audio_transcript.done") {
-      agentText(event.transcript || "", true);
+    if (type === "response.output_audio_transcript.delta" || type === "response.audio_transcript.delta" || type === "response.output_audio_transcript.done" || type === "response.audio_transcript.done") {
+      if (dropEarly(event)) return;
+      const done = type.endsWith(".done");
+      const id = responseId(event);
+      const row = heldRow(id);
+      const piece = done ? (event.transcript || "") : (event.delta || "");
+      if (done && event.transcript) row.text = event.transcript;
+      else row.text += piece;
+      if (vendorLine(row.text)) {
+        cancelResponse(id);
+        return;
+      }
+      if (!openingSettled) {
+        const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
+        const probe = line.slice(0, 8);
+        if ((probe && row.text.indexOf(probe) !== -1) || (done && row.text)) {
+          openingSettled = true;
+          setMode("speaking");
+          row.chunks.forEach((chunk) => playPcm16(chunk));
+          row.chunks = [];
+          agentText(row.text, done);
+        }
+        return;
+      }
+      agentText(done ? (event.transcript || row.text) : (event.delta || ""), done);
       return;
     }
     if (type === "conversation.item.input_audio_transcription.completed") {
@@ -350,6 +421,8 @@
   }
 
   function configureSession() {
+    if (personaSent || !socket || socket.readyState !== WebSocket.OPEN) return;
+    personaSent = true;
     const hint = EN ? "en" : "ar";
     const session = {
       turn_detection: { type: "server_vad" },
@@ -364,11 +437,34 @@
     socket.send(JSON.stringify({ type: "session.update", session: session }));
   }
 
+  function speakGreeting() {
+    if (greetingSent || !socket || socket.readyState !== WebSocket.OPEN) return;
+    const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
+    greetingSent = true;
+    playAt = 0;
+    if (!line) return;
+    socket.send(JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "force_message",
+        role: "assistant",
+        interruptible: false,
+        content: [{ type: "output_text", text: line }],
+      },
+    }));
+  }
+
   start.onclick = async () => {
     if (socket || blocked) return;
     ending = false;
     sessionReady = false;
     sessionInstructions = "";
+    sessionGreeting = "";
+    personaSent = false;
+    greetingSent = false;
+    openingSettled = false;
+    Object.keys(blockedIds).forEach((id) => { delete blockedIds[id]; });
+    Object.keys(heldAudio).forEach((id) => { delete heldAudio[id]; });
     agentRow = null;
     playAt = 0;
     start.disabled = true;
@@ -376,7 +472,7 @@
     setMode("connecting");
     let payload = {};
     try {
-      const response = await fetch("/api/voice/session", { method: "POST", headers: { Accept: "application/json" } });
+      const response = await fetch("/api/voice/session?lang=" + (EN ? "en" : "ar"), { method: "POST", headers: { Accept: "application/json" } });
       try { payload = await response.json(); } catch (error) { payload = {}; }
       if (!response.ok || !payload.ok) {
         const reason = payload.reason || (response.status === 429 ? "daily_limit" : "upstream");
@@ -388,6 +484,7 @@
         return;
       }
       sessionInstructions = typeof payload.instructions === "string" ? payload.instructions : "";
+      sessionGreeting = typeof payload.greeting === "string" ? payload.greeting : "";
       const options = sessionOptions(payload);
       if (!options) {
         add(T.missing, "sys");
@@ -409,7 +506,6 @@
       socket = new WebSocket(options.url, [options.protocol]);
       socket.onopen = () => {
         console.info("voice websocket open");
-        configureSession();
       };
       socket.onmessage = (message) => {
         if (typeof message.data !== "string") return;

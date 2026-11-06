@@ -137,6 +137,11 @@ def test_voice_instructions_name_al_narjis_and_forbid_grok():
     assert _ANTI_GROK in text
     assert "ChatGPT" in text and "Grok Voice" in text and "xAI" in text
     assert "Saudi-friendly Arabic" in text
+    assert "Switch to English only if the caller speaks English." in text
+    assert "Do not open in English." in text
+    assert voice_live.opening_greeting() == "هلا والله، معك مستشار النرجس، كيف أقدر أساعدك؟"
+    assert "Grok" not in voice_live.opening_greeting()
+    assert "Grok" not in voice_live.opening_greeting("en")
     assert "كريم" in text
     assert SUPPORT_EMAIL in text
     assert "NEVER offer WhatsApp" in text
@@ -187,9 +192,11 @@ async def test_session_mints_a_client_secret_for_the_published_agent(monkeypatch
     assert granted["client_secret"] == "ephemeral-token-value"
     assert granted["websocket_url"] == f"wss://api.x.ai/v1/realtime?agent_id={AGENT}"
     assert "model=" not in granted["websocket_url"]
-    assert granted["instructions"] == voice_live.session_instructions()
+    assert granted["instructions"] == voice_live.session_instructions("ar")
+    assert granted["greeting"] == voice_live.opening_greeting("ar")
     assert "مستشار النرجس" in granted["instructions"]
     assert _ANTI_GROK in granted["instructions"]
+    assert "session" not in seen[0]["json"] and "session" not in seen[1]["json"]
     assert "xai-test-key-not-real" not in str(granted)
     assert seen[0]["json"]["agent_id"] == AGENT
     assert seen[0]["headers"]["Authorization"] == "Bearer xai-test-key-not-real"
@@ -263,6 +270,7 @@ def test_session_route_reports_the_daily_limit(client: TestClient, monkeypatch):
     assert first.json()["websocket_url"].startswith("wss://api.x.ai/")
     assert "model=" not in first.json()["websocket_url"]
     assert "مستشار النرجس" in first.json()["instructions"]
+    assert first.json()["greeting"] == voice_live.opening_greeting("ar")
     assert _ANTI_GROK in first.json()["instructions"]
     assert "xai-test-key-not-real" not in first.text
     assert second.status_code == 429
@@ -270,13 +278,37 @@ def test_session_route_reports_the_daily_limit(client: TestClient, monkeypatch):
     assert second.headers["retry-after"]
 
 
+def test_session_lang_selects_the_opening_line(client: TestClient, monkeypatch):
+    _enable(monkeypatch)
+
+    async def mint(agent, key):
+        return "ephemeral-token-value"
+
+    monkeypatch.setattr(voice_live, "mint_client_secret", mint)
+    arabic = client.post("/api/voice/session?lang=ar")
+    english = client.post("/api/voice/session?lang=en")
+    assert arabic.status_code == english.status_code == 200
+    assert arabic.json()["greeting"] == "هلا والله، معك مستشار النرجس، كيف أقدر أساعدك؟"
+    assert "Grok" not in arabic.json()["greeting"]
+    assert "Switch to English only if the caller speaks English." in arabic.json()["instructions"]
+    assert english.json()["greeting"] == voice_live.opening_greeting("en")
+    assert "Grok" not in english.json()["greeting"]
+    assert "Do not open in English." not in english.json()["instructions"]
+    assert "model=" not in arabic.json()["websocket_url"]
+
+
 def test_configure_session_copies_server_instructions():
     """The browser session.update carries the server persona and no model field."""
     script = _JS.read_text(encoding="utf-8")
     update = script.split("function configureSession()", 1)[1].split("start.onclick", 1)[0]
     assert 'sessionInstructions = typeof payload.instructions === "string" ? payload.instructions : ""' in script
+    assert 'sessionGreeting = typeof payload.greeting === "string" ? payload.greeting : ""' in script
+    assert 'fetch("/api/voice/session?lang=" + (EN ? "en" : "ar")' in script
     assert "session.instructions = sessionInstructions" in update
     assert 'type: "session.update"' in update
+    assert 'type: "force_message"' in update
+    assert 'type: "response.cancel"' in script
+    assert 'type: "response.create"' not in script
     assert "model" not in update
     assert _ANTI_GROK not in script
 
@@ -285,7 +317,8 @@ def test_configure_session_copies_server_instructions():
         return
     payload = {
         "ok": True,
-        "instructions": voice_live.session_instructions(),
+        "instructions": voice_live.session_instructions("ar"),
+        "greeting": voice_live.opening_greeting("ar"),
         "client_secret": "ephemeral-token-value",
         "websocket_url": f"wss://api.x.ai/v1/realtime?agent_id={AGENT}",
     }
@@ -343,15 +376,17 @@ const window = {
     createGain() { return { gain: { value: 0 }, connect() {} }; }
   },
 };
+const fetched = [];
 const context = {
   els,
   messages,
   sockets,
   payload,
+  fetched,
   document,
   window,
   navigator: { mediaDevices: { getUserMedia() { return Promise.resolve({ getTracks() { return []; } }); } } },
-  fetch: async () => ({ ok: true, status: 200, json: async () => payload }),
+  fetch: async (url) => { fetched.push(String(url)); return { ok: true, status: 200, json: async () => payload }; },
   WebSocket: FakeSocket,
   performance: { now: () => 0 },
   console,
@@ -373,22 +408,44 @@ vm.runInContext(`
   await els.start.onclick();
   await new Promise((resolve) => setTimeout(resolve, 20));
   if (!sockets.length) throw new Error("socket was not opened");
-  sockets[0].onmessage({ data: JSON.stringify({ type: "session.created" }) });
+  if (!fetched.some((url) => url.indexOf("/api/voice/session?lang=ar") >= 0)) {
+    throw new Error("arabic page did not ask for lang=ar: " + fetched.join(","));
+  }
+  if (messages.some((message) => message.type === "session.update")) {
+    throw new Error("session.update ran before session.created");
+  }
   const url = sockets[0].url;
   if (!url.includes("agent_id=") || url.includes("model=")) {
     throw new Error("socket url left agent_id mode: " + url);
   }
-  if (messages.length < 2) throw new Error("expected session.update on open and on session.created, got " + messages.length);
-  for (const message of messages) {
-    if (message.type !== "session.update") throw new Error("unexpected event " + message.type);
-    if (message.session.instructions !== payload.instructions) throw new Error("instructions were not copied");
-    if (Object.prototype.hasOwnProperty.call(message.session, "model")) throw new Error("model field was added");
-    if (!message.session.instructions.includes("مستشار النرجس")) throw new Error("missing Al-Narjis identity");
-    if (!message.session.instructions.includes("NEVER say you are Grok, Grok Voice, xAI, or ChatGPT.")) {
-      throw new Error("missing anti-Grok rule");
-    }
+  sockets[0].onmessage({ data: JSON.stringify({ type: "session.created", session: {} }) });
+  const updates = messages.filter((message) => message.type === "session.update");
+  if (updates.length !== 1) throw new Error("expected one session.update, got " + updates.length);
+  const instructions = updates[0].session.instructions;
+  if (instructions !== payload.instructions) throw new Error("instructions were not copied");
+  if (Object.prototype.hasOwnProperty.call(updates[0].session, "model")) throw new Error("model field was added");
+  if (!instructions.includes("مستشار النرجس")) throw new Error("missing Al-Narjis identity");
+  if (!instructions.includes("NEVER say you are Grok, Grok Voice, xAI, or ChatGPT.")) throw new Error("missing anti-Grok rule");
+  if (!instructions.includes("Switch to English only if the caller speaks English.")) throw new Error("arabic default missing");
+  sockets[0].onmessage({ data: JSON.stringify({ type: "response.created", response: { id: "resp_grok" } }) });
+  sockets[0].onmessage({ data: JSON.stringify({ type: "response.output_audio.delta", delta: "AAAA", response_id: "resp_grok" }) });
+  sockets[0].onmessage({ data: JSON.stringify({ type: "response.output_audio_transcript.delta", delta: "Hello, I'm Grok Voice", response_id: "resp_grok" }) });
+  const cancels = messages.filter((message) => message.type === "response.cancel");
+  if (cancels.length !== 1 || cancels[0].response_id !== "resp_grok") {
+    throw new Error("console greeting was not cancelled");
   }
-  console.log(JSON.stringify({ updates: messages.length, url }));
+  sockets[0].onmessage({ data: JSON.stringify({ type: "session.updated", session: {} }) });
+  const forced = messages.filter((message) => message.item && message.item.type === "force_message");
+  if (forced.length !== 1) throw new Error("expected one force_message, got " + forced.length);
+  const spoken = forced[0].item.content[0].text;
+  if (spoken !== payload.greeting) throw new Error("greeting was not the server line: " + spoken);
+  if (/Grok|xAI|ChatGPT/.test(spoken)) throw new Error("greeting names a vendor");
+  if (messages.some((message) => message.type === "response.create")) throw new Error("response.create lets the model greet");
+  sockets[0].onmessage({ data: JSON.stringify({ type: "response.created", response: { id: "resp_late" } }) });
+  sockets[0].onmessage({ data: JSON.stringify({ type: "response.output_audio_transcript.delta", delta: "Hello, I'm Grok Voice", response_id: "resp_late" }) });
+  const late = messages.filter((message) => message.type === "response.cancel" && message.response_id === "resp_late");
+  if (late.length !== 1) throw new Error("late Grok greeting was not cancelled");
+  console.log(JSON.stringify({ updates: updates.length, cancels: cancels.length, spoken, url }));
   process.exit(0);
 })().catch((error) => { console.error(error && error.stack || error); process.exit(1); });
 `, context);
@@ -402,6 +459,8 @@ vm.runInContext(`
     )
     assert proc.returncode == 0, proc.stderr or proc.stdout
     report = json.loads(proc.stdout.strip().splitlines()[-1])
-    assert report["updates"] == 2
+    assert report["updates"] == 1
+    assert report["cancels"] == 1
+    assert report["spoken"] == voice_live.opening_greeting("ar")
     assert f"agent_id={AGENT}" in report["url"]
     assert "model=" not in report["url"]
