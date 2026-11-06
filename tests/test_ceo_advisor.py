@@ -124,6 +124,6 @@ def test_contact_channels_are_phone_and_email_only():
     assert channels["messenger"] == ""
     assert channels["telegram"] == ""
     assert channels["whatsapp"] == ""
-    assert channels["phone"] == "tel:+966540799266"
-    assert channels["phone_display"] == "0540799266"
+    assert channels["phone"] == "tel:+966552978753"
+    assert channels["phone_display"] == "0552978753"
     assert channels["email"] == "mailto:AlNarjisai@gmail.com"

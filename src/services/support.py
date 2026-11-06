@@ -7,8 +7,8 @@ available; WhatsApp, Telegram and Messenger are not customer-contact channels.
 from __future__ import annotations
 
 SUPPORT_EMAIL = "AlNarjisai@gmail.com"
-COMPANY_PHONE_E164 = "+966540799266"
-COMPANY_PHONE_DISPLAY = "0540799266"
+COMPANY_PHONE_E164 = "+966552978753"
+COMPANY_PHONE_DISPLAY = "0552978753"
 
 
 def support_contact() -> dict:

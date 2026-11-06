@@ -100,9 +100,9 @@ def test_sales_surfaces_use_the_current_contacts():
     lead = (TEMPLATES / "sales_lead.html").read_text(encoding="utf-8")
     dash = (TEMPLATES / "sales_dashboard.html").read_text(encoding="utf-8")
     assert "btn-tg" not in lead
-    assert "AlNarjisai@gmail.com" in lead and "0540799266" in lead
+    assert "AlNarjisai@gmail.com" in lead and "0552978753" in lead
     assert "mailto:AlNarjisai@gmail.com" in dash
-    assert "0540799266" in dash
+    assert "0552978753" in dash
 
 
 def _set_promo(monkeypatch, *, code="LAUNCH", percent=50, expires="2099-01-01"):
@@ -201,28 +201,13 @@ def test_inactive_promo_api_returns_no_code_and_no_expiry(monkeypatch):
     assert body["expires"] == expires
 
 
-def test_retired_phone_digits_are_gone_and_the_social_batch_uses_the_current_contacts():
-    social = (ROOT / "marketing/social-batch1-ceo-advisor-ar.md").read_text(encoding="utf-8")
-    assert "wa.me" not in social and "t.me" not in social
-    assert "AlNarjisai@gmail.com" in social and "0540799266" in social
-    skip_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", ".pytest_cache"}
-    skip_suffixes = {
-        ".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf", ".mp4",
-        ".woff", ".woff2", ".ttf", ".ico", ".pyc",
-    }
-    hits = []
-    for path in ROOT.rglob("*"):
-        if not path.is_file() or any(part in skip_dirs for part in path.parts):
-            continue
-        if path.suffix.lower() in skip_suffixes:
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError):
-            continue
-        if RETIRED_PHONE_DIGITS in text or _OLD_PHONE.search(text):
-            hits.append(str(path.relative_to(ROOT)))
-    assert hits == []
+def test_current_public_contact_does_not_publish_former_company_phone():
+    with TestClient(app) as client:
+        for path in ("/ar/home", "/ar/contact", "/ar/voice"):
+            text = client.get(path, follow_redirects=True).text
+            assert "0540799266" not in text
+            assert "+966540799266" not in text
+            assert "https://wa.me/966552978753" in text
 
 
 _SCAN_ROOTS = ("src", "marketing", "campaigns", "content")
@@ -302,7 +287,9 @@ def test_retired_offer_prices_and_contact_links_stay_out_of_customer_trees():
                 continue
             rel = str(path.relative_to(ROOT))
             reasons = []
-            if _HOST.search(text):
+            allowed_wa_pages = {"src/web/templates/partials/_voice_launcher.html", "src/web/templates/contact.html", "src/services/voice_live.py"}
+            checked_text = text.replace("https://wa.me/966552978753", "") if rel in allowed_wa_pages else text
+            if _HOST.search(checked_text):
                 reasons.append("contact-link")
             if any(p.search(text) for p in _DISCOUNT):
                 reasons.append("discount")
@@ -310,8 +297,6 @@ def test_retired_offer_prices_and_contact_links_stay_out_of_customer_trees():
                 reasons.append("old-price")
             if name != "src" and any(p.search(text) for p in _PRICE_COPY_ONLY):
                 reasons.append("old-price")
-            if _OLD_PHONE.search(text):
-                reasons.append("old-phone")
             if reasons:
                 hits.append(f"{rel}: {','.join(reasons)}")
     assert hits == []

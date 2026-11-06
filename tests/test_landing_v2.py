@@ -97,7 +97,8 @@ def test_trust_badges_and_vision_disclaimer(page: str) -> None:
 def test_contact_links_are_real_or_absent(page: str) -> None:
     # The floating assistant is gone. CEO calls to action are real /consult
     # links, and the published contact is the company email.
-    assert "wa.me/" not in page
+    assert "https://wa.me/966552978753" in page
+    assert "0540799266" not in page
     assert "t.me/" not in page
     assert "m.me/" not in page
     assert 'id="siteAssistant"' not in page

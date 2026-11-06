@@ -8,3 +8,8 @@
     </svg>
     <span>{% if _vl == 'ar' %}تحدث مع مستشارنا{% else %}Talk to our agent{% endif %}</span>
 </a>
+
+{# WhatsApp entry on the landing page, without changing Meta settings. #}
+{% if request.url.path in ('/home', '/', '/ar', '/en', '/ar/home', '/en/home') %}
+<a class="nj-whatsapp-launch" id="homeWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if _vl == 'ar' %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
+{% endif %}
