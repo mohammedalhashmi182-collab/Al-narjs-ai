@@ -199,3 +199,23 @@ def test_terms_final_prices_in_both_languages(context, width, lang) -> None:
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
     assert not errors
     assert not failed_responses
+
+@pytest.mark.parametrize('width', [320, 390, 768, 1440])
+@pytest.mark.parametrize('lang', ['ar', 'en'])
+def test_home_whatsapp_replaces_advisor_button_and_consult_keeps_voice(context, width, lang):
+    from playwright.sync_api import expect
+    page = context.new_page()
+    page.set_viewport_size({'width': width, 'height': 844})
+    page.goto(f'http://testserver/{lang}/home')
+    wait_for_preloader(page)
+    if page.locator('#cookieReject').count():
+        page.locator('#cookieReject').click()
+    visible_button = page.locator('#mbarWhatsapp' if width <= 980 else '#heroWhatsapp')
+    expect(visible_button).to_be_visible()
+    expect(visible_button).to_have_attribute('href', 'https://wa.me/966552978753')
+    expect(page.locator('#voiceLauncher')).to_have_count(0)
+    expect(page.locator('#homeWhatsapp')).to_have_count(0)
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+    page.goto(f'http://testserver/{lang}/consult')
+    expect(page.locator('#voiceLauncher')).to_be_visible()
+    expect(page.locator('#voiceLauncher')).to_have_attribute('href', f'/{lang}/voice')

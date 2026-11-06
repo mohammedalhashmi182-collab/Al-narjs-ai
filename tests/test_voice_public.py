@@ -57,12 +57,15 @@ def test_public_pages_link_the_voice_agent_and_not_a_text_widget(client: TestCli
     ar = client.get("/ar/home")
     en = client.get("/en/home")
     assert ar.status_code == en.status_code == 200
-    assert 'id="voiceLauncher"' in ar.text and 'href="/ar/voice"' in ar.text
-    assert "تحدث مع مستشارنا" in ar.text
-    assert 'id="heroVoice"' in ar.text
-    assert 'id="mbarVoice"' in ar.text and 'href="/ar/voice"' in ar.text
-    assert 'id="voiceLauncher"' in en.text and 'href="/en/voice"' in en.text
-    assert "Talk to our agent" in en.text
+    for page in (ar, en):
+        assert 'id="voiceLauncher"' not in page.text
+        assert 'id="homeWhatsapp"' not in page.text
+        for button in ("heroWhatsapp", "mbarWhatsapp"):
+            assert re.search(r'<a\b[^>]*id="' + button + r'"[^>]*href="https://wa.me/966552978753"', page.text)
+    assert "تواصل معنا عبر واتساب" in ar.text
+    assert "Chat with us on WhatsApp" in en.text
+    assert 'href="/ar/voice"' in client.get('/ar/consult').text
+    assert 'id="voiceLauncher"' in client.get('/ar/consult').text
     assert 'id="openAssistant"' not in ar.text and 'id="siteAssistant"' not in ar.text
     assert "tel:" not in ar.text and COMPANY_PHONE_DISPLAY not in ar.text
     contact = client.get("/ar/contact")

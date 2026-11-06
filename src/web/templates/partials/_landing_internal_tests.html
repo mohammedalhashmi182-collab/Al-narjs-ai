@@ -1,0 +1,25 @@
+{% if internal_tests %}{% set it = internal_tests %}
+<!-- ==================== WE TESTED IT OURSELVES (real internal tests) ==================== -->
+<section id="tested" aria-label="{% if ar %}جرّبناها بأنفسنا{% else %}We tested it ourselves{% endif %}">
+    <div class="wrap">
+        <div class="sh rv">
+            <h2>{% if ar %}نتائج حقيقية من اختباراتنا، كما هي{% else %}Real results from our own tests, as they came out{% endif %}</h2>
+            <p>{% if ar %}{{ it.engine_ar }}. أي سؤال ليس في قاعدة المعرفة يُحوَّل لموظف بدل التخمين.{% else %}{{ it.engine_en }}. Any question not in the knowledge base is handed to a person instead of guessed.{% endif %}</p>
+        </div>
+        <span class="it-label" data-label="internal-tests">{% if ar %}اختبارات داخلية من فريق النرجس — ليست آراء عملاء · تاريخ الاختبار: <span dir="ltr">{{ it.test_date }}</span>{% else %}Internal tests by the Al-Narjis team — not customer reviews · Test date: {{ it.test_date }}{% endif %}</span>
+        <div class="it-metrics">
+            <div class="card proof-num"><b>{{ it.metrics.correct }}/{{ it.metrics.questions }}</b><span class="muted">{% if ar %}إجابة صحيحة من قاعدة المعرفة{% else %}correct answers from the knowledge base{% endif %}</span></div>
+            <div class="card proof-num"><b>{{ it.metrics.handoff }}/{{ it.metrics.questions }}</b><span class="muted">{% if ar %}حُوّلت لموظف بدل التخمين{% else %}handed to a person instead of guessing{% endif %}</span></div>
+            <div class="card proof-num"><b>{{ it.metrics.wrong }}</b><span class="muted">{% if ar %}إجابات خاطئة{% else %}wrong answers{% endif %}</span></div>
+            <div class="card proof-num"><b dir="ltr">{{ it.metrics.median_ms }} ms</b><span class="muted">{% if ar %}متوسط زمن الرد (الوسيط، على الخادم){% else %}median response time (server){% endif %}</span></div>
+        </div>
+        <div class="it-tr">
+            {% for tr in it.transcripts %}
+            <div class="card" dir="rtl" lang="ar">
+                {% for t in tr %}<p class="u">👤 {{ t.user }}</p><p class="ag">🤖 {{ t.agent }} <small dir="ltr">({{ t.ms|round|int }} ms)</small></p>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}

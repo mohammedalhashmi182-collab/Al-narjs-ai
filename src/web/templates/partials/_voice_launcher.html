@@ -1,6 +1,7 @@
 {# Public entry to the live voice agent. Not a text chat widget. #}
 <link rel="stylesheet" href="/static/css/narjis-voice.css">
 {% set _vl = page_lang(request) %}
+{% if request.url.path not in ('/home', '/', '/ar', '/en', '/ar/home', '/en/home') %}
 <a class="nj-voice-launch" id="voiceLauncher" href="/{{ _vl }}/voice">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <rect x="9" y="3" width="6" height="11" rx="3"></rect>
@@ -8,8 +9,4 @@
     </svg>
     <span>{% if _vl == 'ar' %}تحدث مع مستشارنا{% else %}Talk to our agent{% endif %}</span>
 </a>
-
-{# WhatsApp entry on the landing page, without changing Meta settings. #}
-{% if request.url.path in ('/home', '/', '/ar', '/en', '/ar/home', '/en/home') %}
-<a class="nj-whatsapp-launch" id="homeWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if _vl == 'ar' %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
 {% endif %}
