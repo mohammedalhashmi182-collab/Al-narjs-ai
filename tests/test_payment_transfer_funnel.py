@@ -341,7 +341,7 @@ class TestTransferInstructions:
         payment = Payment(id=uuid4(), amount=49900, currency="SAR", status="invoice")
         out = pm.transfer_instructions(payment)
         assert out["contact"]["whatsapp"] == ""
-        assert out["contact"]["phone"] == "tel:+966540799266"
+        assert out["contact"]["phone"] == "tel:+966552978753"
         assert out["reference"]
 
     def test_bank_details_come_from_the_file_unless_the_environment_overrides(self, monkeypatch):
@@ -619,10 +619,10 @@ class TestTransferModule:
         assert channels["telegram"] == ""
         assert channels["whatsapp"] == ""
         assert channels["messenger"] == ""
-        assert channels["phone"] == "tel:+966540799266"
+        assert channels["phone"] == "tel:+966552978753"
 
     def test_a_prefilled_message_is_url_encoded(self):
         buttons = transfer.contact_buttons("ABCD1234", 920.0, "مؤسسة")
         assert buttons["whatsapp"] == ""
-        assert buttons["phone"] == "tel:+966540799266"
+        assert buttons["phone"] == "tel:+966552978753"
         assert buttons["email"].startswith("mailto:")

@@ -146,7 +146,8 @@ def test_the_checkout_has_no_direct_channel_links(portal: str) -> None:
 
 def test_the_landing_page_has_no_floating_channel_buttons(client: TestClient) -> None:
     body = client.get("/home").text
-    for marker in ('id="waFloat"', 'id="tgFloat"', 'id="msFloat"', "wa.me/", "t.me/", "m.me/"):
+    assert "https://wa.me/966552978753" in body
+    for marker in ('id="waFloat"', 'id="tgFloat"', 'id="msFloat"', "t.me/", "m.me/"):
         assert marker not in body, marker
     assert 'id="siteAssistant"' not in body
     assert "tel:" not in body

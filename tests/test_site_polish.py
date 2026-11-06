@@ -144,8 +144,8 @@ def test_support_handoff_is_the_company_phone():
 
     contact = support_contact()
     assert contact["channel"] == "call"
-    assert contact["href"] == "tel:+966540799266"
-    assert contact["value"] == "0540799266"
+    assert contact["href"] == "tel:+966552978753"
+    assert contact["value"] == "0552978753"
     assert contact["email"] == "AlNarjisai@gmail.com"
 
 
