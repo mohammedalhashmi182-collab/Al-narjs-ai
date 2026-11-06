@@ -349,6 +349,16 @@ def _strip_lang(html: str, drop: str) -> str:
 def render_page(lang: str) -> str:
     """The voice page, in one language, indexable at /ar/voice and /en/voice."""
     html = _raw_page()
+    # The public contact channel is WhatsApp; replace legacy phone fallbacks
+    # in the preserved static voice page before rendering it to visitors.
+    old_contact = '<a href="tel:+966540799266" dir="ltr">0540799266</a>'
+    whatsapp_contact = (
+        '<a href="https://wa.me/966552978753" target="_blank" '
+        'rel="noopener noreferrer" dir="ltr">WhatsApp: 0552978753</a>'
+    )
+    html = html.replace(old_contact, whatsapp_contact)
+    html = html.replace("راسلنا أو اتصل:", "راسلنا بالبريد أو واتساب:")
+    html = html.replace("Email or call us:", "Email or WhatsApp us:")
     if lang == "en":
         html = html.replace('<html lang="ar" dir="rtl">', '<html lang="en" dir="ltr">', 1)
         html = html.replace(

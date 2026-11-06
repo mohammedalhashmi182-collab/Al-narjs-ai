@@ -60,3 +60,19 @@ body:has(#cookieConsent) .nj-voice-launch {
     transition: none;
   }
 }
+
+/* WhatsApp entry for the landing page. Keep clear of the mobile action bar. */
+.nj-whatsapp-launch {
+  position: fixed; z-index: 60; inset-inline-start: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 10px 16px; border-radius: 999px;
+  background: #167b3d; color: #fff; font: 700 15px/1.2 Cairo, sans-serif;
+  text-decoration: none; box-shadow: 0 10px 28px rgba(0,0,0,.28);
+}
+.nj-whatsapp-launch:hover, .nj-whatsapp-launch:focus-visible {
+  background: #116630; color: #fff; outline: 2px solid #fff; outline-offset: 3px;
+}
+@media (max-width: 980px) {
+  .nj-whatsapp-launch { bottom: calc(84px + env(safe-area-inset-bottom)); }
+}
