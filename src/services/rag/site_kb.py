@@ -40,6 +40,9 @@ def docs() -> list[tuple[str, str]]:
     if c.get("purchasable", True):
         out.append(("حزم المحادثات", f"حزمة {c['name']}: {c['price']} ريال. {c['note']}"))
     out.append(("أسئلة الاسترداد", catalog.SETUP_GUARANTEE["text"]))
+    from src.services.advisor_knowledge import site_kb_entries
+
+    out.extend(site_kb_entries())
     return out
 
 

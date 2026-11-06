@@ -206,6 +206,15 @@ def test_permissions_policy_is_set_and_the_voice_page_keeps_its_microphone():
     )
     with TestClient(app) as client:
         home = client.get("/ar/home")
-        assert home.headers["permissions-policy"] == SECURITY_HEADERS["Permissions-Policy"]
+        english = client.get("/en/home")
+        # The consultant is on the home page, so that page may use the mic
+        # after a click. Every other public page stays microphone-locked.
+        assert home.headers["permissions-policy"] == "microphone=(self)"
+        assert english.headers["permissions-policy"] == "microphone=(self)"
+        assert "wss://api.x.ai" in home.headers["content-security-policy"]
+        assert "wss://api.x.ai" in english.headers["content-security-policy"]
+        other = client.get("/ar/pricing")
+        assert other.headers["permissions-policy"] == SECURITY_HEADERS["Permissions-Policy"]
+        assert "api.x.ai" not in other.headers["content-security-policy"]
         voice = client.get("/static/voice-live.html")
         assert voice.headers["permissions-policy"] == "microphone=(self)"

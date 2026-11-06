@@ -1,98 +1,113 @@
-"""Browser checks for the home intro (plays on every visit). Run with RUN_BROWSER_TESTS=1."""
+"""Home opens on the voice consultant, with no intro overlay.
+
+Run with RUN_BROWSER_TESTS=1.
+"""
 import os
 from urllib.parse import urlsplit
 
 import pytest
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get('RUN_BROWSER_TESTS') != '1', reason='set RUN_BROWSER_TESTS=1 for Chromium checks'
+    os.environ.get("RUN_BROWSER_TESTS") != "1",
+    reason="set RUN_BROWSER_TESTS=1 for Chromium checks",
 )
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def browser():
     from playwright.sync_api import sync_playwright
-    with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path=os.environ.get('BROWSER_EXECUTABLE_PATH'))
+
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH")
+        )
         yield browser
         browser.close()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
     from src.main import app
-    with TestClient(app) as c:
-        yield c
+
+    with TestClient(app) as test_client:
+        yield test_client
 
 
-def _ctx(browser, client, **kw):
-    ctx = browser.new_context(**kw)
+def _ctx(browser, client, **kwargs):
+    ctx = browser.new_context(**kwargs)
+
     def serve(route):
         url = urlsplit(route.request.url)
-        r = client.request(route.request.method, url.path + ('?' + url.query if url.query else ''),
-                           content=route.request.post_data_buffer)
-        route.fulfill(status=r.status_code, body=r.content,
-                      headers={'content-type': r.headers.get('content-type', 'text/plain')})
-    ctx.route('**/*', lambda route: route.abort())
-    ctx.route('http://testserver/**', serve)
+        response = client.request(
+            route.request.method,
+            url.path + ("?" + url.query if url.query else ""),
+            content=route.request.post_data_buffer,
+        )
+        route.fulfill(
+            status=response.status_code,
+            body=response.content,
+            headers={"content-type": response.headers.get("content-type", "text/plain")},
+        )
+
+    ctx.route("**/*", lambda route: route.abort())
+    ctx.route("http://testserver/**", serve)
     return ctx
 
 
 def _errors(page):
     errs = []
-    page.on('pageerror', lambda e: errs.append(str(e)))
-    page.on('console', lambda m: m.type == 'error' and 'net::ERR_FAILED' not in m.text and errs.append(m.text))
+    page.on("pageerror", lambda error: errs.append(str(error)))
+    page.on(
+        "console",
+        lambda message: message.type == "error"
+        and "net::ERR_FAILED" not in message.text
+        and errs.append(message.text),
+    )
     return errs
 
 
-@pytest.mark.parametrize('lang,width', [('ar', 390), ('en', 1440)])
-def test_intro_plays_every_visit_and_auto_dismiss(browser, client, lang, width):
-    ctx = _ctx(browser, client, viewport={'width': width, 'height': 844})
+@pytest.mark.parametrize("lang,width", [("ar", 390), ("ar", 1440), ("en", 390), ("en", 1440)])
+def test_home_shows_the_consultant_without_an_intro(browser, client, lang, width):
+    ctx = _ctx(browser, client, viewport={"width": width, "height": 844})
     page = ctx.new_page()
     errs = _errors(page)
-    page.goto(f'http://testserver/{lang}/home')
-    assert page.locator('#njIntro').is_visible()
-    assert page.locator('.nj-intro-skip').is_visible()
-    # gone (removed from DOM) within ~3.2s
-    page.wait_for_selector('#njIntro', state='detached', timeout=3500)
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
-    page.reload()
-    assert page.locator('#njIntro').is_visible()
-    page.wait_for_selector('#njIntro', state='detached', timeout=3500)
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
+    page.add_init_script(
+        """
+        window.__micCalls = 0;
+        const devices = navigator.mediaDevices || {};
+        devices.getUserMedia = function () {
+          window.__micCalls += 1;
+          return Promise.reject(new DOMException('denied', 'NotAllowedError'));
+        };
+        navigator.mediaDevices = devices;
+        """
+    )
+    with page.expect_response(lambda response: response.url.endswith("/api/voice/status")):
+        page.goto(f"http://testserver/{lang}/home")
+    assert page.locator("#njIntro, #intro, #preloader, .nj-intro, .preloader").count() == 0
+    consultant = page.locator("#voiceConsultant")
+    assert consultant.is_visible()
+    box = consultant.bounding_box()
+    hero = page.locator("#top").bounding_box()
+    assert box["y"] < 8
+    assert box["y"] < hero["y"]
+    assert box["height"] >= page.viewport_size["height"] * 0.85
+    assert page.locator("#start").is_visible()
+    assert page.locator("#chat").is_visible()
+    assert page.locator("#voiceOrb").is_visible()
+    assert page.locator(".scroll-hint").is_visible()
+    assert page.locator("#chatPanel").is_hidden()
+    if lang == "ar":
+        assert "مستشار النرجس" in consultant.inner_text()
+        assert page.locator("#chat").inner_text().strip() == "دردشة"
+    else:
+        assert "Al-Narjis advisor" in consultant.inner_text()
+        assert page.locator("#chat").inner_text().strip() == "Chat"
+    assert page.evaluate("window.__micCalls") == 0
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
+    assert "790" in page.locator("#pricing").inner_text()
+    assert "1,490" in page.locator("#pricing").inner_text()
+    assert "2,990" in page.locator("#pricing").inner_text()
     assert errs == []
-    ctx.close()
-
-
-def test_intro_skip_button(browser, client):
-    ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844})
-    page = ctx.new_page()
-    page.goto('http://testserver/en/home')
-    page.locator('.nj-intro-skip').click()
-    page.wait_for_selector('#njIntro', state='detached', timeout=1000)
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
-    ctx.close()
-
-
-def test_intro_reduced_motion_never_shows(browser, client):
-    ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844}, reduced_motion='reduce')
-    page = ctx.new_page()
-    page.goto('http://testserver/ar/home')
-    assert page.locator('#njIntro').is_hidden()
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
-    ctx.close()
-
-
-@pytest.mark.parametrize('lang,main,sub,other', [
-    ('ar', 'النرجس', 'للذكاء الاصطناعي', 'AlNarjis'),
-    ('en', 'AlNarjis', 'AI agents', 'النرجس'),
-])
-def test_intro_text_matches_page_language(browser, client, lang, main, sub, other):
-    ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844})
-    page = ctx.new_page()
-    page.goto(f'http://testserver/{lang}/home')
-    text = page.locator('#njIntro').inner_text()
-    assert main in text and sub in text
-    assert other not in text
     ctx.close()

@@ -62,6 +62,7 @@ def _payment_fact() -> str:
 
 def build_consult_system_prompt(*, locale: str, packages_text: str, employees_text: str) -> str:
     """Build the KarmaAI consultant system prompt for the given visitor locale."""
+    from src.services.advisor_knowledge import consult_facts
     lang_instr = (
         "Respond in Modern Standard Arabic (اللغة العربية الفصحى) unless the visitor "
         "explicitly writes in another language, and keep short clear headings and bullets. "
@@ -138,6 +139,8 @@ OPERATING RULES
   briefly and tell them to email AlNarjisai@gmail.com. Do not invent phone numbers.
 - Keep replies concise (under ~250 words) unless the visitor asks for depth.
 - {lang_instr}
+
+{consult_facts()}
 
 LEAD DETECTION (silent — never shown to the visitor)
 When the visitor shows explicit purchase intent (asks to start, subscribe, or book an audit), or

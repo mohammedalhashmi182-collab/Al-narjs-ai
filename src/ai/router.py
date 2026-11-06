@@ -147,8 +147,15 @@ def _user_prompt(question: str, context: str, *, shorter: bool = False) -> str:
     )
 
 
+def system_prompt() -> str:
+    """Site assistant instructions plus the catalog-backed Al-Narjis facts."""
+    from src.services.advisor_knowledge import site_system_addon
+
+    return SYSTEM_AR + "\n" + site_system_addon()
+
+
 async def _complete(prov, question: str, context: str, *, shorter: bool = False) -> llm.ChatResult:
-    raw = await prov.chat(SYSTEM_AR, _user_prompt(question, context, shorter=shorter), timeout=llm.TIMEOUT_S)
+    raw = await prov.chat(system_prompt(), _user_prompt(question, context, shorter=shorter), timeout=llm.TIMEOUT_S)
     return llm.as_chat_result(raw)
 
 

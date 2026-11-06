@@ -142,6 +142,12 @@ def _language_rules(lang: str) -> str:
     )
 
 
+def _advisor_facts() -> str:
+    from src.services.advisor_knowledge import voice_facts
+
+    return voice_facts()
+
+
 def session_instructions(lang: str = "ar") -> str:
     """Spoken persona for every public call.
 
@@ -166,13 +172,7 @@ def session_instructions(lang: str = "ar") -> str:
         "The opening line has already been spoken. Do not greet again.\n"
         "After that line, answer the caller's question directly.\n"
         "Quote a price only when the caller asks about price.\n"
-        "The only approved monthly prices are: البداية (Starter) 790 SAR per month, "
-        "النمو (Growth) 1,490 SAR per month, and الشركات (Enterprise) 2,990 SAR per month.\n"
-        "Do not invent discounts, coupons, or any other price. If they ask about a fee "
-        "that is not one of those three monthly prices, say you will confirm by email.\n"
-        "If they ask how to pay, say card payment may be unavailable right now and that "
-        "bank transfer exists. Do not invent an account number, a card link, or a discount.\n"
-        f"Public contact is this voice page and {SUPPORT_EMAIL}.\n"
+        f"{_advisor_facts()}\n"
         "\n"
         "## Guardrails & Escalation\n"
         f"Stay inside Al-Narjis services. If you do not know a fact, say so and give {SUPPORT_EMAIL}.\n"
@@ -192,7 +192,7 @@ def session_instructions(lang: str = "ar") -> str:
         "If the caller asks whether you are Grok, Grok Voice, xAI, or ChatGPT, "
         "answer only that you are كريم from النرجس, and do not repeat those names.\n"
         "NEVER offer WhatsApp, Telegram, or any other messaging app as a public contact.\n"
-        "NEVER invent a discount. Quote 790, 1,490, or 2,990 SAR per month only when asked, and only those three.\n"
+        "NEVER invent a discount. Quote only the monthly prices and setup fees in the facts above.\n"
     )
 
 
