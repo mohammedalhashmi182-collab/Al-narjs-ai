@@ -4,6 +4,7 @@ CI installs Chromium. Normal backend-only runs do not require a browser.
 All first-party requests are served by TestClient; no production writes occur.
 """
 import os
+from http import HTTPStatus
 from urllib.parse import urlsplit
 
 import pytest
@@ -173,3 +174,28 @@ def test_home_without_javascript(browser):
         assert page.locator('#pricing .plan').count() == 3
         assert page.locator('#team .rv').first.evaluate('(el) => getComputedStyle(el).opacity') == '1'
         page.close()
+
+
+@pytest.mark.parametrize('width', [390, 1440])
+@pytest.mark.parametrize('lang', ['ar', 'en'])
+def test_terms_final_prices_in_both_languages(context, width, lang) -> None:
+    page = context.new_page()
+    page.set_viewport_size({'width': width, 'height': 844})
+    errors, failed_responses = [], []
+    page.on('pageerror', lambda error: errors.append(str(error)))
+    page.on('response', lambda response: failed_responses.append(response.url)
+            if response.url.startswith('http://testserver/')
+            and response.status >= HTTPStatus.BAD_REQUEST else None)
+    page.on('console', lambda msg: errors.append(msg.text)
+            if msg.type == 'error' and 'net::ERR_FAILED' not in msg.text else None)
+    response = page.goto(f'http://testserver/{lang}/terms')
+    assert response.status == HTTPStatus.OK
+    assert page.locator('html').get_attribute('lang') == lang
+    assert page.locator('html').get_attribute('dir') == ('rtl' if lang == 'ar' else 'ltr')
+    text = page.locator('body').inner_text()
+    assert '15%' not in text and '15٪' not in text and '\u0661\u0665٪' not in text
+    assert ('الأسعار نهائية' if lang == 'ar' else 'Prices are final') in text
+    assert ('لا نصدر فواتير ضريبية' if lang == 'ar' else 'we do not issue tax invoices') in text
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+    assert not errors
+    assert not failed_responses
