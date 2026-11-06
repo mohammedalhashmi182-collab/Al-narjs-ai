@@ -392,8 +392,12 @@ async def test_public_compliance_pages_render(maker, path, needle):
         r = await c.get(path, follow_redirects=True)
     assert r.status_code == 200 and needle in r.text
     assert 'href="#"' not in r.text
-    # site contact = the company email; no WhatsApp/Telegram
-    assert "t.me/" not in r.text and "wa.me/" not in r.text
+    # WhatsApp is published only on the contact page; Telegram remains absent.
+    assert "t.me/" not in r.text
+    if path == "/contact":
+        assert "https://wa.me/966552978753" in r.text
+    else:
+        assert "wa.me/" not in r.text
     assert 'id="siteAssistant"' not in r.text
     for link in ("/privacy", "/terms", "/data-deletion"):
         assert f'href="{link}"' in r.text
