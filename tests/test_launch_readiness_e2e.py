@@ -128,8 +128,15 @@ def test_staff_team_sizes():
             team = catalog.staff_team(key, addons)
             allowance = catalog.plan_agent_count(key) + addons
             assert team[0] == catalog.CEO_SLUG
-            assert len(team) == 1 + min(allowance, specialists)
             assert len(set(team)) == len(team)
+            base_len = 1 + min(allowance, specialists)
+            bundled = catalog.bundled_capabilities(key)
+            if not bundled:
+                assert len(team) == base_len
+            else:
+                assert set(bundled) <= set(team)
+                assert base_len <= len(team) <= base_len + len(bundled)
+    assert set(catalog.CAPABILITY_AGENTS).isdisjoint(catalog.staff_team("bidaya"))
     assert catalog.staff_team("radd", 0, ["sales_closer"]) == [catalog.CEO_SLUG, "sales_closer", "customer_service"]
     assert catalog.staff_team("radd", 0, ["nope"])[1] == "customer_service"
 

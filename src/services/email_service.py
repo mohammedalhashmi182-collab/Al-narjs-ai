@@ -253,8 +253,22 @@ def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: i
         return f"{halalas / 100:,.2f} SAR"
 
     ar = locale == "ar"
+    from src.services.legal_identity import freelance_doc_number, freelance_holder_name, freelance_holder_name_en
+
     label_org = "النرجس" if ar else "Al-Narjs"
-    cr = "وثيقة عمل حر رقم FL-272182297" if ar else "Freelance document No. FL-272182297"
+    holder = freelance_holder_name() if ar else freelance_holder_name_en()
+    cr = (
+        f"وثيقة عمل حر رقم: {freelance_doc_number()} · {holder}"
+        if ar
+        else f"Freelance document No. {freelance_doc_number()} · {holder}"
+    )
+    not_vat = (
+        "غير مسجل في ضريبة القيمة المضافة. السعر نهائي ولا تُضاف ضريبة."
+        if ar
+        else "Not VAT-registered. The price is final and no VAT is added."
+    )
+    place = "الرياض، المملكة العربية السعودية" if ar else "Riyadh, Kingdom of Saudi Arabia"
+    vat_note = "" if vat_halalas else f"<br/>{not_vat}"
     label_inv = "فاتورة / Invoice" if ar else "Invoice"
     label_pkg = "الباقة / Package" if ar else "Package"
     _pct = round(vat_halalas * 100 / base_halalas) if base_halalas else 0
@@ -280,7 +294,7 @@ def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: i
           <span style="color:#6b7280;">{label_num} {str(payment.id)[:8].upper()}</span>
         </div>
         <p><b>{label_org}</b><br/>
-           {cr}<br/>Riyadh, Kingdom of Saudi Arabia</p>
+           {cr}<br/>{place}{vat_note}</p>
         <table style="width:100%;border-collapse:collapse;margin-top:12px;">
           <tr style="background:#f4f1e8;">
             <th align="left" style="padding:8px 12px;">{label_pkg}</th>

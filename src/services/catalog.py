@@ -85,6 +85,7 @@ PACKAGES = {
             "١٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ١٠٠ ريال",
             "بدون رسوم إعداد",
+            "أي وكيل واحد من التوقع المالي، أو استخراج المستندات العربية، أو ذاكرة أسلوب العميل، أو حلقة تقييم الجودة، يُضاف كوكيل إضافي بـ149 ريال شهرياً",
             "فواتير",
             "دعم بالبريد الإلكتروني",
         ],
@@ -93,6 +94,7 @@ PACKAGES = {
             "1,000 conversations a month",
             "Meta fees included up to 100 SAR",
             "No setup fee",
+            "Any one of financial forecast, Arabic document extraction, client style memory, or the output quality loop can be added as an extra agent for 149 SAR a month",
             "Invoices",
             "Email support",
         ],
@@ -113,6 +115,10 @@ PACKAGES = {
             "٤٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ٢٥٠ ريال",
             "تقارير أسبوعية آلية",
+            "توقع مالي بثلاثة سيناريوهات",
+            "استخراج البيانات من المستندات العربية",
+            "ذاكرة أسلوب العميل",
+            "حلقة تقييم جودة المخرجات",
             "رسوم إعداد ٩٩٠ ريال لمرة واحدة، في الشهري والسنوي",
             "فواتير",
             "دعم بالبريد الإلكتروني",
@@ -122,6 +128,10 @@ PACKAGES = {
             "4,000 conversations a month",
             "Meta fees included up to 250 SAR",
             "Weekly automated reports",
+            "Financial forecast",
+            "Arabic document extraction",
+            "Client style memory",
+            "Output quality evaluation loop",
             "One-time setup fee of 990 SAR, on monthly and annual billing",
             "Invoices",
             "Email support",
@@ -145,6 +155,10 @@ PACKAGES = {
             "١٠٬٠٠٠ محادثة شهرياً",
             "رسوم ميتا مشمولة حتى ٥٠٠ ريال",
             "تقارير أسبوعية آلية",
+            "توقع مالي بثلاثة سيناريوهات",
+            "استخراج البيانات من المستندات العربية",
+            "ذاكرة أسلوب العميل",
+            "حلقة تقييم جودة المخرجات",
             "الرد خلال يوم عمل واحد",
             "رسوم إعداد ١٬٩٩٠ ريال لمرة واحدة، في الشهري والسنوي",
             "فواتير",
@@ -155,6 +169,10 @@ PACKAGES = {
             "10,000 conversations a month",
             "Meta fees included up to 500 SAR",
             "Weekly automated reports",
+            "Financial forecast",
+            "Arabic document extraction",
+            "Client style memory",
+            "Output quality evaluation loop",
             "A reply within one working day",
             "One-time setup fee of 1,990 SAR, on monthly and annual billing",
             "Invoices",
@@ -1284,12 +1302,52 @@ def staffing_pool(package_key: str) -> list[str]:
     return order
 
 
+# The four capability agents ship inside النمو and الشركات. They do not
+# change the specialist allowance or any price. البداية does not include
+# them; one of them can be bought as the existing extra-agent add-on.
+CAPABILITY_AGENTS = (
+    "financial_forecast",
+    "arabic_ocr",
+    "style_memory",
+    "evaluation_loop",
+)
+CAPABILITY_PLAN_KEYS = frozenset({"numuw", "sharikat"})
+
+
+def bundled_capabilities(package_key: str | None) -> list[str]:
+    """Capability agents included with a plan, on top of its specialist allowance."""
+    key = package_key if package_key in PACKAGES else resolve_tier(package_key)
+    if key in CAPABILITY_PLAN_KEYS:
+        return [slug for slug in CAPABILITY_AGENTS if slug in EMPLOYEES]
+    return []
+
+
+def included_specialists(package_key: str) -> list[str]:
+    """Specialists a plan covers: its staffed team, plus bundled capabilities."""
+    key = package_key if package_key in PACKAGES or package_key in LEGACY_TIERS else resolve_tier(package_key)
+    covered: list[str] = []
+    for slug in [*PACKAGE_TEAMS.get(key, []), *bundled_capabilities(key)]:
+        if slug != CEO_SLUG and slug in EMPLOYEES and slug not in covered:
+            covered.append(slug)
+    return covered
+
+
+def smallest_plan_for_agent(slug: str) -> str:
+    """Smallest public plan whose team or bundled capabilities include ``slug``."""
+    for key in PACKAGE_ORDER:
+        if slug == CEO_SLUG or slug in included_specialists(key):
+            return key
+    return PACKAGE_ORDER[0]
+
+
 def staff_team(package_key: str, addons: int = 0, preferred: list[str] | None = None) -> list[str]:
-    """CEO + exactly ``plan_agent_count(tier) + addons`` specialists.
+    """CEO + the plan allowance + add-on specialists.
 
     ``preferred`` (e.g. the agents the CEO diagnosis recommended) are staffed
     first when they are valid roster slugs; the rest is filled from the tier's
-    default team and then the wider roster.
+    default team and then the wider roster. Capability agents bundled on النمو
+    and الشركات are added after that allowance, so they do not consume a seat
+    and do not change the price.
     """
     tier = resolve_tier(package_key)
     allowance = plan_agent_count(tier) + max(0, int(addons or 0))
@@ -1299,4 +1357,8 @@ def staff_team(package_key: str, addons: int = 0, preferred: list[str] | None = 
             break
         if slug != CEO_SLUG and slug in EMPLOYEES and slug not in chosen:
             chosen.append(slug)
-    return [CEO_SLUG, *chosen]
+    team = [CEO_SLUG, *chosen]
+    for slug in bundled_capabilities(package_key):
+        if slug not in team:
+            team.append(slug)
+    return team

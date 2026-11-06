@@ -52,7 +52,9 @@
             <div class="org">
                 <b>{{ seller.name_ar }}</b><br>
                 {% if has_vat %}الرقم الضريبي: {{ seller.vat_number }}{% if seller.vat_placeholder %} <span style="color:#B91C1C">(غير مُعدّ بعد)</span>{% endif %}<br>{% endif %}
-                وثيقة عمل حر رقم {{ seller.cr_number }}<br>
+                وثيقة عمل حر رقم: {{ seller.cr_number }}<br>
+                {{ seller.holder_name }}<br>
+                {% if not has_vat %}غير مسجل في ضريبة القيمة المضافة. السعر نهائي ولا تُضاف ضريبة قيمة مضافة.<br>{% endif %}
                 {{ seller.address_ar }}
             </div>
             <div class="meta">

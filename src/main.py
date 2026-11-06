@@ -715,6 +715,15 @@ from src.services import payments as _vat_pm  # noqa: E402
 templates.env.globals["vat_rate"] = _vat_pm.vat_rate
 templates.env.globals["vat_percent"] = _vat_pm.vat_percent
 templates.env.globals["vat_enabled"] = _vat_pm.vat_enabled
+from src.services.legal_identity import (  # noqa: E402
+    freelance_doc_number as _freelance_doc_number,
+    freelance_holder_name as _freelance_holder_name,
+    freelance_holder_name_en as _freelance_holder_name_en,
+)
+
+templates.env.globals["freelance_doc_number"] = _freelance_doc_number
+templates.env.globals["freelance_holder_name"] = _freelance_holder_name
+templates.env.globals["freelance_holder_name_en"] = _freelance_holder_name_en
 templates.env.globals["payments_open"] = _vat_pm.payments_open
 templates.env.globals["paypal_checkout_open"] = _vat_pm.paypal_checkout_open
 templates.env.globals["bank_transfer_open"] = _vat_pm.customer_bank_transfer_enabled
@@ -1110,11 +1119,7 @@ async def public_agent_page(slug: str, request: Request):
             if len(related) >= 6:
                 break
 
-    recommended_pkg = catalog.PACKAGE_ORDER[0]
-    for pkg_key, team in catalog.PACKAGE_TEAMS.items():
-        if slug in team:
-            recommended_pkg = pkg_key
-            break
+    recommended_pkg = catalog.smallest_plan_for_agent(slug)
 
     return templates.TemplateResponse(
         request,
@@ -2510,7 +2515,7 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         + (f"plus a separate one-time setup fee of {int(p.get('setup_fee') or 0) // 100} SAR on the first "
            f"order (not part of the monthly price), charged on monthly and annual billing alike. "
            if int(p.get("setup_fee") or 0) else "no setup fee. ")
-        + f"Specialist agents included: {', '.join(_catalog.EMPLOYEES[a]['title_en'] for a in _catalog.PACKAGE_TEAMS.get(k, []) if a in _catalog.EMPLOYEES and a != _catalog.CEO_SLUG)}. "
+        + f"Specialist agents included: {', '.join(_catalog.EMPLOYEES[a]['title_en'] for a in _catalog.included_specialists(k) if a in _catalog.EMPLOYEES)}. "
         + "; ".join(_consult_scope_line(x) for x in (p.get("scope_en") or []))
         for k, p in _catalog.PACKAGES.items()
     )

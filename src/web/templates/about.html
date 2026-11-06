@@ -37,7 +37,9 @@
 <h2 class="n-title text-lg">الجهة المشغّلة</h2>
 <ul>
 <li>منصة النرجس</li>
-<li>وثيقة عمل حر رقم <span dir="ltr">FL-272182297</span></li>
+<li>وثيقة عمل حر رقم: <span dir="ltr">{{ freelance_doc_number() }}</span></li>
+<li>{{ freelance_holder_name() }}</li>
+{% if not vat_enabled() %}<li>غير مسجل في ضريبة القيمة المضافة. الأسعار نهائية.</li>{% endif %}
 <li>العنوان: الرياض، المملكة العربية السعودية</li>
 <li>المؤسس: كريم</li>
 </ul>
@@ -59,7 +61,9 @@
 <h2 class="n-title text-lg">Operator</h2>
 <ul>
 <li>Al-Narjs</li>
-<li>Freelance document No. FL-272182297</li>
+<li>Freelance document No. <span dir="ltr">{{ freelance_doc_number() }}</span></li>
+<li>{{ freelance_holder_name_en() }}</li>
+{% if not vat_enabled() %}<li>Not VAT-registered. Prices are final.</li>{% endif %}
 <li>Address: Riyadh, Saudi Arabia</li>
 <li>Founder: Karim</li>
 </ul>

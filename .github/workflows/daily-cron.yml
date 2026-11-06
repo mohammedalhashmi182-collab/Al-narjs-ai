@@ -1,0 +1,17 @@
+# Calls the production daily job at 05:00 UTC (08:00 Asia/Riyadh).
+# The endpoint stays closed until the CRON_SECRET repository secret is set.
+# curl -f fails the job on any non-2xx response.
+name: daily-cron
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run the daily job
+        run: curl -fsS -X POST https://karmaai.online/webhooks/cron/daily -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}"
