@@ -1909,7 +1909,7 @@ async def voice_session(request: Request):
     from src.services.voice_live import open_session
     from src.utils.net import client_ip
 
-    payload = await open_session(client_ip(request))
+    payload = await open_session(client_ip(request), request.query_params.get("lang") or "ar")
     if payload.get("ok"):
         code = 200
     elif payload.get("reason") in ("unconfigured", "upstream"):

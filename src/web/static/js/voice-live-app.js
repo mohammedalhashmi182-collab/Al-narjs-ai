@@ -13,8 +13,8 @@
         muted: "Microphone muted",
         again: "Start another call",
         endedTime: "The call reached its 3-minute limit.",
-        mic: "We could not use the microphone. Allow it in the browser and try again.",
-        noMic: "No microphone was found on this device.",
+        mic: "We could not use the microphone. Type here and we will reply in text.",
+        noMic: "No microphone was found on this device. Type here and we will reply in text.",
         limit: "The daily call limit has been reached, or the line is busy. Email or call us, or try again later.",
         missing: "The live call is not available right now. Email or call us and we will help.",
         down: "The connection failed. Check your internet and try again, or email or call us.",
@@ -24,6 +24,7 @@
         limitShort: "Daily limit reached",
         unavailable: "Call unavailable",
         title: "Talk to the Al-Narjis agent",
+        placeholder: "Type to the Al-Narjis advisor",
       }
     : {
         idle: "جاهز",
@@ -34,8 +35,8 @@
         muted: "المايك مكتوم",
         again: "ابدأ مكالمة جديدة",
         endedTime: "انتهى وقت المكالمة (3 دقائق).",
-        mic: "ما قدرنا نوصل للمايك. اسمح للمتصفح باستخدام المايك وجرّب مرة ثانية.",
-        noMic: "ما لقينا مايك في جهازك.",
+        mic: "ما قدرنا نستخدم المايك. اكتب هنا، ونرد عليك كتابة.",
+        noMic: "ما لقينا مايك في جهازك. اكتب هنا، ونرد عليك كتابة.",
         limit: "وصلنا للحد اليومي للمكالمات أو الخط مشغول. راسلنا أو اتصل، أو جرّب بعدين.",
         missing: "المكالمة الحية غير متاحة حالياً. راسلنا أو اتصل ونساعدك.",
         down: "صار خلل في الاتصال. تأكد من الإنترنت وجرّب مرة ثانية، أو راسلنا أو اتصل.",
@@ -45,6 +46,7 @@
         limitShort: "الحد اليومي",
         unavailable: "المكالمة غير متاحة",
         title: "تحدث مع مستشار النرجس",
+        placeholder: "اكتب لمستشار النرجس",
       };
 
   const $ = (id) => document.getElementById(id);
@@ -56,9 +58,15 @@
   const timer = $("tm");
   const start = $("start");
   const wave = $("wave");
-  if (!card || !start || !wave) return;
+  const chatBtn = $("chat");
+  const chatPanel = $("chatPanel");
+  const say = $("say");
+  const composer = $("composer");
+  if (!card || !start || !wave || !chatBtn || !chatPanel || !say || !composer) return;
 
   document.title = T.title;
+  say.placeholder = T.placeholder;
+  log.setAttribute("aria-label", EN ? "Chat with the Al-Narjis advisor" : "دردشة مستشار النرجس");
   if (EN) {
     mute.setAttribute("aria-label", "Mute microphone");
     $("end").setAttribute("aria-label", "End call");
@@ -86,6 +94,17 @@
   let agentRow = null;
   let sessionReady = false;
   let sessionInstructions = "";
+  let sessionGreeting = "";
+  let personaSent = false;
+  let greetingSent = false;
+  let greetingDone = false;
+  let openingSettled = false;
+  let textMode = false;
+  let chatOpen = false;
+  let starting = null;
+  const blockedIds = {};
+  const heldAudio = {};
+  const typedQueue = [];
 
   function setMode(name) {
     card.classList.remove("idle", "listening", "speaking", "ready", "ended", "connecting");
@@ -96,6 +115,8 @@
     vid.classList.toggle("talk", name === "speaking");
   }
 
+  let userRow = null;
+
   function add(text, cls) {
     const row = document.createElement("div");
     row.className = "row" + (cls ? " " + cls : "");
@@ -104,6 +125,18 @@
     log.append(row);
     log.scrollTop = 1e5;
     return row;
+  }
+
+  function userText(text, done) {
+    if (!userRow) userRow = add("", "u");
+    const node = userRow.querySelector(".m");
+    if (done) {
+      if (text) node.textContent = text;
+      userRow = null;
+    } else {
+      node.textContent = text || "";
+    }
+    log.scrollTop = 1e5;
   }
 
   function fmt(seconds) {
@@ -255,13 +288,48 @@
     log.scrollTop = 1e5;
   }
 
+  function responseId(event) {
+    return (event && (event.response_id || (event.response && event.response.id))) || "";
+  }
+
+  function dropEarly(event) {
+    const id = responseId(event);
+    if (greetingSent && !(id && blockedIds[id])) return false;
+    if (id) blockedIds[id] = true;
+    return true;
+  }
+
+  function vendorLine(text) {
+    return /Grok|xAI|ChatGPT/.test(text || "");
+  }
+
+  function heldRow(id) {
+    const key = id || "_";
+    return heldAudio[key] || (heldAudio[key] = { chunks: [], text: "" });
+  }
+
+  function cancelResponse(id) {
+    if (id) blockedIds[id] = true;
+    const row = heldAudio[id || "_"];
+    if (row) row.chunks = [];
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const cancel = { type: "response.cancel" };
+    if (id) cancel.response_id = id;
+    socket.send(JSON.stringify(cancel));
+  }
+
   function onEvent(event) {
     const type = event.type || "";
-    // The published agent is created first. Apply the server persona after that.
-    if (type === "session.created" && socket && socket.readyState === WebSocket.OPEN) {
+    // The published agent's greeting is a separate console line. It can speak
+    // before instructions apply. Configure only after session.created, then
+    // speak our line after session.updated. Drop anything earlier.
+    if (type === "session.created") {
       configureSession();
+      return;
     }
-    if (type === "session.created" || type === "session.updated") {
+    if (type === "session.updated") {
+      if (textMode || chatOpen) greetInText();
+      else speakGreeting();
       sessionReady = true;
       if (!tick) startTimer();
       setMode("listening");
@@ -269,30 +337,76 @@
     }
     if (type === "input_audio_buffer.speech_started") {
       agentRow = null;
+      userRow = null;
       setMode("listening");
       return;
     }
-    if (type === "response.created" || type === "response.output_audio.delta" || type === "response.audio.delta") {
-      setMode("speaking");
+    if (type === "response.created") {
+      if (dropEarly(event)) {
+        cancelResponse(responseId(event));
+        return;
+      }
+      if (openingSettled) setMode("speaking");
+      return;
     }
     if (type === "response.output_audio.delta" || type === "response.audio.delta") {
+      if (dropEarly(event)) return;
+      if (!openingSettled) {
+        const row = heldRow(responseId(event));
+        if (event.delta) row.chunks.push(event.delta);
+        return;
+      }
+      if (chatOpen) return;
+      setMode("speaking");
       if (event.delta) playPcm16(event.delta);
       return;
     }
-    if (type === "response.output_audio_transcript.delta" || type === "response.audio_transcript.delta") {
-      agentText(event.delta || "", false);
+    if (type === "response.output_audio_transcript.delta" || type === "response.audio_transcript.delta" || type === "response.output_audio_transcript.done" || type === "response.audio_transcript.done") {
+      if (dropEarly(event)) return;
+      const done = type.endsWith(".done");
+      const id = responseId(event);
+      const row = heldRow(id);
+      const piece = done ? (event.transcript || "") : (event.delta || "");
+      if (done && event.transcript) row.text = event.transcript;
+      else row.text += piece;
+      if (vendorLine(row.text)) {
+        cancelResponse(id);
+        return;
+      }
+      if (!openingSettled) {
+        const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
+        const probe = line.slice(0, 8);
+        if ((probe && row.text.indexOf(probe) !== -1) || (done && row.text)) {
+          openingSettled = true;
+          if (!chatOpen) {
+            setMode("speaking");
+            row.chunks.forEach((chunk) => playPcm16(chunk));
+          }
+          row.chunks = [];
+          agentText(row.text, done);
+        }
+        return;
+      }
+      agentText(done ? (event.transcript || row.text) : (event.delta || ""), done);
       return;
     }
-    if (type === "response.output_audio_transcript.done" || type === "response.audio_transcript.done") {
-      agentText(event.transcript || "", true);
+    if (type === "conversation.item.input_audio_transcription.updated") {
+      const text = event.transcript || (event.item && event.item.transcript) || "";
+      if (text) userText(text, false);
       return;
     }
     if (type === "conversation.item.input_audio_transcription.completed") {
       const text = event.transcript || (event.item && event.item.transcript) || "";
-      if (text) add(text, "u");
+      if (text) userText(text, true);
+      if (wantsChat(text)) openChat();
       return;
     }
     if (type === "response.done") {
+      const doneId = responseId(event);
+      if (greetingSent && !greetingDone && !(doneId && blockedIds[doneId])) {
+        greetingDone = true;
+        flushTyped();
+      }
       setMode(mute.getAttribute("aria-pressed") === "true" ? "listening" : "listening");
       outLevel *= 0.4;
       return;
@@ -320,10 +434,15 @@
     return { url: url, protocol: protocol };
   }
 
-  async function attachMic() {
+  async function ensureAudio() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
     audioCtx = audioCtx || new Ctx();
     if (audioCtx.state === "suspended") await audioCtx.resume();
+  }
+
+  async function attachMic() {
+    await ensureAudio();
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
     });
@@ -350,6 +469,8 @@
   }
 
   function configureSession() {
+    if (personaSent || !socket || socket.readyState !== WebSocket.OPEN) return;
+    personaSent = true;
     const hint = EN ? "en" : "ar";
     const session = {
       turn_detection: { type: "server_vad" },
@@ -364,19 +485,117 @@
     socket.send(JSON.stringify({ type: "session.update", session: session }));
   }
 
-  start.onclick = async () => {
-    if (socket || blocked) return;
+  function speakGreeting() {
+    if (greetingSent || !socket || socket.readyState !== WebSocket.OPEN) return;
+    const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
+    greetingSent = true;
+    playAt = 0;
+    if (!line) {
+      greetingDone = true;
+      flushTyped();
+      return;
+    }
+    socket.send(JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "force_message",
+        role: "assistant",
+        interruptible: false,
+        content: [{ type: "output_text", text: line }],
+      },
+    }));
+  }
+
+  function greetInText() {
+    if (greetingSent) return;
+    greetingSent = true;
+    openingSettled = true;
+    greetingDone = true;
+    const line = typeof sessionGreeting === "string" ? sessionGreeting.trim() : "";
+    if (line) add(line, "");
+    flushTyped();
+  }
+
+  function wantsChat(text) {
+    return /دردش|بالكتاب|اكتب|أكتب|كتابة|كتابه|شات|\bchat\b|\btyping\b|\btype\b/i.test(text || "");
+  }
+
+  function openChat() {
+    chatOpen = true;
+    card.classList.add("chat-open");
+    chatPanel.hidden = false;
+    if (say.focus) say.focus();
+  }
+
+  function closeChat() {
+    chatOpen = false;
+    card.classList.remove("chat-open");
+    chatPanel.hidden = true;
+  }
+
+  function showMicProblem(note) {
+    card.classList.add("no-mic");
+    const box = $("micNote");
+    if (box) {
+      box.hidden = false;
+      box.textContent = note;
+    }
+    openChat();
+  }
+
+  function sendTyped(line) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: line }],
+      },
+    }));
+    socket.send(JSON.stringify({ type: "response.create" }));
+  }
+
+  function flushTyped() {
+    if (!greetingDone || !socket || socket.readyState !== WebSocket.OPEN) return;
+    while (typedQueue.length) sendTyped(typedQueue.shift());
+  }
+
+  async function beginCall(options) {
+    const useMic = !options || options.mic !== false;
+    const asText = !!(options && options.text);
+    const keepLog = !!(options && options.keepLog);
+    if (blocked) return false;
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return true;
+    if (starting) return starting;
+    starting = runCall();
+    try { return await starting; }
+    finally { starting = null; }
+
+    async function runCall() {
+    textMode = asText;
     ending = false;
     sessionReady = false;
     sessionInstructions = "";
+    sessionGreeting = "";
+    personaSent = false;
+    greetingSent = false;
+    greetingDone = false;
+    openingSettled = false;
+    typedQueue.splice(0, typedQueue.length);
+    Object.keys(blockedIds).forEach((id) => { delete blockedIds[id]; });
+    Object.keys(heldAudio).forEach((id) => { delete heldAudio[id]; });
     agentRow = null;
     playAt = 0;
     start.disabled = true;
-    log.innerHTML = "";
+    if (!keepLog) {
+      log.innerHTML = "";
+      typedQueue.splice(0, typedQueue.length);
+    }
     setMode("connecting");
     let payload = {};
     try {
-      const response = await fetch("/api/voice/session", { method: "POST", headers: { Accept: "application/json" } });
+      const response = await fetch("/api/voice/session?lang=" + (EN ? "en" : "ar"), { method: "POST", headers: { Accept: "application/json" } });
       try { payload = await response.json(); } catch (error) { payload = {}; }
       if (!response.ok || !payload.ok) {
         const reason = payload.reason || (response.status === 429 ? "daily_limit" : "upstream");
@@ -385,31 +604,32 @@
         stopMic();
         ending = true;
         finish();
-        return;
+        return false;
       }
       sessionInstructions = typeof payload.instructions === "string" ? payload.instructions : "";
+      sessionGreeting = typeof payload.greeting === "string" ? payload.greeting : "";
       const options = sessionOptions(payload);
       if (!options) {
         add(T.missing, "sys");
         reveal("unconfigured", true);
         ending = true;
         finish();
-        return;
+        return false;
       }
-      try {
-        await attachMic();
-      } catch (error) {
-        const name = String(error && error.name || "");
-        add(/NotFound|device/i.test(name) ? T.noMic : T.mic, "sys");
-        stopMic();
-        ending = true;
-        finish();
-        return;
+      if (useMic) {
+        try {
+          await attachMic();
+        } catch (error) {
+          const name = String(error && error.name || "");
+          showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
+          stopMic();
+          textMode = true;
+        }
       }
+      await ensureAudio();
       socket = new WebSocket(options.url, [options.protocol]);
       socket.onopen = () => {
         console.info("voice websocket open");
-        configureSession();
       };
       socket.onmessage = (message) => {
         if (typeof message.data !== "string") return;
@@ -437,6 +657,7 @@
         }
       };
       start.disabled = false;
+      return true;
     } catch (error) {
       add(T.down, "sys");
       reveal("upstream", false);
@@ -444,6 +665,48 @@
       closeSocket();
       ending = true;
       finish();
+      return false;
+    }
+    }
+  }
+
+  start.onclick = () => {
+    const note = $("micNote");
+    if (note) note.hidden = true;
+    card.classList.remove("no-mic");
+    return beginCall({ mic: true });
+  };
+
+  chatBtn.onclick = () => {
+    openChat();
+    if (!socket && !blocked) beginCall({ mic: false, text: true, keepLog: true });
+  };
+
+  composer.onsubmit = async (event) => {
+    event.preventDefault();
+    openChat();
+    if (blocked) {
+      add(gateMessage("unconfigured"), "sys");
+      return;
+    }
+    const line = say.value.trim();
+    if (!line) return;
+    say.value = "";
+    add(line, "u");
+    typedQueue.push(line);
+    const ok = await beginCall({ mic: false, text: !socket, keepLog: true });
+    if (!ok) add(T.down, "sys");
+    else flushTyped();
+  };
+
+  $("voiceBack").onclick = async () => {
+    closeChat();
+    if (!socket || micStream || blocked) return;
+    try {
+      await attachMic();
+    } catch (error) {
+      const name = String(error && error.name || "");
+      showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
     }
   };
 

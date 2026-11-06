@@ -10,8 +10,11 @@ subprotocol. Do not also pass ``model=``; that mode is for an unnamed session.
 ``XAI_VOICE_AGENT_ID`` is the published agent from console.x.ai → Voice Agents.
 Both values must be set. Either one empty turns the call off and the page
 shows the company email and phone. The page copies ``session_instructions()``
-into ``session.update`` so the call speaks as مستشار النرجس, not as Grok.
-Do not add ``model=`` to the socket URL.
+into ``session.update`` after ``session.created``, waits for ``session.updated``,
+then speaks ``opening_greeting()`` with ``force_message``. That greeting is
+verbatim TTS. The published agent's own greeting is a separate console field
+and is not replaced by ``instructions``. Do not add ``model=`` to the socket
+URL. ``POST /v1/realtime/client_secrets`` does not accept a session body.
 
 Caps (rolling windows, per process):
 * 3 minutes per call, enforced in the page
@@ -106,11 +109,44 @@ def public_contact() -> dict[str, str]:
     }
 
 
-def session_instructions() -> str:
+GREETING_AR = "هلا والله، معك مستشار النرجس، كيف أقدر أساعدك؟"
+GREETING_EN = "Hello, this is the Al-Narjis advisor. How can I help?"
+
+
+def page_lang(lang: str | None) -> str:
+    return "en" if str(lang or "").lower().startswith("en") else "ar"
+
+
+def opening_greeting(lang: str = "ar") -> str:
+    """Verbatim first line. The browser speaks it with ``force_message``.
+
+    xAI's prompting guide says the greeting is its own field, not the system
+    prompt. A published agent therefore keeps saying its console greeting
+    even after ``session.update`` changes ``instructions``.
+    """
+    return GREETING_EN if page_lang(lang) == "en" else GREETING_AR
+
+
+def _language_rules(lang: str) -> str:
+    if page_lang(lang) == "en":
+        return (
+            "This call is on the English page. Speak clear English by default.\n"
+            "Switch to Saudi-friendly Arabic only if the caller speaks Arabic.\n"
+        )
+    return (
+        "This call is on the Arabic page. Speak Saudi-friendly Arabic "
+        "(لهجة سعودية واضحة ومهذبة) by default.\n"
+        "Switch to English only if the caller speaks English. "
+        "If the caller returns to Arabic, switch back to Arabic.\n"
+        "Do not open in English.\n"
+    )
+
+
+def session_instructions(lang: str = "ar") -> str:
     """Spoken persona for every public call.
 
-    The browser places this on ``session.update``. It does not go on the
-    socket URL, and it must not be paired with ``model=``.
+    The browser places this on ``session.update`` after ``session.created``.
+    It does not go on the socket URL, and it must not be paired with ``model=``.
     """
     return (
         "## Role & Persona\n"
@@ -128,7 +164,8 @@ def session_instructions() -> str:
         f"point the caller to this voice page and to {SUPPORT_EMAIL}.\n"
         "\n"
         "## Conversation Flow\n"
-        "Answer in the caller's language. Quote a price only when the caller asks about price.\n"
+        "The opening line has already been spoken. Do not greet again. Wait for the caller.\n"
+        "Quote a price only when the caller asks about price.\n"
         "The only approved monthly prices are: البداية (Starter) 790 SAR per month, "
         "النمو (Growth) 1,490 SAR per month, and الشركات (Enterprise) 2,990 SAR per month.\n"
         "Do not invent discounts, coupons, or any other price. If they ask about a fee "
@@ -145,14 +182,11 @@ def session_instructions() -> str:
         "\n"
         "## Voice & Communication Style\n"
         "Speak in short spoken sentences. No markdown, no bullet lists, no emojis.\n"
-        "When the caller speaks Arabic, answer in natural Saudi-friendly Arabic "
-        "(لهجة سعودية واضحة ومهذبة).\n"
-        "When the caller speaks English, answer in clear English.\n"
-        "Match the caller's language. Do not switch unless they switch.\n"
+        f"{_language_rules(lang)}"
         "\n"
         "## CRITICAL INSTRUCTIONS\n"
         "You are مستشار النرجس, the Al-Narjis advisor for karmaai.online.\n"
-        "ALWAYS use that identity if you name yourself, including your first spoken line.\n"
+        "ALWAYS use that identity if you name yourself.\n"
         "NEVER say you are Grok, Grok Voice, xAI, or ChatGPT.\n"
         "NEVER say you are a Grok model, an xAI model, or any other vendor's model.\n"
         "If the caller asks whether you are Grok, Grok Voice, xAI, or ChatGPT, "
@@ -195,11 +229,13 @@ def _gate(ip: str, *, commit: bool) -> tuple[str | None, int]:
     return None, 0
 
 
-def _base() -> dict:
+def _base(lang: str = "ar") -> dict:
+    code = page_lang(lang)
     return {
         "max_seconds": MAX_SECONDS,
         "contact": public_contact(),
-        "instructions": session_instructions(),
+        "instructions": session_instructions(code),
+        "greeting": opening_greeting(code),
     }
 
 
@@ -218,6 +254,8 @@ async def mint_client_secret(agent: str, key: str) -> str:
 
     The published agent id is sent with the request. If that field is rejected,
     the documented body is tried once. The socket URL still names the agent.
+    The client-secrets endpoint does not accept ``session`` or instructions;
+    the browser applies those after connect.
     """
     async with httpx.AsyncClient(timeout=8.0) as client:
         response = await client.post(
@@ -244,8 +282,8 @@ async def mint_client_secret(agent: str, key: str) -> str:
     return value
 
 
-async def open_session(ip: str) -> dict:
-    body = _base()
+async def open_session(ip: str, lang: str = "ar") -> dict:
+    body = _base(lang)
     if not configured():
         return {**body, "ok": False, "reason": "unconfigured"}
     reason, retry = _gate(ip, commit=False)
