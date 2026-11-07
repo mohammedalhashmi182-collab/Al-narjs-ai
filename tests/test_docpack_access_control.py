@@ -110,8 +110,12 @@ async def test_agent_path_binds_published_pack_to_active_project(setup_app, monk
     app, _, a, b = setup_app
     file = BuiltFile(format='xlsx', filename='result.xlsx', content=b'fixture',
                      media_type='application/octet-stream', label_ar='ملف', label_en='File')
-    pack = SimpleNamespace(files=[file], meta=SimpleNamespace(agent_key='data_analyst'),
-                           narrative=SimpleNamespace(source='test'), analysis=SimpleNamespace(facts=[]))
+    pack = SimpleNamespace(
+        files=[file],
+        meta=SimpleNamespace(agent_key='data_analyst', brief='test', client_name='Test A'),
+        narrative=SimpleNamespace(source='test', full_text=lambda: 'Synthetic approved fixture'),
+        analysis=SimpleNamespace(facts=[]),
+    )
     async def fake_build(**kwargs):
         return pack
     monkeypatch.setattr(docpack_tool, 'build', fake_build)
