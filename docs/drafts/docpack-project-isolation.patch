@@ -1,0 +1,261 @@
+diff --git a/src/interfaces/docpack_routes.py b/src/interfaces/docpack_routes.py
+index ad961d5..7da52eb 100644
+--- a/src/interfaces/docpack_routes.py
++++ b/src/interfaces/docpack_routes.py
+@@ -65,8 +65,8 @@ async def _read_upload(upload: UploadFile | None) -> tuple[bytes | None, str | N
+     return data, upload.filename
+ 
+ 
+-def _payload(pack, *, lang: str, emailed: bool) -> dict:
+-    published = docpack_tool.publish(pack)
++def _payload(pack, *, lang: str, emailed: bool, scope: str, project_id: str | None = None) -> dict:
++    published = docpack_tool.publish(pack, scope=scope, project_id=project_id)
+     published["emailed"] = emailed
+     for item in published["files"]:
+         item["label"] = item["label_ar"] if lang != "en" else item["label_en"]
+@@ -101,7 +101,9 @@ async def create_docpack(
+             emailed = await docpack_tool.email_pack(client["email"], pack)
+         except Exception:
+             emailed = False
+-    return _payload(pack, lang="ar", emailed=emailed)
++    return _payload(pack, lang="ar", emailed=emailed,
++                    scope="project" if client["project_id"] else "owner",
++                    project_id=client["project_id"])
+ 
+ 
+ @router.post("/api/docpack/demo", dependencies=[Depends(rate_limit_docpack_demo)])
+@@ -136,16 +138,32 @@ async def demo_docpack(
+         )
+     except DocGenError as exc:
+         raise HTTPException(400, str(exc)) from exc
+-    return _payload(pack, lang="en" if lang == "en" else "ar", emailed=False)
++    return _payload(pack, lang="en" if lang == "en" else "ar", emailed=False, scope="demo")
+ 
+ 
+ @router.get("/api/docpack/files/{token}/{filename}")
+-async def download_docpack(token: str, filename: str):
++async def download_docpack(token: str, filename: str, request: Request):
+     if "/" in filename or "\\" in filename or filename.startswith("."):
+         raise HTTPException(404, "Not found")
+-    item = PACKS.get(token, filename)
+-    if item is None:
++    stored = PACKS.get(token, filename)
++    if stored is None:
+         raise HTTPException(404, "انتهت صلاحية الرابط أو الملف غير موجود")
++    item, scope, project_id = stored
++    if scope != "demo":
++        from uuid import UUID
++        from src.core.owner_auth import check_owner
++        from src.core.portal_auth import session_claims, session_valid_for
++        from src.models import ClientProject
++
++        permitted = check_owner(request)
++        if not permitted and scope == "project":
++            async with request.app.state.session_factory() as session:
++                project = await session.get(ClientProject, UUID(project_id))
++                permitted = bool(project and project.status == "active" and
++                                 session_valid_for(session_claims(request), project))
++        if not permitted:
++            # Do not disclose whether a guessed or leaked token exists.
++            raise HTTPException(404, "انتهت صلاحية الرابط أو الملف غير موجود")
+     return Response(
+         content=item.content,
+         media_type=item.media_type,
+diff --git a/src/main.py b/src/main.py
+index d7b6840..391392b 100644
+--- a/src/main.py
++++ b/src/main.py
+@@ -2233,7 +2233,7 @@ async def _maybe_docpack(slug: str, answers: dict | None, project, http_request:
+         pack_emailed = False
+         if getattr(project, "email", None):
+             pack_emailed = await docpack_tool.email_pack(project.email, pack)
+-        published = docpack_tool.publish(pack)
++        published = docpack_tool.publish(pack, scope="project", project_id=str(project.id))
+         published["emailed"] = pack_emailed
+         for item in published["files"]:
+             item["label"] = item["label_ar"]
+diff --git a/src/services/agent_tools/docpack_tool.py b/src/services/agent_tools/docpack_tool.py
+index e9c8255..62e6672 100644
+--- a/src/services/agent_tools/docpack_tool.py
++++ b/src/services/agent_tools/docpack_tool.py
+@@ -89,8 +89,8 @@ async def build(
+     )
+ 
+ 
+-def publish(pack) -> dict:
+-    token = PACKS.put(pack.files)
++def publish(pack, *, scope: str, project_id: str | None = None) -> dict:
++    token = PACKS.put(pack.files, scope=scope, project_id=project_id)
+     return {
+         "id": token,
+         "agent_key": pack.meta.agent_key,
+diff --git a/src/services/docgen/store.py b/src/services/docgen/store.py
+index b3c8baa..3bf949f 100644
+--- a/src/services/docgen/store.py
++++ b/src/services/docgen/store.py
+@@ -16,6 +16,8 @@ MAX_PACKS = 40
+ @dataclass
+ class StoredPack:
+     files: dict[str, BuiltFile]
++    scope: str
++    project_id: str | None
+     created: float = field(default_factory=time.monotonic)
+ 
+ 
+@@ -24,23 +26,29 @@ class PackStore:
+         self._packs: dict[str, StoredPack] = {}
+         self._lock = threading.Lock()
+ 
+-    def put(self, files: list[BuiltFile]) -> str:
++    def put(self, files: list[BuiltFile], *, scope: str, project_id: str | None = None) -> str:
++        # Never infer a public link from a missing project: callers must classify it.
++        if scope not in {"demo", "owner", "project"}:
++            raise ValueError("unknown DocPack scope")
++        if (scope == "project") != bool(project_id):
++            raise ValueError("project scope requires exactly one project id")
+         token = uuid.uuid4().hex + uuid.uuid4().hex[:8]
+         with self._lock:
+             self._purge_locked()
+             while len(self._packs) >= MAX_PACKS:
+                 oldest = min(self._packs, key=lambda key: self._packs[key].created)
+                 self._packs.pop(oldest, None)
+-            self._packs[token] = StoredPack(files={item.filename: item for item in files})
++            self._packs[token] = StoredPack(files={item.filename: item for item in files}, scope=scope, project_id=project_id)
+         return token
+ 
+-    def get(self, token: str, filename: str) -> BuiltFile | None:
++    def get(self, token: str, filename: str) -> tuple[BuiltFile, str, str | None] | None:
+         with self._lock:
+             self._purge_locked()
+             pack = self._packs.get(token)
+             if pack is None:
+                 return None
+-            return pack.files.get(filename)
++            item = pack.files.get(filename)
++            return (item, pack.scope, pack.project_id) if item else None
+ 
+     def reset(self) -> None:
+         with self._lock:
+diff --git a/tests/test_docpack_access_control.py b/tests/test_docpack_access_control.py
+new file mode 100644
+index 0000000..ce97cec
+--- /dev/null
++++ b/tests/test_docpack_access_control.py
+@@ -0,0 +1,117 @@
++"""Project outputs are not public bearer links; demo outputs remain explicit samples."""
++import httpx
++import pytest
++from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
++from sqlalchemy.pool import StaticPool
++
++from src.core.owner_auth import make_session_token as owner_token
++from src.core.portal_auth import COOKIE_NAME, make_session_token as portal_token
++from src.db.session import Base
++from src.models import ClientProject
++from src.services.docgen.store import PACKS
++
++
++@pytest.fixture
++async def setup_app(monkeypatch):
++    from src.main import app
++    from src.utils.rate_limit import docpack_api_limiter, docpack_demo_limiter, docpack_demo_global_limiter
++
++    engine = create_async_engine('sqlite+aiosqlite://', poolclass=StaticPool)
++    async with engine.begin() as conn:
++        await conn.run_sync(Base.metadata.create_all)
++    maker = async_sessionmaker(engine, expire_on_commit=False)
++    async with maker() as session:
++        a = ClientProject(client_name='Test A', phone='00001', package='bidaya', status='active')
++        b = ClientProject(client_name='Test B', phone='00002', package='bidaya', status='active')
++        session.add_all([a, b]); await session.commit()
++    monkeypatch.setattr(app.state, 'session_factory', maker, raising=False)
++    monkeypatch.setattr(app.state, 'model_provider', None, raising=False)
++    for limiter in (docpack_api_limiter, docpack_demo_limiter, docpack_demo_global_limiter):
++        limiter.reset()
++    PACKS.reset()
++    yield app, maker, a, b
++    PACKS.reset()
++    await engine.dispose()
++
++
++def client(app, cookies=None):
++    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test', cookies=cookies or {})
++
++
++@pytest.mark.asyncio
++async def test_project_download_rejects_anonymous_other_tenant_revoked_and_inactive(setup_app):
++    app, maker, a, b = setup_app
++    old_cookie = {COOKIE_NAME: portal_token(a)}
++    async with client(app, old_cookie) as c:
++        result = await c.post('/api/docpack', data={'brief':'100 ثم 150', 'agent_key':'data_analyst', 'formats':'xlsx'})
++        assert result.status_code == 200, result.text
++        url = result.json()['files'][0]['url']
++        assert (await c.get(url)).status_code == 200
++    async with client(app) as c:
++        assert (await c.get(url)).status_code == 404
++    async with client(app, {COOKIE_NAME: portal_token(b)}) as c:
++        assert (await c.get(url)).status_code == 404
++    async with client(app, {'narjis_owner': owner_token()}) as c:
++        assert (await c.get(url)).status_code == 200
++    async with maker() as s:
++        project = await s.get(ClientProject, a.id)
++        project.portal_token_version += 1
++        await s.commit()
++    async with client(app, old_cookie) as c:
++        assert (await c.get(url)).status_code == 404
++    async with maker() as s:
++        project = await s.get(ClientProject, a.id)
++        new_cookie = {COOKIE_NAME: portal_token(project)}
++        project.status = 'expired'
++        await s.commit()
++    async with client(app, new_cookie) as c:
++        assert (await c.get(url)).status_code == 404
++
++
++@pytest.mark.asyncio
++async def test_owner_file_private_and_demo_deliberately_public(setup_app):
++    app, _, a, _ = setup_app
++    async with client(app, {'narjis_owner': owner_token()}) as c:
++        result = await c.post('/api/docpack', data={'brief':'100 ثم 150', 'agent_key':'data_analyst', 'formats':'xlsx'})
++        assert result.status_code == 200, result.text
++        private_url = result.json()['files'][0]['url']
++        assert (await c.get(private_url)).status_code == 200
++    async with client(app, {COOKIE_NAME: portal_token(a)}) as c:
++        assert (await c.get(private_url)).status_code == 404
++    async with client(app) as c:
++        assert (await c.get(private_url)).status_code == 404
++        demo = await c.post('/api/docpack/demo', data={'sample':'1'})
++        assert demo.status_code == 200, demo.text
++        assert (await c.get(demo.json()['files'][0]['url'])).status_code == 200
++
++
++def test_pack_store_requires_explicit_valid_scope():
++    with pytest.raises(ValueError):
++        PACKS.put([], scope='project')
++    with pytest.raises(ValueError):
++        PACKS.put([], scope='demo', project_id='other-project')
++    with pytest.raises(ValueError):
++        PACKS.put([], scope='unknown')
++
++@pytest.mark.asyncio
++async def test_agent_path_binds_published_pack_to_project(setup_app, monkeypatch):
++    from types import SimpleNamespace
++    from src.main import _maybe_docpack
++    from src.services.agent_tools import docpack_tool
++    from src.services.docgen.schema import BuiltFile
++
++    app, _, a, b = setup_app
++    file = BuiltFile(format='xlsx', filename='result.xlsx', content=b'fixture',
++                     media_type='application/octet-stream', label_ar='ملف', label_en='File')
++    pack = SimpleNamespace(files=[file], meta=SimpleNamespace(agent_key='data_analyst'),
++                           narrative=SimpleNamespace(source='test'), analysis=SimpleNamespace(facts=[]))
++    async def fake_build(**kwargs):
++        return pack
++    monkeypatch.setattr(docpack_tool, 'build', fake_build)
++    request = SimpleNamespace(app=app, client=SimpleNamespace(host='127.0.0.1'), headers={})
++    result = await _maybe_docpack('data_analyst', {'docpack': True, 'goal': 'test'}, a, request)
++    url = result['files'][0]['url']
++    async with client(app, {COOKIE_NAME: portal_token(a)}) as c:
++        assert (await c.get(url)).status_code == 200
++    async with client(app, {COOKIE_NAME: portal_token(b)}) as c:
++        assert (await c.get(url)).status_code == 404
