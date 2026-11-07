@@ -32,6 +32,7 @@ async def setup_app(monkeypatch):
     async def reviewed(pack, provider):
         return ReleaseApproval(pack_digest(pack), "test-independent-reviewer")
     monkeypatch.setattr("src.interfaces.docpack_routes.independent_review", reviewed)
+    monkeypatch.setattr("src.services.docgen.release_gate.independent_review", reviewed)
     for limiter in (docpack_api_limiter, docpack_demo_limiter, docpack_demo_global_limiter):
         limiter.reset()
     PACKS.reset()
@@ -100,7 +101,7 @@ def test_pack_store_requires_explicit_valid_scope():
         PACKS.put([], scope='unknown')
 
 @pytest.mark.asyncio
-async def test_legacy_agent_path_fails_closed_to_owner_only(setup_app, monkeypatch):
+async def test_agent_path_binds_published_pack_to_active_project(setup_app, monkeypatch):
     from types import SimpleNamespace
     from src.main import _maybe_docpack
     from src.services.agent_tools import docpack_tool
@@ -118,7 +119,7 @@ async def test_legacy_agent_path_fails_closed_to_owner_only(setup_app, monkeypat
     result = await _maybe_docpack('data_analyst', {'docpack': True, 'goal': 'test'}, a, request)
     url = result['files'][0]['url']
     async with client(app, {COOKIE_NAME: portal_token(a)}) as c:
-        assert (await c.get(url)).status_code == 404
+        assert (await c.get(url)).status_code == 200
     async with client(app, {COOKIE_NAME: portal_token(b)}) as c:
         assert (await c.get(url)).status_code == 404
     async with client(app, {'narjis_owner': owner_token()}) as c:
