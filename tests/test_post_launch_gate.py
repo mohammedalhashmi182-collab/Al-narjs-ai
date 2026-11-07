@@ -1,8 +1,6 @@
 """Post-launch gate regressions (main 802917e)."""
 from __future__ import annotations
 
-import pathlib
-
 import httpx
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -36,6 +34,10 @@ async def test_invoice_page_has_no_card_button(maker, monkeypatch):
     assert 'id="invoicePayCard"' not in r.text
 
 
-def test_checkout_total_with_setup_fee_is_not_labelled_monthly():
-    src = pathlib.Path("src/web/templates/portal.html").read_text(encoding="utf-8")
-    assert "Due today: " in src and "المستحق اليوم: " in src
+async def test_checkout_total_with_setup_fee_is_not_labelled_monthly():
+    from src.main import app
+
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        response = await c.get("/ar/portal")
+    assert response.status_code == 200
+    assert "Due today: " in response.text and "المستحق اليوم: " in response.text
