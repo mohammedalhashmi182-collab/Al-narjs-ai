@@ -2230,10 +2230,23 @@ async def _maybe_docpack(slug: str, answers: dict | None, project, http_request:
             model_provider=docpack_tool.usable_provider(getattr(app.state, "model_provider", None)),
             client_name=getattr(project, "client_name", "") or "",
         )
+        from src.services.docgen.release_gate import independent_review
+        from src.services.docgen.schema import DocGenError
+        try:
+            approval = await independent_review(
+                pack, docpack_tool.usable_provider(getattr(app.state, "model_provider", None))
+            )
+        except DocGenError:
+            # Never send customer files when the reviewer is missing or refuses.
+            return {"status": "review_required", "files": [], "emailed": False}
         pack_emailed = False
         if getattr(project, "email", None):
-            pack_emailed = await docpack_tool.email_pack(project.email, pack)
-        published = docpack_tool.publish(pack)
+            pack_emailed = await docpack_tool.email_pack(
+                project.email, pack, approval=approval
+            )
+        published = docpack_tool.publish(
+            pack, scope="project", project_id=str(project.id), approval=approval
+        )
         published["emailed"] = pack_emailed
         for item in published["files"]:
             item["label"] = item["label_ar"]
