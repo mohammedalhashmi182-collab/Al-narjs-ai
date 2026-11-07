@@ -150,7 +150,7 @@ async def request_payment_link(session: AsyncSession, lead_id: Any, plan_key: st
         pipe.payment_url = None
     pipe.plan_key = plan_key
     pkg = catalog.PACKAGES[plan_key]
-    text = (f"هذا رابط الاشتراك الآمن (ميسّر) لباقة «{pkg['name']}»"
+    text = (f"هذا رابط الفاتورة لباقة «{pkg['name']}»"
             f"{' السنوية' if billing_period == 'annual' else ''}:\n{{payment_url}}\nبعد الدفع نبدأ تجهيز فريقك مباشرة.")
     draft = ReplyDraft(channel=pipe.channel, recipient=pipe.recipient, lead_id=lead_id, kind="payment_link",
                        draft_text=text, plan_key=plan_key, status="pending",

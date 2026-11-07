@@ -262,6 +262,10 @@ async def queue_or_send(session: AsyncSession, draft: ReplyDraft, *, base_url: s
     await session.flush()
     if qa.get("flagged"):
         return draft  # low QA score: stays pending in the review queue even in auto mode
+    # Creating/sending an invoice must be a deliberate owner decision, even if
+    # other WhatsApp replies are automatic. _send_draft creates the invoice.
+    if draft.channel == "whatsapp" and draft.kind == "payment_link":
+        return draft
     if await get_mode(session, draft.channel) == "auto":
         await _send_draft(session, draft, base_url=base_url)
     return draft
@@ -315,7 +319,7 @@ async def handle_inbound(
         kind = "payment_link"
         plan_key = catalog.purchasable_plan_key(pipe.plan_key)
         pkg = catalog.PACKAGES.get(plan_key) or catalog.PACKAGES[catalog.RECOMMENDED_PACKAGE]
-        body = (f"ممتاز 🎉 هذا رابط الاشتراك الآمن (ميسّر) لباقة «{pkg['name']}»:\n{{payment_url}}\n"
+        body = (f"ممتاز 🎉 هذا رابط الفاتورة لباقة «{pkg['name']}»:\n{{payment_url}}\n"
                 "بعد الدفع نبدأ تجهيز فريقك مباشرة.")
     else:
         try:

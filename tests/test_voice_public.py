@@ -155,7 +155,8 @@ def test_voice_instructions_name_al_narjis_and_forbid_grok():
     assert "Grok" not in voice_live.opening_greeting("en")
     assert "كريم" in text
     assert SUPPORT_EMAIL in text
-    assert "NEVER offer WhatsApp" in text
+    assert "The only approved WhatsApp contact is 0552978753" in text
+    assert "NEVER offer Telegram" in text
     assert "card payment may be unavailable" in text
     assert "bank transfer exists" in text
     assert "bots, automation, agents, design, and content" in text

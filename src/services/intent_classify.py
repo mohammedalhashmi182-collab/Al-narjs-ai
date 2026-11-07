@@ -36,8 +36,7 @@ _KEYWORDS: dict[str, list[str]] = {
         "ابلغوا عن", "ارفعوني من القائمة", "ما ابي رسايل", "منعني",
     ],
     "READY_TO_BUY": [
-        "ابغى", "ابغا", "ابي", "أبي", "اريد", "أريد", "عايز", "بدنا",
-        "خلنا نبدأ", "نبدأ", "ابدأ", "ابدا", "أبدأ", "اتفقنا", "موافق",
+        "خلنا نبدأ", "موافق نبدأ", "اتفقنا نبدأ",
         "سجلنا", "اشترك", "أشترى", "اشتري", "اشتركوا", "سووا لنا الاشتراك",
         "buy", "purchase", "subscribe", "start now", "we agree", "I want it",
         "نحتاج نبدأ", "جهزو لنا", "فعّلوا",
@@ -81,12 +80,12 @@ _KEYWORDS: dict[str, list[str]] = {
 # Intent matching priority — OPT_OUT wins over everything else.
 _INTENT_ORDER = (
     "OPT_OUT",
-    "READY_TO_BUY",
     "PRICE",
-    "PROPOSAL",
-    "DEMO",
     "NOT_INTERESTED",
     "FOLLOW_UP_LATER",
+    "PROPOSAL",
+    "READY_TO_BUY",
+    "DEMO",
     "INTERESTED",
     "QUESTION",
     "UNKNOWN",
@@ -132,14 +131,18 @@ def classify_intent(text: str) -> tuple[str, Optional[str]]:
         if intent == "UNKNOWN":
             return "UNKNOWN", detect_objection(text)
         for kw in _KEYWORDS.get(intent, []):
-            if kw in text:
+            normalized_kw = _norm(kw)
+            # Arabic definite article is a word prefix (فاتورة / الفاتورة),
+            # while boundaries prevent short English words matching inside others.
+            prefix = r"(?:ال)?" if re.match(r"^[\u0600-\u06ff]", normalized_kw) else ""
+            if normalized_kw and re.search(r"(?<!\w)" + prefix + re.escape(normalized_kw) + r"(?!\w)", text):
                 return intent, detect_objection(text)
     return "UNKNOWN", detect_objection(text)
 
 
 def detect_objection(text: str) -> Optional[str]:
     for obj, kws in _OBJECTIONS.items():
-        if any(kw in text for kw in kws):
+        if any(_norm(kw) in _norm(text) for kw in kws):
             return obj
     return None
 

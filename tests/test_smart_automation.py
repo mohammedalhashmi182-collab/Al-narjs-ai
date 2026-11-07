@@ -448,3 +448,27 @@ async def test_setup_reports_presence_and_webhook_urls_never_values(api):
     assert body["whatsapp"]["webhook_url"] == "https://karmaai.online/webhooks/whatsapp"
     assert body["telegram"]["webhook_url"] == "https://karmaai.online/webhooks/telegram"
     assert body["messenger"]["webhook_url"] == "https://karmaai.online/webhooks/messenger"
+
+
+async def test_whatsapp_payment_link_is_reviewed_even_in_auto_mode(maker, monkeypatch):
+    """Auto mode may answer messages, but cannot create or send an invoice."""
+    sent = []
+
+    async def fake_deliver(*args, **kwargs):
+        sent.append(True)
+        return {"ok": True}
+
+    monkeypatch.setattr(smart_reply, "deliver", fake_deliver)
+    async with maker() as s:
+        await smart_reply.set_mode(s, "whatsapp", "auto")
+        lead = AcquisitionLead(company_name="test", phone="966500000111", source="test")
+        s.add(lead)
+        await s.flush()
+        s.add(LeadPipeline(lead_id=lead.id, channel="whatsapp", recipient="966500000111",
+                           stage="qualified", plan_key="numuw", history=[]))
+        await s.flush()
+        draft = await smart_reply.handle_inbound(s, channel="whatsapp", recipient="966500000111",
+                                                 text="أبغى أشترك", lead_id=lead.id)
+        assert draft.kind == "payment_link" and draft.status == "pending"
+        assert sent == []
+        assert (await s.execute(select(Payment))).scalars().all() == []
