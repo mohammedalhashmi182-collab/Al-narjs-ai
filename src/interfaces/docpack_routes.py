@@ -8,11 +8,12 @@ GET  /api/docpack/files/{token}/{filename}
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 
 from src.services.agent_tools import docpack_tool
 from src.services.docgen import DocGenError, parse_formats
 from src.services.docgen.team_pilot import verify_pack_files
+from src.services.docgen.release_gate import ReleaseApproval, independent_review
 from src.services.docgen.analyze import MAX_UPLOAD_BYTES
 from src.services.docgen.sample import load_sample_bytes
 from src.services.docgen.store import PACKS
@@ -66,8 +67,13 @@ async def _read_upload(upload: UploadFile | None) -> tuple[bytes | None, str | N
     return data, upload.filename
 
 
-def _payload(pack, *, lang: str, emailed: bool, scope: str, project_id: str | None = None) -> dict:
-    published = docpack_tool.publish(pack, scope=scope, project_id=project_id)
+def _payload(
+    pack, *, lang: str, emailed: bool, scope: str,
+    project_id: str | None = None, approval: ReleaseApproval | None = None,
+) -> dict:
+    published = docpack_tool.publish(
+        pack, scope=scope, project_id=project_id, approval=approval
+    )
     published["emailed"] = emailed
     for item in published["files"]:
         item["label"] = item["label_ar"] if lang != "en" else item["label_en"]
@@ -100,16 +106,30 @@ async def create_docpack(
         verify_pack_files(pack, parse_formats(formats))
     except DocGenError as exc:
         raise HTTPException(422, str(exc)) from exc
-    emailed = False
-    if client["email"]:
+    # Owner-only previews can be inspected without autonomous delivery. A
+    # paying client's actual files require a distinct independent content
+    # review; missing AI credentials or a RETURN verdict means no email and
+    # no download token is issued.
+    scope = "project" if client["project_id"] else "owner"
+    approval = None
+    if scope == "project":
         try:
-            emailed = await docpack_tool.email_pack(client["email"], pack)
+            approval = await independent_review(pack, _provider(request))
+        except DocGenError:
+            return JSONResponse(
+                {"status": "review_required", "emailed": False, "files": [],
+                 "message": "المخرجات بانتظار مراجعة جودة مستقلة قبل التسليم"},
+                status_code=202,
+            )
+    emailed = False
+    if client["email"] and approval is not None:
+        try:
+            emailed = await docpack_tool.email_pack(client["email"], pack, approval=approval)
         except Exception:
             emailed = False
     return _payload(
-        pack, lang="ar", emailed=emailed,
-        scope="project" if client["project_id"] else "owner",
-        project_id=client["project_id"],
+        pack, lang="ar", emailed=emailed, scope=scope,
+        project_id=client["project_id"], approval=approval,
     )
 
 
@@ -122,6 +142,8 @@ async def demo_docpack(
     lang: str = Form("ar"),
 ):
     data, filename = await _read_upload(file)
+    if data is not None:
+        raise HTTPException(400, "التجربة العامة لا تقبل رفع ملفات خاصة؛ استخدم العينة المرفقة")
     use_sample = str(sample).strip().lower() in {"1", "true", "yes", "on"}
     bundled = False
     if data is None and use_sample:
