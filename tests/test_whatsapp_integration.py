@@ -300,6 +300,42 @@ class TestSendLifecycle:
 # ---------------------------------------------------------------------------
 
 class TestWebhookVerification:
+    async def test_missing_signature_is_rejected_without_reading_body(self):
+        from starlette.requests import Request
+
+        from src.interfaces.whatsapp_routes import whatsapp_webhook
+
+        async def unexpected_receive():
+            raise AssertionError("unsigned request body was read")
+
+        request = Request(
+            {"type": "http", "method": "POST", "path": "/webhooks/whatsapp", "headers": []},
+            unexpected_receive,
+        )
+        with _creds():
+            response = await whatsapp_webhook(request)
+        assert response.status_code == 403
+
+    async def test_oversized_signed_request_is_rejected(self, api):
+        from src.interfaces.whatsapp_routes import MAX_WHATSAPP_BODY_BYTES
+
+        with _creds():
+            response = await api.post(
+                "/webhooks/whatsapp",
+                content=b"x" * (MAX_WHATSAPP_BODY_BYTES + 1),
+                headers={"X-Hub-Signature-256": "sha256=" + "0" * 64},
+            )
+        assert response.status_code == 413
+        assert response.json()["status"] == "body_too_large"
+
+    async def test_non_ascii_verification_token_is_rejected(self, api):
+        with _creds():
+            response = await api.get(
+                "/webhooks/whatsapp",
+                params={"hub.mode": "subscribe", "hub.verify_token": "غير-صحيح"},
+            )
+        assert response.status_code == 403
+
     async def test_verify_get_returns_challenge(self, api):
         with _creds():
             r = await api.get("/webhooks/whatsapp", params={"hub.mode": "subscribe", "hub.verify_token": VERIFY, "hub.challenge": "12345"})
@@ -327,7 +363,10 @@ class TestWebhookVerification:
             r = await api.post("/webhooks/whatsapp", content=raw)
             assert r.status_code == 403
 
-    async def test_debug_log_flag_does_not_break_rejection(self, api, monkeypatch):
+    async def test_debug_log_flag_does_not_expose_message(self, api, monkeypatch, caplog):
+        import logging
+
+        caplog.set_level(logging.INFO, logger="src.interfaces.whatsapp_routes")
         monkeypatch.setenv("WHATSAPP_WEBHOOK_DEBUG", "true")
         with _creds():
             raw = json.dumps(_inbound_payload("m1", "كم السعر؟")).encode("utf-8")
@@ -338,6 +377,9 @@ class TestWebhookVerification:
             )
             assert r.status_code == 403
             assert r.json()["status"] == "invalid_signature"
+            assert "RX_DEBUG" not in caplog.text
+            assert raw.decode("utf-8") not in caplog.text
+            assert "كم السعر؟" not in caplog.text
 
     async def test_health_reports_signature_rejections(self, api):
         with _creds():
@@ -353,8 +395,8 @@ class TestWebhookVerification:
             assert rx["rejected_total"] >= 1
             reject = rx["last_reject"]
             assert reject["reason"] == "signature_mismatch"
-            assert reject["received_prefix"].startswith("sha256=000")
-            assert reject["expected_prefix"]
+            assert "received_prefix" not in reject
+            assert "expected_prefix" not in reject
             assert reject["body_len"] > 0
             assert TOKEN not in json.dumps(health)
 
