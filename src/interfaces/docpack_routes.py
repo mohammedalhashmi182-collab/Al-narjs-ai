@@ -65,8 +65,8 @@ async def _read_upload(upload: UploadFile | None) -> tuple[bytes | None, str | N
     return data, upload.filename
 
 
-def _payload(pack, *, lang: str, emailed: bool) -> dict:
-    published = docpack_tool.publish(pack)
+def _payload(pack, *, lang: str, emailed: bool, scope: str, project_id: str | None = None) -> dict:
+    published = docpack_tool.publish(pack, scope=scope, project_id=project_id)
     published["emailed"] = emailed
     for item in published["files"]:
         item["label"] = item["label_ar"] if lang != "en" else item["label_en"]
@@ -101,7 +101,11 @@ async def create_docpack(
             emailed = await docpack_tool.email_pack(client["email"], pack)
         except Exception:
             emailed = False
-    return _payload(pack, lang="ar", emailed=emailed)
+    return _payload(
+        pack, lang="ar", emailed=emailed,
+        scope="project" if client["project_id"] else "owner",
+        project_id=client["project_id"],
+    )
 
 
 @router.post("/api/docpack/demo", dependencies=[Depends(rate_limit_docpack_demo)])
@@ -136,16 +140,40 @@ async def demo_docpack(
         )
     except DocGenError as exc:
         raise HTTPException(400, str(exc)) from exc
-    return _payload(pack, lang="en" if lang == "en" else "ar", emailed=False)
+    return _payload(pack, lang="en" if lang == "en" else "ar", emailed=False, scope="demo")
 
 
 @router.get("/api/docpack/files/{token}/{filename}")
-async def download_docpack(token: str, filename: str):
+async def download_docpack(token: str, filename: str, request: Request):
     if "/" in filename or "\\" in filename or filename.startswith("."):
         raise HTTPException(404, "Not found")
-    item = PACKS.get(token, filename)
-    if item is None:
+    entry = PACKS.get_entry(token, filename)
+    if entry is None:
         raise HTTPException(404, "انتهت صلاحية الرابط أو الملف غير موجود")
+    item, scope, project_id = entry
+    if scope != "demo":
+        from uuid import UUID
+        from src.core.owner_auth import check_owner
+        from src.core.portal_auth import session_claims, session_valid_for
+        from src.models import ClientProject
+
+        allowed = check_owner(request)
+        if not allowed and scope == "project" and project_id:
+            try:
+                project_uuid = UUID(project_id)
+            except (ValueError, TypeError):
+                project_uuid = None
+            if project_uuid is not None:
+                async with request.app.state.session_factory() as session:
+                    project = await session.get(ClientProject, project_uuid)
+                    allowed = bool(
+                        project is not None
+                        and project.status == "active"
+                        and session_valid_for(session_claims(request), project)
+                    )
+        if not allowed:
+            # The 404 intentionally hides whether a token exists.
+            raise HTTPException(404, "انتهت صلاحية الرابط أو الملف غير موجود")
     return Response(
         content=item.content,
         media_type=item.media_type,
