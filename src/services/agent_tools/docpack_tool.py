@@ -89,8 +89,9 @@ async def build(
     )
 
 
-def publish(pack) -> dict:
-    token = PACKS.put(pack.files)
+def publish(pack, *, scope: str = "owner", project_id: str | None = None) -> dict:
+    """Publish an expiring preview; default legacy outputs to owner-only."""
+    token = PACKS.put(pack.files, scope=scope, project_id=project_id)
     return {
         "id": token,
         "agent_key": pack.meta.agent_key,
