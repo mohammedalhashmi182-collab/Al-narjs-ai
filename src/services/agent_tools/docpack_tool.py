@@ -6,6 +6,7 @@ from src.services.agent_profiles import TOOL_AGENTS
 from src.services.catalog import EMPLOYEES
 from src.services.docgen import DocGenError, build_docpack, parse_formats
 from src.services.docgen.store import PACKS
+from src.services.docgen.release_gate import ReleaseApproval, require_release
 
 DOCPACK_AGENTS = TOOL_AGENTS["docpack"]
 
@@ -89,8 +90,13 @@ async def build(
     )
 
 
-def publish(pack, *, scope: str = "owner", project_id: str | None = None) -> dict:
-    """Publish an expiring preview; default legacy outputs to owner-only."""
+def publish(
+    pack, *, scope: str = "owner", project_id: str | None = None,
+    approval: ReleaseApproval | None = None,
+) -> dict:
+    """Publish a short-lived pack. Only approved files reach customer scope."""
+    if scope == "project":
+        require_release(pack, approval)
     token = PACKS.put(pack.files, scope=scope, project_id=project_id)
     return {
         "id": token,
@@ -132,7 +138,9 @@ def summary_facts(pack) -> list[dict]:
     return rows
 
 
-async def email_pack(to: str, pack) -> bool:
+async def email_pack(to: str, pack, *, approval: ReleaseApproval | None = None) -> bool:
+    # No proof => no send, including legacy src/main.py callers.
+    require_release(pack, approval)
     if not to:
         return False
     # Legacy agent-generated packs also must pass artifact integrity checks
