@@ -46,53 +46,36 @@ def _errors(page):
     return errs
 
 
-@pytest.mark.parametrize('lang,width', [('ar', 390), ('en', 1440)])
-def test_intro_plays_every_visit_and_auto_dismiss(browser, client, lang, width):
+@pytest.mark.parametrize('lang,width', [('ar', 320), ('ar', 390), ('en', 768), ('en', 1440)])
+def test_compact_in_page_wordmark_never_blocks_hero(browser, client, lang, width):
     ctx = _ctx(browser, client, viewport={'width': width, 'height': 844})
     page = ctx.new_page()
     errs = _errors(page)
-    page.goto(f'http://testserver/{lang}/home')
-    assert page.locator('#njIntro').is_visible()
-    assert page.locator('.nj-intro-skip').is_visible()
-    # gone (removed from DOM) within ~3.2s
-    page.wait_for_selector('#njIntro', state='detached', timeout=3500)
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
-    page.reload()
-    assert page.locator('#njIntro').is_visible()
-    page.wait_for_selector('#njIntro', state='detached', timeout=3500)
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
-    assert errs == []
+    for _ in range(2):
+        page.goto(f'http://testserver/{lang}/home')
+        assert page.locator('#njIntro').count() == 0
+        assert not page.evaluate("document.documentElement.classList.contains('nj-intro-on')")
+        logo = page.locator('.nj-wordmark')
+        assert logo.is_visible()
+        assert logo.inner_text().strip() == 'النرجس'
+        bounds = logo.bounding_box()
+        assert bounds is not None and bounds['height'] < 72, bounds
+        assert bounds['width'] < width - 20
+        page.locator('#heroCeo').click(trial=True, timeout=5000)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+    assert not errs
     ctx.close()
 
 
-def test_intro_skip_button(browser, client):
-    ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844})
-    page = ctx.new_page()
-    page.goto('http://testserver/en/home')
-    page.locator('.nj-intro-skip').click()
-    page.wait_for_selector('#njIntro', state='detached', timeout=1000)
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
-    ctx.close()
-
-
-def test_intro_reduced_motion_never_shows(browser, client):
+@pytest.mark.parametrize('lang', ['ar', 'en'])
+def test_wordmark_respects_reduced_motion(browser, client, lang):
     ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844}, reduced_motion='reduce')
     page = ctx.new_page()
-    page.goto('http://testserver/ar/home')
-    assert page.locator('#njIntro').is_hidden()
-    page.locator('#heroCeo').click(trial=True, timeout=1000)
-    ctx.close()
-
-
-@pytest.mark.parametrize('lang,main,sub,other', [
-    ('ar', 'النرجس', 'للذكاء الاصطناعي', 'AlNarjis'),
-    ('en', 'AlNarjis', 'AI agents', 'النرجس'),
-])
-def test_intro_text_matches_page_language(browser, client, lang, main, sub, other):
-    ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844})
-    page = ctx.new_page()
     page.goto(f'http://testserver/{lang}/home')
-    text = page.locator('#njIntro').inner_text()
-    assert main in text and sub in text
-    assert other not in text
+    assert page.locator('.nj-wordmark').is_visible()
+    assert page.locator('.nj-wordmark').evaluate(
+        "(el) => getComputedStyle(el).animationName"
+    ) == 'none'
+    assert page.locator('#njIntro').count() == 0
+    page.locator('#heroCeo').click(trial=True, timeout=5000)
     ctx.close()
