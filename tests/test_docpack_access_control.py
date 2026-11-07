@@ -26,6 +26,12 @@ async def setup_app(monkeypatch):
         session.add_all([a, b]); await session.commit()
     monkeypatch.setattr(app.state, 'session_factory', maker, raising=False)
     monkeypatch.setattr(app.state, 'model_provider', None, raising=False)
+    # This fixture isolates token authorization from the independent QA
+    # provider; missing reviewer behavior is covered by release-gate tests.
+    from src.services.docgen.release_gate import ReleaseApproval, pack_digest
+    async def reviewed(pack, provider):
+        return ReleaseApproval(pack_digest(pack), "test-independent-reviewer")
+    monkeypatch.setattr("src.interfaces.docpack_routes.independent_review", reviewed)
     for limiter in (docpack_api_limiter, docpack_demo_limiter, docpack_demo_global_limiter):
         limiter.reset()
     PACKS.reset()
