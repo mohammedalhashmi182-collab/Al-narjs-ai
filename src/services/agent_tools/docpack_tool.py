@@ -135,6 +135,11 @@ def summary_facts(pack) -> list[dict]:
 async def email_pack(to: str, pack) -> bool:
     if not to:
         return False
+    # Legacy agent-generated packs also must pass artifact integrity checks
+    # before attempting email. This does NOT replace an independent review of
+    # substantive content or customer authorization.
+    from src.services.docgen.team_pilot import verify_pack_files
+    verify_pack_files(pack, [item.format for item in pack.files])
     from src.services import email_service
 
     lines = [f"{fact.label_ar}: {fact.display}" for fact in pack.analysis.facts if fact.kind == "total"]
