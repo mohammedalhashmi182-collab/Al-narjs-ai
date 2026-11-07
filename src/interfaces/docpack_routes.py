@@ -11,7 +11,8 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Uplo
 from fastapi.responses import Response
 
 from src.services.agent_tools import docpack_tool
-from src.services.docgen import DocGenError
+from src.services.docgen import DocGenError, parse_formats
+from src.services.docgen.team_pilot import verify_pack_files
 from src.services.docgen.analyze import MAX_UPLOAD_BYTES
 from src.services.docgen.sample import load_sample_bytes
 from src.services.docgen.store import PACKS
@@ -95,6 +96,10 @@ async def create_docpack(
         )
     except DocGenError as exc:
         raise HTTPException(400, str(exc)) from exc
+    try:
+        verify_pack_files(pack, parse_formats(formats))
+    except DocGenError as exc:
+        raise HTTPException(422, str(exc)) from exc
     emailed = False
     if client["email"]:
         try:
@@ -140,6 +145,10 @@ async def demo_docpack(
         )
     except DocGenError as exc:
         raise HTTPException(400, str(exc)) from exc
+    try:
+        verify_pack_files(pack, ["pdf", "xlsx", "pptx"])
+    except DocGenError as exc:
+        raise HTTPException(422, str(exc)) from exc
     return _payload(pack, lang="en" if lang == "en" else "ar", emailed=False, scope="demo")
 
 
