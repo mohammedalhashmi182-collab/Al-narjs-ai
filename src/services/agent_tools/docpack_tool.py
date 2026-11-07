@@ -140,7 +140,10 @@ def summary_facts(pack) -> list[dict]:
 
 async def email_pack(to: str, pack, *, approval: ReleaseApproval | None = None) -> bool:
     # No proof => no send, including legacy src/main.py callers.
-    require_release(pack, approval)
+    try:
+        require_release(pack, approval)
+    except DocGenError:
+        return False
     if not to:
         return False
     # Legacy agent-generated packs also must pass artifact integrity checks
