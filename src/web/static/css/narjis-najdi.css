@@ -78,12 +78,12 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   font-family:"IBM Plex Sans Arabic",sans-serif;
   font-size:clamp(25px,3.2vw,37px);
   font-weight:600;line-height:1.35;letter-spacing:0;
-  color:var(--nj-ivory, #f4eee2);
+  color:var(--nj-ivory, #f6f5f4);
   animation:nj-wordmark-appear .65s ease-out both;
 }
 .nj .nj-wordmark::after{
   content:"";position:absolute;inset-inline-start:0;bottom:0;
-  width:34px;height:2px;background:#c9a27a;border-radius:2px;
+  width:34px;height:2px;background:var(--nj-accent);border-radius:2px;
 }
 @keyframes nj-wordmark-appear{
   from{opacity:0;transform:translateY(6px)}
