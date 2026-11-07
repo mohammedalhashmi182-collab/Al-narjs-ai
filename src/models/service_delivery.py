@@ -1,8 +1,8 @@
 """Durable, project-scoped fulfillment journal for the DocPack service pilot.
 
-A commercial offer is immutable once accepted. Execution requires both
-customer acceptance and authoritative settlement of an invoice explicitly
-bound to the offer. Artifacts are encrypted in the DB, not kept on Render disk.
+This records *non-financial* internal work only. Customer delivery and paid
+activation must remain disabled pending a separate, approved payment design.
+Artifacts are encrypted in the DB, not kept on Render disk.
 """
 from __future__ import annotations
 
@@ -23,16 +23,11 @@ class ServiceOffer(Base):
     project_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    payment_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("payments.id", ondelete="RESTRICT"), unique=True, nullable=False
-    )
     service_slug: Mapped[str] = mapped_column(String(80), nullable=False, default="docpack")
     brief: Mapped[str] = mapped_column(Text, nullable=False)
     formats: Mapped[list[str]] = mapped_column(JSON, nullable=False)
     scope: Mapped[dict] = mapped_column(JSON, nullable=False)
     terms_version: Mapped[str] = mapped_column(String(80), nullable=False)
-    total_halalas: Mapped[int] = mapped_column(Integer, nullable=False)
-    currency: Mapped[str] = mapped_column(String(3), nullable=False, default="SAR")
     digest: Mapped[str] = mapped_column(String(64), nullable=False)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     accepted_session_project: Mapped[str | None] = mapped_column(String(64))
@@ -49,10 +44,7 @@ class ServiceJob(Base):
     project_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    payment_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("payments.id", ondelete="RESTRICT"), nullable=False
-    )
-    status: Mapped[str] = mapped_column(String(40), nullable=False, default="queued", index=True)
+    status: Mapped[str] = mapped_column(String(40), nullable=False, default="draft", index=True)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     lease_token: Mapped[str | None] = mapped_column(String(64))
     leased_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
