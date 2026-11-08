@@ -12,6 +12,7 @@ SECRET_KEY or a generated volatile key.
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import os
 import re
@@ -99,6 +100,10 @@ def _event(job: ServiceJob, name: str, key: str, **evidence: int | str | bool) -
 class InternalServiceJournal:
     def __init__(self, session_factory):
         self.session_factory = session_factory
+        # Each process commits small checkpoints in order. SQLite's single
+        # shared test connection cannot commit two sessions simultaneously;
+        # PostgreSQL also benefits from avoiding excess same-job contention.
+        self._checkpoint_lock = asyncio.Lock()
 
     async def create_preview(
         self,
@@ -302,6 +307,16 @@ class InternalServiceJournal:
             return job.status
 
     async def save_step_checkpoint(
+        self, lease: Lease, *, step_id: str, agent_slug: str, output_data: dict,
+        now: datetime | None = None,
+    ) -> str:
+        async with self._checkpoint_lock:
+            return await self._save_step_checkpoint_locked(
+                lease, step_id=step_id, agent_slug=agent_slug,
+                output_data=output_data, now=now,
+            )
+
+    async def _save_step_checkpoint_locked(
         self, lease: Lease, *, step_id: str, agent_slug: str, output_data: dict,
         now: datetime | None = None,
     ) -> str:
