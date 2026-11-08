@@ -66,3 +66,45 @@ async def test_owner_dashboard_internal_work_excludes_briefs(owner_app):
         assert 'id="journal-overview"' in page.text
         assert 'id="funnel-overview"' in page.text
         assert "الزائر المجهول ليس عميلًا يمكن مراسلته" in page.text
+
+
+
+@pytest.mark.asyncio
+async def test_owner_website_inquiries_exclude_imports_optouts_and_anonymous(owner_app):
+    from src.models import AcquisitionLead
+
+    app, maker, project_id = owner_app
+    async with maker() as session:
+        session.add_all([
+            AcquisitionLead(company_name="Website synthetic", source="website",
+                            phone="0550000000", lead_status="NEW", opt_out=False),
+            AcquisitionLead(company_name="Imported synthetic", source="excel_import",
+                            phone="0550000001", lead_status="NEW", opt_out=False),
+            AcquisitionLead(company_name="Opted out synthetic", source="website",
+                            email="stop@example.test", lead_status="NEW", opt_out=True),
+            AcquisitionLead(company_name="Anonymous synthetic", source="website",
+                            lead_status="NEW", opt_out=False),
+        ])
+        await session.commit()
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as guest:
+        forbidden = await guest.get("/api/company/website-inquiries")
+        assert forbidden.status_code in (401, 403)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://test",
+        cookies={"narjis_owner": make_session_token()},
+    ) as owner:
+        response = await owner.get("/api/company/website-inquiries")
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["mode"] == "manual_review_only"
+        assert body["permission"] == "unverified_no_automatic_outreach"
+        assert body["count"] == 1
+        assert len(body["inquiries"]) == 1
+        assert body["inquiries"][0]["company_name"] == "Website synthetic"
+        assert "0550000000" not in response.text
+        assert "stop@example.test" not in response.text
+        home = await owner.get("/company")
+        assert home.status_code == 200
+        assert 'id="website-inquiries"' in home.text
+        assert "لا ترسل تلقائيًا" in home.text
