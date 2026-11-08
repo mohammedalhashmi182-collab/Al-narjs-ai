@@ -511,7 +511,8 @@
     loadRevenue();
     loadServiceJournal();
     loadFunnelOverview();
+    loadWebsiteInquiries();
     document.getElementById('refreshJournal').addEventListener('click', loadServiceJournal);
-    setInterval(() => { loadState(); loadLists(); loadRevenue(); loadServiceJournal(); loadFunnelOverview(); }, 30000);
+    setInterval(() => { loadState(); loadLists(); loadRevenue(); loadServiceJournal(); loadFunnelOverview(); loadWebsiteInquiries(); }, 30000);
 </script>
 {% endblock %}
