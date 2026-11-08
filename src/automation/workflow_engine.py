@@ -6,7 +6,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Awaitable, Callable, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -75,6 +75,8 @@ class WorkflowEngine:
         initial_context: dict,
         trigger_type: str = "manual",
         trigger_payload: Optional[dict] = None,
+        restored_steps: dict[str, dict] | None = None,
+        on_step_completed: Callable[[str, str, dict], Awaitable[None]] | None = None,
     ) -> ExecutionResult:
         workflow_id = self.state_manager.create_workflow(
             workflow_slug=workflow_def.global_config.get("slug", "workflow"),
@@ -92,11 +94,35 @@ class WorkflowEngine:
                 error="Failed to create workflow state",
             )
 
+        # Resume only steps from this exact plan, with matching agent identity.
+        # QA must always rerun against the current artifacts/evidence.
+        if restored_steps:
+            planned = {step.id: step for step in workflow_def.steps}
+            for restored_id, payload in restored_steps.items():
+                expected = planned.get(restored_id)
+                if (expected is None or not isinstance(payload, dict)
+                        or payload.get("agent_slug") != expected.agent_slug
+                        or not isinstance(payload.get("output_data"), dict)
+                        or not isinstance(payload["output_data"].get("content"), str)):
+                    self.state_manager.update_workflow_status(
+                        workflow_id, WorkflowStatus.FAILED, "Invalid restored workflow step"
+                    )
+                    return ExecutionResult(
+                        workflow_id=workflow_id, success=False, final_context={},
+                        error="Invalid restored workflow step",
+                    )
+                if expected.agent_slug == "quality_gate":
+                    continue
+                self.state_manager.complete_step(
+                    workflow_id, restored_id, payload["output_data"],
+                )
         self.state_manager.update_workflow_status(workflow_id, WorkflowStatus.RUNNING)
 
         # Run as a registered task so cancel_workflow() can actually stop it.
         run = asyncio.create_task(
-            self._execute_workflow(workflow_id, workflow_def, initial_context, state),
+            self._execute_workflow(
+                workflow_id, workflow_def, initial_context, state, on_step_completed
+            ),
             name=f"workflow-{workflow_id}",
         )
         self._running_workflows[workflow_id] = run
@@ -151,6 +177,7 @@ class WorkflowEngine:
         workflow_def: WorkflowDefinition,
         initial_context: dict,
         state: WorkflowState,
+        on_step_completed: Callable[[str, str, dict], Awaitable[None]] | None = None,
     ):
         state.global_context.update(initial_context)
         step_map = {step.id: step for step in workflow_def.steps}
@@ -181,7 +208,9 @@ class WorkflowEngine:
             async def execute_step_with_semaphore(step_id: str):
                 async with semaphore:
                     try:
-                        await self._execute_step(workflow_id, step_id, step_map[step_id], state)
+                        await self._execute_step(
+                            workflow_id, step_id, step_map[step_id], state, on_step_completed
+                        )
                     except Exception as exc:
                         self.state_manager.fail_step(workflow_id, step_id, str(exc))
 
@@ -196,6 +225,7 @@ class WorkflowEngine:
         step_id: str,
         step_def: WorkflowStep,
         state: WorkflowState,
+        on_step_completed: Callable[[str, str, dict], Awaitable[None]] | None = None,
     ):
         if not self.state_manager.start_step(workflow_id, step_id):
             return
@@ -278,6 +308,10 @@ class WorkflowEngine:
                 "quality": response.quality,
             }
 
+            if on_step_completed is not None:
+                # Persist before marking completed; failure blocks dependencies
+                # and makes the step eligible for re-execution after a restart.
+                await on_step_completed(step_id, step_def.agent_slug, output_data)
             self.state_manager.complete_step(
                 workflow_id=workflow_id,
                 step_id=step_id,
