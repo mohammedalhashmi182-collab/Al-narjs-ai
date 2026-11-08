@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, Integer, LargeBinary, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,10 +24,11 @@ class ServiceOffer(Base):
         PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     service_slug: Mapped[str] = mapped_column(String(80), nullable=False, default="docpack")
-    brief: Mapped[str] = mapped_column(Text, nullable=False)
+    # Never persist the customer's raw request as plaintext.
+    brief_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     formats: Mapped[list[str]] = mapped_column(JSON, nullable=False)
     scope: Mapped[dict] = mapped_column(JSON, nullable=False)
-    terms_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    terms_version: Mapped[str] = mapped_column(String(80), nullable=False, default="internal-preview-v1")
     digest: Mapped[str] = mapped_column(String(64), nullable=False)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     accepted_session_project: Mapped[str | None] = mapped_column(String(64))
@@ -44,7 +45,11 @@ class ServiceJob(Base):
     project_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    status: Mapped[str] = mapped_column(String(40), nullable=False, default="draft", index=True)
+    status: Mapped[str] = mapped_column(String(40), nullable=False, default="queued", index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(100), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     lease_token: Mapped[str | None] = mapped_column(String(64))
     leased_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -52,6 +57,10 @@ class ServiceJob(Base):
     last_error: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    __table_args__ = (
+        UniqueConstraint("project_id", "idempotency_key", name="uq_service_job_project_request"),
+    )
 
 
 class ServiceArtifact(Base):
@@ -68,6 +77,7 @@ class ServiceArtifact(Base):
     media_type: Mapped[str] = mapped_column(String(160), nullable=False)
     sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     encrypted_bytes: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    byte_count: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (UniqueConstraint("job_id", "filename", name="uq_service_artifact_job_file"),)
