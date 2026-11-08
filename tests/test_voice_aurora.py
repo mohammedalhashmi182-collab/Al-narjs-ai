@@ -52,6 +52,33 @@ def test_voice_published_agent_override_is_honest_and_intake_oriented():
     assert "Do not request passwords" in script
 
 
+
+def test_voice_prices_always_come_from_checkout_catalog(monkeypatch):
+    from src.services.catalog import PACKAGES, PACKAGE_ORDER
+
+    script = voice_live.session_instructions("ar")
+    for key in PACKAGE_ORDER:
+        plan = PACKAGES[key]
+        sar = f'{plan["amount"] / 100:,.2f}'.removesuffix(".00")
+        assert f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month' in script
+    assert "before any applicable VAT" in script
+
+    # A future catalog update must instantly appear in the voice advisor,
+    # without a developer editing a second, stale price list.
+    monkeypatch.setitem(PACKAGES["bidaya"], "amount", 82500)
+    revised = voice_live.session_instructions("en")
+    assert "البداية (Starter) 825 SAR per month" in revised
+    assert "البداية (Starter) 790 SAR per month" not in revised
+
+
+def test_invalid_catalog_price_fails_closed_for_voice(monkeypatch):
+    from src.services.catalog import PACKAGES
+
+    monkeypatch.setitem(PACKAGES["bidaya"], "amount", -100)
+    with pytest.raises(ValueError, match="canonical package"):
+        voice_live.session_instructions("ar")
+
+
 @pytest.mark.skipif(os.environ.get("RUN_BROWSER_TESTS") != "1", reason="requires Chromium CI")
 @pytest.mark.parametrize("lang,width", [("ar", 390), ("en", 1280)])
 def test_voice_aurora_browser_works_before_call_without_overlay(lang, width):
