@@ -224,8 +224,10 @@ class InternalServiceJournal:
             await session.commit()
             return Lease(job.id, project_id, token, job.attempts, expiry)
 
-    async def brief_for_lease(self, lease: Lease, *, now: datetime | None = None) -> str:
-        """Read encrypted inputs for the one currently-authorized executor."""
+    async def request_for_lease(
+        self, lease: Lease, *, now: datetime | None = None
+    ) -> tuple[str, list[str]]:
+        """Decrypt a scoped brief and get its formats for this one active executor."""
         crypt = _key()
         at = _now(now)
         async with self.session_factory() as session:
@@ -238,9 +240,15 @@ class InternalServiceJournal:
             if not row[0].leased_until or _aware(row[0].leased_until) <= at:
                 raise JournalError("The job lease has expired")
             try:
-                return crypt.decrypt(row[1].brief_encrypted).decode("utf-8")
+                brief = crypt.decrypt(row[1].brief_encrypted).decode("utf-8")
             except (InvalidToken, UnicodeError) as exc:
                 raise JournalError("Encrypted brief cannot be verified") from exc
+            return brief, list(row[1].formats)
+
+    async def brief_for_lease(self, lease: Lease, *, now: datetime | None = None) -> str:
+        """Compatibility helper for workers that only need the task text."""
+        brief, _ = await self.request_for_lease(lease, now=now)
+        return brief
 
     async def heartbeat(self, lease: Lease, *, now: datetime | None = None) -> bool:
         at = _now(now)
