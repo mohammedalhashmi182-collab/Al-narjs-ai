@@ -412,17 +412,17 @@
       return;
     }
     if (type === "error") {
-      const detail = (event.error && (event.error.message || event.error.code)) || event.message || "";
-      console.warn("voice session error", { type: event.error && event.error.type, code: event.error && event.error.code, message: detail });
-      add(detail ? T.down + " (" + String(detail).slice(0, 160) + ")" : T.down, "sys");
+      // Provider errors can contain account identifiers, request details or secrets.
+      // Do not display or log upstream text on a public visitor's device.
+      add(T.down, "sys");
       reveal("upstream", false);
     }
   }
 
   function closeMessage(event) {
     const code = event && typeof event.code === "number" ? event.code : 0;
-    const reason = event && event.reason ? String(event.reason).replace(/\s+/g, " ").slice(0, 160) : "";
-    return T.dropped + (code ? " (" + code + ")" : "") + (reason ? " — " + reason : "");
+    // Close reasons are untrusted upstream text and must not reach public UI.
+    return T.dropped + (code ? " (" + code + ")" : "");
   }
 
   function sessionOptions(payload) {
