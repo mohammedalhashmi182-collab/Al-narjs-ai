@@ -64,6 +64,45 @@
     </div>
 </div>
 
+<section id="journal-overview" class="bg-white rounded-2xl shadow p-5 mb-8" aria-labelledby="journal-heading">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+            <h3 id="journal-heading" class="text-lg font-bold text-gray-900">
+                {% if _lang == 'ar' %}تنفيذ فريق النرجس — داخلي{% else %}Team execution — internal previews{% endif %}
+            </h3>
+            <p class="text-xs text-gray-500">
+                {% if _lang == 'ar' %}حالة المعاينات الداخلية فقط؛ «تم التدقيق» لا تعني إرسال الخدمة أو تحصيل الدفع.{% else %}Internal preview status only. Reviewed is not delivered or paid.{% endif %}
+            </p>
+        </div>
+        <button type="button" id="refreshJournal" class="px-3 py-2 border rounded-lg text-sm font-semibold">
+            {% if _lang == 'ar' %}تحديث{% else %}Refresh{% endif %}
+        </button>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4" aria-live="polite">
+        <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}بالانتظار{% else %}Queued{% endif %}</p><p class="text-xl font-bold" id="journal-queued">—</p></div>
+        <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}قيد التنفيذ{% else %}Running{% endif %}</p><p class="text-xl font-bold" id="journal-running">—</p></div>
+        <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}مدققة داخليًا{% else %}Reviewed{% endif %}</p><p class="text-xl font-bold" id="journal-reviewed">—</p></div>
+        <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}متعثرة{% else %}Failed{% endif %}</p><p class="text-xl font-bold" id="journal-failed">—</p></div>
+    </div>
+    <p id="journal-state" class="text-xs text-gray-500" role="status"></p>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead><tr class="text-gray-500 border-b"><th class="p-2 text-start">{% if _lang == 'ar' %}المشروع{% else %}Project{% endif %}</th><th class="p-2 text-start">{% if _lang == 'ar' %}المرحلة{% else %}Status{% endif %}</th><th class="p-2 text-start">{% if _lang == 'ar' %}المحاولات{% else %}Attempts{% endif %}</th><th class="p-2 text-start">{% if _lang == 'ar' %}آخر تحديث{% else %}Updated{% endif %}</th></tr></thead>
+            <tbody id="journal-jobs"><tr><td colspan="4" class="p-3 text-gray-500">{% if _lang == 'ar' %}جارٍ التحميل…{% else %}Loading…{% endif %}</td></tr></tbody>
+        </table>
+    </div>
+</section>
+<section id="funnel-overview" class="bg-white rounded-2xl shadow p-5 mb-8" aria-labelledby="funnel-heading">
+    <h3 id="funnel-heading" class="text-lg font-bold text-gray-900">{% if _lang == 'ar' %}من زيارة إلى استشارة{% else %}From visit to consultation{% endif %}</h3>
+    <p class="text-xs text-gray-500 mb-3">{% if _lang == 'ar' %}إحصاءات أولية للزيارات المسجلة فقط، تحترم رفض التتبع. الزائر المجهول ليس عميلًا يمكن مراسلته.{% else %}Opt-in first-party event counts only. An anonymous visitor is not a contactable lead.{% endif %}</p>
+    <div class="grid grid-cols-3 gap-3" aria-live="polite">
+        <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}فتح الرئيسية{% else %}Home views{% endif %}</p><p class="text-xl font-bold" id="funnel-landing">—</p></div>
+        <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}فتح الاستشارة{% else %}Consult opened{% endif %}</p><p class="text-xl font-bold" id="funnel-open">—</p></div>
+        <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}إرسال المشكلة{% else %}Problem sent{% endif %}</p><p class="text-xl font-bold" id="funnel-problem">—</p></div>
+    </div>
+    <p id="funnel-state" class="text-xs text-gray-500 mt-2" role="status"></p>
+</section>
+
 <div class="bg-gradient-to-r from-emerald-50 to-amber-50 rounded-2xl shadow border-t-4 border-amber-500 mb-8 p-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
@@ -181,6 +220,68 @@
     const OPP_CLS = { open:'bg-blue-100 text-blue-800', assigned:'bg-yellow-100 text-yellow-800', won:'bg-green-100 text-green-800', dismissed:'bg-gray-200 text-gray-600' };
     const DEC_CLS = { pending:'bg-yellow-100 text-yellow-800', resolved:'bg-green-100 text-green-800', failed:'bg-red-100 text-red-800' };
     const TIER_CLS = { A:'bg-emerald-100 text-emerald-800', B:'bg-blue-100 text-blue-800', C:'bg-amber-100 text-amber-800', D:'bg-gray-100 text-gray-600' };
+
+    async function loadServiceJournal() {
+        const state = document.getElementById('journal-state');
+        try {
+            const response = await fetch('/api/company/service-jobs?limit=20', {credentials:'same-origin'});
+            if (!response.ok) throw new Error('Unable to load internal job state');
+            const payload = await response.json();
+            const counts = payload.counts || {};
+            for (const key of ['queued','running','reviewed']) {
+                document.getElementById('journal-' + key).textContent = Number(counts[key] || 0).toLocaleString();
+            }
+            document.getElementById('journal-failed').textContent = Number(counts.failed_final || 0).toLocaleString();
+            const ar = document.documentElement.lang.startsWith('ar');
+            const statusText = {
+                queued: ar ? 'بالانتظار' : 'Queued', running: ar ? 'قيد التنفيذ' : 'Running',
+                reviewed: ar ? 'مدققة داخليًا' : 'Reviewed internally',
+                failed_final: ar ? 'متعذرة' : 'Failed',
+            };
+            const rows = payload.jobs || [];
+            document.getElementById('journal-jobs').innerHTML = rows.length ? rows.map(item =>
+                '<tr class="border-b border-gray-100">' +
+                '<td class="p-2 font-mono text-xs">' + esc((item.project_id || '').slice(0,8)) + '…</td>' +
+                '<td class="p-2">' + esc(statusText[item.status] || item.status) + '</td>' +
+                '<td class="p-2">' + Number(item.attempts || 0) + '</td>' +
+                '<td class="p-2">' + esc(fmtDate(item.updated_at)) + '</td></tr>'
+            ).join('') : '<tr><td colspan="4" class="p-3 text-gray-500">' +
+                (ar ? 'لا توجد معاينات داخلية حتى الآن' : 'No internal previews yet') + '</td></tr>';
+            state.textContent = ar ? 'آخر تحديث: الآن · لا يوجد تسليم آلي من هذه اللوحة' :
+                'Updated · This view does not auto-deliver files';
+        } catch (_) {
+            state.textContent = document.documentElement.lang.startsWith('ar') ?
+                'بيانات التنفيذ غير متاحة الآن' : 'Execution data unavailable';
+            for (const key of ['queued','running','reviewed','failed']) {
+                document.getElementById('journal-' + key).textContent = '—';
+            }
+        }
+    }
+
+    async function loadFunnelOverview() {
+        const state = document.getElementById('funnel-state');
+        try {
+            const response = await fetch('/api/owner/funnel?days=30', {credentials:'same-origin'});
+            if (!response.ok) throw new Error('Funnel unavailable');
+            const report = await response.json();
+            const byName = Object.fromEntries((report.steps || []).map(v => [v.event, v]));
+            for (const [id, name] of [
+                ['funnel-landing', 'landing_view'],
+                ['funnel-open', 'ceo_consult_open'],
+                ['funnel-problem', 'ceo_problem_submitted']
+            ]) {
+                const count = byName[name]?.count;
+                document.getElementById(id).textContent =
+                    typeof count === 'number' ? count.toLocaleString() : '—';
+            }
+            state.textContent = document.documentElement.lang.startsWith('ar') ?
+                'آخر 30 يوم · أحداث فقط، وليست إجمالي زوار الموقع' :
+                'Last 30 days · Events, not all website visitors';
+        } catch (_) {
+            state.textContent = document.documentElement.lang.startsWith('ar') ?
+                'إحصاءات الزيارات غير متاحة الآن' : 'Visitor statistics unavailable';
+        }
+    }
 
     async function loadRevenue() {
         try {
@@ -352,6 +453,9 @@
     loadState();
     loadLists();
     loadRevenue();
-    setInterval(() => { loadState(); loadLists(); loadRevenue(); }, 30000);
+    loadServiceJournal();
+    loadFunnelOverview();
+    document.getElementById('refreshJournal').addEventListener('click', loadServiceJournal);
+    setInterval(() => { loadState(); loadLists(); loadRevenue(); loadServiceJournal(); loadFunnelOverview(); }, 30000);
 </script>
 {% endblock %}
