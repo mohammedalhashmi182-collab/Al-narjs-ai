@@ -94,7 +94,7 @@
 </section>
 <section id="funnel-overview" class="bg-white rounded-2xl shadow p-5 mb-8" aria-labelledby="funnel-heading">
     <h3 id="funnel-heading" class="text-lg font-bold text-gray-900">{% if _lang == 'ar' %}من زيارة إلى استشارة{% else %}From visit to consultation{% endif %}</h3>
-    <p class="text-xs text-gray-500 mb-3">{% if _lang == 'ar' %}إحصاءات أولية للزيارات المسجلة فقط، تحترم رفض التتبع. الزائر المجهول ليس عميلًا يمكن مراسلته.{% else %}Opt-in first-party event counts only. An anonymous visitor is not a contactable lead.{% endif %}</p>
+    <p class="text-xs text-gray-500 mb-3">{% if _lang == 'ar' %}إحصاءات أولية للزيارات المسجلة فقط، تحترم رفض التتبع. الزائر المجهول ليس عميلًا يمكن مراسلته.{% else %}Recorded first-party events only; Do Not Track and tracking refusals are honored. Anonymous visitors are not contactable leads.{% endif %}</p>
     <div class="grid grid-cols-3 gap-3" aria-live="polite">
         <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}فتح الرئيسية{% else %}Home views{% endif %}</p><p class="text-xl font-bold" id="funnel-landing">—</p></div>
         <div class="rounded-lg bg-gray-100 p-3"><p class="text-xs">{% if _lang == 'ar' %}فتح الاستشارة{% else %}Consult opened{% endif %}</p><p class="text-xl font-bold" id="funnel-open">—</p></div>
