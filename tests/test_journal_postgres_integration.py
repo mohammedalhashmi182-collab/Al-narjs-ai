@@ -112,3 +112,41 @@ async def test_postgres_restart_keeps_checkpoints_and_fences_stale_writer(pg_fix
         ))).scalars().all()
         assert len(rows) == 2
         assert all(b"Synthetic" not in c.encrypted_output for c in rows)
+
+
+
+@pytest.mark.asyncio
+async def test_postgres_encrypted_artifact_roundtrip_in_synthetic_database(pg_fixture):
+    """Leave a genuinely encrypted file for the disposable backup/restore check."""
+    from src.services.docgen.pipeline import build_docpack
+    from src.services.docgen.release_gate import ReleaseApproval, pack_digest
+    from src.services.docgen.sample import load_sample_bytes
+
+    maker, project_id = pg_fixture
+    brief = "Synthetic quarterly report for backup recovery test"
+    journal = InternalServiceJournal(maker)
+    job = await journal.create_preview(
+        project_id, request_key="pg-encrypted-artifact-001",
+        brief=brief, formats=["xlsx"],
+    )
+    lease = await journal.claim(project_id, job)
+    assert lease
+    pack = await build_docpack(
+        brief=brief, file_bytes=load_sample_bytes(), filename="sample.xlsx",
+        agent_key="data_analyst", agent_name_ar="محلل البيانات",
+        agent_name_en="Data Analyst", formats=["xlsx"],
+        model_provider=None, client_name="Synthetic data only",
+    )
+    files = await journal.approve(
+        lease, pack, ReleaseApproval(pack_digest(pack), "synthetic-independent-review"),
+    )
+    assert len(files) == 1
+    recovered = await journal.read_reviewed_artifact(project_id, job, files[0])
+    assert recovered == pack.files[0].content
+    async with maker() as session:
+        items = (await session.execute(select(ServiceArtifact).where(
+            ServiceArtifact.job_id == job
+        ))).scalars().all()
+        assert len(items) == 1
+        assert items[0].encrypted_bytes != recovered
+        assert b"synthetic" not in items[0].encrypted_bytes.lower()
