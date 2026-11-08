@@ -95,3 +95,30 @@ async def test_quality_gate_does_not_release_failed_or_ambiguous_review(monkeypa
     assert result.steps_failed == 1
     assert "review" in (result.error or "")
     assert engine.get_workflow_status(result.workflow_id)["steps"]["review"]["status"] == "failed"
+
+
+@pytest.mark.asyncio
+async def test_workflow_refuses_final_review_if_specialist_output_is_too_large(monkeypatch):
+    """Do not let a model PASS if some of its required input is unavailable."""
+    from src.services import agent_runtime
+
+    registry = AsyncMock()
+    registry.get_agent.side_effect = lambda slug: _agent(slug)
+    seen_agents = []
+
+    async def fake_execute(provider, agent, **kwargs):
+        seen_agents.append(agent.slug)
+        return SimpleNamespace(
+            content="x" * 100000 if agent.slug != "quality_gate" else "Verdict: PASS",
+            structured_output=None, tokens_used=1,
+            model="fixture", quality={"passed": True},
+        )
+
+    monkeypatch.setattr(agent_runtime, "execute", fake_execute)
+    engine = WorkflowEngine(registry, AsyncMock(), StateManager(), None, max_concurrent_steps=2)
+    result = await engine.execute(_workflow(), {"client_request": "Sensitive proposal"})
+    assert not result.success
+    assert result.steps_failed == 1
+    assert "review" in (result.error or "")
+    assert "quality_gate" not in seen_agents, "QA model must never approve incomplete evidence"
+    assert engine.get_workflow_status(result.workflow_id)["steps"]["review"]["status"] == "failed"
