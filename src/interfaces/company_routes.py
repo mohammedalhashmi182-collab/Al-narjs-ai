@@ -34,6 +34,42 @@ async def company_state(request: Request):
     return await observatory.snapshot()
 
 
+@router.get("/api/company/service-jobs", dependencies=[Depends(require_owner)])
+async def owner_internal_service_jobs(request: Request, limit: int = 20):
+    """Owner-only, aggregate and safe internal job statuses (not paid orders).
+
+    This view intentionally exposes no client brief, file bytes, email,
+    telephone, encryption metadata or receipt.
+    """
+    from sqlalchemy import func, select
+    from src.models.service_delivery import ServiceJob
+
+    bound = max(1, min(limit, 50))
+    async with request.app.state.session_factory() as session:
+        counts = (await session.execute(
+            select(ServiceJob.status, func.count(ServiceJob.id)).group_by(ServiceJob.status)
+        )).all()
+        jobs = (await session.execute(
+            select(ServiceJob).order_by(
+                ServiceJob.created_at.desc(), ServiceJob.id.desc()
+            ).limit(bound)
+        )).scalars().all()
+    return {
+        "mode": "internal_preview_only",
+        "counts": {status: int(count) for status, count in counts},
+        "jobs": [
+            {
+                "id": str(job.id),
+                "project_id": str(job.project_id),
+                "status": job.status,
+                "attempts": job.attempts,
+                "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+            }
+            for job in jobs
+        ],
+    }
+
+
 @router.get("/api/company/what-happened", dependencies=[Depends(require_owner)])
 async def company_what_happened(request: Request, limit: int = 10):
     from sqlalchemy import desc, select
