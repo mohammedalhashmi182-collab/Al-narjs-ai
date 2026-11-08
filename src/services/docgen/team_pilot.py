@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 from io import BytesIO
+from typing import Awaitable, Callable
 from zipfile import BadZipFile, ZipFile
 
 from src.automation.workflow_engine import WorkflowDefinition, WorkflowEngine, WorkflowStep
@@ -107,6 +108,8 @@ async def prepare_docpack_team_preview(
     filename: str | None = None,
     formats: list[str] | None = None,
     client_name: str = "عميل تجريبي",
+    restored_steps: dict[str, dict] | None = None,
+    on_step_completed: Callable[[str, str, dict], Awaitable[None]] | None = None,
 ) -> PreparedPreview:
     """Build files locally, coordinate specialists, then hold for owner review.
 
@@ -133,6 +136,11 @@ async def prepare_docpack_team_preview(
         for f in pack.analysis.facts
     ]
     objective = (brief or "").strip() or "تحليل الملف المرفق وإعداد حزمة مستندات"
+    run_kwargs = {}
+    if restored_steps is not None:
+        run_kwargs["restored_steps"] = restored_steps
+    if on_step_completed is not None:
+        run_kwargs["on_step_completed"] = on_step_completed
     result = await engine.execute(_team_definition(), {
         "client_request": objective,
         "locale": "ar",
@@ -148,7 +156,7 @@ async def prepare_docpack_team_preview(
         "agent_code": "TEAM",
         "agent_name": "DocPack team",
         "brand_voice": "Arabic-first, professional, Saudi market, evidence-grounded",
-    })
+    }, **run_kwargs)
     if not result.success:
         raise DocGenError(f"DocPack team or quality review failed: {result.error}")
     review = result.final_context.get("review") or {}
