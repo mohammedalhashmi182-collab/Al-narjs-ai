@@ -7,6 +7,8 @@ a separate commercial/authorization/delivery pipeline is built.
 """
 from __future__ import annotations
 
+import asyncio
+from contextlib import suppress
 from uuid import UUID
 
 from src.automation.workflow_engine import WorkflowEngine
@@ -14,7 +16,7 @@ from src.services.docgen.release_gate import independent_review
 from src.services.docgen.schema import DocGenError
 from src.services.docgen.team_pilot import prepare_docpack_team_preview
 from src.services.service_fulfillment_journal import (
-    InternalServiceJournal, JournalError,
+    InternalServiceJournal, JournalError, LEASE_SECONDS,
 )
 
 
@@ -34,8 +36,25 @@ async def run_internal_docpack(
     if lease is None:
         return {"job_id": str(job_id), "status": "not_claimed"}
 
+    # Short-lived heartbeat renewals prevent a long model call from losing
+    # ownership and having two workers publish the same encrypted artifact.
+    caller = asyncio.current_task()
+    heartbeat = asyncio.create_task(
+        _heartbeat_while_running(journal, lease, caller),
+        name=f"journal-heartbeat-{job_id}",
+    )
     try:
         brief, formats = await journal.request_for_lease(lease)
+        checkpoints = await journal.load_step_checkpoints(lease)
+
+        async def persist_step(step_id: str, agent_slug: str, output_data: dict) -> None:
+            # Always re-run the final quality gate against the current preview.
+            if agent_slug != "quality_gate":
+                await journal.save_step_checkpoint(
+                    lease, step_id=step_id, agent_slug=agent_slug,
+                    output_data=output_data,
+                )
+
         preview = await prepare_docpack_team_preview(
             engine,
             brief=brief,
@@ -43,6 +62,8 @@ async def run_internal_docpack(
             filename=None,
             formats=formats,
             client_name="معاينة داخلية",
+            restored_steps=checkpoints,
+            on_step_completed=persist_step,
         )
         # The team quality_gate is not enough: this must be a distinct
         # substantive review with an independent provider and exact digest.
@@ -66,6 +87,25 @@ async def run_internal_docpack(
         # the exception text. A later retry may succeed after a provider outage.
         await _record_failure(journal, lease, "transient")
         return {"job_id": str(job_id), "status": "retry_scheduled"}
+    finally:
+        heartbeat.cancel()
+        with suppress(asyncio.CancelledError):
+            await heartbeat
+
+
+async def _heartbeat_while_running(journal, lease, parent_task) -> None:
+    while True:
+        await asyncio.sleep(max(1, LEASE_SECONDS // 3))
+        try:
+            ok = await journal.heartbeat(lease)
+        except Exception:
+            ok = False
+        if not ok:
+            # A stolen, expired or unreachable lease makes this worker unsafe.
+            # Cancel before it can finalize or deliver stale output.
+            if parent_task is not None:
+                parent_task.cancel()
+            return
 
 
 async def _record_failure(journal, lease, code: str) -> None:
