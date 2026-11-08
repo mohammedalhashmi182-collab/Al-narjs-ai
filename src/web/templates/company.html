@@ -92,6 +92,33 @@
         </table>
     </div>
 </section>
+<section id="website-inquiries" class="bg-white rounded-2xl shadow p-5 mb-8" aria-labelledby="website-inquiries-heading">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+            <h3 id="website-inquiries-heading" class="text-lg font-bold text-gray-900">
+                {% if _lang == 'ar' %}طلبات الموقع المعروفة — مراجعة يدوية{% else %}Known website enquiries — manual review{% endif %}
+            </h3>
+            <p class="text-xs text-gray-500">
+                {% if _lang == 'ar' %}هول زوّار تركوا وسيلة تواصل؛ الموافقة على مراسلتهم غير موثقة في السجل الحالي. تحقّق قبل أي متابعة ولا ترسل تلقائيًا.{% else %}These visitors supplied a contact method; outbound permission is not recorded. Verify before contact. No automatic messages.{% endif %}
+            </p>
+        </div>
+        <a href="/acquisition" class="px-3 py-2 border rounded-lg text-sm font-semibold">
+            {% if _lang == 'ar' %}إدارة العملاء المحتملين{% else %}Lead management{% endif %}
+        </a>
+    </div>
+    <p id="website-inquiries-state" class="text-xs text-gray-500" role="status">{% if _lang == 'ar' %}جارٍ التحميل…{% else %}Loading…{% endif %}</p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="text-gray-500 border-b">
+          <th class="p-2 text-start">{% if _lang == 'ar' %}الجهة{% else %}Company{% endif %}</th>
+          <th class="p-2 text-start">{% if _lang == 'ar' %}الحالة{% else %}Status{% endif %}</th>
+          <th class="p-2 text-start">{% if _lang == 'ar' %}الأولوية{% else %}Priority{% endif %}</th>
+          <th class="p-2 text-start">{% if _lang == 'ar' %}المتابعة{% else %}Next follow-up{% endif %}</th>
+        </tr></thead>
+        <tbody id="website-inquiries-rows"></tbody>
+      </table>
+    </div>
+</section>
 <section id="funnel-overview" class="bg-white rounded-2xl shadow p-5 mb-8" aria-labelledby="funnel-heading">
     <h3 id="funnel-heading" class="text-lg font-bold text-gray-900">{% if _lang == 'ar' %}من زيارة إلى استشارة{% else %}From visit to consultation{% endif %}</h3>
     <p class="text-xs text-gray-500 mb-3">{% if _lang == 'ar' %}إحصاءات أولية للزيارات المسجلة فقط، تحترم رفض التتبع. الزائر المجهول ليس عميلًا يمكن مراسلته.{% else %}Recorded first-party events only; Do Not Track and tracking refusals are honored. Anonymous visitors are not contactable leads.{% endif %}</p>
@@ -255,6 +282,35 @@
             for (const key of ['queued','running','reviewed','failed']) {
                 document.getElementById('journal-' + key).textContent = '—';
             }
+        }
+    }
+
+    async function loadWebsiteInquiries() {
+        const state = document.getElementById('website-inquiries-state');
+        const rows = document.getElementById('website-inquiries-rows');
+        if (!state || !rows) return;
+        const ar = document.documentElement.lang.startsWith('ar');
+        try {
+            const response = await fetch('/api/company/website-inquiries?limit=20', {credentials:'same-origin'});
+            if (!response.ok) throw new Error('Inquiries unavailable');
+            const payload = await response.json();
+            const entries = payload.inquiries || [];
+            state.textContent = ar ?
+                ('طلبات الموقع المعروفة: ' + Number(payload.count || 0) + ' · مراجعة إذن التواصل مطلوبة') :
+                ('Known website enquiries: ' + Number(payload.count || 0) + ' · Contact permission unverified');
+            rows.innerHTML = entries.length ? entries.map(lead =>
+                '<tr class="border-b border-gray-100">' +
+                '<td class="p-2"><a class="underline" href="/acquisition/leads/' +
+                    encodeURIComponent(lead.id) + '">' + esc(lead.company_name) + '</a></td>' +
+                '<td class="p-2">' + esc(lead.lead_status) + '</td>' +
+                '<td class="p-2">' + esc(lead.priority) + '</td>' +
+                '<td class="p-2">' + esc(fmtDate(lead.next_followup_at)) + '</td></tr>'
+            ).join('') : '<tr><td colspan="4" class="p-3 text-gray-500">' +
+                (ar ? 'لا توجد طلبات موقع معروفة قابلة للمراجعة' : 'No known website enquiries') +
+                '</td></tr>';
+        } catch (_) {
+            state.textContent = ar ? 'بيانات طلبات الموقع غير متاحة' : 'Website enquiries unavailable';
+            rows.innerHTML = '';
         }
     }
 
