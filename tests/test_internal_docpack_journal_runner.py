@@ -102,3 +102,74 @@ async def test_no_independent_reviewer_never_marks_customer_work_delivered(live_
     assert await journal.read_reviewed_artifact(
         project_id, job_id, "nonexistent.xlsx"
     ) is None
+
+
+
+@pytest.mark.asyncio
+async def test_process_restart_skips_completed_encrypted_specialists(live_fixture, monkeypatch):
+    """Reclaim expired lease and execute QA only; never repeat saved specialists."""
+    from datetime import UTC, datetime, timedelta
+    from sqlalchemy import select
+
+    from src.models.service_delivery import ServiceStepCheckpoint
+    from src.services import agent_runtime
+    from src.services.service_fulfillment_journal import JournalError, LEASE_SECONDS
+
+    maker, project_id, flow, reviewer = live_fixture
+    journal = InternalServiceJournal(maker)
+    brief = "Prepare a clean synthetic quarterly report"
+    job = await journal.create_preview(
+        project_id, request_key="restart-step-checkpoints-001",
+        brief=brief, formats=["xlsx"],
+    )
+    before_crash = datetime.now(UTC) - timedelta(seconds=LEASE_SECONDS + 10)
+    old_lease = await journal.claim(project_id, job, now=before_crash)
+    assert old_lease is not None
+    for step, role, content in (
+        ("analysis", "data_analyst", "Analysis checkpoint"),
+        ("plan", "project_manager", "Plan checkpoint"),
+    ):
+        await journal.save_step_checkpoint(
+            old_lease, step_id=step, agent_slug=role,
+            output_data={"content": content, "tokens_used": 2, "quality": {"passed": True}},
+            now=before_crash + timedelta(seconds=1),
+        )
+    with pytest.raises(JournalError, match="Active lease"):
+        await journal.save_step_checkpoint(
+            old_lease, step_id="extra", agent_slug="content_writer",
+            output_data={"content": "Not allowed"},
+        )
+    async with maker() as session:
+        rows = (await session.execute(select(ServiceStepCheckpoint).where(
+            ServiceStepCheckpoint.job_id == job
+        ))).scalars().all()
+        assert len(rows) == 2
+        assert all(b"checkpoint" not in row.encrypted_output for row in rows)
+
+    invoked = []
+
+    async def fake_execute(provider, selected_agent, **kwargs):
+        invoked.append(selected_agent.slug)
+        assert selected_agent.slug == "quality_gate"
+        assert "Analysis checkpoint" in kwargs["tool_context"]
+        assert "Plan checkpoint" in kwargs["tool_context"]
+        return SimpleNamespace(
+            content="Verdict: PASS\nReview is complete", structured_output=None,
+            tokens_used=1, model="fixture", quality={"passed": True}
+        )
+
+    monkeypatch.setattr(agent_runtime, "execute", fake_execute)
+    restarted = InternalServiceJournal(maker)
+    result = await run_internal_docpack(
+        restarted, flow, reviewer, project_id, job,
+    )
+    assert result["status"] == "reviewed", result
+    assert invoked == ["quality_gate"], "Restored specialists must not be executed twice"
+    from src.models.service_delivery import ServiceArtifact
+    async with maker() as session:
+        artifacts = (await session.execute(select(ServiceArtifact).where(
+            ServiceArtifact.job_id == job
+        ))).scalars().all()
+        assert len(artifacts) == 1
+    downloaded = await restarted.read_reviewed_artifact(project_id, job, artifacts[0].filename)
+    assert load_workbook(BytesIO(downloaded)).sheetnames
