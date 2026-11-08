@@ -99,3 +99,24 @@ class ServiceJournalEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (Index("ix_service_event_job_created", "job_id", "created_at"),)
+
+
+class ServiceStepCheckpoint(Base):
+    """Encrypted output of an individually completed, restartable team step."""
+
+    __tablename__ = "service_step_checkpoints"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    job_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("service_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    project_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("client_projects.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    step_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    agent_slug: Mapped[str] = mapped_column(String(80), nullable=False)
+    content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    encrypted_output: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (UniqueConstraint("job_id", "step_id", name="uq_service_checkpoint_job_step"),)
