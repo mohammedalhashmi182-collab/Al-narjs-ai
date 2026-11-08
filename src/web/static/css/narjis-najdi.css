@@ -11,7 +11,7 @@
   --nj-accent: #ff5a36;   /* action */
   --nj-mud: #ff5a36;      /* action, same as --nj-accent */
   --nj-ink-soft: #5a5046; /* secondary text on ivory */
-  --nj-line: rgba(201,162,122,.2);
+  --nj-line: rgba(220,220,220,.2);
   --nj-lineD: rgba(18,16,13,.14);
   --nj-max: 1240px;
   --nj-font: "IBM Plex Sans Arabic","IBM Plex Sans",system-ui,sans-serif;
@@ -79,9 +79,9 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   font-size:clamp(27px,3.1vw,39px);
   font-weight:600;line-height:1.35;letter-spacing:0;
   color:#f6f5f4;
-  text-shadow:0 1px 14px rgba(244,238,226,.72),
-              0 0 30px rgba(244,238,226,.3);
-  filter:drop-shadow(0 8px 18px rgba(244,238,226,.12));
+  text-shadow:0 1px 14px rgba(246,245,244,.72),
+              0 0 30px rgba(246,245,244,.3);
+  filter:drop-shadow(0 8px 18px rgba(246,245,244,.12));
   animation:nj-cloud-arrive .9s cubic-bezier(.18,.77,.25,1) both,
             nj-cloud-float 7s ease-in-out 1s infinite;
 }
@@ -90,15 +90,15 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   inset:-18px -32px -11px;
   border-radius:48%;
   background:
-    radial-gradient(ellipse 45% 48% at 32% 52%,rgba(244,238,226,.21),transparent 78%),
-    radial-gradient(ellipse 55% 50% at 70% 52%,rgba(201,162,122,.16),transparent 80%);
+    radial-gradient(ellipse 45% 48% at 32% 52%,rgba(246,245,244,.21),transparent 78%),
+    radial-gradient(ellipse 55% 50% at 70% 52%,rgba(220,220,220,.16),transparent 80%);
   filter:blur(15px);
   opacity:.86;
 }
 .nj .nj-wordmark::after{
   content:"";position:absolute;inset-inline-start:28px;bottom:2px;
   width:42px;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(244,238,226,.6),transparent);
+  background:linear-gradient(90deg,transparent,rgba(246,245,244,.6),transparent);
 }
 @keyframes nj-cloud-arrive{
   from{opacity:0;transform:translate3d(0,9px,0);filter:blur(4px)}
@@ -111,13 +111,13 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 /* The voice link is small, alongside the text, never a viewport takeover. */
 .nj .nj-voice-inline{
   display:inline-flex;align-items:center;gap:8px;
-  border:1px solid rgba(244,238,226,.26);border-radius:999px;
+  border:1px solid rgba(246,245,244,.26);border-radius:999px;
   min-height:40px;padding:7px 16px;margin:0 0 18px;
   background:rgba(28,25,21,.62);color:#f6f5f4;
   font:500 14px/1.5 var(--nj-font);
   text-decoration:none;transition:border-color .18s,background .18s;
 }
-.nj .nj-voice-inline:hover{border-color:rgba(244,238,226,.6);background:rgba(36,31,26,.8)}
+.nj .nj-voice-inline:hover{border-color:rgba(246,245,244,.6);background:rgba(36,31,26,.8)}
 .nj .nj-voice-inline svg{width:19px;height:19px;stroke:currentColor;flex:none}
 .nj .nj-brand-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 @media(prefers-reduced-motion:reduce){
@@ -199,7 +199,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .dcard h4{font-size:16px;margin-bottom:10px;display:flex;justify-content:space-between;gap:8px}
 .nj .dcard ol{padding-inline-start:20px;font-size:15px;color:var(--nj-ivory3)}
 .nj .dcard ol li{padding:4px 0}
-.nj .bub{max-width:88%;padding:8px 12px;border-radius:12px;margin-bottom:8px;line-height:1.55;font-size:15px;background:rgba(201,162,122,.2);margin-inline-start:auto;border-start-end-radius:3px}
+.nj .bub{max-width:88%;padding:8px 12px;border-radius:12px;margin-bottom:8px;line-height:1.55;font-size:15px;background:rgba(220,220,220,.2);margin-inline-start:auto;border-start-end-radius:3px}
 .nj .bub small{display:block;font-size:11px;color:var(--nj-ivory2);margin-top:2px}
 .nj .ctrl{margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;color:var(--nj-ivory2);font-size:14px}
 .nj .ctrl button{background:none;border:1px solid var(--nj-line);color:var(--nj-ivory);font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;cursor:pointer}
