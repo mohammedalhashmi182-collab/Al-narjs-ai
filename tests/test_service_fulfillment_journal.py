@@ -201,3 +201,29 @@ async def _job_time(maker, id):
     async with maker() as session:
         job = await session.get(ServiceJob, id)
         return job.created_at.isoformat()
+
+
+@pytest.mark.asyncio
+async def test_abandoned_final_lease_becomes_failed_not_stuck_running(journal_db):
+    maker, a, _ = journal_db
+    journal = InternalServiceJournal(maker)
+    job = await journal.create_preview(
+        a, request_key="expired-final-lease", brief="Synthetic", formats=["pdf"]
+    )
+    start = datetime(2026, 11, 8, 0, 0, tzinfo=UTC)
+    for n in range(3):
+        lease = await journal.claim(
+            a, job, now=start + timedelta(seconds=n * (LEASE_SECONDS + 1))
+        )
+        assert lease and lease.attempt == n + 1
+    assert await journal.claim(
+        a, job, now=start + timedelta(seconds=3 * (LEASE_SECONDS + 1))
+    ) is None
+    async with maker() as session:
+        record = await session.get(ServiceJob, job)
+        assert record.status == "failed_final"
+        assert record.lease_token is None and record.last_error == "timeout"
+        events = (await session.execute(
+            select(ServiceJournalEvent).where(ServiceJournalEvent.job_id == job)
+        )).scalars().all()
+        assert len(events) == 5  # queued, three claims, one final lease-expiry event
