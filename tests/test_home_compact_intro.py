@@ -14,7 +14,11 @@ def test_home_removes_fullscreen_intro_and_keeps_small_brand_signature():
     assert "narjis-intro.js" not in html
     assert "narjis-intro.css" not in html
     assert '<div class="nj-wordmark" lang="ar" dir="rtl" aria-hidden="true"><span>النرجس</span></div>' in html
-    assert "clamp(25px,3.2vw,37px)" in css
+    assert 'class="nj-voice-inline"' in html
+    assert 'href="/{{ \'ar\' if ar else \'en\' }}/voice"' in html
+    assert "clamp(27px,3.1vw,39px)" in css
+    assert "nj-cloud-float" in css
+    assert "nj-cloud-arrive" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
     assert 'id="heroCeo"' in html
 
