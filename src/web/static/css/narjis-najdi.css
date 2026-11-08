@@ -70,27 +70,59 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 [dir=ltr] .nj .hero-bg{object-position:78% 40%;transform:scaleX(-1)}
 .nj .hero>.wrap{position:relative;min-height:800px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:32px;padding-top:76px}
 .nj .copy{max-width:640px}
-/* A compact in-page signature replaces the old full-screen loading intro.
-   No overlay, click interception or delay before seeing the actual service. */
+/* A floating, cloud-lit wordmark inside the real hero; NEVER a blocking intro.
+   CSS-only, no JS timers, no large media, and accessible reduced-motion fallback. */
 .nj .nj-wordmark{
-  display:inline-flex;align-items:center;position:relative;
-  margin:0 0 14px;padding:0 0 9px;
+  isolation:isolate;position:relative;display:inline-flex;align-items:center;
+  margin:0 0 12px;padding:8px 26px 13px;
   font-family:"IBM Plex Sans Arabic",sans-serif;
-  font-size:clamp(25px,3.2vw,37px);
+  font-size:clamp(27px,3.1vw,39px);
   font-weight:600;line-height:1.35;letter-spacing:0;
-  color:var(--nj-ivory, #f6f5f4);
-  animation:nj-wordmark-appear .65s ease-out both;
+  color:#f6f5f4;
+  text-shadow:0 1px 14px rgba(244,238,226,.72),
+              0 0 30px rgba(244,238,226,.3);
+  filter:drop-shadow(0 8px 18px rgba(244,238,226,.12));
+  animation:nj-cloud-arrive .9s cubic-bezier(.18,.77,.25,1) both,
+            nj-cloud-float 7s ease-in-out 1s infinite;
+}
+.nj .nj-wordmark::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  inset:-18px -32px -11px;
+  border-radius:48%;
+  background:
+    radial-gradient(ellipse 45% 48% at 32% 52%,rgba(244,238,226,.21),transparent 78%),
+    radial-gradient(ellipse 55% 50% at 70% 52%,rgba(201,162,122,.16),transparent 80%);
+  filter:blur(15px);
+  opacity:.86;
 }
 .nj .nj-wordmark::after{
-  content:"";position:absolute;inset-inline-start:0;bottom:0;
-  width:34px;height:2px;background:var(--nj-accent);border-radius:2px;
+  content:"";position:absolute;inset-inline-start:28px;bottom:2px;
+  width:42px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(244,238,226,.6),transparent);
 }
-@keyframes nj-wordmark-appear{
-  from{opacity:0;transform:translateY(6px)}
-  to{opacity:1;transform:translateY(0)}
+@keyframes nj-cloud-arrive{
+  from{opacity:0;transform:translate3d(0,9px,0);filter:blur(4px)}
+  to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}
 }
+@keyframes nj-cloud-float{
+  0%,100%{transform:translate3d(0,0,0)}
+  50%{transform:translate3d(0,-5px,0)}
+}
+/* The voice link is small, alongside the text, never a viewport takeover. */
+.nj .nj-voice-inline{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(244,238,226,.26);border-radius:999px;
+  min-height:40px;padding:7px 16px;margin:0 0 18px;
+  background:rgba(28,25,21,.62);color:#f6f5f4;
+  font:500 14px/1.5 var(--nj-font);
+  text-decoration:none;transition:border-color .18s,background .18s;
+}
+.nj .nj-voice-inline:hover{border-color:rgba(244,238,226,.6);background:rgba(36,31,26,.8)}
+.nj .nj-voice-inline svg{width:19px;height:19px;stroke:currentColor;flex:none}
+.nj .nj-brand-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 @media(prefers-reduced-motion:reduce){
-  .nj .nj-wordmark{animation:none}
+  .nj .nj-wordmark{animation:none;transform:none;filter:none}
+  .nj .nj-voice-inline{transition:none}
 }
 .nj .eyebrow{font-size:14px;color:var(--nj-mud);margin-bottom:20px;display:flex;align-items:center;gap:12px}
 .nj .eyebrow::before{content:"";width:28px;height:1px;background:var(--nj-mud)}
