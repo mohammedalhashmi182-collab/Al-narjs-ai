@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy import func, select
+from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.db.session import Base
@@ -23,13 +24,28 @@ from src.services.service_fulfillment_journal import (
     InternalServiceJournal, JournalError, LEASE_SECONDS,
 )
 
+def _is_disposable_local_pg(dsn: str) -> bool:
+    """Reject production URLs even if 127.0.0.1 appears in a query string."""
+    try:
+        url = make_url(dsn)
+    except Exception:
+        return False
+    return (
+        url.drivername == "postgresql+asyncpg"
+        and url.host == "127.0.0.1"
+        and url.database == "narjis_ci"
+        and url.username == "narjis_ci"
+        and url.port == 5432
+    )
+
+
 @pytest.fixture
 async def pg_fixture(monkeypatch):
     dsn = os.getenv("TEST_POSTGRES_DSN")
     if not dsn:
         pytest.skip("Synthetic PostgreSQL container is not configured")
-    if not dsn.startswith("postgresql+asyncpg://") or "127.0.0.1" not in dsn:
-        pytest.skip("Only disposable localhost PostgreSQL is allowed for this suite")
+    if not _is_disposable_local_pg(dsn):
+        pytest.skip("Only disposable localhost narjis_ci PostgreSQL is allowed")
     db = create_async_engine(dsn, pool_size=5, max_overflow=15)
     tables = [
         ClientProject.__table__, ServiceOffer.__table__, ServiceJob.__table__,
@@ -47,7 +63,10 @@ async def pg_fixture(monkeypatch):
         session.add(p)
         await session.commit()
         project_id = p.id
-    monkeypatch.setenv("NARJIS_ARTIFACT_FERNET_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv(
+        "NARJIS_ARTIFACT_FERNET_KEY",
+        os.environ.get("NARJIS_ARTIFACT_FERNET_KEY") or Fernet.generate_key().decode(),
+    )
     yield maker, project_id
     await db.dispose()
 
@@ -150,3 +169,19 @@ async def test_postgres_encrypted_artifact_roundtrip_in_synthetic_database(pg_fi
         assert len(items) == 1
         assert items[0].encrypted_bytes != recovered
         assert b"synthetic" not in items[0].encrypted_bytes.lower()
+
+
+def test_postgres_sandbox_connection_gate_rejects_remote_and_misleading_dsn():
+    assert _is_disposable_local_pg(
+        "postgresql+asyncpg://narjis_ci:local-ci-only@127.0.0.1:5432/narjis_ci"
+    )
+    assert not _is_disposable_local_pg(
+        "postgresql+asyncpg://user:pass@production.example:5432/neondb?host_hint=127.0.0.1"
+    )
+    assert not _is_disposable_local_pg(
+        "postgresql+asyncpg://narjis_ci:pass@127.0.0.1:5432/production"
+    )
+    assert not _is_disposable_local_pg(
+        "postgresql+asyncpg://narjis_ci:pass@localhost:5432/narjis_ci"
+    )
+    assert not _is_disposable_local_pg("sqlite://")
