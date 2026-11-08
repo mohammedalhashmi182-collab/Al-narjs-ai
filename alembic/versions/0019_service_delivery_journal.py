@@ -89,6 +89,22 @@ def upgrade() -> None:
         op.create_index("ix_service_journal_events_project_id", "service_journal_events", ["project_id"])
         op.create_index("ix_service_event_job_created", "service_journal_events", ["job_id", "created_at"])
 
+    if "service_step_checkpoints" not in existing:
+        op.create_table(
+            "service_step_checkpoints",
+            sa.Column("id", sa.Uuid(), primary_key=True),
+            sa.Column("job_id", sa.Uuid(), sa.ForeignKey("service_jobs.id", ondelete="CASCADE"), nullable=False),
+            sa.Column("project_id", sa.Uuid(), sa.ForeignKey("client_projects.id", ondelete="RESTRICT"), nullable=False),
+            sa.Column("step_id", sa.String(80), nullable=False),
+            sa.Column("agent_slug", sa.String(80), nullable=False),
+            sa.Column("content_sha256", sa.String(64), nullable=False),
+            sa.Column("encrypted_output", sa.LargeBinary(), nullable=False),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+            sa.UniqueConstraint("job_id", "step_id", name="uq_service_checkpoint_job_step"),
+        )
+        op.create_index("ix_service_step_checkpoints_job_id", "service_step_checkpoints", ["job_id"])
+        op.create_index("ix_service_step_checkpoints_project_id", "service_step_checkpoints", ["project_id"])
+
 
 def downgrade() -> None:
     # Intentionally conservative; no automatic customer data loss.
