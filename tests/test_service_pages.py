@@ -75,9 +75,9 @@ def test_home_links_to_services_and_uses_the_supplied_meta(client: TestClient) -
     assert "خدماتنا" in html
     for slug in seo.SERVICE_SLUGS:
         assert f'href="/services/{slug}"' in html
-    assert "<title>النرجس | أتمتة الأعمال وبوتات الذكاء الاصطناعي والتصميم في السعودية</title>" in html
-    assert 'property="og:title" content="النرجس | أتمتة الأعمال وبوتات الذكاء الاصطناعي والتصميم في السعودية"' in html
-    assert 'name="twitter:description" content="شركة سعودية من الرياض:' in html
+    assert "<title>النرجس AI | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات</title>" in html
+    assert 'property="og:title" content="النرجس AI | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات"' in html
+    assert 'name="twitter:description" content="النرجس AI من الرياض:' in html
     assert 'property="og:image:alt" content="شعار النرجس — حلول الذكاء الاصطناعي من الرياض"' in html
     assert "<h1>النرجس — حلول الذكاء الاصطناعي وأتمتة الأعمال في السعودية</h1>" in html
     assert 'hreflang="x-default" href="https://karmaai.online/ar/home"' in html

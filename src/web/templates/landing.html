@@ -11,8 +11,8 @@
     <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
-    {% set _title = "النرجس | أتمتة الأعمال وبوتات الذكاء الاصطناعي والتصميم في السعودية" if ar else "Al-Narjis | Business automation, AI chatbots and design in Saudi Arabia" %}
-    {% set _desc = "شركة سعودية من الرياض: أتمتة الأعمال، بوتات محادثة ذكية، تصميم جرافيك وواجهات، كتابة محتوى وترجمة احترافية للمنشآت في السعودية والخليج." if ar else "A Saudi company from Riyadh: business automation, intelligent chatbots, graphic and interface design, professional content writing and translation for organizations in Saudi Arabia and the Gulf." %}
+    {% set _title = "النرجس AI | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات" if ar else "Al-Narjis AI | AI CEO and Agent Team for Business Automation" %}
+    {% set _desc = "النرجس AI من الرياض: اشرح احتياج شركتك لرئيس تنفيذي ذكي، واكتشف فريق الوكلاء المناسب وخطة لأتمتة المبيعات وخدمة العملاء والتسويق." if ar else "Al-Narjis AI in Riyadh: describe your business need to an AI CEO, discover a specialist agent team, and explore a plan for sales, customer service and marketing automation." %}
     {% set _img_alt = "شعار النرجس — حلول الذكاء الاصطناعي من الرياض" if ar else "Al-Narjis logo — AI solutions from Riyadh" %}
     <title>{{ _title }}</title>
     <meta name="description" content="{{ _desc }}">
@@ -128,37 +128,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap">
     <link rel="preload" as="image" href="/static/img/hero-najdi.webp" imagesrcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" imagesizes="100vw" fetchpriority="high">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
-    <link rel="stylesheet" href="/static/css/narjis-intro.css">
-    <script>(function(){try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('nj-intro-on')}catch(e){}})();</script>
 </head>
 <body class="nj" data-lang="{{ _lang }}">
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
-<div class="nj-intro" id="njIntro">
-    <button type="button" class="nj-intro-skip">{% if ar %}تخطّي{% else %}Skip intro{% endif %}</button>
-    <div class="nj-hero" aria-hidden="true">
-        <svg class="nj-path" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
-            <defs><mask id="njm" maskUnits="userSpaceOnUse"><path class="reveal" pathLength="1" d="M40 520 C 250 430, 300 300, 470 250 S 800 110, 975 170"/></mask></defs>
-            <path class="dots" vector-effect="non-scaling-stroke" mask="url(#njm)" d="M40 520 C 250 430, 300 300, 470 250 S 800 110, 975 170"/>
-            <rect class="node" x="34" y="514" width="12" height="12" transform="rotate(45 40 520)"/>
-            <rect class="node" x="969" y="164" width="12" height="12" transform="rotate(45 975 170)"/>
-        </svg>
-        {% if ar %}<div class="nj-stack nj-stack-ar" dir="rtl" lang="ar">
-            <p class="nj-word nj-ghost">النرجس</p>
-            <p class="nj-word nj-main">النرجس</p>
-            <p class="nj-word nj-ghost">النرجس</p>
-        </div>
-        <p class="nj-ar" lang="ar" dir="rtl"><span class="nj-diamond"></span>للذكاء الاصطناعي<span class="nj-diamond"></span></p>
-        {% else %}<div class="nj-stack" dir="ltr" lang="en">
-            <p class="nj-word nj-ghost">AlNarjis</p>
-            <p class="nj-word nj-main">AlNarjis</p>
-            <p class="nj-word nj-ghost">AlNarjis</p>
-        </div>
-        <p class="nj-ar nj-en" lang="en" dir="ltr"><span class="nj-diamond"></span>AI agents &amp; automation<span class="nj-diamond"></span></p>
-        {% endif %}
-        <div class="nj-tiles"></div>
-    </div>
-</div>
-<script src="/static/js/narjis-intro.js"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
     <symbol id="i-msg" viewBox="0 0 32 32"><path d="M4 7h24v15H13l-6 5v-5H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 13h12M10 17h7" stroke="currentColor" stroke-width="1.5"/></symbol>
     <symbol id="i-rep" viewBox="0 0 32 32"><path d="M5 27h22M8 23v-7M14 23V9M20 23v-10M26 23V5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
@@ -187,6 +159,15 @@
     <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" fetchpriority="high" decoding="async">
     <div class="wrap">
         <div class="copy">
+            <div class="nj-brand-row">
+                <div class="nj-wordmark" lang="ar" dir="rtl" aria-hidden="true"><span>النرجس</span></div>
+                <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                        <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
+                    </svg>
+                    {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
+                </a>
+            </div>
             <div class="eyebrow">{% if ar %}<h1>النرجس — حلول الذكاء الاصطناعي وأتمتة الأعمال في السعودية</h1>{% else %}<h1>Al-Narjis — AI solutions and business automation in Saudi Arabia</h1>{% endif %}</div>
             {% if ar %}
             <p class="display" id="hero-h">اشرح هدفك.<span class="l2">نختار فريقك <em>ونقود التنفيذ.</em></span></p>

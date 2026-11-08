@@ -33,6 +33,7 @@ from urllib.parse import quote, urlsplit
 
 import httpx
 
+from src.services.catalog import PACKAGE_ORDER, PACKAGES
 from src.services.support import (
     COMPANY_PHONE_DISPLAY,
     COMPANY_PHONE_E164,
@@ -142,6 +143,26 @@ def _language_rules(lang: str) -> str:
     )
 
 
+def approved_monthly_price_rules() -> str:
+    """Generate every spoken monthly price from the canonical checkout catalog.
+
+    The amount is a halala integer. Never maintain a second tariff inside a
+    voice prompt: the website and the real-time advisor must agree.
+    """
+    labels = []
+    for key in PACKAGE_ORDER:
+        plan = PACKAGES[key]
+        amount = plan["amount"]
+        if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+            raise ValueError("Invalid canonical package amount")
+        sar = f"{amount / 100:,.2f}".removesuffix(".00")
+        labels.append(f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month')
+    return (
+        "The published monthly base prices, before any applicable VAT, are: "
+        + ", ".join(labels) + ".\n"
+    )
+
+
 def session_instructions(lang: str = "ar") -> str:
     """Spoken persona for every public call.
 
@@ -162,14 +183,29 @@ def session_instructions(lang: str = "ar") -> str:
         "Answer questions about Al-Narjis AI truthfully. When a person should follow up, "
         f"point the caller to this voice page and to {SUPPORT_EMAIL}.\n"
         "\n"
+        "## Executive Intake and Team Coordination\n"
+        "You are the public front door to the Al-Narjis AI chief executive and specialist team. "
+        "Gently understand the business problem, goal, target audience, time constraints "
+        "and preferred result before suggesting which specialist agents may help. "
+        "Ask one useful follow-up question at a time; keep responses brief and conversational.\n"
+        "Use /consult on https://karmaai.online for a structured diagnosis and next steps. "
+        "Explain the proposed roles and evidence required, but never claim an agent "
+        "was assigned, a project launched, a file delivered, a message sent, or a task "
+        "finished unless you have verified system evidence for that action.\n"
+        "Do not request passwords, payment credentials, national IDs, medical records "
+        "or other sensitive personal information during a public voice conversation. "
+        "If a visitor wants follow-up, explain that contact details and permission to "
+        "be contacted must be provided voluntarily through the appropriate form.\n"
+        "Use a gentle, upbeat, youthful-sounding tone where the selected voice "
+        "supports it; do not promise any exact voice identity or sound.\n"
+        "\n"
         "## Conversation Flow\n"
         "The opening line has already been spoken. Do not greet again.\n"
         "After that line, answer the caller's question directly.\n"
         "Quote a price only when the caller asks about price.\n"
-        "The only approved monthly prices are: البداية (Starter) 790 SAR per month, "
-        "النمو (Growth) 1,490 SAR per month, and الشركات (Enterprise) 2,990 SAR per month.\n"
-        "Do not invent discounts, coupons, or any other price. If they ask about a fee "
-        "that is not one of those three monthly prices, say you will confirm by email.\n"
+        f"{approved_monthly_price_rules()}"
+        "Do not invent discounts, coupons, fees or prices. For setup fees, annual billing, "
+        "or taxes, use the official /pricing page; never guess.\n"
         "If they ask how to pay, say card payment may be unavailable right now and that "
         "bank transfer exists. Do not invent an account number, a card link, or a discount.\n"
         f"Public contact is this voice page and {SUPPORT_EMAIL}.\n"
@@ -192,7 +228,7 @@ def session_instructions(lang: str = "ar") -> str:
         "If the caller asks whether you are Grok, Grok Voice, xAI, or ChatGPT, "
         "answer only that you are كريم from النرجس, and do not repeat those names.\n"
         "NEVER offer WhatsApp, Telegram, or any other messaging app as a public contact.\n"
-        "NEVER invent a discount. Quote 790, 1,490, or 2,990 SAR per month only when asked, and only those three.\n"
+        "NEVER invent a discount. Quote only currently published catalog prices when asked.\n"
     )
 
 
