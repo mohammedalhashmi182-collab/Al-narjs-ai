@@ -61,3 +61,8 @@ Keep FastAPI and the existing database for customer interfaces and future durabl
 - https://community.owasp.org/attacks/MCP_Tool_Poisoning
 
 No external software installed, no Render or production environment changed, and no financial code touched.
+## Lightweight production checks before any adoption
+- Record peak RSS, P95 HTTP response latency and failure rates during a synthetic 1/3/5-client test. Never extrapolate from the idle CPU sample.
+- Prefer read-only HTTP integration without browser installs; verify each tool's cost per useful completed customer task, and keep a rollback switch.
+- Do not mix payment-confirmation authority with model-generated conclusions; payment work is intentionally deferred.
+- This PR is separately reviewable and is based on PR #150; PR #152 must be reconciled to avoid parallel edits to the same execution engine.
