@@ -145,15 +145,15 @@ class InternalServiceJournal:
                 terms_version="internal-preview-v1", digest=digest,
             )
             session.add(offer)
-            await session.flush()
-            job = ServiceJob(
-                offer_id=offer.id, project_id=project_id,
-                idempotency_key=request_key, status="queued", max_attempts=3,
-            )
-            session.add(job)
-            await session.flush()
-            session.add(_event(job, "queued", "queued", scope="internal_preview"))
             try:
+                await session.flush()
+                job = ServiceJob(
+                    offer_id=offer.id, project_id=project_id,
+                    idempotency_key=request_key, status="queued", max_attempts=3,
+                )
+                session.add(job)
+                await session.flush()
+                session.add(_event(job, "queued", "queued", scope="internal_preview"))
                 await session.commit()
             except IntegrityError:
                 await session.rollback()
@@ -196,7 +196,29 @@ class InternalServiceJournal:
             )
             job = result.scalar_one_or_none()
             if job is None:
-                await session.rollback()
+                # An abandoned third attempt must not remain "running"
+                # forever just because it can no longer be re-claimed.
+                exhausted = await session.execute(
+                    update(ServiceJob).where(
+                        ServiceJob.id == job_id,
+                        ServiceJob.project_id == project_id,
+                        ServiceJob.status == "running",
+                        ServiceJob.leased_until <= at,
+                        ServiceJob.attempts >= ServiceJob.max_attempts,
+                    ).values(
+                        status="failed_final", lease_token=None, leased_until=None,
+                        last_error="timeout", version=ServiceJob.version + 1,
+                    ).returning(ServiceJob)
+                )
+                failed = exhausted.scalar_one_or_none()
+                if failed:
+                    session.add(_event(
+                        failed, "failed_final", "lease-exhausted", attempt=failed.attempts,
+                        code="timeout",
+                    ))
+                    await session.commit()
+                else:
+                    await session.rollback()
                 return None
             session.add(_event(job, "claimed", f"attempt-{job.attempts}", attempt=job.attempts))
             await session.commit()
