@@ -30,6 +30,7 @@ from src.models.service_delivery import (
     ServiceJob,
     ServiceJournalEvent,
     ServiceOffer,
+    ServiceStepCheckpoint,
 )
 from src.services.docgen.release_gate import ReleaseApproval, require_release
 from src.services.docgen.schema import DocGenError, DocPack
@@ -45,6 +46,8 @@ RETRY_MAX_SECONDS = 600
 _IDEMPOTENCY = re.compile(r"^[A-Za-z0-9_-]{8,100}$")
 _ALLOWED_FORMATS = frozenset({"pdf", "xlsx", "pptx", "docx"})
 _ERROR_CODES = frozenset({"agent_unavailable", "qa_rejected", "timeout", "transient", "internal_error"})
+_CHECKPOINT_NAME = re.compile(r"^[a-zA-Z0-9_-]{1,80}$")
+_MAX_CHECKPOINT_BYTES = 48 * 1024
 
 
 class JournalError(ValueError):
@@ -297,6 +300,92 @@ class InternalServiceJournal:
                                f"failure-{job.attempts}", attempt=job.attempts, code=code))
             await session.commit()
             return job.status
+
+    async def save_step_checkpoint(
+        self, lease: Lease, *, step_id: str, agent_slug: str, output_data: dict,
+        now: datetime | None = None,
+    ) -> str:
+        """Persist one fully completed agent result before the engine marks it done.
+
+        Encrypted bytes are scoped to the current project and active lease.
+        An old worker cannot overwrite or add results after its lease expires.
+        """
+        import json
+
+        if (not isinstance(step_id, str) or not _CHECKPOINT_NAME.fullmatch(step_id)
+                or not isinstance(agent_slug, str) or not _CHECKPOINT_NAME.fullmatch(agent_slug)):
+            raise JournalError("Invalid checkpoint step or agent")
+        if not isinstance(output_data, dict) or not isinstance(output_data.get("content"), str):
+            raise JournalError("Checkpoint must contain a text result")
+        try:
+            raw = json.dumps({
+                "content": output_data["content"],
+                "structured_output": output_data.get("structured_output"),
+                "tokens_used": output_data.get("tokens_used", 0),
+                "quality": output_data.get("quality", {}),
+            }, ensure_ascii=False, allow_nan=False).encode("utf-8")
+        except (TypeError, ValueError) as exc:
+            raise JournalError("Checkpoint result is not JSON-serializable") from exc
+        if len(raw) > _MAX_CHECKPOINT_BYTES:
+            raise JournalError("Checkpoint exceeds safe storage limit")
+        crypt = _key()
+        digest = hashlib.sha256(raw).hexdigest()
+        at = _now(now)
+        async with self.session_factory() as session:
+            job = (await session.execute(
+                select(ServiceJob).where(
+                    ServiceJob.id == lease.job_id,
+                    ServiceJob.project_id == lease.project_id,
+                ).with_for_update()
+            )).scalar_one_or_none()
+            if (not job or job.status != "running" or job.lease_token != lease.token
+                    or not job.leased_until or _aware(job.leased_until) <= at):
+                raise JournalError("Active lease required for checkpoint")
+            previous = (await session.execute(select(ServiceStepCheckpoint).where(
+                ServiceStepCheckpoint.job_id == lease.job_id,
+                ServiceStepCheckpoint.project_id == lease.project_id,
+                ServiceStepCheckpoint.step_id == step_id,
+            ))).scalar_one_or_none()
+            if previous is not None:
+                if previous.agent_slug != agent_slug or previous.content_sha256 != digest:
+                    raise JournalError("Checkpoint conflict: previously committed result differs")
+                return digest
+            session.add(ServiceStepCheckpoint(
+                job_id=lease.job_id, project_id=lease.project_id, step_id=step_id,
+                agent_slug=agent_slug, encrypted_output=crypt.encrypt(raw), content_sha256=digest,
+            ))
+            session.add(_event(job, "step_completed", f"step-{step_id}",
+                               step=step_id, sha256=digest))
+            await session.commit()
+            return digest
+
+    async def load_step_checkpoints(self, lease: Lease) -> dict[str, dict]:
+        """Load only verified completed steps for a freshly claimed lease."""
+        import json
+
+        await self.request_for_lease(lease)  # Revalidate tenant + active lease.
+        crypt = _key()
+        async with self.session_factory() as session:
+            checkpoints = (await session.execute(select(ServiceStepCheckpoint).where(
+                ServiceStepCheckpoint.job_id == lease.job_id,
+                ServiceStepCheckpoint.project_id == lease.project_id,
+            ))).scalars().all()
+        restored: dict[str, dict] = {}
+        for checkpoint in checkpoints:
+            try:
+                raw = crypt.decrypt(checkpoint.encrypted_output)
+                if hashlib.sha256(raw).hexdigest() != checkpoint.content_sha256:
+                    raise JournalError("Checkpoint checksum mismatch")
+                data = json.loads(raw)
+                if not isinstance(data, dict) or not isinstance(data.get("content"), str):
+                    raise JournalError("Malformed step checkpoint")
+                restored[checkpoint.step_id] = {
+                    "agent_slug": checkpoint.agent_slug,
+                    "output_data": data,
+                }
+            except (InvalidToken, UnicodeError, ValueError, TypeError) as exc:
+                raise JournalError("Cannot authenticate saved workflow checkpoint") from exc
+        return restored
 
     async def approve(
         self, lease: Lease, pack: DocPack, approval: ReleaseApproval, *,
