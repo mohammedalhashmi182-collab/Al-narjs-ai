@@ -39,9 +39,9 @@
     const center = height * 0.5;
     const spread = height * 0.26;
     const glow = ctx.createRadialGradient(width / 2, center, 8, width / 2, center, width * 0.39);
-    glow.addColorStop(0, "rgba(214,237,244,.105)");
-    glow.addColorStop(0.44, "rgba(201,162,122,.028)");
-    glow.addColorStop(1, "rgba(214,237,244,0)");
+    glow.addColorStop(0, "rgba(238,238,238,.105)");
+    glow.addColorStop(0.44, "rgba(220,220,220,.028)");
+    glow.addColorStop(1, "rgba(238,238,238,0)");
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, width, height);
 
@@ -64,8 +64,8 @@
         else ctx.lineTo(x, y);
       }
       ctx.strokeStyle = band === 3 ? "rgba(248,251,253,.92)"
-        : (band % 2 ? "rgba(201,162,122,.39)" : "rgba(214,237,244,.54)");
-      ctx.shadowColor = band === 3 ? "rgba(214,237,244,.60)" : "rgba(214,237,244,.12)";
+        : (band % 2 ? "rgba(220,220,220,.39)" : "rgba(238,238,238,.54)");
+      ctx.shadowColor = band === 3 ? "rgba(238,238,238,.60)" : "rgba(238,238,238,.12)";
       ctx.shadowBlur = band === 3 ? 16 : 7;
       ctx.lineWidth = thickness;
       ctx.stroke();
