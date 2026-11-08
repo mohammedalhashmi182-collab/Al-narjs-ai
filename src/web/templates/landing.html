@@ -159,7 +159,15 @@
     <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" fetchpriority="high" decoding="async">
     <div class="wrap">
         <div class="copy">
-            <div class="nj-wordmark" lang="ar" dir="rtl" aria-hidden="true"><span>النرجس</span></div>
+            <div class="nj-brand-row">
+                <div class="nj-wordmark" lang="ar" dir="rtl" aria-hidden="true"><span>النرجس</span></div>
+                <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                        <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
+                    </svg>
+                    {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
+                </a>
+            </div>
             <div class="eyebrow">{% if ar %}<h1>النرجس — حلول الذكاء الاصطناعي وأتمتة الأعمال في السعودية</h1>{% else %}<h1>Al-Narjis — AI solutions and business automation in Saudi Arabia</h1>{% endif %}</div>
             {% if ar %}
             <p class="display" id="hero-h">اشرح هدفك.<span class="l2">نختار فريقك <em>ونقود التنفيذ.</em></span></p>
