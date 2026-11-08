@@ -70,6 +70,54 @@ async def owner_internal_service_jobs(request: Request, limit: int = 20):
     }
 
 
+@router.get("/api/company/website-inquiries", dependencies=[Depends(require_owner)])
+async def owner_website_inquiries(request: Request, limit: int = 20):
+    """Known website enquiries, never anonymous visits or imported contacts.
+
+    The current lead model does not persist explicit communication consent.
+    Display a manual-review state; do NOT trigger outbound messages based only
+    on having a phone/email field.
+    """
+    from sqlalchemy import func, or_, select
+    from src.models import ACTIVE_STATUSES, AcquisitionLead
+
+    bound = max(1, min(int(limit), 50))
+    condition = (
+        AcquisitionLead.source == "website",
+        AcquisitionLead.opt_out.is_(False),
+        AcquisitionLead.lead_status.in_(ACTIVE_STATUSES),
+        or_(AcquisitionLead.phone.is_not(None), AcquisitionLead.email.is_not(None)),
+    )
+    async with request.app.state.session_factory() as session:
+        total = (await session.execute(
+            select(func.count()).select_from(AcquisitionLead).where(*condition)
+        )).scalar_one()
+        rows = (await session.execute(
+            select(AcquisitionLead).where(*condition).order_by(
+                AcquisitionLead.priority_score.desc(),
+                AcquisitionLead.created_at.desc(),
+            ).limit(bound)
+        )).scalars().all()
+    return {
+        "mode": "manual_review_only",
+        "count": int(total),
+        "permission": "unverified_no_automatic_outreach",
+        "inquiries": [
+            {
+                "id": str(lead.id),
+                "company_name": lead.company_name,
+                "lead_status": lead.lead_status,
+                "priority": lead.priority,
+                "next_followup_at": (
+                    lead.next_followup_at.isoformat() if lead.next_followup_at else None
+                ),
+                "contact_method_on_file": bool(lead.phone or lead.email),
+            }
+            for lead in rows
+        ],
+    }
+
+
 @router.get("/api/company/what-happened", dependencies=[Depends(require_owner)])
 async def company_what_happened(request: Request, limit: int = 10):
     from sqlalchemy import desc, select
