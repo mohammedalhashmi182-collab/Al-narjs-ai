@@ -58,3 +58,26 @@ jobs:
           PY
       - name: Exercise actual PostgreSQL leases and stale-worker fencing
         run: python -m pytest -q tests/test_journal_postgres_integration.py
+      - name: Verify disposable PostgreSQL backup and isolated restore
+        shell: bash
+        run: |
+          set -euo pipefail
+          PG_CONTAINER="$(docker ps --format '{{.ID}} {{.Image}}' | awk '$2 ~ /postgres:17-alpine/ { print $1; exit }')"
+          test -n "$PG_CONTAINER"
+          docker exec "$PG_CONTAINER" pg_dump -U narjis_ci -d narjis_ci -Fc --no-owner --no-acl -f /tmp/journal-ci.dump
+          docker exec "$PG_CONTAINER" createdb -U narjis_ci narjis_ci_restore
+          docker exec "$PG_CONTAINER" pg_restore -U narjis_ci -d narjis_ci_restore --no-owner --no-acl /tmp/journal-ci.dump
+          for table in service_jobs service_journal_events service_step_checkpoints service_artifacts; do
+            source_count="$(docker exec "$PG_CONTAINER" psql -U narjis_ci -d narjis_ci -tAc "select count(*) from $table")"
+            restored_count="$(docker exec "$PG_CONTAINER" psql -U narjis_ci -d narjis_ci_restore -tAc "select count(*) from $table")"
+            echo "$table: source=$source_count restored=$restored_count"
+            test "$source_count" = "$restored_count"
+            test "$source_count" -gt 0
+          done
+          source_digests="$(docker exec "$PG_CONTAINER" psql -U narjis_ci -d narjis_ci -tAc "select md5(string_agg(content_sha256, '|' order by content_sha256)) from service_step_checkpoints")"
+          restored_digests="$(docker exec "$PG_CONTAINER" psql -U narjis_ci -d narjis_ci_restore -tAc "select md5(string_agg(content_sha256, '|' order by content_sha256)) from service_step_checkpoints")"
+          test "$source_digests" = "$restored_digests"
+          source_artifacts="$(docker exec "$PG_CONTAINER" psql -U narjis_ci -d narjis_ci -tAc "select md5(string_agg(sha256, '|' order by sha256)) from service_artifacts")"
+          restored_artifacts="$(docker exec "$PG_CONTAINER" psql -U narjis_ci -d narjis_ci_restore -tAc "select md5(string_agg(sha256, '|' order by sha256)) from service_artifacts")"
+          test "$source_artifacts" = "$restored_artifacts"
+          echo "Synthetic PostgreSQL backup and restore verified."
