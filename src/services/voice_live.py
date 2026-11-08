@@ -155,12 +155,11 @@ def approved_monthly_price_rules() -> str:
         amount = plan["amount"]
         if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
             raise ValueError("Invalid canonical package amount")
-        labels.append(
-            f'{plan["name"]} ({plan["name_en"]}) {amount / 100:,.2f} SAR per month'
-        )
+        sar = f"{amount / 100:,.2f}".removesuffix(".00")
+        labels.append(f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month')
     return (
         "The published monthly base prices, before any applicable VAT, are: "
-        + ", ".join(labels) + ".\\n"
+        + ", ".join(labels) + ".\n"
     )
 
 
