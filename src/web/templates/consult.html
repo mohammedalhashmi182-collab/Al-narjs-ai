@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 {% set _lang = page_lang(request) %}
+{% set _path = request.url.path %}
+{% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
+{% set _title = "المستشار الذكي | النرجس للذكاء الاصطناعي" if _lang == 'ar' else "Smart Consultant | Al-Narjis AI" %}
+{% set _desc = "تحدث بحرية عن عملك وأسلوبك وبيئتك، ويرشدك المستشار الذكي للنرجس لأفضل الحلول والوكلاء المناسبين." if _lang == 'ar' else "Talk freely about your business, style and environment. The Al-Narjis Smart Consultant guides you to the right solutions and agents." %}
+{% set _img_alt = "شعار النرجس — حلول الذكاء الاصطناعي من الرياض" if _lang == 'ar' else "Al-Narjis logo — AI solutions from Riyadh" %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +13,23 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if _lang == 'ar' %}المستشار الذكي | النرجس للذكاء الاصطناعي{% else %}Smart Consultant | Al-Narjis AI{% endif %}</title>
+    <title>{{ _title }}</title>
+    <meta name="description" content="{{ _desc }}">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
+    <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base_path }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Al-Narjis AI">
+    <meta property="og:title" content="{{ _title }}">
+    <meta property="og:description" content="{{ _desc }}">
+    <meta property="og:url" content="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+    <meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
+    <meta property="og:image:alt" content="{{ _img_alt }}">
+    <meta property="og:locale" content="{{ 'ar_SA' if _lang == 'ar' else 'en_US' }}">
+    <meta property="og:locale:alternate" content="{{ 'en_US' if _lang == 'ar' else 'ar_SA' }}">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="/static/css/consult-tw.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

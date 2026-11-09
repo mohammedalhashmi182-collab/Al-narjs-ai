@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% set ar = page_lang(request) == 'ar' %}
+{% set _lang = 'ar' if ar else 'en' %}
+{% set _path = request.url.path %}
+{% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
 <html lang="{{ 'ar' if ar else 'en' }}" dir="{{ 'rtl' if ar else 'ltr' }}" data-lang="{{ 'ar' if ar else 'en' }}">
 <head>
     <meta charset="UTF-8">
@@ -9,12 +12,20 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>30-Day Plan — Free Guide | Al-Narjis AI</title>
+<title>{% if ar %}خطة 30 يوماً للذكاء الاصطناعي — دليل مجاني | النرجس للذكاء الاصطناعي{% else %}30-Day Plan — Free Guide | Al-Narjis AI{% endif %}</title>
 <meta name="description" content="{% if ar %}دليل مجاني بالعربي لمدة 30 يوماً: كيف تحوّل منشأتك بالذكاء الاصطناعي خطوة بخطوة — محتوى، ردود، متجر، وتسويق.{% else %}A free 30-day guide in Arabic: how to transform your business with AI step by step — content, replies, store and marketing.{% endif %}">
+<link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+<link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
+<link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
+<link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base_path }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Al-Narjis AI">
 <meta property="og:title" content="{% if ar %}خطة 30 يوماً للذكاء الاصطناعي — دليل مجاني{% else %}30-Day AI Plan — Free Guide{% endif %}">
 <meta property="og:description" content="{% if ar %}دليل 30 يوماً بالعربي. الباقات المنشورة تختلف بحدود الاستخدام، لا بعدد الوكلاء.{% else %}A 30-day guide in Arabic. The published plans differ by usage limits, not by the number of agents.{% endif %}">
-<meta property="og:image" content="/static/guide/page_01.png">
-<meta property="og:type" content="article">
+<meta property="og:url" content="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+<meta property="og:image" content="https://karmaai.online/static/guide/page_01.png">
+<meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
+<meta property="og:locale:alternate" content="{{ 'en_US' if ar else 'ar_SA' }}">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>

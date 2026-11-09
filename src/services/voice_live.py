@@ -405,11 +405,30 @@ def render_page(lang: str) -> str:
         html = html.replace(
             'content="مكالمة صوتية حية مع مستشار النرجس. ثلاث دقائق كحد أقصى."',
             'content="A live voice call with the Al-Narjis agent. Three minutes at most."',
+        )
+        html = html.replace(
+            'property="og:title" content="تحدّث مع مستشار النرجس"',
+            'property="og:title" content="Talk to the Al-Narjis agent"',
             1,
         )
         html = html.replace(
             '<link rel="canonical" href="https://karmaai.online/ar/voice">',
             '<link rel="canonical" href="https://karmaai.online/en/voice">',
+            1,
+        )
+        html = html.replace(
+            '<meta property="og:url" content="https://karmaai.online/ar/voice">',
+            '<meta property="og:url" content="https://karmaai.online/en/voice">',
+            1,
+        )
+        html = html.replace(
+            'property="og:locale" content="ar_SA"',
+            'property="og:locale" content="en_US"',
+            1,
+        )
+        html = html.replace(
+            'property="og:locale:alternate" content="en_US"',
+            'property="og:locale:alternate" content="ar_SA"',
             1,
         )
         html = _strip_lang(html, "ar")

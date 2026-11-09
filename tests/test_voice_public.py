@@ -87,6 +87,20 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert 'name="robots" content="index,follow"' in ar.text
     assert 'rel="canonical" href="https://karmaai.online/ar/voice"' in ar.text
     assert 'rel="canonical" href="https://karmaai.online/en/voice"' in en.text
+    assert 'rel="manifest" href="/static/site.webmanifest"' in ar.text
+    assert 'rel="manifest" href="/static/site.webmanifest"' in en.text
+    assert 'property="og:title" content="تحدّث مع مستشار النرجس"' in ar.text
+    assert 'property="og:description" content="مكالمة صوتية حية مع مستشار النرجس. ثلاث دقائق كحد أقصى."' in ar.text
+    assert 'property="og:url" content="https://karmaai.online/ar/voice"' in ar.text
+    assert 'property="og:image" content="https://karmaai.online/brand/og-image.jpg"' in ar.text
+    assert 'property="og:locale" content="ar_SA"' in ar.text
+    assert 'property="og:locale:alternate" content="en_US"' in ar.text
+    assert 'property="og:title" content="Talk to the Al-Narjis agent"' in en.text
+    assert 'property="og:description" content="A live voice call with the Al-Narjis agent. Three minutes at most."' in en.text
+    assert 'property="og:url" content="https://karmaai.online/en/voice"' in en.text
+    assert 'property="og:locale" content="en_US"' in en.text
+    assert 'property="og:locale:alternate" content="ar_SA"' in en.text
+    assert "تحدّث مع مستشار النرجس" not in en.text
     assert 'lang="ar"' in ar.text and 'dir="rtl"' in ar.text
     assert 'lang="en"' in en.text and 'dir="ltr"' in en.text
     assert "ابدأ المكالمة" in _visible(ar.text)
