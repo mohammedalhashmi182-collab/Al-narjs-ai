@@ -16,13 +16,13 @@ def _prompt(locale):
 
 
 def test_consult_instructions_name_bank_transfer_when_the_account_is_published():
-    assert pm.payments_open()
+    assert pm.payments_open() is False
     assert pm.capabilities()["card"] is False
+    assert pm.customer_bank_transfer_enabled() is False
     for locale in ("ar", "en"):
         prompt = _prompt(locale)
-        assert "bank transfer against the invoice" in prompt
-        assert "قيد التفعيل" not in prompt
-        assert "pay by card on the secure checkout" not in prompt
+        assert "bank transfer against the invoice" not in prompt
+        assert "قيد التفعيل" in prompt
 
 
 def test_consult_instructions_say_payment_closed_without_an_account(monkeypatch):
@@ -51,8 +51,8 @@ def test_refund_fact_is_setup_fee_only():
 
 def test_kb_states_bank_transfer_and_correct_refund():
     text = KB.read_text(encoding="utf-8")
-    assert "تحويل بنكي من صفحة الدفع" in text
-    assert "لا نقبل التحويل البنكي" not in text
+    assert "تحويل بنكي من صفحة الدفع" not in text
+    assert "لا نطلب تحويلاً بنكياً" in text
     assert "AlNarjisai@gmail.com" in text
     for bad in FORBIDDEN:
         assert bad not in text, bad

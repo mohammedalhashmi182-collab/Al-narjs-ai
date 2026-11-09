@@ -59,16 +59,10 @@ def test_qr_payload_is_the_iban_and_the_page_keeps_amount_and_reference(monkeypa
     _arm(monkeypatch)
     payment = Payment(id=uuid4(), amount=79000, currency="SAR", package="bidaya", status="invoice", total_halalas=79000)
     out = pm.transfer_instructions(payment)
-    assert out["bank"]["bank_name"] == "مصرف تجريبي"
-    assert "bank_name_en" not in out["bank"]
-    assert "xfer-qr-svg" in out["qr_svg"]
-    payload = transfer.transfer_qr_payload(
-        bank=out["bank"], amount_sar=out["amount_text"], reference=out["reference"], plan=out["plan_en"]
-    )
-    assert payload == DUMMY_IBAN
-    assert out["amount_text"] not in payload and out["reference"] not in payload
+    assert out["bank"] == {}
+    assert out["qr_svg"] == ""
+    assert DUMMY_IBAN not in str(out)
     assert out["amount_text"] and out["reference"]
-    assert "ZATCA" not in out["qr_svg"]
 
 
 async def test_english_invoice_is_ltr_and_arabic_invoice_keeps_rtl(anon, maker, monkeypatch):
@@ -82,12 +76,13 @@ async def test_english_invoice_is_ltr_and_arabic_invoice_keeps_rtl(anon, maker, 
     ar = await anon.get(f"/invoice/{pid}")
     en = await anon.get(f"/invoice/{pid}", cookies={"narjis_lang": "en"})
     assert ar.status_code == 200 and 'dir="rtl"' in ar.text
-    assert "تواصل معنا للدفع" not in ar.text
-    assert "نسخ الآيبان" in ar.text and "مصرف تجريبي" in ar.text
+    assert "نسخ الآيبان" not in ar.text and "مصرف تجريبي" not in ar.text
     assert "Example Bank" not in ar.text
     assert en.status_code == 200 and "Contact us to pay" not in en.text
-    assert "Copy IBAN" in en.text and "Example Bank" in en.text and 'dir="ltr"' in en.text
-    assert "xfer-qr" in ar.text and "xfer-qr" in en.text
+    assert "Copy IBAN" not in en.text and "Example Bank" not in en.text and 'dir="ltr"' in en.text
+    assert "xfer-qr" not in ar.text and "xfer-qr" not in en.text
+    assert "مدى / فيزا / ماستركارد" in ar.text
+    assert "mada / Visa / Mastercard" in en.text
 
 
 async def test_receipt_is_stored_for_the_owner_and_does_not_mark_paid(anon, maker, monkeypatch):
@@ -105,24 +100,21 @@ async def test_receipt_is_stored_for_the_owner_and_does_not_mark_paid(anon, make
         pid = payment.id
     jpeg = b"\xff\xd8\xff" + b"not-a-real-photo"
     missing = await anon.post(f"/api/payments/{pid}/transfer-receipt", files={"file": ("r.jpg", jpeg, "image/jpeg")})
-    assert missing.status_code == 422
+    assert missing.status_code == 400
     uploaded = await anon.post(
         f"/api/payments/{pid}/transfer-receipt",
         data={"refund_consent": "true"},
         files={"file": ("r.jpg", jpeg, "image/jpeg")},
     )
-    assert uploaded.status_code == 200, uploaded.text
-    assert uploaded.json()["recorded"] is True
-    assert uploaded.json()["status"] != "paid"
+    assert uploaded.status_code == 400, uploaded.text
+    assert "Bank transfer is not available" in uploaded.text
     blocked = await anon.get(f"/api/owner/payments/{pid}/transfer-receipt")
     assert blocked.status_code in (401, 403)
     owner = await anon.get(
         f"/api/owner/payments/{pid}/transfer-receipt",
         cookies={"narjis_owner": make_session_token()},
     )
-    assert owner.status_code == 200
-    assert owner.content.startswith(b"\xff\xd8\xff")
-    assert owner.headers["content-type"].startswith("image/jpeg")
+    assert owner.status_code == 404
     rejected = await anon.post(
         f"/api/payments/{pid}/transfer-receipt",
         data={"refund_consent": "true"},

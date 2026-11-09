@@ -83,7 +83,8 @@ async def test_every_tier_end_to_end(maker, bank_transfer, problem, tier, extra)
 
     code, pay = await call("POST", "/api/payments", {
         "refund_consent": True, "package": tier, "method": "invoice", "customer_name": "عميل تجريبي",
-        "customer_phone": "0555123456", "project_id": proj["project_id"], "addons": addons})
+        "customer_phone": "0555123456", "project_id": proj["project_id"], "addons": addons},
+        headers=owner_cookie)
     assert code == 200, pay
     # a first monthly order carries the tier's one-time setup fee
     assert pay["total"] == pm.total_with_vat(catalog.plan_amount(tier, "monthly", addons) + catalog.setup_fee(tier))

@@ -40,23 +40,23 @@ PAYMENTS_PAYPAL_FACT = (
     "- Payment: PayPal on the secure checkout reached from /portal. Prices stay in SAR; PayPal charges USD\n"
     "  at the published peg. Never ask for card or account details in the chat."
 )
-PAYMENTS_TRANSFER_FACT = (
-    "- Payment: bank transfer against the invoice from /portal. Never ask for card details in the chat and\n"
-    "  never invent bank details; the invoice page shows them."
+PAYMENTS_CARD_FACT = (
+    "- Payment: by card (mada, Visa, or Mastercard) on the secure checkout page reached from /portal, in SAR.\n"
+    "  Never ask for card details in the chat. Do not mention a bank transfer or an IBAN."
 )
 
 
 def _payment_fact() -> str:
-    from src.services.payments import customer_bank_transfer_enabled, paypal_checkout_open
+    from src.services.payments import moyasar_collects_money, paypal_checkout_open
 
     paypal = paypal_checkout_open()
-    transfer = customer_bank_transfer_enabled()
-    if paypal and transfer:
-        return PAYMENTS_PAYPAL_FACT + "\n" + PAYMENTS_TRANSFER_FACT
+    card = moyasar_collects_money()
+    if card and paypal:
+        return PAYMENTS_CARD_FACT + "\n" + PAYMENTS_PAYPAL_FACT
+    if card:
+        return PAYMENTS_CARD_FACT
     if paypal:
         return PAYMENTS_PAYPAL_FACT
-    if transfer:
-        return PAYMENTS_TRANSFER_FACT
     return PAYMENTS_CLOSED_FACT
 
 

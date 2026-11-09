@@ -133,17 +133,19 @@ ai-agent schedule add "Daily Report" --cron "0 9 * * *" --target workflow:daily_
 ai-agent queue stats
 ```
 
-### Guest bank transfer
+### Guest card checkout (Moyasar)
 
-After Moyasar was removed, a guest pays an unpaid invoice by bank transfer. The published account is `content/transfer.json` (Al Rajhi). Customer checkout offers that transfer when the file has a valid Saudi IBAN, account name, and bank name. Card checkout stays closed.
+Guests pay by card on Moyasar's hosted invoice. The checkout offers mada, Visa, and Mastercard (and STC Pay on the same hosted page). Apple Pay is not a checkout button. There is no guest bank transfer and no IBAN QR.
 
-`PAYMENT_IBAN`, `PAYMENT_ACCOUNT_NAME`, and `PAYMENT_BANK_NAME` override the file only when at least one of them is set. A partial override hides the account instead of mixing it with the file. `PAYMENT_BANK_NAME_EN` is an optional English bank name for that override. A local check can still set those three to the dummy `SA0000000000000000000000`.
+Set these on the host (Render). Do not commit values:
 
-The unpaid invoice shows the bank lines, the payment reference, and a QR code of the IBAN itself (not a ZATCA tax QR), plus an optional receipt upload. The upload is stored on the payment for the owner to confirm; it does not mark the order paid.
+- `MOYASAR_API_SECRET` — secret key, `sk_live_…`. A `sk_test_` key does not open checkout.
+- `MOYASAR_PUBLISHABLE_KEY` — publishable key, `pk_live_…`. A `pk_test_` key does not open checkout.
+- `MOYASAR_WEBHOOK_SECRET` — the Moyasar dashboard webhook `secret_token`. Point the webhook at `https://karmaai.online/webhooks/moyasar`. A paid event is checked against Moyasar again before the order is marked paid.
 
-If no valid account is published, the QR block is omitted and the invoice says to contact us to pay (email AlNarjisai@gmail.com). No account is invented.
+`PAYMENT_IBAN`, `PAYMENT_ACCOUNT_NAME`, and `PAYMENT_BANK_NAME` are not used for guest checkout.
 
-PayPal stays behind `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live`. Owner-raised invoices do not need the customer account to be published.
+PayPal stays behind `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live`. Owner-raised invoices are paid by card from the invoice page.
 
 ### Web UI
 

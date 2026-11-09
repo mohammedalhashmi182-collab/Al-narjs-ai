@@ -32,7 +32,8 @@ def test_boot_offers_no_card_checkout() -> None:
         assert r.status_code == 200
         body = r.json()
         assert body["card"] is False
-        assert set(body["methods"]) == {"paypal", "invoice"}
-        assert "moyasar" not in r.text.lower()
+        assert set(body["methods"]) == {"paypal", "invoice", "mada", "creditcard", "stcpay"}
+        assert body["methods"]["mada"] is False
+        assert "sk_live" not in r.text and "pk_live" not in r.text
         for path in ("/", "/portal"):
             assert c.get(path).status_code < 500

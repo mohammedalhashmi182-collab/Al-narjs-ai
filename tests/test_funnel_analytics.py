@@ -140,7 +140,7 @@ async def test_server_side_consult_and_portal_events(api):
 async def test_card_checkout_is_refused_while_bank_transfer_is_open(api):
     from src.services import payments as pm
 
-    assert pm.payments_open() is True
+    assert pm.payments_open() is False
     assert pm.capabilities()["card"] is False
     client, maker, _ = api
     r = await client.post(

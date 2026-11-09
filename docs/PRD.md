@@ -15,7 +15,7 @@ The platform is built, tested (756 passing) and live. It cannot take a single
 riyal, and it cannot keep a single record. Both facts were reproduced on
 production, not inferred.
 
-**1.1 Customer payment methods are PayPal and bank transfer.**
+**1.1 Customer payment is Moyasar card checkout (mada, Visa, Mastercard). PayPal stays optional. Guest bank transfer is not offered.**
 
 The owner removed the Moyasar card gateway. Card buttons (mada, Visa, Mastercard,
 Apple Pay, STC Pay) are gone. Historical `payments.gateway = moyasar` rows stay

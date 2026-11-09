@@ -61,7 +61,7 @@ def test_no_tailwind_cdn_and_no_retired_gateway_in_csp(client):
     r = client.get("/ar/home")
     csp = r.headers["content-security-policy"]
     assert "cdn.tailwindcss.com" not in csp
-    assert "moyasar.com" not in csp
+    assert "moyasar.com" in csp
     form_action = next(p for p in csp.split("; ") if p.startswith("form-action"))
     assert "paypal.com" in form_action
     for path in ("/portal", "/login"):

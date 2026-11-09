@@ -156,8 +156,8 @@ def test_voice_instructions_name_al_narjis_and_forbid_grok():
     assert "كريم" in text
     assert SUPPORT_EMAIL in text
     assert "NEVER offer WhatsApp" in text
-    assert "card payment may be unavailable" in text
-    assert "bank transfer exists" in text
+    assert "Do not mention a bank transfer, an IBAN" in text
+    assert "bank transfer exists" not in text
     assert "bots, automation, agents, design, and content" in text
     prices = {
         "bidaya": "790",

@@ -23,8 +23,8 @@
             </div>
         </div>
         {% set _ar = ar %}{% include "partials/_payments_closed_banner.html" %}
-        {% if payments_open() and bank_transfer_open() and not paypal_checkout_open() %}
-        <p class="addon-note" id="bankTransferNote">{% if ar %}الدفع المتاح: تحويل بنكي. بعد اختيار الباقة تظهر الفاتورة ببيانات الحساب ورمز الآيبان ورقم الطلب.{% else %}Payment available: bank transfer. After you choose a plan, the invoice shows the account, an IBAN code, and your payment reference.{% endif %}</p>
+        {% if payments_open() and card_checkout_open() and not paypal_checkout_open() %}
+        <p class="addon-note" id="cardPaymentNote">{% if ar %}الدفع المتاح: مدى أو فيزا أو ماستركارد من صفحة الدفع الآمنة.{% else %}Payment available: mada, Visa, or Mastercard on the secure checkout page.{% endif %}</p>
         {% endif %}
         <div class="plans">
             {% for plan in plans %}
