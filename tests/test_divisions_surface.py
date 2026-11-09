@@ -79,6 +79,16 @@ def test_every_division_has_both_languages_and_a_blurb() -> None:
         assert not ARABIC.search(division["blurb_en"]), "English blurb leaked Arabic"
 
 
+def test_growth_blurb_spells_numbers_with_hamza() -> None:
+    """«بالأرقام» keeps the hamza; «بالمرقام» is a typo and must not ship."""
+    growth = catalog.get_division("business-growth")
+    assert growth is not None
+    assert "بالأرقام" in growth["blurb_ar"]
+    assert "بالمرقام" not in growth["blurb_ar"]
+    rendered = "\n".join(division["blurb_ar"] for division in catalog.DIVISIONS)
+    assert "بالمرقام" not in rendered
+
+
 ARABIC = re.compile(r"[\u0600-\u06ff]")
 
 
