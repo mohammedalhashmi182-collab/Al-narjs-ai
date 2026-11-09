@@ -83,17 +83,17 @@ def test_consent_text_is_not_duplicated_in_templates():
     assert "{{ refund_consent_ar }}" in src and "{{ refund_consent_en }}" in src
     assert "invoice_consent.html" in (TPL / "invoice.html").read_text(encoding="utf-8")
     assert "invoice_consent.html" in (TPL / "invoice_en.html").read_text(encoding="utf-8")
-    xfer = (TPL / "partials" / "_transfer.html").read_text(encoding="utf-8")
-    assert "refund_consent: true" in xfer and "narjisInvoiceConsent" in xfer
+    consent = (TPL / "partials" / "_invoice_consent.html").read_text(encoding="utf-8")
+    assert "refund_consent: true" in consent and "narjisInvoiceConsent" in consent
 
 
 async def test_transfer_report_without_consent_is_422(anon, maker):
     p = await _owner_invoice(maker)
     r = await anon.post(f"/api/payments/{p.id}/transfer-reported")
-    assert r.status_code == 422
-    assert r.json()["detail"]["error"] == "refund_consent_required"
+    assert r.status_code == 400
+    assert "Bank transfer is not available" in r.text
     r = await anon.post(f"/api/payments/{p.id}/transfer-reported", json={"refund_consent": False})
-    assert r.status_code == 422
+    assert r.status_code == 400
     row = await _reload(maker, p.id)
     assert row.refund_consent_at is None and row.gateway_source != "transfer_reported"
 
@@ -105,10 +105,9 @@ async def test_transfer_report_with_consent_stores_it(anon, maker, monkeypatch):
     monkeypatch.setattr("src.services.telegram_sender.send_owner_alert", _alert)
     p = await _owner_invoice(maker)
     r = await anon.post(f"/api/payments/{p.id}/transfer-reported", json={"refund_consent": True})
-    assert r.status_code == 200, r.text
+    assert r.status_code == 400, r.text
     row = await _reload(maker, p.id)
-    assert row.refund_consent_at is not None
-    assert row.refund_consent_version == policies.POLICY_VERSION
+    assert row.refund_consent_at is None
     assert row.status != "paid"
 
 
@@ -117,4 +116,4 @@ async def test_card_pay_route_is_gone(anon, maker):
     r = await anon.get(f"/invoice/{p.id}")
     assert r.status_code == 200
     assert 'id="invoicePayCard"' not in r.text
-    assert (await anon.post(f"/api/payments/{p.id}/pay-card", json={"refund_consent": True})).status_code == 404
+    assert (await anon.post(f"/api/payments/{p.id}/pay-card", json={"refund_consent": True})).status_code == 503

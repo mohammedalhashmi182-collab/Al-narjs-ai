@@ -1,7 +1,6 @@
-"""Customer checkout offers bank transfer when a Saudi account is published.
+"""Guest checkout offers Moyasar card payment, not a bank transfer.
 
-The checkout has no IBAN block. Bank details stay on the invoice page.
-Card checkout stays closed.
+The checkout has no IBAN block. Card buttons follow /api/payments/capabilities.
 """
 
 from __future__ import annotations
@@ -37,7 +36,8 @@ def client():
 def test_the_checkout_screen_has_no_iban_block(portal: str) -> None:
     assert 'id="coXfer"' not in portal
     assert "xfIban" not in portal
-    assert "bank_transfer_enabled" in portal
+    assert "m: 'mada'" in portal
+    assert "تحويل بنكي" not in portal
 
 
 # --------------------------------------------------------------------------
@@ -61,10 +61,10 @@ def test_capabilities_offer_bank_transfer_when_the_account_is_published(client: 
     for key in ("PAYMENT_IBAN", "PAYMENT_ACCOUNT_NAME", "PAYMENT_BANK_NAME"):
         monkeypatch.delenv(key, raising=False)
     live = client.get(CAPABILITIES).json()
-    assert live["methods"]["invoice"] is True
+    assert live["methods"]["invoice"] is False
+    assert live["methods"]["mada"] is False
     assert live["card"] is False
-    assert live["bank"]["iban"] == "SA5880000126608016363961"
-    assert live["bank"]["swift"] == "RJHISARI"
+    assert live["bank"] == {}
 
 
 def test_capabilities_never_leaks_a_secret(client: TestClient) -> None:
@@ -74,8 +74,8 @@ def test_capabilities_never_leaks_a_secret(client: TestClient) -> None:
 
 
 def test_checkout_methods_are_paypal_and_bank_transfer(portal: str) -> None:
-    assert "m: 'mada'" not in portal and "m: 'applepay'" not in portal
-    assert "m: 'paypal'" in portal and "m: 'invoice'" in portal
+    assert "m: 'mada'" in portal and "m: 'applepay'" not in portal
+    assert "m: 'paypal'" in portal and "m: 'invoice'" not in portal
 
 
 # --------------------------------------------------------------------------

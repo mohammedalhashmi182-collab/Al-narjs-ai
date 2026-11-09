@@ -92,6 +92,13 @@ class Settings(BaseSettings):
     queue_max_retries: int = Field(default=3, alias="QUEUE_MAX_RETRIES")
     queue_retry_delay: float = Field(default=5.0, alias="QUEUE_RETRY_DELAY")
 
+    # Moyasar (ميسر) hosted checkout. Read from the environment only; never hardcode.
+    # MOYASAR_API_SECRET is the secret key (sk_live_…). MOYASAR_PUBLISHABLE_KEY is
+    # the publishable key (pk_live_…). MOYASAR_WEBHOOK_SECRET is the dashboard
+    # webhook secret_token. Test-prefixed keys do not open guest checkout.
+    moyasar_api_secret: str | None = Field(default=None, alias="MOYASAR_API_SECRET")
+    moyasar_publishable_key: str | None = Field(default=None, alias="MOYASAR_PUBLISHABLE_KEY")
+    moyasar_webhook_secret: str | None = Field(default=None, alias="MOYASAR_WEBHOOK_SECRET")
     payment_success_url: str = Field(default="/payment/success", alias="PAYMENT_SUCCESS_URL")
     payment_failure_url: str = Field(default="/payment/failure", alias="PAYMENT_FAILURE_URL")
     # Canonical public origin, e.g. https://karmaai.online. Gateway return URLs are
@@ -106,9 +113,8 @@ class Settings(BaseSettings):
     # PayPal does not settle SAR: the VAT-inclusive SAR total is charged in USD
     # at the fixed riyal peg (3.75 SAR per USD).
     paypal_sar_per_usd: float = Field(default=3.75, alias="PAYPAL_SAR_PER_USD")
-    # Optional override of content/transfer.json. When all three are empty the
-    # file is the published guest account. An IBAN is printed on the invoice;
-    # it is not a secret.
+    # Unused by guest checkout. Bank transfer and the IBAN QR are not offered.
+    # Kept so an older environment file still loads.
     payment_iban: str | None = Field(default=None, alias="PAYMENT_IBAN")
     payment_account_name: str | None = Field(default=None, alias="PAYMENT_ACCOUNT_NAME")
     payment_bank_name: str | None = Field(default=None, alias="PAYMENT_BANK_NAME")

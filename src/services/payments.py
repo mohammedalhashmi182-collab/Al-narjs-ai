@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import asyncio
+import base64
 import logging
 import os
+import time
 from datetime import datetime, timedelta as _timedelta, timezone
 from typing import Optional
 from uuid import UUID
@@ -24,9 +27,19 @@ PACKAGES = catalog.PACKAGES  # compatible alias — amounts live in catalog only
 # job expires it (see src/services/renewals.py).
 RENEWAL_GRACE = _timedelta(days=3)
 
-# Card checkout (mada, Visa, Mastercard, Apple Pay, STC Pay) was removed with
-# the Moyasar gateway. Requests that still name those methods are rejected.
-RETIRED_CARD_METHODS = ("mada", "stcpay", "creditcard", "applepay")
+MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
+MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
+
+# Hosted-invoice methods from the pre-removal checkout. Apple Pay was a separate
+# button on that page; the invoice API does not require it, and it is not offered.
+CARD_METHODS = ("mada", "stcpay", "creditcard")
+
+# A configured secret is not a working secret. The checkout probes Moyasar and
+# hides card buttons when the secret is rejected.
+CREDENTIAL_PROBE_TTL_SECONDS = 300.0
+CREDENTIAL_PROBE_TIMEOUT_SECONDS = 4.0
+_credential_cache: dict[str, tuple[float, str]] = {}
+_credential_lock = asyncio.Lock()
 
 
 def _clamp_rate(raw, source: str) -> float:
@@ -252,16 +265,14 @@ def customer_paypal_enabled() -> bool:
 
 
 def customer_bank_transfer_enabled() -> bool:
-    """Manual invoice / bank transfer for customers when a Saudi account is published.
+    """Guest checkout is Moyasar only.
 
-    Published means ``content/transfer.json`` has a valid IBAN, account name and
-    bank, or ``PAYMENT_IBAN``, ``PAYMENT_ACCOUNT_NAME`` and ``PAYMENT_BANK_NAME``
-    are all set. Owner-raised invoices are a separate authenticated path and
-    do not use this check. Card checkout stays closed.
+    Bank transfer, the Al Rajhi account, and the IBAN QR are not a customer
+    payment method. ``PAYMENT_IBAN`` and ``content/transfer.json`` cannot turn
+    that path back on. Owner-raised invoices stay a separate authenticated path
+    and are paid by card from the invoice page.
     """
-    from src.services import transfer
-
-    return transfer.has_bank_details()
+    return False
 
 
 def paypal_ready() -> bool:
@@ -280,11 +291,94 @@ def paypal_collects_money() -> bool:
 
 
 def payments_open() -> bool:
-    """Whether a customer can pay right now (live PayPal or bank transfer).
+    """Whether a customer can pay right now (live Moyasar card checkout or PayPal).
 
     Drives the public "payment is not open yet" banner and CTA labels.
     """
-    return paypal_checkout_open() or customer_bank_transfer_enabled()
+    return moyasar_collects_money() or paypal_checkout_open()
+
+
+# Shown when checkout has no live Moyasar key. Bank transfer is not offered.
+CARD_ACTIVATING_AR = (
+    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر البريد AlNarjisai@gmail.com."
+)
+
+
+def moyasar_publishable_is_test() -> bool:
+    key = (get_settings().moyasar_publishable_key or "").strip()
+    return key.startswith("pk_test")
+
+
+def moyasar_publishable_is_live() -> bool:
+    key = (get_settings().moyasar_publishable_key or "").strip()
+    return key.startswith("pk_live_")
+
+
+def moyasar_secret_is_live() -> bool:
+    """Whether the configured Moyasar secret can take a real payment.
+
+    A ``sk_test_`` secret is accepted by the API and creates sandbox invoices.
+    The prefix is the only reliable signal, and it is not itself a secret.
+    """
+    secret = (get_settings().moyasar_api_secret or "").strip()
+    if not secret:
+        return False
+    return secret.startswith("sk_live_")
+
+
+def moyasar_collects_money() -> bool:
+    """True only when both the secret and the publishable key are live.
+
+    An empty publishable key, ``pk_test``, ``sk_test``, or a missing secret
+    must never open a checkout that a later webhook could mark paid.
+    """
+    return moyasar_secret_is_live() and moyasar_publishable_is_live()
+
+
+def cached_credential_state(name: str) -> str:
+    """The last probe answer, or ``ok`` while nothing has disproved it.
+
+    Optimistic on purpose: an unprobed or unreachable gateway must not remove a
+    method that works. Only a positive rejection hides it.
+    """
+    entry = _credential_cache.get(name)
+    if entry and entry[0] > time.monotonic():
+        return entry[1]
+    return "ok"
+
+
+async def probe_moyasar_credentials() -> str:
+    """Ask Moyasar whether the configured secret is accepted.
+
+    A GET on the invoice list changes nothing. Only 401/403 counts as proof.
+    A timeout or any other status returns ``unknown``, which keeps the method
+    visible. The secret is sent as an Authorization header and is never logged.
+    """
+    settings = get_settings()
+    if not settings.moyasar_api_secret:
+        return "unset"
+
+    entry = _credential_cache.get("moyasar")
+    if entry and entry[0] > time.monotonic():
+        return entry[1]
+
+    async with _credential_lock:
+        entry = _credential_cache.get("moyasar")
+        if entry and entry[0] > time.monotonic():
+            return entry[1]
+        state = "unknown"
+        try:
+            async with httpx.AsyncClient(timeout=CREDENTIAL_PROBE_TIMEOUT_SECONDS) as client:
+                resp = await client.get(
+                    MOYASAR_INVOICES_URL,
+                    params={"page": 1},
+                    headers={"Authorization": _auth_header(settings)},
+                )
+            state = "rejected" if resp.status_code in (401, 403) else "ok"
+        except Exception:  # noqa: BLE001 - a probe must never raise into a request
+            state = "unknown"
+        _credential_cache["moyasar"] = (time.monotonic() + CREDENTIAL_PROBE_TTL_SECONDS, state)
+        return state
 
 
 def paypal_checkout_open() -> bool:
@@ -306,35 +400,52 @@ PAYMENTS_CLOSED_EN = (
 def capabilities(card_state: Optional[str] = None) -> dict:
     """Which methods can actually take money right now.
 
-    Booleans and public bank details only — never a key, a secret or a token.
-    ``card`` is always false: card checkout was removed. ``card_state`` is
-    accepted and ignored so older callers keep working.
-    """
-    del card_state
-    from src.services import transfer
+    Booleans only — never a key, a secret, or a bank account. The checkout
+    renders exactly these methods. Guest bank transfer is not one of them.
 
+    ``card_state`` carries the Moyasar credential verdict. Pass the probed
+    value on the request path; omit it and the last known verdict is used.
+    """
     settings = get_settings()
+    if card_state is None:
+        card_state = cached_credential_state("moyasar")
+    secret = (settings.moyasar_api_secret or "").strip()
+    publishable = (settings.moyasar_publishable_key or "").strip()
+    card = moyasar_collects_money() and card_state != "rejected"
+    test_mode = (
+        secret.startswith("sk_test")
+        or publishable.startswith("pk_test")
+        or (bool(secret) and not secret.startswith("sk_live_"))
+        or (secret.startswith("sk_live_") and not publishable.startswith("pk_live_"))
+    )
     paypal = paypal_checkout_open()
-    invoice = customer_bank_transfer_enabled()
+    methods = {method: card for method in CARD_METHODS}
+    methods["paypal"] = paypal
+    methods["invoice"] = False
     return {
-        "methods": {"paypal": paypal, "invoice": invoice},
-        "card": False,
+        "methods": methods,
+        "card": card,
+        "moyasar_status": "active" if card else "unavailable",
+        "moyasar_on_hold": False,
+        "card_configured": bool(settings.moyasar_api_secret),
+        "card_credentials": card_state,
+        "card_test_mode": test_mode,
         "paypal": paypal,
         "paypal_configured": paypal_ready(),
         "paypal_test_mode": paypal_ready() and settings.paypal_mode != "live",
-        "invoice": invoice,
-        "bank": transfer.bank_details() if invoice else {},
+        "invoice": False,
+        "bank": {},
     }
 
 
 async def capabilities_async() -> dict:
-    """capabilities() — no remote credential probe."""
-    return capabilities()
+    """capabilities() with a live credential verdict for Moyasar."""
+    return capabilities(card_state=await probe_moyasar_credentials())
 
 
 async def readiness_async() -> dict:
-    """readiness() — no remote credential probe."""
-    return readiness()
+    """readiness() with a live credential verdict for Moyasar."""
+    return readiness(card_state=await probe_moyasar_credentials())
 
 
 def readiness(card_state: Optional[str] = None) -> dict:
@@ -343,51 +454,55 @@ def readiness(card_state: Optional[str] = None) -> dict:
     Reports env-var *names* and booleans only. Values are never included, so
     this is safe to render on an owner screen.
     """
-    del card_state
     settings = get_settings()
-    caps = capabilities()
+    caps = capabilities(card_state=card_state)
     missing: list[str] = []
+    if not settings.moyasar_api_secret:
+        missing.append("MOYASAR_API_SECRET")
+    if not settings.moyasar_publishable_key:
+        missing.append("MOYASAR_PUBLISHABLE_KEY")
+    if not settings.moyasar_webhook_secret:
+        missing.append("MOYASAR_WEBHOOK_SECRET")
     if customer_paypal_enabled() and not paypal_ready():
         missing.append("PAYPAL_CLIENT_ID+PAYPAL_CLIENT_SECRET")
 
     blocking: list[str] = []
+    if caps["card_credentials"] == "rejected":
+        blocking.append(
+            "MOYASAR_API_SECRET is set but Moyasar rejected it (401). "
+            "Card checkout is hidden and every card payment would fail."
+        )
+    if caps.get("card_test_mode"):
+        blocking.append(
+            "MOYASAR_API_SECRET is a TEST key (sk_test_) or the publishable key "
+            "is not pk_live_. Card checkout stays hidden until both keys are live."
+        )
     if paypal_ready() and caps["paypal_test_mode"]:
         blocking.append(
             "PAYPAL_MODE is not 'live', so PayPal completes sandbox checkouts "
             "that take no money. It is hidden until PAYPAL_MODE=live."
         )
-    if customer_bank_transfer_enabled() and not caps["bank"].get("iban"):
+    if not caps["card"] and not caps["paypal"]:
         blocking.append(
-            "A Saudi IBAN, account name and bank name must be published in "
-            "content/transfer.json (or PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME and "
-            "PAYMENT_BANK_NAME) or a bank-transfer guest sees only the contact fallback."
-        )
-    if not caps["paypal"] and not caps["invoice"]:
-        blocking.append(
-            "No customer payment method is open. Publish the Saudi account in "
-            "content/transfer.json, or enable live PayPal (CUSTOMER_PAYPAL_ENABLED)."
+            "No customer payment method is open. Set live Moyasar keys "
+            "(MOYASAR_API_SECRET and MOYASAR_PUBLISHABLE_KEY) or enable live PayPal."
         )
 
     return {
         **caps,
-        "collect_money_now": bool(caps["paypal"] or caps["invoice"]),
+        "collect_money_now": bool(caps["card"] or caps["paypal"]),
         "paypal_mode": settings.paypal_mode,
         "promo_active": promo_active(),
         "missing_env": missing,
         "blocking_issues": blocking,
         "env_required": {
+            "card": ["MOYASAR_API_SECRET", "MOYASAR_PUBLISHABLE_KEY", "MOYASAR_WEBHOOK_SECRET"],
             "paypal": [
                 "CUSTOMER_PAYPAL_ENABLED",
                 "PAYPAL_CLIENT_ID",
                 "PAYPAL_CLIENT_SECRET",
                 "PAYPAL_MODE=live",
                 "PAYPAL_WEBHOOK_ID",
-            ],
-            "invoice": [
-                "content/transfer.json",
-                "PAYMENT_IBAN",
-                "PAYMENT_ACCOUNT_NAME",
-                "PAYMENT_BANK_NAME",
             ],
         },
     }
@@ -399,13 +514,10 @@ def reference(payment: Payment) -> str:
 
 
 def transfer_instructions(payment: Payment) -> dict:
-    """Everything a guest needs to settle a manual invoice unaided.
+    """Reference and amount for an order. No bank account and no IBAN QR.
 
-    Bank lines and the IBAN QR come from content/transfer.json, unless
-    PAYMENT_IBAN, PAYMENT_ACCOUNT_NAME and PAYMENT_BANK_NAME override it.
-    The QR encodes the IBAN only. It is not a ZATCA tax QR. When no valid
-    account is published the bank dict and QR are empty and the page shows
-    the contact fallback.
+    Guest settlement is Moyasar. This dict stays so older callers keep a
+    stable shape, with ``bank`` and ``qr_svg`` always empty.
     """
     from src.services import catalog as _catalog
     from src.services import transfer
@@ -417,7 +529,6 @@ def transfer_instructions(payment: Payment) -> dict:
     pkg = _catalog.PACKAGES.get(payment.package or "") or _catalog.LEGACY_TIERS.get(payment.package or "") or {}
     plan_ar = pkg.get("name") or (payment.package or "")
     plan_en = pkg.get("name_en") or plan_ar
-    bank = transfer.bank_details()
     amount_text = f"{total_sar:.2f}"
     return {
         "payment_id": str(payment.id),
@@ -431,11 +542,9 @@ def transfer_instructions(payment: Payment) -> dict:
         "total_sar": total_sar,
         "amount_text": amount_text,
         "currency": payment.currency or "SAR",
-        "bank": bank,
-        "iban_spaced": transfer.format_iban(bank["iban"]) if bank.get("iban") else "",
-        "qr_svg": transfer.transfer_qr_svg(
-            bank=bank, amount_sar=amount_text, reference=ref, plan=plan_en or plan_ar
-        ) if bank else "",
+        "bank": {},
+        "iban_spaced": "",
+        "qr_svg": "",
         "contact": transfer.contact_buttons(ref, total_sar, customer),
         "invoice_url": f"/invoice/{payment.id}",
     }
@@ -558,14 +667,14 @@ async def create_payment(
 
 
 def payment_provider(payment: Payment) -> str:
-    """Which live gateway owns this record: ``paypal`` or ``none``.
-
-    Rows stored as ``moyasar`` (and legacy rows that only have a gateway id)
-    are historical. They are not verified against a remote API.
-    """
+    """Which gateway owns this record: ``paypal``, ``moyasar`` or ``none``."""
     gw = (payment.gateway or "").strip().lower()
     if gw == "paypal":
         return "paypal"
+    if gw == "moyasar":
+        return "moyasar"
+    if gw in ("", "none") and payment.gateway_payment_id:
+        return "moyasar"  # legacy rows created before ``gateway`` was stored
     return "none"
 
 
@@ -580,9 +689,39 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
     if not payment.gateway_payment_id:
         return payment
 
-    if payment_provider(payment) == "paypal":
+    provider = payment_provider(payment)
+    if provider == "paypal":
         return await verify_paypal_payment(session, payment)
-    return payment  # invoice, bank transfer, or a historical card row
+    if provider != "moyasar":
+        return payment
+
+    settings = get_settings()
+    if not settings.moyasar_api_secret:
+        return payment
+
+    invoice_mode = payment.gateway_source == "invoice" or str(payment.gateway_payment_id).startswith("inv_")
+    endpoint = MOYASAR_INVOICES_URL if invoice_mode else MOYASAR_API_URL
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.get(
+            f"{endpoint}/{payment.gateway_payment_id}",
+            headers={"Authorization": _auth_header(settings)},
+        )
+
+    if resp.status_code != 200:
+        from src.services import error_monitor
+
+        error_monitor.report("moyasar", error_type=f"http_{resp.status_code}", route="moyasar_verify_error")
+        raise PaymentError(f"Moyasar verify error {resp.status_code}")
+
+    data = resp.json()
+    apply_gateway_status(payment, data)
+    src = data.get("source", {})
+    if isinstance(src, dict):
+        payment.gateway_source = src.get("type", payment.gateway_source)
+
+    await session.commit()
+    return payment
 
 
 REVIEW_STATUS = "review"
@@ -613,6 +752,169 @@ def gateway_amount_matches(payment: Payment, data: dict) -> bool:
         return False
     currency = str(data.get("currency") or "").upper()
     return amount == expected_charge(payment) and currency == "SAR"
+
+
+def _auth_header(settings) -> str:
+    if not settings.moyasar_api_secret:
+        raise PaymentError("Moyasar API secret not configured")
+    token = base64.b64encode(f"{settings.moyasar_api_secret}:".encode()).decode()
+    return f"Basic {token}"
+
+
+async def initiate_moyasar(
+    session: AsyncSession,
+    payment: Payment,
+    source: dict,
+    callback_url: Optional[str] = None,
+    amount_halalas: Optional[int] = None,
+    success_url: Optional[str] = None,
+    back_url: Optional[str] = None,
+) -> dict:
+    """Create a Moyasar hosted invoice and store its id on the payment.
+
+    ``source`` is accepted for the old call shape. The hosted invoice does not
+    send a payment source: Moyasar's page collects mada, Visa, Mastercard, or
+    STC Pay. Apple Pay is not requested.
+    """
+    del source
+    settings = get_settings()
+    if not moyasar_collects_money():
+        raise PaymentError("Moyasar live key is not configured")
+    if not settings.moyasar_api_secret:
+        raise PaymentError("Moyasar API secret not configured")
+
+    charge = payment_total(payment) if amount_halalas is None else amount_halalas
+    if charge < payment.amount:
+        raise PaymentError("Charge amount is below the recorded base amount")
+
+    payload = {
+        "amount": charge,
+        "currency": "SAR",
+        "description": payment.description or "النرجس للذكاء الاصطناعي",
+        "success_url": success_url or settings.payment_success_url,
+        "back_url": back_url or settings.payment_failure_url,
+        "metadata": {"order_id": str(payment.id)},
+    }
+    if callback_url:
+        payload["callback_url"] = callback_url
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            MOYASAR_INVOICES_URL,
+            json=payload,
+            headers={"Authorization": _auth_header(settings)},
+        )
+
+    if resp.status_code not in (200, 201):
+        from src.services import error_monitor
+
+        error_monitor.report("moyasar", error_type=f"http_{resp.status_code}", route="moyasar_error")
+        raise PaymentError(f"Moyasar error {resp.status_code}")
+
+    data = resp.json()
+    invoice_id = data.get("id")
+    if not invoice_id:
+        raise PaymentError("Moyasar invoice missing id")
+
+    payment.gateway = "moyasar"
+    payment.gateway_payment_id = invoice_id
+    payment.gateway_source = "invoice"
+    await session.commit()
+    checkout = data.get("url") or f"https://checkout.moyasar.com/invoices/{invoice_id}"
+    if "lang=" not in checkout:
+        checkout += ("&" if "?" in checkout else "?") + "lang=ar"
+    else:
+        checkout = checkout.replace("lang=en", "lang=ar")
+    return {
+        "id": invoice_id,
+        "checkout_url": checkout,
+    }
+
+
+def apply_gateway_status(payment: Payment, data: dict) -> None:
+    """Map a Moyasar invoice or payment object onto the order.
+
+    A ``paid`` verdict is trusted only when the amount and currency match the
+    order. Anything else is parked as ``review`` and never marked paid.
+    """
+    if payment.status == "paid":
+        return
+    status = data.get("status")
+    if status == "paid":
+        if not moyasar_collects_money():
+            logger.warning("refusing paid status from a non-live Moyasar key for %s", payment.id)
+            payment.status = REVIEW_STATUS
+            return
+        if gateway_amount_matches(payment, data):
+            payment.status = "paid"
+        else:
+            logger.warning(
+                "moyasar amount mismatch for %s: got %s %s, expected %s SAR",
+                payment.id, data.get("amount"), data.get("currency"), expected_charge(payment),
+            )
+            payment.status = REVIEW_STATUS
+    elif status in ("failed", "canceled", "expired"):
+        payment.status = "failed"
+    elif status == "authorized":
+        payment.status = "authorized"
+    else:
+        payment.status = status or payment.status
+
+
+async def handle_moyasar_webhook(session: AsyncSession, event: dict) -> dict:
+    """Apply a verified Moyasar webhook event. Safe to receive more than once.
+
+    The body is only a hint. The order is decided from a fresh API fetch.
+    """
+    event_type = str(event.get("type") or "")
+    if event_type not in ("payment_paid", "payment_failed"):
+        return {"ok": True, "ignored": event_type or "unknown"}
+
+    data = event.get("data") if isinstance(event.get("data"), dict) else {}
+    metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
+
+    payment = None
+    order_id = metadata.get("order_id")
+    if order_id:
+        try:
+            payment = (
+                await session.execute(select(Payment).where(Payment.id == UUID(str(order_id))))
+            ).scalar_one_or_none()
+        except ValueError:
+            payment = None
+    if payment is None:
+        refs = [r for r in (data.get("invoice_id"), data.get("id")) if r]
+        if refs:
+            payment = (
+                await session.execute(select(Payment).where(Payment.gateway_payment_id.in_(refs)))
+            ).scalars().first()
+    if payment is None:
+        return {"ok": True, "ignored": "unknown order"}
+
+    if payment.status == "paid":
+        return {"ok": True, "payment_id": str(payment.id), "status": "paid", "already": True}
+
+    payment = await verify_payment(session, payment.id)
+    return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": False}
+
+
+def source_credit_card() -> dict:
+    return {"type": "creditcard"}
+
+
+def source_mada() -> dict:
+    return {"type": "creditcard", "company": "mada"}
+
+
+def source_stcpay() -> dict:
+    return {"type": "stcpay"}
+
+
+def get_publishable_key() -> Optional[str]:
+    """Publishable key for a live checkout, or None when card checkout is closed."""
+    if not moyasar_collects_money():
+        return None
+    return get_settings().moyasar_publishable_key
 
 
 # ---------------- PayPal ----------------

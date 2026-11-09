@@ -31,13 +31,11 @@ services:
         sync: false
       - key: SMTP_FROM
         sync: false
-      - key: PAYMENT_IBAN
+      - key: MOYASAR_API_SECRET
         sync: false
-      - key: PAYMENT_ACCOUNT_NAME
+      - key: MOYASAR_PUBLISHABLE_KEY
         sync: false
-      - key: PAYMENT_BANK_NAME
-        sync: false
-      - key: PAYMENT_BANK_NAME_EN
+      - key: MOYASAR_WEBHOOK_SECRET
         sync: false
       - key: TELEGRAM_TOKEN
         sync: false

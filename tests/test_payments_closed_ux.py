@@ -1,7 +1,7 @@
 """Pricing and portal follow the published payment method.
 
-With the Al Rajhi account in content/transfer.json, bank transfer is a real
-checkout option. The closed banner remains only when no method can take money.
+Without live Moyasar keys, checkout stays closed. A published bank account
+does not open a guest transfer.
 """
 
 import httpx
@@ -12,8 +12,8 @@ from src.services import payments as pm
 
 AR = "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك بالبريد الإلكتروني عند فتح الدفع."
 EN = "Online payment is not open yet."
-TRANSFER_AR = "الدفع المتاح: تحويل بنكي."
-TRANSFER_EN = "Payment available: bank transfer."
+CARD_AR = "الدفع المتاح: مدى أو فيزا أو ماستركارد"
+CARD_EN = "Payment available: mada, Visa, or Mastercard"
 
 
 async def _get(path):
@@ -28,34 +28,33 @@ async def _get(path):
 
 
 @pytest.mark.parametrize(
-    "path,note,cta,closed_cta",
+    "path,note,closed_cta",
     [
-        ("/ar/pricing", TRANSFER_AR, "اشترك في ", "سجّل اهتمامك"),
-        ("/en/pricing", TRANSFER_EN, ">Get ", "Register interest"),
+        ("/ar/pricing", CARD_AR, "سجّل اهتمامك"),
+        ("/en/pricing", CARD_EN, "Register interest"),
     ],
 )
-async def test_pricing_offers_bank_transfer_instead_of_interest_only(path, note, cta, closed_cta):
-    assert pm.payments_open()
+async def test_pricing_offers_bank_transfer_instead_of_interest_only(path, note, closed_cta):
+    assert pm.payments_open() is False
     assert pm.capabilities()["card"] is False
-    assert pm.capabilities()["invoice"] is True
+    assert pm.capabilities()["invoice"] is False
     html = await _get(path)
-    assert note in html
-    assert 'id="bankTransferNote"' in html
-    assert 'id="paymentsClosedBanner"' not in html
-    assert cta in html
-    assert closed_cta not in html
+    assert note not in html
+    assert "آيبان" not in html and "IBAN" not in html
+    assert 'id="paymentsClosedBanner"' in html
+    assert closed_cta in html
 
 
 @pytest.mark.parametrize(
     "path,cta,absent",
     [
-        ("/ar/portal", "ادفع بتحويل بنكي", "سجّل اهتمامك"),
-        ("/en/portal", "Pay by bank transfer", "Register interest"),
+        ("/ar/portal", "سجّل اهتمامك", "ادفع بتحويل بنكي"),
+        ("/en/portal", "Register interest", "Pay by bank transfer"),
     ],
 )
 async def test_portal_offers_bank_transfer_and_no_instant_promise(path, cta, absent):
     html = await _get(path)
-    assert 'id="paymentsClosedBanner"' not in html
+    assert 'id="paymentsClosedBanner"' in html
     assert cta in html
     assert absent not in html
     for bad in (
@@ -104,6 +103,6 @@ def test_payments_open_follows_paypal_or_published_bank_transfer(monkeypatch, tm
         encoding="utf-8",
     )
     monkeypatch.setattr(t, "CONTENT_FILE", published)
-    assert pm.customer_bank_transfer_enabled() is True
-    assert pm.payments_open() is True
+    assert pm.customer_bank_transfer_enabled() is False
+    assert pm.payments_open() is False
     assert pm.capabilities()["card"] is False

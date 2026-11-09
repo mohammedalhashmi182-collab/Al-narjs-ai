@@ -82,9 +82,8 @@
             {% for cn in credit_notes %}
             <div class="meta">إشعار دائن {{ cn.invoice_number }} بتاريخ {{ cn.issued_at.strftime('%Y-%m-%d') }}: {{ "%.2f"|format(cn.total / 100) }} ر.س{% if has_vat %} شامل الضريبة{% endif %}{% if cn.reason %} — {{ cn.reason }}{% endif %}</div>
             {% endfor %}
-            <div class="meta" style="margin-top:16px;">الدفع عبر {{ 'PayPal' if payment.gateway == 'paypal' else ('بطاقة (سجل سابق)' if payment.gateway == 'moyasar' else 'تحويل بنكي') }}</div>
+            <div class="meta" style="margin-top:16px;">الدفع عبر {{ 'PayPal' if payment.gateway == 'paypal' else 'بطاقة (مدى / فيزا / ماستركارد)' }}</div>
             {% include "partials/_invoice_consent.html" %}
-            {% include "partials/_transfer.html" %}
         </div>
         <div class="foot">شكراً لثقتك بالنرجس للذكاء الاصطناعي ✺ · www.karmaai.online</div>
     </div>

@@ -43,11 +43,11 @@ def test_published_file_is_al_rajhi_and_opens_customer_transfer(monkeypatch):
     assert details["swift"] == "RJHISARI"
     assert details["bank_name_en"] == "Al Rajhi Bank"
     assert transfer.has_bank_details() is True
-    assert pm.customer_bank_transfer_enabled() is True
+    assert pm.customer_bank_transfer_enabled() is False
     caps = pm.capabilities()
     assert caps["card"] is False
-    assert caps["methods"]["invoice"] is True
-    assert caps["bank"]["iban"] == IBAN
+    assert caps["methods"]["invoice"] is False
+    assert caps["bank"] == {}
 
 
 def test_invoice_qr_encodes_only_the_iban(monkeypatch):
@@ -57,19 +57,11 @@ def test_invoice_qr_encodes_only_the_iban(monkeypatch):
         id=uuid4(), amount=79000, currency="SAR", package="bidaya", status="invoice", total_halalas=79000
     )
     out = pm.transfer_instructions(payment)
-    payload = transfer.transfer_qr_payload(
-        bank=out["bank"], amount_sar=out["amount_text"], reference=out["reference"], plan=out["plan_en"]
-    )
-    assert payload == IBAN
-    assert out["reference"] not in payload
-    assert out["amount_text"] not in payload
-    expected = segno.make(IBAN, error="m").svg_inline(
-        scale=4, dark="#000000", light="#ffffff", svgclass="xfer-qr-svg"
-    )
-    assert out["qr_svg"] == expected
-    assert "ZATCA" not in out["qr_svg"]
+    assert out["bank"] == {}
+    assert out["qr_svg"] == ""
+    assert out["iban_spaced"] == ""
+    assert IBAN not in str(out)
     assert out["reference"]
-    assert out["iban_spaced"] == "SA58 8000 0126 6080 1636 3961"
 
 
 @pytest.fixture
@@ -106,14 +98,15 @@ async def test_unpaid_invoice_shows_account_reference_and_iban_qr(anon, maker, m
         ref = str(pid)[:8].upper()
     page = await anon.get(f"/invoice/{pid}")
     assert page.status_code == 200
-    assert IBAN in page.text
-    assert ACCOUNT in page.text
-    assert "مصرف الراجحي" in page.text
-    assert "RJHISARI" in page.text
+    assert IBAN not in page.text
+    assert ACCOUNT not in page.text
+    assert "مصرف الراجحي" not in page.text
+    assert "RJHISARI" not in page.text
     assert ref in page.text
-    assert "xfer-qr" in page.text
+    assert "xfer-qr" not in page.text
     assert "QR (ZATCA TLV)" not in page.text
     english = await anon.get(f"/invoice/{pid}", cookies={"narjis_lang": "en"})
-    assert "Al Rajhi Bank" in english.text
-    assert "IBAN code" in english.text or "Scan the IBAN code" in english.text
+    assert "Al Rajhi Bank" not in english.text
+    assert "IBAN" not in english.text
     assert ref in english.text
+    assert 'dir="ltr"' in english.text

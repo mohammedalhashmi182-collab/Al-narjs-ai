@@ -36,9 +36,24 @@ def bank_transfer(monkeypatch):
 
 
 @pytest.mark.usefixtures("founding_full")
-async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer):
+async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer, monkeypatch):
+    from src.config.settings import get_settings
     from src.core.agent_registry import AgentRegistry
     from src.main import app
+    from src.services import payments as pm
+
+    settings = get_settings()
+    monkeypatch.setattr(settings, "moyasar_api_secret", "sk_" + "live_journey")
+    monkeypatch.setattr(settings, "moyasar_publishable_key", "pk_" + "live_journey")
+
+    async def _initiate(session, payment, source, **kwargs):
+        payment.gateway = "moyasar"
+        payment.gateway_payment_id = "inv_journey"
+        payment.gateway_source = "invoice"
+        await session.commit()
+        return {"id": "inv_journey", "checkout_url": "https://checkout.moyasar.com/invoices/inv_journey?lang=ar"}
+
+    monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
 
     app.state.session_factory = maker
     registry = AgentRegistry(maker)
@@ -98,7 +113,7 @@ async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer):
         {
             "refund_consent": True,
             "package": tier,
-            "method": "invoice",
+            "method": "mada",
             "customer_name": "عميل تجريبي",
             "customer_phone": "0555123456",
             "project_id": proj["project_id"],

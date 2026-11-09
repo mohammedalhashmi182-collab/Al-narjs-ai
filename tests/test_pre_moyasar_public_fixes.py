@@ -13,8 +13,9 @@ TPL = ROOT / "src" / "web" / "templates"
 
 def test_card_checkout_stays_closed_while_bank_transfer_is_open():
     assert payments.capabilities()["card"] is False
-    assert payments.capabilities()["methods"]["invoice"] is True
-    assert payments.payments_open() is True
+    assert payments.capabilities()["methods"]["invoice"] is False
+    assert payments.customer_bank_transfer_enabled() is False
+    assert payments.payments_open() is False
 
 
 def test_refund_reply_names_email_and_duplicate_charges():
@@ -85,9 +86,9 @@ def test_owner_surfaces_label_raw_keys():
 
 def test_card_checkout_route_is_gone():
     src = (ROOT / "src" / "main.py").read_text(encoding="utf-8")
-    assert "async def pay_invoice_by_card" not in src
-    assert "/webhooks/moyasar" not in src
-    assert "Card payment is not available." in src
+    assert "async def pay_invoice_by_card" in src
+    assert "/webhooks/moyasar" in src
+    assert "Apple Pay is not available." in src
 
 
 def test_default_seller_address_is_empty():

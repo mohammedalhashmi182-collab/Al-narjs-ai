@@ -153,12 +153,13 @@ class TestCapabilities:
             caps = pm.capabilities()
         assert caps["methods"]["invoice"] is False
         assert caps["card"] is False and caps["paypal"] is False
-        assert set(caps["methods"]) == {"paypal", "invoice"}
+        assert caps["bank"] == {}
+        assert set(caps["methods"]) == {"paypal", "invoice", "mada", "creditcard", "stcpay"}
         with _gateway_config():
             live = pm.capabilities()
-        assert live["methods"]["invoice"] is True
+        assert live["methods"]["invoice"] is False
         assert live["card"] is False
-        assert live["bank"]["iban"] == "SA5880000126608016363961"
+        assert live["bank"] == {}
 
     def test_paypal_needs_both_halves_of_the_credential(self, monkeypatch):
         monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
@@ -210,14 +211,17 @@ class TestReadiness:
         with _bank_file(), _gateway_config():
             report = pm.readiness()
         assert report["collect_money_now"] is False
-        assert report["missing_env"] == []
+        assert "MOYASAR_API_SECRET" in report["missing_env"]
+        assert "MOYASAR_PUBLISHABLE_KEY" in report["missing_env"]
+        assert "MOYASAR_WEBHOOK_SECRET" in report["missing_env"]
         assert report["card"] is False
 
     def test_live_paypal_collects_when_the_customer_flag_is_on(self, monkeypatch):
         monkeypatch.setenv("CUSTOMER_PAYPAL_ENABLED", "1")
         with _gateway_config(paypal_id="a", paypal_secret="b", paypal_mode="live"):
             report = pm.readiness()
-        assert report["collect_money_now"] is True and report["missing_env"] == []
+        assert report["collect_money_now"] is True
+        assert "MOYASAR_API_SECRET" in report["missing_env"]
 
     def test_never_carries_a_credential_value(self):
         with _gateway_config(paypal_id="id", paypal_secret=PAYPAL_SECRET):
@@ -352,19 +356,16 @@ class TestTransferInstructions:
             assert pm.transfer_instructions(payment)["bank"] == {}
             assert pm.transfer_instructions(payment)["qr_svg"] == ""
         published = pm.transfer_instructions(payment)
-        assert published["bank"]["iban"] == "SA5880000126608016363961"
-        assert published["qr_svg"]
+        assert published["bank"] == {}
+        assert published["qr_svg"] == ""
         monkeypatch.setenv("PAYMENT_IBAN", "SA00 0000 0000 0000 0000 0000")
         monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
         monkeypatch.setenv("PAYMENT_BANK_NAME", "Example Bank")
         out = pm.transfer_instructions(payment)
-        assert out["bank"]["iban"] == "SA0000000000000000000000"
-        assert out["iban_spaced"].startswith("SA00")
-        assert "<svg" in out["qr_svg"]
-        assert "xfer-qr-svg" in out["qr_svg"]
-        assert transfer.transfer_qr_payload(
-            bank=out["bank"], amount_sar=out["amount_text"], reference=out["reference"], plan=out["plan_en"]
-        ) == "SA0000000000000000000000"
+        assert out["bank"] == {}
+        assert out["iban_spaced"] == ""
+        assert out["qr_svg"] == ""
+        assert "SA0000000000000000000000" not in str(out)
 
 
 # ---------------------------------------------------------------------------
@@ -385,11 +386,9 @@ class TestTransferReported:
         payment = await _insert_payment(maker)
 
         r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
-        assert r.status_code == 200
-        body = r.json()
-        assert body["reference"] == pm.reference(payment)
-        assert body["awaiting_verification"] is True and body["notified_owner"] is True
-        assert len(alerts) == 1 and pm.reference(payment) in alerts[0]
+        assert r.status_code == 400
+        assert "Bank transfer is not available" in r.text
+        assert alerts == []
 
     async def test_reporting_never_marks_the_payment_paid(self, api, maker, monkeypatch):
         anon, _ = api
@@ -408,7 +407,7 @@ class TestTransferReported:
                 await session.execute(select(Payment).where(Payment.id == payment.id))
             ).scalar_one()
         assert stored.status == "invoice"
-        assert stored.gateway_source == "transfer_reported"
+        assert stored.gateway_source != "transfer_reported"
 
     async def test_a_second_tap_does_not_spam_the_owner(self, api, maker, monkeypatch):
         anon, _ = api
@@ -423,9 +422,8 @@ class TestTransferReported:
 
         await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
         second = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
-        assert second.status_code == 200
-        assert second.json()["already_reported"] is True
-        assert len(alerts) == 1
+        assert second.status_code == 400
+        assert alerts == []
 
     async def test_a_failing_alert_keeps_the_record(self, api, maker, monkeypatch):
         anon, _ = api
@@ -437,21 +435,21 @@ class TestTransferReported:
         payment = await _insert_payment(maker)
 
         r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
-        assert r.status_code == 200 and r.json()["notified_owner"] is False
+        assert r.status_code == 400 and "Bank transfer is not available" in r.text
         async with maker() as session:
             from sqlalchemy import select
 
             stored = (
                 await session.execute(select(Payment).where(Payment.id == payment.id))
             ).scalar_one()
-        assert stored.gateway_source == "transfer_reported"
+        assert stored.gateway_source != "transfer_reported"
 
     async def test_a_gateway_settled_invoice_is_not_reported_by_hand(self, api, maker):
         anon, _ = api
         payment = await _insert_payment(maker, gateway="moyasar", gateway_payment_id="inv_123")
 
         r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
-        assert r.status_code == 409
+        assert r.status_code == 400
 
     async def test_an_already_paid_invoice_is_left_alone(self, api, maker, monkeypatch):
         anon, _ = api
@@ -465,14 +463,13 @@ class TestTransferReported:
         payment = await _insert_payment(maker, status="paid")
 
         r = await anon.post(f"/api/payments/{payment.id}/transfer-reported", json={"refund_consent": True})
-        assert r.status_code == 200
-        assert r.json()["awaiting_verification"] is False
+        assert r.status_code == 400
         assert alerts == []
 
     async def test_unknown_and_malformed_ids_are_rejected(self, api):
         anon, _ = api
-        assert (await anon.post(f"/api/payments/{uuid4()}/transfer-reported")).status_code == 404
-        assert (await anon.post("/api/payments/not-a-uuid/transfer-reported")).status_code == 422
+        assert (await anon.post(f"/api/payments/{uuid4()}/transfer-reported")).status_code == 400
+        assert (await anon.post("/api/payments/not-a-uuid/transfer-reported")).status_code == 400
 
 
 # ---------------------------------------------------------------------------
@@ -487,7 +484,7 @@ class TestPublicSurface:
             r = await anon.get("/api/payments/capabilities")
         assert r.status_code == 200
         assert PAYPAL_SECRET not in r.text
-        assert set(r.json()["methods"]) == {"paypal", "invoice"}
+        assert set(r.json()["methods"]) == {"paypal", "invoice", "mada", "creditcard", "stcpay"}
 
     async def test_readiness_is_owner_only(self, api):
         anon, owned = api
@@ -516,9 +513,8 @@ class TestPublicSurface:
                 "/api/payments",
                 json={"refund_consent": True, "package": "bidaya", "method": "invoice", "customer_name": "-buy-test"},
             )
-        assert opened.status_code == 200
-        assert opened.json()["gateway"] == "invoice"
-        assert opened.json()["invoice_url"]
+        assert opened.status_code == 400
+        assert "Bank transfer is not available" in opened.text
 
     async def test_the_capabilities_route_is_not_shadowed_by_the_payment_id_route(self, api):
         anon, _ = api
@@ -534,22 +530,20 @@ class TestTemplates:
 
     def test_both_invoice_pages_carry_the_settlement_block(self):
         for name in ("invoice.html", "invoice_en.html"):
-            assert 'include "partials/_transfer.html"' in self._read(name)
+            assert 'include "partials/_transfer.html"' not in self._read(name)
+            assert "آيبان" not in self._read(name) and "IBAN" not in self._read(name)
 
     def test_the_block_offers_the_report_button_the_endpoint_backs(self):
         partial = self._read("partials/_transfer.html")
-        assert "/transfer-reported" in partial
-        assert "xferReport" in partial
-        assert 'data-payment="{{ xfer.payment_id }}"' in partial
+        assert "xfer-qr" not in partial and "xferIban" not in partial
+        consent = self._read("partials/_invoice_consent.html")
+        assert "invoicePayCard" in consent
 
     def test_an_unpublished_account_asks_for_the_reference_not_for_a_transfer(self):
         """No IBAN means the buyer cannot have paid; do not imply they did."""
         partial = self._read("partials/_transfer.html")
-        assert "لم تُنشر بيانات الحساب بعد" in partial
-        assert "Account details are not published yet" in partial
-        # WhatsApp is promoted to the primary action in that state.
-        assert "{% if not xfer.bank.iban %}" in partial and "data-open-assistant" not in partial
-        assert "mailto:AlNarjisai@gmail.com" in partial
+        assert "xfer-qr" not in partial
+        assert "data-open-assistant" not in partial
 
     async def test_a_guest_invoice_hides_the_qr_until_the_account_is_configured(self, api, maker, monkeypatch):
         anon, _ = api
@@ -561,15 +555,16 @@ class TestTemplates:
         assert hidden.status_code == 200
         assert "SA0000000000000000000000" not in hidden.text
         assert "<svg" not in hidden.text
-        assert "تواصل معنا للدفع" in hidden.text
+        assert "تواصل معنا للدفع" not in hidden.text
+        assert "آيبان" not in hidden.text
         monkeypatch.setenv("PAYMENT_IBAN", "SA0000000000000000000000")
         monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "Dummy Holder")
         monkeypatch.setenv("PAYMENT_BANK_NAME", "Example Bank")
         shown = await anon.get(f"/invoice/{payment.id}")
         assert shown.status_code == 200
-        assert "SA00 0000 0000 0000 0000 0000" in shown.text
-        assert "<svg" in shown.text
-        assert 'dir="ltr"' in shown.text
+        assert "SA00" not in shown.text
+        assert "آيبان" not in shown.text
+        assert "IBAN" not in shown.text
         assert "wa.me" not in shown.text
 
     def test_the_checkout_asks_the_server_which_methods_are_real(self):

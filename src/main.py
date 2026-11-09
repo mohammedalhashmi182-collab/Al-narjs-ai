@@ -498,7 +498,7 @@ app.add_middleware(StaticCacheMiddleware)
 
 # Security headers on every response. The CSP allow-list is exactly what the
 # public pages load: Google Fonts, cdnjs (Font Awesome), the consent-gated Meta
-# pixel and Google tag, and PayPal for checkout. Tailwind is served as
+# pixel and Google tag, and Moyasar/PayPal for checkout. Tailwind is served as
 # compiled static CSS (no CDN). Inline scripts/styles are still used by the templates, so
 # 'unsafe-inline' stays until they are moved to files. frame-ancestors 'none'
 # (plus X-Frame-Options for old browsers) stops clickjacking.
@@ -506,15 +506,18 @@ CONTENT_SECURITY_POLICY = "; ".join(
     [
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
-        "https://connect.facebook.net https://www.googletagmanager.com https://www.paypal.com https://*.paypal.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+        "https://connect.facebook.net https://www.googletagmanager.com https://www.paypal.com https://*.paypal.com "
+        "https://cdn.moyasar.com https://*.moyasar.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com "
+        "https://cdn.moyasar.com https://*.moyasar.com",
         "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
         "img-src 'self' data: blob: https:",
         "connect-src 'self' https://www.facebook.com https://connect.facebook.net "
         "https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com "
-        "https://www.paypal.com https://*.paypal.com",
-        "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.facebook.com",
-        "form-action 'self' https://www.paypal.com https://*.paypal.com",
+        "https://www.paypal.com https://*.paypal.com https://api.moyasar.com https://*.moyasar.com",
+        "frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.facebook.com "
+        "https://*.moyasar.com",
+        "form-action 'self' https://www.paypal.com https://*.paypal.com https://api.moyasar.com https://*.moyasar.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "object-src 'none'",
@@ -717,6 +720,7 @@ templates.env.globals["vat_percent"] = _vat_pm.vat_percent
 templates.env.globals["vat_enabled"] = _vat_pm.vat_enabled
 templates.env.globals["payments_open"] = _vat_pm.payments_open
 templates.env.globals["paypal_checkout_open"] = _vat_pm.paypal_checkout_open
+templates.env.globals["card_checkout_open"] = _vat_pm.moyasar_collects_money
 templates.env.globals["bank_transfer_open"] = _vat_pm.customer_bank_transfer_enabled
 templates.env.globals["payments_closed_ar"] = _vat_pm.PAYMENTS_CLOSED_AR
 templates.env.globals["payments_closed_en"] = _vat_pm.PAYMENTS_CLOSED_EN
@@ -3205,7 +3209,7 @@ async def health_deep(request: Request):
     return await health(request, deep=True)
 
 
-# ---------------- Payments (PayPal and bank transfer) ----------------
+# ---------------- Payments (Moyasar card checkout; PayPal optional) ----------------
 
 class PaymentCreateRequest(BaseModel):
     package: str
@@ -3441,13 +3445,15 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     # Refuse a method before any row exists so a rejected checkout cannot leave
     # an orphan payment that a later webhook could mark paid.
     method = body.method.lower()
-    if method in pm.RETIRED_CARD_METHODS:
-        raise HTTPException(400, "Card payment is not available.")
+    if method == "applepay":
+        raise HTTPException(400, "Apple Pay is not available.")
+    if method in pm.CARD_METHODS and not pm.moyasar_collects_money():
+        raise HTTPException(503, pm.CARD_ACTIVATING_AR)
     if method == "paypal" and not pm.customer_paypal_enabled():
-        raise HTTPException(400, "PayPal is not available.")
-    if method == "invoice" and not owner_invoice and not pm.customer_bank_transfer_enabled():
-        raise HTTPException(400, "Bank transfer is not available.")
-    if method not in ("paypal", "invoice"):
+        raise HTTPException(400, "PayPal is not available. Pay by card through Moyasar.")
+    if method == "invoice" and not owner_invoice:
+        raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
+    if method not in pm.CARD_METHODS and method not in ("paypal", "invoice"):
         raise HTTPException(400, "Unknown payment method.")
     if not owner_invoice:
         await funnel.track("payment_attempted", request, _funnel_props)
@@ -3527,34 +3533,49 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     "charge_amount": order["amount_usd"],
                     "sar_per_usd": settings.paypal_sar_per_usd,
                 }
-            except pm.PaymentError as e:
-                if not pm.customer_bank_transfer_enabled():
-                    await session.delete(payment)
-                    await session.commit()
-                    raise HTTPException(502, "PayPal is unavailable.")
-                payment.status = "invoice"
+            except pm.PaymentError:
+                await session.delete(payment)
                 await session.commit()
+                raise HTTPException(502, "PayPal is unavailable. Pay by card through Moyasar.")
+
+        if method in pm.CARD_METHODS:
+            try:
+                data = await pm.initiate_moyasar(
+                    session,
+                    payment,
+                    {
+                        "mada": pm.source_mada(),
+                        "stcpay": pm.source_stcpay(),
+                        "creditcard": pm.source_credit_card(),
+                    }.get(method, pm.source_credit_card()),
+                    success_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
+                    back_url=f"{base}/payment/failure?{_payment_return_qs(payment)}",
+                    callback_url=f"{base}/webhooks/moyasar",
+                )
                 return {
                     "payment_id": str(payment.id),
-                    "status": "invoice",
-                    "gateway": "invoice",
-                    "message": str(e),
+                    "status": payment.status,
+                    "gateway": "moyasar",
+                    "gateway_payment_id": payment.gateway_payment_id,
+                    "redirect_url": data.get("checkout_url"),
+                    "publishable_key": pm.get_publishable_key(),
                     "amount": payment.amount,
                     "discount": discount_halalas,
                     "promo_applied": discount_pct > 0 and not payment.founding,
                     **founding_info,
                     "vat": pm.payment_vat(payment),
                     "total": pm.payment_total(payment),
-                    "invoice_total": pm.payment_total(payment),
-                    "invoice_url": f"/invoice/{payment.id}",
                 }
+            except pm.PaymentError:
+                await session.delete(payment)
+                await session.commit()
+                raise HTTPException(502, "Card payment is unavailable. Pay by card through Moyasar when it is live.")
 
-        # Manual invoice / bank transfer. The customer flag was checked above;
-        # the owner dashboard may still raise an invoice without that flag.
-        if not owner_invoice and not pm.customer_bank_transfer_enabled():
+        # Owner-raised invoice only. Guests pay by card; there is no bank transfer.
+        if not owner_invoice:
             await session.delete(payment)
             await session.commit()
-            raise HTTPException(400, "Bank transfer is not available.")
+            raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
         payment.status = "invoice"
         await session.commit()
         return {
@@ -4036,72 +4057,9 @@ async def confirm_payment_received(payment_id: str, body: ConfirmReceivedRequest
     dependencies=[Depends(rate_limit_transfer_report)],
 )
 async def report_transfer_sent(payment_id: str, request: Request):
-    """The buyer says they sent the money: record it and alert the owner.
-
-    This never marks the payment paid. Only the owner does that, through
-    confirm-received, after the money is actually in the account.
-    """
-    from uuid import UUID as _UUID
-
-    from sqlalchemy import select as _select
-
-    from src.models import Payment as _Payment
-    from src.services import payments as _pm
-
-    try:
-        payment_uuid = _UUID(payment_id)
-    except ValueError:
-        raise HTTPException(422, "invalid payment id")
-
-    async with app.state.session_factory() as session:
-        payment = (
-            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
-        ).scalar_one_or_none()
-        if not payment:
-            raise HTTPException(404, "Payment not found")
-        if payment.gateway in ("paypal", "moyasar") and payment.gateway_payment_id:
-            # Historical card rows stay in the table and are not a bank transfer.
-            raise HTTPException(409, "This invoice is settled through its payment gateway")
-        if payment.status != "paid" and payment.refund_consent_at is None:
-            # Owner-raised invoices reach the buyer without checkout, so the
-            # checkout consent is collected here, on the invoice page.
-            try:
-                body = await request.json()
-            except Exception:  # noqa: BLE001 - empty / non-JSON body = no consent
-                body = {}
-            _require_refund_consent(body.get("refund_consent") if isinstance(body, dict) else None)
-            _record_refund_consent(payment)
-            await session.commit()
-        already = payment.gateway_source == "transfer_reported"
-        if not already and payment.status != "paid":
-            payment.gateway_source = "transfer_reported"
-            await session.commit()
-        instructions = _pm.transfer_instructions(payment)
-        was_paid = payment.status == "paid"
-
-    notified = False
-    if not already and not was_paid:
-        try:
-            from src.services import telegram_sender
-
-            await telegram_sender.send_owner_alert(
-                "💰 تحويل بنكي معلَن\n"
-                f"فاتورة: {instructions['reference']}\n"
-                f"المبلغ: {instructions['total_sar']} {instructions['currency']}\n"
-                f"العميل: {payment.customer_name or '-'} · {payment.customer_phone or '-'}\n"
-                "العميل يقول إنه أرسل التحويل. فعّلها من /api/payments/"
-                f"{instructions['payment_id']}/confirm-received بعد التأكد من الإيداع."
-            )
-            notified = True
-        except Exception:  # noqa: BLE001 - an alert failure must not lose the record
-            notified = False
-
-    return {
-        **instructions,
-        "already_reported": already,
-        "notified_owner": notified,
-        "awaiting_verification": not was_paid,
-    }
+    """Guest bank-transfer reports are closed. Pay by card through Moyasar."""
+    del payment_id, request
+    raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
 
 
 @app.post(
@@ -4109,77 +4067,9 @@ async def report_transfer_sent(payment_id: str, request: Request):
     dependencies=[Depends(rate_limit_transfer_report)],
 )
 async def upload_transfer_receipt(payment_id: str, request: Request):
-    """Guest attaches a transfer receipt. Recorded for the owner; never marks paid."""
-    from datetime import datetime as _dt
-    from datetime import timezone as _tz
-    from uuid import UUID as _UUID
-
-    from sqlalchemy import select as _select
-
-    from src.models import Payment as _Payment
-    from src.services import payments as _pm
-    from src.services.transfer import sniff_receipt
-
-    try:
-        payment_uuid = _UUID(payment_id)
-    except ValueError:
-        raise HTTPException(422, "invalid payment id")
-
-    form = await request.form()
-    upload = form.get("file")
-    consent = form.get("refund_consent")
-    if not hasattr(upload, "read"):
-        raise HTTPException(400, "receipt file is required")
-    raw = await upload.read()
-    mime = sniff_receipt(raw)
-    if mime is None:
-        raise HTTPException(400, "receipt must be a JPG, PNG, WEBP or PDF under 2 MB")
-
-    async with app.state.session_factory() as session:
-        payment = (
-            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
-        ).scalar_one_or_none()
-        if not payment:
-            raise HTTPException(404, "Payment not found")
-        if payment.status == "paid":
-            raise HTTPException(409, "This invoice is already paid")
-        if payment.gateway == "paypal" and payment.gateway_payment_id:
-            raise HTTPException(409, "This invoice is settled through PayPal")
-        if payment.refund_consent_at is None:
-            _require_refund_consent(consent in (True, "true", "1", "on"))
-            _record_refund_consent(payment)
-        name = (getattr(upload, "filename", None) or "receipt").rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
-        safe = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in name)[:80] or "receipt"
-        payment.transfer_receipt = raw
-        payment.transfer_receipt_filename = safe
-        payment.transfer_receipt_mime = mime
-        payment.transfer_receipt_at = _dt.now(_tz.utc)
-        if payment.gateway_source != "transfer_reported":
-            payment.gateway_source = "transfer_receipt"
-        await session.commit()
-        instructions = _pm.transfer_instructions(payment)
-        status = payment.status
-
-    try:
-        from src.services import telegram_sender
-
-        await telegram_sender.send_owner_alert(
-            "📎 إيصال تحويل مرفق\n"
-            f"فاتورة: {instructions['reference']}\n"
-            f"المبلغ: {instructions['total_sar']} {instructions['currency']}\n"
-            "الإيصال محفوظ للمراجعة. فعّل الطلب بعد التأكد من الإيداع."
-        )
-    except Exception:  # noqa: BLE001 - storing the receipt must not depend on the alert
-        pass
-
-    return {
-        "payment_id": payment_id,
-        "recorded": True,
-        "filename": safe,
-        "content_type": mime,
-        "status": status,
-        "awaiting_verification": status != "paid",
-    }
+    """Guest transfer receipts are closed. Pay by card through Moyasar."""
+    del payment_id, request
+    raise HTTPException(400, "Bank transfer is not available. Pay by card through Moyasar.")
 
 
 @app.get(
@@ -4280,15 +4170,14 @@ async def invoice_page(request: Request, payment_id: str):
             "vat": int(tax_invoice.vat_total) if tax_invoice else pm.payment_vat(payment),
             "total": int(tax_invoice.total) if tax_invoice else pm.payment_total(payment),
             "has_vat": (int(tax_invoice.vat_total) if tax_invoice else pm.payment_vat(payment)) > 0,
-            # Guests always see either the bank QR (when PAYMENT_* is set) or
-            # the contact-us fallback. PayPal orders keep their own button.
-            "xfer": pm.transfer_instructions(payment)
-            if payment.status not in ("paid", pm.REVIEW_STATUS) and payment.gateway != "paypal"
-            else None,
+            "xfer": None,
             "consent_needed": payment.status != "paid" and payment.refund_consent_at is None,
             "refund_consent_ar": policies.REFUND_CONSENT_AR,
             "refund_consent_en": policies.REFUND_CONSENT_EN,
-            "card_enabled": False,
+            "card_enabled": payment.status != "paid" and pm.moyasar_collects_money() and (
+                (payment.gateway == "moyasar" and bool(payment.gateway_payment_id))
+                or (payment.gateway == "invoice" and bool(settings.moyasar_api_secret))
+            ),
             "paypal_enabled": payment.status not in ("paid", pm.REVIEW_STATUS)
             and payment.gateway in ("invoice", "paypal")
             and pm.customer_paypal_enabled()
@@ -4342,6 +4231,102 @@ async def get_payment(payment_id: str, request: Request):
         "vat": pm.payment_vat(payment),
         "total": pm.payment_total(payment),
     }
+
+
+@app.post(
+    "/api/payments/{payment_id}/pay-card",
+    dependencies=[Depends(rate_limit_transfer_report)],
+)
+async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, request: Request):
+    """Buyer pays an owner-raised invoice by card (Moyasar) from /invoice/<id>."""
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _select
+
+    from src.models import Payment as _Payment
+    from src.services import payments as _pm
+
+    try:
+        payment_uuid = _UUID(payment_id)
+    except ValueError:
+        raise HTTPException(422, "invalid payment id")
+    _require_refund_consent(body.refund_consent)
+
+    base = _public_base_url(request)
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+        ).scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+        if payment.status == "paid":
+            raise HTTPException(409, "This invoice is already paid")
+        _record_refund_consent(payment)
+        await session.commit()
+
+        if not _pm.moyasar_collects_money():
+            raise HTTPException(503, _pm.CARD_ACTIVATING_AR)
+
+        if payment.gateway == "moyasar" and payment.gateway_payment_id:
+            return {
+                "payment_id": str(payment.id),
+                "gateway": "moyasar",
+                "redirect_url": f"https://checkout.moyasar.com/invoices/{payment.gateway_payment_id}?lang=ar",
+            }
+        if payment.gateway == "paypal" and payment.gateway_payment_id:
+            raise HTTPException(409, "This invoice is settled through PayPal")
+        try:
+            data = await _pm.initiate_moyasar(
+                session,
+                payment,
+                _pm.source_credit_card(),
+                success_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
+                back_url=f"{base}/invoice/{payment.id}",
+                callback_url=f"{base}/webhooks/moyasar",
+            )
+        except _pm.PaymentError:
+            get_logger(__name__).warning("moyasar invoice start failed")
+            raise HTTPException(502, "card payment unavailable")
+        return {
+            "payment_id": str(payment.id),
+            "gateway": "moyasar",
+            "redirect_url": data["checkout_url"],
+        }
+
+
+@app.post("/webhooks/moyasar")
+async def moyasar_webhook(request: Request):
+    """Server-to-server notification from Moyasar (payment_paid / payment_failed).
+
+    Authenticated by the dashboard secret_token. The order is then decided from
+    a fresh API fetch, never from the body alone. The token is not logged.
+    """
+    import hmac
+
+    from src.services import payments as pm
+
+    try:
+        event = await request.json()
+    except Exception:  # noqa: BLE001
+        raise HTTPException(400, "invalid JSON")
+    if not isinstance(event, dict):
+        raise HTTPException(400, "invalid payload")
+
+    expected = (settings.moyasar_webhook_secret or "").encode()
+    supplied = str(event.get("secret_token") or "").encode()
+    if not expected or not supplied or not hmac.compare_digest(supplied, expected):
+        raise HTTPException(401, "invalid secret_token")
+
+    async with app.state.session_factory() as session:
+        try:
+            result = await pm.handle_moyasar_webhook(session, event)
+        except pm.PaymentError:
+            raise HTTPException(502, "could not verify with Moyasar")
+        if result.get("status") == "paid" and not result.get("already"):
+            from uuid import UUID as _UUID
+
+            await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook ميسر")
+    return result
 
 
 @app.post(
