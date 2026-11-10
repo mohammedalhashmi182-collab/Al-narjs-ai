@@ -1,16 +1,7 @@
 {% set _lang = page_lang(request) %}
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% import "partials/_seo.html" as seo with context %}
-{% set _agent_jsonld = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  "name": agent.title_ar if _lang == 'ar' else agent.title_en,
-  "description": agent.intro_ar if _lang == 'ar' else agent.intro_en,
-  "serviceType": agent.dept if _lang == 'ar' else agent.dept_en,
-  "provider": {"@type": "Organization", "name": "Al-Narjis AI", "url": "https://karmaai.online"},
-  "areaServed": "Saudi Arabia",
-  "availableLanguage": ["ar", "en"]
-} %}
+{% set _agent_jsonld = agent_jsonld %}
 {% set _head = seo.head(
   (agent.title_ar ~ ' — ' ~ agent.no ~ ' | النرجس للذكاء الاصطناعي'),
   (agent.title_en ~ ' — ' ~ agent.no ~ ' | Al-Narjis AI'),
@@ -27,7 +18,11 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
     {{ _head | safe }}
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="/static/css/narjis.css">
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     <style>
@@ -39,6 +34,8 @@
         .card { background: #101014; border: 1px solid rgba(246,245,244,.1); border-radius: 22px; padding: 28px; margin: 28px 0; }
         h1 { font-family: "Cairo", sans-serif; font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.32; margin: 26px 0 10px; }
         h2 { font-family: "Cairo", sans-serif; font-size: 1.25rem; color: #FF5A36; margin: 30px 0 12px; }
+        h3 { font-family: "Cairo", sans-serif; font-size: 1.05rem; margin: 18px 0 6px; }
+        .note { color: #B9B8C0; font-size: .92rem; }
         .no { display: inline-block; border: 1px solid rgba(255, 90, 54,.55); color: #FF5A36; border-radius: 999px; padding: 4px 14px; font-size: .82rem; }
         .dept { color: #B9B8C0; font-size: .9rem; }
         .muted { color: #B9B8C0; }
@@ -72,9 +69,29 @@
             <a class="btn btn-gold" href="/portal?pkg={{ recommended_pkg }}">{% if _lang == 'ar' %}أيقظ هذا الوكيل{% else %}Wake this agent{% endif %}</a>
             <a class="btn btn-ghost" href="mailto:AlNarjisai@gmail.com">{% if _lang == 'ar' %}راسلنا بالبريد{% else %}Email us{% endif %}</a>
             <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}اسأل المستشار{% else %}Ask the consultant{% endif %}</a>
+            <a class="btn btn-ghost" href="/{{ _lang }}/voice">{% if _lang == 'ar' %}تحدث مع المستشار الصوتي{% else %}Talk to the voice advisor{% endif %}</a>
             {% if workspace_href %}<a class="btn btn-ghost" href="{{ workspace_href }}">{% if _lang == 'ar' %}افتح الأداة{% else %}Open the tool{% endif %}</a>{% endif %}
         </div>
     </div>
+
+    {% if page %}
+    <div class="card">
+        <h2>{% if _lang == 'ar' %}كيف يفيد هذا الوكيل{% else %}How this agent helps{% endif %}</h2>
+        {% for paragraph in (page.paragraphs_ar if _lang == 'ar' else page.paragraphs_en) %}
+        <p>{{ paragraph }}</p>
+        {% endfor %}
+        {% if plan %}
+        <p>{% if _lang == 'ar' %}أقرب باقة تضم هذا الوكيل هي {{ plan.name }} بـ {{ plan.price }} ر.س شهرياً. الوكيل الإضافي {{ addon.price }} ر.س شهرياً. التفاصيل في <a href="/{{ _lang }}/pricing">صفحة الباقات</a>.{% else %}The closest plan that includes this agent is {{ plan.name_en }} at SAR {{ plan.price }} a month. An extra agent is SAR {{ addon.price }} a month. Details are on the <a href="/{{ _lang }}/pricing">pricing page</a>.{% endif %}</p>
+        {% else %}
+        <p>{% if _lang == 'ar' %}أسماء الباقات وأسعارها تُعرض من الكتالوج في <a href="/{{ _lang }}/pricing">صفحة الباقات</a>، ولا تُثبَّت داخل نص هذه الصفحة.{% else %}Plan names and prices are rendered from the catalog on the <a href="/{{ _lang }}/pricing">pricing page</a>, not typed into this page.{% endif %}</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h2>{% if _lang == 'ar' %}مثال استخدام{% else %}A worked example{% endif %}</h2>
+        <p class="note">{% if _lang == 'ar' %}مثال توضيحي لطريقة العمل. ليس قصة عميل، ولا شهادة، ولا نتيجة منشورة.{% else %}An illustration of the working method. It is not a client story, a testimonial, or a published result.{% endif %}</p>
+        <p>{{ page.example_ar if _lang == 'ar' else page.example_en }}</p>
+    </div>
+    {% endif %}
 
     <div class="card">
         <h2>{% if _lang == 'ar' %}ماذا يُنتج{% else %}What it produces{% endif %}</h2>
@@ -93,6 +110,16 @@
         <ul>
             {% for q in agent.questions %}<li>{{ q.q_ar if _lang == 'ar' else q.q_en }}</li>{% endfor %}
         </ul>
+    </div>
+    {% endif %}
+
+    {% if page %}
+    <div class="card">
+        <h2>{% if _lang == 'ar' %}أسئلة شائعة عن هذا الوكيل{% else %}Questions about this agent{% endif %}</h2>
+        {% for item in (page.faq_ar if _lang == 'ar' else page.faq_en) %}
+        <h3>{{ item.q }}</h3>
+        <p>{{ item.a }}</p>
+        {% endfor %}
     </div>
     {% endif %}
 

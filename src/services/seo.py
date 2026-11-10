@@ -103,7 +103,7 @@ def arabic_canonical_redirect(path: str) -> str | None:
         return None
     if path.startswith(("/static", "/brand/", "/api", "/webhooks")):
         return None
-    if path in ("/robots.txt", "/sitemap.xml", "/favicon.ico"):
+    if path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico"):
         return None
     for lang in ("ar", "en"):
         if path == f"/{lang}" or path.startswith(f"/{lang}/"):
@@ -111,6 +111,79 @@ def arabic_canonical_redirect(path: str) -> str | None:
     if not is_public_path(path):
         return None
     return "/ar" + path
+
+
+def _split_locale(path: str) -> tuple[str | None, str]:
+    for lang in ("ar", "en"):
+        if path == f"/{lang}":
+            return lang, "/"
+        if path.startswith(f"/{lang}/"):
+            return lang, path[len(lang) + 1 :] or "/"
+    return None, path
+
+
+def indexable_page(path: str) -> bool:
+    """True only when this exact path is a page we actually serve.
+
+    ``is_public_path`` treats every ``/blog/<slug>`` and ``/ai-agent/<slug>`` as
+    public so the sitemap policy stays simple. A redirect must not send people
+    to a slug that 404s, so those two prefixes are checked against the catalog.
+    """
+    base = path if path.startswith("/") else f"/{path}"
+    if len(base) > 1:
+        base = base.rstrip("/") or "/"
+    if base.startswith(f"{BLOG_PREFIX}/"):
+        slug = base[len(BLOG_PREFIX) + 1 :]
+        if not slug or "/" in slug:
+            return False
+        from src.services.blog_articles_1 import ARTICLES
+
+        return any(article["slug"] == slug for article in ARTICLES)
+    if base.startswith(f"{PUBLIC_AGENT_PREFIX}/"):
+        slug = base[len(PUBLIC_AGENT_PREFIX) + 1 :]
+        if not slug or "/" in slug:
+            return False
+        from src.services.catalog import EMPLOYEES
+
+        return slug in EMPLOYEES
+    if not is_public_path(base):
+        return False
+    if base.startswith(f"{SERVICE_PREFIX}/"):
+        return base[len(SERVICE_PREFIX) + 1 :] in SERVICE_SLUGS
+    return base in {page for page, _freq, _priority in CORE_PAGES}
+
+
+def suffix_canonical_redirect(path: str) -> str | None:
+    """301 target when a public URL ends with a stray hyphen or a trailing slash.
+
+    Starlette's own slash redirect is a temporary 307, and it is built after the
+    locale prefix has been stripped. ``/en/refund-policy/`` therefore 307s to
+    ``/refund-policy``, and that bare path 301s to the Arabic page. A trailing
+    hyphen (``/en/refund-policy-``) never matched a route. Both should land on
+    the same language as the request: English stays English, Arabic stays Arabic,
+    and an unprefixed URL still goes to Arabic.
+    """
+    if not path or path in ("/", "/ar", "/en", "/ar/", "/en/"):
+        return None
+    if path.startswith(("/static", "/brand/", "/api", "/webhooks")):
+        return None
+    locale, rest = _split_locale(path)
+    if not rest or rest == "/":
+        return None
+    cleaned = rest
+    changed = False
+    if cleaned.endswith("/"):
+        cleaned = cleaned.rstrip("/") or "/"
+        changed = True
+    if cleaned.endswith("-"):
+        cleaned = cleaned.rstrip("-")
+        changed = True
+    if not changed or cleaned == rest or not cleaned.startswith("/"):
+        return None
+    if not indexable_page(cleaned):
+        return None
+    prefix = f"/{locale}" if locale else "/ar"
+    return prefix + cleaned
 
 
 def _base_path(path: str) -> str:
@@ -178,5 +251,107 @@ def build_robots() -> str:
         lines.append(f"Disallow: {prefix}")
     lines.append("")
     lines.append(f"Sitemap: {site_origin()}/sitemap.xml")
+    lines.append(f"# LLM guidance: {site_origin()}/llms.txt")
     lines.append("")
     return "\n".join(lines)
+
+
+def build_llms(employees: list[tuple[str, dict]]) -> str:
+    """Public /llms.txt. Prices and names are read from the catalog, not typed here."""
+    from src.services.catalog import ADDON_AGENT, PACKAGES, PACKAGE_ORDER
+
+    origin = site_origin()
+    plans = []
+    for key in PACKAGE_ORDER:
+        pkg = PACKAGES[key]
+        plans.append(
+            f"- {pkg['name_en']} ({pkg['name']}): {pkg['price']} SAR per month. {pkg['tagline_en']}"
+        )
+    agent_lines = []
+    for slug, employee in employees:
+        agent_lines.append(
+            f"- {employee['title_en']} / {employee['title_ar']}: "
+            f"{origin}/en/ai-agent/{slug} · {origin}/ar/ai-agent/{slug}"
+        )
+    pages = [
+        ("Home", "/home"),
+        ("Pricing", "/pricing"),
+        ("Consultant", "/consult"),
+        ("Voice advisor", "/voice"),
+        ("About", "/about"),
+        ("Contact", "/contact"),
+        ("Guide", "/guide"),
+        ("Blog", "/blog"),
+        ("AI agents for Saudi businesses", "/ai-agents-saudi-businesses"),
+        ("Privacy", "/privacy"),
+        ("Terms", "/terms"),
+        ("Refund policy", "/refund-policy"),
+        ("Data deletion", "/data-deletion"),
+    ]
+    page_lines = [f"- {label}: {origin}/ar{path} · {origin}/en{path}" for label, path in pages]
+    service_lines = [
+        f"- {origin}/ar/services/{slug} · {origin}/en/services/{slug}" for slug in SERVICE_SLUGS
+    ]
+    body = [
+        "# النرجس AI (Al-Narjis AI)",
+        "",
+        f"> Arabic-first AI platform for Saudi businesses. Canonical site: {origin}",
+        "",
+        "Al-Narjis (النرجس) is a Riyadh platform. An AI chief executive reads a business",
+        "problem and proposes a specialist agent team. Work is delivered for review.",
+        "The public contact paths are the voice advisor and email. This file describes",
+        "the site. It is not a quote, a contract, or a customer list.",
+        "",
+        "## Languages",
+        "",
+        "- Arabic is the default. Public pages live under /ar/.",
+        "- English pages live under /en/ and must stay in English. Do not treat a",
+        "  temporary redirect from an /en/ URL as the canonical page.",
+        "- Unprefixed public URLs permanently redirect to the Arabic URL.",
+        "- The apex host is canonical. www redirects to it.",
+        "",
+        "## Plans",
+        "",
+        "Monthly prices in SAR, before VAT. Names and amounts come from the live catalog.",
+        "There is no plan called Basic or Business.",
+        *plans,
+        f"- Extra agent ({ADDON_AGENT['name_en']} / {ADDON_AGENT['name']}): "
+        f"{ADDON_AGENT['price']} SAR per agent per month.",
+        "- Annual billing bills 10 months and grants 12. Setup fees, when a plan has one,",
+        "  are shown on the pricing page and are not waived by annual billing.",
+        "",
+        "## Contact",
+        "",
+        f"- Voice advisor: {origin}/ar/voice and {origin}/en/voice",
+        "- Email: AlNarjisai@gmail.com",
+        "- The public WhatsApp link is on the home, contact, and voice pages only.",
+        "- Operator legal identity on the about and terms pages: freelance document FL-272182297.",
+        "  Do not invent a personal name for that document.",
+        "",
+        "## Key pages",
+        "",
+        *page_lines,
+        "",
+        "## Services",
+        "",
+        *service_lines,
+        "",
+        "## Specialist agents",
+        "",
+        "Each agent has its own page, with a worked example labelled as an illustration",
+        "and questions specific to that role. These are not customer stories.",
+        *agent_lines,
+        "",
+        "## What this site does not publish",
+        "",
+        "- No customer testimonials, review scores, logos, awards, or named case studies.",
+        "- No invented revenue, lead counts, or market sizes.",
+        "- The owner console (/agents, /portal, /owner, /api, /webhooks) is not public content.",
+        "",
+        "## Optional",
+        "",
+        f"- Sitemap: {origin}/sitemap.xml",
+        f"- Robots: {origin}/robots.txt",
+        "",
+    ]
+    return "\n".join(body)
