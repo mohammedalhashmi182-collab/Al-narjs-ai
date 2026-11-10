@@ -315,6 +315,47 @@ def _inject_locale_cookie(scope: dict, locale: str) -> None:
     scope["headers"] = headers
 
 
+def _repair_locale_redirect(loc: str, locale: str, original_path: str, scope: dict) -> tuple[str, bool]:
+    """Put the request language back onto a redirect that dropped it.
+
+    Starlette builds its trailing-slash redirect as an absolute URL after this
+    middleware has removed ``/en`` or ``/ar``. The result is a temporary
+    redirect to the unprefixed path, and the next hop sends the visitor to
+    Arabic. Returns the location to send, and whether that temporary slash
+    redirect should be a permanent one.
+    """
+    query = ""
+    if loc.startswith(("http://", "https://")):
+        parts = urlsplit(loc)
+        host = (parts.hostname or "").lower()
+        request_host = _hostname_from_host_header(_first_header(scope, b"host"))
+        if host not in {request_host, "karmaai.online", "www.karmaai.online"}:
+            return loc, False
+        path_only = parts.path or "/"
+        if parts.query:
+            query = "?" + parts.query
+    elif loc.startswith("/"):
+        path_only, _, raw_query = loc.partition("?")
+        if raw_query:
+            query = "?" + raw_query
+    else:
+        return loc, False
+
+    if (
+        path_only == f"/{locale}"
+        or path_only.startswith(f"/{locale}/")
+        or path_only.startswith("/static")
+    ):
+        return loc, False
+    for other in _SUPPORTED_LOCALES:
+        if other != locale and (path_only == f"/{other}" or path_only.startswith(f"/{other}/")):
+            return loc, False
+
+    repaired = f"/{locale}" if path_only == "/" else f"/{locale}{path_only}"
+    permanent = original_path.endswith("/") and original_path.rstrip("/") == repaired
+    return repaired + query, permanent
+
+
 class LocaleMiddleware:
     """Serves /ar/ and /en/ URL prefixes with a persistent language cookie.
 
@@ -333,6 +374,29 @@ class LocaleMiddleware:
             return
 
         path = scope.get("path") or ""
+        if scope.get("method", "GET") in ("GET", "HEAD"):
+            from src.services.seo import suffix_canonical_redirect
+
+            suffix_target = suffix_canonical_redirect(path)
+            if suffix_target:
+                query = scope.get("query_string") or b""
+                if query:
+                    suffix_target = suffix_target + "?" + query.decode("latin-1", "ignore")
+                payload = suffix_target.encode("latin-1")
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": 301,
+                        "headers": [
+                            (b"location", payload),
+                            (b"content-length", b"0"),
+                            (b"cache-control", b"public, max-age=86400"),
+                        ],
+                    }
+                )
+                await send({"type": "http.response.body", "body": b""})
+                return
+
         locale = None
         rest = path
         for lang in _SUPPORTED_LOCALES:
@@ -376,7 +440,7 @@ class LocaleMiddleware:
             or path.startswith("/brand/")
             or path.startswith("/api")
             or path.startswith("/webhooks")
-            or path in ("/robots.txt", "/sitemap.xml", "/favicon.ico")
+            or path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico")
             or "/health" in path
         )
         effective = locale or cookies.get(_LOCALE_COOKIE) or _detect_accepted_language(scope)
@@ -398,6 +462,10 @@ class LocaleMiddleware:
                     for i, (n, v) in enumerate(headers):
                         if n.lower() == b"location" and v:
                             loc = v.decode("latin-1", "ignore")
+                            repaired, permanent = _repair_locale_redirect(loc, locale, path, scope)
+                            if repaired != loc:
+                                headers[i] = (n, repaired.encode("latin-1"))
+                                loc = repaired
                             # A handler redirect that already names a locale
                             # (e.g. "/" -> "/ar/home") must swap to the request's
                             # locale, not be prefixed again ("/en/ar/home" 404).
@@ -414,6 +482,8 @@ class LocaleMiddleware:
                                 or loc.startswith("/static")
                             ):
                                 headers[i] = (n, f"/{locale}{loc}".encode("latin-1"))
+                            if permanent and message.get("status") == 307:
+                                message["status"] = 301
                 message["headers"] = headers
             await send(message)
 
@@ -1066,6 +1136,21 @@ async def public_pulse():
     return payload
 
 
+@app.get("/llms.txt", response_class=HTMLResponse)
+async def llms_txt():
+    """Public guidance for AI crawlers. Prices are read from the catalog."""
+    from fastapi.responses import PlainTextResponse
+
+    from src.services import catalog, seo
+
+    body = seo.build_llms(list(catalog.EMPLOYEES.items()))
+    return PlainTextResponse(
+        body,
+        media_type="text/plain; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
 @app.get("/robots.txt", response_class=HTMLResponse)
 async def robots_txt():
     from fastapi.responses import PlainTextResponse
@@ -1120,6 +1205,10 @@ async def public_agent_page(slug: str, request: Request):
             recommended_pkg = pkg_key
             break
 
+    from src.services import agent_pages
+
+    plan = catalog.PACKAGES.get(recommended_pkg) if slug in catalog.PACKAGE_TEAMS.get(recommended_pkg, []) else None
+    page = agent_pages.page_for(slug)
     return templates.TemplateResponse(
         request,
         "agent_public.html",
@@ -1129,6 +1218,10 @@ async def public_agent_page(slug: str, request: Request):
             "recommended_pkg": recommended_pkg,
             "outputs": outputs,
             "workspace_href": workspace_href,
+            "page": page,
+            "plan": plan,
+            "addon": catalog.ADDON_AGENT,
+            "agent_jsonld": agent_pages.jsonld(employee, page, lang, slug),
         },
     )
 
