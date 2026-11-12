@@ -94,11 +94,13 @@ class Settings(BaseSettings):
 
     # Moyasar (ميسر) hosted checkout. Read from the environment only; never hardcode.
     # MOYASAR_API_SECRET is the secret key (sk_live_…). MOYASAR_PUBLISHABLE_KEY is
-    # the publishable key (pk_live_…). MOYASAR_WEBHOOK_SECRET is the dashboard
-    # webhook secret_token. Test-prefixed keys do not open guest checkout.
+    # the publishable key (pk_live_…). MOYASAR_WEBHOOK_SECRET is the optional
+    # dashboard shared secret echoed as secret_token. Test-prefixed keys do not
+    # open guest checkout. TEST_PAYMENT_TOKEN gates the hidden 1 SAR live probe.
     moyasar_api_secret: str | None = Field(default=None, alias="MOYASAR_API_SECRET")
     moyasar_publishable_key: str | None = Field(default=None, alias="MOYASAR_PUBLISHABLE_KEY")
     moyasar_webhook_secret: str | None = Field(default=None, alias="MOYASAR_WEBHOOK_SECRET")
+    test_payment_token: str | None = Field(default=None, alias="TEST_PAYMENT_TOKEN")
     payment_success_url: str = Field(default="/payment/success", alias="PAYMENT_SUCCESS_URL")
     payment_failure_url: str = Field(default="/payment/failure", alias="PAYMENT_FAILURE_URL")
     # Canonical public origin, e.g. https://karmaai.online. Gateway return URLs are

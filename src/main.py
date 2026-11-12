@@ -3793,6 +3793,8 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
     ).scalar_one_or_none()
     if not payment or payment.status != "paid":
         return {"applied": False, "reason": "payment not paid"}
+    if _pm.is_moyasar_live_test(payment):
+        return {"applied": False, "activated": False, "reason": "live test payment"}
 
     marker = f"payment_ref:{payment.id}"
     existing = (
@@ -4387,15 +4389,64 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
         }
 
 
-@app.post("/webhooks/moyasar")
-async def moyasar_webhook(request: Request):
-    """Server-to-server notification from Moyasar (payment_paid / payment_failed).
+_MOYASAR_VERIFICATION_CODE = re.compile(r"^\d{6}$")
+# Hidden owner probe. Not linked from the site, not in the sitemap or llms.txt.
+_MOYASAR_LIVE_TEST_PATH = "/payment/moyasar-live-test"
+_MOYASAR_CHECKOUT_HOSTS = frozenset({"checkout.moyasar.com"})
 
-    Authenticated by the dashboard secret_token. The order is then decided from
-    a fresh API fetch, never from the body alone. The token is not logged.
-    """
+
+def _moyasar_verification_code(event: dict) -> str | None:
+    """Six-digit ``data.verification_code``, or None. Nothing else is returned."""
+    data = event.get("data")
+    if not isinstance(data, dict):
+        return None
+    raw = data.get("verification_code")
+    if isinstance(raw, bool) or raw is None:
+        return None
+    if isinstance(raw, int):
+        text = str(raw)
+    elif isinstance(raw, str):
+        text = raw.strip()
+    else:
+        return None
+    if _MOYASAR_VERIFICATION_CODE.fullmatch(text):
+        return text
+    return None
+
+
+def _configured_moyasar_webhook_secret() -> bytes:
+    return (settings.moyasar_webhook_secret or "").strip().encode()
+
+
+def _moyasar_secret_ok(event: dict, expected: bytes) -> bool:
+    """Constant-time match of the body ``secret_token``. The value is not logged."""
     import hmac
 
+    supplied = event.get("secret_token")
+    if not isinstance(supplied, str) or not supplied:
+        return False
+    try:
+        return hmac.compare_digest(supplied.encode(), expected)
+    except Exception:  # noqa: BLE001 — a non-bytes token is a mismatch, not a crash
+        return False
+
+
+@app.post("/webhooks/moyasar")
+async def moyasar_webhook(request: Request):
+    """Server-to-server notification from Moyasar.
+
+    ``webhook_verification`` is accepted immediately and is not a payment.
+    The 6-digit code is logged once so an admin can type it into the Moyasar
+    dashboard. It is not echoed in the response.
+
+    Payment events: Moyasar's current docs (webhook reference, 11 Nov 2026)
+    authenticate by echoing the consumer's shared secret as ``secret_token``
+    in the JSON body. No signature header is documented. When
+    ``MOYASAR_WEBHOOK_SECRET`` is set, that token must match. When it is not
+    set, the body is not trusted: the order is updated only after
+    ``verify_payment`` re-fetches it from the Moyasar API. The secret is never
+    logged.
+    """
     from src.services import payments as pm
 
     try:
@@ -4405,9 +4456,16 @@ async def moyasar_webhook(request: Request):
     if not isinstance(event, dict):
         raise HTTPException(400, "invalid payload")
 
-    expected = (settings.moyasar_webhook_secret or "").encode()
-    supplied = str(event.get("secret_token") or "").encode()
-    if not expected or not supplied or not hmac.compare_digest(supplied, expected):
+    if str(event.get("type") or "") == "webhook_verification":
+        code = _moyasar_verification_code(event)
+        if code:
+            logger.info("MOYASAR_WEBHOOK_VERIFICATION_CODE=%s", code)
+        else:
+            logger.info("moyasar webhook_verification received without a 6-digit code")
+        return {"ok": True, "type": "webhook_verification"}
+
+    expected = _configured_moyasar_webhook_secret()
+    if expected and not _moyasar_secret_ok(event, expected):
         raise HTTPException(401, "invalid secret_token")
 
     async with app.state.session_factory() as session:
@@ -4517,6 +4575,161 @@ async def paypal_webhook(request: Request):
             except Exception:  # noqa: BLE001
                 pass
     return result
+
+
+_LIVE_TEST_HEADERS = {
+    "X-Robots-Tag": "noindex, nofollow",
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer",
+}
+
+
+def _moyasar_live_test_token_ok(request: Request) -> bool:
+    """True only when TEST_PAYMENT_TOKEN is set and the query token matches.
+
+    The token is hashed before the compare so the check does not leak its
+    length. It is never logged.
+    """
+    import hashlib
+    import hmac
+
+    expected = (settings.test_payment_token or "").strip()
+    if not expected:
+        return False
+    supplied = request.query_params.get("token")
+    if not isinstance(supplied, str):
+        supplied = ""
+    else:
+        supplied = supplied.strip()
+    return hmac.compare_digest(
+        hashlib.sha256(supplied.encode()).digest(),
+        hashlib.sha256(expected.encode()).digest(),
+    )
+
+
+def _moyasar_live_test_page(request: Request, *, closed: bool, error: bool):
+    from src.services import payments as pm
+
+    return templates.TemplateResponse(
+        request,
+        "moyasar_live_test.html",
+        {
+            "closed": closed,
+            "error": error,
+            "amount_sar": f"{pm.MOYASAR_LIVE_TEST_HALALAS / 100:.2f}",
+            "description": pm.MOYASAR_LIVE_TEST_DESCRIPTION,
+            "closed_message": pm.CARD_ACTIVATING_AR,
+        },
+        status_code=502 if error else 200,
+        headers=_LIVE_TEST_HEADERS,
+    )
+
+
+@app.get(_MOYASAR_LIVE_TEST_PATH)
+async def moyasar_live_test_page(request: Request):
+    """Hidden 1 SAR page. 404 unless the query token matches TEST_PAYMENT_TOKEN."""
+    if not _moyasar_live_test_token_ok(request):
+        raise HTTPException(404, "Not Found")
+    from src.services import payments as pm
+
+    return _moyasar_live_test_page(request, closed=not pm.moyasar_collects_money(), error=False)
+
+
+@app.post(_MOYASAR_LIVE_TEST_PATH)
+async def moyasar_live_test_start(request: Request):
+    """Start the same hosted Moyasar invoice the guest checkout uses.
+
+    Amount is fixed at 100 halalas. The webhook URL is ``/webhooks/moyasar``.
+    No subscription is created here or when the webhook later marks it paid.
+    """
+    if not _moyasar_live_test_token_ok(request):
+        raise HTTPException(404, "Not Found")
+    from src.services import payments as pm
+
+    if not pm.moyasar_collects_money():
+        return _moyasar_live_test_page(request, closed=True, error=False)
+    base = _public_base_url(request)
+    async with app.state.session_factory() as session:
+        payment = await pm.create_moyasar_live_test_payment(session)
+        return_url = f"{base}{_MOYASAR_LIVE_TEST_PATH}/result?{_payment_return_qs(payment)}"
+        try:
+            data = await pm.initiate_moyasar(
+                session,
+                payment,
+                pm.source_credit_card(),
+                success_url=return_url,
+                back_url=return_url,
+                callback_url=f"{base}/webhooks/moyasar",
+            )
+        except pm.PaymentError:
+            await session.delete(payment)
+            await session.commit()
+            return _moyasar_live_test_page(request, closed=False, error=True)
+        checkout = data.get("checkout_url") if isinstance(data, dict) else None
+        parts = urlsplit(checkout or "")
+        if parts.scheme != "https" or parts.hostname not in _MOYASAR_CHECKOUT_HOSTS:
+            await session.delete(payment)
+            await session.commit()
+            return _moyasar_live_test_page(request, closed=False, error=True)
+    return RedirectResponse(checkout, status_code=303, headers=_LIVE_TEST_HEADERS)
+
+
+@app.get(f"{_MOYASAR_LIVE_TEST_PATH}/result")
+async def moyasar_live_test_result(request: Request):
+    """Return page for the 1 SAR probe. Confirms status with Moyasar and stops.
+
+    The signed payment token from the return URL is required. This does not
+    call ``_apply_paid_outcome``, so a paid probe cannot activate a project.
+    """
+    from uuid import UUID
+
+    from sqlalchemy import select
+
+    from src.core.portal_auth import payment_token_valid
+    from src.models import Payment
+    from src.services import payments as pm
+
+    try:
+        payment_id = UUID(request.query_params.get("id") or "")
+    except ValueError:
+        raise HTTPException(404, "Not Found")
+    async with app.state.session_factory() as session:
+        payment = (
+            await session.execute(select(Payment).where(Payment.id == payment_id))
+        ).scalar_one_or_none()
+        if payment is None or not pm.is_moyasar_live_test(payment):
+            raise HTTPException(404, "Not Found")
+        if not payment_token_valid(request.query_params.get("pt"), payment.id):
+            raise HTTPException(404, "Not Found")
+        state = payment.status
+        if state not in ("paid", pm.REVIEW_STATUS, "failed"):
+            try:
+                payment = await pm.verify_payment(session, payment.id)
+                state = payment.status
+            except pm.PaymentError:
+                state = "unconfirmed"
+        shown_id = str(payment.id)
+    if state == "paid":
+        outcome = "paid"
+    elif state == "failed":
+        outcome = "failed"
+    elif state == pm.REVIEW_STATUS:
+        outcome = "review"
+    elif state == "unconfirmed":
+        outcome = "unconfirmed"
+    else:
+        outcome = "pending"
+    return templates.TemplateResponse(
+        request,
+        "moyasar_live_test_result.html",
+        {
+            "outcome": outcome,
+            "payment_id": shown_id,
+            "amount_sar": f"{pm.MOYASAR_LIVE_TEST_HALALAS / 100:.2f}",
+            "description": pm.MOYASAR_LIVE_TEST_DESCRIPTION,
+        },
+        headers=_LIVE_TEST_HEADERS,
+    )
 
 
 @app.get("/payment/success")

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <title>دفعة تجريبية | النرجس</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background: #FAFAF9; color: #292524; padding: 24px; }
+        .card { max-width: 440px; margin: 0 auto; background: #fff; border: 1px solid #E7E5E4; border-radius: 20px; overflow: hidden; }
+        .head { background: #111111; color: #fff; text-align: center; padding: 28px 20px; }
+        .head b { color: #FF5A36; }
+        .body { padding: 26px; }
+        h1 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+        p { line-height: 1.8; font-size: 15px; color: #57534E; }
+        .amount { margin: 16px 0; font-size: 28px; font-weight: 800; color: #292524; }
+        button { margin-top: 18px; width: 100%; border: 0; border-radius: 999px; background: #FF5A36; color: #000; font: 800 16px 'Cairo', sans-serif; padding: 12px 16px; cursor: pointer; }
+        .note { margin-top: 14px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="head"><b>النرجس</b></div>
+        <div class="body">
+            <h1>دفعة تجريبية</h1>
+            <p>{{ description }}</p>
+            <p class="amount">{{ amount_sar }} ر.س</p>
+            {% if closed %}
+            <p>{{ closed_message }}</p>
+            {% elif error %}
+            <p>تعذر إنشاء فاتورة ميسر. أعد المحاولة بعد قليل.</p>
+            {% else %}
+            <form method="post">
+                <button type="submit">ادفع {{ amount_sar }} ر.س للتحقق</button>
+            </form>
+            {% endif %}
+            <p class="note">هذه الدفعة لا تنشئ اشتراكاً ولا تفعّل أي باقة.</p>
+            <p class="note" lang="en">This 1 SAR charge does not start a subscription.</p>
+        </div>
+    </div>
+</body>
+</html>
