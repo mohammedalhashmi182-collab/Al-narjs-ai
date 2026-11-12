@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import MutableHeaders
 
 from src.config.settings import get_settings, settings
+from src.version import __version__ as APP_VERSION
 from src.utils.logger import configure_logging, get_logger
 from src.utils.rate_limit import (
     rate_limit_consult,
@@ -242,17 +243,16 @@ async def lifespan(app: FastAPI):
     await close_db()
 
 
-_IS_PRODUCTION = (settings.environment or "").strip().lower() == "production"
-
 app = FastAPI(
-    title="AI Agent System",
-    description="AI Agent Automation System API",
-    version="0.1.0",
+    title="Al-Narjis AI",
+    description="Al-Narjis AI customer platform",
+    version=APP_VERSION,
     lifespan=lifespan,
-    # The interactive API docs and schema are never public in production.
-    docs_url=None if _IS_PRODUCTION else "/docs",
-    redoc_url=None if _IS_PRODUCTION else "/redoc",
-    openapi_url=None if _IS_PRODUCTION else "/openapi.json",
+    # The auto-generated schema lists owner and webhook routes. The public
+    # reference is served separately from src.services.public_openapi.
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 app.add_middleware(
@@ -375,6 +375,27 @@ class LocaleMiddleware:
 
         path = scope.get("path") or ""
         if scope.get("method", "GET") in ("GET", "HEAD"):
+            from src.services.public_status import status_host_home
+
+            status_target = status_host_home(
+                _hostname_from_host_header(_first_header(scope, b"host")),
+                path,
+            )
+            if status_target:
+                payload = status_target.encode("latin-1")
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": 301,
+                        "headers": [
+                            (b"location", payload),
+                            (b"content-length", b"0"),
+                            (b"cache-control", b"public, max-age=3600"),
+                        ],
+                    }
+                )
+                await send({"type": "http.response.body", "body": b""})
+                return
             from src.services.seo import suffix_canonical_redirect
 
             suffix_target = suffix_canonical_redirect(path)
@@ -679,7 +700,11 @@ class HTTPSRedirectByProxyMiddleware:
 
 
 # Exact hostnames we may reflect. Anything else, including a lookalike, is ignored.
-_OWN_HTTPS_HOSTS = frozenset({"karmaai.online", "www.karmaai.online"})
+_OWN_HTTPS_HOSTS = frozenset({
+    "karmaai.online",
+    "www.karmaai.online",
+    "status.karmaai.online",
+})
 _CANONICAL_HTTPS_ORIGIN = "https://karmaai.online"
 
 
@@ -1073,6 +1098,7 @@ async def landing_page(request: Request):
             ],
             **(await _pricing_context()),
             "testimonials": _testimonials.load(),
+            "case_studies": __import__("src.services.case_studies", fromlist=["load"]).load(),
             "services": public_services.SERVICES,
             "internal_tests": __import__("src.services.internal_tests", fromlist=["load"]).load(),
             "ceo": catalog.EMPLOYEES[catalog.CEO_SLUG],
@@ -1359,7 +1385,109 @@ async def about_page(request: Request):
     return templates.TemplateResponse(
         request,
         "about.html",
-        {"ar": _page_lang(request) == "ar", "testimonials": _testimonials.load()},
+        {
+            "ar": _page_lang(request) == "ar",
+            "testimonials": _testimonials.load(),
+            "case_studies": __import__("src.services.case_studies", fromlist=["load"]).load(),
+        },
+    )
+
+
+def _public_page(request: Request, template: str, context: dict):
+    context = {"ar": _page_lang(request) == "ar", **context}
+    return templates.TemplateResponse(request, template, context)
+
+
+@app.get("/status", response_class=HTMLResponse, include_in_schema=False)
+async def status_page(request: Request):
+    from src.services.public_status import snapshot
+
+    payload = await snapshot(request.app)
+    response = _public_page(request, "status.html", {"status": payload})
+    response.headers["Cache-Control"] = "public, max-age=30"
+    return response
+
+
+@app.get("/api/status", include_in_schema=False)
+async def public_status_json(request: Request):
+    from src.services.public_status import snapshot
+
+    payload = await snapshot(request.app)
+    return JSONResponse(payload, headers={"Cache-Control": "public, max-age=30"})
+
+
+@app.get("/changelog", response_class=HTMLResponse, include_in_schema=False)
+async def changelog_page(request: Request):
+    from src.services.changelog_data import KINDS, RELEASES
+
+    return _public_page(request, "changelog.html", {"releases": RELEASES, "kinds": KINDS})
+
+
+@app.get("/sla", response_class=HTMLResponse, include_in_schema=False)
+async def sla_page(request: Request):
+    from src.services import catalog, sla
+
+    plans = []
+    for key in catalog.PACKAGE_ORDER:
+        pkg = catalog.PACKAGES[key]
+        reply = sla.RESPONSE_BY_PLAN[key]
+        plans.append({
+            "key": key,
+            "name": pkg["name"],
+            "name_en": pkg["name_en"],
+            "price": pkg["price"],
+            "response_ar": reply["ar"],
+            "response_en": reply["en"],
+        })
+    return _public_page(request, "sla.html", {
+        "review": sla.OWNER_REVIEW_REQUIRED,
+        "uptime": sla.UPTIME_PERCENT,
+        "plans": plans,
+        "credits": sla.CREDITS,
+        "window_ar": sla.SUPPORT_WINDOW_AR,
+        "window_en": sla.SUPPORT_WINDOW_EN,
+        "cap_ar": sla.CREDIT_CAP_AR,
+        "cap_en": sla.CREDIT_CAP_EN,
+    })
+
+
+@app.get("/partnerships", response_class=HTMLResponse, include_in_schema=False)
+async def partnerships_page(request: Request):
+    from src.services import partnerships
+
+    return _public_page(request, "partnerships.html", {
+        "live": partnerships.live_integrations(),
+        "planned": partnerships.planned_integrations(),
+        "offer": partnerships.white_label(),
+    })
+
+
+@app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
+async def public_api_docs(request: Request):
+    return _public_page(request, "api_docs.html", {})
+
+
+@app.get("/redoc", response_class=HTMLResponse, include_in_schema=False)
+async def public_api_redoc(request: Request):
+    return _public_page(request, "redoc.html", {})
+
+
+@app.get("/openapi.json", include_in_schema=False)
+async def public_openapi():
+    from src.services.public_openapi import build_spec
+
+    return JSONResponse(
+        build_spec(),
+        headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@app.get("/signup", include_in_schema=False)
+async def signup_redirect():
+    return RedirectResponse(
+        "/portal",
+        status_code=301,
+        headers={"Cache-Control": "public, max-age=86400"},
     )
 
 
@@ -3278,14 +3406,14 @@ async def health(request: Request, deep: bool = False, ai: bool = False):
         from src.core.owner_auth import check_owner
 
         if not check_owner(request):
-            return {"status": "healthy", "version": "0.1.0"}
+            return {"status": "healthy", "version": APP_VERSION}
         from src.ai.status import snapshot
 
-        body = {"status": "healthy", "version": "0.1.0"}
+        body = {"status": "healthy", "version": APP_VERSION}
         body["ai_ask"] = await snapshot(getattr(app.state, "session_factory", None))
         return body
     if not deep:
-        return {"status": "healthy", "version": "0.1.0"}
+        return {"status": "healthy", "version": APP_VERSION}
     from src.core.owner_auth import check_owner
 
     if not check_owner(request):
@@ -3293,7 +3421,7 @@ async def health(request: Request, deep: bool = False, ai: bool = False):
     from src.services import ops_monitor
 
     result = await ops_monitor.deep_health(app.state.session_factory)
-    result["version"] = "0.1.0"
+    result["version"] = APP_VERSION
     return JSONResponse(result, status_code=503 if result["status"] == "unhealthy" else 200)
 
 

@@ -67,3 +67,62 @@ jobs:
         env:
           RUN_BROWSER_TESTS: "1"
         run: python -m pytest -q tests/test_public_mobile.py tests/test_home_intro.py tests/test_voice_aurora.py --disable-socket --allow-unix-socket
+
+  # Scoped to the modules added for the public pages so the existing tree
+  # does not fail this job. The check name of the suite above stays
+  # `tests / pytest`.
+  ruff:
+    name: ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: python -m pip install "ruff>=0.3.0"
+      - name: Lint the platform modules
+        # The repository select in pyproject.toml is strict enough to fail on
+        # the existing tree (and on bilingual string literals). This job stays
+        # on the new modules and on rules that catch real mistakes.
+        run: >-
+          ruff check
+          --select E,F,I,UP,W
+          --ignore E501
+          src/version.py
+          src/services/public_openapi.py
+          src/services/public_status.py
+          src/services/changelog_data.py
+          src/services/sla.py
+          src/services/partnerships.py
+          src/services/case_studies.py
+          tests/test_platform_pages.py
+
+  # Advisory. Existing dependency advisories and older findings must not
+  # block a merge. The required signal remains `tests / pytest`.
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scanners
+        run: python -m pip install pip-audit bandit
+      - name: Write runtime requirements for pip-audit
+        run: |
+          python - <<'PY'
+          import pathlib, tomllib
+          project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]
+          pathlib.Path("/tmp/runtime-reqs.txt").write_text(
+              "\n".join(project["dependencies"]) + "\n", encoding="utf-8"
+          )
+          PY
+      - name: pip-audit
+        run: python -m pip_audit -r /tmp/runtime-reqs.txt
+      - name: bandit
+        run: python -m bandit -r src -ll -q

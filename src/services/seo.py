@@ -57,6 +57,11 @@ CORE_PAGES: list[tuple[str, str, float]] = [
     ("/capabilities/ocr", "monthly", 0.6),
     ("/capabilities/style", "monthly", 0.6),
     ("/capabilities/eval", "monthly", 0.6),
+    ("/status", "daily", 0.4),
+    ("/changelog", "weekly", 0.5),
+    ("/sla", "monthly", 0.4),
+    ("/partnerships", "monthly", 0.6),
+    ("/docs", "monthly", 0.5),
 ]
 
 PUBLIC_AGENT_PREFIX = "/ai-agent"
@@ -287,6 +292,11 @@ def build_llms(employees: list[tuple[str, dict]]) -> str:
         ("Terms", "/terms"),
         ("Refund policy", "/refund-policy"),
         ("Data deletion", "/data-deletion"),
+        ("Status", "/status"),
+        ("What's new", "/changelog"),
+        ("Service level", "/sla"),
+        ("Partnerships", "/partnerships"),
+        ("API reference", "/docs"),
     ]
     page_lines = [f"- {label}: {origin}/ar{path} · {origin}/en{path}" for label, path in pages]
     service_lines = [
@@ -345,6 +355,10 @@ def build_llms(employees: list[tuple[str, dict]]) -> str:
         "## What this site does not publish",
         "",
         "- No customer testimonials, review scores, logos, awards, or named case studies.",
+        "- The service-level page (/sla) is a draft. Do not treat its uptime target",
+        "  or credit table as an approved commitment.",
+        "- Salla, Zid, and WhatsApp Business connections are in development.",
+        "  Do not describe them as available.",
         "- No invented revenue, lead counts, or market sizes.",
         "- The owner console (/agents, /portal, /owner, /api, /webhooks) is not public content.",
         "",

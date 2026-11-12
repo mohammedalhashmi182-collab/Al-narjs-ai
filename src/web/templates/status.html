@@ -1,0 +1,34 @@
+{% extends "partials/_simple_page.html" %}
+{% block title %}{% if ar %}حالة الخدمة | النرجس للذكاء الاصطناعي{% else %}Service status | Al-Narjis AI{% endif %}{% endblock %}
+{% block description %}{% if ar %}حالة الموقع وفحص /health وبوابة العميل وسجل الوكلاء. بلا تفاصيل حساسة.{% else %}Live status of the site, /health, the customer portal, and the agent registry. No sensitive detail.{% endif %}{% endblock %}
+{% block extra_head %}
+<meta http-equiv="refresh" content="60">
+{% include "partials/_platform_ui.html" %}
+{% endblock %}
+{% block h1 %}{% if ar %}حالة الخدمة{% else %}Service status{% endif %}{% endblock %}
+{% block body %}
+{% set labels = {
+  "site": ("الموقع", "Site"),
+  "health": ("فحص /health", "/health"),
+  "portal": ("بوابة العميل", "Customer portal"),
+  "agents": ("الوكلاء", "Agents"),
+} %}
+{% set words = {
+  "operational": ("يعمل", "Operational"),
+  "degraded": ("متأثر", "Degraded"),
+  "outage": ("متوقف", "Outage"),
+} %}
+<p>{% if ar %}لقطة خفيفة تُحدَّث خلال ثوانٍ. لا تعرض هذه الصفحة مفاتيح أو أسماء خوادم أو نص أخطاء.{% else %}A lightweight snapshot, refreshed within a minute. This page does not show keys, hostnames, or error text.{% endif %}</p>
+<p><span class="pf-pill {% if status.status == 'operational' %}pf-ok{% else %}pf-wait{% endif %}">{{ words[status.status][0] if ar else words[status.status][1] }}</span>
+ · <span dir="ltr">{{ status.checked_at }}</span>
+ · {% if ar %}الإصدار{% else %}Version{% endif %} {{ status.version }}</p>
+<div class="pf-grid">
+{% for key, row in status.components.items() %}
+    <article class="pf-card">
+        <h3>{{ labels[key][0] if ar else labels[key][1] }}</h3>
+        <p>{{ words[row.status][0] if ar else words[row.status][1] }}{% if key == 'agents' %} · {{ row.count }}{% endif %}</p>
+    </article>
+{% endfor %}
+</div>
+<p class="pf-note">{% if ar %}النسخة الآلية: <a href="/api/status">/api/status</a>. المراقبة الخارجية موثّقة في المستودع تحت docs/status-monitoring.md.{% else %}Machine-readable copy: <a href="/api/status">/api/status</a>. External monitoring is documented in the repository at docs/status-monitoring.md.{% endif %}</p>
+{% endblock %}

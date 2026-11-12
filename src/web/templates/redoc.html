@@ -1,0 +1,21 @@
+{% set _lang = page_lang(request) %}
+{% set _path = request.url.path %}
+{% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if ar else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,follow">
+    <title>{% if ar %}مرجع ReDoc | النرجس{% else %}ReDoc | Al-Narjis AI{% endif %}</title>
+    <link rel="canonical" href="https://karmaai.online/{{ _lang }}/docs">
+    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar/redoc">
+    <link rel="alternate" hreflang="en" href="https://karmaai.online/en/redoc">
+    <style>body{margin:0} .bar{padding:12px 16px;background:#000;color:#fff;font-family:Cairo,sans-serif} .bar a{color:#FF5A36}</style>
+</head>
+<body>
+<p class="bar"><a href="/docs">{% if ar %}واجهة Swagger{% else %}Swagger UI{% endif %}</a> · <a href="/openapi.json">openapi.json</a></p>
+<redoc spec-url="/openapi.json"></redoc>
+<script src="https://cdn.jsdelivr.net/npm/redoc@2.1.5/bundles/redoc.standalone.js"></script>
+</body>
+</html>

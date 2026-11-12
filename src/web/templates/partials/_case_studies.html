@@ -1,0 +1,15 @@
+{#- Renders ONLY when real, owner-approved case studies exist
+    (content/case_studies.json -> services/case_studies.py). Empty list = no
+    section at all. Never add placeholder names, logos, or numbers. -#}
+{% if case_studies %}
+<section class="case-studies" aria-label="{% if ar %}دراسات حالة{% else %}Case studies{% endif %}">
+    <h2 class="n-title text-lg">{% if ar %}دراسات حالة{% else %}Case studies{% endif %}</h2>
+    {% for item in case_studies %}
+    <article style="margin:12px 0;padding:12px 16px;border-inline-start:3px solid #FF5A36">
+        <h3>{{ item.title_ar if ar and item.title_ar else item.title }}</h3>
+        <p>{{ item.summary_ar if ar and item.summary_ar else item.summary }}</p>
+        {% if item.url %}<p><a href="{{ item.url }}">{{ item.url }}</a></p>{% endif %}
+    </article>
+    {% endfor %}
+</section>
+{% endif %}
