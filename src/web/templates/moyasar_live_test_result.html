@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <title>نتيجة الدفعة التجريبية | النرجس</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background: #FAFAF9; color: #292524; padding: 24px; }
+        .card { max-width: 440px; margin: 0 auto; background: #fff; border: 1px solid #E7E5E4; border-radius: 20px; overflow: hidden; }
+        .head { background: #111111; color: #fff; text-align: center; padding: 28px 20px; }
+        .head b { color: #FF5A36; }
+        .body { padding: 26px; }
+        h1 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+        p { line-height: 1.8; font-size: 15px; color: #57534E; }
+        .ref { margin-top: 14px; font-size: 12px; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="head"><b>النرجس</b></div>
+        <div class="body">
+            <h1>دفعة تجريبية</h1>
+            <p>{{ description }} — {{ amount_sar }} ر.س</p>
+            {% if outcome == 'paid' %}
+            <p>تم استلام الدفعة. لم يُنشأ اشتراك ولم تُفعَّل أي باقة.</p>
+            {% elif outcome == 'failed' %}
+            <p>لم تكتمل الدفعة.</p>
+            {% elif outcome == 'review' %}
+            <p>المبلغ العائد من ميسر لا يطابق 1.00 ر.س، لذلك لم تُحتسب الدفعة.</p>
+            {% elif outcome == 'unconfirmed' %}
+            <p>تعذر تأكيد الحالة من ميسر الآن.</p>
+            {% else %}
+            <p>الدفعة لم تُؤكد بعد.</p>
+            {% endif %}
+            <p class="ref">رقم العملية: {{ payment_id }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -30,6 +30,11 @@ RENEWAL_GRACE = _timedelta(days=3)
 MOYASAR_API_URL = "https://api.moyasar.com/v1/payments"
 MOYASAR_INVOICES_URL = "https://api.moyasar.com/v1/invoices"
 
+# Hidden owner probe. Not a catalog plan: paying it must never open a subscription.
+MOYASAR_LIVE_TEST_PACKAGE = "moyasar_live_test"
+MOYASAR_LIVE_TEST_HALALAS = 100
+MOYASAR_LIVE_TEST_DESCRIPTION = "دفعة تجريبية – النرجس"
+
 # Hosted-invoice methods from the pre-removal checkout. Apple Pay was a separate
 # button on that page; the invoice API does not require it, and it is not offered.
 CARD_METHODS = ("mada", "stcpay", "creditcard")
@@ -659,6 +664,67 @@ async def create_payment(
         status="pending",
         gateway="invoice",
         description=description,
+    )
+    session.add(payment)
+    await session.commit()
+    await session.refresh(payment)
+    return payment
+
+
+def is_moyasar_live_test(payment) -> bool:
+    """The hidden 1 SAR probe. It is not a plan and must not activate one."""
+    if payment is None:
+        return False
+    snap = getattr(payment, "pricing_snapshot", None)
+    if isinstance(snap, dict) and snap.get("kind") == "moyasar_live_test":
+        return True
+    return (getattr(payment, "package", None) or "") == MOYASAR_LIVE_TEST_PACKAGE
+
+
+async def create_moyasar_live_test_payment(session: AsyncSession) -> Payment:
+    """A 1.00 SAR charge with no customer, lead, or project attached.
+
+    ``amount`` and ``total_halalas`` are both 100. VAT is not added on top:
+    Moyasar is asked for exactly 100 halalas, and the webhook accepts a paid
+    status only when the API reports that same total.
+    """
+    total = MOYASAR_LIVE_TEST_HALALAS
+    payment = Payment(
+        amount=total,
+        total_halalas=total,
+        pricing_snapshot={
+            "v": 1,
+            "kind": "moyasar_live_test",
+            "amount": total,
+            "expected_total_halalas": total,
+            "currency": "SAR",
+            "package": MOYASAR_LIVE_TEST_PACKAGE,
+            "billing_period": "monthly",
+            "addon_agents": 0,
+            "conversation_packs": 0,
+            "voice_packs": 0,
+            "promo_code": None,
+            "discount_pct": 0,
+            "founding": False,
+            "is_renewal": False,
+            "setup_fee": 0,
+        },
+        currency="SAR",
+        package=MOYASAR_LIVE_TEST_PACKAGE,
+        billing_period="monthly",
+        addon_agents=0,
+        addon_conversation_packs=0,
+        addon_voice_packs=0,
+        founding=False,
+        is_renewal=False,
+        customer_name=None,
+        customer_phone=None,
+        customer_email=None,
+        lead_id=None,
+        project_id=None,
+        status="pending",
+        gateway="invoice",
+        description=MOYASAR_LIVE_TEST_DESCRIPTION,
     )
     session.add(payment)
     await session.commit()
@@ -1297,6 +1363,8 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
 
     if not payment or payment.status != "paid":
         return {"activated": False, "reason": "payment not paid"}
+    if is_moyasar_live_test(payment):
+        return {"activated": False, "reason": "live test payment"}
 
     project = None
 
