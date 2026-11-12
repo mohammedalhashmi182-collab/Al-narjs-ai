@@ -99,13 +99,13 @@ jobs:
           src/services/case_studies.py
           tests/test_platform_pages.py
 
-  # Advisory. Existing dependency advisories and older findings must not
-  # block a merge. The required signal remains `tests / pytest`.
+  # Advisory. A finding is printed and the job still succeeds, so a
+  # pre-existing advisory cannot turn the pull request red. The required
+  # signal remains `tests / pytest`.
   security:
     name: security
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -123,6 +123,8 @@ jobs:
           )
           PY
       - name: pip-audit
+        continue-on-error: true
         run: python -m pip_audit -r /tmp/runtime-reqs.txt
       - name: bandit
+        continue-on-error: true
         run: python -m bandit -r src -ll -q
