@@ -340,7 +340,7 @@ async def test_csv_brief_series_total_is_a_formula():
     assert total == pytest.approx(430)
 
 
-async def test_api_requires_portal_or_owner_and_can_email(maker, monkeypatch):
+async def test_api_requires_portal_or_owner_and_holds_unreviewed_customer_files(maker, monkeypatch):
     sent = {}
 
     async def _send(to, subject, body, html=None, attachments=None):
@@ -370,15 +370,11 @@ async def test_api_requires_portal_or_owner_and_can_email(maker, monkeypatch):
             "/api/docpack",
             data={"brief": "المبيعات 100 ثم 150 ثم 180", "agent_key": "project_manager", "formats": "pdf,xlsx"},
         )
-    assert built.status_code == 200, built.text
+    assert built.status_code == 202, built.text
     body = built.json()
-    assert body["emailed"] is True
-    assert sent["to"] == "buyer@shop.sa"
-    assert len(sent["attachments"]) == 2
-    assert {item["format"] for item in body["files"]} == {"pdf", "xlsx"}
-    async with _client(maker, {COOKIE_NAME: portal_token(project)}) as client:
-        download = await client.get(body["files"][0]["url"])
-    assert download.status_code == 200 and len(download.content) > 500
+    assert body["status"] == "review_required"
+    assert body["emailed"] is False and body["files"] == []
+    assert sent == {}  # no review => no email, even when the client has an email
 
     async with _client(maker, {"narjis_owner": make_session_token()}) as client:
         owner = await client.post(

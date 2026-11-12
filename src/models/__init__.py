@@ -348,6 +348,11 @@ class AuditLog(Base):
     )
 
 
+# Durable service fulfillment: accepted offers, payment-bound jobs and encrypted artifacts.
+from src.models.service_delivery import (  # noqa: E402,F401
+    ServiceOffer, ServiceJob, ServiceArtifact, ServiceJournalEvent, ServiceStepCheckpoint,
+)
+
 # Customer-acquisition CRM models (imported last so they register on Base.metadata).
 from src.models.crm import (  # noqa: E402,F401
     ACTIVE_STATUSES,
