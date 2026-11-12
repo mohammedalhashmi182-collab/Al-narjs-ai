@@ -4444,8 +4444,9 @@ async def moyasar_webhook(request: Request):
     in the JSON body. No signature header is documented. When
     ``MOYASAR_WEBHOOK_SECRET`` is set, that token must match. When it is not
     set, the body is not trusted: the order is updated only after
-    ``verify_payment`` re-fetches it from the Moyasar API. The secret is never
-    logged.
+    ``verify_payment`` re-fetches it from the Moyasar API, and the HTTP
+    response is a generic 200 so the endpoint is not a status oracle.
+    The secret is never logged.
     """
     from src.services import payments as pm
 
@@ -4477,6 +4478,11 @@ async def moyasar_webhook(request: Request):
             from uuid import UUID as _UUID
 
             await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook ميسر")
+    # No shared secret: the caller is not authenticated, so do not confirm
+    # whether an order id exists or what its status is. Moyasar retries on
+    # non-2xx, which is why a failed API fetch above stays a 502.
+    if not expected:
+        return {"ok": True}
     return result
 
 

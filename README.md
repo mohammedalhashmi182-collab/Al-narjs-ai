@@ -141,7 +141,7 @@ Set these on the host (Render). Do not commit values:
 
 - `MOYASAR_API_SECRET` — secret key, `sk_live_…`. A `sk_test_` key does not open checkout.
 - `MOYASAR_PUBLISHABLE_KEY` — publishable key, `pk_live_…`. A `pk_test_` key does not open checkout.
-- `MOYASAR_WEBHOOK_SECRET` — optional. Moyasar still authenticates payment events by echoing this shared secret as `secret_token` in the JSON body. There is no signature header. When the variable is set, `POST /webhooks/moyasar` requires a match. When it is empty, the body is only a hint and the order changes after a fresh Moyasar API fetch. Point the webhook at `https://karmaai.online/webhooks/moyasar`.
+- `MOYASAR_WEBHOOK_SECRET` — optional. Moyasar still authenticates payment events by echoing this shared secret as `secret_token` in the JSON body. There is no signature header. When the variable is set, `POST /webhooks/moyasar` requires a match. When it is empty, the body is only a hint and the order changes after a fresh Moyasar API fetch. The HTTP response is then only `{"ok": true}`, with no order id or status. Point the webhook at `https://karmaai.online/webhooks/moyasar`.
 - A `webhook_verification` event is accepted immediately. The 6-digit code is logged once as `MOYASAR_WEBHOOK_VERIFICATION_CODE=<code>`.
 - `TEST_PAYMENT_TOKEN` — gates the hidden 1 SAR probe at `/payment/moyasar-live-test?token=…`. Unset means that path is 404. The charge does not start a subscription.
 

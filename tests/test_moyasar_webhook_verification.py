@@ -209,6 +209,8 @@ async def test_unset_secret_does_not_trust_the_body(monkeypatch):
         },
     )
     assert response.status_code == 200, response.text
+    assert response.json() == {"ok": True}
+    assert str(payment.id) not in response.text
     assert payment.status == "failed"
     assert "attacker-token" not in response.text
 
@@ -243,8 +245,9 @@ async def test_unset_secret_marks_paid_only_after_the_api_confirms(monkeypatch):
         },
     )
     assert response.status_code == 200, response.text
-    body = response.json()
-    assert body["status"] == "paid"
+    assert response.json() == {"ok": True}
+    assert str(payment.id) not in response.text
+    assert "paid" not in response.text
     assert payment.status == "paid"
     assert applied["called"] is True
 
@@ -270,5 +273,6 @@ async def test_unset_secret_without_an_api_key_does_not_mark_the_body_paid(monke
         },
     )
     assert response.status_code == 200, response.text
+    assert response.json() == {"ok": True}
+    assert str(payment.id) not in response.text
     assert payment.status == "pending"
-    assert response.json()["status"] == "pending"
