@@ -344,7 +344,7 @@ def test_capability_readiness_never_exposes_secret_values(monkeypatch):
 async def test_health_endpoint_stays_cheap_and_deep_is_opt_in(maker, monkeypatch):
     monkeypatch.setattr(ops_monitor, "configured_externals", lambda: {})
     async with _client(maker, owner=False) as c:
-        assert (await c.get("/health")).json() == {"status": "healthy", "version": "0.1.0"}
+        assert (await c.get("/health")).json() == {"status": "healthy", "version": "1.0.0"}
         public = (await c.get("/health/deep")).json()
         assert public == {"status": "healthy"}
         assert (await c.get("/health", params={"deep": "1"})).json() == {"status": "healthy"}

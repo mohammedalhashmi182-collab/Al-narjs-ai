@@ -1,0 +1,19 @@
+{% extends "partials/_simple_page.html" %}
+{% block title %}{% if ar %}ما الجديد | النرجس للذكاء الاصطناعي{% else %}What's new | Al-Narjis AI{% endif %}{% endblock %}
+{% block description %}{% if ar %}سجل التغييرات من تاريخ المستودع: دفع Moyasar، تحسينات البحث، صفحات الخدمات، و39 وكيلاً.{% else %}Changelog drawn from the repository history: Moyasar payments, search improvements, service pages, and 39 agents.{% endif %}{% endblock %}
+{% block extra_head %}{% include "partials/_platform_ui.html" %}{% endblock %}
+{% block h1 %}{% if ar %}ما الجديد{% else %}What's new{% endif %}{% endblock %}
+{% block body %}
+<p>{% if ar %}الإصدار 1.0.0 أول إصدار مرقّم. البنود أدناه من تاريخ git على الفرع الرئيسي، وليس جدولاً مستقبلياً. ملف CHANGELOG.md في المستودع هو النسخة نفسها بصيغة Keep a Changelog. المالك ينشر إصدار GitHub بعد الدمج.{% else %}1.0.0 is the first numbered release. The notes below come from git history on main, not from a roadmap. CHANGELOG.md in the repository is the same list in Keep a Changelog form. The owner publishes the GitHub release after merge.{% endif %}</p>
+{% for release in releases %}
+<h2 class="n-title text-lg">{{ release.version }} · <span dir="ltr">{{ release.date }}</span></h2>
+{% for section in release.sections %}
+<h3>{{ kinds[section.kind][0] if ar else kinds[section.kind][1] }}</h3>
+<ul>
+{% for item in section["items"] %}
+<li>{{ item.ar if ar else item.en }}</li>
+{% endfor %}
+</ul>
+{% endfor %}
+{% endfor %}
+{% endblock %}
