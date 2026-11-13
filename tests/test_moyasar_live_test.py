@@ -179,6 +179,8 @@ async def test_webhook_can_mark_the_probe_paid_without_a_subscription(monkeypatc
     from src.main import app
 
     _live(monkeypatch)
+    probe_secret = "whsec_probe_unit_not_a_real_secret"
+    monkeypatch.setattr(get_settings(), "moyasar_webhook_secret", probe_secret)
     monkeypatch.setattr(app.state, "session_factory", maker, raising=False)
     async with maker() as session:
         project = ClientProject(
@@ -223,7 +225,7 @@ async def test_webhook_can_mark_the_probe_paid_without_a_subscription(monkeypatc
             "/webhooks/moyasar",
             json={
                 "type": "payment_paid",
-                "secret_token": "not-configured",
+                "secret_token": probe_secret,
                 "data": {
                     "status": "paid",
                     "amount": 1,

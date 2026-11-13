@@ -3,6 +3,9 @@
 Docs checked 12 Nov 2026 (pages last updated 11 Nov 2026): payment events carry
 ``secret_token`` in the JSON body. No signature header is documented.
 ``webhook_verification`` carries ``data.verification_code`` and is not a payment.
+
+Payment events fail closed. An empty ``MOYASAR_WEBHOOK_SECRET`` is 503. A
+configured secret is compared with ``hmac.compare_digest``; a mismatch is 401.
 """
 
 from __future__ import annotations
@@ -167,54 +170,93 @@ async def test_verification_without_a_code_is_still_200_and_does_not_invent_one(
     assert "without a 6-digit code" in caplog.text
 
 
-async def test_configured_secret_still_rejects_a_payment_event(monkeypatch):
-    _live(monkeypatch)
-    from src.main import app
-
+def _reject_transport(monkeypatch, app):
     def _no_session():
         raise AssertionError("a rejected payment event must not be processed")
-
-    monkeypatch.setattr(app.state, "session_factory", _no_session, raising=False)
 
     class _Client(httpx.AsyncClient):
         async def get(self, url, *args, **kwargs):
             raise AssertionError("a rejected payment event must not call Moyasar")
 
+    monkeypatch.setattr(app.state, "session_factory", _no_session, raising=False)
     monkeypatch.setattr(httpx, "AsyncClient", _Client)
-    response = await _post(app, {"type": "payment_paid", "secret_token": "nope", "data": {"status": "paid"}})
-    assert response.status_code == 401
 
 
-async def test_unset_secret_does_not_trust_the_body(monkeypatch):
-    _live(monkeypatch, webhook=None)
+async def test_no_secret_rejects_payment_events(monkeypatch, caplog):
     from src.main import app
 
-    payment = _payment()
-    session = _Session(payment)
-    monkeypatch.setattr(app.state, "session_factory", lambda: session, raising=False)
-    _api(monkeypatch, {"id": "inv_unit", "status": "failed", "amount": 49900, "currency": "SAR"})
-    response = await _post(
-        app,
-        {
-            "type": "payment_paid",
-            "secret_token": "attacker-token",
-            "data": {
-                "id": "pay_unit",
-                "invoice_id": "inv_unit",
-                "status": "paid",
-                "amount": 1,
-                "currency": "USD",
-                "metadata": {"order_id": str(payment.id)},
+    _reject_transport(monkeypatch, app)
+    caplog.set_level(logging.WARNING, logger="src.main")
+    attacker = "attacker-token"
+    for blank in (None, "", "   "):
+        _live(monkeypatch, webhook=blank)
+        response = await _post(
+            app,
+            {
+                "type": "payment_paid",
+                "secret_token": attacker,
+                "data": {
+                    "status": "paid",
+                    "amount": 1,
+                    "currency": "USD",
+                    "metadata": {"order_id": str(uuid4())},
+                },
             },
-        },
-    )
-    assert response.status_code == 200, response.text
-    assert payment.status == "failed"
-    assert "attacker-token" not in response.text
+        )
+        assert response.status_code == 503, response.text
+        assert "ok" not in response.json()
+        assert attacker not in response.text
+    warnings = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.WARNING and "MOYASAR_WEBHOOK_SECRET" in record.getMessage()
+    ]
+    assert len(warnings) == 3
+    assert all("not configured" in message for message in warnings)
+    assert attacker not in caplog.text
+    assert LIVE_SECRET not in caplog.text
+    assert WEBHOOK_SECRET not in caplog.text
 
 
-async def test_unset_secret_marks_paid_only_after_the_api_confirms(monkeypatch):
-    _live(monkeypatch, webhook="   ")
+async def test_wrong_secret_is_rejected(monkeypatch):
+    _live(monkeypatch)
+    from src.main import app
+
+    _reject_transport(monkeypatch, app)
+    bodies = [
+        {"type": "payment_paid", "secret_token": "nope", "data": {"status": "paid"}},
+        {"type": "payment_paid", "secret_token": WEBHOOK_SECRET + "x", "data": {"status": "paid"}},
+        {"type": "payment_paid", "data": {"status": "paid"}},
+        {"type": "payment_paid", "secret_token": "", "data": {"status": "paid"}},
+    ]
+    for body in bodies:
+        response = await _post(app, body)
+        assert response.status_code == 401, response.text
+        assert WEBHOOK_SECRET not in response.text
+
+
+def test_secret_match_uses_compare_digest(monkeypatch):
+    import hmac
+
+    from src.main import _moyasar_secret_ok
+
+    calls = []
+    real = hmac.compare_digest
+
+    def _spy(left, right):
+        calls.append((left, right))
+        return real(left, right)
+
+    monkeypatch.setattr(hmac, "compare_digest", _spy)
+    assert _moyasar_secret_ok({"secret_token": WEBHOOK_SECRET}, WEBHOOK_SECRET.encode()) is True
+    assert calls == [(WEBHOOK_SECRET.encode(), WEBHOOK_SECRET.encode())]
+    assert _moyasar_secret_ok({"secret_token": "nope"}, WEBHOOK_SECRET.encode()) is False
+    assert _moyasar_secret_ok({"secret_token": 123456}, WEBHOOK_SECRET.encode()) is False
+    assert len(calls) == 2
+
+
+async def test_correct_secret_is_accepted(monkeypatch, caplog):
+    _live(monkeypatch)
     from src.main import app
 
     payment = _payment()
@@ -231,13 +273,16 @@ async def test_unset_secret_marks_paid_only_after_the_api_confirms(monkeypatch):
         return {"applied": True}
 
     monkeypatch.setattr("src.main._apply_paid_outcome", _apply)
+    caplog.set_level(logging.DEBUG, logger="src.main")
     response = await _post(
         app,
         {
-            "type": "payment_failed",
+            "type": "payment_paid",
+            "secret_token": WEBHOOK_SECRET,
             "data": {
                 "status": "failed",
                 "amount": 1,
+                "currency": "USD",
                 "metadata": {"order_id": str(payment.id)},
             },
         },
@@ -245,30 +290,9 @@ async def test_unset_secret_marks_paid_only_after_the_api_confirms(monkeypatch):
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["status"] == "paid"
+    assert body["payment_id"] == str(payment.id)
     assert payment.status == "paid"
     assert applied["called"] is True
-
-
-async def test_unset_secret_without_an_api_key_does_not_mark_the_body_paid(monkeypatch):
-    _live(monkeypatch, webhook=None, secret=None)
-    from src.main import app
-
-    payment = _payment()
-    session = _Session(payment)
-    monkeypatch.setattr(app.state, "session_factory", lambda: session, raising=False)
-
-    class _Client(httpx.AsyncClient):
-        async def get(self, url, *args, **kwargs):
-            raise AssertionError("no API secret means no Moyasar call")
-
-    monkeypatch.setattr(httpx, "AsyncClient", _Client)
-    response = await _post(
-        app,
-        {
-            "type": "payment_paid",
-            "data": {"status": "paid", "amount": 49900, "metadata": {"order_id": str(payment.id)}},
-        },
-    )
-    assert response.status_code == 200, response.text
-    assert payment.status == "pending"
-    assert response.json()["status"] == "pending"
+    assert WEBHOOK_SECRET not in response.text
+    assert WEBHOOK_SECRET not in caplog.text
+    assert LIVE_SECRET not in caplog.text

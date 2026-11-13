@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hmac
 import os
 import re
 from functools import lru_cache
@@ -4420,8 +4421,6 @@ def _configured_moyasar_webhook_secret() -> bytes:
 
 def _moyasar_secret_ok(event: dict, expected: bytes) -> bool:
     """Constant-time match of the body ``secret_token``. The value is not logged."""
-    import hmac
-
     supplied = event.get("secret_token")
     if not isinstance(supplied, str) or not supplied:
         return False
@@ -4435,17 +4434,18 @@ def _moyasar_secret_ok(event: dict, expected: bytes) -> bool:
 async def moyasar_webhook(request: Request):
     """Server-to-server notification from Moyasar.
 
-    ``webhook_verification`` is accepted immediately and is not a payment.
+    ``webhook_verification`` is Moyasar's one-time ping. It is accepted
+    immediately and is not a payment, whether or not a secret is configured.
     The 6-digit code is logged once so an admin can type it into the Moyasar
     dashboard. It is not echoed in the response.
 
-    Payment events: Moyasar's current docs (webhook reference, 11 Nov 2026)
-    authenticate by echoing the consumer's shared secret as ``secret_token``
-    in the JSON body. No signature header is documented. When
-    ``MOYASAR_WEBHOOK_SECRET`` is set, that token must match. When it is not
-    set, the body is not trusted: the order is updated only after
-    ``verify_payment`` re-fetches it from the Moyasar API. The secret is never
-    logged.
+    Payment events require ``MOYASAR_WEBHOOK_SECRET``. Moyasar echoes that
+    shared secret as ``secret_token`` in the JSON body. No signature header
+    is documented. The token is compared with ``hmac.compare_digest``. A
+    mismatch is 401 and Moyasar is not called. When the secret is missing or
+    blank, every payment event is refused with 503 and a warning is logged.
+    The secret is never logged. A matching event is still settled only after
+    ``verify_payment`` re-fetches the order from the Moyasar API.
     """
     from src.services import payments as pm
 
@@ -4465,7 +4465,12 @@ async def moyasar_webhook(request: Request):
         return {"ok": True, "type": "webhook_verification"}
 
     expected = _configured_moyasar_webhook_secret()
-    if expected and not _moyasar_secret_ok(event, expected):
+    if not expected:
+        logger.warning(
+            "refusing POST /webhooks/moyasar because MOYASAR_WEBHOOK_SECRET is not configured"
+        )
+        raise HTTPException(503, "webhook secret is not configured")
+    if not _moyasar_secret_ok(event, expected):
         raise HTTPException(401, "invalid secret_token")
 
     async with app.state.session_factory() as session:
