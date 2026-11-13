@@ -19,8 +19,9 @@ Do not tag it from a pull request.
   lists customer routes only. Admin, owner, webhook, and payment-test routes are excluded.
 - Public status page at `/status` and a cached JSON feed at `/api/status`
   (site, `/health`, the customer portal, and the agent registry).
-- What's-new page, a draft service-level page (figures need the owner's approval),
-  and a partnerships page with the white-label offer.
+- What's-new page, an approved service-level page (99.0% monthly uptime, credits
+  capped at 25% of that month's subscription), and a partnerships page with the
+  white-label offer.
 - `/signup` redirects to signup in the customer portal at `/portal`.
 
 ### Changed

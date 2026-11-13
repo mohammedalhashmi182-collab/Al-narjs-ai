@@ -29,16 +29,15 @@ These are already on `main`. The dates are from git history.
 - Customer API reference at `/docs`, ReDoc at `/redoc`, spec at `/openapi.json`.
   Admin, owner, webhook, and payment-test routes are not in the spec.
 - Status page (`/status`, `/ar/status`, `/en/status`) and `GET /api/status`.
-- Changelog, draft service level, and partnerships (including white-label prices).
+- Changelog, approved service level (99.0% monthly uptime, credits capped at 25%), and partnerships (including white-label prices).
 - `/signup` redirects to the customer portal.
 - `CHANGELOG.md`, `CONTRIBUTING.md`, and the docs in this folder.
 
 ## Owner review before publish
 
-- Service-level figures on `/sla` are a draft (`OWNER_REVIEW_REQUIRED` in
-  `src/services/sla.py`). Confirm or edit the 99.5% target, the 8 business-hour
-  reply on the 2,990 SAR plan, and the credit table before treating the page
-  as a commitment.
+- The service-level page is approved: 99.0% monthly uptime, a first reply within
+  1 business day on the 790 and 1,490 SAR plans and within 8 business hours on
+  the 2,990 SAR plan, and service credit capped at 25% of that month's subscription.
 - White-label prices are the ones requested for this page: hosted 4,900 SAR
   setup + 1,490 SAR/month, standalone 9,900 SAR setup + optional 1,000 SAR/month
   support.

@@ -137,21 +137,35 @@ def test_changelog_matches_history(client: TestClient) -> None:
         assert phrase in notes
 
 
-def test_sla_is_marked_for_owner_review(client: TestClient) -> None:
-    assert sla.OWNER_REVIEW_REQUIRED is True
-    assert sla.UPTIME_PERCENT == "99.5"
+def test_sla_uses_the_approved_terms(client: TestClient) -> None:
+    assert sla.OWNER_REVIEW_REQUIRED is False
+    assert sla.UPTIME_PERCENT == "99.0"
     page = client.get("/en/sla")
     assert page.status_code == 200
-    assert 'data-sla-review="required"' in page.text
-    assert "Draft for review" in page.text
-    assert "99.5" in page.text
+    assert 'data-sla-review="required"' not in page.text
+    assert "Draft for review" not in page.text
+    assert "99.5" not in page.text
+    assert "99.0%" in page.text
     for price in ("790", "1,490", "2,990"):
         assert price in page.text
     assert "8 business hours" in page.text
-    assert "10%" in page.text and "25%" in page.text and "50%" in page.text
+    assert "1 business day" in page.text
+    assert "target, not a guarantee" in page.text
+    assert "4 business hours" in page.text
+    assert "within 24 hours" in page.text
+    assert "every 2 hours" in page.text
+    assert "Render hosting" in page.text and "Moyasar" in page.text
+    assert "24 hours in advance" in page.text
+    assert "force majeure" in page.text
+    assert "10%" in page.text and "15%" in page.text and "25%" in page.text
+    assert "50%" not in page.text
+    assert sla.REVIEW_CYCLE_EN in page.text
     arabic = client.get("/ar/sla")
-    assert "مسودة للمراجعة" in arabic.text
-    assert "99.5" in arabic.text
+    assert "مسودة للمراجعة" not in arabic.text
+    assert "99.0%" in arabic.text
+    assert "99.5" not in arabic.text
+    assert sla.REVIEW_CYCLE_AR in arabic.text
+    assert "هدف وليست ضماناً" in arabic.text
 
 
 def test_partnerships_do_not_claim_unreleased_integrations(client: TestClient) -> None:

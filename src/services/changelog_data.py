@@ -50,8 +50,8 @@ RELEASES: list[Release] = [
                         "en": "A status page at /status and a JSON feed at /api/status for the site, /health, the portal, and the agents.",
                     },
                     {
-                        "ar": "صفحة ما الجديد، وصفحة مستوى الخدمة (مسودة بانتظار اعتماد المالك)، وصفحة الشراكات والتكاملات مع عرض العلامة البيضاء.",
-                        "en": "A what's-new page, a service-level page (a draft until the owner approves the figures), and a partnerships page with the white-label offer.",
+                        "ar": "صفحة ما الجديد، وصفحة مستوى الخدمة المعتمدة (تشغيل 99.0% شهرياً، وسقف رصيد 25% من اشتراك الشهر)، وصفحة الشراكات والتكاملات مع عرض العلامة البيضاء.",
+                        "en": "A what's-new page, an approved service-level page (99.0% monthly uptime, credits capped at 25% of that month's subscription), and a partnerships page with the white-label offer.",
                     },
                     {
                         "ar": "المسار /signup صار يحوّل إلى التسجيل في بوابة العميل على /portal.",

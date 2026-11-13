@@ -1,6 +1,6 @@
 {% extends "partials/_simple_page.html" %}
 {% block title %}{% if ar %}مستوى الخدمة | النرجس للذكاء الاصطناعي{% else %}Service level | Al-Narjis AI{% endif %}{% endblock %}
-{% block description %}{% if ar %}مسودة مستوى الخدمة للباقات 790 و1490 و2990 ريال. الأرقام بانتظار اعتماد المالك.{% else %}Draft service level for the 790, 1,490, and 2,990 SAR plans. The figures are waiting for the owner to approve them.{% endif %}{% endblock %}
+{% block description %}{% if ar %}التزام مستوى الخدمة للباقات 790 و1490 و2990 ريال: تشغيل 99.0% شهرياً.{% else %}Service level for the 790, 1,490, and 2,990 SAR plans: 99.0% monthly uptime.{% endif %}{% endblock %}
 {% block extra_head %}{% include "partials/_platform_ui.html" %}{% endblock %}
 {% block h1 %}{% if ar %}مستوى الخدمة{% else %}Service level{% endif %}{% endblock %}
 {% block body %}
@@ -9,8 +9,8 @@
 {% endif %}
 <p>{% if ar %}الأسعار شهرية بالريال السعودي. لا تُضاف ضريبة القيمة المضافة ما دام المشغّل غير مسجّل في الضريبة.{% else %}Prices are monthly, in Saudi riyal. VAT is not added while the operator is not VAT-registered.{% endif %}</p>
 <h2 class="n-title text-lg">{% if ar %}التشغيل{% else %}Uptime{% endif %}</h2>
-<p>{% if ar %}هدف التشغيل الشهري لكل الباقات {{ uptime }}%. يُقاس من صفحة الحالة العامة عندما تكون الحالة غير «يعمل»، بعد استثناء الصيانة المعلنة قبلها بـ24 ساعة وبحد 4 ساعات في الشهر.{% else %}The monthly uptime target for every plan is {{ uptime }}%. It is measured from the public status page while the roll-up is not Operational, after excluding maintenance announced 24 hours ahead and capped at 4 hours in a month.{% endif %}</p>
-<p>{% if ar %}خارج القياس: أعطال مزود الدفع أو نماذج الذكاء أو ميتا أو نظام أسماء النطاق، وإعدادات العميل، والظروف القاهرة.{% else %}Outside the measurement: outages at the payment provider, the model providers, Meta, or DNS, plus customer configuration and force majeure.{% endif %}</p>
+<p>{% if ar %}التزام التشغيل الشهري لكل الباقات {{ uptime }}%. يُقاس من صفحة الحالة العامة عندما تكون الحالة غير «يعمل».{% else %}The monthly uptime commitment for every plan is {{ uptime }}%. It is measured from the public status page while the roll-up is not Operational.{% endif %}</p>
+<p>{{ exclusions_ar if ar else exclusions_en }}</p>
 <h2 class="n-title text-lg">{% if ar %}زمن الرد{% else %}Response time{% endif %}</h2>
 <p>{% if ar %}الرد الأول من شخص على البريد AlNarjisai@gmail.com خلال {{ window_ar }}. الساعة خارج هذه النافذة تُحسب في يوم العمل التالي.{% else %}The first human reply by email to AlNarjisai@gmail.com, during {{ window_en }}. Time outside that window counts on the next business day.{% endif %}</p>
 <table class="pf-table">
@@ -50,4 +50,9 @@
 </tbody>
 </table>
 <p class="pf-note">{% if ar %}لا يغطي الرصيد رسوم الإعداد، ولا يُمنح إذا كان الاشتراك متأخراً عن الدفع.{% else %}Credit does not cover setup fees, and it is not issued while the subscription is past due.{% endif %}</p>
+<h2 class="n-title text-lg">{% if ar %}الحوادث الكبرى{% else %}Major incidents{% endif %}</h2>
+<p>{{ incident_ar if ar else incident_en }}</p>
+<h2 class="n-title text-lg">{% if ar %}التصعيد{% else %}Escalation{% endif %}</h2>
+<p>{{ escalation_ar if ar else escalation_en }}</p>
+<p>{{ review_cycle_ar if ar else review_cycle_en }}</p>
 {% endblock %}

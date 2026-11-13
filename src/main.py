@@ -1448,6 +1448,14 @@ async def sla_page(request: Request):
         "window_en": sla.SUPPORT_WINDOW_EN,
         "cap_ar": sla.CREDIT_CAP_AR,
         "cap_en": sla.CREDIT_CAP_EN,
+        "exclusions_ar": sla.EXCLUSIONS_AR,
+        "exclusions_en": sla.EXCLUSIONS_EN,
+        "incident_ar": sla.INCIDENT_AR,
+        "incident_en": sla.INCIDENT_EN,
+        "escalation_ar": sla.ESCALATION_AR,
+        "escalation_en": sla.ESCALATION_EN,
+        "review_cycle_ar": sla.REVIEW_CYCLE_AR,
+        "review_cycle_en": sla.REVIEW_CYCLE_EN,
     })
 
 

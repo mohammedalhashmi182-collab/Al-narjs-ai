@@ -19,7 +19,7 @@ Arabic-first AI-agent platform from Riyadh. An AI CEO and **39 agents**, a custo
 | Status | [/ar/status](https://karmaai.online/ar/status) | [/en/status](https://karmaai.online/en/status) |
 | API reference | [/ar/docs](https://karmaai.online/ar/docs) | [/en/docs](https://karmaai.online/en/docs) |
 | What's new | [/ar/changelog](https://karmaai.online/ar/changelog) | [/en/changelog](https://karmaai.online/en/changelog) |
-| Service level (draft) | [/ar/sla](https://karmaai.online/ar/sla) | [/en/sla](https://karmaai.online/en/sla) |
+| Service level | [/ar/sla](https://karmaai.online/ar/sla) | [/en/sla](https://karmaai.online/en/sla) |
 | Partnerships | [/ar/partnerships](https://karmaai.online/ar/partnerships) | [/en/partnerships](https://karmaai.online/en/partnerships) |
 
 Machine-readable status: [https://karmaai.online/api/status](https://karmaai.online/api/status). OpenAPI: [https://karmaai.online/openapi.json](https://karmaai.online/openapi.json).
