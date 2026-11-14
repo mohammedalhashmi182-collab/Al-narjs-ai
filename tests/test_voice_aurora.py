@@ -20,43 +20,44 @@ def test_voice_page_centers_a_monochrome_orb_and_emblem(lang):
         result = client.get(f"/{lang}/voice")
         css = client.get("/static/css/voice-aurora.css")
         orb = client.get("/static/js/voice-orb.js")
-        emblem = client.get("/static/js/voice-emblem.js")
+        emblem_js = client.get("/static/js/voice-emblem.js")
         live = client.get("/static/js/voice-live-app.js")
         old = client.get("/static/js/voice-ribbon.js")
-    assert result.status_code == css.status_code == orb.status_code == emblem.status_code == live.status_code == 200
-    assert old.status_code == 404
+    assert result.status_code == css.status_code == orb.status_code == live.status_code == 200
+    assert old.status_code == emblem_js.status_code == 404
     assert len(result.content) < 16_000, "Do not inline multi-hundred-kilobyte legacy CSS"
     assert 'id="intro"' not in result.text
     assert 'id="ribbon"' not in result.text
     assert "voice-ribbon" not in result.text
     assert "✺" not in result.text
     assert 'id="orb"' in result.text
-    assert 'id="emblem"' in result.text
-    assert 'id="emblemImg"' in result.text
+    assert 'id="emblem"' not in result.text
+    assert 'id="emblemGl"' not in result.text
+    assert 'class="logo-mark"' in result.text
     assert 'id="vid"' in result.text
     assert 'id="start"' in result.text
     assert 'id="chatPanel" hidden' in result.text
     assert 'id="wave"' in result.text
     assert "/static/js/voice-live-app.js" in result.text
     assert "/static/js/voice-orb.js" in result.text
-    assert "/static/js/voice-emblem.js" in result.text
+    assert "voice-emblem.js" not in result.text
     assert "voice-aurora.css" in result.text
-    assert "alnarjis-emblem.webp" in result.text
+    assert "alnarjis-emblem.png" in result.text
     assert "alnarjis-favicon-32.png" in result.text
     assert "alnarjis-apple-touch.png" in result.text
     assert "voice-orb" in css.text
+    assert "min(80vw,520px)" in css.text
     assert "logo-breathe" in css.text
     assert "prefers-reduced-motion" in css.text
     assert "ff5a36" not in orb.text.lower()
-    assert "ff5a36" not in emblem.text.lower()
     assert "lineTo" not in orb.text
     assert "getUserMedia" not in orb.text
-    assert "getUserMedia" not in emblem.text
-    assert "getByteTimeDomainData" not in emblem.text
-    assert "createAnalyser" not in emblem.text
+    assert "curl" in orb.text
+    assert "snoise" in orb.text
     count = next(line for line in orb.text.splitlines() if "PARTICLE_COUNT" in line)
     assert int("".join(ch for ch in count if ch.isdigit())) >= 5000
     assert "fibonacci" in orb.text.lower()
+    assert "jitter" in orb.text.lower()
     assert "orbdemo" in orb.text
     assert "createOscillator" in orb.text
     assert "createAnalyser" in orb.text
@@ -70,8 +71,6 @@ def test_voice_page_centers_a_monochrome_orb_and_emblem(lang):
     assert "createAnalyser" in live.text
     assert "__voiceInAnalyser" in live.text
     assert "__voiceOutAnalyser" in live.text
-    assert "prefers-reduced-motion" in emblem.text
-    assert "webgl" in emblem.text
     assert 'XAI_API_KEY' not in result.text
     assert "xai-client-secret" not in result.text
     assert "unpkg" not in result.text and "jsdelivr" not in result.text and "cdnjs" not in result.text
@@ -139,11 +138,13 @@ def test_voice_aurora_browser_works_before_call_without_overlay(lang, width):
         assert page.locator("#intro").count() == 0
         assert page.locator("#ribbon").count() == 0
         page.wait_for_function("() => window.__orbMode === 'webgl' || window.__orbMode === '2d'")
-        page.wait_for_function("() => window.__emblemMode === 'image' || window.__emblemMode === 'webgl'")
         assert page.locator("#orb").is_visible()
-        assert page.locator("#emblem").is_visible()
-        assert page.locator("#emblemImg").is_visible()
-        assert page.evaluate("() => window.__emblemMode") == "image"
+        assert page.locator("#emblem").count() == 0
+        assert page.locator(".logo-mark").is_visible()
+        orb_box = page.locator("#orb").bounding_box()
+        assert orb_box["height"] == pytest.approx(orb_box["width"], abs=2)
+        expected = min(width * 0.8, 520)
+        assert orb_box["width"] == pytest.approx(expected, abs=10)
         assert page.locator("#start").is_visible()
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
         assert page.locator("#orb").evaluate("(el) => el.width > 0 && el.height > 0")
@@ -175,7 +176,7 @@ def test_voice_logo_files_are_real_images():
 
 
 @pytest.mark.skipif(os.environ.get("RUN_BROWSER_TESTS") != "1", reason="requires Chromium CI")
-def test_voice_emblem_uses_webgl_when_motion_is_allowed():
+def test_voice_orb_is_luminous_when_motion_is_allowed():
     from playwright.sync_api import sync_playwright
 
     with TestClient(app) as client, sync_playwright() as p:
@@ -201,19 +202,19 @@ def test_voice_emblem_uses_webgl_when_motion_is_allowed():
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.goto("http://testserver/ar/voice")
-        page.wait_for_function("() => window.__emblemMode === 'webgl' || window.__emblemMode === 'image'")
-        assert page.evaluate("() => window.__emblemMode") == "webgl"
-        assert page.locator("#emblemGl").is_visible()
+        page.wait_for_function("() => window.__orbMode === 'webgl' || window.__orbMode === '2d'")
+        assert page.evaluate("() => window.__orbMode") == "webgl"
         lit = page.evaluate(
             """() => {
-              const c = document.getElementById('emblemGl');
+              const c = document.getElementById('orb');
               const gl = c.getContext('webgl');
               const pix = new Uint8Array(4);
               gl.readPixels((c.width / 2) | 0, (c.height / 2) | 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pix);
               return pix[0] + pix[1] + pix[2];
             }"""
         )
-        assert lit > 12
+        assert lit > 30
+        assert page.locator(".logo-mark").is_visible()
         assert not errors
         ctx.close()
         browser.close()

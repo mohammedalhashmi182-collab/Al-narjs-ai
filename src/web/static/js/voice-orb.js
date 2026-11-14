@@ -4,8 +4,8 @@
 (() => {
   "use strict";
 
-  const PARTICLE_COUNT = 10000;
-  const CAM_Z = 4.58;
+  const PARTICLE_COUNT = 14000;
+  const CAM_Z = 4.05;
   const FOCAL = 1 / Math.tan((40 * Math.PI) / 360);
 
   const canvas = document.getElementById("orb");
@@ -19,6 +19,14 @@
   let gl = null;
   let program = null;
   let uniforms = null;
+  let blurProg = null;
+  let copyProg = null;
+  let blurLoc = null;
+  let copyLoc = null;
+  let clipBuf = null;
+  let bloom = null;
+  let pointPos = null;
+  let pointSeed = null;
   let ctx2d = null;
   let sprite = null;
   let order = null;
@@ -39,19 +47,28 @@
   window.__orbMode = "init";
   window.__orbEnergy = 0;
 
+  function hash(n) {
+    const x = Math.sin(n * 127.1) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
   function buildSphere(count) {
-    // Fibonacci sphere: even points, no latitude rings.
+    // Fibonacci sphere, then jitter so the points do not form a visible lattice.
     const pos = new Float32Array(count * 3);
     const seed = new Float32Array(count);
     const golden = Math.PI * (3 - Math.sqrt(5));
     for (let i = 0; i < count; i++) {
-      const y = 1 - (i / (count - 1)) * 2;
-      const ring = Math.sqrt(Math.max(0, 1 - y * y));
-      const theta = golden * i;
-      pos[i * 3] = Math.cos(theta) * ring;
-      pos[i * 3 + 1] = y;
-      pos[i * 3 + 2] = Math.sin(theta) * ring;
-      seed[i] = (i * 0.61803398875) % 1;
+      const y0 = 1 - (i / (count - 1)) * 2;
+      const ring = Math.sqrt(Math.max(0, 1 - y0 * y0));
+      const theta = golden * i + (hash(i + 0.17) - 0.5) * 1.35;
+      let x = Math.cos(theta) * ring;
+      let y = y0 + (hash(i + 2.4) - 0.5) * 0.09;
+      let z = Math.sin(theta) * ring;
+      const len = Math.hypot(x, y, z) || 1;
+      pos[i * 3] = x / len;
+      pos[i * 3 + 1] = y / len;
+      pos[i * 3 + 2] = z / len;
+      seed[i] = hash(i + 8.6);
     }
     return { pos: pos, seed: seed };
   }
@@ -122,22 +139,29 @@
     "vec3 rotX(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);}",
     "void main(){",
     "  vec3 base=normalize(aBase);",
-    "  float shell=0.945+aSeed*0.055;",
-    "  float n1=snoise(base*1.8+vec3(0.0,uTime*0.16,0.13));",
-    "  float n2=snoise(base*3.35+vec3(uTime*0.11,-0.07,-uTime*0.08));",
-    "  float amp=0.012+uEnergy*0.058;",
-    "  float disp=n1*amp+n2*amp*0.4;",
-    "  float ripple=sin(base.y*8.5+n1*2.1-uTime*(1.25+uEnergy*2.4))*(uEnergy*0.03+uRipple*0.016);",
-    "  float breath=sin(uTime*0.78+aSeed*6.28318)*0.018*uBreath;",
-    "  float rad=shell*(1.0+breath+uEnergy*0.046)+disp+ripple;",
-    "  vec3 pos=rotX(rotY(base*rad,uYaw),uPitch);",
+    "  float shell=0.78+fract(aSeed*7.13)*0.22;",
+    "  float psize=0.45+fract(aSeed*13.7)*1.15;",
+    "  float n1=snoise(base*1.25+vec3(uTime*0.22,uTime*0.05,0.1));",
+    "  float n2=snoise(base.yzx*2.15+vec3(-uTime*0.16,0.3,uTime*0.12));",
+    "  float n3=snoise(base.zxy*0.9+vec3(0.2,-uTime*0.14,uTime*0.18));",
+    "  vec3 curl=vec3(",
+    "    snoise(base+vec3(0.0,uTime*0.19,0.13))-snoise(base-vec3(0.0,uTime*0.19,0.13)),",
+    "    snoise(base+vec3(uTime*0.15,0.0,0.07))-snoise(base-vec3(uTime*0.15,0.0,0.07)),",
+    "    snoise(base+vec3(0.11,0.0,uTime*0.17))-snoise(base-vec3(0.11,0.0,uTime*0.17))",
+    "  );",
+    "  float amp=0.068+uEnergy*0.045;",
+    "  float breath=sin(uTime*0.7+aSeed*6.28318)*0.028*uBreath;",
+    "  float rad=shell*(1.0+breath+uEnergy*0.18)+n1*amp*0.5;",
+    "  vec3 pos=base*rad+curl*amp+cross(base,vec3(n2,n3,n1))*amp*0.65;",
+    "  pos=rotX(rotY(pos,uYaw),uPitch);",
     "  vec3 view=vec3(pos.x,pos.y,pos.z-uCamZ);",
     "  float dist=max(0.4,-view.z);",
     "  gl_Position=vec4((view.x/dist)*uFocal/uAspect,(view.y/dist)*uFocal,0.0,1.0);",
-    "  float closeness=clamp((view.z-(-uCamZ-1.08))/2.16,0.0,1.0);",
-    "  float shade=0.045+0.955*pow(closeness,2.05);",
-    "  vBright=shade*uGlow*uPassAlpha;",
-    "  gl_PointSize=clamp(uPointScale*(0.4+0.95*closeness)*uFocal/dist*uViewportH,1.0,32.0);",
+    "  float closeness=clamp((view.z-(-uCamZ-1.15))/2.3,0.0,1.0);",
+    "  float shade=0.08+0.92*pow(closeness,1.25);",
+    "  float coreBoost=mix(1.28,0.82,shell);",
+    "  vBright=shade*coreBoost*uGlow*uPassAlpha;",
+    "  gl_PointSize=clamp(uPointScale*psize*(0.28+1.15*closeness)*uFocal/dist*uViewportH,1.0,40.0);",
     "}",
   ].join("\n");
 
@@ -148,10 +172,10 @@
     "  vec2 q=gl_PointCoord*2.0-1.0;",
     "  float r2=dot(q,q);",
     "  if(r2>1.0) discard;",
-    "  float core=exp(-r2*6.2);",
-    "  float halo=exp(-r2*1.65)*0.4;",
-    "  float intensity=(core*0.88+halo)*vBright;",
-    "  gl_FragColor=vec4(0.94,0.95,0.97,intensity);",
+    "  float core=exp(-r2*3.4);",
+    "  float halo=exp(-r2*1.05)*0.45;",
+    "  float intensity=(core*0.85+halo)*vBright;",
+    "  gl_FragColor=vec4(vec3(0.96,0.97,0.99)*intensity,intensity);",
     "}",
   ].join("\n");
 
@@ -185,14 +209,14 @@
     uniforms = {};
     for (let i = 0; i < names.length; i++) uniforms[names[i]] = gl.getUniformLocation(program, names[i]);
 
-    const posBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+    pointPos = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointPos);
     gl.bufferData(gl.ARRAY_BUFFER, sphere.pos, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
-    const seedBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, seedBuf);
+    pointSeed = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointSeed);
     gl.bufferData(gl.ARRAY_BUFFER, sphere.seed, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
@@ -201,8 +225,96 @@
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     gl.clearColor(0, 0, 0, 1);
+    setupBloom();
     window.__orbMode = "webgl";
     return true;
+  }
+
+  function setupBloom() {
+    const vs = compile(gl, gl.VERTEX_SHADER, "attribute vec2 aClip;varying vec2 vUv;void main(){vUv=aClip*0.5+0.5;gl_Position=vec4(aClip,0.0,1.0);}");
+    const blurFs = compile(gl, gl.FRAGMENT_SHADER, [
+      "precision mediump float;varying vec2 vUv;uniform sampler2D uTex;uniform vec2 uDir;",
+      "void main(){",
+      "  vec3 c=texture2D(uTex,vUv).rgb*0.227;",
+      "  c+=texture2D(uTex,vUv+uDir).rgb*0.194;c+=texture2D(uTex,vUv-uDir).rgb*0.194;",
+      "  c+=texture2D(uTex,vUv+uDir*2.6).rgb*0.122;c+=texture2D(uTex,vUv-uDir*2.6).rgb*0.122;",
+      "  c+=texture2D(uTex,vUv+uDir*4.8).rgb*0.07;c+=texture2D(uTex,vUv-uDir*4.8).rgb*0.07;",
+      "  gl_FragColor=vec4(c,1.0);}",
+    ].join(""));
+    const copyFs = compile(gl, gl.FRAGMENT_SHADER, [
+      "precision mediump float;varying vec2 vUv;uniform sampler2D uSharp;uniform sampler2D uGlow;uniform float uBloom;",
+      "void main(){vec3 s=texture2D(uSharp,vUv).rgb;vec3 g=texture2D(uGlow,vUv).rgb;gl_FragColor=vec4(s+g*uBloom,1.0);}",
+    ].join(""));
+    if (!vs || !blurFs || !copyFs) return;
+    function link(fs) {
+      const p = gl.createProgram();
+      gl.attachShader(p, vs);
+      gl.attachShader(p, fs);
+      gl.bindAttribLocation(p, 0, "aClip");
+      gl.linkProgram(p);
+      return gl.getProgramParameter(p, gl.LINK_STATUS) ? p : null;
+    }
+    blurProg = link(blurFs);
+    copyProg = link(copyFs);
+    if (!blurProg || !copyProg) return;
+    blurLoc = { uTex: gl.getUniformLocation(blurProg, "uTex"), uDir: gl.getUniformLocation(blurProg, "uDir") };
+    copyLoc = {
+      uSharp: gl.getUniformLocation(copyProg, "uSharp"),
+      uGlow: gl.getUniformLocation(copyProg, "uGlow"),
+      uBloom: gl.getUniformLocation(copyProg, "uBloom"),
+    };
+    clipBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, clipBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  }
+
+  function makeTarget(w, h) {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return ok ? { tex: tex, fb: fb, w: w, h: h } : null;
+  }
+
+  function allocBloom() {
+    if (!blurProg) return;
+    if (bloom) {
+      ["scene", "a", "b"].forEach((key) => {
+        gl.deleteTexture(bloom[key].tex);
+        gl.deleteFramebuffer(bloom[key].fb);
+      });
+      bloom = null;
+    }
+    const w = Math.max(2, canvas.width);
+    const h = Math.max(2, canvas.height);
+    const scene = makeTarget(w, h);
+    const a = makeTarget(Math.max(2, w >> 1), Math.max(2, h >> 1));
+    const b = makeTarget(Math.max(2, w >> 1), Math.max(2, h >> 1));
+    if (scene && a && b) bloom = { scene: scene, a: a, b: b };
+  }
+
+  function bindPoints() {
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointPos);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointSeed);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
+  }
+
+  function bindClip() {
+    gl.bindBuffer(gl.ARRAY_BUFFER, clipBuf);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.disableVertexAttribArray(1);
   }
 
   function boot2D() {
@@ -231,7 +343,7 @@
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     if (w >= 2 && h >= 2) return [w, h];
-    return [420, 420];
+    return [520, 520];
   }
 
   function resize() {
@@ -242,7 +354,12 @@
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
-      if (gl && window.__orbMode === "webgl") gl.viewport(0, 0, w, h);
+      if (gl && window.__orbMode === "webgl") {
+        gl.viewport(0, 0, w, h);
+        allocBloom();
+      }
+    } else if (gl && window.__orbMode === "webgl" && !bloom) {
+      allocBloom();
     }
     if (reduce()) render();
   }
@@ -307,16 +424,16 @@
       yaw: clock * spin,
       pitch: 0.2 + Math.sin(clock * 0.13) * 0.045,
       breath: speaking ? 0.22 : (listening ? 0.4 : (connecting ? 0.55 : 1)),
-      glowTarget: 0.9 + level * (speaking ? 0.22 : 0.14),
+      glowTarget: 1.08 + level * (speaking ? 0.7 : 0.45),
       spinNote: 1,
     };
   }
 
-  function renderWebGL(pose) {
-    const w = canvas.width;
-    const h = canvas.height;
-    gl.viewport(0, 0, w, h);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+  function paintPoints(pose, w, h) {
+    gl.useProgram(program);
+    bindPoints();
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     gl.uniform1f(uniforms.uYaw, pose.yaw);
     gl.uniform1f(uniforms.uPitch, pose.pitch);
     gl.uniform1f(uniforms.uTime, reduce() ? 0.8 : clock);
@@ -328,12 +445,58 @@
     gl.uniform1f(uniforms.uAspect, w / Math.max(1, h));
     gl.uniform1f(uniforms.uCamZ, CAM_Z);
     gl.uniform1f(uniforms.uViewportH, h);
-    gl.uniform1f(uniforms.uPointScale, 0.02);
-    gl.uniform1f(uniforms.uPassAlpha, 0.07);
+    gl.uniform1f(uniforms.uPointScale, 0.022);
+    gl.uniform1f(uniforms.uPassAlpha, 0.2);
     gl.drawArrays(gl.POINTS, 0, PARTICLE_COUNT);
-    gl.uniform1f(uniforms.uPointScale, 0.009);
-    gl.uniform1f(uniforms.uPassAlpha, 0.34);
+    gl.uniform1f(uniforms.uPointScale, 0.0105);
+    gl.uniform1f(uniforms.uPassAlpha, 0.72);
     gl.drawArrays(gl.POINTS, 0, PARTICLE_COUNT);
+  }
+
+  function renderWebGL(pose) {
+    const w = canvas.width;
+    const h = canvas.height;
+    if (bloom) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloom.scene.fb);
+      gl.viewport(0, 0, bloom.scene.w, bloom.scene.h);
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      paintPoints(pose, bloom.scene.w, bloom.scene.h);
+      gl.disable(gl.BLEND);
+      gl.useProgram(blurProg);
+      bindClip();
+      gl.uniform1i(blurLoc.uTex, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloom.a.fb);
+      gl.viewport(0, 0, bloom.a.w, bloom.a.h);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindTexture(gl.TEXTURE_2D, bloom.scene.tex);
+      gl.uniform2f(blurLoc.uDir, 1.8 / bloom.scene.w, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloom.b.fb);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindTexture(gl.TEXTURE_2D, bloom.a.tex);
+      gl.uniform2f(blurLoc.uDir, 0, 1.8 / bloom.a.h);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, w, h);
+      gl.useProgram(copyProg);
+      bindClip();
+      gl.uniform1i(copyLoc.uSharp, 0);
+      gl.uniform1i(copyLoc.uGlow, 1);
+      gl.uniform1f(copyLoc.uBloom, 0.4 + level * 0.75);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, bloom.scene.tex);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, bloom.b.tex);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.activeTexture(gl.TEXTURE0);
+      return;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, w, h);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    paintPoints(pose, w, h);
   }
 
   function project2D(pose, energy) {
@@ -412,11 +575,11 @@
   function pumpDemo() {
     if (!demoCtx || !demoGain || !demoOsc) return;
     if (demoCtx.state === "suspended") demoCtx.resume();
-    const pulse = Math.pow(Math.max(0, Math.sin(clock * 1.35)), 1.7);
-    const slow = 0.35 + 0.65 * Math.max(0, Math.sin(clock * 0.45));
-    const amp = 0.02 + pulse * slow * 0.34;
-    demoGain.gain.setTargetAtTime(amp, demoCtx.currentTime, 0.045);
-    demoOsc.frequency.setTargetAtTime(115 + pulse * 220, demoCtx.currentTime, 0.06);
+    const opened = Math.max(0, Math.min(1, (clock - 2.3) / 1.1));
+    const pulse = Math.pow(Math.max(0, Math.sin((clock - 2.3) * 1.45)), 1.55);
+    const amp = 0.002 + opened * (0.04 + pulse * 0.46);
+    demoGain.gain.setTargetAtTime(amp, demoCtx.currentTime, 0.05);
+    demoOsc.frequency.setTargetAtTime(100 + opened * pulse * 240, demoCtx.currentTime, 0.07);
   }
 
   function frame(now) {
