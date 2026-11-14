@@ -8,6 +8,9 @@
 <link rel="alternate" hreflang="en" href="https://karmaai.online/en/voice">
 <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar/voice">
 <link rel="manifest" href="/static/site.webmanifest">
+<link rel="icon" href="/static/brand/alnarjis-favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/static/brand/alnarjis-favicon-48.png" type="image/png" sizes="48x48">
+<link rel="apple-touch-icon" href="/static/brand/alnarjis-apple-touch.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Al-Narjis AI">
 <meta property="og:title" content="تحدّث مع مستشار النرجس">
@@ -24,8 +27,8 @@
 </head>
 <body>
 <nav>
-<a class="logo ar-only" href="/ar/home"><b>✺</b>النرجس <b>AI</b></a>
-<a class="logo en-only" href="/en/home"><b>✺</b>Al-Narjis <b>AI</b></a>
+<a class="logo ar-only" href="/ar/home">النرجس <b>AI</b></a>
+<a class="logo en-only" href="/en/home">Al-Narjis <b>AI</b></a>
  <div class="links">
   <a class="ar-only" href="/ar/home">الرئيسية</a><a class="en-only" href="/en/home">Home</a>
   <a class="ar-only" href="/ar/pricing">الباقات</a><a class="en-only" href="/en/pricing">Plans</a>
@@ -35,6 +38,13 @@
  <a class="cta en-only" href="/ar/voice">العربية</a>
 </nav>
 <main>
+ <div class="emblem" id="emblem">
+  <picture class="emblem-fallback">
+   <source srcset="/static/brand/alnarjis-emblem.webp" type="image/webp">
+   <img class="emblem-img" id="emblemImg" src="/static/brand/alnarjis-emblem.png" alt="" width="220" height="220">
+  </picture>
+  <canvas class="emblem-gl" id="emblemGl" width="480" height="480" hidden aria-hidden="true"></canvas>
+ </div>
  <section class="hero">
   <h1 class="ar-only">تحدّث مع <b>مستشار النرجس</b></h1>
   <h1 class="en-only">Talk to <b>the Al-Narjis agent</b></h1>
@@ -76,9 +86,8 @@
    </div>
   </div>
  </section>
- <div class="video" id="vid" role="img" aria-label="موجات صوتية تفاعلية لمستشار النرجس">
-  <div class="voice-haze" aria-hidden="true"></div>
-  <canvas class="voice-ribbon" id="ribbon" width="660" height="190" aria-hidden="true"></canvas>
+ <div class="video" id="vid" role="img" aria-label="مؤشر صوتي كروي لمستشار النرجس">
+  <canvas class="voice-orb" id="orb" width="420" height="420" aria-hidden="true"></canvas>
  </div>
 </main>
 <p class="cap ar-only">مستشار النرجس الصوتي — محادثة حية (حد أقصى 3 دقائق)</p>
@@ -93,5 +102,6 @@
  <span class="en-only">· <a href="/en/privacy">Privacy</a></span>
 </p>
 <script src="/static/js/voice-live-app.js"></script>
-<script src="/static/js/voice-ribbon.js"></script>
+<script src="/static/js/voice-orb.js"></script>
+<script src="/static/js/voice-emblem.js"></script>
 </body></html>

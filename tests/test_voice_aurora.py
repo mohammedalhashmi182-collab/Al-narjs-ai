@@ -15,30 +15,66 @@ STATIC = ROOT / "src/web/static"
 
 
 @pytest.mark.parametrize("lang", ["ar", "en"])
-def test_voice_page_is_small_and_has_no_fullscreen_intro_or_sphere(lang):
+def test_voice_page_centers_a_monochrome_orb_and_emblem(lang):
     with TestClient(app) as client:
         result = client.get(f"/{lang}/voice")
         css = client.get("/static/css/voice-aurora.css")
-        js = client.get("/static/js/voice-ribbon.js")
-    assert result.status_code == css.status_code == js.status_code == 200
-    assert len(result.content) < 12_000, "Do not inline multi-hundred-kilobyte legacy CSS"
+        orb = client.get("/static/js/voice-orb.js")
+        emblem = client.get("/static/js/voice-emblem.js")
+        live = client.get("/static/js/voice-live-app.js")
+        old = client.get("/static/js/voice-ribbon.js")
+    assert result.status_code == css.status_code == orb.status_code == emblem.status_code == live.status_code == 200
+    assert old.status_code == 404
+    assert len(result.content) < 16_000, "Do not inline multi-hundred-kilobyte legacy CSS"
     assert 'id="intro"' not in result.text
-    assert 'id="orb"' not in result.text
-    assert 'id="ribbon"' in result.text
+    assert 'id="ribbon"' not in result.text
+    assert "voice-ribbon" not in result.text
+    assert "✺" not in result.text
+    assert 'id="orb"' in result.text
+    assert 'id="emblem"' in result.text
+    assert 'id="emblemImg"' in result.text
     assert 'id="vid"' in result.text
     assert 'id="start"' in result.text
     assert 'id="chatPanel" hidden' in result.text
     assert 'id="wave"' in result.text
     assert "/static/js/voice-live-app.js" in result.text
-    assert "/static/js/voice-ribbon.js" in result.text
+    assert "/static/js/voice-orb.js" in result.text
+    assert "/static/js/voice-emblem.js" in result.text
     assert "voice-aurora.css" in result.text
-    assert "voice-ribbon" in css.text
+    assert "alnarjis-emblem.webp" in result.text
+    assert "alnarjis-favicon-32.png" in result.text
+    assert "alnarjis-apple-touch.png" in result.text
+    assert "voice-orb" in css.text
+    assert "logo-breathe" in css.text
     assert "prefers-reduced-motion" in css.text
-    assert "window.__outLvl" in js.text
-    assert "window.__inLvl" in js.text
-    assert "requestAnimationFrame" in js.text
+    assert "ff5a36" not in orb.text.lower()
+    assert "ff5a36" not in emblem.text.lower()
+    assert "lineTo" not in orb.text
+    assert "getUserMedia" not in orb.text
+    assert "getUserMedia" not in emblem.text
+    assert "getByteTimeDomainData" not in emblem.text
+    assert "createAnalyser" not in emblem.text
+    count = next(line for line in orb.text.splitlines() if "PARTICLE_COUNT" in line)
+    assert int("".join(ch for ch in count if ch.isdigit())) >= 5000
+    assert "fibonacci" in orb.text.lower()
+    assert "orbdemo" in orb.text
+    assert "createOscillator" in orb.text
+    assert "createAnalyser" in orb.text
+    assert "devicePixelRatio" in orb.text
+    assert "prefers-reduced-motion" in orb.text
+    assert "visibilitychange" in orb.text
+    assert "requestAnimationFrame" in orb.text
+    assert "webgl" in orb.text
+    assert "window.__outLvl" in live.text
+    assert "window.__inLvl" in live.text
+    assert "createAnalyser" in live.text
+    assert "__voiceInAnalyser" in live.text
+    assert "__voiceOutAnalyser" in live.text
+    assert "prefers-reduced-motion" in emblem.text
+    assert "webgl" in emblem.text
     assert 'XAI_API_KEY' not in result.text
     assert "xai-client-secret" not in result.text
+    assert "unpkg" not in result.text and "jsdelivr" not in result.text and "cdnjs" not in result.text
 
 
 def test_voice_published_agent_override_is_honest_and_intake_oriented():
@@ -87,6 +123,7 @@ def test_voice_aurora_browser_works_before_call_without_overlay(lang, width):
     with TestClient(app) as client, sync_playwright() as p:
         browser = p.chromium.launch(executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH"))
         ctx = browser.new_context(viewport={"width": width, "height": 844}, reduced_motion="reduce")
+        ctx.add_init_script("if (navigator.mediaDevices) { navigator.mediaDevices.getUserMedia = () => { window.__micAsks = (window.__micAsks || 0) + 1; return Promise.reject(new Error('mic')); }; }")
         def serve(route):
             url = urlsplit(route.request.url)
             r = client.request(route.request.method, url.path + ("?" + url.query if url.query else ""),
@@ -100,12 +137,83 @@ def test_voice_aurora_browser_works_before_call_without_overlay(lang, width):
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.goto(f"http://testserver/{lang}/voice")
         assert page.locator("#intro").count() == 0
-        assert page.locator("#orb").count() == 0
-        assert page.locator("#ribbon").is_visible()
+        assert page.locator("#ribbon").count() == 0
+        page.wait_for_function("() => window.__orbMode === 'webgl' || window.__orbMode === '2d'")
+        page.wait_for_function("() => window.__emblemMode === 'image' || window.__emblemMode === 'webgl'")
+        assert page.locator("#orb").is_visible()
+        assert page.locator("#emblem").is_visible()
+        assert page.locator("#emblemImg").is_visible()
+        assert page.evaluate("() => window.__emblemMode") == "image"
         assert page.locator("#start").is_visible()
-        assert page.locator("#start").is_enabled() or page.locator("#start").is_disabled()
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
-        assert page.locator("#ribbon").evaluate("(el) => el.width > 0 && el.height > 0")
+        assert page.locator("#orb").evaluate("(el) => el.width > 0 && el.height > 0")
+        assert page.evaluate("() => window.__micAsks || 0") == 0
+        assert not errors
+        ctx.close()
+        browser.close()
+
+
+def test_voice_logo_files_are_real_images():
+    with TestClient(app) as client:
+        emblem = client.get("/static/brand/alnarjis-emblem.png")
+        emblem_webp = client.get("/static/brand/alnarjis-emblem.webp")
+        lockup = client.get("/static/brand/alnarjis-logo.png")
+        lockup_webp = client.get("/static/brand/alnarjis-logo.webp")
+        icon = client.get("/static/brand/alnarjis-favicon-32.png")
+        apple = client.get("/static/brand/alnarjis-apple-touch.png")
+        home = client.get("/ar/home")
+    for response in (emblem, emblem_webp, lockup, lockup_webp, icon, apple):
+        assert response.status_code == 200
+        assert len(response.content) > 400
+    assert emblem.content[:8] == b"\x89PNG\r\n\x1a\n"
+    assert emblem.content[25] == 6
+    assert lockup.content[25] == 6
+    assert emblem_webp.content[:4] == b"RIFF" and emblem_webp.content[8:12] == b"WEBP"
+    assert lockup_webp.content[8:12] == b"WEBP"
+    assert "voice-emblem.js" not in home.text
+    assert "alnarjis-emblem" not in home.text
+
+
+@pytest.mark.skipif(os.environ.get("RUN_BROWSER_TESTS") != "1", reason="requires Chromium CI")
+def test_voice_emblem_uses_webgl_when_motion_is_allowed():
+    from playwright.sync_api import sync_playwright
+
+    with TestClient(app) as client, sync_playwright() as p:
+        browser = p.chromium.launch(executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH"))
+        ctx = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="no-preference")
+
+        def serve(route):
+            url = urlsplit(route.request.url)
+            r = client.request(
+                route.request.method,
+                url.path + ("?" + url.query if url.query else ""),
+                content=route.request.post_data_buffer,
+            )
+            route.fulfill(
+                status=r.status_code,
+                body=r.content,
+                headers={"content-type": r.headers.get("content-type", "text/plain")},
+            )
+
+        ctx.route("**/*", lambda route: route.abort())
+        ctx.route("http://testserver/**", serve)
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto("http://testserver/ar/voice")
+        page.wait_for_function("() => window.__emblemMode === 'webgl' || window.__emblemMode === 'image'")
+        assert page.evaluate("() => window.__emblemMode") == "webgl"
+        assert page.locator("#emblemGl").is_visible()
+        lit = page.evaluate(
+            """() => {
+              const c = document.getElementById('emblemGl');
+              const gl = c.getContext('webgl');
+              const pix = new Uint8Array(4);
+              gl.readPixels((c.width / 2) | 0, (c.height / 2) | 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pix);
+              return pix[0] + pix[1] + pix[2];
+            }"""
+        )
+        assert lit > 12
         assert not errors
         ctx.close()
         browser.close()
