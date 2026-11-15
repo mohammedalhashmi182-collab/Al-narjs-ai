@@ -1,7 +1,7 @@
 """Remove internal repository paths from text a customer can see.
 
 Public ``https`` URLs are masked before any path match, so a link such as
-``https://karmaai.online/docs/terms.pdf`` is never shortened. A line that
+``https://alnarjisai.com/docs/terms.pdf`` is never shortened. A line that
 starts with «المصدر:» keeps its remaining words; only the path token goes.
 A label left with nothing after it («المصدر:», «Source:») is removed, and a
 markdown link whose target is an internal path is removed entirely.

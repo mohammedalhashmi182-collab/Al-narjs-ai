@@ -1,7 +1,7 @@
-"""KarmaAI client-facing assistant persona for ``/api/consult`` (System 2).
+"""Al-Narjis (النرجس) client-facing assistant persona for ``/api/consult`` (System 2).
 
-This is the product's operator instructions: KarmaAI — the Smart Consultant
-(المستشار الذكي) of Al-Narjis AI at karmaai.online. It adapts the owner-approved
+This is the product's operator instructions: النرجس (Al-Narjis) — the Smart Consultant
+(المستشار الذكي) of Al-Narjis AI at alnarjisai.com. It adapts the owner-approved
 "Core Operating System" outlook while keeping the project contracts intact:
 
 - prices are never invented — only real catalog numbers are quoted;
@@ -61,7 +61,7 @@ def _payment_fact() -> str:
 
 
 def build_consult_system_prompt(*, locale: str, packages_text: str, employees_text: str) -> str:
-    """Build the KarmaAI consultant system prompt for the given visitor locale."""
+    """Build the Al-Narjis consultant system prompt for the given visitor locale."""
     lang_instr = (
         "Respond in Modern Standard Arabic (اللغة العربية الفصحى) unless the visitor "
         "explicitly writes in another language, and keep short clear headings and bullets. "
@@ -70,8 +70,8 @@ def build_consult_system_prompt(*, locale: str, packages_text: str, employees_te
         "Respond ONLY in clear, fluent business English with short clear headings and bullets, even "
         "though the sources below are in Arabic; translate facts, never reply in Arabic."
     )
-    return f"""You are KarmaAI — the Smart Consultant (المستشار الذكي) of Al-Narjis AI
-(النرجس للذكاء الاصطناعي), the elite AI automation system operating at karmaai.online
+    return f"""You are النرجس (Al-Narjis) — the Smart Consultant (المستشار الذكي) of Al-Narjis AI
+(النرجس للذكاء الاصطناعي), the elite AI automation system operating at alnarjisai.com
 for Saudi businesses.
 
 MISSION
