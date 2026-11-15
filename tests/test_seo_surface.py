@@ -159,7 +159,7 @@ def test_jsonld_is_real_json_not_escaped_text(client: TestClient) -> None:
         "/ar/blog/ai-customer-service-saudi",
     ):
         html = client.get(path).text
-        assert "&lt;script" not in html, f"{path}: JSON-LD was HTML-escaped"
+        assert ("&" + "lt;script") not in html, f"{path}: JSON-LD was HTML-escaped"
         blocks = LD_JSON_BLOCK.findall(html)
         assert blocks, f"{path}: no ld+json block found"
         for block in blocks:
@@ -198,3 +198,28 @@ def test_agent_questions_render_in_both_languages(client: TestClient) -> None:
     en = client.get("/en/ai-agent/social_media").text
     assert "ما المنصة" in ar
     assert "Which platform" in en
+
+
+
+GOOGLE_SITE_VERIFICATION_PATH = "/googlefb84d00839a6c89c.html"
+GOOGLE_SITE_VERIFICATION_BODY = "google-site-verification: googlefb84d00839a6c89c.html"
+GOOGLE_SITE_VERIFICATION_CONTENT = "HfORhUYzb2HPu9VQm7N8KzgVm6ZeIbpbYp0sXwtLBGU"
+
+
+def test_google_site_verification_file_is_public(client: TestClient) -> None:
+    """Google fetches the HTML file at the site root, with no locale redirect."""
+    response = client.get(GOOGLE_SITE_VERIFICATION_PATH, follow_redirects=False)
+    assert response.status_code == 200
+    assert response.text == GOOGLE_SITE_VERIFICATION_BODY
+    assert response.headers["content-type"].startswith("text/html")
+    # A language-prefixed request must still reach the same file, not 301 away.
+    prefixed = client.get("/ar" + GOOGLE_SITE_VERIFICATION_PATH, follow_redirects=False)
+    assert prefixed.status_code == 200
+    assert prefixed.text == GOOGLE_SITE_VERIFICATION_BODY
+
+
+def test_google_site_verification_meta_on_homepage(client: TestClient) -> None:
+    """Search Console also accepts the verification meta tag on the homepage."""
+    html = client.get("/ar/home").text
+    assert 'name="google-site-verification"' in html
+    assert f'content="{GOOGLE_SITE_VERIFICATION_CONTENT}"' in html
