@@ -133,7 +133,7 @@ async def send_email(
         return False
 
 
-_PRICING_LINK = "https://karmaai.online/pricing"
+_PRICING_LINK = "https://alnarjisai.com/pricing"
 
 
 def _pricing_html() -> str:
@@ -156,7 +156,7 @@ def _welcome_html(name: str) -> str:
         <p>أهلاً <b>{name}</b>،</p>
         <p>استلمنا طلبك. الباقات والأسعار منشورة على الموقع، ويبدأ التجهيز بعد تأكيد الدفع:</p>
         <ul>
-          <li>خطوة 1: افتح <b>karmaai.online</b> واختر الباقة المناسبة.</li>
+          <li>خطوة 1: افتح <b>alnarjisai.com</b> واختر الباقة المناسبة.</li>
           <li>خطوة 2: راجع الأسعار في <a href="{_PRICING_LINK}">صفحة الباقات</a>.</li>
           <li>خطوة 3: نبدأ تجهيز فريقك بعد تأكيد الدفع.</li>
         </ul>
@@ -235,7 +235,7 @@ async def send_followup(step: int, to: str, name: str) -> bool:
 {copy['title']}.
 
 الباقات والأسعار منشورة على الموقع، ويبدأ تجهيز الفريق بعد تأكيد الدفع.
-اطلع عليها الآن: https://karmaai.online/pricing
+اطلع عليها الآن: https://alnarjisai.com/pricing
 
 — فريق النرجس
 Al-Narjis AI · Riyadh""",

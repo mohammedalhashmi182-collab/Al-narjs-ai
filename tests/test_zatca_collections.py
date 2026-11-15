@@ -185,8 +185,8 @@ def test_due_stage(delta, stage):
 async def test_reminders_are_drafts_by_default_and_run_once(maker, _quiet_channels):
     async with maker() as s:
         proj, pay = await _project_with_renewal(s, NOW + timedelta(hours=12))
-        r1 = await collections.run_collections(s, now=NOW, base_url="https://karmaai.online")
-        r2 = await collections.run_collections(s, now=NOW, base_url="https://karmaai.online")
+        r1 = await collections.run_collections(s, now=NOW, base_url="https://alnarjisai.com")
+        r2 = await collections.run_collections(s, now=NOW, base_url="https://alnarjisai.com")
         drafts = (await s.execute(select(OutboundMessage))).scalars().all()
     assert [x["stage"] for x in r1["reminders"]] == ["d-1"] and r2["reminders"] == []
     ch = r1["reminders"][0]["channels"]
@@ -222,9 +222,9 @@ async def test_failed_payment_recovery_link_once(maker):
         p.status = "failed"
         p.created_at = NOW - timedelta(hours=2)
         await s.commit()
-        r1 = await collections.run_collections(s, now=NOW, base_url="https://karmaai.online")
+        r1 = await collections.run_collections(s, now=NOW, base_url="https://alnarjisai.com")
         r2 = await collections.run_collections(s, now=NOW)
-    assert r1["recovery"][0]["recovery_url"] == f"https://karmaai.online/invoice/{p.id}"
+    assert r1["recovery"][0]["recovery_url"] == f"https://alnarjisai.com/invoice/{p.id}"
     assert r2["recovery"] == []
 
 
