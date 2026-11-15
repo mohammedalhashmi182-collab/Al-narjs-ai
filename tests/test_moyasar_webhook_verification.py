@@ -296,3 +296,103 @@ async def test_correct_secret_is_accepted(monkeypatch, caplog):
     assert WEBHOOK_SECRET not in response.text
     assert WEBHOOK_SECRET not in caplog.text
     assert LIVE_SECRET not in caplog.text
+
+
+# --- Hosted-invoice callback_url (/webhooks/moyasar/invoice) -----------------
+# Moyasar posts the invoice object to the invoice ``callback_url`` without a
+# ``secret_token``. It must not be refused, and it must never be trusted: the
+# order is decided only from a fresh API fetch.
+
+
+async def _post_invoice(app, body):
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        return await client.post("/webhooks/moyasar/invoice", json=body)
+
+
+async def test_invoice_callback_without_token_settles_from_api(monkeypatch):
+    for webhook in (None, WEBHOOK_SECRET):
+        _live(monkeypatch, webhook=webhook)
+        from src.main import app
+
+        payment = _payment()
+        monkeypatch.setattr(app.state, "session_factory", lambda: _Session(payment), raising=False)
+        _api(
+            monkeypatch,
+            {"id": "inv_unit", "status": "paid", "amount": 49900, "currency": "SAR", "source": {"type": "creditcard"}},
+        )
+        applied = {"n": 0}
+
+        async def _apply(*_args, **_kwargs):
+            applied["n"] += 1
+            return {"applied": True}
+
+        monkeypatch.setattr("src.main._apply_paid_outcome", _apply)
+        # The body lies (failed, 1 USD); the API fetch decides.
+        response = await _post_invoice(
+            app,
+            {
+                "id": "inv_unit",
+                "status": "failed",
+                "amount": 1,
+                "currency": "USD",
+                "metadata": {"order_id": str(payment.id)},
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["status"] == "paid"
+        assert payment.status == "paid"
+        assert applied["n"] == 1
+
+
+async def test_invoice_callback_body_alone_never_marks_paid(monkeypatch):
+    _live(monkeypatch)
+    from src.main import app
+
+    payment = _payment()
+    monkeypatch.setattr(app.state, "session_factory", lambda: _Session(payment), raising=False)
+    _api(monkeypatch, {"id": "inv_unit", "status": "initiated", "amount": 49900, "currency": "SAR"})
+
+    async def _apply(*_args, **_kwargs):
+        raise AssertionError("must not settle")
+
+    monkeypatch.setattr("src.main._apply_paid_outcome", _apply)
+    response = await _post_invoice(
+        app,
+        {"id": "inv_unit", "status": "paid", "amount": 49900, "currency": "SAR", "metadata": {"order_id": str(payment.id)}},
+    )
+    assert response.status_code == 200, response.text
+    assert payment.status != "paid"
+
+
+async def test_invoice_callback_mismatched_invoice_id_is_ignored(monkeypatch):
+    _live(monkeypatch)
+    from src.main import app
+
+    payment = _payment()
+    monkeypatch.setattr(app.state, "session_factory", lambda: _Session(payment), raising=False)
+
+    class _Client(httpx.AsyncClient):
+        async def get(self, url, *args, **kwargs):
+            raise AssertionError("a mismatched callback must not call Moyasar")
+
+    monkeypatch.setattr(httpx, "AsyncClient", _Client)
+    response = await _post_invoice(
+        app,
+        {"id": "inv_other", "status": "paid", "metadata": {"order_id": str(payment.id)}},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json().get("ignored") == "unknown order"
+    assert payment.status == "pending"
+    response = await _post_invoice(app, {"status": "paid"})
+    assert response.status_code == 200
+    assert response.json().get("ignored") == "no invoice id"
+
+
+async def test_dashboard_webhook_still_requires_token(monkeypatch):
+    _live(monkeypatch)
+    from src.main import app
+
+    _reject_transport(monkeypatch, app)
+    response = await _post(app, {"type": "payment_paid", "data": {"id": "inv_unit", "status": "paid"}})
+    assert response.status_code == 401

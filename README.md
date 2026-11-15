@@ -83,7 +83,7 @@ Set these on the host. Do not commit the values.
 
 - `MOYASAR_API_SECRET` — live secret (`sk_live_…`). A test secret does not open checkout.
 - `MOYASAR_PUBLISHABLE_KEY` — live publishable key (`pk_live_…`).
-- `MOYASAR_WEBHOOK_SECRET` — optional shared secret. Point the webhook at `https://karmaai.online/webhooks/moyasar`.
+- `MOYASAR_WEBHOOK_SECRET` — required for dashboard payment events. Moyasar echoes it as `secret_token` in the JSON body; `POST /webhooks/moyasar` compares it in constant time (401 on mismatch, 503 while unset). `webhook_verification` is always accepted. Point the dashboard webhook at `https://karmaai.online/webhooks/moyasar`. Hosted-invoice callbacks go to `POST /webhooks/moyasar/invoice`, which carries no token: the body is only a hint and the order is settled from a fresh Moyasar API fetch.
 - `CUSTOMER_PAYPAL_ENABLED` and `PAYPAL_MODE=live` — PayPal stays off until both are set.
 
 `TEST_PAYMENT_TOKEN` gates a hidden probe. Leave it unset on a normal deploy.

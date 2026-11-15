@@ -3780,7 +3780,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
                     }.get(method, pm.source_credit_card()),
                     success_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
                     back_url=f"{base}/payment/failure?{_payment_return_qs(payment)}",
-                    callback_url=f"{base}/webhooks/moyasar",
+                    callback_url=f"{base}{_MOYASAR_INVOICE_CALLBACK_PATH}",
                 )
                 return {
                     "payment_id": str(payment.id),
@@ -4514,7 +4514,7 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
                 _pm.source_credit_card(),
                 success_url=f"{base}/payment/success?{_payment_return_qs(payment)}",
                 back_url=f"{base}/invoice/{payment.id}",
-                callback_url=f"{base}/webhooks/moyasar",
+                callback_url=f"{base}{_MOYASAR_INVOICE_CALLBACK_PATH}",
             )
         except _pm.PaymentError:
             get_logger(__name__).warning("moyasar invoice start failed")
@@ -4527,6 +4527,8 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
 
 
 _MOYASAR_VERIFICATION_CODE = re.compile(r"^\d{6}$")
+# Hosted-invoice callback_url. No secret_token; settled only from a fresh API fetch.
+_MOYASAR_INVOICE_CALLBACK_PATH = "/webhooks/moyasar/invoice"
 # Hidden owner probe. Not linked from the site, not in the sitemap or llms.txt.
 _MOYASAR_LIVE_TEST_PATH = "/payment/moyasar-live-test"
 _MOYASAR_CHECKOUT_HOSTS = frozenset({"checkout.moyasar.com"})
@@ -4619,6 +4621,65 @@ async def moyasar_webhook(request: Request):
 
             await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook ميسر")
     return result
+
+
+@app.post(_MOYASAR_INVOICE_CALLBACK_PATH)
+async def moyasar_invoice_callback(request: Request):
+    """Hosted-invoice ``callback_url`` notification from Moyasar.
+
+    Moyasar posts the invoice object here when an invoice we created changes.
+    It carries no ``secret_token``, so the body is never trusted: it only
+    names the order. The order is looked up by ``metadata.order_id`` (or the
+    invoice id), the body's ``id`` must equal the invoice id we stored, and
+    the status is decided by ``verify_payment`` re-fetching the invoice from
+    the Moyasar API (amount and currency checked). Unknown or mismatched
+    bodies are a 200 no-op so Moyasar does not retry forever.
+    """
+    from uuid import UUID as _UUID
+
+    from sqlalchemy import select as _select
+
+    from src.models import Payment as _Payment
+    from src.services import payments as pm
+
+    try:
+        body = await request.json()
+    except Exception:  # noqa: BLE001
+        raise HTTPException(400, "invalid JSON")
+    if not isinstance(body, dict):
+        raise HTTPException(400, "invalid payload")
+    # Accept either the bare invoice object or an event-shaped wrapper.
+    data = body.get("data") if isinstance(body.get("data"), dict) else body
+    ref = data.get("invoice_id") or data.get("id")
+    if not isinstance(ref, str) or not ref:
+        return {"ok": True, "ignored": "no invoice id"}
+    metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
+
+    async with app.state.session_factory() as session:
+        payment = None
+        order_id = metadata.get("order_id")
+        if order_id:
+            try:
+                payment = (
+                    await session.execute(_select(_Payment).where(_Payment.id == _UUID(str(order_id))))
+                ).scalar_one_or_none()
+            except ValueError:
+                payment = None
+        if payment is None:
+            payment = (
+                await session.execute(_select(_Payment).where(_Payment.gateway_payment_id == ref))
+            ).scalars().first()
+        if payment is None or payment.gateway_payment_id != ref:
+            return {"ok": True, "ignored": "unknown order"}
+        if payment.status == "paid":
+            return {"ok": True, "payment_id": str(payment.id), "status": "paid", "already": True}
+        try:
+            payment = await pm.verify_payment(session, payment.id)
+        except pm.PaymentError:
+            raise HTTPException(502, "could not verify with Moyasar")
+        if payment.status == "paid":
+            await _apply_paid_outcome(session, payment.id, note="invoice callback ميسر")
+        return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": False}
 
 
 @app.post(
@@ -4800,7 +4861,7 @@ async def moyasar_live_test_start(request: Request):
                 pm.source_credit_card(),
                 success_url=return_url,
                 back_url=return_url,
-                callback_url=f"{base}/webhooks/moyasar",
+                callback_url=f"{base}{_MOYASAR_INVOICE_CALLBACK_PATH}",
             )
         except pm.PaymentError:
             await session.delete(payment)
