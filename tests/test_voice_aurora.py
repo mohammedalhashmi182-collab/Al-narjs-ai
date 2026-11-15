@@ -96,7 +96,7 @@ def test_voice_prices_always_come_from_checkout_catalog(monkeypatch):
         plan = PACKAGES[key]
         sar = f'{plan["amount"] / 100:,.2f}'.removesuffix(".00")
         assert f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month' in script
-    assert "before any applicable VAT" in script
+    assert "VAT" not in script.replace("no VAT added", "").replace("not VAT-registered", "").replace("Never say VAT", "")
 
     # A future catalog update must instantly appear in the voice advisor,
     # without a developer editing a second, stale price list.

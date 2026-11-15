@@ -150,7 +150,8 @@ def test_status_stays_quiet_until_the_owner_sets_both_values():
     assert body["ok"] is False and body["reason"] == "unconfigured"
     assert body["max_seconds"] == 180
     assert body["contact"]["email"] == SUPPORT_EMAIL
-    assert body["instructions"] == voice_live.session_instructions()
+    assert body["ready"] is False
+    assert "instructions" not in body and "greeting" not in body
     assert "client_secret" not in body and "websocket_url" not in body
 
 
@@ -169,7 +170,8 @@ def test_voice_instructions_name_al_narjis_and_forbid_grok():
     assert "Grok" not in voice_live.opening_greeting("en")
     assert "كريم" in text
     assert SUPPORT_EMAIL in text
-    assert "NEVER offer WhatsApp" in text
+    assert "NEVER offer WhatsApp" not in text
+    assert "WhatsApp button" in text and "0552978753" in text
     assert "Do not mention a bank transfer, an IBAN" in text
     assert "bank transfer exists" not in text
     assert "bots, automation, agents, design, and content" in text
@@ -182,7 +184,7 @@ def test_voice_instructions_name_al_narjis_and_forbid_grok():
         assert f"{int(catalog.PACKAGES[key]['price']):,}" == shown
         assert f"{shown} SAR per month" in text
     assert "discount" in text.lower()
-    assert voice_live.status_payload("203.0.113.5")["instructions"] == text
+    assert "instructions" not in voice_live.status_payload("203.0.113.5")
 
 
 @pytest.mark.asyncio
