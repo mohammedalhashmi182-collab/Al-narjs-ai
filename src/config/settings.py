@@ -162,7 +162,7 @@ class Settings(BaseSettings):
     # Owner dashboard gate — must be set via env, never a built-in default
     owner_password: str = Field(alias="OWNER_PASSWORD")
 
-    # Customer acquisition (Karma AI lead system)
+    # Customer acquisition (Al-Narjis AI lead system)
     whatsapp_business_number: str = Field(default="0540799266", alias="WHATSAPP_BUSINESS_NUMBER")
     leads_excel_path: str | None = Field(default=None, alias="LEADS_EXCEL_PATH")
     sales_campaign_size: int = Field(default=200, alias="SALES_CAMPAIGN_SIZE")

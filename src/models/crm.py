@@ -1,4 +1,4 @@
-"""Customer-acquisition CRM models for Karma AI / Al-Narjis AI.
+"""Customer-acquisition CRM models for Al-Narjis AI.
 
 These tables power the internal lead-acquisition system that turns the imported
 company database into controlled outreach: clean leads, segments, explainable
