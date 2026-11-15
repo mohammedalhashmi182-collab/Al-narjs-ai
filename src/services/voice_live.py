@@ -41,6 +41,9 @@ from src.services.support import (
 )
 from src.utils.rate_limit import SlidingWindowLimiter
 
+# Same number as the site's WhatsApp button.
+WHATSAPP_INTL = COMPANY_PHONE_E164.lstrip("+")
+
 MAX_SECONDS = 180
 _CLIENT_SECRETS = "https://api.x.ai/v1/realtime/client_secrets"
 _REALTIME = "wss://api.x.ai/v1/realtime"
@@ -157,10 +160,16 @@ def approved_monthly_price_rules() -> str:
             raise ValueError("Invalid canonical package amount")
         sar = f"{amount / 100:,.2f}".removesuffix(".00")
         labels.append(f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month')
-    return (
-        "The published monthly base prices, before any applicable VAT, are: "
-        + ", ".join(labels) + ".\n"
-    )
+    from src.services.payments import vat_enabled
+
+    if vat_enabled():
+        lead = "The published monthly base prices, before VAT, are: "
+    else:
+        lead = (
+            "The published monthly prices are final, with no VAT added "
+            "(Al-Narjis is not VAT-registered): "
+        )
+    return lead + ", ".join(labels) + ".\n"
 
 
 def session_instructions(lang: str = "ar") -> str:
@@ -204,11 +213,19 @@ def session_instructions(lang: str = "ar") -> str:
         "After that line, answer the caller's question directly.\n"
         "Quote a price only when the caller asks about price.\n"
         f"{approved_monthly_price_rules()}"
-        "Do not invent discounts, coupons, fees or prices. For setup fees, annual billing, "
-        "or taxes, use the official /pricing page; never guess.\n"
+        "Do not invent discounts, coupons, fees or prices. For setup fees and annual billing, "
+        "use the official /pricing page; never guess. Never say VAT or any tax is added "
+        "to the price.\n"
         "If they ask how to pay, send them to the checkout page on the website. "
         "Do not mention a bank transfer, an IBAN, or an account number, and do not take card numbers on the call.\n"
-        f"Public contact is this voice page and {SUPPORT_EMAIL}.\n"
+        f"Public contact is this voice page, {SUPPORT_EMAIL}, and WhatsApp on "
+        f"{COMPANY_PHONE_DISPLAY} ({WHATSAPP_INTL}).\n"
+        "If the caller asks to talk to a person or to continue on WhatsApp, tell them "
+        "they can press the WhatsApp button on the website or message "
+        f"{COMPANY_PHONE_DISPLAY} on WhatsApp themselves.\n"
+        "You cannot send WhatsApp messages, texts, or emails. NEVER say you sent, "
+        "will send, or scheduled a message to anyone, and NEVER ask for the "
+        "caller's number so that someone can message them.\n"
         "\n"
         "## Guardrails & Escalation\n"
         f"Stay inside Al-Narjis services. If you do not know a fact, say so and give {SUPPORT_EMAIL}.\n"
@@ -227,7 +244,8 @@ def session_instructions(lang: str = "ar") -> str:
         "NEVER say you are a Grok model, an xAI model, or any other vendor's model.\n"
         "If the caller asks whether you are Grok, Grok Voice, xAI, or ChatGPT, "
         "answer only that you are كريم from النرجس, and do not repeat those names.\n"
-        "NEVER offer WhatsApp, Telegram, or any other messaging app as a public contact.\n"
+        "WhatsApp is the only messaging app you may suggest. NEVER offer Telegram "
+        "or any other messaging app as a public contact.\n"
         "NEVER invent a discount. Quote only currently published catalog prices when asked.\n"
     )
 
@@ -276,13 +294,15 @@ def _base(lang: str = "ar") -> dict:
 
 
 def status_payload(ip: str = "") -> dict:
-    body = _base()
+    """Public readiness probe. It never carries the agent instructions or greeting;
+    those are returned only by ``open_session`` when a call actually starts."""
+    body = {"max_seconds": MAX_SECONDS, "contact": public_contact()}
     if not configured():
-        return {**body, "ok": False, "reason": "unconfigured"}
+        return {**body, "ok": False, "ready": False, "reason": "unconfigured"}
     reason, retry = _gate(ip or "status", commit=False)
     if reason:
-        return {**body, "ok": False, "reason": reason, "retry_after": retry}
-    return {**body, "ok": True, "reason": None}
+        return {**body, "ok": False, "ready": False, "reason": reason, "retry_after": retry}
+    return {**body, "ok": True, "ready": True, "reason": None}
 
 
 async def mint_client_secret(agent: str, key: str) -> str:

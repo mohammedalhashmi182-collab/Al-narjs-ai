@@ -151,9 +151,9 @@ def build_spec() -> dict[str, Any]:
                 tag="Catalog",
                 summary="Subscription plans",
                 description=(
-                    "The three public plans. price is SAR per month before VAT. "
-                    "amount is the same price in halalas. VAT is not charged "
-                    "while the operator is not VAT-registered."
+                    "The three public plans. price is the final SAR price per month; "
+                    "no VAT is added (the operator is not VAT-registered). "
+                    "amount is the same price in halalas."
                 ),
                 example={
                     "packages": [{
@@ -423,7 +423,7 @@ def build_spec() -> dict[str, Any]:
                     "Whether the public voice advisor can start a call. "
                     "This call does not mint a client credential."
                 ),
-                example={"ok": False, "reason": "unconfigured", "max_seconds": 180},
+                example={"ok": False, "ready": False, "reason": "unconfigured", "max_seconds": 180},
             ),
         },
     }
@@ -439,9 +439,9 @@ def build_spec() -> dict[str, Any]:
             "version": __version__,
             "description": (
                 "Customer API for Al-Narjis AI (النرجس), the Arabic-first platform at "
-                "https://alnarjisai.com. Plans are 790, 1,490, and 2,990 SAR per month "
-                "before VAT.\n\n"
-                "واجهة العميل لمنصة النرجس. الباقات 790 و1490 و2990 ريال شهرياً قبل الضريبة.\n\n"
+                "https://alnarjisai.com. Plans are 790, 1,490, and 2,990 SAR per month, "
+                "final prices with no VAT added.\n\n"
+                "واجهة العميل لمنصة النرجس. الباقات 790 و1490 و2990 ريال شهرياً، أسعار نهائية بدون ضريبة مضافة.\n\n"
                 "Authentication is the portal session cookie after signup or a one-time "
                 "code. This API does not issue API keys. Owner, admin, webhook, and "
                 "payment-test routes are not in this document."
