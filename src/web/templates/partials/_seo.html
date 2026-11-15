@@ -6,18 +6,18 @@
 <meta name="robots" content="index,follow,max-image-preview:large">
 {% if path.startswith('/ar/') or path.startswith('/en/') %}{% set _base = path[3:] %}{% else %}{% set _base = path %}{% endif %}
 {% set _canon = '/' ~ _lang ~ _base %}
-<link rel="canonical" href="https://karmaai.online{{ _canon }}">
-<link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base }}">
-<link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base }}">
-<link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base }}">
+<link rel="canonical" href="https://alnarjisai.com{{ _canon }}">
+<link rel="alternate" hreflang="ar" href="https://alnarjisai.com/ar{{ _base }}">
+<link rel="alternate" hreflang="en" href="https://alnarjisai.com/en{{ _base }}">
+<link rel="alternate" hreflang="x-default" href="https://alnarjisai.com/ar{{ _base }}">
 <meta property="og:type" content="{{ og_type }}">
 <meta property="og:site_name" content="Al-Narjis AI">
 <meta property="og:title" content="{{ title_ar if _lang == 'ar' else title_en }}">
 <meta property="og:description" content="{{ desc_ar if _lang == 'ar' else desc_en }}">
-<meta property="og:url" content="https://karmaai.online{{ _canon }}">
+<meta property="og:url" content="https://alnarjisai.com{{ _canon }}">
 <meta property="og:locale" content="{{ 'ar_SA' if _lang == 'ar' else 'en_US' }}">
 <meta property="og:locale:alternate" content="{{ 'en_US' if _lang == 'ar' else 'ar_SA' }}">
-<meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
+<meta property="og:image" content="https://alnarjisai.com/brand/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 {% if jsonld %}<script type="application/ld+json">{{ jsonld | tojson }}</script>{% endif %}
 {% endmacro %}
