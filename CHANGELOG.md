@@ -4,7 +4,7 @@ All notable changes to Al-Narjis AI are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The public copy of these notes is [https://karmaai.online/changelog](https://karmaai.online/changelog)
+The public copy of these notes is [https://alnarjisai.com/changelog](https://alnarjisai.com/changelog)
 (Arabic at `/ar/changelog`, English at `/en/changelog`).
 
 1.0.0 is the first numbered release. The notes below are taken from git history

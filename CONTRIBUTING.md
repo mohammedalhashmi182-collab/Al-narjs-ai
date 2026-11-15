@@ -1,6 +1,6 @@
 # Contributing
 
-Al-Narjis AI is a live site. A merge to `main` deploys to https://karmaai.online.
+Al-Narjis AI is a live site. A merge to `main` deploys to https://alnarjisai.com.
 Work on a branch and open a pull request. Do not push to `main`.
 
 ## Setup

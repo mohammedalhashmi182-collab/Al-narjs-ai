@@ -1,7 +1,7 @@
 # Al-Narjis AI — working agreement for coding agents
 
 This repository is a **live production system**, not a sandbox.
-Production URL: **https://karmaai.online** · Database: PostgreSQL on Render · Channel: Telegram bot (WhatsApp Cloud API is a second, owner-enabled channel).
+Production URL: **https://alnarjisai.com** · Database: PostgreSQL on Render · Channel: Telegram bot (WhatsApp Cloud API is a second, owner-enabled channel).
 
 Any commit that lands on `main` **deploys to production within a minute** (Render auto-deploy).
 
@@ -59,14 +59,14 @@ For local coding agents only, `opencode.json` exposes the optional **Genspark LL
 - New pages must include: a link to the live voice agent, the company email, a working mobile CTA, and matching `privacy.html` / `data_deletion.html` policy text. Public WhatsApp contact belongs on the landing, contact and voice pages.
 - **No dead CTAs.** No `href="#"` on public pages, no invented numbers. Agent counts, prices, and plan names are rendered from `src/services/catalog.py` (never hard-coded), and the landing page reads the live registry count.
 - New public pages reuse the SEO head macro: `{% import "partials/_seo.html" as seo with context %}` then `seo.head(title_ar, title_en, desc_ar, desc_en, request.url.path, og_type, extra_head)`. Note `with context` is required, and the path must be passed explicitly.
-- SEO routes are generated in code: `src/services/seo.py` owns the sitemap, robots.txt, and the public/private path policy. `sitemap.xml` must only ever contain `https://karmaai.online/...` (apex is canonical; `www` redirects) and only paths that return 200. `tests/test_seo_surface.py` enforces both.
+- SEO routes are generated in code: `src/services/seo.py` owns the sitemap, robots.txt, and the public/private path policy. `sitemap.xml` must only ever contain `https://alnarjisai.com/...` (apex is canonical; `www` redirects) and only paths that return 200. `tests/test_seo_surface.py` enforces both.
 - Public per-agent pages live at `/ai-agent/<slug>` (built from `catalog.EMPLOYEES`). `/agents` is the owner-only console and must stay out of the sitemap.
 
 ## Deploy and operations
 
 - Render service: web service on `main` with auto-deploy. If a deploy ends `update_failed`, the site goes fully down — re-trigger with `POST https://api.render.com/v1/services/{id}/deploys`.
 - Health probe: `GET /webhooks/telegram/health`.
-- After any change: verify with `curl -sS -o /dev/null -w "%{http_code}" https://karmaai.online/home` and the health endpoint.
+- After any change: verify with `curl -sS -o /dev/null -w "%{http_code}" https://alnarjisai.com/home` and the health endpoint.
 
 ## Communication
 
