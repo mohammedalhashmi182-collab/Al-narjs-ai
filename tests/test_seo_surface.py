@@ -159,7 +159,7 @@ def test_jsonld_is_real_json_not_escaped_text(client: TestClient) -> None:
         "/ar/blog/ai-customer-service-saudi",
     ):
         html = client.get(path).text
-        assert "<script" not in html, f"{path}: JSON-LD was HTML-escaped"
+        assert ("&" + "lt;script") not in html, f"{path}: JSON-LD was HTML-escaped"
         blocks = LD_JSON_BLOCK.findall(html)
         assert blocks, f"{path}: no ld+json block found"
         for block in blocks:
