@@ -11,7 +11,7 @@ exists — is production.
 ```
 Render services : 1  -> Al-narjs-ai-1 (web, branch main, autoDeploy yes)
 ENVIRONMENT      : production
-domains          : karmaai.online, www.karmaai.online
+domains          : alnarjisai.com, www.alnarjisai.com
 postgres/key-value/disks : 0 / 0 / 0
 ```
 
@@ -59,7 +59,7 @@ real browser journey. Those need an environment.
 | T3.1 | Separate Telegram bot and separate owner chat id | A test alert arrives in the test chat and nowhere else |
 | T3.2 | Payment gateways in **sandbox/test mode** only | `paypal_test_mode: true`; a card charge in test cannot move real money |
 | T3.3 | WhatsApp disabled on test | `/webhooks/whatsapp/health` reports not configured |
-| T3.4 | Test OAuth/redirect URLs point at the test domain | Redirects never land on `karmaai.online` |
+| T3.4 | Test OAuth/redirect URLs point at the test domain | Redirects never land on `alnarjisai.com` |
 
 ### T4 — Never contaminate production signals
 
