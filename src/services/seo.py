@@ -68,6 +68,9 @@ PUBLIC_AGENT_PREFIX = "/ai-agent"
 INTENT_PAGE = "/ai-agents-saudi-businesses"
 BLOG_PREFIX = "/blog"
 SERVICE_PREFIX = "/services"
+PACKAGE_PREFIX = "/packages"
+# Public package detail pages. Keys match catalog.PACKAGE_ORDER.
+PACKAGE_KEYS = ("bidaya", "numuw", "sharikat")
 # Public service pages. Slugs match src/services/public_services.py.
 SERVICE_SLUGS = (
     "automation",
@@ -96,6 +99,8 @@ def is_public_path(path: str) -> bool:
         return True
     if base.startswith(SERVICE_PREFIX + "/"):
         return base[len(SERVICE_PREFIX) + 1 :] in SERVICE_SLUGS
+    if base.startswith(PACKAGE_PREFIX + "/"):
+        return base[len(PACKAGE_PREFIX) + 1 :] in PACKAGE_KEYS
     return base in {p for p, _c, _pr in CORE_PAGES}
 
 
@@ -229,6 +234,8 @@ def build_sitemap(agent_slugs: list[str], articles: list[dict]) -> str:
         entries.append(_url_entry(path, changefreq, priority))
     for slug in SERVICE_SLUGS:
         entries.append(_url_entry(f"{SERVICE_PREFIX}/{slug}", "monthly", 0.8))
+    for key in PACKAGE_KEYS:
+        entries.append(_url_entry(f"{PACKAGE_PREFIX}/{key}", "weekly", 0.8))
     for slug in agent_slugs:
         entries.append(_url_entry(f"{PUBLIC_AGENT_PREFIX}/{slug}", "monthly", 0.7))
     for article in articles:

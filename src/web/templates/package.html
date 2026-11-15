@@ -10,7 +10,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if _lang == 'ar' %}{{ detail.name }} | النرجس للذكاء الاصطناعي{% else %}{{ detail.name_en }} | Al-Narjis AI{% endif %}</title>
     <meta name="description" content="{% if _lang == 'ar' %}{{ detail.tagline }}{% else %}{{ detail.tagline_en }}{% endif %}">
-    <link rel="canonical" href="https://www.karmaai.online{% if _lang == 'en' %}/en{% endif %}/packages/{{ detail.key }}">
+    <link rel="canonical" href="https://karmaai.online/{{ _lang }}/packages/{{ detail.key }}">
+    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar/packages/{{ detail.key }}">
+    <link rel="alternate" hreflang="en" href="https://karmaai.online/en/packages/{{ detail.key }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar/packages/{{ detail.key }}">
     <link rel="stylesheet" href="/static/css/app-tw.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
