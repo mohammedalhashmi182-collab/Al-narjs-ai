@@ -58,7 +58,7 @@ async def build_campaign(
     chosen = reachable[: max(1, size)]
 
     campaign = Campaign(
-        name=name or f"Karma AI Launch Batch {batch_no}",
+        name=name or f"Al-Narjis AI Launch Batch {batch_no}",
         batch_no=batch_no,
         description="First controlled outreach batch — prioritized, human-approved drafts.",
         status="ready",

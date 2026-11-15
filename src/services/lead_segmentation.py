@@ -68,7 +68,7 @@ SEGMENT_KEYWORDS: dict[str, tuple[str, ...]] = {
     ),
 }
 
-# Higher number = higher confidence/relevance for Karma AI packages.
+# Higher number = higher confidence/relevance for Al-Narjis AI packages.
 SEGMENT_RELEVANCE: dict[str, int] = {
     "ecommerce": 10,
     "retail": 10,
@@ -111,7 +111,7 @@ SEGMENT_LABELS_EN: dict[str, str] = {
     "unknown": "Unknown",
 }
 
-# Preferred Karma AI package per segment.
+# Preferred Al-Narjis AI package per segment.
 SEGMENT_PACKAGE: dict[str, str] = {
     "ecommerce": "ecommerce",
     "retail": "ecommerce",
