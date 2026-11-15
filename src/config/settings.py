@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
 
-    cors_origins: Annotated[list[str], NoDecode] = Field(default=["https://karmaai.online", "https://www.karmaai.online", "http://localhost:3000", "http://localhost:8000"], alias="CORS_ORIGINS")
+    cors_origins: Annotated[list[str], NoDecode] = Field(default=["https://alnarjisai.com", "https://www.alnarjisai.com", "https://karmaai.online", "https://www.karmaai.online", "http://localhost:3000", "http://localhost:8000"], alias="CORS_ORIGINS")
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -82,8 +82,8 @@ class Settings(BaseSettings):
             return [part.strip() for part in text.split(",") if part.strip()]
         return value
 
-    domain: str = Field(default="karmaai.online", alias="DOMAIN")
-    www_domain: str = Field(default="www.karmaai.online", alias="WWW_DOMAIN")
+    domain: str = Field(default="alnarjisai.com", alias="DOMAIN")
+    www_domain: str = Field(default="www.alnarjisai.com", alias="WWW_DOMAIN")
 
     scheduler_timezone: str = Field(default="UTC", alias="SCHEDULER_TIMEZONE")
     scheduler_max_instances: int = Field(default=1, alias="SCHEDULER_MAX_INSTANCES")
@@ -104,7 +104,7 @@ class Settings(BaseSettings):
     test_payment_token: str | None = Field(default=None, alias="TEST_PAYMENT_TOKEN")
     payment_success_url: str = Field(default="/payment/success", alias="PAYMENT_SUCCESS_URL")
     payment_failure_url: str = Field(default="/payment/failure", alias="PAYMENT_FAILURE_URL")
-    # Canonical public origin, e.g. https://karmaai.online. Gateway return URLs are
+    # Canonical public origin, e.g. https://alnarjisai.com. Gateway return URLs are
     # built from it so they are never http:// behind the TLS-terminating proxy.
     public_base_url: str | None = Field(default=None, alias="PUBLIC_BASE_URL")
 

@@ -62,7 +62,7 @@ def _aware(dt):
 def _base_url(base_url: str = "") -> str:
     from src.config.settings import get_settings
 
-    return (base_url or get_settings().public_base_url or "https://karmaai.online").rstrip("/")
+    return (base_url or get_settings().public_base_url or "https://alnarjisai.com").rstrip("/")
 
 
 def due_stage(period_end: datetime, now: datetime) -> Optional[str]:
