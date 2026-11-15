@@ -907,6 +907,8 @@ def _promo_info() -> dict:
 
 
 templates.env.globals["promo_info"] = _promo_info
+from src.services.seo import site_origin as _site_origin  # noqa: E402
+templates.env.globals["site_origin"] = _site_origin
 
 from src.interfaces.sales_routes import router as sales_router  # noqa: E402
 
