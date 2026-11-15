@@ -130,7 +130,7 @@ async def test_post_starts_a_one_sar_invoice_on_the_guest_webhook(monkeypatch, m
     assert payment.package == pm.MOYASAR_LIVE_TEST_PACKAGE
     assert payment.project_id is None and payment.lead_id is None
     assert payment.customer_phone is None
-    assert seen["kwargs"]["callback_url"].endswith("/webhooks/moyasar")
+    assert seen["kwargs"]["callback_url"].endswith("/webhooks/moyasar/invoice")
     assert seen["kwargs"]["success_url"].startswith("http")
     assert "/payment/moyasar-live-test/result?" in seen["kwargs"]["success_url"]
     assert "token=" not in seen["kwargs"]["success_url"]
@@ -179,6 +179,8 @@ async def test_webhook_can_mark_the_probe_paid_without_a_subscription(monkeypatc
     from src.main import app
 
     _live(monkeypatch)
+    probe_secret = "whsec_probe_unit_not_a_real_secret"
+    monkeypatch.setattr(get_settings(), "moyasar_webhook_secret", probe_secret)
     monkeypatch.setattr(app.state, "session_factory", maker, raising=False)
     async with maker() as session:
         project = ClientProject(
@@ -223,7 +225,7 @@ async def test_webhook_can_mark_the_probe_paid_without_a_subscription(monkeypatc
             "/webhooks/moyasar",
             json={
                 "type": "payment_paid",
-                "secret_token": "not-configured",
+                "secret_token": probe_secret,
                 "data": {
                     "status": "paid",
                     "amount": 1,
