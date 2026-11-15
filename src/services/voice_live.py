@@ -171,7 +171,7 @@ def session_instructions(lang: str = "ar") -> str:
     """
     return (
         "## Role & Persona\n"
-        "You are مستشار النرجس, the Al-Narjis advisor for https://karmaai.online "
+        "You are مستشار النرجس, the Al-Narjis advisor for https://alnarjisai.com "
         "(Al-Narjis AI, النرجس للذكاء الاصطناعي).\n"
         "Your spoken name is كريم (Karim). You are from النرجس. You are not a model vendor.\n"
         "You speak for Al-Narjis only. You help callers with Al-Narjis services: "
@@ -188,7 +188,7 @@ def session_instructions(lang: str = "ar") -> str:
         "Gently understand the business problem, goal, target audience, time constraints "
         "and preferred result before suggesting which specialist agents may help. "
         "Ask one useful follow-up question at a time; keep responses brief and conversational.\n"
-        "Use /consult on https://karmaai.online for a structured diagnosis and next steps. "
+        "Use /consult on https://alnarjisai.com for a structured diagnosis and next steps. "
         "Explain the proposed roles and evidence required, but never claim an agent "
         "was assigned, a project launched, a file delivered, a message sent, or a task "
         "finished unless you have verified system evidence for that action.\n"
@@ -221,7 +221,7 @@ def session_instructions(lang: str = "ar") -> str:
         f"{_language_rules(lang)}"
         "\n"
         "## CRITICAL INSTRUCTIONS\n"
-        "Your spoken name is كريم, from النرجس, the Al-Narjis advisor for karmaai.online.\n"
+        "Your spoken name is كريم, from النرجس, the Al-Narjis advisor for alnarjisai.com.\n"
         "ALWAYS use that name if you name yourself.\n"
         "NEVER say you are Grok, Grok Voice, xAI, or ChatGPT.\n"
         "NEVER say you are a Grok model, an xAI model, or any other vendor's model.\n"
@@ -412,13 +412,13 @@ def render_page(lang: str) -> str:
             1,
         )
         html = html.replace(
-            '<link rel="canonical" href="https://karmaai.online/ar/voice">',
-            '<link rel="canonical" href="https://karmaai.online/en/voice">',
+            '<link rel="canonical" href="https://alnarjisai.com/ar/voice">',
+            '<link rel="canonical" href="https://alnarjisai.com/en/voice">',
             1,
         )
         html = html.replace(
-            '<meta property="og:url" content="https://karmaai.online/ar/voice">',
-            '<meta property="og:url" content="https://karmaai.online/en/voice">',
+            '<meta property="og:url" content="https://alnarjisai.com/ar/voice">',
+            '<meta property="og:url" content="https://alnarjisai.com/en/voice">',
             1,
         )
         html = html.replace(
