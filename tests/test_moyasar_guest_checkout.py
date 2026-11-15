@@ -215,7 +215,7 @@ async def test_guest_invoice_is_refused_and_mada_redirects_to_moyasar(monkeypatc
 
     async def _initiate(session, payment, source, **kwargs):
         assert source["type"] == "creditcard"
-        assert kwargs["callback_url"].endswith("/webhooks/moyasar")
+        assert kwargs["callback_url"].endswith("/webhooks/moyasar/invoice")
         payment.gateway = "moyasar"
         payment.gateway_payment_id = "inv_redirect"
         return {"id": "inv_redirect", "checkout_url": "https://checkout.moyasar.com/invoices/inv_redirect?lang=ar"}

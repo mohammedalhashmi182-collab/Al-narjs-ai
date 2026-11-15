@@ -130,7 +130,7 @@ async def test_post_starts_a_one_sar_invoice_on_the_guest_webhook(monkeypatch, m
     assert payment.package == pm.MOYASAR_LIVE_TEST_PACKAGE
     assert payment.project_id is None and payment.lead_id is None
     assert payment.customer_phone is None
-    assert seen["kwargs"]["callback_url"].endswith("/webhooks/moyasar")
+    assert seen["kwargs"]["callback_url"].endswith("/webhooks/moyasar/invoice")
     assert seen["kwargs"]["success_url"].startswith("http")
     assert "/payment/moyasar-live-test/result?" in seen["kwargs"]["success_url"]
     assert "token=" not in seen["kwargs"]["success_url"]
