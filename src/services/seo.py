@@ -81,7 +81,7 @@ SERVICE_SLUGS = (
 
 def site_origin() -> str:
     """Canonical origin. The apex domain is canonical; www redirects to it."""
-    domain = (get_settings().domain or "karmaai.online").strip()
+    domain = (get_settings().domain or "alnarjisai.com").strip()
     domain = domain.removeprefix("https://").removeprefix("http://").strip("/")
     return f"https://{domain}"
 

@@ -40,8 +40,8 @@ def test_customer_email_does_not_sell_the_expired_code():
         assert "NARJIS50" not in blob
         assert "14 أكتوبر" not in blob
         assert plain not in blob
-    assert "https://karmaai.online/pricing" in welcome
-    assert "https://karmaai.online/pricing" in follow
+    assert "https://alnarjisai.com/pricing" in welcome
+    assert "https://alnarjisai.com/pricing" in follow
 
 
 def test_pages_render_only_the_active_language():
@@ -253,7 +253,7 @@ _EMAIL_SCAN_ROOTS = ("src", "content", "data")
 
 
 def test_retired_karmaai_contact_email_stays_out_of_product_trees():
-    """The old karmaai.online mailbox must not appear in src/, content/, or data/."""
+    """The old alnarjisai.com mailbox must not appear in src/, content/, or data/."""
     hits = []
     for name in _EMAIL_SCAN_ROOTS:
         base = ROOT / name
