@@ -116,10 +116,10 @@ def test_status_json_is_cached_and_quiet(client: TestClient) -> None:
 
 
 def test_status_host_root_opens_the_status_page() -> None:
-    assert status_host_home("status.karmaai.online", "/") == "/ar/status"
-    assert status_host_home("status.karmaai.online", "/en") == "/en/status"
-    assert status_host_home("status.karmaai.online", "/ar/home") is None
-    assert status_host_home("karmaai.online", "/") is None
+    assert status_host_home("status.alnarjisai.com", "/") == "/ar/status"
+    assert status_host_home("status.alnarjisai.com", "/en") == "/en/status"
+    assert status_host_home("status.alnarjisai.com", "/ar/home") is None
+    assert status_host_home("alnarjisai.com", "/") is None
 
 
 def test_changelog_matches_history(client: TestClient) -> None:
@@ -234,7 +234,7 @@ def test_new_pages_are_in_the_sitemap_and_bilingual(client: TestClient) -> None:
     xml = client.get("/sitemap.xml").text
     pages = ("/status", "/changelog", "/sla", "/partnerships", "/docs")
     for path in pages:
-        assert f"https://karmaai.online/ar{path}" in xml
+        assert f"https://alnarjisai.com/ar{path}" in xml
         english = client.get("/en" + path)
         arabic = client.get("/ar" + path)
         assert english.status_code == arabic.status_code == 200

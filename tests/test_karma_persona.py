@@ -1,4 +1,4 @@
-"""Guards for the KarmaAI consultant persona, silent lead extraction and the
+"""Guards for the Al-Narjis consultant persona, silent lead extraction and the
 consult-assistant lead capture helper (src/core/karma_persona.py,
 src/services/karma_lead.py).
 
@@ -26,8 +26,9 @@ def test_persona_bundles_identity_products_and_rules():
         packages_text="باقة أساسية (199 SAR/mo)",
         employees_text="مديرة السوشيال ميديا",
     )
-    assert "KarmaAI" in prompt
-    assert "karmaai.online" in prompt
+    assert "النرجس (Al-Narjis)" in prompt
+    assert "KarmaAI" not in prompt
+    assert "alnarjisai.com" in prompt
     assert "باقة أساسية (199 SAR/mo)" in prompt
     for marker in ("Automated Digital Teams", "Workflow Automation", "Custom AI Integrations"):
         assert marker in prompt
