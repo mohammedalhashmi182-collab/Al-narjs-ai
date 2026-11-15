@@ -68,7 +68,7 @@ def context_block() -> str:
         "- لا تقدم وعوداً بنسب مضمونة أو أرقام خيالية.",
         "- لا أنكر أن الأدوات أجنبية، لكن قدّم قيمة محلية.",
         "- استشهد بالهيئات فقط بشكل عام (مثل هيئة البيانات والذكاء الاصطناعي SDAIA) دون ادعاء نسب إليها.",
-        "- ختام كل قطعة: توقيع 'محمد الهاشمي' وذكر karmaai.online بشكل طبيعي.",
+        "- ختام كل قطعة: توقيع 'محمد الهاشمي' وذكر alnarjisai.com بشكل طبيعي.",
     ]
     return "\n".join(lines)
 
@@ -184,7 +184,7 @@ def generate_linkedin(theme, goal, model):
     user = f"""اكتب منشور LinkedIn طويل (300-450 كلمة) بالعربية حول هذا الموضوع الأسبوعي:
 - الموضوع: {theme}
 - الهدف: {goal}
-- الشكل: عنوان جاذب، فقرة افتتاح بالخاطف، 3 نقاط عملية مع مثال رياضي، نهاية بملخص ونعومة CTA (karmaai.online).
+- الشكل: عنوان جاذب، فقرة افتتاح بالخاطف، 3 نقاط عملية مع مثال رياضي، نهاية بملخص ونعومة CTA (alnarjisai.com).
 {context_block()}
 اكتب المنشور الآن كاملاً دون مقدمات."""
     return ask(system, user, temperature=0.8, max_tokens=2400, model=model)
@@ -214,7 +214,7 @@ def generate_video_script(theme, model):
 بالتصميم:
 - HOOK (أول 3 ثواني: جملة توقف السكرول)
 - 3 نقاط سريعة بأمثلة رياضية
-- CTA شفهي + نصي (karmaai.online)
+- CTA شفهي + نصي (alnarjisai.com)
 - أسطر الشاشة/Subtitles المقترحة والعربية
 {context_block()}"""
     return ask(system, user, temperature=0.8, max_tokens=2400, model=model)
