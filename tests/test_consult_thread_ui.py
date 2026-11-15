@@ -89,13 +89,13 @@ def test_rendered_thread_switches_direction_and_copy_label() -> None:
     ):
         assert f"<title>{title}</title>" in page
         assert f'<meta name="description" content="{desc}' in page
-        assert f'rel="canonical" href="https://karmaai.online/{lang}/consult"' in page
-        assert 'hreflang="ar" href="https://karmaai.online/ar/consult"' in page
-        assert 'hreflang="en" href="https://karmaai.online/en/consult"' in page
-        assert 'hreflang="x-default" href="https://karmaai.online/ar/consult"' in page
+        assert f'rel="canonical" href="https://alnarjisai.com/{lang}/consult"' in page
+        assert 'hreflang="ar" href="https://alnarjisai.com/ar/consult"' in page
+        assert 'hreflang="en" href="https://alnarjisai.com/en/consult"' in page
+        assert 'hreflang="x-default" href="https://alnarjisai.com/ar/consult"' in page
         assert 'property="og:title"' in page and 'property="og:description"' in page
-        assert f'property="og:url" content="https://karmaai.online/{lang}/consult"' in page
-        assert 'property="og:image" content="https://karmaai.online/brand/og-image.jpg"' in page
+        assert f'property="og:url" content="https://alnarjisai.com/{lang}/consult"' in page
+        assert 'property="og:image" content="https://alnarjisai.com/brand/og-image.jpg"' in page
         assert 'rel="manifest" href="/static/site.webmanifest"' in page
     assert 'property="og:locale" content="ar_SA"' in ar
     assert 'property="og:locale" content="en_US"' in en

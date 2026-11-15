@@ -198,7 +198,7 @@ def _provider_with(**overrides):
                 "anthropic_api_key": None,
                 "openai_base_url_default": None,
                 "code_executor_timeout": 30.0,
-                "domain": "karmaai.online",
+                "domain": "alnarjisai.com",
             }
             defaults.update(kw)
             for key, value in defaults.items():
