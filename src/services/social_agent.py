@@ -36,7 +36,7 @@ def _sar(halalas: int) -> str:
 
 
 def compose_post(theme: str, plan_key: str | None = None) -> str:
-    link = "karmaai.online"
+    link = "alnarjisai.com"
     if theme == "plan_spotlight" and plan_key in catalog.PACKAGES:
         pkg = catalog.PACKAGES[plan_key]
         return (f"باقة «{pkg['name']}» 🌟\n"
