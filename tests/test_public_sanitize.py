@@ -40,13 +40,13 @@ class FakeKB:
 
 def test_source_line_keeps_words_and_the_full_url():
     leaked = (
-        "المصدر: `src/services/catalog.py`، السعر 599 ريال، https://karmaai.online/docs/terms.pdf"
+        "المصدر: `src/services/catalog.py`، السعر 599 ريال، https://alnarjisai.com/docs/terms.pdf"
     )
     cleaned = sanitize_public_text(leaked)
     assert "src/" not in cleaned and "catalog.py" not in cleaned
     assert "599" in cleaned
-    assert cleaned.count("https://karmaai.online/docs/terms.pdf") == 1
-    assert "https://karmaai.online/." not in cleaned
+    assert cleaned.count("https://alnarjisai.com/docs/terms.pdf") == 1
+    assert "https://alnarjisai.com/." not in cleaned
     assert cleaned != ""
     assert sanitize_public_text(cleaned) == cleaned
 
@@ -54,11 +54,11 @@ def test_source_line_keeps_words_and_the_full_url():
 def test_bare_source_label_and_internal_markdown_link_are_removed():
     cleaned = sanitize_public_text(
         "Answer. Source: src/services/catalog.py\n"
-        "اقرأ [الملف](src/services/catalog.py) و [التسعير](https://karmaai.online/pricing)"
+        "اقرأ [الملف](src/services/catalog.py) و [التسعير](https://alnarjisai.com/pricing)"
     )
     assert "Source" not in cleaned
     assert "[الملف]" not in cleaned and "src/" not in cleaned
-    assert "[التسعير](https://karmaai.online/pricing)" in cleaned
+    assert "[التسعير](https://alnarjisai.com/pricing)" in cleaned
     assert sanitize_public_text(cleaned) == cleaned
 
 
@@ -73,37 +73,37 @@ def test_public_kb_and_chunks_drop_repo_paths():
     chunks = rag.chunk_markdown(raw, "data/kb/narjs_services.md")
     blob = "\n".join(c["text"] for c in chunks)
     assert "src/" not in blob and "`docs/" not in blob
-    assert "https://karmaai.online/pricing" in blob
-    assert "https://karmaai.online/refund-policy" in blob
+    assert "https://alnarjisai.com/pricing" in blob
+    assert "https://alnarjisai.com/refund-policy" in blob
     assert "وصف الخدمة في الموقع" in blob
     assert "790" in blob and "1,490" in blob and "2,990" in blob
     injected = rag.chunk_markdown(
-        "### س: سؤال؟\nج: السعر 599.\nالمصدر: `src/services/catalog.py`، https://karmaai.online/docs/terms.pdf\n",
+        "### س: سؤال؟\nج: السعر 599.\nالمصدر: `src/services/catalog.py`، https://alnarjisai.com/docs/terms.pdf\n",
         "kb.md",
     )
     text = injected[0]["text"]
     assert "src/" not in text
-    assert "https://karmaai.online/docs/terms.pdf" in text
+    assert "https://alnarjisai.com/docs/terms.pdf" in text
     assert "599" in text
 
 
 def test_link_check_is_exact():
-    hits = [{"text": "الشروط في https://karmaai.online/docs/terms.pdf", "title": "س"}]
-    assert generate.grounded("راجع https://karmaai.online/docs/terms.pdf", hits)
-    assert not generate.grounded("راجع https://karmaai.online", hits)
-    assert not generate.grounded("راجع https://karmaai.online/docs", hits)
-    assert not generate.grounded("راجع https://karmaai.online/docs/terms.pdf.evil", hits)
+    hits = [{"text": "الشروط في https://alnarjisai.com/docs/terms.pdf", "title": "س"}]
+    assert generate.grounded("راجع https://alnarjisai.com/docs/terms.pdf", hits)
+    assert not generate.grounded("راجع https://alnarjisai.com", hits)
+    assert not generate.grounded("راجع https://alnarjisai.com/docs", hits)
+    assert not generate.grounded("راجع https://alnarjisai.com/docs/terms.pdf.evil", hits)
 
 
 def test_extractive_fallback_strips_paths_and_keeps_the_url():
     hits = [{
-        "text": "الدعم 24 ساعة.\nالمصدر: `src/services/policies.py`، https://karmaai.online/docs/terms.pdf",
+        "text": "الدعم 24 ساعة.\nالمصدر: `src/services/policies.py`، https://alnarjisai.com/docs/terms.pdf",
         "title": "س",
         "score": 0.9,
     }]
     text = generate.extractive(hits)
     assert "src/" not in text and "policies.py" not in text
-    assert "https://karmaai.online/docs/terms.pdf" in text
+    assert "https://alnarjisai.com/docs/terms.pdf" in text
     assert "24 ساعة" in text
 
 
@@ -143,9 +143,9 @@ async def test_rag_reply_strips_paths_the_model_copied(monkeypatch):
 async def test_path_on_a_source_line_does_not_handoff_empty():
     chunk = (
         "ج: السعر 599 ريال.\n"
-        "المصدر: `src/services/catalog.py`، والتفاصيل https://karmaai.online/docs/terms.pdf"
+        "المصدر: `src/services/catalog.py`، والتفاصيل https://alnarjisai.com/docs/terms.pdf"
     )
-    leaked = "السعر 599 ريال. المصدر: `src/services/catalog.py`، والتفاصيل https://karmaai.online/docs/terms.pdf"
+    leaked = "السعر 599 ريال. المصدر: `src/services/catalog.py`، والتفاصيل https://alnarjisai.com/docs/terms.pdf"
     fast = FakeLLM("groq", [leaked])
     result = await router.ask(
         "كم السعر",
@@ -157,15 +157,15 @@ async def test_path_on_a_source_line_does_not_handoff_empty():
     assert router.last_handoff_reason() != "stripped_empty"
     assert "599" in result.answer
     assert "والتفاصيل" in result.answer
-    assert "https://karmaai.online/docs/terms.pdf" in result.answer
+    assert "https://alnarjisai.com/docs/terms.pdf" in result.answer
     assert "src/" not in result.answer and "catalog.py" not in result.answer
     assert "src/" not in fast.seen
-    assert "https://karmaai.online/docs/terms.pdf" in fast.seen
+    assert "https://alnarjisai.com/docs/terms.pdf" in fast.seen
 
 
 async def test_prefix_of_a_public_url_is_not_grounded():
-    chunk = "الشروط منشورة على https://karmaai.online/docs/terms.pdf"
-    fast = FakeLLM("groq", ["راجع https://karmaai.online"])
+    chunk = "الشروط منشورة على https://alnarjisai.com/docs/terms.pdf"
+    fast = FakeLLM("groq", ["راجع https://alnarjisai.com"])
     result = await router.ask(
         "وين الشروط",
         kb=FakeKB([{"text": chunk, "source": "data/kb/narjs_services.md", "score": 0.9}]),
@@ -176,7 +176,7 @@ async def test_prefix_of_a_public_url_is_not_grounded():
     assert router.last_handoff_reason() == "ungrounded"
     assert "https://" not in result.answer
 
-    fast_ok = FakeLLM("groq", ["راجع https://karmaai.online/docs/terms.pdf"])
+    fast_ok = FakeLLM("groq", ["راجع https://alnarjisai.com/docs/terms.pdf"])
     ok = await router.ask(
         "وين الشروط",
         kb=FakeKB([{"text": chunk, "source": "data/kb/narjs_services.md", "score": 0.9}]),
@@ -184,7 +184,7 @@ async def test_prefix_of_a_public_url_is_not_grounded():
         deep=FakeLLM("deep", []),
     )
     assert ok.route == "fast"
-    assert ok.answer == "راجع https://karmaai.online/docs/terms.pdf"
+    assert ok.answer == "راجع https://alnarjisai.com/docs/terms.pdf"
 
 
 async def test_session_close_timeout_finishes_in_background(monkeypatch, caplog):
@@ -233,7 +233,7 @@ def test_consult_strips_paths_and_keeps_the_exact_url(monkeypatch):
     async def _hits(_history):
         return [{
             "title": "kb:data/kb/narjs_services.md",
-            "text": "ج: الشروط على الرابط.\nالمصدر: `src/services/catalog.py`، https://karmaai.online/docs/terms.pdf",
+            "text": "ج: الشروط على الرابط.\nالمصدر: `src/services/catalog.py`، https://alnarjisai.com/docs/terms.pdf",
             "score": 0.9,
         }]
 
@@ -248,7 +248,7 @@ def test_consult_strips_paths_and_keeps_the_exact_url(monkeypatch):
         async def complete_with_fallback(self, _chain, request):
             self.requests.append(request)
             return _Resp(
-                "راجع https://karmaai.online/docs/terms.pdf المصدر: `src/services/catalog.py`"
+                "راجع https://alnarjisai.com/docs/terms.pdf المصدر: `src/services/catalog.py`"
             )
 
     model = _Model()
@@ -260,7 +260,7 @@ def test_consult_strips_paths_and_keeps_the_exact_url(monkeypatch):
     assert response.status_code == 200
     assert body.get("handoff") is None
     assert "src/" not in body["reply"] and "catalog.py" not in body["reply"]
-    assert "https://karmaai.online/docs/terms.pdf" in body["reply"]
+    assert "https://alnarjisai.com/docs/terms.pdf" in body["reply"]
     prompt = model.requests[0].system_prompt
     assert "src/" not in prompt and "data/kb/" not in prompt
-    assert "https://karmaai.online/docs/terms.pdf" in prompt
+    assert "https://alnarjisai.com/docs/terms.pdf" in prompt
