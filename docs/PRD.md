@@ -1,6 +1,6 @@
 # PRD — Al-Narjis AI: from zero revenue to first paying clients
 
-Status: **active** · Owner: Mohammed Al-Narjis · Domain: https://karmaai.online
+Status: **active** · Owner: Mohammed Al-Narjis · Domain: https://alnarjisai.com
 Last updated: 2026-10-07 · Repo: `Al-narjs-ai` · `main` = production
 
 This document is the contract for what "working" means. Everything below is

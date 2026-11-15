@@ -1,6 +1,6 @@
 # Al-Narjis Design System — ODSF v0.3
 
-Single source of truth for the visual identity of [karmaai.online](https://karmaai.online).
+Single source of truth for the visual identity of [alnarjisai.com](https://alnarjisai.com).
 `tests/test_design_system.py` enforces this file. If a test fails, fix the CSS — not the test.
 
 **ODSF v0.4** keeps Cairo as the only type family (sections 2–7 below), uses vermilion
