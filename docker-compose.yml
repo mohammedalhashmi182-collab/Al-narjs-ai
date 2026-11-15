@@ -59,7 +59,7 @@ services:
       - ENVIRONMENT=production
       - LOG_LEVEL=INFO
       - LOG_JSON=true
-      - CORS_ORIGINS=https://karmaai.online,https://www.karmaai.online,http://localhost:3000,http://localhost:8000
+      - CORS_ORIGINS=https://alnarjisai.com,https://www.alnarjisai.com,https://karmaai.online,https://www.karmaai.online,http://localhost:3000,http://localhost:8000
     ports:
       - "8000:8000"
     depends_on:

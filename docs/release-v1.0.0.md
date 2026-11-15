@@ -11,7 +11,7 @@ request is squash-merged.
 ## Summary
 
 First numbered release of Al-Narjis AI, the Arabic-first platform at
-https://karmaai.online. An AI CEO plus 39 agents, customer portal, and live
+https://alnarjisai.com. An AI CEO plus 39 agents, customer portal, and live
 Moyasar card checkout (mada, Visa, Mastercard).
 
 ## What shipped before this version number
