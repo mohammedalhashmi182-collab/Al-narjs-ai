@@ -85,19 +85,19 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     en = client.get("/en/voice")
     assert ar.status_code == en.status_code == 200
     assert 'name="robots" content="index,follow"' in ar.text
-    assert 'rel="canonical" href="https://karmaai.online/ar/voice"' in ar.text
-    assert 'rel="canonical" href="https://karmaai.online/en/voice"' in en.text
+    assert 'rel="canonical" href="https://alnarjisai.com/ar/voice"' in ar.text
+    assert 'rel="canonical" href="https://alnarjisai.com/en/voice"' in en.text
     assert 'rel="manifest" href="/static/site.webmanifest"' in ar.text
     assert 'rel="manifest" href="/static/site.webmanifest"' in en.text
     assert 'property="og:title" content="تحدّث مع مستشار النرجس"' in ar.text
     assert 'property="og:description" content="مكالمة صوتية حية مع مستشار النرجس. ثلاث دقائق كحد أقصى."' in ar.text
-    assert 'property="og:url" content="https://karmaai.online/ar/voice"' in ar.text
-    assert 'property="og:image" content="https://karmaai.online/brand/og-image.jpg"' in ar.text
+    assert 'property="og:url" content="https://alnarjisai.com/ar/voice"' in ar.text
+    assert 'property="og:image" content="https://alnarjisai.com/brand/og-image.jpg"' in ar.text
     assert 'property="og:locale" content="ar_SA"' in ar.text
     assert 'property="og:locale:alternate" content="en_US"' in ar.text
     assert 'property="og:title" content="Talk to the Al-Narjis agent"' in en.text
     assert 'property="og:description" content="A live voice call with the Al-Narjis agent. Three minutes at most."' in en.text
-    assert 'property="og:url" content="https://karmaai.online/en/voice"' in en.text
+    assert 'property="og:url" content="https://alnarjisai.com/en/voice"' in en.text
     assert 'property="og:locale" content="en_US"' in en.text
     assert 'property="og:locale:alternate" content="ar_SA"' in en.text
     assert "تحدّث مع مستشار النرجس" not in en.text
@@ -141,8 +141,8 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
 
 def test_sitemap_lists_the_voice_page(client: TestClient):
     locs = client.get("/sitemap.xml").text
-    assert "https://karmaai.online/ar/voice" in locs
-    assert "https://karmaai.online/en/voice" in locs
+    assert "https://alnarjisai.com/ar/voice" in locs
+    assert "https://alnarjisai.com/en/voice" in locs
 
 
 def test_status_stays_quiet_until_the_owner_sets_both_values():
@@ -158,7 +158,7 @@ def test_voice_instructions_name_al_narjis_and_forbid_grok():
     text = voice_live.session_instructions()
     assert "مستشار النرجس" in text
     assert "Al-Narjis advisor" in text
-    assert "https://karmaai.online" in text
+    assert "https://alnarjisai.com" in text
     assert _ANTI_GROK in text
     assert "ChatGPT" in text and "Grok Voice" in text and "xAI" in text
     assert "Saudi-friendly Arabic" in text

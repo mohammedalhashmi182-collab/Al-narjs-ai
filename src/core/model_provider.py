@@ -719,13 +719,13 @@ class ModelProvider:
             })
 
         if getattr(self.settings, "openrouter_api_key", None):
-            referer = getattr(self.settings, "domain", "karmaai.online")
+            referer = getattr(self.settings, "domain", "alnarjisai.com")
             self._clients[ModelProviderType.OPENROUTER] = OpenRouterClient({
                 "api_key": self.settings.openrouter_api_key,
                 "base_url": getattr(self.settings, "openrouter_base_url", "https://openrouter.ai/api/v1"),
                 "default_model": getattr(self.settings, "openrouter_default_model", "openai/gpt-4o-mini"),
                 "referer": f"https://{referer}",
-                "app_title": "Al-Narjis AI / KarmaAI",
+                "app_title": "Al-Narjis AI",
             })
 
         self._clients[ModelProviderType.CODE_EXECUTOR] = CodeExecutorClient({
