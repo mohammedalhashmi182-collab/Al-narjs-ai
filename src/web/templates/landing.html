@@ -11,8 +11,8 @@
     <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
-    {% set _title = "النرجس AI | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات" if ar else "Al-Narjis AI | AI CEO and Agent Team for Business Automation" %}
-    {% set _desc = "النرجس AI من الرياض: اشرح احتياج شركتك لرئيس تنفيذي ذكي، واكتشف فريق الوكلاء المناسب وخطة لأتمتة المبيعات وخدمة العملاء والتسويق." if ar else "Al-Narjis AI in Riyadh: describe your business need to an AI CEO, discover a specialist agent team, and explore a plan for sales, customer service and marketing automation." %}
+    {% set _title = "النرجس للذكاء الاصطناعي | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات" if ar else "Al-Narjis AI | AI CEO and Agent Team for Business Automation" %}
+    {% set _desc = "النرجس للذكاء الاصطناعي من الرياض: اشرح احتياج شركتك لرئيس تنفيذي ذكي، واكتشف فريق الوكلاء المناسب وخطة لأتمتة المبيعات وخدمة العملاء والتسويق." if ar else "Al-Narjis AI in Riyadh: describe your business need to an AI CEO, discover a specialist agent team, and explore a plan for sales, customer service and marketing automation." %}
     {% set _img_alt = "شعار النرجس — حلول الذكاء الاصطناعي من الرياض" if ar else "Al-Narjis logo — AI solutions from Riyadh" %}
     <title>{{ _title }}</title>
     <meta name="description" content="{{ _desc }}">
@@ -22,23 +22,23 @@
     {% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
     {% set _canon_path = '/' ~ _lang ~ _base_path %}
     {% set _city = "الرياض" if ar else "Riyadh" %}
-    <link rel="canonical" href="https://karmaai.online{{ _canon_path }}">
-    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
-    <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
-    <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base_path }}">
+    <link rel="canonical" href="https://alnarjisai.com{{ _canon_path }}">
+    <link rel="alternate" hreflang="ar" href="https://alnarjisai.com/ar{{ _base_path }}">
+    <link rel="alternate" hreflang="en" href="https://alnarjisai.com/en{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://alnarjisai.com/ar{{ _base_path }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Al-Narjis AI">
     <meta property="og:title" content="{{ _title }}">
     <meta property="og:description" content="{{ _desc }}">
-    <meta property="og:url" content="https://karmaai.online{{ _canon_path }}">
-    <meta property="og:image" content="https://karmaai.online/brand/og-image.jpg">
+    <meta property="og:url" content="https://alnarjisai.com{{ _canon_path }}">
+    <meta property="og:image" content="https://alnarjisai.com/brand/og-image.jpg">
     <meta property="og:image:alt" content="{{ _img_alt }}">
     <meta property="og:locale" content="{{ 'ar_SA' if ar else 'en_US' }}">
     <meta property="og:locale:alternate" content="{{ 'en_US' if ar else 'ar_SA' }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ _title }}">
     <meta name="twitter:description" content="{{ _desc }}">
-    <meta name="twitter:image" content="https://karmaai.online/brand/og-image.jpg">
+    <meta name="twitter:image" content="https://alnarjisai.com/brand/og-image.jpg">
     <meta name="twitter:image:alt" content="{{ _img_alt }}">
     <script type="application/ld+json">
     {
@@ -46,7 +46,7 @@
       "@type": "Organization",
       "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
       "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
-      "url": "https://karmaai.online",
+      "url": "https://alnarjisai.com",
       "legalName": {{ ("النرجس" if ar else "Al-Narjs") | tojson }},
       "foundingLocation": "Riyadh, Saudi Arabia",
       "address": {"@type": "PostalAddress", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"}
@@ -62,15 +62,15 @@
     {
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
-      "@id": "https://karmaai.online/#business",
+      "@id": "https://alnarjisai.com/#business",
       "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
       "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
       "legalName": {{ ("النرجس" if ar else "Al-Narjs") | tojson }},
-      "url": "https://karmaai.online",
+      "url": "https://alnarjisai.com",
       "description": {% if ar %}"رئيس تنفيذي ذكي يشخّص مشكلة عملك ويقود فريقاً من {{ agent_count }} وكيلاً في {{ division_count }} أقسام متخصصة."{% else %}"An AI CEO that diagnoses your business problem and leads a team of {{ agent_count }} agents across {{ division_count }} specialist departments."{% endif %},
       "inLanguage": "{{ _lang }}",
-      "image": "https://karmaai.online/brand/og-image.jpg",
-      "logo": "https://karmaai.online/brand/logo.png",
+      "image": "https://alnarjisai.com/brand/og-image.jpg",
+      "logo": "https://alnarjisai.com/brand/logo.png",
       "foundingLocation": "Riyadh, Saudi Arabia",
       "currenciesAccepted": "SAR",
       {% if payments_open() %}"paymentAccepted": "{% if paypal_checkout_open() and card_checkout_open() %}Card, PayPal{% elif paypal_checkout_open() %}PayPal{% else %}Credit card{% endif %}",{% endif %}
@@ -83,14 +83,14 @@
         "name": {{ ("خدمات النرجس" if ar else "Al-Narjis services") | tojson }},
         "itemListElement": [
           {% for svc in services %}
-          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": {{ (svc.name_ar if ar else svc.name_en) | tojson }}, "url": "https://karmaai.online/{{ _lang }}/services/{{ svc.slug }}"}}{% if not loop.last %},{% endif %}
+          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": {{ (svc.name_ar if ar else svc.name_en) | tojson }}, "url": "https://alnarjisai.com/{{ _lang }}/services/{{ svc.slug }}"}}{% if not loop.last %},{% endif %}
           {% endfor %}
         ]
       }
     }
     </script>
     <script type="application/ld+json">
-    {"@context": "https://schema.org", "@type": "WebSite", "name": "Al-Narjis AI", "url": "https://karmaai.online", "inLanguage": "{{ _lang }}"}
+    {"@context": "https://schema.org", "@type": "WebSite", "name": "Al-Narjis AI", "url": "https://alnarjisai.com", "inLanguage": "{{ _lang }}"}
     </script>
     <script type="application/ld+json">
     {#
@@ -100,11 +100,11 @@
     {
       "@context": "https://schema.org",
       "@type": "Person",
-      "@id": "https://karmaai.online/#founder",
+      "@id": "https://alnarjisai.com/#founder",
       "name": {{ ("كريم" if ar else "Karim") | tojson }},
       "jobTitle": {{ ("مؤسس المنصة" if ar else "Founder") | tojson }},
       "description": {% if ar %}"بدأ الفكرة على سيرفر محلي واحد بهدف جعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها، وطوّرها إلى منصة باشتراكات شهرية وفواتير."{% else %}"Started the idea on a single local server with the aim of making AI assistance available to whoever needs it, and developed it into a platform with monthly subscriptions and invoicing."{% endif %},
-      "worksFor": {"@id": "https://karmaai.online/#business"},
+      "worksFor": {"@id": "https://alnarjisai.com/#business"},
       "knowsAbout": {% if ar %}["الذكاء الاصطناعي التطبيقي", "أتمتة التسويق", "تجارة إلكترونية", "باقة وكلاء ذكاء اصطناعي"]{% else %}["Applied AI", "Marketing automation", "E-commerce", "AI agent teams"]{% endif %},
       "foundingLocation": "Riyadh, Saudi Arabia"
     }
@@ -141,7 +141,7 @@
 
 <header class="nj-nav" id="nav">
     <div class="wrap">
-        <a href="/home" class="logo"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="32" height="32"><span>{% if ar %}النرجس{% else %}Al-Narjis{% endif %} <span class="num">AI</span></span></a>
+        <a href="/home" class="logo"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="32" height="32"><span>{% if ar %}<span class="logo-txt">النرجس <span class="logo-sub">للذكاء الاصطناعي</span></span>{% else %}Al-Narjis <span class="num">AI</span>{% endif %}</span></a>
         <nav class="links" aria-label="{% if ar %}القائمة الرئيسية{% else %}Main navigation{% endif %}">
             <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
             <a href="#results">{% if ar %}نماذج النتائج{% else %}Sample results{% endif %}</a>
@@ -162,7 +162,6 @@
     <div class="wrap">
         <div class="copy">
             <div class="nj-brand-row">
-                <div class="nj-wordmark" lang="ar" dir="rtl" aria-hidden="true"><span>النرجس</span></div>
                 <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
                         <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
