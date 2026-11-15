@@ -202,7 +202,7 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
             + '</td><td>' + usageCell(c.metrics.meta_fees, true) + '</td><td>' + (c.flag === 'over' ? tag('bad', 'تجاوز 100٪') : c.flag === 'warn' ? tag('warn', 'تجاوز 80٪') : tag('ok', 'ضمن الحد')) + '</td></tr>').join('') || empty(6, 'لا يوجد استهلاك بعد');
 
         const rq = d.review_queue.by_project;
-        $('review').innerHTML = Object.keys(rq).map(k => '<li><span>' + (k === 'karma' ? 'صندوق مبيعات كارما' : esc(k)) + '</span><b>' + rq[k] + '</b></li>').join('') || '<li class="cc-mut">لا شيء بانتظار المراجعة</li>';
+        $('review').innerHTML = Object.keys(rq).map(k => '<li><span>' + (k === 'karma' ? 'صندوق مبيعات النرجس' : esc(k)) + '</span><b>' + rq[k] + '</b></li>').join('') || '<li class="cc-mut">لا شيء بانتظار المراجعة</li>';
 
         const hl = d.health;
         $('healthLine').innerHTML = 'قاعدة البيانات: ' + (hl.database ? tag('ok', 'متصلة') : tag('bad', 'متوقفة')) + ' · أخطاء آخر 24 ساعة: <b>' + hl.errors_24h + '</b> · PayPal: '
