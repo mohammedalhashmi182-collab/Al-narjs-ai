@@ -30,7 +30,7 @@ The daily renewal pass itself (`renewals.py`) is unchanged.
 | `payment_link_ar` | Utility | Arabic (ar) | payment_link | مرحباً {{1}}، هذا رابط الدفع الآمن لباقة {{2}}: {{3}} |
 | `weekly_report_ar` | Utility | Arabic (ar) | weekly_report | مرحباً {{1}}، تقريرك الأسبوعي من النرجس للذكاء الاصطناعي جاهز: {{2}} محادثة هذا الأسبوع. رد على هذه الرسالة لنرسل لك التفاصيل. |
 
-Sample values for Meta review: `{{1}}`=سارة, `{{2}}`=بيع, `{{3}}`=2026-11-01, `{{4}}`=https://karmaai.online/invoice/…
+Sample values for Meta review: `{{1}}`=سارة, `{{2}}`=بيع, `{{3}}`=2026-11-01, `{{4}}`=https://alnarjisai.com/invoice/…
 
 ## After Meta approves a template
 

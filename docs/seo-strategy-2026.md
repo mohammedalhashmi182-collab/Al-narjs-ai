@@ -1,4 +1,4 @@
-# Search strategy — karmaai.online
+# Search strategy — alnarjisai.com
 
 Written October 2026. Every ranking claim below is sourced to Google's own
 documentation or to 2026 reporting, and every recommendation is checked against
