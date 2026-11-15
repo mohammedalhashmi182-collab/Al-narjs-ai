@@ -46,6 +46,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .nj-nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:76px}
 .nj .logo{display:flex;gap:10px;align-items:center;font-weight:700;font-size:20px;white-space:nowrap}
 .nj .logo img{width:32px;height:32px;border-radius:8px;background:var(--nj-ivory);padding:2px}
+.nj .logo .logo-sub{font-weight:600}
 .nj .links{display:flex;gap:32px;font-size:15px;color:var(--nj-ivory2)}
 .nj .links a{padding:4px 0;transition:color .2s}
 .nj .links a:hover{color:var(--nj-ivory)}
@@ -409,6 +410,8 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj .svc{grid-template-columns:1fr}
   .nj .lang{padding:6px 4px}
   .nj .logo{font-size:18px}
+  .nj .logo .logo-txt{display:flex;flex-direction:column;line-height:1.15}
+  .nj .logo .logo-sub{font-size:11px;font-weight:500;opacity:.85}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
