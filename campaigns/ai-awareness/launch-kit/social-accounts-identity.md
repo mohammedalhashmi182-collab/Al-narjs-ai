@@ -20,13 +20,13 @@
 ### البايو (العربية)
 
 ```
-الباقات المنشورة تبدأ من 790 ريال شهرياً قبل الضريبة. التفاصيل ← karmaai.online/pricing
+الباقات المنشورة تبدأ من 790 ريال شهرياً قبل الضريبة. التفاصيل ← alnarjisai.com/pricing
 ```
 
 ### البايو (الإنجليزية)
 
 ```
-Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
+Published plans start at SAR 790 a month, before VAT. See alnarjisai.com/pricing
 ```
 
 ### الصورة الشخصية (Profile Photo)
@@ -57,9 +57,9 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 📊 يديرون حملاتك التسويقية
 💰 الباقات من 790 ريال شهرياً قبل الضريبة
 
-التفاصيل ← karmaai.online/pricing
+التفاصيل ← alnarjisai.com/pricing
 
-#الذكاء_الاصطناعي #السعودية #karmaai
+#الذكاء_الاصطناعي #السعودية #alnarjisai
 ```
 
 ### أول 5 تغريدات للنشر (من week-01/twitter_posts.md)
@@ -68,7 +68,7 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 ```
 هل يسرق الذكاء الاصطناعي وظيفتك؟ الخرافة شائعة، لكنه مجرد مساعد رقمي ينجز فواتير متجرك بالرياض ويرتب مهامك بسرعة وأمان.
 
-محمد الهاشمي — karmaai.online
+محمد الهاشمي — alnarjisai.com
 #الذكاء_الاصطناعي
 ```
 
@@ -76,7 +76,7 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 ```
 الذكاء الاصطناعي ليس روبوتاً خيالياً، بل أداة تقنية بسيطة تنظم مبيعات التمور أو الكافيهات لديك وفق معايير SDAIA.
 
-محمد الهاشمي — karmaai.online
+محمد الهاشمي — alnarjisai.com
 #ريادة_الأعمال
 ```
 
@@ -84,7 +84,7 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 ```
 تظن الذكاء الاصطناعي لغزاً معقداً؟ هو يطور خدمة عملائك بجادة الملك سلمان كأنه موظف خبير. جرب الإيجنتس مجاناً لشركتك.
 
-محمد الهاشمي — karmaai.online
+محمد الهاشمي — alnarjisai.com
 #السعودية
 ```
 
@@ -92,7 +92,7 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 ```
 لن تشتري الخيال! الذكاء الاصطناعي أداة عملية تختصر وقت مكتبك العقاري بالدرعية وتدعم فريقك بأمان كامل.
 
-محمد الهاشمي — karmaai.online
+محمد الهاشمي — alnarjisai.com
 #الرياض
 ```
 
@@ -100,15 +100,15 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 ```
 هل يضمن الذكاء الاصطناعي أرباحاً خيالية؟ لا، لكنه يرفع كفاءة ردود وكالة سفرك ومبيعاتك بدقة. ابدأ وتأكد بنفسك مجاناً.
 
-محمد الهاشمي — karmaai.online
-#karmaai
+محمد الهاشمي — alnarjisai.com
+#alnarjisai
 ```
 
 ### استراتيجية الهاشتاجات (Hashtags Strategy)
 
 | المجموعة | الهاشتاجات |
 |---|---|
-| **ثابتة (كل تغريدة)** | #karmaai #الذكاء_الاصطناعي |
+| **ثابتة (كل تغريدة)** | #alnarjisai #الذكاء_الاصطناعي |
 | **جغرافية (تتاجر)** | #السعودية #الرياض #رؤية_2030 |
 | **محتوى (تتاجر)** | #ريادة_الأعمال #التسويق_الرقمي #المؤسسات_الصغيرة |
 | **حملة خاصة** | #نرجس_جربها_فري |
@@ -137,18 +137,18 @@ Published plans start at SAR 790 a month, before VAT. See karmaai.online/pricing
 
 نؤمن بأن كل صاحب عمل — سواء كان يدير مقهى في جادة الملك سلمان، أو متجر تمور في الرياض، أو وكالة عقار في الدرعية — يستحق فريقاً تسويقياً ذكياً يعمل على مدار الساعة دون تكاليف ضخمة.
 
-منصتنا karmaai.online تفتح الباقة المنشورة. من أعمال الوكلاء، بلا عدد معلن لكل باقة:
+منصتنا alnarjisai.com تفتح الباقة المنشورة. من أعمال الوكلاء، بلا عدد معلن لكل باقة:
 ✍️ إيجنت كتابة المحتوى
 📊 إيجنت تحليل البيانات
 📞 إيجنت خدمة العملاء
 📱 إيجنت إدارة السوشيال ميديا
 🎯 إيجنت الحملات الإعلانية
 
-كلها تعمل باللغة العربية. الباقات المنشورة تبدأ من 790 ريال شهرياً قبل الضريبة: karmaai.online/pricing.
+كلها تعمل باللغة العربية. الباقات المنشورة تبدأ من 790 ريال شهرياً قبل الضريبة: alnarjisai.com/pricing.
 
 تأسست المنصة عام 2026 على يد محمد الهاشمي، بهدف محو الخرافات حول الذكاء الاصطناعي وتقديمه كأداة عملية يومية لأعمالنا في المنطقة.
 
-🌐 karmaai.online
+🌐 alnarjisai.com
 📧 AlNarjisai@gmail.com
 ```
 
@@ -159,18 +159,18 @@ Karma AI (Al-Narjis) is a Saudi-born platform delivering AI-powered agents to sm
 
 We believe every business owner — from a Riyadh café on King Salman Road to a dates shop in the Diplomatic Quarter or a travel agency in Diriyah — deserves a smart marketing team that works 24/7 without the overhead of a full staff.
 
-Our platform karmaai.online provides 5 pre-built AI agents:
+Our platform alnarjisai.com provides 5 pre-built AI agents:
 ✍️ Content Writer Agent
 📊 Data Analytics Agent
 📞 Customer Service Agent
 📱 Social Media Manager Agent
 🎯 Ad Campaign Agent
 
-All operate in Arabic. Published plans start at SAR 790 a month, before VAT: karmaai.online/pricing.
+All operate in Arabic. Published plans start at SAR 790 a month, before VAT: alnarjisai.com/pricing.
 
 Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and make it a daily tool for businesses in the region.
 
-🌐 karmaai.online
+🌐 alnarjisai.com
 📧 AlNarjisai@gmail.com
 ```
 
@@ -205,7 +205,7 @@ Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and mak
 إليك 3 خرافات شائعة:
 
 1️⃣ "الذكاء الاصطناعي للشركات العملاقة فقط"
-الحقيقة: منصات مثل karmaai.online توفر إيجنتس ذكية لأي متجر تمور أو مقهى في الرياض.
+الحقيقة: منصات مثل alnarjisai.com توفر إيجنتس ذكية لأي متجر تمور أو مقهى في الرياض.
 
 2️⃣ "التقنية ستقضي على الموظفين"
 الحقيقة: الإيجنتس مساعدون رقميون يساندون فريقك، لا يحلون محله.
@@ -213,9 +213,9 @@ Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and mak
 3️⃣ "هو معقد ويحتاج برمجياً"
 الحقيقة: تقدر تبدأ اليوم بدون خبرة تقنية.
 
-جرّبيها مجاناً ← karmaai.online
+جرّبيها مجاناً ← alnarjisai.com
 
-#الذكاء_الاصطناعي #السعودية #الرياض #karmaai
+#الذكاء_الاصطناعي #السعودية #الرياض #alnarjisai
 ```
 
 **منشور 2 — عملي:**
@@ -236,10 +236,10 @@ Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and mak
 🔒 الأمان أولاً
 مع مراعاة إرشادات SDAIA لحماية بيانات عملائك.
 
-النرجس (karmaai.online) — جرّبيها مجاناً
+النرجس (alnarjisai.com) — جرّبيها مجاناً
 محمد الهاشمي
 
-#ريادة_الأعمال #الذكاء_الاصطناعي #karmaai
+#ريادة_الأعمال #الذكاء_الاصطناعي #alnarjisai
 ```
 
 **منشور 3 — دعوة للتجربة:**
@@ -247,7 +247,7 @@ Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and mak
 ```
 فريقك الذكي جاهز ضمن الباقة المنشورة 🚀
 
-منصة النرجس (karmaai.online) توفر لك:
+منصة النرجس (alnarjisai.com) توفر لك:
 ✍️ إيجنت كتابة المحتوى
 📊 إيجنت تحليل البيانات
 📞 إيجنت خدمة العملاء
@@ -256,11 +256,11 @@ Founded in 2026 by Mohammed Al-Hashmi with a clear mission: demystify AI and mak
 
 كلها بالعربية. الباقات من 790 ريال شهرياً قبل الضريبة.
 
-التفاصيل ← karmaai.online/pricing
+التفاصيل ← alnarjisai.com/pricing
 
 محمد الهاشمي — مؤسس النرجس
 
-#karmaai #نرجس_جربها_فري #السعودية
+#alnarjisai #نرجس_جربها_فري #السعودية
 ```
 
 ---
