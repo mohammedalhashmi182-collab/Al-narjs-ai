@@ -17,6 +17,7 @@
     <title>{{ _title }}</title>
     <meta name="description" content="{{ _desc }}">
     <meta name="robots" content="index,follow">
+    <meta name="google-site-verification" content="HfORhUYzb2HPu9VQm7N8KzgVm6ZeIbpbYp0sXwtLBGU" />
     {% set _path = request.url.path %}
     {% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
     {% set _canon_path = '/' ~ _lang ~ _base_path %}
