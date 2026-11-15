@@ -1,4 +1,4 @@
-"""Consult-assistant lead capture (KarmaAI out-of-band ``lead_qualification``).
+"""Consult-assistant lead capture (Al-Narjis consultant out-of-band ``lead_qualification``).
 
 A lightweight companion to ``/api/leads`` used only by the Smart Consultant
 (System 2, ``/api/consult``). It mirrors the public capture pipeline (normalise →
