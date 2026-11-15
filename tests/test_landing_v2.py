@@ -116,7 +116,7 @@ def test_json_ld_parses_and_offers_follow_the_catalog(page: str) -> None:
     biz = next(d for d in data if d.get("@type") == "ProfessionalService")
     offers = biz["hasOfferCatalog"]["itemListElement"]
     urls = [o["itemOffered"]["url"] for o in offers]
-    assert urls == [f"https://karmaai.online/ar/services/{slug}" for slug in (
+    assert urls == [f"https://alnarjisai.com/ar/services/{slug}" for slug in (
         "automation", "chatbots", "graphic-design", "ui-ux-design", "content-writing", "translation",
     )]
     assert all("price" not in o for o in offers)

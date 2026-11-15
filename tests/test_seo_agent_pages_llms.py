@@ -71,7 +71,7 @@ def test_llms_txt_is_public_plain_text(client: TestClient) -> None:
     assert bare.status_code == 200
     assert bare.headers["content-type"].startswith("text/plain")
     body = bare.text
-    assert "https://karmaai.online" in body
+    assert "https://alnarjisai.com" in body
     assert "AlNarjisai@gmail.com" in body
     assert "/llms.txt" not in seo.build_sitemap([], [])
     for key in catalog.PACKAGE_ORDER:
@@ -82,7 +82,7 @@ def test_llms_txt_is_public_plain_text(client: TestClient) -> None:
     assert catalog.ADDON_AGENT["price"] in body
     assert "/en/ai-agent/social_media" in body
     robots = client.get("/robots.txt").text
-    assert "https://karmaai.online/llms.txt" in robots
+    assert "https://alnarjisai.com/llms.txt" in robots
 
 
 @pytest.mark.parametrize(

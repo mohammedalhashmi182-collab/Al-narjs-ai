@@ -27,7 +27,7 @@ def test_persona_bundles_identity_products_and_rules():
         employees_text="مديرة السوشيال ميديا",
     )
     assert "KarmaAI" in prompt
-    assert "karmaai.online" in prompt
+    assert "alnarjisai.com" in prompt
     assert "باقة أساسية (199 SAR/mo)" in prompt
     for marker in ("Automated Digital Teams", "Workflow Automation", "Custom AI Integrations"):
         assert marker in prompt
