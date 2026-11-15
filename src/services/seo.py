@@ -81,7 +81,7 @@ SERVICE_SLUGS = (
 
 def site_origin() -> str:
     """Canonical origin. The apex domain is canonical; www redirects to it."""
-    domain = (get_settings().domain or "karmaai.online").strip()
+    domain = (get_settings().domain or "alnarjisai.com").strip()
     domain = domain.removeprefix("https://").removeprefix("http://").strip("/")
     return f"https://{domain}"
 
@@ -303,7 +303,7 @@ def build_llms(employees: list[tuple[str, dict]]) -> str:
         f"- {origin}/ar/services/{slug} · {origin}/en/services/{slug}" for slug in SERVICE_SLUGS
     ]
     body = [
-        "# النرجس AI (Al-Narjis AI)",
+        "# النرجس للذكاء الاصطناعي (Al-Narjis AI)",
         "",
         f"> Arabic-first AI platform for Saudi businesses. Canonical site: {origin}",
         "",
