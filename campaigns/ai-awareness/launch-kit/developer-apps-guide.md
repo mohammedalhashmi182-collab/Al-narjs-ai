@@ -117,7 +117,7 @@ X_ACCESS_TOKEN_SECRET=<Access Token Secret>
 | **App Name** | Karma AI Social Publisher |
 | **LinkedIn Page** | النرجس للذكاء الاصطناعي \| Karma AI |
 | **Company** | النرجس للذكاء الاصطناعي \| Karma AI |
-| **Privacy policy URL** | `https://karmaai.online/privacy` |
+| **Privacy policy URL** | `https://alnarjisai.com/privacy` |
 | **App Logo** | شعار النرجس |
 
 3. اضغط **Create App** ووافق على **Terms of Service**.

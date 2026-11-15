@@ -134,7 +134,7 @@ async def run_renewals(
 
     now = _aware(now) or datetime.now(timezone.utc)
     use_gateway = False if use_gateway is None else bool(use_gateway)
-    base_url = (base_url or get_settings().public_base_url or "https://karmaai.online").rstrip("/")
+    base_url = (base_url or get_settings().public_base_url or "https://alnarjisai.com").rstrip("/")
     horizon = now + timedelta(days=max(0, int(days_before)))
 
     projects = (
