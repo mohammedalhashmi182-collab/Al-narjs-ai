@@ -143,7 +143,7 @@ def test_followup_names_the_current_plan_for_a_legacy_key(old, name):
     reminder = smart_reply.compose_followup("qualified", 0, old, None)
     assert f"«{name}»" in reminder
     assert "«»" not in reminder
-    link = smart_reply.compose_followup("payment_link_sent", 1, old, "https://karmaai.online/pay/x")
+    link = smart_reply.compose_followup("payment_link_sent", 1, old, "https://alnarjisai.com/pay/x")
     assert f"«{name}»" in link
     assert old not in link
 
@@ -440,11 +440,11 @@ async def test_generate_week_saves_drafts_idempotently(api, maker):
 
 
 async def test_setup_reports_presence_and_webhook_urls_never_values(api):
-    with _settings(meta_page_access_token="SUPER-SECRET-PAGE-TOKEN", public_base_url="https://karmaai.online"):
+    with _settings(meta_page_access_token="SUPER-SECRET-PAGE-TOKEN", public_base_url="https://alnarjisai.com"):
         r = await api.get("/api/owner/automation/setup")
     body = r.json()
     assert "SUPER-SECRET" not in r.text
     assert body["messenger"]["env"]["META_PAGE_ACCESS_TOKEN"] is True
-    assert body["whatsapp"]["webhook_url"] == "https://karmaai.online/webhooks/whatsapp"
-    assert body["telegram"]["webhook_url"] == "https://karmaai.online/webhooks/telegram"
-    assert body["messenger"]["webhook_url"] == "https://karmaai.online/webhooks/messenger"
+    assert body["whatsapp"]["webhook_url"] == "https://alnarjisai.com/webhooks/whatsapp"
+    assert body["telegram"]["webhook_url"] == "https://alnarjisai.com/webhooks/telegram"
+    assert body["messenger"]["webhook_url"] == "https://alnarjisai.com/webhooks/messenger"
