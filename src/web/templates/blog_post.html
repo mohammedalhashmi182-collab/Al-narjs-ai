@@ -16,11 +16,11 @@
   "datePublished": article.date,
   "dateModified": article.date,
   "inLanguage": _lang,
-  "mainEntityOfPage": "https://karmaai.online/" ~ _lang ~ "/blog/" ~ article.slug,
-  "image": "https://karmaai.online/brand/og-image.jpg",
+  "mainEntityOfPage": "https://alnarjisai.com/" ~ _lang ~ "/blog/" ~ article.slug,
+  "image": "https://alnarjisai.com/brand/og-image.jpg",
   "articleSection": article.category_ar if _lang == "ar" else article.category_en,
-  "author": {"@type": "Organization", "name": _publisher, "url": "https://karmaai.online"},
-  "publisher": {"@type": "Organization", "name": _publisher, "url": "https://karmaai.online", "logo": {"@type": "ImageObject", "url": "https://karmaai.online/brand/logo.png"}}
+  "author": {"@type": "Organization", "name": _publisher, "url": "https://alnarjisai.com"},
+  "publisher": {"@type": "Organization", "name": _publisher, "url": "https://alnarjisai.com", "logo": {"@type": "ImageObject", "url": "https://alnarjisai.com/brand/logo.png"}}
 } %}
 {% set _jsonld = {"@context": "https://schema.org", "@graph": [_article_ld, {"@type": "FAQPage", "mainEntity": _faq_entities}]} %}
 {% set _head = seo.head(
@@ -70,7 +70,7 @@
 <body class="luxury">
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#F6F5F4">AI</span></a>
+        <a class="brand" href="/home">النرجس <span style="color:#F6F5F4">للذكاء الاصطناعي</span></a>
         <a class="back" href="/blog">&larr; {% if _lang == 'ar' %}المدوّنة{% else %}Blog{% endif %}</a>
     </div>
 
