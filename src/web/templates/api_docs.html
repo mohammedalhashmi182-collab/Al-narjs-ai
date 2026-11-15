@@ -1,0 +1,44 @@
+{% set _lang = page_lang(request) %}
+{% set _path = request.url.path %}
+{% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
+<!DOCTYPE html>
+<html lang="{{ _lang }}" dir="{{ 'rtl' if ar else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index,follow">
+    <title>{% if ar %}واجهة النرجس البرمجية{% else %}Al-Narjis AI API{% endif %}</title>
+    <meta name="description" content="{% if ar %}مرجع واجهة العميل: الباقات، البوابة، المستشار، والدفع بالبطاقة. بلا مسارات إدارية.{% else %}Customer API reference: plans, the portal, the consultant, and card checkout. No admin routes.{% endif %}">
+    <link rel="canonical" href="https://karmaai.online/{{ _lang }}{{ _base_path }}">
+    <link rel="alternate" hreflang="ar" href="https://karmaai.online/ar{{ _base_path }}">
+    <link rel="alternate" hreflang="en" href="https://karmaai.online/en{{ _base_path }}">
+    <link rel="alternate" hreflang="x-default" href="https://karmaai.online/ar{{ _base_path }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body{margin:0;font-family:Cairo,sans-serif;background:#fff;color:#000}
+        header{padding:20px 24px;background:#000;color:#fff}
+        header a{color:#FF5A36}
+        header p{margin:8px 0 0;max-width:46rem}
+    </style>
+</head>
+<body>
+<header>
+    <a href="/home">{% if ar %}النرجس{% else %}Al-Narjis AI{% endif %}</a>
+    · <a href="/{{ 'en' if ar else 'ar' }}{{ _base_path }}">{% if ar %}English{% else %}العربية{% endif %}</a>
+    · <a href="/redoc">ReDoc</a>
+    · <a href="/openapi.json">openapi.json</a>
+    <h1>{% if ar %}واجهة العميل{% else %}Customer API{% endif %}</h1>
+    <p>{% if ar %}هذا المرجع للعميل فقط: الباقات، التسجيل في البوابة، المستشار، والدفع. مسارات المالك والإدارة والخطافات وتجربة الدفع غير موجودة هنا. لا مفاتيح API؛ الدخول جلسة البوابة. المواصفة تعمل حتى لو تعذّر تحميل الواجهة.{% else %}This reference is the customer API only: plans, portal signup, the consultant, and checkout. Owner, admin, webhook, and payment-test routes are not here. There are no API keys; access is the portal session. The spec at /openapi.json works even if this page cannot load its script.{% endif %}</p>
+</header>
+<div id="swagger-ui"></div>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>
+window.addEventListener("load", function () {
+  if (!window.SwaggerUIBundle) return;
+  window.SwaggerUIBundle({ url: "/openapi.json", dom_id: "#swagger-ui", deepLinking: true });
+});
+</script>
+</body>
+</html>

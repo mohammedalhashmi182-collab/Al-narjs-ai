@@ -71,6 +71,7 @@
     mute.setAttribute("aria-label", "Mute microphone");
     $("end").setAttribute("aria-label", "End call");
     card.setAttribute("aria-label", "Live call with the Al-Narjis agent");
+    if (vid) vid.setAttribute("aria-label", "Al-Narjis voice orb");
   }
   for (let k = 0; k < 44; k++) {
     const bar = document.createElement("i");
@@ -91,6 +92,9 @@
   let playAt = 0;
   let outLevel = 0;
   let inLevel = 0;
+  let micAnalyser = null;
+  let micTap = null;
+  let outAnalyser = null;
   let agentRow = null;
   let sessionReady = false;
   let sessionInstructions = "";
@@ -200,9 +204,33 @@
       processor.onaudioprocess = null;
       processor = null;
     }
+    if (micAnalyser) {
+      try { micAnalyser.disconnect(); } catch (error) { /* already stopped */ }
+      micAnalyser = null;
+    }
+    if (micTap) {
+      try { micTap.disconnect(); } catch (error) { /* already stopped */ }
+      micTap = null;
+    }
+    window.__voiceInAnalyser = null;
     if (micStream) {
       micStream.getTracks().forEach((track) => track.stop());
       micStream = null;
+    }
+  }
+
+  function ensureOutAnalyser() {
+    if (outAnalyser || !audioCtx || typeof audioCtx.createAnalyser !== "function") return outAnalyser;
+    try {
+      const node = audioCtx.createAnalyser();
+      node.fftSize = 1024;
+      node.smoothingTimeConstant = 0.45;
+      node.connect(audioCtx.destination);
+      outAnalyser = node;
+      window.__voiceOutAnalyser = node;
+      return node;
+    } catch (error) {
+      return null;
     }
   }
 
@@ -269,7 +297,8 @@
     outLevel = Math.min(1, Math.sqrt(energy / count) * 4);
     const source = audioCtx.createBufferSource();
     source.buffer = buffer;
-    source.connect(audioCtx.destination);
+    const tap = ensureOutAnalyser();
+    source.connect(tap || audioCtx.destination);
     const now = audioCtx.currentTime;
     const when = Math.max(now, playAt);
     source.start(when);
@@ -464,6 +493,21 @@
     source.connect(processor);
     processor.connect(muteGain);
     muteGain.connect(audioCtx.destination);
+    if (typeof audioCtx.createAnalyser === "function") {
+      try {
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.45;
+        source.connect(analyser);
+        const tap = audioCtx.createGain();
+        tap.gain.value = 0;
+        analyser.connect(tap);
+        tap.connect(audioCtx.destination);
+        micAnalyser = analyser;
+        micTap = tap;
+        window.__voiceInAnalyser = analyser;
+      } catch (error) { /* the call still sends audio without a visual tap */ }
+    }
     window.__outLvl = () => outLevel;
     window.__inLvl = () => inLevel;
   }

@@ -612,7 +612,7 @@ def test_health_ai_requires_the_owner_session(monkeypatch):
         anon = client.get("/health", params={"ai": "1"})
         owner = client.get("/health", params={"ai": "1"}, cookies={"narjis_owner": make_session_token()})
     assert plain.status_code == 200
-    assert anon.json() == plain.json() == {"status": "healthy", "version": "0.1.0"}
+    assert anon.json() == plain.json() == {"status": "healthy", "version": "1.0.0"}
     assert "ai_ask" not in anon.text
     ask = owner.json()["ai_ask"]
     assert ask["env"]["GROQ_API_KEY"] is True

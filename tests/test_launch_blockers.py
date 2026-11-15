@@ -276,19 +276,26 @@ def test_portal_only_claims_email_when_sent():
     assert "data.emailed === true" in html
 
 
-# --- 4. no API docs in production ---------------------------------------------
+# --- 4. public API docs stay filtered in production ---------------------------
 
-def test_docs_are_disabled_in_production():
+def test_docs_are_filtered_in_production():
+    """Production serves the customer spec. Owner and webhook paths stay out."""
     code = (
         "from fastapi.testclient import TestClient\n"
         "from src.main import app\n"
         "c = TestClient(app)\n"
-        "print([c.get(p).status_code for p in ('/docs', '/redoc', '/openapi.json')])\n"
+        "codes = [c.get(p).status_code for p in ('/docs', '/redoc', '/openapi.json')]\n"
+        "paths = ' '.join(c.get('/openapi.json').json().get('paths', {}))\n"
+        "leaked = [p for p in ('/api/owner', '/webhooks', '/health/deep', 'moyasar-live-test') if p in paths]\n"
+        "print(codes)\n"
+        "print(leaked)\n"
     )
     env = {**os.environ, "ENVIRONMENT": "production"}
     out = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
     assert out.returncode == 0, out.stderr[-2000:]
-    assert out.stdout.strip().splitlines()[-1] == "[404, 404, 404]"
+    lines = out.stdout.strip().splitlines()
+    assert lines[-2] == "[200, 200, 200]"
+    assert lines[-1] == "[]"
 
 
 def test_docs_stay_available_outside_production():

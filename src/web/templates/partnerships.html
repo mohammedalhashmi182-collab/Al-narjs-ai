@@ -1,0 +1,42 @@
+{% extends "partials/_simple_page.html" %}
+{% block title %}{% if ar %}الشراكات والتكاملات | النرجس للذكاء الاصطناعي{% else %}Partnerships and integrations | Al-Narjis AI{% endif %}{% endblock %}
+{% block description %}{% if ar %}تكاملات النرجس الحالية، وما زال قيد التطوير، وعرض العلامة البيضاء.{% else %}Integrations Al-Narjis runs today, what is still in development, and the white-label offer.{% endif %}{% endblock %}
+{% block extra_head %}{% include "partials/_platform_ui.html" %}{% endblock %}
+{% block h1 %}{% if ar %}الشراكات والتكاملات{% else %}Partnerships and integrations{% endif %}{% endblock %}
+{% block body %}
+<h2 class="n-title text-lg">{% if ar %}يعمل اليوم{% else %}Running today{% endif %}</h2>
+<div class="pf-grid">
+{% for item in live %}
+<article class="pf-card" data-integration="{{ item.key }}" data-status="{{ item.status }}">
+    <h3>{{ item.name }}</h3>
+    <p>{{ item.ar if ar else item.en }}</p>
+    <span class="pf-pill pf-ok">{{ item.badge_ar if ar else item.badge_en }}</span>
+</article>
+{% endfor %}
+</div>
+<h2 class="n-title text-lg">{% if ar %}قيد التطوير{% else %}In development{% endif %}</h2>
+<p>{% if ar %}هذه الربطات غير متاحة. لا موعد منشوراً لها.{% else %}These connections are not available. No date is published for them.{% endif %}</p>
+<div class="pf-grid">
+{% for item in planned %}
+<article class="pf-card" data-integration="{{ item.key }}" data-status="in_development">
+    <h3>{{ item.name }}</h3>
+    <p>{{ item.ar if ar else item.en }}</p>
+    <span class="pf-pill pf-wait">{{ item.badge_ar if ar else item.badge_en }}</span>
+</article>
+{% endfor %}
+</div>
+<h2 class="n-title text-lg">{% if ar %}العلامة البيضاء{% else %}White label{% endif %}</h2>
+<p>{% if ar %}الأسعار بالريال السعودي، بلا ضريبة مضافة في هذا العرض.{% else %}Prices are in Saudi riyal. This offer does not add VAT.{% endif %}</p>
+<div class="pf-grid">
+<article class="pf-card">
+    <h3>{% if ar %}رخصة مستضافة{% else %}Hosted license{% endif %}</h3>
+    <p>{% if ar %}إعداد {{ "{:,}".format(offer.hosted_setup) }} ريال، ثم {{ "{:,}".format(offer.hosted_monthly) }} ريال شهرياً. النرجس تستضيف النسخة باسمك.{% else %}{{ "{:,}".format(offer.hosted_setup) }} SAR setup, then {{ "{:,}".format(offer.hosted_monthly) }} SAR per month. Al-Narjis hosts the copy under your brand.{% endif %}</p>
+</article>
+<article class="pf-card">
+    <h3>{% if ar %}نسخة مستقلة بعلامتك{% else %}Standalone branded copy{% endif %}</h3>
+    <p>{% if ar %}إعداد {{ "{:,}".format(offer.standalone_setup) }} ريال. الدعم الاختياري {{ "{:,}".format(offer.standalone_support) }} ريال شهرياً.{% else %}{{ "{:,}".format(offer.standalone_setup) }} SAR setup. Optional support is {{ "{:,}".format(offer.standalone_support) }} SAR per month.{% endif %}</p>
+</article>
+</div>
+<p><a href="/contact">{% if ar %}تحدث معنا عن شراكة{% else %}Talk to us about a partnership{% endif %}</a>
+ · <a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a></p>
+{% endblock %}

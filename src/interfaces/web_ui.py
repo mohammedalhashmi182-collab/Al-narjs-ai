@@ -72,8 +72,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AI Agent System",
     description="AI Agent Automation System API",
-    version="0.1.0",
+    version="1.0.0",
     lifespan=lifespan,
+    # Production serves the filtered customer spec from src.main. This legacy
+    # app must not publish its own schema.
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 app.add_middleware(
