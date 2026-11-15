@@ -18,7 +18,7 @@
 
 1. اضغط الزر الأزرق **"+ Create"** في أعلى اليسار
 2. اختر **Objective: Traffic** (الزيارات)
-   - السبب: هدف الحملة التوعوية هو إرسال الزوار إلى karmaai.online
+   - السبب: هدف الحملة التوعوية هو إرسال الزوار إلى alnarjisai.com
 3. اضغط **Continue**
 
 ---
@@ -103,8 +103,8 @@
 
 4. **Primary Text:** انسخ النص العربي من `ad-copies.md`
 5. **Headline:** مثال: "فريق ذكي لتسويق مشروعك"
-6. **Description:** "جرّب الآن على karmaai.online"
-7. **Website URL:** `https://karmaai.online`
+6. **Description:** "جرّب الآن على alnarjisai.com"
+7. **Website URL:** `https://alnarjisai.com`
 8. **CTA Button:** **Learn More**
 
 ---
@@ -113,7 +113,7 @@
 
 يجب تفعيل الـ Pixel على موقعك لمتابعة التحويلات:
 
-### تثبيت Pixel على karmaai.online
+### تثبيت Pixel على alnarjisai.com
 
 **الطريقة 1: كود يدوي**
 1. اذهب إلى **Events Manager** في Business Manager
@@ -145,12 +145,12 @@ src="https://www.facebook.com/tr?id=1470684118222978&ev=PageView&noscript=1"/>
 
 **الطريقة 2: عبر Google Tag Manager**
 1. اذهب إلى **Events Manager** → **Custom Conversions**
-2. أنشئ custom event على رابط karmaai.online
+2. أنشئ custom event على رابط alnarjisai.com
 3. استخدم GTM لإضافة الـ Pixel code
 
 **التحقق من التثبيت:**
 - نزّل إضافة **Facebook Pixel Helper** من Chrome
-- افتح karmaai.online وتأكد أن الـ Pixel يظهر بـID: `1470684118222978`
+- افتح alnarjisai.com وتأكد أن الـ Pixel يظهر بـID: `1470684118222978`
 - يجب أن يظهر **2 fired events**: PageView + ViewContent
 
 ---
@@ -163,7 +163,7 @@ src="https://www.facebook.com/tr?id=1470684118222978&ev=PageView&noscript=1"/>
 |---|---|---|
 | **Impressions** | عدد مرات عرض الإعلان | 5,000+/شهر |
 | **Reach** | عدد الأشخاص الفريدين الذين رأوا الإعلان | 2,000+/شهر |
-| **Link Clicks** | عدد النقرات على الرابط إلى karmaai.online | 200+/شهر |
+| **Link Clicks** | عدد النقرات على الرابط إلى alnarjisai.com | 200+/شهر |
 | **CTR (Click-Through Rate)** | نسبة النقرات إلى عدد مرات العرض | 1.5%+ |
 | **Cost per Click (CPC)** | تكلفة كل نقرة بالريال | أقل من 1.5 SAR |
 | **Conversions** | عدد التسجيلات من الإعلان | 20+/شهر |
@@ -216,4 +216,4 @@ src="https://www.facebook.com/tr?id=1470684118222978&ev=PageView&noscript=1"/>
 - **Minimum Budget:** لا تنقص عن 50 SAR لكل Ad Set
 - **Frequency:** إذا وصلت تكرار الإعلان أكثر من 3 مرات للشخص الواحد، أوقفه أو غيّر الخوارزمية
 - **Creative Fatigue:** إذا انخفض CTR بنسبة 20%+، أظهر مواد إعلانية جديدة
-- **Firebase أو أي أداة تحليلات أخرى:** تأكد من تثبيتها لتتبع التحويلات من الإعلان إلى التسجيل في karmaai.online
+- **Firebase أو أي أداة تحليلات أخرى:** تأكد من تثبيتها لتتبع التحويلات من الإعلان إلى التسجيل في alnarjisai.com

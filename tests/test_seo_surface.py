@@ -32,23 +32,23 @@ def test_sitemap_only_lists_public_pages(client: TestClient) -> None:
     locs = [e.text for e in root.findall("s:url/s:loc", NS)]
     assert locs
     for loc in locs:
-        assert loc.startswith("https://karmaai.online/"), loc
+        assert loc.startswith("https://alnarjisai.com/"), loc
         assert "www." not in loc, f"www redirects to apex, must not be advertised: {loc}"
-        path = loc.replace("https://karmaai.online", "")
+        path = loc.replace("https://alnarjisai.com", "")
         assert seo.is_public_path(path), f"non-public path in sitemap: {path}"
 
 
 def test_sitemap_contains_agents_blog_and_intent(client: TestClient) -> None:
     locs = [e.text for e in ElementTree.fromstring(client.get("/sitemap.xml").text).findall("s:url/s:loc", NS)]
     for slug in catalog.EMPLOYEES:
-        assert f"https://karmaai.online/ar/ai-agent/{slug}" in locs
+        assert f"https://alnarjisai.com/ar/ai-agent/{slug}" in locs
     for article in blog_articles_1.ARTICLES:
-        assert f"https://karmaai.online/ar/blog/{article['slug']}" in locs
+        assert f"https://alnarjisai.com/ar/blog/{article['slug']}" in locs
     for slug in seo.SERVICE_SLUGS:
-        assert f"https://karmaai.online/ar/services/{slug}" in locs
-    assert "https://karmaai.online/ar/ai-agents-saudi-businesses" in locs
-    assert "https://karmaai.online/ar/home" in locs
-    assert "https://karmaai.online/home" not in locs
+        assert f"https://alnarjisai.com/ar/services/{slug}" in locs
+    assert "https://alnarjisai.com/ar/ai-agents-saudi-businesses" in locs
+    assert "https://alnarjisai.com/ar/home" in locs
+    assert "https://alnarjisai.com/home" not in locs
 
 
 def test_sitemap_hreflang_targets_exist(client: TestClient) -> None:
@@ -61,14 +61,14 @@ def test_sitemap_hreflang_targets_exist(client: TestClient) -> None:
             for link in url.findall("xhtml:link", {"s": NS["s"], "xhtml": "http://www.w3.org/1999/xhtml"})
         }
         loc = url.find("s:loc", NS).text
-        assert loc.startswith("https://karmaai.online/ar/")
+        assert loc.startswith("https://alnarjisai.com/ar/")
         assert links["ar"] == loc
         assert links["x-default"] == loc
         assert "/en/" in links["en"]
     # every alternate must resolve (localized prefixes are served by LocaleMiddleware)
     for link in alts[:60]:
         href = link.attrib["href"]
-        path = href.replace("https://karmaai.online", "")
+        path = href.replace("https://alnarjisai.com", "")
         assert client.get(path).status_code == 200, href
 
 
@@ -76,7 +76,7 @@ def test_robots_points_to_sitemap_and_hides_private(client: TestClient) -> None:
     r = client.get("/robots.txt")
     assert r.status_code == 200
     body = r.text
-    assert "Sitemap: https://karmaai.online/sitemap.xml" in body
+    assert "Sitemap: https://alnarjisai.com/sitemap.xml" in body
     for hidden in ("/portal", "/api", "/webhooks", "/acquisition", "/agents"):
         assert f"Disallow: {hidden}" in body
     assert "Disallow: /ai-agent" not in body

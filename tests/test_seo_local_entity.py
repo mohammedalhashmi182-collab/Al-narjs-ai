@@ -71,7 +71,7 @@ def test_the_local_entity_carries_the_fields_google_actually_uses(
     )
     for field in ("geo", "areaServed", "openingHoursSpecification", "address"):
         assert field in entity, f"missing {field}"
-    assert entity["@id"] == "https://karmaai.online/#business"
+    assert entity["@id"] == "https://alnarjisai.com/#business"
 
 
 def test_the_two_addresses_on_the_page_agree(client: TestClient) -> None:
@@ -121,7 +121,7 @@ def test_the_offer_catalog_lists_the_six_services_without_invented_prices(
     for offer in offers:
         assert "price" not in offer
         assert "price" not in offer["itemOffered"]
-        assert offer["itemOffered"]["url"].startswith("https://karmaai.online/ar/services/")
+        assert offer["itemOffered"]["url"].startswith("https://alnarjisai.com/ar/services/")
 
 
 def test_no_rating_is_invented(client: TestClient) -> None:
@@ -149,9 +149,9 @@ def test_a_named_person_is_published(client: TestClient) -> None:
         if b.get("@type") == "Person"
     )
     assert person["name"].strip(), "the person entity has no name"
-    assert person["@id"] == "https://karmaai.online/#founder"
+    assert person["@id"] == "https://alnarjisai.com/#founder"
     # the person must point at the business entity that exists on the page
-    assert person["worksFor"]["@id"] == "https://karmaai.online/#business"
+    assert person["worksFor"]["@id"] == "https://alnarjisai.com/#business"
     assert person["knowsAbout"], "a person entity with no subject matter says nothing"
 
 
