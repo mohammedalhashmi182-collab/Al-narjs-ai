@@ -462,7 +462,7 @@ class LocaleMiddleware:
             or path.startswith("/brand/")
             or path.startswith("/api")
             or path.startswith("/webhooks")
-            or path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico")
+            or path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico", "/googlefb84d00839a6c89c.html")
             or "/health" in path
         )
         effective = locale or cookies.get(_LOCALE_COOKIE) or _detect_accepted_language(scope)
@@ -1174,6 +1174,16 @@ async def llms_txt():
     return PlainTextResponse(
         body,
         media_type="text/plain; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/googlefb84d00839a6c89c.html", include_in_schema=False)
+async def google_site_verification():
+    """Google Search Console HTML-file verification for karmaai.online."""
+    return Response(
+        content="google-site-verification: googlefb84d00839a6c89c.html",
+        media_type="text/html; charset=utf-8",
         headers={"Cache-Control": "public, max-age=3600"},
     )
 
