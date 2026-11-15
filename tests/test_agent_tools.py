@@ -236,7 +236,7 @@ async def test_zid_read_only_fetch(monkeypatch):
 
 def test_oauth_authorize_url(monkeypatch):
     monkeypatch.setenv("SALLA_CLIENT_ID", "cid")
-    monkeypatch.setenv("SALLA_REDIRECT_URI", "https://karmaai.online/cb")
+    monkeypatch.setenv("SALLA_REDIRECT_URI", "https://alnarjisai.com/cb")
     url = store_connectors.get("salla").authorize_url("st")
     assert url.startswith("https://accounts.salla.sa/oauth2/auth?") and "client_id=cid" in url
 
