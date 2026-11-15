@@ -52,7 +52,7 @@ def main():
     # bottom logo bar
     d.rectangle((0, H - 300, W, H), fill=(17, 20, 26))
     d.text((cx, H - 240), shape("جرب مجاناً • بدون بطاقة بنكية"), font=font("Tajawal-Bold", 52), fill=(245, 245, 242), anchor="mm")
-    d.text((cx, H - 160), shape("karmaai.online"), font=font("Tajawal-Bold", 64), fill=GOLD, anchor="mm")
+    d.text((cx, H - 160), shape("alnarjisai.com"), font=font("Tajawal-Bold", 64), fill=GOLD, anchor="mm")
     os.makedirs(OUT, exist_ok=True)
     img.save(os.path.join(OUT, "endcard_cta_1080x1920.png"), "PNG")
     # also a square version for static-format fallback

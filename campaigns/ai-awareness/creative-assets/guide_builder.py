@@ -58,7 +58,7 @@ def new_canvas(color=PAPER):
 
 
 def footer(d, page, total, accent=GREEN):
-    d.text((MARGIN, H - 72), shape("النرجس للذكاء الاصطناعي  •  karmaai.online"), font=font("Tajawal-Bold", 30), fill=accent, anchor="ld")
+    d.text((MARGIN, H - 72), shape("النرجس للذكاء الاصطناعي  •  alnarjisai.com"), font=font("Tajawal-Bold", 30), fill=accent, anchor="ld")
     d.text((W - MARGIN, H - 72), shape(f"{page:02d} / {total}"), font=font("Tajawal-Regular", 30), fill=MUTED, anchor="rd")
 
 
@@ -95,7 +95,7 @@ def cta_page(d, page, total):
     bw = f2.getbbox(code)[2] + 90
     d.rounded_rectangle((W // 2 - bw / 2, 720, W // 2 + bw / 2, 850), radius=62, outline=GOLD, width=4)
     d.text((W // 2, 785), code, font=f2, fill=GOLD, anchor="mm")
-    d.text((W // 2, 950), shape("karmaai.online"), font=font("Tajawal-Bold", 72), fill=GOLD, anchor="mm")
+    d.text((W // 2, 950), shape("alnarjisai.com"), font=font("Tajawal-Bold", 72), fill=GOLD, anchor="mm")
     d.text((W // 2, 1080), shape("ما تحتاجه قوة ذكية... والدفعة التالية قرارك أنت."), font=font("Tajawal-Regular", 40), fill=(214, 210, 200), anchor="mm")
     footer(d, page, total, accent=GOLD)
     return img
