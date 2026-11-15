@@ -374,11 +374,11 @@ def service_jsonld(service: dict, lang: str) -> dict:
                 "name": name,
                 "serviceType": name,
                 "description": description,
-                "url": f"https://karmaai.online/{lang}/services/{service['slug']}",
+                "url": f"https://alnarjisai.com/{lang}/services/{service['slug']}",
                 "inLanguage": lang,
                 "provider": {
                     "@type": "ProfessionalService",
-                    "@id": "https://karmaai.online/#business",
+                    "@id": "https://alnarjisai.com/#business",
                     "name": provider_name,
                 },
                 "areaServed": AREA_SERVED,

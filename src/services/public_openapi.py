@@ -439,17 +439,17 @@ def build_spec() -> dict[str, Any]:
             "version": __version__,
             "description": (
                 "Customer API for Al-Narjis AI (النرجس), the Arabic-first platform at "
-                "https://karmaai.online. Plans are 790, 1,490, and 2,990 SAR per month "
+                "https://alnarjisai.com. Plans are 790, 1,490, and 2,990 SAR per month "
                 "before VAT.\n\n"
                 "واجهة العميل لمنصة النرجس. الباقات 790 و1490 و2990 ريال شهرياً قبل الضريبة.\n\n"
                 "Authentication is the portal session cookie after signup or a one-time "
                 "code. This API does not issue API keys. Owner, admin, webhook, and "
                 "payment-test routes are not in this document."
             ),
-            "contact": {"email": "AlNarjisai@gmail.com", "url": "https://karmaai.online/contact"},
+            "contact": {"email": "AlNarjisai@gmail.com", "url": "https://alnarjisai.com/contact"},
         },
         "servers": [
-            {"url": "https://karmaai.online", "description": "Production"},
+            {"url": "https://alnarjisai.com", "description": "Production"},
         ],
         "tags": [
             {"name": "Status", "description": "Liveness and the public status feed."},
@@ -469,7 +469,7 @@ def build_spec() -> dict[str, Any]:
                     "description": (
                         "HttpOnly session cookie set by POST /api/portal/projects or "
                         "POST /api/portal/login/verify. It is a browser session, not an "
-                        "API key. Send it only to karmaai.online."
+                        "API key. Send it only to alnarjisai.com."
                     ),
                 },
             },

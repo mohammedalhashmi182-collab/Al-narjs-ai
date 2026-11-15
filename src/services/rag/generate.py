@@ -90,8 +90,8 @@ def _links(text: str) -> set[str]:
 def grounded(reply: str, hits: list[dict], extra_facts: str = "") -> bool:
     """Every number and link in the reply appears in the sources.
 
-    Links match exactly. ``https://karmaai.online`` does not count as the
-    source link ``https://karmaai.online/docs/terms.pdf``.
+    Links match exactly. ``https://alnarjisai.com`` does not count as the
+    source link ``https://alnarjisai.com/docs/terms.pdf``.
     """
     source = (" ".join(str(h.get("text") or "") + " " + str(h.get("title") or "") for h in hits) + " " + extra_facts)
     source = source.translate(_AR_DIGITS)
