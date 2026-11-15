@@ -267,15 +267,15 @@ def test_endpoint(monkeypatch):
 def test_strip_internal_sources_keeps_public_urls():
     leaked = (
         "ج: الدعم متاح 24 ساعة.\n"
-        "المصدر: `src/services/catalog.py`، `src/web/templates/contact.html`، https://karmaai.online/docs/terms.pdf\n"
+        "المصدر: `src/services/catalog.py`، `src/web/templates/contact.html`، https://alnarjisai.com/docs/terms.pdf\n"
         "يومياً. (المصدر: س1 – خدمات النرجس)\n"
         "التفاصيل في docs/pdpl-transfer-risk-assessment.md"
     )
     cleaned = router.strip_internal_sources(leaked)
     assert "src/" not in cleaned and "pdpl-transfer" not in cleaned
     assert "catalog.py" not in cleaned and "contact.html" not in cleaned
-    assert "https://karmaai.online/docs/terms.pdf" in cleaned
-    assert "https://karmaai.online/." not in cleaned
+    assert "https://alnarjisai.com/docs/terms.pdf" in cleaned
+    assert "https://alnarjisai.com/." not in cleaned
     assert cleaned.count("https://") == 1
     assert "24 ساعة" in cleaned
     # A citation with no path is real content and stays. Only the path is removed.
@@ -286,14 +286,14 @@ def test_strip_internal_sources_keeps_public_urls():
 async def test_prompt_and_answer_omit_repo_paths():
     chunk = (
         "ج: الدعم متاح 24 ساعة طوال أيام الأسبوع عبر مساعد النرجس الذكي.\n"
-        "المصدر: `src/services/policies.py`، `src/web/templates/contact.html`، https://karmaai.online/contact"
+        "المصدر: `src/services/policies.py`، `src/web/templates/contact.html`، https://alnarjisai.com/contact"
     )
     leaked = "نعم، الدعم 24 ساعة. المصدر: `src/services/catalog.py`."
     fast = FakeLLM("groq", [leaked])
     question = "هل البوت بيحكي عربي ويرد على العملاء 24 ساعة؟"
     r = await router.ask(question, kb=FakeKB([{"text": chunk, "source": "data/kb/narjs_services.md"}]), fast=fast, deep=FakeLLM("deep", []))
     assert "src/" not in fast.seen and "policies.py" not in fast.seen and "contact.html" not in fast.seen
-    assert "https://karmaai.online/contact" in fast.seen
+    assert "https://alnarjisai.com/contact" in fast.seen
     assert "لا تذكر اسم ملف" in fast.system
     assert r.route == "fast"
     assert "24" in r.answer
