@@ -1,6 +1,6 @@
 # Runbooks
 
-Production: https://karmaai.online (Render, auto-deploys `main`). Owner alerts go
+Production: https://alnarjisai.com (Render, auto-deploys `main`). Owner alerts go
 to the Telegram War Room (`TELEGRAM_OWNER_CHAT_ID`). Never paste secrets into
 chat, tickets or commits while following these steps.
 
@@ -17,7 +17,7 @@ chat, tickets or commits while following these steps.
 
 Note: a self-check running inside the app cannot report the app being fully
 down. Add an external monitor (e.g. UptimeRobot/Better Stack free tier) on
-`https://karmaai.online/health` as well.
+`https://alnarjisai.com/health` as well.
 
 ## Failed deploy
 
