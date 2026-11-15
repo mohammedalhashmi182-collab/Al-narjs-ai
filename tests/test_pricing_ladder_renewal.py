@@ -210,7 +210,7 @@ async def test_renewal_ignores_far_and_legacy_projects(maker):
 async def test_renewal_is_a_manual_invoice(maker):
     async with maker() as s:
         await _project(s, end=NOW + timedelta(days=1))
-        out = await renewals.run_renewals(s, now=NOW, use_gateway=True, base_url="https://karmaai.online")
+        out = await renewals.run_renewals(s, now=NOW, use_gateway=True, base_url="https://alnarjisai.com")
     assert out["invoiced"][0]["gateway"] == "invoice"
     assert out["invoiced"][0]["total"] == pm.total_with_vat(out["invoiced"][0]["amount"])
 
@@ -221,13 +221,13 @@ async def test_renewal_reminder_links_only_to_consent_gated_invoice(maker):
 
     async with maker() as s:
         await _project(s, end=NOW + timedelta(days=1))
-        out = await renewals.run_renewals(s, now=NOW, use_gateway=True, base_url="https://karmaai.online")
+        out = await renewals.run_renewals(s, now=NOW, use_gateway=True, base_url="https://alnarjisai.com")
         pid = out["invoiced"][0]["payment_id"]
         msgs = (await s.execute(select(OutboundMessage))).scalars().all()
     assert msgs
     for m in msgs:
         assert "moyasar.com" not in m.text
-        assert f"https://karmaai.online/invoice/{pid}" in m.text
+        assert f"https://alnarjisai.com/invoice/{pid}" in m.text
 
 
 async def test_access_expires_only_after_the_grace_period(maker):
