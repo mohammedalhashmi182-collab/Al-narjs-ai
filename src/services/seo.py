@@ -108,7 +108,7 @@ def arabic_canonical_redirect(path: str) -> str | None:
         return None
     if path.startswith(("/static", "/brand/", "/api", "/webhooks")):
         return None
-    if path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico"):
+    if path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico", "/googlefb84d00839a6c89c.html"):
         return None
     for lang in ("ar", "en"):
         if path == f"/{lang}" or path.startswith(f"/{lang}/"):
