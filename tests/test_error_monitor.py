@@ -1,6 +1,7 @@
 """B: central exception tracking: scrubbed, deduplicated, throttled, never crashes."""
 
 import logging
+import re
 
 import httpx
 import pytest
@@ -39,7 +40,13 @@ def _leaks(text: str) -> list[str]:
         "AIzaFAKE",
         "hunter2",
     ]
-    return [n for n in needles if n in text]
+    # Digit-only needles must stand alone: a log timestamp such as
+    # "15:13:54.157371" contains "737" without leaking the CVC.
+    return [
+        n
+        for n in needles
+        if (re.search(rf"(?<!\d){n}(?!\d)", text) if n.isdigit() else n in text)
+    ]
 
 
 @pytest.fixture

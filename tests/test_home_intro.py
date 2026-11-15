@@ -55,12 +55,9 @@ def test_compact_in_page_wordmark_never_blocks_hero(browser, client, lang, width
         page.goto(f'http://testserver/{lang}/home')
         assert page.locator('#njIntro').count() == 0
         assert not page.evaluate("document.documentElement.classList.contains('nj-intro-on')")
-        logo = page.locator('.nj-wordmark')
-        assert logo.is_visible()
-        assert logo.inner_text().strip() == 'النرجس'
-        bounds = logo.bounding_box()
-        assert bounds is not None and bounds['height'] < 72, bounds
-        assert bounds['width'] < width - 20
+        # The glowing hero wordmark was removed at the owner's request.
+        assert page.locator('.nj-wordmark').count() == 0
+        assert page.locator('.nj-voice-inline').is_visible()
         page.locator('#heroCeo').click(trial=True, timeout=5000)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
     assert not errs
@@ -72,10 +69,8 @@ def test_wordmark_respects_reduced_motion(browser, client, lang):
     ctx = _ctx(browser, client, viewport={'width': 390, 'height': 844}, reduced_motion='reduce')
     page = ctx.new_page()
     page.goto(f'http://testserver/{lang}/home')
-    assert page.locator('.nj-wordmark').is_visible()
-    assert page.locator('.nj-wordmark').evaluate(
-        "(el) => getComputedStyle(el).animationName"
-    ) == 'none'
+    assert page.locator('.nj-wordmark').count() == 0
+    assert page.locator('.nj-voice-inline').is_visible()
     assert page.locator('#njIntro').count() == 0
     page.locator('#heroCeo').click(trial=True, timeout=5000)
     ctx.close()
