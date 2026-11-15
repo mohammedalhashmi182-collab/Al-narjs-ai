@@ -106,7 +106,7 @@ def _salla_env(monkeypatch):
     monkeypatch.setenv("SALLA_CLIENT_ID", "salla-cid")
     monkeypatch.setenv("SALLA_CLIENT_SECRET", "salla-csecret-do-not-log")
     monkeypatch.setenv("SALLA_WEBHOOK_SECRET", SECRET_SALLA)
-    monkeypatch.setenv("SALLA_REDIRECT_URI", "https://karmaai.online/webhooks/stores/salla/callback")
+    monkeypatch.setenv("SALLA_REDIRECT_URI", "https://alnarjisai.com/webhooks/stores/salla/callback")
 
 
 def _zid_env(monkeypatch):
@@ -114,7 +114,7 @@ def _zid_env(monkeypatch):
     monkeypatch.setenv("ZID_CLIENT_ID", "zid-cid")
     monkeypatch.setenv("ZID_CLIENT_SECRET", "zid-csecret-do-not-log")
     monkeypatch.setenv("ZID_WEBHOOK_SECRET", SECRET_ZID)
-    monkeypatch.setenv("ZID_REDIRECT_URI", "https://karmaai.online/webhooks/stores/zid/callback")
+    monkeypatch.setenv("ZID_REDIRECT_URI", "https://alnarjisai.com/webhooks/stores/zid/callback")
 
 
 async def _connect(maker, project, platform, token, *, merchant="111", authorization=None, refresh="refresh-1",

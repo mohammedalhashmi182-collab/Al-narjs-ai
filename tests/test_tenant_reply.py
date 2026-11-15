@@ -117,7 +117,7 @@ async def test_never_pitches_narjis_plans_even_on_buying_language(maker):
 
 
 def test_pitch_guard_catches_narjis_content():
-    assert tenant_reply.contains_pitch("اشترك في باقة «ردّ» عبر karmaai.online")
+    assert tenant_reply.contains_pitch("اشترك في باقة «ردّ» عبر alnarjisai.com")
     assert tenant_reply.contains_pitch("رابط الدفع {payment_url}")
     assert not tenant_reply.contains_pitch("التوصيل مجاني داخل الرياض")
 
