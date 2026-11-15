@@ -62,7 +62,7 @@ def _pitch_markers() -> list[str]:
     from src.services import catalog
 
     # Specific markers only: a customer's own KB may legitimately use common words.
-    marks = ["النرجس للذكاء", "نرجس للذكاء", "narjis ai", "al-narjis", "al-narjs", "alnarjs", "karmaai",
+    marks = ["النرجس للذكاء", "نرجس للذكاء", "narjis ai", "al-narjis", "al-narjs", "alnarjs", "karmaai", "alnarjisai",
              "{payment_url}"]
     for p in catalog.PACKAGES.values():
         for k in ("name", "name_en"):

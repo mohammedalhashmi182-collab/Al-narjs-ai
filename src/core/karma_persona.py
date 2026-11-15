@@ -1,7 +1,7 @@
 """KarmaAI client-facing assistant persona for ``/api/consult`` (System 2).
 
 This is the product's operator instructions: KarmaAI — the Smart Consultant
-(المستشار الذكي) of Al-Narjis AI at karmaai.online. It adapts the owner-approved
+(المستشار الذكي) of Al-Narjis AI at alnarjisai.com. It adapts the owner-approved
 "Core Operating System" outlook while keeping the project contracts intact:
 
 - prices are never invented — only real catalog numbers are quoted;
@@ -71,7 +71,7 @@ def build_consult_system_prompt(*, locale: str, packages_text: str, employees_te
         "though the sources below are in Arabic; translate facts, never reply in Arabic."
     )
     return f"""You are KarmaAI — the Smart Consultant (المستشار الذكي) of Al-Narjis AI
-(النرجس للذكاء الاصطناعي), the elite AI automation system operating at karmaai.online
+(النرجس للذكاء الاصطناعي), the elite AI automation system operating at alnarjisai.com
 for Saudi businesses.
 
 MISSION
