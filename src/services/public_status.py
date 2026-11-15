@@ -15,14 +15,16 @@ from sqlalchemy import text
 from src.version import __version__
 
 TTL_SECONDS = 30.0
-STATUS_HOST = "status.karmaai.online"
+STATUS_HOST = "status.alnarjisai.com"
+# The previous domain's status host keeps working during the move.
+STATUS_HOSTS = frozenset({STATUS_HOST, "status.karmaai.online"})
 
 _RANK = {"operational": 0, "degraded": 1, "outage": 2}
 
 
 def status_host_home(host: str, path: str) -> str | None:
     """Root of the status hostname opens the status page. Other paths stay put."""
-    if (host or "").rstrip(".").lower() != STATUS_HOST:
+    if (host or "").rstrip(".").lower() not in STATUS_HOSTS:
         return None
     if path in ("", "/"):
         return "/ar/status"
