@@ -43,8 +43,8 @@ def test_service_page_is_canonical_and_marked_up(client: TestClient, slug: str) 
     service = public_services.get_service(slug)
     assert service["title_ar"] in ar.text
     assert service["h1_ar"] in ar.text
-    assert f'rel="canonical" href="https://karmaai.online/ar/services/{slug}"' in ar.text
-    assert 'hreflang="x-default" href="https://karmaai.online/ar/services/' in ar.text
+    assert f'rel="canonical" href="https://alnarjisai.com/ar/services/{slug}"' in ar.text
+    assert 'hreflang="x-default" href="https://alnarjisai.com/ar/services/' in ar.text
     assert service["title_en"] in en.text
     assert "wa.me/" not in ar.text
     assert "tel:" not in ar.text and "0540799266" not in ar.text
@@ -80,7 +80,7 @@ def test_home_links_to_services_and_uses_the_supplied_meta(client: TestClient) -
     assert 'name="twitter:description" content="النرجس AI من الرياض:' in html
     assert 'property="og:image:alt" content="شعار النرجس — حلول الذكاء الاصطناعي من الرياض"' in html
     assert "<h1>النرجس — حلول الذكاء الاصطناعي وأتمتة الأعمال في السعودية</h1>" in html
-    assert 'hreflang="x-default" href="https://karmaai.online/ar/home"' in html
+    assert 'hreflang="x-default" href="https://alnarjisai.com/ar/home"' in html
 
 
 def test_blog_posts_expose_article_schema_and_a_service_link(client: TestClient) -> None:
