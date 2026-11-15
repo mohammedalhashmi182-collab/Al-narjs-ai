@@ -330,7 +330,7 @@ def _repair_locale_redirect(loc: str, locale: str, original_path: str, scope: di
         parts = urlsplit(loc)
         host = (parts.hostname or "").lower()
         request_host = _hostname_from_host_header(_first_header(scope, b"host"))
-        if host not in {request_host, "karmaai.online", "www.karmaai.online"}:
+        if host not in {request_host} | _OWN_HTTPS_HOSTS:
             return loc, False
         path_only = parts.path or "/"
         if parts.query:
@@ -702,11 +702,25 @@ class HTTPSRedirectByProxyMiddleware:
 
 # Exact hostnames we may reflect. Anything else, including a lookalike, is ignored.
 _OWN_HTTPS_HOSTS = frozenset({
+    "alnarjisai.com",
+    "www.alnarjisai.com",
+    "status.alnarjisai.com",
+    # Previous domain. Still served, and 301'd to the canonical origin by
+    # LegacyDomainRedirectMiddleware.
     "karmaai.online",
     "www.karmaai.online",
     "status.karmaai.online",
+    "n9.karmaai.online",
 })
-_CANONICAL_HTTPS_ORIGIN = "https://karmaai.online"
+_CANONICAL_HTTPS_ORIGIN = "https://alnarjisai.com"
+
+# Hosts of the previous domain. GET/HEAD there 301 to the same path and query
+# on _CANONICAL_HTTPS_ORIGIN. The status subdomain keeps its own handling.
+_LEGACY_HOSTS = frozenset({
+    "karmaai.online",
+    "www.karmaai.online",
+    "n9.karmaai.online",
+})
 
 
 def _header_safe(raw: bytes) -> bytes:
@@ -792,6 +806,71 @@ def _first_header(scope, name: bytes) -> str:
 
 
 app.add_middleware(HTTPSRedirectByProxyMiddleware)
+
+
+def _legacy_redirect_enabled() -> bool:
+    """Switch for the move: on once DOMAIN no longer names the old domain.
+
+    While Render still has DOMAIN=karmaai.online the old host is served as
+    before, so deploying this code cannot send visitors to a domain whose
+    certificate is not ready yet.
+    """
+    return (settings.domain or "").strip().rstrip(".").lower() not in _LEGACY_HOSTS
+
+
+class LegacyDomainRedirectMiddleware:
+    """301 the previous domain (karmaai.online) to https://alnarjisai.com.
+
+    Active once the DOMAIN setting is the new domain. GET and HEAD only, so
+    payment and store webhooks that still POST to the old host keep working. ``/health`` and ``/webhooks/`` are never moved.
+    Path and query are kept, percent-encoded, exactly as received.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        hostname = _hostname_from_host_header(_first_header(scope, b"host"))
+        method = (scope.get("method") or "GET").upper()
+        path = scope.get("path") or "/"
+        if (
+            hostname in _LEGACY_HOSTS
+            and _legacy_redirect_enabled()
+            and method in {"GET", "HEAD"}
+            and path != "/health"
+            and not path.startswith("/webhooks/")
+        ):
+            raw_path = scope.get("raw_path") or b""
+            if isinstance(raw_path, (bytes, bytearray)):
+                raw_path = bytes(raw_path).split(b"?", 1)[0]
+            else:
+                raw_path = b""
+            if not raw_path:
+                raw_path = quote(path, safe="/").encode("ascii")
+            location = _header_safe(raw_path)
+            if not location.startswith(b"/"):
+                location = b"/" + location
+            query = scope.get("query_string") or b""
+            if isinstance(query, (bytes, bytearray)) and query:
+                location = location + b"?" + _header_safe(bytes(query))
+            await send({
+                "type": "http.response.start",
+                "status": 301,
+                "headers": [
+                    (b"location", _CANONICAL_HTTPS_ORIGIN.encode("ascii") + location),
+                    (b"content-length", b"0"),
+                    (b"cache-control", b"public, max-age=86400"),
+                ],
+            })
+            await send({"type": "http.response.body", "body": b""})
+            return
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(LegacyDomainRedirectMiddleware)
 
 from src.utils.request_log import RequestLogMiddleware  # noqa: E402
 
@@ -1180,7 +1259,7 @@ async def llms_txt():
 
 @app.get("/googlefb84d00839a6c89c.html", include_in_schema=False)
 async def google_site_verification():
-    """Google Search Console HTML-file verification for karmaai.online."""
+    """Google Search Console HTML-file verification for alnarjisai.com."""
     return Response(
         content="google-site-verification: googlefb84d00839a6c89c.html",
         media_type="text/html; charset=utf-8",
@@ -2719,7 +2798,7 @@ def _consult_grounded(reply: str, hits: list[dict], packages_text: str, visitor_
     from src.services.rag.generate import grounded
     # No public phone or email in the grounding facts: contact is via the site
     # assistant and work is delivered by email.
-    facts = " ".join([packages_text, "https://karmaai.online", "/portal", "15",
+    facts = " ".join([packages_text, "https://alnarjisai.com", "/portal", "15",
                       repr(_cat.PACKAGES), repr(_cat.ADDON_AGENT), repr(_cat.USAGE_ADDONS),
                       repr(_cat.SETUP_GUARANTEE), str(_cat.MAX_ADDON_AGENTS),
                       _CONSULT_SMALL_NUMBERS, visitor_numbers])

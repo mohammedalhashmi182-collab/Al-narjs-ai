@@ -39,11 +39,11 @@ def jsonld(employee: dict, page: dict | None, lang: str, slug: str) -> dict:
                 "name": employee["title_ar"] if arabic else employee["title_en"],
                 "description": employee["intro_ar"] if arabic else employee["intro_en"],
                 "serviceType": employee.get("dept") if arabic else employee.get("dept_en"),
-                "url": f"https://karmaai.online/{lang}/ai-agent/{slug}",
+                "url": f"https://alnarjisai.com/{lang}/ai-agent/{slug}",
                 "provider": {
                     "@type": "Organization",
                     "name": "Al-Narjis AI",
-                    "url": "https://karmaai.online",
+                    "url": "https://alnarjisai.com",
                 },
                 "areaServed": "Saudi Arabia",
                 "availableLanguage": ["ar", "en"],
