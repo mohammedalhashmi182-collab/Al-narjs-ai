@@ -28,7 +28,7 @@ import sys
 import urllib.error
 import urllib.request
 
-DEFAULT_BASE = "https://karmaai.online"
+DEFAULT_BASE = "https://alnarjisai.com"
 PAGES = ("/home", "/early-access", "/ar/home", "/ar/early-access")
 
 INIT_RE = re.compile(r"fbq\(\s*'init'\s*,\s*'([0-9]{10,20})'\s*\)")
