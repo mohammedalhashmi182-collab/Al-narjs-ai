@@ -167,7 +167,7 @@ async def probe(chrome: str, url: str, port: int, screenshot: str | None) -> tup
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("url", nargs="?", default="https://karmaai.online/home")
+    parser.add_argument("url", nargs="?", default="https://alnarjisai.com/home")
     parser.add_argument("--screenshot", default=None, help="also save a PNG here")
     parser.add_argument("--port", type=int, default=9377)
     args = parser.parse_args()

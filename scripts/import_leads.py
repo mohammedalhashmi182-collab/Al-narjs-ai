@@ -23,7 +23,7 @@ DEFAULT_EXCEL = Path.home() / "Downloads" / "last invoices in 5 Years.xlsx"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Karma AI lead ingestion")
+    parser = argparse.ArgumentParser(description="Al-Narjis AI lead ingestion")
     parser.add_argument("--excel", default=None, help="Path to the .xlsx workbook")
     parser.add_argument("--sheets", default=None, help="Comma-separated sheet names to import")
     parser.add_argument("--campaign", type=int, default=0, help="Build a campaign batch of N leads after import")

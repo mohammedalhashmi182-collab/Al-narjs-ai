@@ -44,9 +44,9 @@ services:
       - key: TELEGRAM_WEBHOOK_SECRET
         sync: false
       - key: CORS_ORIGINS
-        value: '["https://karmaai.online","https://www.karmaai.online"]'
+        value: '["https://alnarjisai.com","https://www.alnarjisai.com","https://karmaai.online","https://www.karmaai.online"]'
       - key: DOMAIN
-        value: karmaai.online
+        value: alnarjisai.com
       - key: TIMEZONE
         value: Asia/Riyadh
 
