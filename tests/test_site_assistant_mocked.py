@@ -41,6 +41,24 @@ def client():
         yield c
 
 
+def test_consult_page_and_form_accept_a_request(client, monkeypatch):
+    mock = _MockModel()
+    monkeypatch.setattr(app.state, "model_provider", mock)
+    page = client.get("/consult", follow_redirects=False)
+    assert page.status_code in (200, 301)
+    if page.status_code == 301:
+        assert page.headers["location"].endswith("/consult")
+        page = client.get("/ar/consult")
+    assert page.status_code == 200
+    assert "karmaai.online" not in page.text
+    assert 'action="/consult"' in page.text
+    posted = client.post("/consult", data={"message": "كم سعر باقة البداية؟", "lang": "ar"})
+    assert posted.status_code == 200
+    assert "790" in posted.text
+    assert "كم سعر باقة البداية؟" in posted.text
+    assert "karmaai.online" not in posted.text
+
+
 def test_assistant_answers_with_mocked_model(client, monkeypatch):
     mock = _MockModel()
     monkeypatch.setattr(app.state, "model_provider", mock)

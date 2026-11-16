@@ -22,6 +22,10 @@ def test_home_removes_fullscreen_intro_and_keeps_small_brand_signature():
     assert "nj-cloud-arrive" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
     assert 'id="heroCeo"' in html
+    assert 'id="voiceFirst"' in html
+    assert 'id="start"' in html and "ابدأ الحديث" in html
+    assert 'id="orb"' in html
+    assert 'class="logo footer-logo"' in html
 
 
 @pytest.mark.parametrize("lang", ["ar", "en"])

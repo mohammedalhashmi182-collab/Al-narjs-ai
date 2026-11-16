@@ -12,6 +12,7 @@ from pathlib import Path
 from src.services.docgen.schema import Analysis, DocGenError, DocMeta, Narrative
 
 _FONT_DIR = Path(__file__).resolve().parent / "fonts"
+_EMBLEM = Path(__file__).resolve().parents[2] / "web" / "static" / "brand" / "alnarjis-emblem.png"
 
 
 def render_pdf(meta: DocMeta, analysis: Analysis, narrative: Narrative) -> bytes:
@@ -73,7 +74,7 @@ footer {{ margin-top: 18px; color: #57534e; font-size: 10pt; }}
 </head>
 <body>
 <header>
-  <p class="brand">النرجس للذكاء الاصطناعي</p>
+  <p class="brand"><img src="{_EMBLEM.as_uri()}" alt="" width="36" height="36"> النرجس للذكاء الاصطناعي</p>
   <h1>{html.escape(meta.title_ar)}</h1>
   <p>{html.escape(meta.agent_name_ar)} · {html.escape(meta.generated_on)}{(' · ' + client) if client else ''}</p>
 </header>

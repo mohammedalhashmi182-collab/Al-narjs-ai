@@ -44,14 +44,14 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .nj-nav{position:fixed;top:0;inset-inline:0;z-index:40;transition:background .25s,border-color .25s;border-bottom:1px solid transparent}
 .nj .nj-nav.solid{background:rgba(18,16,13,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom-color:var(--nj-line)}
 .nj .nj-nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:76px}
-.nj .logo{display:flex;gap:10px;align-items:center;font-weight:700;font-size:20px;white-space:nowrap}
+.nj .logo{display:flex;gap:10px;align-items:center;font-weight:700;font-size:20px;white-space:nowrap;flex:0 0 auto;min-width:0}
 .nj .logo img{width:32px;height:32px;border-radius:8px;background:var(--nj-ivory);padding:2px}
 .nj .logo .logo-sub{font-weight:600}
 .nj .links{display:flex;gap:32px;font-size:15px;color:var(--nj-ivory2)}
 .nj .links a{padding:4px 0;transition:color .2s}
 .nj .links a:hover{color:var(--nj-ivory)}
 .nj .links a[aria-current]{color:var(--nj-ivory);box-shadow:0 2px 0 var(--nj-accent)}
-.nj .navr{display:flex;gap:10px;align-items:center}
+.nj .navr{display:flex;gap:10px;align-items:center;flex:0 0 auto}
 .nj .navr .btn{padding:9px 18px;font-size:14px}
 .nj .lang{font-size:14px;color:var(--nj-ivory2);padding:6px 8px}
 .nj .lang:hover{color:var(--nj-ivory)}
@@ -313,6 +313,36 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .nj-footer .fl{display:flex;gap:8px 20px;flex-wrap:wrap}
 .nj .nj-footer a:hover{color:var(--nj-ivory)}
 .nj .nj-footer .svc-links{display:flex;gap:6px 18px;flex-wrap:wrap;width:100%;padding-bottom:18px;border-bottom:1px solid var(--nj-line)}
+.nj .footer-logo{margin-bottom:14px}
+.nj .vf-sticky{position:sticky;top:76px;z-index:35;margin-top:76px;background:rgba(18,16,13,.96);border-bottom:1px solid var(--nj-line);padding:12px 0}
+.nj .vf-row{display:flex;align-items:center;gap:14px}
+.nj .vf-start{min-height:52px;padding:12px 22px;font-size:18px;font-weight:800}
+.nj .vf-meta{min-width:0;flex:1}
+.nj .vf-greet{font-weight:700;line-height:1.45}
+.nj .vf-status{color:var(--nj-ivory2);font-size:14px;margin-top:2px}
+.nj .vf-chat{padding:10px 14px}
+.nj .vf-note{color:var(--nj-ivory2);font-size:14px;margin:8px 0}
+.nj #chatPanel .log{max-height:180px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.nj #chatPanel .row{display:flex;gap:8px}
+.nj #chatPanel .m{border:1px solid var(--nj-line);border-radius:12px;padding:8px 12px}
+.nj .vf-composer{display:flex;gap:8px;margin-top:8px}
+.nj .vf-composer input{flex:1;min-width:0;min-height:44px;border-radius:10px;border:1px solid var(--nj-line);background:#1b1814;color:#fff;padding:8px 12px;font:inherit}
+.nj .vf-back{display:block;margin-top:8px;background:none;border:0;color:var(--nj-ivory2);text-decoration:underline;font:inherit;cursor:pointer}
+.nj #p .incall{display:none;align-items:center;gap:10px;margin-top:8px}
+.nj #p.listening .incall,.nj #p.speaking .incall,.nj #p.connecting .incall,.nj #p.ready .incall{display:flex}
+.nj #p.voice-down #start,.nj #p.voice-down .vf-chat{display:none}
+.nj .wave{display:flex;gap:3px;height:28px;align-items:center}
+.nj .wave i{display:block;width:3px;border-radius:4px;background:#fff}
+.nj .timer{font-variant-numeric:tabular-nums}
+.nj .voice-first{padding:28px 0 12px}
+.nj .vf-stage{display:grid;grid-template-columns:1.2fr auto;gap:24px;align-items:center}
+.nj .vf-stage h2{font-size:clamp(22px,3vw,32px);line-height:1.35}
+.nj .vf-stage p{color:var(--nj-ivory2);margin-top:8px}
+.nj .vf-links{display:flex;gap:16px;flex-wrap:wrap}
+.nj .vf-links a{color:var(--nj-accent);font-weight:700}
+.nj .vf-orb{width:200px;height:200px}
+.nj .vf-orb canvas{width:100%;height:100%;display:block}
+.nj #heroCeo{scroll-margin-top:190px}
 
 /* sample dialog (demo) */
 .nj dialog{border:0;padding:0;background:transparent;max-width:min(760px,calc(100vw - 24px));width:100%;margin:auto;color:var(--nj-ivory)}
@@ -385,6 +415,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj .hc{position:static;width:auto;animation:none}
   .nj .ctas .btn,.nj .ctas .btn-sec{width:100%}
   .nj main section{padding:68px 0}
+  .nj main section.voice-first{padding:20px 0 8px}
   .nj main section.ivory{padding:64px 0}
   .nj .steps{grid-template-columns:1fr}
   .nj .step{border-inline-start:0;border-bottom:1px solid var(--nj-lineD);padding:26px 0}
@@ -412,6 +443,9 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj .logo{font-size:18px}
   .nj .logo .logo-txt{display:flex;flex-direction:column;line-height:1.15}
   .nj .logo .logo-sub{font-size:11px;font-weight:500;opacity:.85}
+  .nj .vf-row{flex-direction:column;align-items:stretch}
+  .nj .vf-stage{grid-template-columns:1fr}
+  .nj .vf-orb{width:148px;height:148px;margin-inline:auto}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}

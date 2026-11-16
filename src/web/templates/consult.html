@@ -65,6 +65,15 @@
                 {% if _lang == 'ar' %}<p>تحدث بحرية عن عملك وأسلوبك وبيئتك — سأقرأ وضعك وأرشدك لأفضل الحلول والوكلاء المناسبين.</p>{% else %}<p>Talk freely about your business, style and environment — I'll read your situation and guide you to the best solutions and agents.</p>{% endif %}
             </div>
             <div class="ct-log" id="chatBox" role="log" aria-live="polite">
+                {% if consult_error is defined and consult_error %}
+                <article class="cmsg ai ct-turn"><div class="ct-body"><div class="ct-prose"><p>{% if _lang == 'ar' %}اكتب رسالتك ثم أعد الإرسال.{% else %}Write your message, then send it again.{% endif %}</p></div></div></article>
+                {% endif %}
+                {% if consult_question is defined and consult_question %}
+                <article class="cmsg me ct-turn"><div class="ct-body"><div class="ct-prose"><p>{{ consult_question }}</p></div></div></article>
+                {% endif %}
+                {% if consult_reply is defined and consult_reply %}
+                <article class="cmsg ai ct-turn"><div class="ct-body"><div class="ct-prose"><p>{{ consult_reply }}</p></div></div></article>
+                {% endif %}
                 <article class="cmsg ai ct-turn">
                     <span class="ct-avatar" aria-hidden="true"><img src="/static/logo-dark.svg" alt="" width="28" height="28"></span>
                     <div class="ct-body">
@@ -91,7 +100,8 @@
             </div>
             <form id="composer" class="ct-composer" action="/consult" method="post">
                 <label class="ct-sr" for="msg">{% if _lang == 'ar' %}رسالتك{% else %}Your message{% endif %}</label>
-                <textarea id="msg" rows="1" placeholder="{% if _lang == 'ar' %}اكتب رسالتك…{% else %}Message the consultant…{% endif %}" autocomplete="off" dir="auto"></textarea>
+                <textarea id="msg" name="message" rows="1" placeholder="{% if _lang == 'ar' %}اكتب رسالتك…{% else %}Message the consultant…{% endif %}" autocomplete="off" dir="auto"></textarea>
+                <input type="hidden" name="lang" value="{{ _lang }}">
                 <button id="send" class="ct-send" type="submit" disabled>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><path d="M6 11l6-6 6 6"></path></svg>
                     <span class="ct-sr">{% if _lang == 'ar' %}إرسال{% else %}Send{% endif %}</span>
@@ -329,7 +339,7 @@
                     const r = await fetch('/api/consult', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ messages: history })
+                        body: JSON.stringify({ messages: history, lang: isAr() ? 'ar' : 'en' })
                     });
                     const data = await r.json();
                     typing.remove();
