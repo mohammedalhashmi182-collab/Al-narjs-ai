@@ -186,6 +186,7 @@
       start.disabled = true;
       start.textContent = T.unavailable;
       status.textContent = reason === "unconfigured" ? T.missingShort : T.limitShort;
+      card.classList.add("voice-down");
       openChat(false);
     }
   }
