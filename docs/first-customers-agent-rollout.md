@@ -23,7 +23,7 @@ OpenCode discovers project skills in `.agents/skills/<id>/SKILL.md`. Start OpenC
 Security rule: no `curl | bash`, `npx ...@latest`, or `--trust` against production credentials before reviewing and pinning a version.
 
 ## Owner-visible rollout and acceptance
-1. Read-only snapshot: acquisition funnel and actual payment outcomes, without leaking contact details.
+1. Read-only snapshot: acquisition funnel, Gmail sent/reply/bounce activity and actual payment outcomes, without leaking contact details. Gmail may show outbound sales emails even when CRM has zero `last_contacted_at`; investigate the discrepancy instead of claiming no outreach.
 2. Verify consent, relevance and contact freshness for the first five eligible prospects.
 3. Prepare five personalized drafts for owner approval; **no auto-send**.
 4. After approved contact, record delivery acknowledgements, replies, discovery, proposal and payment through existing services.
