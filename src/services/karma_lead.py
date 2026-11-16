@@ -105,9 +105,15 @@ async def capture_consult_lead(session_factory, data: dict) -> dict:
     if lead_email:
         try:
             from src.services import email_service
-            await email_service.send_welcome(lead_email, lead_name or "عميلنا العزيز")
+            sent = await email_service.send_welcome(lead_email, lead_name or "عميلنا العزيز")
+            if sent:
+                from src.services.lead_contact_record import record_acknowledged_email
+
+                async with session_factory() as session:
+                    await record_acknowledged_email(session, lead_id, kind="welcome")
+                    await session.commit()
         except Exception as e:  # noqa: BLE001
-            logger.warning("Welcome email for consult lead failed: %s", e)
+            logger.warning("Welcome email for consult lead failed: %s", type(e).__name__)
         try:
             from src.main import _schedule_lead_followups
             try:

@@ -309,12 +309,22 @@ class CompanyBrain:
                 if task:
                     promoted.append({"task_key": task["key"], "owner_agent": task["owner_agent"]})
 
+        task_runs = {"claimed": 0, "completed": 0, "escalated": 0, "failed": 0}
+        try:
+            from src.services.company_task_runner import run_queued_tasks
+
+            drained = await run_queued_tasks(self._db_session_factory, governance=self.governance)
+            task_runs = {key: int(drained.get(key) or 0) for key in task_runs}
+        except Exception as e:  # pragma: no cover - the drain must not break the loop
+            logger.warning("Company task drain failed: %s", type(e).__name__)
+
         summary = {
             "ts": datetime.now(UTC).isoformat(),
             "priority_count": len(created_opportunities),
             "opportunities": [o["key"] for o in created_opportunities],
             "promoted_tasks": promoted,
             "revenue": metrics.to_dict() if metrics is not None else None,
+            "task_runs": task_runs,
         }
         await self._record_decision(summary)
 
@@ -324,4 +334,5 @@ class CompanyBrain:
             "promoted": promoted,
             "revenue": metrics.to_dict() if metrics is not None else None,
             "snapshot": snap,
+            "task_runs": task_runs,
         }

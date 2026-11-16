@@ -153,6 +153,8 @@ async def list_tasks(request: Request, status: str | None = None, limit: int = 2
 
 @router.post("/api/tasks", dependencies=[Depends(require_owner)])
 async def create_task(request: Request, body: TaskCreate):
+    from sqlalchemy import select
+
     from src.models import Task
     from src.services.opportunity_engine import _opportunity_key
 
@@ -175,6 +177,16 @@ async def create_task(request: Request, body: TaskCreate):
         await session.commit()
         await session.refresh(task)
         return task.to_dict()
+
+
+@router.post("/api/tasks/run", dependencies=[Depends(require_owner)])
+async def run_queued_company_tasks(request: Request):
+    """Drain queued company tasks. Does not send outreach or change lead status."""
+    from src.services.company_task_runner import run_queued_tasks
+
+    brain = request.app.state.company_brain
+    governance = brain.governance if brain is not None else None
+    return await run_queued_tasks(request.app.state.session_factory, governance=governance)
 
 
 @router.patch("/api/tasks/{key}", dependencies=[Depends(require_owner)])

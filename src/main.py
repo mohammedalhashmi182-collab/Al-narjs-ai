@@ -3340,9 +3340,15 @@ async def _lead_side_effects(lead_id, email, name, alert_text: str) -> None:
         try:
             from src.services import email_service
 
-            await email_service.send_welcome(email, name or "عميلنا العزيز")
+            sent = await email_service.send_welcome(email, name or "عميلنا العزيز")
+            if sent:
+                from src.services.lead_contact_record import record_acknowledged_email
+
+                async with app.state.session_factory() as session:
+                    await record_acknowledged_email(session, lead_id, kind="welcome")
+                    await session.commit()
         except Exception as e:
-            logger.warning("Lead welcome email failed for %s: %s", lead_id, e)
+            logger.warning("Lead welcome email failed for %s: %s", lead_id, type(e).__name__)
         try:
             await _schedule_lead_followups(lead_id, email, name)
         except Exception as e:

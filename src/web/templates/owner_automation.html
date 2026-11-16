@@ -57,6 +57,11 @@ textarea{width:100%;min-height:150px;background:#0f0f13;color:var(--text);border
     <button data-s="failed">فشل الإرسال</button>
   </div>
   <section id="drafts"><div class="empty">جارٍ التحميل…</div></section>
+
+  <h2 style="margin:22px 0 8px;font-size:15px;color:var(--gold)">منشورات التواصل</h2>
+  <p class="note">الاعتماد لا ينشر. النشر يحدث فقط بعد ضغط «نشر الآن» على مسودة معتمدة، ولمنصتي لينكدإن و X عند ضبط الربط.</p>
+  <div class="actions" style="margin:8px 0 12px"><button class="btn save" id="gen-social" type="button">تجهيز مسودات الأسبوع</button></div>
+  <section id="social"><div class="empty">جارٍ التحميل…</div></section>
 </main>
 <script>
 (function () {
@@ -129,13 +134,42 @@ textarea{width:100%;min-height:150px;background:#0f0f13;color:var(--text);border
     });
   }
 
+  function renderSocial(list) {
+    var box = document.getElementById("social");
+    if (!list.length) { box.innerHTML = '<div class="empty">لا توجد مسودات. جهّز أسبوعاً ثم اعتمد ما تريد نشره.</div>'; return; }
+    box.innerHTML = list.map(function (p) {
+      var actions = "";
+      if (p.status === "draft") {
+        actions = '<button class="btn save" data-social="' + esc(p.id) + '" data-act="approve">اعتماد</button>';
+      } else if (p.status === "approved") {
+        actions = '<button class="btn approve" data-social="' + esc(p.id) + '" data-act="publish">نشر الآن</button>';
+      }
+      return '<article class="draft"><div class="meta"><span class="pill ch">' + esc(p.platform) + '</span>' +
+        '<span class="pill">' + esc(p.status) + '</span></div>' +
+        '<div class="in" style="color:var(--text)">' + esc(p.text) + '</div>' +
+        (actions ? '<div class="actions">' + actions + '</div>' : '') + '</article>';
+    }).join("");
+    box.querySelectorAll("[data-social]").forEach(function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute("data-social"), act = b.getAttribute("data-act");
+        if (act === "publish" && !confirm("سينشر هذا النص علناً على الحساب المربوط. هل تعتمد النشر؟")) { return; }
+        req("POST", API + "/social/" + id + "/" + act).then(loadSocial);
+      };
+    });
+  }
+
   function loadChannels() { return req("GET", API + "/channels").then(function (r) { renderChannels(r.modes || {}); }); }
   function loadDrafts() { return req("GET", API + "/drafts?status=" + current).then(function (r) { renderDrafts(r.drafts || []); }); }
   function loadPipeline() { return req("GET", API + "/pipeline").then(renderStages); }
+  function loadSocial() { return req("GET", API + "/social").then(function (r) { renderSocial(r.posts || []); }); }
   function refresh() {
     document.getElementById("stamp").textContent = "آخر تحديث " + new Date().toLocaleTimeString("ar-SA");
-    return Promise.all([loadChannels(), loadDrafts(), loadPipeline()]);
+    return Promise.all([loadChannels(), loadDrafts(), loadPipeline(), loadSocial()]);
   }
+
+  document.getElementById("gen-social").onclick = function () {
+    req("POST", API + "/social/generate-week").then(loadSocial);
+  };
 
   document.querySelectorAll("#tabs button").forEach(function (b) {
     b.onclick = function () {

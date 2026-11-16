@@ -143,7 +143,7 @@
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900">{% if _lang == 'ar' %}<span>المهام الموكلة</span>{% else %}<span data-inline>Tasks</span>{% endif %}</h3>
-            <span class="text-xs text-gray-500">/api/tasks</span>
+            <button type="button" id="runQueuedTasks" class="text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:#FF5A36">{% if _lang == 'ar' %}<span>تنفيذ المهام المنتظرة</span>{% else %}<span data-inline>Run queued tasks</span>{% endif %}</button>
         </div>
         <div class="p-4" style="max-height:420px;overflow-y:auto;">
             <table class="w-full">
@@ -283,7 +283,7 @@
             const ts = tasks.tasks || [];
             tb.innerHTML = ts.length ? ts.map(t => `
                 <tr class="border-t border-gray-100">
-                    <td class="py-2 pr-2"><div class="font-medium text-gray-900">${esc(t.title)}</div><div class="text-xs text-gray-400">${esc(t.department || '')} · src ${esc(t.source || '')}</div></td>
+                    <td class="py-2 pr-2"><div class="font-medium text-gray-900">${esc(t.title)}</div><div class="text-xs text-gray-400">${esc(t.department || '')} · src ${esc(t.source || '')}</div>${t.learning ? `<div class="text-xs text-gray-500 mt-1">${esc(t.learning)}</div>` : ''}</td>
                     <td class="py-2 text-gray-600">${esc(t.owner_agent || '—')}</td>
                     <td class="py-2 text-gray-500">${t.priority ?? '—'}</td>
                     <td class="py-2">${statusBadge(t.status, TASK_CLS)}</td>
@@ -348,6 +348,16 @@
     });
 
     document.getElementById('runCEO').addEventListener('click', runCEO);
+    document.getElementById('runQueuedTasks').addEventListener('click', async () => {
+        const btn = document.getElementById('runQueuedTasks');
+        btn.disabled = true;
+        try {
+            await fetch('/api/tasks/run', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+            await Promise.all([loadState(), loadLists()]);
+        } finally {
+            btn.disabled = false;
+        }
+    });
 
     loadState();
     loadLists();

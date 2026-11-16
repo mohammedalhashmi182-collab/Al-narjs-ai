@@ -157,11 +157,15 @@ class QueueWorker:
         input_data: dict,
         prompt_template: str = "default",
         priority: TaskPriority = TaskPriority.NORMAL,
-        max_retries: int = 3,
+        max_retries: int | None = None,
         timeout_seconds: int = 300,
         callback: Optional[Callable] = None,
         metadata: Optional[dict] = None,
     ) -> str:
+        if max_retries is None:
+            from src.config.settings import settings
+
+            max_retries = settings.queue_max_retries
         task = QueueTask(
             agent_slug=agent_slug,
             prompt_template=prompt_template,
