@@ -2824,6 +2824,12 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
     last_user = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
     locale = reply_locale(last_user, page_locale)
+    try:
+        from src.services.funnel_callback import note_consult_turn
+
+        await note_consult_turn(app.state.session_factory, history)
+    except Exception as exc:  # noqa: BLE001 - the reply must still be produced
+        logger.warning("consult callback skipped (%s)", type(exc).__name__)
 
     from src.services import catalog as _catalog
 
@@ -2875,12 +2881,8 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
         lead_data, reply = extract_lead(response.content)
         if lead_data:
-            import asyncio
-
             from src.services import karma_lead as _karma_lead
-            asyncio.get_running_loop().create_task(
-                _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
-            )
+            await _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
         content = sanitize_public_text(reply or response.content.strip())
         content = enforce_reply_policy(
             content, locale=locale,
@@ -3222,36 +3224,31 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     segment, _reason = classify(name)
     priority = score_lead(company_name=name, phone=phone, email=email, segment=segment)
 
+    from src.services.funnel_callback import open_website_case
+
     async with app.state.session_factory() as session:
-        lead = AcquisitionLead(
-            company_name=name or "عميل محتمل",
-            contact_name=name or None,
-            phone=phone,
-            phone_raw=(body.get("phone") or None),
+        opened = await open_website_case(
+            session,
+            name=name or None,
             email=email,
-            source="website",
+            phone=raw_phone,
+            message=message,
+            package=package,
             segment=segment,
-            suggested_package=package or suggest_package(segment),
-            lead_status="NEW",
+            segment_reason=_reason,
             priority=priority.priority,
             priority_score=priority.score,
             priority_reason=priority.reasons,
-            notes=message,
+            consent_marketing=bool(body.get("consent")),
         )
-        session.add(lead)
-        await session.flush()
-        session.add(LeadEvent(
-            lead_id=lead.id,
-            event_type="captured",
-            status_after="NEW",
-            channel="website",
-            message=message,
-        ))
+        lead = opened["lead"]
+        if lead is None:
+            raise HTTPException(400, "أدخل الاسم أو الجوال أو البريد")
         await session.commit()
-        await session.refresh(lead)
         lead_id = lead.id
         lead_email = lead.email
         lead_name = lead.contact_name or lead.company_name
+        created = bool(opened["created"])
 
     _name = body.get("name") or "عميل جديد"
     _phone = body.get("phone") or "—"
@@ -3268,11 +3265,75 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     # The visitor is answered the moment the record is committed. Welcome email,
     # follow-up scheduling and the owner alert run after the response so a slow
     # SMTP or Telegram call can never stall the public form.
-    background_tasks.add_task(
-        _lead_side_effects, lead_id, lead_email, lead_name, alert_text
-    )
+    if created:
+        background_tasks.add_task(
+            _lead_side_effects, lead_id, lead_email, lead_name, alert_text
+        )
 
-    return {"success": True, "lead_id": str(lead_id), "email_queued": bool(lead_email)}
+    return {
+        "success": True,
+        "lead_id": str(lead_id),
+        "email_queued": bool(lead_email) and created,
+        "deduped": not created,
+    }
+
+
+class ConsultCallbackRequest(BaseModel):
+    name: str = ""
+    email: str = ""
+    phone: str = ""
+    message: str = ""
+    consent: bool = False
+
+
+@app.post("/api/consult/callback", dependencies=[Depends(rate_limit_consult)])
+async def consult_callback(body: ConsultCallbackRequest):
+    """Website chat callback: one canonical lead, a next step, an owner and an SLA.
+
+    Does not send email, WhatsApp or Telegram.
+    """
+    from src.services.funnel_callback import open_callback
+    from src.services.funnel_identity import resolve_lead
+
+    async with app.state.session_factory() as session:
+        resolved = await resolve_lead(
+            session,
+            email=body.email,
+            phone=body.phone,
+            name=body.name,
+            source="consult_assistant",
+            message=(body.message or "").strip() or None,
+        )
+        lead = resolved["lead"]
+        if lead is None:
+            raise HTTPException(422, "أدخل بريداً أو جوالاً")
+        callback = await open_callback(
+            session,
+            lead,
+            source="consult_assistant",
+            consent_marketing=bool(body.consent),
+        )
+        await session.commit()
+        lead_id = lead.id
+        created = bool(resolved["created"])
+    return {"success": True, "lead_id": str(lead_id), "created": created, "callback": callback}
+
+
+@app.get("/api/owner/funnel/daily", dependencies=[Depends(require_owner_api)])
+async def owner_funnel_daily(day: Optional[str] = None):
+    """Read-only counts for one UTC day. No message bodies and no customer names."""
+    from datetime import datetime
+
+    from src.services.funnel_metrics import daily_kpis
+
+    parsed = None
+    if day:
+        try:
+            parsed = datetime.fromisoformat(day + "T00:00:00+00:00")
+        except ValueError:
+            raise HTTPException(422, "day must be YYYY-MM-DD")
+    async with app.state.session_factory() as session:
+        return await daily_kpis(session, day=parsed)
 
 
 @app.post("/api/leads/{lead_id}/demo-viewed")
@@ -3551,6 +3612,8 @@ class PaymentCreateRequest(BaseModel):
     voice_packs: int = 0             # +100 voice minutes / month, 99 SAR each
     # Mandatory: buyer ticked policies.REFUND_CONSENT_AR (setup-fee exception included).
     refund_consent: bool = False
+    # Signed lead reference. A raw lead_id from an anonymous buyer is ignored.
+    lead_token: Optional[str] = None
 
 
 def _require_refund_consent(consent) -> None:
@@ -3693,7 +3756,11 @@ def _payment_replay_key(request: Request, body: "PaymentCreateRequest") -> Optio
     who = (body.customer_phone or body.customer_email or "").strip().lower()
     if not who:
         return None
-    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", body.billing_period.lower(), str(body.addons), str(body.conversation_packs), str(body.voice_packs)))
+    token_tag = ""
+    if (body.lead_token or "").strip():
+        import hashlib
+        token_tag = hashlib.sha256(body.lead_token.strip().encode()).hexdigest()[:12]
+    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", token_tag, body.billing_period.lower(), str(body.addons), str(body.conversation_packs), str(body.voice_packs)))
 
 
 @app.post("/api/payments")
@@ -3787,9 +3854,18 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         from uuid import UUID as _UUID
 
         lead_uuid = None
-        if body.lead_id:
+        owner_lead = None
+        # A raw lead id is an authenticated link only for the owner console.
+        # Everyone else must present lead_token, checked after the row exists.
+        if owner_invoice and body.lead_id:
             try:
-                lead_uuid = _UUID(body.lead_id)
+                owner_lead = _UUID(body.lead_id)
+            except ValueError:
+                raise HTTPException(422, "lead_id must be a valid UUID")
+            lead_uuid = owner_lead
+        elif body.lead_id and not owner_invoice:
+            try:
+                _UUID(body.lead_id)
             except ValueError:
                 raise HTTPException(422, "lead_id must be a valid UUID")
 
@@ -3825,6 +3901,18 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         if body.refund_consent is True:
             payment.refund_consent_at = _dt.now(_tz.utc)
             payment.refund_consent_version = policies.POLICY_VERSION
+            await session.commit()
+
+        if (body.lead_token or "").strip() or owner_lead is not None:
+            from src.services.funnel_payments import link_payment
+
+            await link_payment(
+                session,
+                payment,
+                token=(body.lead_token or "").strip() or None,
+                owner=bool(owner_invoice and owner_lead is not None and not (body.lead_token or "").strip()),
+                owner_lead_id=owner_lead,
+            )
             await session.commit()
 
         if method == "paypal":

@@ -113,6 +113,11 @@ async function load(){
         ['الاستحقاق', current.next_action_due_label||current.next_action_due||'-'],
         ['السبب', current.next_action_reason||'-'],
     ];
+    if (d.callback) {
+        naFacts.push(['خطوة المسار', d.callback.next_step||'-']);
+        naFacts.push(['الوكيل المسؤول', d.callback.owner_agent||'-']);
+        naFacts.push(['مهلة الخدمة', d.callback.sla_due_at||'-']);
+    }
     document.getElementById('next-action-facts').innerHTML=naFacts.map(([k,v])=>`<div class="flex justify-between border-b py-1"><span class="text-gray-500">${esc(k)}</span><span class="font-medium" style="direction:rtl;">${esc(v)}</span></div>`).join('');
     const missing=(current.next_action_missing||[]);
     document.getElementById('next-action-missing').innerHTML=missing.length?`معلومات ناقصة: ${missing.map(esc).join('، ')}`:'';
