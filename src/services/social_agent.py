@@ -109,3 +109,35 @@ def post_to_dict(p: SocialPostDraft) -> dict:
     return {"id": str(p.id), "platform": p.platform, "plan_key": p.plan_key, "theme": p.theme, "text": p.text,
             "hashtags": p.hashtags or [], "status": p.status,
             "scheduled_for": p.scheduled_for.isoformat() if p.scheduled_for else None}
+
+
+PUBLISHABLE_PLATFORMS = frozenset({"linkedin", "x"})
+
+
+async def publish_approved(post: SocialPostDraft) -> dict:
+    """Publish one owner-approved draft. Refuses anything that is not approved."""
+    if post.status != "approved":
+        return {"published": False, "blocker_code": "approval_required", "status": post.status}
+    if post.platform not in PUBLISHABLE_PLATFORMS:
+        return {
+            "published": False,
+            "blocker_code": "no_publisher",
+            "platform": post.platform,
+            "status": post.status,
+        }
+    from src.services import social_publisher
+
+    tags = " ".join(post.hashtags or [])
+    body = f"{post.text}\n{tags}".strip()
+    if post.platform == "linkedin":
+        result = await social_publisher.publish_to_linkedin(body, "https://alnarjisai.com")
+    else:
+        result = await social_publisher.publish_to_twitter(body)
+    published = bool(result.get("success"))
+    return {
+        "published": published,
+        "blocker_code": "" if published else "provider_rejected",
+        "error": str(result.get("error") or "")[:300],
+        "url": str(result.get("url") or ""),
+        "status": "published" if published else post.status,
+    }

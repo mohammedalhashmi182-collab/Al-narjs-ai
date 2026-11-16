@@ -183,6 +183,36 @@ async def generate_social_week(request: Request):
         return {"posts": [social_agent.post_to_dict(p) for p in rows]}
 
 
+@api.post("/social/{post_id}/approve")
+async def approve_social(request: Request, post_id: UUID):
+    """Mark a draft approved. This does not publish it."""
+    async with _factory(request)() as s:
+        post = await s.get(SocialPostDraft, post_id)
+        if post is None:
+            raise HTTPException(404, "post not found")
+        if post.status == "published":
+            raise HTTPException(409, "already published")
+        if post.status not in ("draft", "approved"):
+            raise HTTPException(409, "only a draft can be approved")
+        post.status = "approved"
+        await s.commit()
+        return social_agent.post_to_dict(post)
+
+
+@api.post("/social/{post_id}/publish")
+async def publish_social(request: Request, post_id: UUID):
+    """Publish one approved draft. A draft that was never approved is refused."""
+    async with _factory(request)() as s:
+        post = await s.get(SocialPostDraft, post_id)
+        if post is None:
+            raise HTTPException(404, "post not found")
+        outcome = await social_agent.publish_approved(post)
+        if outcome.get("published"):
+            post.status = "published"
+            await s.commit()
+        return {**social_agent.post_to_dict(post), **outcome}
+
+
 # --------------------------------------------------------------------------- setup
 
 def setup_status(base_url: str) -> dict:

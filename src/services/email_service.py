@@ -120,16 +120,16 @@ async def send_email(
     attachments: Optional[list[tuple[str, bytes, str]]] = None,
 ) -> bool:
     if not is_configured():
-        logger.warning("SMTP not configured — email not sent to %s", to)
+        logger.warning("SMTP not configured — email not sent")
         return False
 
     try:
         msg = _build_message(to, subject, body, html, attachments)
         await asyncio.to_thread(_send_sync, msg, to, subject, body, html, attachments)
-        logger.info("Email sent to %s | subject=%s", to, subject)
+        logger.info("Email sent")
         return True
     except Exception as e:
-        logger.error("Email failed to %s: %s", to, e)
+        logger.error("Email failed: %s", type(e).__name__)
         return False
 
 

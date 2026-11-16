@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
 
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models import Agent, PromptTemplate, Workflow, WorkflowExecution, StepExecution, Schedule
+from src.models import Agent, PromptTemplate, Workflow, WorkflowExecution, StepExecution
 from src.core.model_provider import ModelProvider, ModelRequest
 from src.core.prompt_engine import PromptEngine
 from src.core.state_manager import StateManager
@@ -94,19 +93,12 @@ async def execute_workflow(
 
 
 async def execute_schedule(session: AsyncSession, schedule_id: UUID):
-    result = await session.execute(select(Schedule).where(Schedule.id == schedule_id))
-    schedule = result.scalar_one_or_none()
+    """Delegate to the dispatcher the scheduler actually calls.
 
-    if not schedule:
-        raise ValueError(f"Schedule {schedule_id} not found")
+    The previous copy only knew agent/workflow targets, so ceo_loop, renewals,
+    follow-ups and the other registered jobs were silently skipped whenever
+    this function was the one imported.
+    """
+    from src.services.schedule_service import execute_schedule as _run
 
-    if schedule.target_type == "agent":
-        await execute_agent(session, schedule.target_id, schedule.payload)
-    elif schedule.target_type == "workflow":
-        await execute_workflow(session, schedule.target_id, schedule.payload)
-
-    schedule.run_count += 1
-    schedule.last_run_at = func.now()
-    if schedule.max_runs and schedule.run_count >= schedule.max_runs:
-        schedule.is_active = False
-    await session.commit()
+    return await _run(session, schedule_id)

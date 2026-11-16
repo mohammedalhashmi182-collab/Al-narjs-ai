@@ -34,7 +34,7 @@ from .lead_normalize import normalize_mobile_e164
 log = logging.getLogger(__name__)
 
 API_URL = "https://graph.facebook.com/v20.0"
-DISABLED_REASON = "WHATSAPP_TOKEN Ùˆ/Ø£Ùˆ WHATSAPP_PHONE_ID ØºÙŠØ± Ù…ÙØ¹Ø¯Ù‘ ÙÙŠ Ù…Ù„Ù .env"
+DISABLED_REASON = "WHATSAPP_TOKEN و/أو WHATSAPP_PHONE_ID غير مُعدّ في ملف .env"
 CHANNEL = "whatsapp"
 
 # Statuses that still want first outreach but must stay reachable in a wave.

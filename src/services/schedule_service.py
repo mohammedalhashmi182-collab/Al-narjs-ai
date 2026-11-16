@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -20,34 +21,50 @@ async def execute_schedule(session, schedule_id) -> dict:
         return {"status": "not_found", "schedule_id": str(schedule_id)}
 
     target_type = sched.target_type or ""
-    logger.info("Executing schedule %s type=%s target=%s", sched.id, target_type, sched.target_id)
+    logger.info("Executing schedule %s type=%s", sched.id, target_type)
     try:
         if target_type == "lead_email":
-            return await _send_lead_followup(sched)
-        if target_type == "workflow":
-            return await _run_workflow(session, sched)
-        if target_type == "agent":
-            return await _run_agent(sched)
-        if target_type == "ceo_loop":
-            return await _run_ceo_loop(sched)
-        if target_type == "billing_renewals":
-            return await _run_billing_renewals(session, sched)
-        if target_type == "automation_followups":
-            return await _run_automation_followups(session)
-        if target_type == "ops_uptime":
-            return await _run_ops_uptime()
-        if target_type == "weekly_reports":
-            return await _run_weekly_reports(session)
-        if target_type == "demo_purge":
+            result = await _send_lead_followup(session, sched)
+        elif target_type == "workflow":
+            result = await _run_workflow(session, sched)
+        elif target_type == "agent":
+            result = await _run_agent(sched)
+        elif target_type == "ceo_loop":
+            result = await _run_ceo_loop(sched)
+        elif target_type == "billing_renewals":
+            result = await _run_billing_renewals(session, sched)
+        elif target_type == "automation_followups":
+            result = await _run_automation_followups(session)
+        elif target_type == "ops_uptime":
+            result = await _run_ops_uptime()
+        elif target_type == "weekly_reports":
+            result = await _run_weekly_reports(session)
+        elif target_type == "demo_purge":
             from src.services import live_demo
 
             purged = await live_demo.purge_expired(session)
             await session.commit()
-            return {"status": "ok", "purged": purged}
-        return {"status": "unsupported", "target_type": target_type}
+            result = {"status": "ok", "purged": purged}
+        else:
+            result = {"status": "unsupported", "target_type": target_type}
     except Exception as e:
-        logger.exception("Schedule %s failed: %s", sched.id, e)
-        return {"status": "error", "message": str(e)[:300]}
+        logger.exception("Schedule %s failed: %s", sched.id, type(e).__name__)
+        result = {"status": "error", "message": str(e)[:300]}
+    try:
+        await _touch_run(session, sched)
+    except Exception as e:  # noqa: BLE001 - the job result still has to be returned
+        logger.exception("Schedule run stamp failed: %s", type(e).__name__)
+    return result
+
+
+async def _touch_run(session, sched) -> None:
+    """Record that the live dispatcher ran. The duplicate in services/__init__ never did."""
+    await session.refresh(sched)
+    sched.run_count = int(sched.run_count or 0) + 1
+    sched.last_run_at = datetime.now(UTC)
+    if sched.max_runs and sched.run_count >= sched.max_runs:
+        sched.is_active = False
+    await session.commit()
 
 
 async def _run_ops_uptime() -> dict:
@@ -114,8 +131,9 @@ async def _run_ceo_loop(sched) -> dict:
     }
 
 
-async def _send_lead_followup(sched) -> dict:
+async def _send_lead_followup(session, sched) -> dict:
     from src.services import email_service
+    from src.services.lead_contact_record import record_acknowledged_email
 
     payload = sched.payload or {}
     step = int(payload.get("step", 1) or 1)
@@ -125,7 +143,10 @@ async def _send_lead_followup(sched) -> dict:
         return {"status": "skipped_no_email", "step": step}
 
     ok = await email_service.send_followup(step, to=email, name=name)
-    return {"status": "sent" if ok else "failed", "step": step, "to": email}
+    recorded = False
+    if ok:
+        recorded = await record_acknowledged_email(session, payload.get("lead_id"), kind=f"followup-{step}")
+    return {"status": "sent" if ok else "failed", "step": step, "contact_recorded": recorded}
 
 
 async def _run_workflow(session, sched) -> dict:
