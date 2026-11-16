@@ -22,7 +22,7 @@
 <body data-lang="{{ _lang }}" class="luxury min-h-screen flex items-center justify-center" style="background:var(--n-sand);">
     <div class="w-full max-w-md px-6">
         <div class="n-card p-8 text-center">
-            <div class="text-4xl mb-4" style="color:var(--n-gold);">✺</div>
+            <img src="/static/logo.svg" alt="{% if _lang == 'ar' %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="64" height="64" class="mx-auto mb-4" style="border-radius:16px;">
             {% if _lang == 'ar' %}<h1 class="n-title text-2xl">لوحة تحكم المالك</h1>{% else %}<h1 class="n-title text-2xl" data-inline>Owner Dashboard</h1>{% endif %}
             {% if _lang == 'ar' %}<p class="text-sm my-4" style="color:var(--n-brown-2);">منطقة خاصة بمالك النظام فقط — أدخل كلمة المرور</p>{% else %}<p class="text-sm my-4" style="color:var(--n-brown-2);" data-inline>Private owner area — enter password</p>{% endif %}
             <form id="loginForm">

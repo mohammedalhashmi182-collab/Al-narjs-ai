@@ -33,7 +33,7 @@
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
     <div class="n-hero" style="padding:56px 20px 40px;">
         <div class="max-w-3xl mx-auto">
-            <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">{% if ar %}&rarr; العودة للرئيسية{% else %}&larr; Back to home{% endif %}</a>
+            <a href="/home" class="brand" style="display:inline-flex;align-items:center;gap:8px;color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="28" height="28" style="border-radius:8px;">{% if ar %}العودة للرئيسية{% else %}Back to home{% endif %}</a>
             · <a href="/{{ 'en' if ar else 'ar' }}{{ _base_path }}" style="color:var(--n-brown-2);font-size:0.9rem;">{% if ar %}English{% else %}العربية{% endif %}</a>
             <h1 class="n-title text-3xl mt-4">{% block h1 %}{% endblock %}</h1>
             <div class="n-card sp mt-6" style="padding:28px;line-height:1.9;">

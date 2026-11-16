@@ -64,7 +64,7 @@
   const composer = $("composer");
   if (!card || !start || !wave || !chatBtn || !chatPanel || !say || !composer) return;
 
-  document.title = T.title;
+  if (document.body.classList.contains("voice-page")) document.title = T.title;
   say.placeholder = T.placeholder;
   log.setAttribute("aria-label", EN ? "Chat with the Al-Narjis advisor" : "دردشة مستشار النرجس");
   if (EN) {
@@ -186,6 +186,7 @@
       start.disabled = true;
       start.textContent = T.unavailable;
       status.textContent = reason === "unconfigured" ? T.missingShort : T.limitShort;
+      openChat(false);
     }
   }
 
@@ -564,11 +565,11 @@
     return /دردش|بالكتاب|اكتب|أكتب|كتابة|كتابه|شات|\bchat\b|\btyping\b|\btype\b/i.test(text || "");
   }
 
-  function openChat() {
+  function openChat(shouldFocus) {
     chatOpen = true;
     card.classList.add("chat-open");
     chatPanel.hidden = false;
-    if (say.focus) say.focus();
+    if (shouldFocus !== false && say.focus) say.focus();
   }
 
   function closeChat() {

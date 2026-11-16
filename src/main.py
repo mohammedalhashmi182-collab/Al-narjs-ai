@@ -963,6 +963,10 @@ from src.interfaces.ops_routes import api as ops_api, router as ops_router  # no
 app.include_router(ops_router)
 app.include_router(ops_api)
 
+from src.interfaces.ceo_scout_routes import router as ceo_scout_router  # noqa: E402
+
+app.include_router(ceo_scout_router)
+
 from src.interfaces.capability_routes import router as capability_router  # noqa: E402
 
 app.include_router(capability_router)
@@ -1657,6 +1661,56 @@ async def client_portal_page(request: Request):
 @app.get("/consult", response_class=HTMLResponse)
 async def consult_page(request: Request):
     return templates.TemplateResponse(request, "consult.html")
+
+
+@app.post("/consult", dependencies=[Depends(rate_limit_consult)])
+async def consult_submit(request: Request):
+    """Accept a consultation from the public form, including a no-JS submit.
+
+    Marketing links land on this page. The chat script posts to /api/consult;
+    a plain form post is answered here and rendered back on the same page.
+    """
+    import json
+
+    content_type = request.headers.get("content-type", "")
+    lang = None
+    if "application/json" in content_type:
+        data = await request.json()
+        text = str(data.get("message") or data.get("problem") or "").strip()
+        messages = data.get("messages")
+        lang = data.get("lang")
+        if isinstance(messages, list) and messages:
+            result = await consult_chat(ConsultRequest(messages=messages, lang=lang), request)
+            return result
+    else:
+        form = await request.form()
+        text = str(form.get("message") or form.get("msg") or "").strip()
+        lang = str(form.get("lang") or "") or None
+    if not text:
+        return templates.TemplateResponse(
+            request,
+            "consult.html",
+            {"consult_error": True},
+            status_code=400,
+        )
+    result = await consult_chat(
+        ConsultRequest(messages=[ConsultMessage(role="user", content=text)], lang=lang),
+        request,
+    )
+    if isinstance(result, JSONResponse):
+        payload = json.loads(result.body)
+    else:
+        payload = result
+    status = 200 if payload.get("reply") else 503
+    return templates.TemplateResponse(
+        request,
+        "consult.html",
+        {
+            "consult_question": text,
+            "consult_reply": str(payload.get("reply") or ""),
+        },
+        status_code=status,
+    )
 
 
 @app.get("/guide", response_class=HTMLResponse)

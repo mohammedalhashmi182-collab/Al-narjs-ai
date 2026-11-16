@@ -156,6 +156,53 @@
 </header>
 
 <main id="main">
+<!-- Voice agent first. Browsers block autoplay, so the tap-to-talk control is the first action. -->
+<div class="vf-sticky card idle" id="p" aria-label="{% if ar %}مستشار النرجس الصوتي{% else %}Al-Narjis voice agent{% endif %}">
+    <div class="wrap vf-row">
+        <button class="btn vf-start" id="start" type="button">{% if ar %}ابدأ الحديث{% else %}Tap to talk{% endif %}</button>
+        <div class="vf-meta">
+            <p class="vf-greet">{% if ar %}حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟{% else %}Welcome to Al-Narjis, this is Karim. How can I help?{% endif %}</p>
+            <p class="vf-status"><span>{% if ar %}الحالة:{% else %}Status:{% endif %}</span> <b id="s">{% if ar %}جاهز{% else %}Ready{% endif %}</b></p>
+        </div>
+        <button class="btn-sec vf-chat" id="chat" type="button">{% if ar %}اكتب بدل الصوت{% else %}Type instead{% endif %}</button>
+    </div>
+    <div class="wrap">
+        <p id="micNote" class="vf-note" hidden></p>
+        <div id="chatPanel" hidden>
+            <div class="log" id="log" role="log" aria-live="polite" aria-label="{% if ar %}دردشة مستشار النرجس{% else %}Chat with the Al-Narjis advisor{% endif %}"></div>
+            <form id="composer" class="vf-composer" action="/consult" method="post">
+                <label class="skip" for="say">{% if ar %}اكتب رسالتك{% else %}Type your message{% endif %}</label>
+                <input id="say" name="message" type="text" maxlength="500" autocomplete="off" enterkeyhint="send" dir="auto" placeholder="{% if ar %}اكتب لمستشار النرجس{% else %}Type to the Al-Narjis advisor{% endif %}">
+                <input type="hidden" name="lang" value="{{ 'ar' if ar else 'en' }}">
+                <button class="btn" id="send" type="submit">{% if ar %}إرسال{% else %}Send{% endif %}</button>
+            </form>
+            <button class="vf-back" id="voiceBack" type="button">{% if ar %}رجوع للصوت{% else %}Back to voice{% endif %}</button>
+        </div>
+        <div class="incall" id="incall">
+            <div class="wave" id="wave" aria-hidden="true"></div>
+            <div class="timer" id="tm">3:00</div>
+            <button class="btn-sec" id="mute" type="button" aria-pressed="false">{% if ar %}كتم{% else %}Mute{% endif %}</button>
+            <button class="btn-sec" id="end" type="button">{% if ar %}إنهاء{% else %}End{% endif %}</button>
+        </div>
+        <div id="fallback" class="vf-note" hidden><p id="fallbackMsg"></p></div>
+    </div>
+</div>
+<section class="voice-first" id="voiceFirst" aria-labelledby="vf-h">
+    <div class="wrap vf-stage">
+        <div>
+            <h2 id="vf-h">{% if ar %}أبقى معك من هنا حتى تختار الباقة وتبدأ.{% else %}I stay with you from here through the plan and the start.{% endif %}</h2>
+            <p>{% if ar %}الرئيس التنفيذي يقود فريق الوكلاء: تسويق، بحث، وبناء. إذا تعذّر الصوت، اكتب وسنرد كتابة.{% else %}The AI CEO leads the agent team: marketing, research, and building. If voice is unavailable, type and we reply in text.{% endif %}</p>
+            <p class="vf-links">
+                <a href="#how">{% if ar %}كيف نعمل{% else %}How it works{% endif %}</a>
+                <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
+                <a href="/consult">{% if ar %}استشارة{% else %}Consultation{% endif %}</a>
+            </p>
+        </div>
+        <div class="vf-orb" id="vid" role="img" aria-label="{% if ar %}مؤشر صوتي لمستشار النرجس{% else %}Al-Narjis voice orb{% endif %}">
+            <canvas class="voice-orb" id="orb" width="280" height="280" aria-hidden="true"></canvas>
+        </div>
+    </div>
+</section>
 <!-- ==================== HERO ==================== -->
 <section class="hero" id="top" aria-labelledby="hero-h">
     <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" fetchpriority="high" decoding="async">
@@ -428,6 +475,7 @@
 
 <footer class="nj-footer" id="site-footer">
     <div class="wrap">
+        <a href="/home" class="logo footer-logo"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="32" height="32"><span>{% if ar %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</span></a>
         <nav class="svc-links" aria-label="{% if ar %}روابط المنصة{% else %}Platform links{% endif %}">
             <a href="/portal">{% if ar %}بوابة العميل{% else %}Client portal{% endif %}</a>
             <a href="/ai-agents-saudi-businesses">{% if ar %}وكلاء الذكاء الاصطناعي في السعودية{% else %}AI agents in KSA{% endif %}</a>
@@ -629,6 +677,8 @@
     }).catch(function () {});
 })();
 </script>
+<script src="/static/js/voice-live-app.js"></script>
+<script src="/static/js/voice-orb.js"></script>
 {% include "partials/_voice_launcher.html" %}
 </body>
 </html>

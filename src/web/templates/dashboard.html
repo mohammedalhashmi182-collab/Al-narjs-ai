@@ -16,6 +16,25 @@
     <div class="oc-providers" id="ocProviders"></div>
 </section>
 
+<section class="oc-card" id="ceoScout">
+    <div class="oc-card-h">
+        <h2 class="oc-h2">الرئيس التنفيذي والفريق</h2>
+        <p class="oc-sub">«ابدأ» يفعّل الرئيس التنفيذي ليقود فريق الوكلاء ويبحث عن طلبات مدفوعة منشورة (مشاريع مستقلة ووظائف). النتائج مسودات بروابط المصدر. الموافقة تسجّل قرارك داخل اللوحة فقط، ولا يُرسل أو يُنشر أو يُراسَل أحد.</p>
+    </div>
+    <button type="button" class="oc-start" id="ceoStart">ابدأ</button>
+    <p id="ceoStatus" class="oc-sub" role="status">لم يبدأ البحث بعد.</p>
+    <div class="oc-scroll">
+        <table class="oc-t">
+            <thead>
+                <tr>
+                    <th>الفرصة</th><th>الوكيل</th><th>المصدر</th><th>الحالة</th><th></th>
+                </tr>
+            </thead>
+            <tbody id="ceoRows"><tr><td colspan="5" class="oc-empty">لم يبدأ البحث بعد.</td></tr></tbody>
+        </table>
+    </div>
+</section>
+
 <!-- ============ الوكلاء ============ -->
 <section class="oc-card oc-span">
     <div class="oc-card-h">
@@ -236,6 +255,15 @@ main{min-width:0}
     font-size:.78rem;font-weight:700;color:var(--oc-txt);text-decoration:none;transition:.18s}
 .oc-quick a:hover{border-color:var(--odsf-accent,#ff5a36);color:var(--odsf-accent,#ff5a36)}
 .oc-empty{padding:28px;text-align:center;color:var(--oc-faint)}
+.oc-start{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 28px;
+    border:0;border-radius:12px;background:var(--odsf-accent,#ff5a36);color:#14110e;font:inherit;
+    font-weight:800;font-size:1.05rem;cursor:pointer}
+.oc-start:disabled{opacity:.6;cursor:default}
+.oc-start:focus-visible{outline:2px solid var(--odsf-accent,#ff5a36);outline-offset:3px}
+.oc-link{color:var(--odsf-accent,#ff5a36);font-weight:700}
+.oc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.oc-okbtn{display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;font-size:12.5px;
+    font-weight:700;cursor:pointer;background:var(--odsf-accent,#ff5a36);color:#14110e;border:0}
 </style>
 
 <script>
@@ -443,12 +471,91 @@ async function loadExecutions() {
     } catch (e) { /* quiet */ }
 }
 
+const CEO_STATUS = {
+    awaiting_approval: 'بانتظار الموافقة',
+    approved: 'معتمدة — بلا إرسال',
+    rejected: 'مرفوضة',
+};
+
+function ceoStatusLabel(status) {
+    return CEO_STATUS[status] || status;
+}
+
+function renderCeo(data) {
+    document.getElementById('ceoStatus').textContent = (data && data.message) || 'لم يبدأ البحث بعد.';
+    const rows = (data && data.opportunities) || [];
+    const body = document.getElementById('ceoRows');
+    body.innerHTML = rows.length ? rows.map(function (item) {
+        const link = item.source_url
+            ? '<a class="oc-link" href="' + escapeHtml(item.source_url) + '" target="_blank" rel="noopener noreferrer">'
+                + escapeHtml(item.source_name || 'المصدر') + '</a>'
+            : '—';
+        const budget = item.budget ? '<div class="oc-mut">' + escapeHtml(item.budget) + '</div>' : '';
+        const actions = item.status === 'awaiting_approval'
+            ? '<button type="button" class="oc-okbtn" data-ceo="' + escapeHtml(item.key) + '" data-decision="approve">اعتماد المسودة</button>'
+                + '<button type="button" class="oc-btn" data-ceo="' + escapeHtml(item.key) + '" data-decision="reject">رفض</button>'
+            : '';
+        return '<tr><td>' + escapeHtml(item.title) + budget + '</td>'
+            + '<td class="oc-mut">' + escapeHtml(item.agent_label || 'الرئيس التنفيذي') + '</td>'
+            + '<td>' + link + '</td>'
+            + '<td>' + ocTag(item.status === 'rejected' ? 'oc-bad' : 'oc-idle', ceoStatusLabel(item.status)) + '</td>'
+            + '<td class="oc-actions">' + actions + '</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="oc-empty">لا توجد فرص بعد. اضغط «ابدأ» للبحث.</td></tr>';
+}
+
+async function loadCeo() {
+    try {
+        const response = await fetch('/api/owner/ceo/scout');
+        if (!response.ok) {
+            document.getElementById('ceoStatus').textContent = 'تعذّر تحميل البحث — يلزم دخول المالك.';
+            return;
+        }
+        renderCeo(await response.json());
+    } catch (e) {
+        document.getElementById('ceoStatus').textContent = 'تعذّر تحميل البحث.';
+    }
+}
+
+document.getElementById('ceoStart').addEventListener('click', async function () {
+    const button = document.getElementById('ceoStart');
+    button.disabled = true;
+    document.getElementById('ceoStatus').textContent = 'الرئيس التنفيذي يبحث في الطلبات المنشورة…';
+    try {
+        const response = await fetch('/api/owner/ceo/start', { method: 'POST' });
+        if (!response.ok) {
+            document.getElementById('ceoStatus').textContent = 'تعذّر بدء البحث.';
+            return;
+        }
+        renderCeo(await response.json());
+    } catch (e) {
+        document.getElementById('ceoStatus').textContent = 'تعذّر بدء البحث. لم يُرسل شيء.';
+    } finally {
+        button.disabled = false;
+    }
+});
+
+document.getElementById('ceoScout').addEventListener('click', async function (event) {
+    const button = event.target.closest('[data-ceo]');
+    if (!button) return;
+    button.disabled = true;
+    const response = await fetch(
+        '/api/owner/ceo/opportunities/' + encodeURIComponent(button.getAttribute('data-ceo')) + '/decide',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ decision: button.getAttribute('data-decision') }),
+        }
+    );
+    if (response.ok) loadCeo();
+});
+
 function loadAll() {
     loadAgentHealth();
     loadBusiness();
     loadUsage();
     loadInfra();
     loadExecutions();
+    loadCeo();
 }
 
 loadAll();
