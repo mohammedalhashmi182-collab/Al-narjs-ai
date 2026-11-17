@@ -165,6 +165,7 @@
     "}",
   ].join("\n");
 
+  // Brand orange #FF5A36: hot core, orange body, so the points glow.
   const FRAG = [
     "precision mediump float;",
     "varying float vBright;",
@@ -175,7 +176,14 @@
     "  float core=exp(-r2*3.4);",
     "  float halo=exp(-r2*1.05)*0.45;",
     "  float intensity=(core*0.85+halo)*vBright;",
-    "  gl_FragColor=vec4(vec3(0.96,0.97,0.99)*intensity,intensity);",
+    "  vec3 deep=vec3(0.72,0.12,0.04);",
+    "  vec3 orange=vec3(1.0,0.353,0.212);",
+    "  vec3 hot=vec3(1.0,1.0,1.0);",
+    "  vec3 color=mix(deep,orange,clamp(core*1.35,0.0,1.0));",
+    "  color=mix(color,hot,pow(core,2.2)*0.85);",
+    "  float shine=pow(max(0.0,1.0-r2),4.2);",
+    "  color+=hot*shine*0.5;",
+    "  gl_FragColor=vec4(color*intensity,intensity);",
     "}",
   ].join("\n");
 
@@ -328,9 +336,10 @@
     sprite.height = 32;
     const paint = sprite.getContext("2d");
     const dot = paint.createRadialGradient(16, 16, 0, 16, 16, 16);
-    dot.addColorStop(0, "rgba(244,245,247,0.95)");
-    dot.addColorStop(0.35, "rgba(236,237,240,0.45)");
-    dot.addColorStop(1, "rgba(236,237,240,0)");
+    dot.addColorStop(0, "rgba(255,255,255,0.98)");
+    dot.addColorStop(0.22, "rgba(255,90,54,0.95)");
+    dot.addColorStop(0.55, "rgba(255,90,54,0.4)");
+    dot.addColorStop(1, "rgba(255,90,54,0)");
     paint.fillStyle = dot;
     paint.fillRect(0, 0, 32, 32);
     order = new Array(PARTICLE_COUNT);
@@ -484,7 +493,7 @@
       bindClip();
       gl.uniform1i(copyLoc.uSharp, 0);
       gl.uniform1i(copyLoc.uGlow, 1);
-      gl.uniform1f(copyLoc.uBloom, 0.4 + level * 0.75);
+      gl.uniform1f(copyLoc.uBloom, 0.95 + level * 1.15);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, bloom.scene.tex);
       gl.activeTexture(gl.TEXTURE1);
