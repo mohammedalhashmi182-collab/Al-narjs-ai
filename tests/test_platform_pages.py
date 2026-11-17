@@ -87,11 +87,18 @@ def test_docs_excludes_sensitive_routes(client: TestClient) -> None:
     assert docs.status_code == 200
     assert "/openapi.json" in docs.text
     assert "swagger-ui" in docs.text
+    assert 'name="robots" content="noindex, nofollow"' in docs.text
+    assert docs.headers["x-robots-tag"] == "noindex, nofollow"
     for denied in ("/api/owner", "/webhooks/moyasar", "moyasar-live-test", "/health/deep"):
         assert denied not in docs.text
     redoc = client.get("/redoc")
     assert redoc.status_code == 200
     assert "redoc" in redoc.text.lower()
+    assert 'name="robots" content="noindex, nofollow"' in redoc.text
+    assert redoc.headers["x-robots-tag"] == "noindex, nofollow"
+    arabic_docs = client.get("/ar/docs")
+    assert arabic_docs.status_code == 200
+    assert arabic_docs.headers["x-robots-tag"] == "noindex, nofollow"
 
 
 def test_status_json_is_cached_and_quiet(client: TestClient) -> None:
@@ -232,7 +239,10 @@ def test_signup_redirects_to_the_portal(client: TestClient, path: str, suffix: s
 
 def test_new_pages_are_in_the_sitemap_and_bilingual(client: TestClient) -> None:
     xml = client.get("/sitemap.xml").text
-    pages = ("/status", "/changelog", "/sla", "/partnerships", "/docs")
+    pages = ("/status", "/changelog", "/sla", "/partnerships")
+    assert "https://alnarjisai.com/ar/docs" not in xml
+    assert "https://alnarjisai.com/ar/redoc" not in xml
+    assert "/openapi.json" not in xml
     for path in pages:
         assert f"https://alnarjisai.com/ar{path}" in xml
         english = client.get("/en" + path)
@@ -252,5 +262,13 @@ def test_new_pages_are_in_the_sitemap_and_bilingual(client: TestClient) -> None:
 
 def test_footer_links_the_new_pages(client: TestClient) -> None:
     home = client.get("/en/home").text
-    for href in ("/status", "/changelog", "/sla", "/partnerships", "/docs"):
+    for href in ("/status", "/changelog", "/sla", "/partnerships"):
         assert f'href="{href}"' in home
+    assert 'href="/docs"' not in home
+    assert 'href="/redoc"' not in home
+    assert "openapi.json" not in home
+    about = client.get("/en/about").text
+    assert 'href="/docs"' not in about
+    llms = client.get("/llms.txt").text
+    assert "/docs" not in llms
+    assert "openapi.json" not in llms

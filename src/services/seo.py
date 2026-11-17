@@ -61,7 +61,6 @@ CORE_PAGES: list[tuple[str, str, float]] = [
     ("/changelog", "weekly", 0.5),
     ("/sla", "monthly", 0.4),
     ("/partnerships", "monthly", 0.6),
-    ("/docs", "monthly", 0.5),
 ]
 
 PUBLIC_AGENT_PREFIX = "/ai-agent"
@@ -309,7 +308,6 @@ def build_llms(employees: list[tuple[str, dict]]) -> str:
         ("What's new", "/changelog"),
         ("Service level", "/sla"),
         ("Partnerships", "/partnerships"),
-        ("API reference", "/docs"),
         ("Compare with Tidio", "/compare/tidio"),
         ("Compare with ManyChat", "/compare/manychat"),
         ("Compare with Intercom Fin", "/compare/intercom-fin"),
