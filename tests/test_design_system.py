@@ -41,6 +41,7 @@ PUBLIC_TEMPLATES = [
     "invoice_en.html",
     "company.html",
     "service.html",
+    "compare.html",
 ]
 ALL_TEMPLATES = PUBLIC_TEMPLATES + [
     "base.html",
