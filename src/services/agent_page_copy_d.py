@@ -117,26 +117,26 @@ def register(put, faq) -> None:
         (
             "مهندس النماذج الأولية يحوّل فكرة منتج رقمي إلى تسلسل شاشات ونطاق بناء يمكن قراءته قبل أي تنفيذ. المدخل: من يستخدم المنتج، وما المهمة الأولى التي يجب أن تنجح، وما الذي خارج النسخة الأولى. شاشة لا تخدم المهمة الأولى لا تدخل الرسم.",
             "لكل شاشة: ما يراه المستخدم، وما الذي يكتبه، وما الذي يحدث إن نقص حقل، وأين يتوقف وينتظر إنسانًا. لا نرسم لوحة إدارة كاملة إذا كانت المهمة حجزًا واحدًا. النطاق الصغير يحمي من مشروع لا ينتهي.",
-            "النموذج وصف وخطوات، لا تطبيق منشور. لا نعد بأن الشكل النهائي سيطابق الرسم في كل بكسل. نعد بأن المهمة الأولى موصوفة بما يكفي ليراجعها صاحب الفكرة ومصمم المنتجات من غير أن يختلفا على الهدف.",
-            "الجدوى التقنية الظاهرة تُذكر بحد: ماذا نعرف عن الربط، وماذا نحتاج من مهندس التكاملات لاحقًا. لا نختار مزودًا باسمه إن لم يختره صاحب الفكرة. الاختيار التجاري ليس جزءًا من الرسم.",
+            "مع خطة الشاشات نسلّم صفحة تجريبية واحدة حيّة: يفتحها صاحب الفكرة في المتصفح ويضغط أزرارها فورًا. الصفحة نسخة تجريبية، ليست المنتج المنشور ولا عقد تنفيذ. الشكل النهائي قد يختلف. نعد بأن المهمة الأولى ظاهرة في الصفحة وفي الخطة معًا، بما يكفي ليراجعها صاحب الفكرة ومصمم المنتجات من غير أن يختلفا على الهدف.",
+            "الجدوى التقنية الظاهرة تُذكر بحد: ماذا نعرف عن الربط، وماذا نحتاج من مهندس التكاملات لاحقًا. لا نختار مزودًا باسمه إن لم يختره صاحب الفكرة. لا ندّعي أن الربط مع سلة أو زد أو واتساب الأعمال جاهز؛ هذه المسارات قيد التطوير. الاختيار التجاري ليس جزءًا من الرسم.",
         ),
         (
             "The prototype engineer turns a digital product idea into a screen sequence and a build scope that can be read before any implementation. The input is who uses it, which first task must succeed, and what sits outside the first version. A screen that does not serve that first task does not enter the sketch.",
             "For each screen: what the user sees, what they type, what happens if a field is missing, and where the flow stops for a person. We do not draw a full admin console if the task is one booking. A small scope protects the owner from a project that never ends.",
-            "The prototype is a description and steps, not a published app. We do not promise the final look will match every pixel. We do promise the first task is described well enough that the owner and the product designer can review it without disagreeing about the goal.",
-            "Visible technical limits are stated: what we know about connections, and what the integrations engineer must answer later. We do not name a vendor the owner did not choose. A commercial choice is not part of the sketch.",
+            "With the plan we deliver one live page the owner can open and click immediately. The page is a trial, not the published product and not a build contract. The final look may differ. We do promise the first task is visible on the page and in the plan, well enough that the owner and the product designer can review it without disagreeing about the goal.",
+            "Visible technical limits are stated: what we know about connections, and what the integrations engineer must answer later. We do not name a vendor the owner did not choose. We do not claim that Salla, Zid, or WhatsApp Business connections are ready; those paths are in development. A commercial choice is not part of the sketch.",
         ),
-        "لنفترض فكرة حجز طاولة لمقهى من غير قائمة طعام. المهمة الأولى: اختيار وقت وإرسال الاسم. الرسم شاشتان: الأوقات المتاحة، وتأكيد الاسم مع تنبيه إن تُرك فارغًا. قائمة الطعام ولوحة المخزون خارج النسخة. لا اسم نظام حجز تجاري.",
-        "Suppose an idea for booking a café table, with no menu. The first task is choosing a time and sending a name. The sketch is two screens: available times, and a name confirmation that warns if the name is empty. The menu and a stock console are outside this version. No commercial booking product is named.",
+        "لنفترض فكرة حجز طاولة لمقهى من غير قائمة طعام. المهمة الأولى: اختيار وقت وإرسال الاسم. الرسم شاشتان: الأوقات المتاحة، وتأكيد الاسم مع تنبيه إن تُرك فارغًا. الصفحة التجريبية تعرض الوقتين وزر التأكيد من غير إرسال إلى أي جهة. قائمة الطعام ولوحة المخزون خارج النسخة. لا اسم نظام حجز تجاري.",
+        "Suppose an idea for booking a café table, with no menu. The first task is choosing a time and sending a name. The sketch is two screens: available times, and a name confirmation that warns if the name is empty. The live trial page shows the two times and a confirm button, and it does not send anything anywhere. The menu and a stock console are outside this version. No commercial booking product is named.",
         faq(
-            ("هل تسلّمون تطبيقًا؟", "لا. تسلسل شاشات ونطاق. التنفيذ لاحق وبموافقة."),
+            ("هل تسلّمون تطبيقًا؟", "نسلّم صفحة تجريبية حيّة يمكن فتحها والضغط عليها، ومعها خطة البناء. ليست تطبيقًا منشورًا."),
             ("ماذا يخرج من النسخة الأولى؟", "كل ما لا يخدم المهمة الأولى. يُكتب خارج النطاق صراحة."),
-            ("هل تختارون الأداة؟", "لا، ما لم يخترها صاحب الفكرة. الرسم يصف المهمة لا المزود."),
+            ("هل تختارون الأداة أو تربطون المتجر؟", "لا. الصفحة تصف المهمة. ربط سلة وزد وواتساب الأعمال ما زال قيد التطوير ولا يظهر كأنه شغّال."),
         ),
         faq(
-            ("Do you deliver an app?", "No. A screen sequence and a scope. Building comes later, with approval."),
+            ("Do you deliver an app?", "We deliver a live page you can open and click, plus the build plan. It is not a published app."),
             ("What stays out of the first version?", "Anything that does not serve the first task. It is written as out of scope."),
-            ("Do you choose the tool?", "No, unless the owner already chose it. The sketch describes the task, not a vendor."),
+            ("Do you connect the store?", "No. The page describes the task. Salla, Zid, and WhatsApp Business are still in development and are not shown as working."),
         ),
     )
     put(

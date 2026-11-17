@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>نموذج تجريبي | النرجس AI</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/narjis.css">
+    <style>
+        html, body { margin: 0; height: 100%; background: var(--n-sand); color: var(--n-brown); font-family: Cairo, sans-serif; }
+        .proto-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 56px;
+            padding: 8px 16px;
+            background: var(--n-brown);
+            color: var(--n-sand);
+        }
+        .proto-banner strong { color: var(--tg-blue); font-weight: 800; }
+        .proto-banner a { color: var(--n-sand); font-weight: 700; }
+        .proto-frame {
+            display: block;
+            width: 100%;
+            height: calc(100% - 56px);
+            border: 0;
+            background: var(--n-cream);
+        }
+        @media (max-width: 640px) {
+            .proto-banner { align-items: flex-start; flex-direction: column; gap: 4px; }
+            .proto-frame { height: calc(100% - 88px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .proto-frame { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header class="proto-banner">
+        <strong>نسخة تجريبية من النرجس AI</strong>
+        <a href="/ar/home">العودة إلى النرجس</a>
+    </header>
+    <iframe
+        class="proto-frame"
+        sandbox="allow-scripts"
+        referrerpolicy="no-referrer"
+        title="النموذج التجريبي"
+        src="{{ frame_src }}"
+    ></iframe>
+</body>
+</html>

@@ -34,6 +34,9 @@ PRIVATE_PREFIXES = (
     # is served here any more. The entry stays so that any stale link, bookmark
     # or crawler request for it is classified as private rather than public.
     "/karmish",
+    # Unguessable live prototypes. The token is the secret; the page is not a
+    # public document and must not be advertised or indexed.
+    "/p",
 )
 
 # Public, indexable pages: (path, changefreq, priority)

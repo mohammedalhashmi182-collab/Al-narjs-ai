@@ -139,8 +139,8 @@ def extend(pages: dict) -> None:
     _add(
         pages,
         "prototype_engineer",
-        "نسلّم مع الرسم سؤالين مفتوحين على الأكثر، لا عشرة. السؤال المفتوح الذي لا يمنع المهمة الأولى يُؤجل إلى نسخة لاحقة ويُكتب مؤجلًا. السؤال الذي يمنع المهمة يوقف الرسم حتى يُجاب. بهذا لا يصبح النموذج وثيقة قلق. صاحب الفكرة يعرف ماذا يبني أولًا وماذا ينتظر. مهندس البرمجيات لا يبدأ من سؤال مؤجل.",
-        "With the sketch we deliver two open questions at most, not ten. An open question that does not block the first task is postponed to a later version and written as postponed. A question that blocks the task stops the sketch until it is answered. The prototype does not become a document of worry. The owner knows what to build first and what waits. The software engineer does not start from a postponed question.",
+        "نسلّم مع الرسم سؤالين مفتوحين على الأكثر، لا عشرة. السؤال المفتوح الذي لا يمنع المهمة الأولى يُؤجل إلى نسخة لاحقة ويُكتب مؤجلًا. السؤال الذي يمنع المهمة يوقف الرسم حتى يُجاب. الصفحة الحيّة تحمل شارة أنها نسخة تجريبية، ولا تُجمع فيها كلمة مرور ولا بطاقة ولا رقم هوية. إن طلب صاحب الفكرة ذلك نتوقف ونشرح الحد. بهذا لا يصبح النموذج وثيقة قلق. صاحب الفكرة يعرف ماذا يبني أولًا وماذا ينتظر. مهندس البرمجيات لا يبدأ من سؤال مؤجل.",
+        "With the sketch we deliver two open questions at most, not ten. An open question that does not block the first task is postponed to a later version and written as postponed. A question that blocks the task stops the sketch until it is answered. The live page is marked as a trial and does not collect a password, a card, or an identity number. If the owner asks for that, we stop and explain the limit. The prototype does not become a document of worry. The owner knows what to build first and what waits. The software engineer does not start from a postponed question.",
     )
     _add(
         pages,

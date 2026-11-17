@@ -652,9 +652,20 @@ class SecurityHeadersMiddleware:
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
-                if scope.get("path") in VOICE_LIVE_PATHS:
+                path = scope.get("path") or ""
+                if path in VOICE_LIVE_PATHS:
                     headers["Content-Security-Policy"] = VOICE_LIVE_CSP
                     headers["Permissions-Policy"] = "microphone=(self)"
+                from src.services.prototype_live import PROTOTYPE_APP_CSP, is_prototype_app_path
+
+                if is_prototype_app_path(path):
+                    # Generated HTML is framed by our shell only. The site CSP
+                    # would block that frame (frame-ancestors 'none') and would
+                    # also allow network calls the prototype must not make.
+                    headers["Content-Security-Policy"] = PROTOTYPE_APP_CSP
+                    headers["X-Frame-Options"] = "SAMEORIGIN"
+                    headers["Referrer-Policy"] = "no-referrer"
+                    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
                 for name, value in SECURITY_HEADERS.items():
                     headers.setdefault(name, value)
             await send(message)
@@ -971,6 +982,11 @@ app.include_router(capability_router)
 from src.interfaces.ai_routes import router as ai_ask_router  # noqa: E402
 
 app.include_router(ai_ask_router)
+
+# AG-025 live prototype: unguessable /p/<token> shell and sandboxed document.
+from src.interfaces.prototype_routes import router as prototype_router  # noqa: E402
+
+app.include_router(prototype_router)
 
 
 async def get_session() -> AsyncSession:
@@ -2573,6 +2589,27 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
         base_system = (
             rendered.system_prompt + "\n\n" + agent_brief.SAUDI_CONTEXT + "\n\n" + lang_instruction
         ).strip()
+        if slug == "prototype_engineer":
+            from src.services import prototype_live
+
+            answers = request.answers or {}
+            try:
+                await prototype_live.prepare(
+                    http_request,
+                    session,
+                    project,
+                    str(answers.get("idea") or ""),
+                    str(answers.get("users") or ""),
+                    str(answers.get("platform") or ""),
+                )
+            except prototype_live.PrototypeRejected as exc:
+                agent.status = "failed"
+                await session.commit()
+                raise HTTPException(400, exc.message_ar) from None
+            except prototype_live.PrototypeLimited as exc:
+                agent.status = "failed"
+                await session.commit()
+                raise HTTPException(exc.status, exc.message_ar) from None
         try:
             response = await agent_runtime.execute(
                 app.state.model_provider,
@@ -2590,20 +2627,58 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
             await session.commit()
             raise
 
-        agent.result = response.content
+        content = response.content
+        prototype_path = None
+        if slug == "prototype_engineer":
+            from src.services import prototype_live, usage
+
+            answers = request.answers or {}
+            token = None
+            try:
+                token = await prototype_live.generate_and_store(
+                    session,
+                    model_provider=app.state.model_provider,
+                    idea=str(answers.get("idea") or ""),
+                    users=str(answers.get("users") or ""),
+                    platform=str(answers.get("platform") or "web"),
+                    locale=locale,
+                    project_id=str(project.id),
+                )
+            except Exception:
+                # The written plan still stands. Do not log the exception text:
+                # provider errors can echo request URLs.
+                logger.warning("live prototype was not published")
+            if token:
+                try:
+                    await usage.record_conversation(
+                        session, project, f"prototype:{project.id}", "portal", ref=token,
+                    )
+                except Exception:
+                    logger.warning("prototype usage was not recorded")
+                prototype_path = prototype_live.public_path(token)
+                content = content.rstrip() + "\n\n" + prototype_live.delivery_note(
+                    prototype_live.public_url(token), locale,
+                )
+            else:
+                content = content.rstrip() + (
+                    "\n\nتعذر بناء الصفحة التجريبية الآن. خطة البناء جاهزة، ويمكنك إعادة المحاولة."
+                )
+        agent.result = content
         agent.status = "done"
         agent.result_emailed_at = None
         await session.commit()
 
-        emailed = await _email_agent_result(project, slug, response.content)
+        emailed = await _email_agent_result(project, slug, content)
         if emailed:
             from datetime import datetime as _dt, timezone as _tz
 
             agent.result_emailed_at = _dt.now(_tz.utc)
             await session.commit()
 
-        payload = {"result": response.content, "status": "done", "emailed": emailed,
+        payload = {"result": content, "status": "done", "emailed": emailed,
                    "emailed_to": project.email if emailed else None}
+        if prototype_path:
+            payload["prototype_url"] = prototype_path
         docpack_payload = await _maybe_docpack(slug, request.answers, project, http_request)
         if docpack_payload is not None:
             payload["docpack"] = docpack_payload

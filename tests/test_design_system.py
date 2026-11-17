@@ -42,6 +42,7 @@ PUBLIC_TEMPLATES = [
     "company.html",
     "service.html",
     "compare.html",
+    "prototype_shell.html",
 ]
 ALL_TEMPLATES = PUBLIC_TEMPLATES + [
     "base.html",

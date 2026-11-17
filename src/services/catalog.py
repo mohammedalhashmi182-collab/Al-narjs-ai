@@ -815,10 +815,10 @@ EMPLOYEES: dict[str, dict] = {
         "title_ar": "مهندس النماذج الأولية",
         "title_en": "Prototype Engineer",
         "dept": "المنتجات والهندسة",
-        "intro_ar": "أنا مهندس النماذج الأولية. أحوّل فكرتك إلى منتج رقمي ملموس: شاشات، تجربة مستخدم، وخطة بناء واضحة بالمواصفات.",
-        "intro_en": "I'm the Prototype Engineer. I turn your idea into a concrete digital product — screens, user experience, and a clear build plan with specs.",
+        "intro_ar": "أنا مهندس النماذج الأولية. أحوّل فكرتك، حتى لو كانت بالعامية، إلى صفحة تجريبية حيّة تفتحها وتضغطها فورًا، ومعها خطة بناء: الشاشات وتجربة المستخدم والمواصفات.",
+        "intro_en": "I'm the Prototype Engineer. I turn your idea, in everyday language, into a live page you can open and click immediately, plus a build plan with the screens, the experience, and the specifications.",
         "questions": [
-            _q("idea", "صف فكرتك بكلماتك", "Describe your idea in your own words"),
+            _q("idea", "صف فكرتك بلهجتك، ولو خلطت عربي وإنجليزي", "Describe your idea in your own words"),
             _q("users", "لمن هذا المنتج؟", "Who is this for?"),
             _q("platform", "ما المنصة المستهدفة؟ (ويب، iOS، أندرويد)", "Which platform? (web, iOS, Android)"),
         ],

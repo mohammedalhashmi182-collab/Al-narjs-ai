@@ -577,8 +577,19 @@
                     }).then(r => r.json()).then(data => {
                         setRunBusy(false);
                         spin.remove();
-                        if (data.result) {
+                            if (data.result) {
                             addMsg('agent', data.result);
+                            if (data.prototype_url && /^\/p\/[A-Za-z0-9_-]{32,80}$/.test(data.prototype_url)) {
+                                const open = document.createElement('div');
+                                open.className = 'msg msg-agent msg-complete';
+                                const link = document.createElement('a');
+                                link.href = data.prototype_url;
+                                link.target = '_blank';
+                                link.rel = 'noopener noreferrer';
+                                link.textContent = txt('افتح النموذج الحي', 'Open the live prototype');
+                                open.appendChild(link);
+                                box.appendChild(open);
+                            }
                             const finish = document.createElement('div');
                             finish.className = 'msg msg-agent msg-complete';
                             finish.textContent = txt(
@@ -594,7 +605,10 @@
                             }
                             box.scrollTop = box.scrollHeight;
                         } else {
-                            addMsg('agent', txt('تعذر إنهاء المهمة. حاول مجدداً.', 'Failed to finish. Try again.'));
+                            const msg = typeof data.detail === 'string'
+                                ? data.detail
+                                : txt('تعذر إنهاء المهمة. حاول مجدداً.', 'Failed to finish. Try again.');
+                            addMsg('agent', msg);
                         }
                     }).catch(() => {
                         setRunBusy(false);
