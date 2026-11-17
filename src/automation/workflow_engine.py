@@ -195,6 +195,19 @@ class WorkflowEngine:
         step_def: WorkflowStep,
         state: WorkflowState,
     ):
+        from src.services.owner_chat import agent_is_disabled, log_disabled_skip
+
+        if await agent_is_disabled(step_def.agent_slug):
+            log_disabled_skip(step_def.agent_slug, "workflow")
+            self.state_manager.skip_step(workflow_id, step_id)
+            current = self.state_manager.get_workflow(workflow_id)
+            step = current.steps.get(step_id) if current else None
+            if step is not None:
+                step.error = "disabled"
+                step.output_data = {"skipped": True, "reason": "disabled"}
+            self.state_manager.persist(workflow_id)
+            return
+
         if not self.state_manager.start_step(workflow_id, step_id):
             return
 

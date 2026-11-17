@@ -44,11 +44,18 @@ async def evaluate_recent(session) -> dict:
             .limit(limit)
         )
     ).all()
+    from src.services.owner_chat import agent_is_disabled, log_disabled_skip
+
     scored = 0
     passed = 0
+    skipped_disabled = 0
     for slug, result, project_id in rows:
         text = (result or "").strip()
         if not text:
+            continue
+        if await agent_is_disabled(slug):
+            log_disabled_skip(slug or "", "cron")
+            skipped_disabled += 1
             continue
         outcome = run_eval_loop(
             text,
@@ -79,6 +86,7 @@ async def evaluate_recent(session) -> dict:
     return {
         "scanned": scored,
         "passed": passed,
+        "skipped_disabled": skipped_disabled,
         "revise_stored": cron_revise_stored(),
     }
 

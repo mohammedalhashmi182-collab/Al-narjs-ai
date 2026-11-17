@@ -32,6 +32,7 @@ class TaskStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    SKIPPED = "skipped"
 
 
 @dataclass
@@ -121,7 +122,7 @@ class QueueWorker:
         for task in list(self._running_tasks.values()):
             # A cancelled worker's finally already called task_done(); only the
             # status bookkeeping can be stale here.
-            if task.status not in (TaskStatus.COMPLETED, TaskStatus.CANCELLED):
+            if task.status not in (TaskStatus.COMPLETED, TaskStatus.CANCELLED, TaskStatus.SKIPPED):
                 task.status = TaskStatus.FAILED
                 task.error = task.error or reason
             task.completed_at = time.time()
@@ -132,7 +133,7 @@ class QueueWorker:
                 _, _, task = self._queue.get_nowait()
             except asyncio.QueueEmpty:
                 break
-            if task.status != TaskStatus.CANCELLED:
+            if task.status not in (TaskStatus.CANCELLED, TaskStatus.SKIPPED):
                 task.status = TaskStatus.FAILED
                 task.error = reason
             task.completed_at = time.time()
@@ -273,6 +274,15 @@ class QueueWorker:
         self._running_tasks[task.id] = task
 
         try:
+            from src.services.owner_chat import agent_is_disabled, log_disabled_skip
+
+            if await agent_is_disabled(task.agent_slug):
+                log_disabled_skip(task.agent_slug, "queue")
+                task.status = TaskStatus.SKIPPED
+                task.error = "disabled"
+                task.result = {"skipped": True, "reason": "disabled"}
+                return
+
             agent_def = await self.agent_registry.get_agent(task.agent_slug)
             if not agent_def:
                 raise ValueError(f"Agent {task.agent_slug} not found")

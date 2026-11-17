@@ -227,7 +227,8 @@ class TriggerEngine:
     async def _execute_target(self, target_type: str, target_id: UUID, payload: dict):
         async with self.session_factory() as session:
             if target_type == "agent":
-                from src.services.agent_service import execute_agent
+                from src.services import execute_agent
+
                 await execute_agent(session, target_id, payload)
             elif target_type == "workflow":
                 from src.services.workflow_service import execute_workflow

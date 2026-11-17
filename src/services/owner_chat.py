@@ -211,6 +211,23 @@ async def disabled_slugs_best_effort() -> set[str]:
         return set()
 
 
+async def agent_is_disabled(slug: str | None) -> bool:
+    """True when the owner switched this agent off. Never raises."""
+    text = str(slug or "").strip()
+    if not text:
+        return False
+    try:
+        return text in await disabled_slugs_best_effort()
+    except Exception as exc:  # noqa: BLE001 — a check failure must not take the process down
+        logger.warning("disabled-agent check failed (%s)", type(exc).__name__)
+        return False
+
+
+def log_disabled_skip(slug: str, path: str) -> None:
+    """One plain line. No prompt text and no provider error."""
+    logger.info("disabled agent skipped slug=%s path=%s", slug, path)
+
+
 async def slug_enabled(session: AsyncSession, slug: str) -> bool:
     row = await _row(session, slug)
     if row is None:

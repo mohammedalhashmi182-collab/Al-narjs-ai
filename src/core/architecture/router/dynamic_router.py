@@ -173,6 +173,22 @@ class DynamicRouter:
             include_owner_only=include_owner_only,
         )
 
+        from src.services.owner_chat import agent_is_disabled, log_disabled_skip
+
+        if await agent_is_disabled(decision.agent_slug):
+            log_disabled_skip(decision.agent_slug, "router")
+            return RouterResult(
+                success=False,
+                content="",
+                agent_slug=decision.agent_slug,
+                model_used="",
+                tokens_used=0,
+                latency_ms=0,
+                error="disabled",
+                fallback_used=False,
+                decisions=[decision.to_dict()],
+            )
+
         if self.model_provider is None:
             return RouterResult(
                 success=False,

@@ -50,11 +50,34 @@ async def execute_schedule(session, schedule_id) -> dict:
     except Exception as e:
         logger.exception("Schedule %s failed: %s", sched.id, type(e).__name__)
         result = {"status": "error", "message": str(e)[:300]}
+    if result.get("reason") == "disabled":
+        await _note_disabled_skip(session, str(result.get("target") or ""), "schedule")
     try:
         await _touch_run(session, sched)
     except Exception as e:  # noqa: BLE001 - the job result still has to be returned
         logger.exception("Schedule run stamp failed: %s", type(e).__name__)
     return result
+
+
+async def _note_disabled_skip(session, slug: str, path: str) -> None:
+    """Keep the skip on the execution history. A write failure must not crash the job."""
+    try:
+        from src.models import WorkflowExecution
+
+        now = datetime.now(UTC)
+        session.add(
+            WorkflowExecution(
+                workflow_id=(slug or "agent")[:100],
+                trigger_type=(path or "run")[:50],
+                status="skipped",
+                error="disabled",
+                started_at=now,
+                completed_at=now,
+                context={"reason": "disabled", "path": path},
+            )
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("disabled skip record failed (%s)", type(exc).__name__)
 
 
 async def _touch_run(session, sched) -> None:
@@ -177,9 +200,23 @@ async def _run_workflow(session, sched) -> dict:
 
 async def _run_agent(sched) -> dict:
     from src.main import app
+    from src.services.owner_chat import agent_is_disabled, log_disabled_skip
 
     slug = str(sched.target_id)
+    payload = sched.payload or {}
+    names = [slug]
+    for key in ("slug", "agent_slug"):
+        if payload.get(key):
+            names.append(str(payload[key]))
+    for name in names:
+        if await agent_is_disabled(name):
+            log_disabled_skip(name, "schedule")
+            return {"status": "skipped", "reason": "disabled", "target": name}
+
     agent = await app.state.agent_registry.get_agent(slug)
+    if agent is not None and await agent_is_disabled(getattr(agent, "slug", "")):
+        log_disabled_skip(agent.slug, "schedule")
+        return {"status": "skipped", "reason": "disabled", "target": agent.slug}
     if not agent:
         return {"status": "no_agent", "target": slug}
 

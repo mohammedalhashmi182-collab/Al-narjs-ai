@@ -56,7 +56,7 @@ def handler_for(task) -> str:
 async def run_queued_tasks(session_factory, *, governance=None, limit: int = MAX_TASKS_PER_RUN) -> dict:
     """Claim queued company tasks and finish or escalate each one."""
     claimed = await _claim(session_factory, limit)
-    completed = escalated = failed = 0
+    completed = escalated = failed = skipped = 0
     reports: list[dict] = []
     for task_id in claimed:
         outcome = await _execute_one(session_factory, task_id, governance)
@@ -66,6 +66,8 @@ async def run_queued_tasks(session_factory, *, governance=None, limit: int = MAX
             completed += 1
         elif status == "escalated":
             escalated += 1
+        elif status == "skipped":
+            skipped += 1
         else:
             failed += 1
     return {
@@ -73,6 +75,7 @@ async def run_queued_tasks(session_factory, *, governance=None, limit: int = MAX
         "completed": completed,
         "escalated": escalated,
         "failed": failed,
+        "skipped": skipped,
         "tasks": reports,
     }
 
@@ -111,6 +114,16 @@ async def _execute_one(session_factory, task_id, governance) -> dict:
             return {"status": "failed", "blocker_code": "missing"}
         key = task.key
         try:
+            from src.services.owner_chat import agent_is_disabled, log_disabled_skip
+
+            owner = str(task.owner_agent or "").strip()
+            if owner and await agent_is_disabled(owner):
+                log_disabled_skip(owner, "company_task")
+                task.status = "cancelled"
+                task.learning = "الوكيل متوقف، فتُركت المهمة دون تنفيذ."
+                task.result = {"blocker_code": "agent_disabled", "sent": 0, "lead_status_changed": 0}
+                await session.commit()
+                return {"key": key, "status": "skipped", "blocker_code": "agent_disabled"}
             handler = handler_for(task)
             if handler == "qualify_new_ready":
                 if governance is not None:

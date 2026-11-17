@@ -30,6 +30,12 @@ async def execute_agent(
     if not agent:
         raise ValueError(f"Agent {agent_id} not found")
 
+    from src.services.owner_chat import agent_is_disabled, log_disabled_skip
+
+    if await agent_is_disabled(getattr(agent, "slug", "")):
+        log_disabled_skip(agent.slug, "handoff")
+        return {"skipped": True, "reason": "disabled", "content": "", "slug": agent.slug}
+
     tmpl = agent.prompt_templates.get(prompt_template_name)
     if not tmpl:
         raise ValueError(f"Prompt template {prompt_template_name} not found")

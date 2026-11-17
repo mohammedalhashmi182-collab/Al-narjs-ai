@@ -208,7 +208,9 @@ class StateManager:
             return False
         for dep_id in depends_on:
             dep_step = state.steps.get(dep_id)
-            if not dep_step or dep_step.status != StepStatus.COMPLETED:
+            # A skipped step (the owner switched that agent off) does not block
+            # the next agent in the chain.
+            if not dep_step or dep_step.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED):
                 return False
         return True
 
