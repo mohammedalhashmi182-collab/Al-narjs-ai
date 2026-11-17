@@ -94,6 +94,9 @@ async def _claim(session_factory, limit: int) -> list:
             task = await session.get(Task, task_id)
             if task is None or task.status != "queued":
                 continue
+            # Assigned funnel work waits for an owner-approved send proof.
+            if (task.evidence or {}).get("handler") == "funnel_hold":
+                continue
             task.status = "running"
             await session.commit()
             fresh = await session.get(Task, task_id)

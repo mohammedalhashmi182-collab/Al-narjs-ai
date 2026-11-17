@@ -392,9 +392,16 @@ async def sales_lead_detail(request: Request, lead_id: str):
             )
         ).scalars().all()
         draft = generate_message(lead)
+        from src.models.funnel import FunnelCallback
+        from src.services.funnel_callback import public_callback
+
+        callback_row = (
+            await session.execute(select(FunnelCallback).where(FunnelCallback.lead_id == lead.id))
+        ).scalar_one_or_none()
     return {
         "lead": _lead_dict(lead),
         "events": [_event_dict(e) for e in events],
+        "callback": public_callback(callback_row) if callback_row is not None else None,
         "draft": draft,
         "follow_up": prepare_follow_up(lead, events),
         "variants": VARIANT_LABELS_AR,
