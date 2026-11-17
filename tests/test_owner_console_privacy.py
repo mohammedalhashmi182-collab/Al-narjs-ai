@@ -28,7 +28,7 @@ OWNER_ONLY_API = [
     ("GET", "/api/workflows"),
 ]
 
-OWNER_ONLY_PAGES = ["/", "/owner", "/agents"]
+OWNER_ONLY_PAGES = ["/", "/owner", "/owner/chat", "/agents"]
 
 
 @pytest.fixture(scope="module")

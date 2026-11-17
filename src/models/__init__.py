@@ -386,3 +386,4 @@ from src.models.ops import ErrorEvent, FunnelEvent, WeeklyReport, WhatsAppTempla
 from src.models.support import SupportTicket  # noqa: E402,F401
 from src.models.rag import KnowledgeChunk  # noqa: E402,F401
 from src.models.capabilities import CapabilityEvalLog, ClientStyleProfile  # noqa: E402,F401
+from src.models.owner_chat import OwnerAgentProfile, OwnerChatMessage, OwnerConversation  # noqa: E402,F401

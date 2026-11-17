@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}كلّم وكلاءك - النرجس{% endblock %}
+{% block page_title %}كلّم وكلاءك{% endblock %}
+
+{% block content %}
+<section class="ocx">
+    <aside class="ocx-side">
+        <div class="ocx-side-h">
+            <h1>وكلاؤك</h1>
+            <button type="button" class="ocx-primary" id="newAgentBtn">وكيل جديد</button>
+        </div>
+        <p class="ocx-note">أوقف وكيلاً من المفتاح، أو عدّل إرشاداته. الوكلاء المتوقفون لا يشاركون في المحادثة.</p>
+        <div id="agentList" class="ocx-list"></div>
+    </aside>
+
+    <section class="ocx-chat" aria-label="المحادثة">
+        <header class="ocx-chat-h">
+            <div>
+                <h2>المحادثة</h2>
+                <p id="chatHint">أضف وكيلاً أو أكثر، ثم اكتب بالعربية.</p>
+            </div>
+        </header>
+        <div class="ocx-parts">
+            <div id="chips" class="ocx-chips"></div>
+            <div class="ocx-add">
+                <button type="button" class="ocx-ghost" id="addBtn">إضافة وكيل</button>
+                <select id="addSelect" hidden aria-label="اختر وكيلاً لإضافته"></select>
+            </div>
+        </div>
+        <div id="thread" class="ocx-thread" aria-live="polite">
+            <p class="ocx-empty" id="emptyState">اختر وكيلاً من القائمة، أو اضغط «إضافة وكيل»، ثم اكتب رسالتك.</p>
+        </div>
+        <p id="chatError" class="ocx-error" hidden></p>
+        <form id="composer" class="ocx-composer">
+            <label class="ocx-sr" for="message">رسالتك</label>
+            <textarea id="message" rows="2" maxlength="4000" placeholder="اكتب رسالتك هنا…"></textarea>
+            <button type="submit" class="ocx-primary" id="sendBtn">إرسال</button>
+        </form>
+        <p class="ocx-note">الرد مسودة ونصيحة داخل هذه الشاشة. الوكيل لا يرسل بريداً ولا رسالة خارجها.</p>
+    </section>
+</section>
+
+<dialog id="agentDialog">
+    <form method="dialog" id="agentForm">
+        <h3 id="dialogTitle">وكيل جديد</h3>
+        <label id="nameLabel">الاسم بالعربية
+            <input id="nameInput" maxlength="80" autocomplete="off">
+        </label>
+        <label id="roleLabel">الدور باختصار
+            <input id="roleInput" maxlength="240" autocomplete="off">
+        </label>
+        <label>الإرشادات
+            <textarea id="instructionsInput" rows="6" maxlength="4000" placeholder="ماذا تريد من هذا الوكيل أن يراعي؟"></textarea>
+        </label>
+        <p id="dialogError" class="ocx-error" hidden></p>
+        <div class="ocx-dialog-actions">
+            <button type="button" class="ocx-ghost" id="dialogCancel">إلغاء</button>
+            <button type="submit" class="ocx-primary" id="dialogSave">حفظ</button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<style>
+body{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)}
+main.bg-sand{background:var(--ad-sand,#1c1917)}
+aside{background:var(--ad-sand-2,#232020)!important}
+aside .brand,header.n-nav,header.n-nav h2{color:var(--ad-text,#fafaf9)!important}
+aside nav a{color:var(--ad-muted,#a8a29e)!important}
+aside nav a.active{color:var(--ad-text,#fafaf9)!important;background:rgba(255,90,54,.14)!important}
+header.n-nav{background:rgba(28,25,23,.92)!important;border-color:var(--ad-line)!important}
+.ocx{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:16px;align-items:start}
+.ocx-side,.ocx-chat{background:var(--ad-sand-2,#232020);border:1px solid var(--ad-line,rgba(250,250,249,.09));
+    border-radius:18px;padding:16px;min-width:0}
+.ocx-side-h,.ocx-chat-h,.ocx-dialog-actions,.ocx-add{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ocx h1,.ocx h2,dialog h3{margin:0;font-size:1.15rem;font-weight:800;color:var(--ad-text,#fafaf9)}
+.ocx-note{margin:8px 0 0;color:var(--ad-muted,#a8a29e);font-size:.8rem;line-height:1.7}
+.ocx-list{display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:70vh;overflow:auto}
+.ocx-agent{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:14px;border:1px solid var(--ad-line,rgba(250,250,249,.09));background:rgba(250,250,249,.03)}
+.ocx-agent strong{font-size:.92rem}
+.ocx-agent span{color:var(--ad-muted,#a8a29e);font-size:.75rem}
+.ocx-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ocx-actions{display:flex;gap:6px;flex-wrap:wrap}
+.ocx-primary,.ocx-ghost,.ocx-mini{font:inherit;cursor:pointer;border-radius:12px}
+.ocx-primary{background:var(--odsf-accent,#ff5a36);color:#1c1917;border:0;font-weight:800;padding:8px 14px}
+.ocx-ghost,.ocx-mini{background:transparent;color:var(--ad-text,#fafaf9);border:1px solid var(--ad-line,rgba(250,250,249,.16));padding:6px 10px;font-size:.78rem;font-weight:700}
+.ocx-primary:disabled,.ocx-ghost:disabled{opacity:.5;cursor:default}
+.ocx-switch{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;color:var(--ad-muted,#a8a29e)}
+.ocx-parts{margin:12px 0}
+.ocx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.ocx-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:rgba(255,90,54,.14);color:var(--ad-text,#fafaf9);font-size:.78rem}
+.ocx-chip button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}
+.ocx-thread{min-height:280px;max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px}
+.ocx-empty{color:var(--ad-faint,#78716c);text-align:center;margin:auto}
+.ocx-bubble{max-width:min(100%,42rem);padding:10px 14px;border-radius:var(--r-bubble,20px);line-height:1.7;white-space:pre-wrap}
+.ocx-bubble.user{align-self:flex-start;background:rgba(255,90,54,.16);border-start-start-radius:8px}
+.ocx-bubble.agent{align-self:flex-end;background:rgba(250,250,249,.06);border:1px solid var(--ad-line,rgba(250,250,249,.09));border-start-end-radius:8px}
+.ocx-bubble b{display:block;font-size:.75rem;margin-bottom:4px;color:var(--odsf-accent,#ff5a36)}
+.ocx-composer{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
+.ocx-composer textarea,dialog input,dialog textarea,select{width:100%;font:inherit;font-size:16px;border-radius:12px;border:1px solid var(--ad-line,rgba(250,250,249,.16));background:#1c1917;color:var(--ad-text,#fafaf9);padding:10px}
+.ocx-composer textarea{flex:1;resize:vertical;min-height:52px}
+.ocx-error{color:#ffb4b4;font-size:.85rem;margin:8px 0}
+dialog{border:0;border-radius:18px;background:#232020;color:var(--ad-text,#fafaf9);padding:16px;width:min(520px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog label{display:block;margin-top:10px;font-size:.85rem}
+.ocx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width: 800px){
+    .ocx{display:flex;flex-direction:column}
+    .ocx-chat{order:-1}
+    .ocx-list{max-height:40vh}
+    .ocx-thread{max-height:46vh}
+    .ocx-composer{flex-direction:column;align-items:stretch}
+    .ocx-primary{min-height:44px}
+    /* The shared sidebar slides the wrong way in RTL. Keep it off the chat
+       until the menu button opens it. */
+    aside.sidebar{transform:translateX(110%) !important}
+    aside.sidebar.open{transform:translateX(0) !important}
+}
+@media (prefers-reduced-motion: reduce){
+    .ocx-primary,.ocx-ghost,.ocx-mini{transition:none}
+}
+</style>
+<script>
+(function () {
+    const listEl = document.getElementById("agentList");
+    const chipsEl = document.getElementById("chips");
+    const threadEl = document.getElementById("thread");
+    const emptyEl = document.getElementById("emptyState");
+    const errorEl = document.getElementById("chatError");
+    const addSelect = document.getElementById("addSelect");
+    const dialog = document.getElementById("agentDialog");
+    const dialogTitle = document.getElementById("dialogTitle");
+    const dialogError = document.getElementById("dialogError");
+    let agents = [];
+    let participants = [];
+    let conversationId = null;
+    let editing = null;
+
+    function esc(value) {
+        return String(value || "").replace(/[&<>"']/g, function (ch) {
+            return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch];
+        });
+    }
+    function showError(text) {
+        errorEl.hidden = !text;
+        errorEl.textContent = text || "";
+    }
+    function agentBy(slug) {
+        return agents.find(function (a) { return a.slug === slug; });
+    }
+    function renderChips() {
+        chipsEl.innerHTML = participants.map(function (slug) {
+            const agent = agentBy(slug);
+            const name = agent ? agent.name_ar : slug;
+            return '<span class="ocx-chip">' + esc(name) +
+                '<button type="button" data-remove="' + esc(slug) + '" aria-label="إزالة ' + esc(name) + '">×</button></span>';
+        }).join("");
+        const hint = document.getElementById("chatHint");
+        if (!participants.length) hint.textContent = "أضف وكيلاً أو أكثر، ثم اكتب بالعربية.";
+        else if (participants.length === 1) hint.textContent = "تتحدث مع " + (agentBy(participants[0]) || {}).name_ar;
+        else hint.textContent = "محادثة جماعية مع " + participants.length + " وكلاء. كل واحد يرد بالدور.";
+        const enabled = agents.filter(function (a) { return a.enabled && participants.indexOf(a.slug) === -1; });
+        addSelect.innerHTML = '<option value="">اختر وكيلاً</option>' + enabled.map(function (a) {
+            return '<option value="' + esc(a.slug) + '">' + esc(a.name_ar) + "</option>";
+        }).join("");
+        document.getElementById("addBtn").disabled = participants.length >= 5 || !enabled.length;
+    }
+    function renderList() {
+        listEl.innerHTML = agents.map(function (a) {
+            return '<article class="ocx-agent"><div class="ocx-row"><div><strong>' + esc(a.name_ar) +
+                '</strong><div><span>' + esc(a.dept || a.role_ar || "") + '</span></div></div>' +
+                '<label class="ocx-switch"><input type="checkbox" data-toggle="' + esc(a.slug) + '"' +
+                (a.enabled ? " checked" : "") + '> ' + (a.enabled ? "يعمل" : "متوقف") + '</label></div>' +
+                '<div class="ocx-actions"><button type="button" class="ocx-mini" data-edit="' + esc(a.slug) +
+                '">الإرشادات</button><button type="button" class="ocx-mini" data-join="' + esc(a.slug) + '"' +
+                (a.enabled ? "" : " disabled") + '>أضفه للمحادثة</button></div></article>';
+        }).join("");
+    }
+    async function load() {
+        const response = await fetch("/api/owner/chat/agents");
+        if (!response.ok) { showError("تعذّر تحميل الوكلاء."); return; }
+        agents = (await response.json()).agents || [];
+        participants = participants.filter(function (slug) {
+            const agent = agentBy(slug);
+            return agent && agent.enabled;
+        });
+        renderList();
+        renderChips();
+    }
+    function bubble(kind, name, text) {
+        if (emptyEl) emptyEl.remove();
+        const node = document.createElement("div");
+        node.className = "ocx-bubble " + kind;
+        if (name) {
+            const title = document.createElement("b");
+            title.textContent = name;
+            node.appendChild(title);
+        }
+        node.appendChild(document.createTextNode(text));
+        threadEl.appendChild(node);
+        threadEl.scrollTop = threadEl.scrollHeight;
+    }
+    function addParticipant(slug) {
+        if (!slug || participants.indexOf(slug) !== -1) return;
+        const agent = agentBy(slug);
+        if (!agent || !agent.enabled) { showError("لا يمكن إضافة وكيل متوقف."); return; }
+        if (participants.length >= 5) { showError("يمكن إضافة خمسة وكلاء كحد أقصى."); return; }
+        participants.push(slug);
+        showError("");
+        renderChips();
+    }
+    listEl.addEventListener("click", function (event) {
+        const join = event.target.getAttribute("data-join");
+        const edit = event.target.getAttribute("data-edit");
+        if (join) addParticipant(join);
+        if (edit) openDialog(agentBy(edit));
+    });
+    listEl.addEventListener("change", async function (event) {
+        const slug = event.target.getAttribute("data-toggle");
+        if (!slug) return;
+        const response = await fetch("/api/owner/chat/agents/" + encodeURIComponent(slug), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ enabled: event.target.checked })
+        });
+        const data = await response.json().catch(function () { return {}; });
+        if (!response.ok) showError(data.detail || "تعذّر تحديث الحالة.");
+        await load();
+    });
+    chipsEl.addEventListener("click", function (event) {
+        const slug = event.target.getAttribute("data-remove");
+        if (!slug) return;
+        participants = participants.filter(function (item) { return item !== slug; });
+        renderChips();
+    });
+    document.getElementById("addBtn").addEventListener("click", function () {
+        addSelect.hidden = !addSelect.hidden;
+        if (!addSelect.hidden) addSelect.focus();
+    });
+    addSelect.addEventListener("change", function () {
+        if (addSelect.value) addParticipant(addSelect.value);
+        addSelect.value = "";
+        addSelect.hidden = true;
+    });
+    function openDialog(agent) {
+        editing = agent || null;
+        dialogTitle.textContent = agent ? "إرشادات " + agent.name_ar : "وكيل جديد";
+        document.getElementById("nameInput").value = agent && agent.kind === "custom" ? agent.name_ar : "";
+        document.getElementById("roleInput").value = agent && agent.kind === "custom" ? agent.role_ar : "";
+        document.getElementById("instructionsInput").value = agent ? (agent.instructions || "") : "";
+        const custom = !agent || agent.kind === "custom";
+        document.getElementById("nameLabel").hidden = !custom;
+        document.getElementById("roleLabel").hidden = !custom;
+        dialogError.hidden = true;
+        dialog.showModal();
+    }
+    document.getElementById("newAgentBtn").addEventListener("click", function () { openDialog(null); });
+    document.getElementById("dialogCancel").addEventListener("click", function () { dialog.close(); });
+    document.getElementById("agentForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const instructions = document.getElementById("instructionsInput").value;
+        let response;
+        if (editing) {
+            const body = { instructions: instructions };
+            if (editing.kind === "custom") {
+                body.name_ar = document.getElementById("nameInput").value;
+                body.role_ar = document.getElementById("roleInput").value;
+            }
+            response = await fetch("/api/owner/chat/agents/" + encodeURIComponent(editing.slug), {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+        } else {
+            response = await fetch("/api/owner/chat/agents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name_ar: document.getElementById("nameInput").value,
+                    role_ar: document.getElementById("roleInput").value,
+                    instructions: instructions
+                })
+            });
+        }
+        const data = await response.json().catch(function () { return {}; });
+        if (!response.ok) {
+            dialogError.hidden = false;
+            dialogError.textContent = data.detail || "تعذّر الحفظ.";
+            return;
+        }
+        dialog.close();
+        await load();
+        if (!editing && data.slug) addParticipant(data.slug);
+    });
+    document.getElementById("composer").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const input = document.getElementById("message");
+        const message = input.value.trim();
+        if (!participants.length) { showError("اختر وكيلاً واحداً على الأقل."); return; }
+        if (!message) { showError("اكتب رسالتك أولاً."); return; }
+        showError("");
+        const sendBtn = document.getElementById("sendBtn");
+        sendBtn.disabled = true;
+        bubble("user", "أنت", message);
+        input.value = "";
+        try {
+            const response = await fetch("/api/owner/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message, conversation_id: conversationId, agents: participants })
+            });
+            const data = await response.json().catch(function () { return {}; });
+            if (!response.ok || data.ok === false) {
+                showError(data.detail || "تعذّر الرد الآن. حاول مرة أخرى بعد قليل.");
+                return;
+            }
+            conversationId = data.conversation_id;
+            (data.replies || []).forEach(function (reply) {
+                bubble("agent", reply.name, reply.content);
+            });
+        } catch (err) {
+            showError("تعذّر الرد الآن. حاول مرة أخرى بعد قليل.");
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    });
+    load();
+})();
+</script>
+{% endblock %}

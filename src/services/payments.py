@@ -1463,7 +1463,12 @@ async def staff_project(session: AsyncSession, project) -> list[str]:
         await session.execute(_sel(ClientAgent).where(ClientAgent.project_id == project.id))
     ).scalars().all()
     have = [r.slug for r in rows]
-    target = catalog.staff_team(project.package, int(project.addon_agents or 0), preferred=have)
+    from src.services import owner_chat as _owner_chat
+
+    disabled = await _owner_chat.disabled_slugs(session)
+    target = _owner_chat.staff_team_skipping(
+        project.package, int(project.addon_agents or 0), preferred=have, disabled=disabled
+    )
     added = [slug for slug in target if slug not in have]
     for slug in added:
         session.add(ClientAgent(project_id=project.id, slug=slug, status="dormant"))

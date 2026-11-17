@@ -967,6 +967,10 @@ from src.interfaces.capability_routes import router as capability_router  # noqa
 
 app.include_router(capability_router)
 
+from src.interfaces.owner_chat_routes import router as owner_chat_router  # noqa: E402
+
+app.include_router(owner_chat_router)
+
 # LLM router + pgvector RAG: POST /api/ai/ask (fast/deep routing, review, handoff).
 from src.interfaces.ai_routes import router as ai_ask_router  # noqa: E402
 
@@ -1118,6 +1122,14 @@ async def owner_entry(request: Request):
     if not check_owner(request):
         return RedirectResponse("/login")
     return RedirectResponse("/")
+
+
+@app.get("/owner/chat", response_class=HTMLResponse)
+async def owner_chat_page(request: Request):
+    from src.core.owner_auth import check_owner
+    if not check_owner(request):
+        return RedirectResponse("/login")
+    return templates.TemplateResponse(request, "owner_chat.html", {"active": "owner_chat"})
 
 
 async def _pricing_context() -> dict:
@@ -2031,6 +2043,12 @@ async def run_agent(slug: str, request: AgentRunRequest, http_request: Request):
     if not agent:
         raise HTTPException(404, "Agent not found")
 
+    from src.services import owner_chat as _owner_chat
+
+    async with app.state.session_factory() as session:
+        if not await _owner_chat.slug_enabled(session, slug):
+            raise HTTPException(409, _owner_chat.DISABLED_AR)
+
     tmpl = agent.prompt_templates.get(request.prompt_template)
     if not tmpl:
         raise HTTPException(404, "Prompt template not found")
@@ -2391,7 +2409,12 @@ async def portal_create_project(request: PortalProjectCreate):
 
         addons = max(0, min(int(request.addons or 0), catalog.MAX_ADDON_AGENTS))
         project.addon_agents = addons
-        for slug in catalog.staff_team(request.package, addons, preferred=request.agents or []):
+        from src.services import owner_chat as _owner_chat
+
+        disabled = await _owner_chat.disabled_slugs(session)
+        for slug in _owner_chat.staff_team_skipping(
+            request.package, addons, preferred=request.agents or [], disabled=disabled
+        ):
             session.add(ClientAgent(project_id=project.id, slug=slug, status="dormant"))
         await session.commit()
         await session.refresh(project)
@@ -2462,6 +2485,11 @@ async def portal_wake_agent(project_id: str, slug: str, http_request: Request):
             raise HTTPException(404, "Project not found")
         if project.status != "active":
             raise HTTPException(402, "Subscription not active — activate your plan first")
+
+        from src.services import owner_chat as _owner_chat
+
+        if not await _owner_chat.slug_enabled(session, slug):
+            raise HTTPException(409, _owner_chat.DISABLED_AR)
 
         emp = catalog.get_employee(slug)
         defn = await app.state.agent_registry.get_agent(slug)
@@ -2538,6 +2566,11 @@ async def _portal_run_agent(project_id: str, slug: str, request: PortalAnswers, 
             raise HTTPException(404, "Project not found")
         if project.status != "active":
             raise HTTPException(402, "Subscription not active — activate your plan first")
+
+        from src.services import owner_chat as _owner_chat
+
+        if not await _owner_chat.slug_enabled(session, slug):
+            raise HTTPException(409, _owner_chat.DISABLED_AR)
 
         agent_def = await app.state.agent_registry.get_agent(slug)
         if not agent_def:

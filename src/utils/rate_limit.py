@@ -170,3 +170,17 @@ def rate_limit_docpack_demo(request: Request) -> None:
 
 def rate_limit_docpack_api(request: Request) -> None:
     _docpack_limited(docpack_api_limiter, f"{client_ip(request)}:/api/docpack")
+
+
+# Owner chat calls a model once per selected agent. One owner, a modest window.
+owner_chat_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=60)
+
+
+def rate_limit_owner_chat(request: Request) -> None:
+    ok, retry_after = owner_chat_limiter.check(f"{client_ip(request)}:/api/owner/chat")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail="كثرت الرسائل. انتظر قليلاً ثم أعد المحاولة.",
+            headers={"Retry-After": str(retry_after)},
+        )

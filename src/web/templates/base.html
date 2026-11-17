@@ -46,6 +46,9 @@
                     <a href="/agents" class="flex items-center px-3 py-2.5{% if active == 'agents' %} active{% endif %}">
                         <i class="fas fa-robot w-5 me-3 ms-0"></i> {% if _lang == 'ar' %}<span>الوكلاء</span>{% else %}<span data-inline>Agents</span>{% endif %}
                     </a>
+                    <a href="/owner/chat" class="flex items-center px-3 py-2.5{% if active == 'owner_chat' %} active{% endif %}">
+                        <i class="fas fa-comments w-5 me-3 ms-0"></i> {% if _lang == 'ar' %}<span>كلّم وكلاءك</span>{% else %}<span data-inline>Talk to agents</span>{% endif %}
+                    </a>
                     <a href="/workflows" class="flex items-center px-3 py-2.5">
                         <i class="fas fa-sitemap w-5 me-3 ms-0"></i> {% if _lang == 'ar' %}<span>سير العمل</span>{% else %}<span data-inline>Workflows</span>{% endif %}
                     </a>

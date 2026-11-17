@@ -413,6 +413,24 @@ async def diagnose(problem: str, *, provider=None, locale: str = "ar") -> dict:
                 )
         except Exception:  # noqa: BLE001 - any model failure falls back to rules
             final = rules
+    from src.services.owner_chat import disabled_slugs_best_effort
+
+    disabled = await disabled_slugs_best_effort()
+    if disabled:
+        kept = [slug for slug in final.agents if slug not in disabled]
+        if not kept:
+            kept = [
+                slug for slug in catalog.EMPLOYEES
+                if slug != catalog.CEO_SLUG and slug not in disabled
+            ][:1]
+        final = Diagnosis(
+            needs=final.needs,
+            agents=kept,
+            full_company=final.full_company,
+            source=final.source,
+            summary_ar=final.summary_ar,
+            summary_en=final.summary_en,
+        )
     return public_output_check(build_result(final), problem)
 
 

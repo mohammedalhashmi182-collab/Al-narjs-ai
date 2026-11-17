@@ -15,6 +15,7 @@ OWNER_TEMPLATES = {
     "dashboard.html",
     "executions.html",
     "owner_automation.html",
+    "owner_chat.html",
     "owner_command.html",
     "sales_dashboard.html",
     "sales_demo.html",
