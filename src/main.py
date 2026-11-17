@@ -1374,7 +1374,7 @@ async def blog_post_page(slug: str, request: Request):
 @app.get("/compare/{slug}", response_class=HTMLResponse)
 async def compare_page(slug: str, request: Request):
     """Arabic-first comparison pages, with an English version under /en/."""
-    from src.services import comparisons, policies
+    from src.services import comparisons
 
     page = comparisons.get_comparison(slug)
     if page is None:
@@ -1388,8 +1388,6 @@ async def compare_page(slug: str, request: Request):
             "page": page,
             "plans": comparisons.public_plans(),
             "others": comparisons.other_comparisons(slug),
-            "trial_ar": policies.TRIAL_BUILD_AR,
-            "trial_en": policies.TRIAL_BUILD_EN,
         },
     )
 

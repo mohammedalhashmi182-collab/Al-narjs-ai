@@ -1,7 +1,8 @@
-"""Comparison pages and the 7-day build offer.
+"""Comparison pages stay factual, and public copy does not mention a trial.
 
-The pages must render, sit in the sitemap, and stay factual. The old denial of
-a free trial must be gone. A paid subscription still has no outcome-based refund.
+Neither a denial of a free trial nor a 7-day build offer belongs on the site
+text these pages and policies use. A paid subscription still has no
+outcome-based refund.
 """
 
 from __future__ import annotations
@@ -26,7 +27,20 @@ BANNED = (
     "There is no free trial",
     "ما عندنا تجربة مجانية",
     "Free trial: none",
+    "free trial",
+    "تجربة مجانية",
     "المجاني فقط التشخيص مع الرئيس التنفيذي الذكي",
+    "10 inquiries or bookings",
+    "10 استفسارات أو حجوزات",
+    "لا يدفع العميل شيئاً",
+    "the customer pays nothing",
+    "التجربة قبل الدفع",
+    "The build before payment",
+)
+SCAN_ROOTS = (
+    ROOT / "src",
+    ROOT / "data" / "kb",
+    ROOT / "agents" / "base",
 )
 
 SCAN_SUFFIXES = {".py", ".html", ".md", ".yaml", ".yml", ".txt"}
@@ -52,8 +66,6 @@ def test_compare_pages_return_200_in_both_languages(client: TestClient, slug: st
     assert 'lang="en"' in en.text and 'dir="ltr"' in en.text
     assert f'rel="canonical" href="https://alnarjisai.com/ar/compare/{slug}"' in ar.text
     assert 'hreflang="en"' in ar.text and 'hreflang="ar"' in ar.text
-    assert policies.TRIAL_BUILD_AR in ar.text
-    assert policies.TRIAL_BUILD_EN in en.text
     assert policies.REFUND_CONSENT_AR in ar.text
     assert policies.REFUND_CONSENT_EN in en.text
     for price in ("790", "1,490", "2,990"):
@@ -97,41 +109,32 @@ def test_compare_pages_are_in_the_sitemap_footer_and_llms(client: TestClient) ->
         assert f'href="/compare/{slug}"' in about
 
 
-def test_terms_state_the_build_offer_and_keep_the_refund_rule(client: TestClient) -> None:
+def test_terms_keep_the_refund_rule_and_omit_any_trial(client: TestClient) -> None:
     ar = client.get("/ar/terms").text
     en = client.get("/en/terms").text
-    assert policies.TRIAL_BUILD_AR in ar
-    assert policies.TRIAL_BUILD_EN in en
     assert policies.REFUND_CONSENT_AR in ar
     assert policies.REFUND_CONSENT_EN in en
-    assert "10 استفسارات أو حجوزات خلال 7 أيام" in ar
-    assert "10 inquiries or bookings within 7 days" in en
-    assert "لا يدفع العميل شيئاً" in ar
-    assert "the customer pays nothing" in en
+    assert not hasattr(policies, "TRIAL_BUILD_AR")
+    assert not hasattr(policies, "TRIAL_BUILD_EN")
     for phrase in BANNED:
         assert phrase not in ar and phrase not in en
+        assert phrase not in policies.POLICY_PROMPT
+        assert phrase not in policies.OWNER_FAQ_AR
 
 
-def test_no_free_trial_denial_remains_in_the_tree() -> None:
-    skip = Path(__file__).resolve()
+def test_changed_site_text_does_not_mention_a_trial() -> None:
     hits: list[str] = []
-    for path in ROOT.rglob("*"):
-        if not path.is_file() or path.resolve() == skip:
-            continue
-        if path.suffix.lower() not in SCAN_SUFFIXES:
-            continue
-        if any(part in SKIP_PARTS for part in path.parts):
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        for phrase in BANNED:
-            if phrase in text:
-                hits.append(f"{path.relative_to(ROOT)}: {phrase}")
+    for base in SCAN_ROOTS:
+        for path in base.rglob("*"):
+            if not path.is_file() or path.suffix.lower() not in SCAN_SUFFIXES:
+                continue
+            if any(part in SKIP_PARTS for part in path.parts):
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            for phrase in BANNED:
+                if phrase in text:
+                    hits.append(f"{path.relative_to(ROOT)}: {phrase}")
     assert hits == []
-    kb = (ROOT / "data/kb/narjs_services.md").read_text(encoding="utf-8")
-    assert policies.TRIAL_BUILD_AR in kb
-    assert policies.TRIAL_BUILD_EN in policies.POLICY_PROMPT
-    assert policies.TRIAL_BUILD_AR in policies.OWNER_FAQ_AR
     for name in ("customer_service.yaml", "sales_closer.yaml"):
         body = (ROOT / "agents/base" / name).read_text(encoding="utf-8")
-        assert policies.TRIAL_BUILD_EN in body
         assert policies.REFUND_CONSENT_AR in body or policies.REFUND_CONSENT_EN in body

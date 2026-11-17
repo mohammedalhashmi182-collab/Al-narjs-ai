@@ -15,20 +15,6 @@ POLICY_VERSION = "2026-10-24"
 REFUND_CONSENT_AR = "لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com."
 REFUND_CONSENT_EN = "We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com."
 
-# The build offer applies before any paid subscription. It is not a refund
-# promise for a subscription that has already been paid.
-TRIAL_BUILD_AR = (
-    "قبل الاشتراك المدفوع نبني تجربة مجانية. إذا لم تلتقط 10 استفسارات أو حجوزات خلال 7 أيام، "
-    "لا يدفع العميل شيئاً. بعد بدء الاشتراك المدفوع لا يغيّر هذا العرض قاعدة الاسترداد، "
-    "ولا نعد بنتيجة استرداد."
-)
-TRIAL_BUILD_EN = (
-    "Before a paid subscription we build a free trial. If it does not capture "
-    "10 inquiries or bookings within 7 days, the customer pays nothing. "
-    "After a paid subscription starts, this offer does not change the refund rule "
-    "and we do not promise a refund outcome."
-)
-
 POLICY_PROMPT = (
     "Al-Narjis policies (owner-approved, never contradict them):\n"
     f"- Refunds: do not promise a refund outcome. Before paying, the customer explicitly agrees to: «{REFUND_CONSENT_AR}». "
@@ -36,7 +22,6 @@ POLICY_PROMPT = (
     "Refund questions are reviewed by email at AlNarjisai@gmail.com.\n"
     "- Support: by email at AlNarjisai@gmail.com. The Enterprise plan gets a reply within one business day. "
     "There is no phone support and no round-the-clock assistant.\n"
-    f"- {TRIAL_BUILD_EN}\n"
     "- Meta WhatsApp fees: currently included in the subscription (Al-Narjis absorbs them). Say 'currently included'; "
     "never promise they will stay included permanently.\n"
     "- Data (Saudi PDPL): we collect the minimum; data is processed by AI providers outside Saudi Arabia; after "
@@ -53,8 +38,6 @@ OWNER_FAQ_AR = f"""سياسة الاسترداد: {REFUND_CONSENT_AR}
 الإلغاء: تقدر تلغي في أي وقت، والإلغاء يوقف التجديد القادم، وتبقى الخدمة شغالة حتى نهاية الفترة المدفوعة، ويُغلق الفريق عندها.
 
 أوقات الدعم: الدعم عبر البريد AlNarjisai@gmail.com. باقة الشركات يصلها الرد خلال يوم عمل. لا يوجد دعم هاتفي ولا مساعد على مدار الساعة.
-
-التجربة قبل الدفع: {TRIAL_BUILD_AR}
 
 رسوم واتساب من Meta: رسوم رسائل واتساب الرسمية مشمولة حالياً في الاشتراك ونتحملها نحن، وأي تغيير نبلغك فيه مسبقاً قبل التجديد.
 

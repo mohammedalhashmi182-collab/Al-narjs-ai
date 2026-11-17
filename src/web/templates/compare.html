@@ -18,9 +18,7 @@
     {% endfor %}
 </ul>
 <p><a href="/pricing">{% if ar %}جدول الباقات{% else %}Plan table{% endif %}</a></p>
-<h2 class="n-title text-lg">{% if ar %}التجربة قبل الدفع{% else %}The build before payment{% endif %}</h2>
-<p>{{ trial_ar if ar else trial_en }}</p>
-<p>{% if ar %}بعد الاشتراك المدفوع يبقى النص: «لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.»{% else %}After a paid subscription the sentence stays: “We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.”{% endif %}</p>
+<p>{% if ar %}لا نعد هنا بنتيجة استرداد. أسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.{% else %}We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.{% endif %}</p>
 <h2 class="n-title text-lg">{% if ar %}البيانات{% else %}Data{% endif %}</h2>
 <p>{% if ar %}نجمع الحد الأدنى اللازم من البيانات لتقديم الخدمة. بعد إلغاء الاشتراك تُحفظ المحادثات والملفات 30 يوماً ثم تُحذف. يمكنك طلب حذف بياناتك في أي وقت، ما عدا الفواتير وسجلات الدفع.{% else %}We collect only the minimum data needed to provide the service. After cancellation, conversations and files are kept for 30 days and then deleted. You may request deletion of your data at any time, except invoices and payment records.{% endif %}</p>
 <p>
