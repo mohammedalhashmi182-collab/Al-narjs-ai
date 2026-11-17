@@ -117,6 +117,7 @@
     const muted = mute.getAttribute("aria-pressed") === "true";
     status.textContent = name === "listening" && muted ? T.muted : ST[name];
     vid.classList.toggle("talk", name === "speaking");
+    vid.classList.toggle("listen", name === "listening" || name === "connecting");
   }
 
   let userRow = null;

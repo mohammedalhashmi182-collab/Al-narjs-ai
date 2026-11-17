@@ -1,5 +1,5 @@
 /* Al-Narjis voice page. The orb is the hero. The header mark breathes with CSS filters only. */
-:root{--ink:#0b0b0c;--ink-raised:#161719;--ivory:#f6f5f4;--muted:#b3b3b3;--line:#333337;--accent:#dadada;--ice:#eeeeee}
+:root{--ink:#0b0b0c;--ink-raised:#161719;--ivory:#f6f5f4;--muted:#c4b8b4;--line:#333337;--accent:#FF5A36;--ice:#FF5A36}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;overflow-x:hidden}
 html{color-scheme:dark;scroll-behavior:smooth}
@@ -25,37 +25,46 @@ h1{font-size:clamp(27px,4.7vw,46px);font-weight:600;line-height:1.45;margin:10px
 h1 b{font-weight:650;color:var(--ivory);text-shadow:0 0 18px rgba(238,238,238,.18)}
 .sub{color:var(--muted);font-size:clamp(15px,1.8vw,18px);margin:0 0 10px}
 /* orb */
-.video{order:0;width:min(80vw,520px);height:min(80vw,520px);position:relative;
+.video{order:0;width:min(68vw,440px);height:min(68vw,440px);position:relative;
   display:grid;place-items:center;margin:0 auto}
 .voice-orb{display:block;width:100%;height:100%;pointer-events:none;background:#000}
 @keyframes logo-breathe{
-  0%,100%{filter:brightness(.5) drop-shadow(0 0 0 rgba(255,255,255,0))}
-  50%{filter:brightness(1.7) drop-shadow(0 0 7px rgba(255,255,255,.95)) drop-shadow(0 0 2px rgba(244,245,247,.9))}
+  0%,100%{filter:brightness(.85) drop-shadow(0 0 0 rgba(255,90,54,0))}
+  50%{filter:brightness(1.15) drop-shadow(0 0 8px rgba(255,90,54,.95)) drop-shadow(0 0 2px rgba(255,90,54,.8))}
 }
 .card{width:100%;margin:4px auto 0;padding:18px 20px 20px;
   background:rgba(22,23,25,.76);border:1px solid rgba(246,245,244,.11);
   border-radius:22px;box-shadow:0 16px 50px rgba(0,0,0,.15);
   text-align:start;backdrop-filter:blur(11px)}
 .st{text-align:center;color:var(--muted);font-size:14px;margin-bottom:12px}
-.st b{color:var(--ivory);font-weight:600}
+.st b{color:var(--accent);font-weight:700}
+.listening .st b,.speaking .st b,.connecting .st b{color:#FF5A36;text-shadow:0 0 12px rgba(255,90,54,.65)}
 .startbtn{display:none;width:100%;max-width:350px;margin:10px auto 4px;min-height:53px;
-  border:1px solid rgba(246,245,244,.58);border-radius:999px;color:#101215;background:var(--ivory);
+  border:1px solid #FF5A36;border-radius:999px;color:#000;background:#FF5A36;
+  box-shadow:0 0 22px rgba(255,90,54,.4);
   font-size:17px;font-weight:650;padding:10px 20px}
-.startbtn:hover{background:#fff}
+.startbtn:hover{background:#ff704f}
 .idle .startbtn,.ended .startbtn{display:block}
 .incall{display:flex;flex-direction:column;align-items:center}
 .idle .incall,.ended .incall{display:none}
 .wave{display:flex;align-items:center;justify-content:center;gap:3px;height:38px;margin:4px 0}
-.wave i{display:block;width:3px;height:7px;border-radius:6px;background:var(--ice);opacity:.7;transition:height .12s}
-.speaking .wave i,.listening .wave i{background:linear-gradient(180deg,#fff,var(--ice));opacity:.94}
+.wave i{display:block;width:3px;height:var(--h,8px);border-radius:6px;background:#FF5A36;opacity:.55;transform-origin:center}
+.listening .wave i,.speaking .wave i{background:#FF5A36;box-shadow:0 0 10px rgba(255,90,54,.9);opacity:1;animation:wave-live .9s ease-in-out infinite}
+.speaking .wave i{animation-duration:.42s}
+@keyframes wave-live{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+#vid.listen,#vid.talk{filter:drop-shadow(0 0 18px rgba(255,90,54,.85)) drop-shadow(0 0 42px rgba(255,90,54,.4))}
+#vid.listen{animation:orb-listen 1.6s ease-in-out infinite}
+#vid.talk{animation:orb-speak .7s ease-in-out infinite}
+@keyframes orb-listen{0%,100%{transform:scale(.98)}50%{transform:scale(1.03)}}
+@keyframes orb-speak{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 .timer{font-family:"IBM Plex Sans",system-ui,sans-serif;text-align:center;direction:ltr;color:var(--muted);font-variant-numeric:tabular-nums;font-size:14px}
 .timer.low{color:#ff5a36}
 .btns{display:flex;gap:22px;justify-content:center;margin-top:12px}
 .b{display:flex;align-items:center;flex-direction:column;gap:6px;min-width:72px;border:0;color:var(--muted);background:transparent;font-size:13px}
-.b>span:first-child{width:52px;height:52px;display:grid;place-items:center;border:1px solid rgba(246,245,244,.25);border-radius:50%;background:#202224}
+.b>span:first-child{width:52px;height:52px;display:grid;place-items:center;border:1px solid rgba(255,90,54,.55);border-radius:50%;background:#1a0d0a;color:#FF5A36}
 .b svg{width:23px;height:23px;stroke:currentColor}
-#mute[aria-pressed=true]>span:first-child{background:#384249;border-color:var(--ice)}
-#end>span:first-child{background:#382826;border-color:#82615b}
+#mute[aria-pressed=true]>span:first-child{background:#3a140e;border-color:#FF5A36;box-shadow:0 0 12px rgba(255,90,54,.55)}
+#end>span:first-child{background:#3a120c;border-color:#FF5A36}
 .demo{font-size:12px;color:var(--muted);text-align:center;margin:15px 0 0}
 .chatbtn{display:block;margin:10px auto 0;padding:8px 17px;border:1px solid rgba(246,245,244,.26);border-radius:999px;color:var(--ivory);background:transparent;font-size:14px}
 .chatbtn:hover{border-color:var(--ivory)}
@@ -77,7 +86,7 @@ h1 b{font-weight:650;color:var(--ivory);text-shadow:0 0 18px rgba(238,238,238,.1
  nav{width:calc(100% - 28px);padding:14px 0}.logo{font-size:17px}
  .links{display:none}.cta{padding:7px 11px}
  main{width:calc(100% - 28px);padding:10px 0 18px}
- .hero{order:1}.video{order:0;width:min(80vw,520px);height:min(80vw,520px)}
+ .hero{order:1}.video{order:0;width:min(68vw,440px);height:min(68vw,440px)}
  .logo-mark{width:32px;height:32px}
  .card{padding:14px;border-radius:18px}
  h1{font-size:28px}

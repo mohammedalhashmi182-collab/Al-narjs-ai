@@ -46,10 +46,11 @@ def test_voice_page_centers_a_monochrome_orb_and_emblem(lang):
     assert "alnarjis-favicon-32.png" in result.text
     assert "alnarjis-apple-touch.png" in result.text
     assert "voice-orb" in css.text
-    assert "min(80vw,520px)" in css.text
+    assert "min(68vw,440px)" in css.text
     assert "logo-breathe" in css.text
     assert "prefers-reduced-motion" in css.text
-    assert "ff5a36" not in orb.text.lower()
+    assert "ff5a36" in orb.text.lower()
+    assert "#ff5a36" in css.text.lower()
     assert "lineTo" not in orb.text
     assert "getUserMedia" not in orb.text
     assert "curl" in orb.text
@@ -143,7 +144,7 @@ def test_voice_aurora_browser_works_before_call_without_overlay(lang, width):
         assert page.locator(".logo-mark").is_visible()
         orb_box = page.locator("#orb").bounding_box()
         assert orb_box["height"] == pytest.approx(orb_box["width"], abs=2)
-        expected = min(width * 0.8, 520)
+        expected = min(width * 0.68, 440)
         assert orb_box["width"] == pytest.approx(expected, abs=10)
         assert page.locator("#start").is_visible()
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
