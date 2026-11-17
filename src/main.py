@@ -1581,14 +1581,21 @@ async def partnerships_page(request: Request):
     })
 
 
+_DOCS_ROBOTS = "noindex, nofollow"
+
+
 @app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
 async def public_api_docs(request: Request):
-    return _public_page(request, "api_docs.html", {})
+    response = _public_page(request, "api_docs.html", {})
+    response.headers["X-Robots-Tag"] = _DOCS_ROBOTS
+    return response
 
 
 @app.get("/redoc", response_class=HTMLResponse, include_in_schema=False)
 async def public_api_redoc(request: Request):
-    return _public_page(request, "redoc.html", {})
+    response = _public_page(request, "redoc.html", {})
+    response.headers["X-Robots-Tag"] = _DOCS_ROBOTS
+    return response
 
 
 @app.get("/openapi.json", include_in_schema=False)
@@ -1597,7 +1604,10 @@ async def public_openapi():
 
     return JSONResponse(
         build_spec(),
-        headers={"Cache-Control": "public, max-age=300"},
+        headers={
+            "Cache-Control": "public, max-age=300",
+            "X-Robots-Tag": _DOCS_ROBOTS,
+        },
     )
 
 
