@@ -2257,6 +2257,58 @@ async def voice_status(request: Request):
     )
 
 
+class VoiceReplyTurn(BaseModel):
+    role: str = "user"
+    content: str = ""
+
+
+class VoiceReplyRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=500)
+    lang: str = "ar"
+    history: list[VoiceReplyTurn] = Field(default_factory=list)
+
+
+@app.post("/api/voice/reply")
+async def voice_reply(body: VoiceReplyRequest, request: Request):
+    """Spoken-advisor reply from the same model chain as the site chat.
+
+    The browser listens and speaks. This endpoint only returns text.
+    """
+    from src.core.model_provider import ModelRequest
+    from src.services.voice_live import page_lang, reply_prompt, spoken_reply_text, spoken_system_prompt
+    from src.utils.rate_limit import rate_limit_voice_reply
+
+    rate_limit_voice_reply(request)
+    lang = page_lang(body.lang)
+    history = [{"role": turn.role, "content": turn.content} for turn in body.history]
+    model_request = ModelRequest(
+        prompt=reply_prompt(body.text, history),
+        system_prompt=spoken_system_prompt(lang),
+        temperature=0.2,
+        max_tokens=220,
+        metadata=_consult_model_metadata(),
+    )
+    try:
+        response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
+    except Exception:
+        return JSONResponse(
+            {"ok": False, "reason": "upstream", "reply": ""},
+            status_code=503,
+            headers={"Cache-Control": "no-store"},
+        )
+    reply = spoken_reply_text(getattr(response, "content", ""), lang)
+    if not reply:
+        return JSONResponse(
+            {"ok": False, "reason": "upstream", "reply": ""},
+            status_code=503,
+            headers={"Cache-Control": "no-store"},
+        )
+    return JSONResponse(
+        {"ok": True, "reply": reply, "lang": lang},
+        headers={"Cache-Control": "no-store"},
+    )
+
+
 @app.post("/api/voice/session")
 async def voice_session(request: Request):
     """Grant one live call. Does not spend a slot when xAI cannot start."""

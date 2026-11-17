@@ -53,8 +53,9 @@ h1 b{font-weight:650;color:var(--ivory);text-shadow:0 0 18px rgba(238,238,238,.1
 .speaking .wave i{animation-duration:.42s}
 @keyframes wave-live{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
 #vid.listen,#vid.talk{filter:drop-shadow(0 0 18px rgba(255,90,54,.85)) drop-shadow(0 0 42px rgba(255,90,54,.4))}
-#vid.listen{animation:orb-listen 1.6s ease-in-out infinite}
+#vid.listen,#vid.think{animation:orb-listen 1.6s ease-in-out infinite}
 #vid.talk{animation:orb-speak .7s ease-in-out infinite}
+.thinking .st b{color:#FF5A36}
 @keyframes orb-listen{0%,100%{transform:scale(.98)}50%{transform:scale(1.03)}}
 @keyframes orb-speak{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 .timer{font-family:"IBM Plex Sans",system-ui,sans-serif;text-align:center;direction:ltr;color:var(--muted);font-variant-numeric:tabular-nums;font-size:14px}

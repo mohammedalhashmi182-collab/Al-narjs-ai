@@ -362,6 +362,7 @@ def test_configure_session_copies_server_instructions():
         "greeting": voice_live.opening_greeting("ar"),
         "client_secret": "ephemeral-token-value",
         "websocket_url": f"wss://api.x.ai/v1/realtime?agent_id={AGENT}",
+        "mode": "xai",
     }
     harness = r"""
 const fs = require("fs");
@@ -460,6 +461,7 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync(process.argv[2], "utf8"), context);
 vm.runInContext(`
 (async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
   await els.start.onclick();
   await new Promise((resolve) => setTimeout(resolve, 20));
   if (!sockets.length) throw new Error("socket was not opened");

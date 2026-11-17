@@ -46,6 +46,17 @@ class SlidingWindowLimiter:
 
 
 consult_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=60)
+voice_reply_limiter = SlidingWindowLimiter(max_requests=30, window_seconds=60)
+
+
+def rate_limit_voice_reply(request: Request) -> None:
+    ok, retry_after = voice_reply_limiter.check(f"{client_ip(request)}:/api/voice/reply")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
 
 
 def rate_limit_consult(request: Request) -> None:

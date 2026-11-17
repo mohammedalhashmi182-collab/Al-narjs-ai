@@ -143,6 +143,66 @@ def _language_rules(lang: str) -> str:
     )
 
 
+def voice_mode() -> str:
+    """``speech`` is the public default. ``xai`` is only used when configured and asked for."""
+    asked = os.getenv("XAI_VOICE_ENGINE", "speech").strip().lower()
+    if asked == "xai" and configured():
+        return "xai"
+    return "speech"
+
+
+def spoken_system_prompt(lang: str = "ar") -> str:
+    """Voice persona for the text reply, spoken aloud by the browser.
+
+    Same advisor as the xAI session, without telling the caller about VAT.
+    """
+    base = session_instructions(lang).replace(
+        "The published monthly base prices, before any applicable VAT, are:",
+        "The published monthly prices in SAR, with nothing added, are:",
+    )
+    return base + (
+        "\n## Spoken reply\n"
+        "The caller hears this answer. Use at most three short sentences. "
+        "No markdown, no lists, and no emojis.\n"
+        "Do not mention VAT, tax, or ضريبة. Say only the monthly price in SAR.\n"
+        "Do not say Salla or Zid is connected, included, or available.\n"
+        "Do not invent clients, results, logos, or testimonials.\n"
+    )
+
+
+def reply_prompt(text: str, history: list[dict] | None) -> str:
+    lines: list[str] = []
+    for item in (history or [])[-8:]:
+        if not isinstance(item, dict):
+            continue
+        role = item.get("role")
+        content = str(item.get("content") or "").strip()[:500]
+        if role not in ("user", "assistant") or not content:
+            continue
+        lines.append(f"{role}: {content}")
+    lines.append(f"user: {str(text or '').strip()[:500]}")
+    lines.append("assistant:")
+    return "\n".join(lines)
+
+
+_STORE_CLAIM = re.compile(
+    r"سلة.{0,48}(متاح|مربوط|متصل)|زد.{0,48}(متاح|مربوط|متصل)"
+    r"|Salla.{0,48}(available|connected|included)|Zid.{0,48}(available|connected|included)",
+    re.I | re.S,
+)
+
+
+def spoken_reply_text(raw: str, lang: str = "ar") -> str:
+    """Plain sentences safe to read aloud."""
+    text = re.sub(r"[#*_`>\[\]]", " ", str(raw or ""))
+    text = re.sub(r"\s+", " ", text).strip()
+    if _STORE_CLAIM.search(text):
+        if page_lang(lang) == "en":
+            return "Store connections are not part of this call. Email AlNarjisai@gmail.com."
+        return "ربط المتاجر ليس جزءاً من هذه المكالمة. راسلنا على AlNarjisai@gmail.com."
+    return text[:600]
+
+
 def approved_monthly_price_rules() -> str:
     """Generate every spoken monthly price from the canonical checkout catalog.
 
@@ -278,11 +338,11 @@ def _base(lang: str = "ar") -> dict:
 def status_payload(ip: str = "") -> dict:
     body = _base()
     if not configured():
-        return {**body, "ok": False, "reason": "unconfigured"}
+        return {**body, "ok": False, "reason": "unconfigured", "mode": "speech"}
     reason, retry = _gate(ip or "status", commit=False)
     if reason:
-        return {**body, "ok": False, "reason": reason, "retry_after": retry}
-    return {**body, "ok": True, "reason": None}
+        return {**body, "ok": False, "reason": reason, "retry_after": retry, "mode": voice_mode()}
+    return {**body, "ok": True, "reason": None, "mode": voice_mode()}
 
 
 async def mint_client_secret(agent: str, key: str) -> str:

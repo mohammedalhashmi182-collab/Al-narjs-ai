@@ -8,8 +8,10 @@
         idle: "Ready",
         connecting: "Connecting…",
         listening: "Listening…",
+        thinking: "Thinking",
         speaking: "Speaking",
         ended: "Call ended",
+        noRec: "This browser cannot hear you. Use the chat button and type your question.",
         muted: "Microphone muted",
         again: "Start another call",
         endedTime: "The call reached its 3-minute limit.",
@@ -29,9 +31,11 @@
     : {
         idle: "جاهز",
         connecting: "يتصل…",
-        listening: "يسمعك…",
+        listening: "يسمعك",
+        thinking: "يفكر",
         speaking: "يتحدث",
         ended: "انتهت المكالمة",
+        noRec: "هذا المتصفح لا يدعم الاستماع. استخدم زر الدردشة واكتب سؤالك.",
         muted: "المايك مكتوم",
         again: "ابدأ مكالمة جديدة",
         endedTime: "انتهى وقت المكالمة (3 دقائق).",
@@ -80,7 +84,10 @@
     wave.append(bar);
   }
 
-  const ST = { idle: T.idle, connecting: T.connecting, listening: T.listening, speaking: T.speaking, ended: T.ended };
+  const ST = { idle: T.idle, connecting: T.connecting, listening: T.listening, thinking: T.thinking, speaking: T.speaking, ended: T.ended };
+  let voiceMode = "speech";
+  let recognition = null;
+  let speechHistory = [];
   let socket = null;
   let audioCtx = null;
   let micStream = null;
@@ -111,13 +118,16 @@
   const typedQueue = [];
 
   function setMode(name) {
-    card.classList.remove("idle", "listening", "speaking", "ready", "ended", "connecting");
+    card.classList.remove("idle", "listening", "speaking", "thinking", "ready", "ended", "connecting");
     card.classList.add(name === "connecting" ? "ready" : name);
     if (name === "connecting") card.classList.add("connecting");
     const muted = mute.getAttribute("aria-pressed") === "true";
     status.textContent = name === "listening" && muted ? T.muted : ST[name];
-    vid.classList.toggle("talk", name === "speaking");
-    vid.classList.toggle("listen", name === "listening" || name === "connecting");
+    if (vid) {
+      vid.classList.toggle("talk", name === "speaking");
+      vid.classList.toggle("listen", name === "listening" || name === "connecting");
+      vid.classList.toggle("think", name === "thinking");
+    }
   }
 
   let userRow = null;
@@ -248,6 +258,8 @@
     if (ending) return;
     ending = true;
     stopMic();
+    stopRecognition();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
     closeSocket();
     window.__outLvl = window.__inLvl = null;
     finish();
@@ -715,16 +727,133 @@
     }
   }
 
+  function speechInput() {
+    return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  }
+
+  function stopRecognition() {
+    const current = recognition;
+    recognition = null;
+    if (!current) return;
+    current.onresult = current.onerror = current.onend = null;
+    try { current.stop(); } catch (error) { /* already stopped */ }
+  }
+
+  function pickVoice() {
+    if (!window.speechSynthesis || !window.speechSynthesis.getVoices) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    if (EN) return voices.find((voice) => /en[-_]US/i.test(voice.lang)) || voices.find((voice) => /^en/i.test(voice.lang)) || null;
+    return voices.find((voice) => /^ar/i.test(voice.lang)) || voices.find((voice) => /ar/i.test(voice.lang)) || null;
+  }
+
+  function speakAloud(text) {
+    return new Promise((resolve) => {
+      if (!text || !window.speechSynthesis) {
+        resolve();
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = EN ? "en-US" : "ar-SA";
+      const voice = pickVoice();
+      if (voice) utterance.voice = voice;
+      utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
+      setMode("speaking");
+      window.speechSynthesis.speak(utterance);
+    });
+  }
+
+  function listenOnce() {
+    const Ctor = speechInput();
+    if (!Ctor || ending) return Promise.resolve("");
+    stopRecognition();
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value || "");
+      };
+      const rec = new Ctor();
+      recognition = rec;
+      rec.lang = EN ? "en-US" : "ar-SA";
+      rec.interimResults = false;
+      rec.continuous = false;
+      rec.onresult = (event) => {
+        const result = event.results && event.results[0] && event.results[0][0];
+        done(result && result.transcript);
+      };
+      rec.onerror = () => done("");
+      rec.onend = () => done("");
+      setMode("listening");
+      try { rec.start(); } catch (error) { done(""); }
+    });
+  }
+
+  async function askReply(line) {
+    const response = await fetch("/api/voice/reply", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ text: line, lang: EN ? "en" : "ar", history: speechHistory.slice(-8) }),
+    });
+    let payload = {};
+    try { payload = await response.json(); } catch (error) { payload = {}; }
+    if (!response.ok || !payload.ok || !payload.reply) return "";
+    speechHistory.push({ role: "user", content: line });
+    speechHistory.push({ role: "assistant", content: payload.reply });
+    return payload.reply;
+  }
+
+  async function beginSpeech() {
+    if (blocked || ending === false && recognition) return;
+    if (!speechInput()) {
+      add(T.noRec, "sys");
+      openChat();
+      return;
+    }
+    ending = false;
+    start.disabled = true;
+    if (!sessionGreeting) {
+      try {
+        const status = await fetch("/api/voice/status", { headers: { Accept: "application/json" } });
+        const payload = await status.json();
+        if (payload && payload.greeting) sessionGreeting = payload.greeting;
+      } catch (error) { /* the local greeting below still speaks */ }
+    }
+    const hello = sessionGreeting || (EN ? "Welcome to Al-Narjis, this is Karim. How can I help?" : "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟");
+    startTimer();
+    await speakAloud(hello);
+    add(hello, "");
+    while (!ending && (MAX - (performance.now() - startedAt) / 1000) > 1) {
+      const heard = (await listenOnce()).trim();
+      if (ending) break;
+      if (!heard) continue;
+      add(heard, "u");
+      setMode("thinking");
+      const reply = await askReply(heard);
+      if (ending) break;
+      if (!reply) {
+        add(T.down, "sys");
+        break;
+      }
+      add(reply, "");
+      await speakAloud(reply);
+    }
+    if (!ending) endCall();
+  }
+
   start.onclick = () => {
     const note = $("micNote");
     if (note) note.hidden = true;
     card.classList.remove("no-mic");
-    return beginCall({ mic: true });
+    if (voiceMode === "xai") return beginCall({ mic: true });
+    return beginSpeech();
   };
 
   chatBtn.onclick = () => {
     openChat();
-    if (!socket && !blocked) beginCall({ mic: false, text: true, keepLog: true });
+    if (voiceMode === "xai" && !socket && !blocked) beginCall({ mic: false, text: true, keepLog: true });
   };
 
   composer.onsubmit = async (event) => {
@@ -738,6 +867,17 @@
     if (!line) return;
     say.value = "";
     add(line, "u");
+    if (voiceMode !== "xai") {
+      setMode("thinking");
+      const reply = await askReply(line);
+      if (!reply) add(T.down, "sys");
+      else {
+        add(reply, "");
+        await speakAloud(reply);
+      }
+      if (!ending) setMode("idle");
+      return;
+    }
     typedQueue.push(line);
     const ok = await beginCall({ mic: false, text: !socket, keepLog: true });
     if (!ok) add(T.down, "sys");
@@ -773,6 +913,8 @@
   fetch("/api/voice/status", { headers: { Accept: "application/json" } })
     .then((response) => response.json())
     .then((payload) => {
+      if (payload && payload.greeting) sessionGreeting = payload.greeting;
+      if (payload && payload.mode === "xai") voiceMode = "xai";
       if (!payload || payload.ok) return;
       reveal(payload.reason, payload.reason === "unconfigured" || limited(payload.reason));
     })
