@@ -1371,6 +1371,27 @@ async def blog_post_page(slug: str, request: Request):
     )
 
 
+@app.get("/compare/{slug}", response_class=HTMLResponse)
+async def compare_page(slug: str, request: Request):
+    """Arabic-first comparison pages, with an English version under /en/."""
+    from src.services import comparisons
+
+    page = comparisons.get_comparison(slug)
+    if page is None:
+        raise HTTPException(404, "Comparison not found")
+    lang = _page_lang(request)
+    return templates.TemplateResponse(
+        request,
+        "compare.html",
+        {
+            "ar": lang == "ar",
+            "page": page,
+            "plans": comparisons.public_plans(),
+            "others": comparisons.other_comparisons(slug),
+        },
+    )
+
+
 @app.get("/services/{slug}", response_class=HTMLResponse)
 async def service_page(slug: str, request: Request):
     from src.services import public_services

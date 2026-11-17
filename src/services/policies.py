@@ -22,7 +22,6 @@ POLICY_PROMPT = (
     "Refund questions are reviewed by email at AlNarjisai@gmail.com.\n"
     "- Support: by email at AlNarjisai@gmail.com. The Enterprise plan gets a reply within one business day. "
     "There is no phone support and no round-the-clock assistant.\n"
-    "- Free trial: none. The only free thing is the diagnosis by the CEO advisor.\n"
     "- Meta WhatsApp fees: currently included in the subscription (Al-Narjis absorbs them). Say 'currently included'; "
     "never promise they will stay included permanently.\n"
     "- Data (Saudi PDPL): we collect the minimum; data is processed by AI providers outside Saudi Arabia; after "
@@ -39,8 +38,6 @@ OWNER_FAQ_AR = f"""سياسة الاسترداد: {REFUND_CONSENT_AR}
 الإلغاء: تقدر تلغي في أي وقت، والإلغاء يوقف التجديد القادم، وتبقى الخدمة شغالة حتى نهاية الفترة المدفوعة، ويُغلق الفريق عندها.
 
 أوقات الدعم: الدعم عبر البريد AlNarjisai@gmail.com. باقة الشركات يصلها الرد خلال يوم عمل. لا يوجد دعم هاتفي ولا مساعد على مدار الساعة.
-
-التجربة المجانية: ما عندنا تجربة مجانية. المجاني هو التشخيص مع الرئيس التنفيذي الذكي فقط.
 
 رسوم واتساب من Meta: رسوم رسائل واتساب الرسمية مشمولة حالياً في الاشتراك ونتحملها نحن، وأي تغيير نبلغك فيه مسبقاً قبل التجديد.
 

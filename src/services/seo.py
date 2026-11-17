@@ -77,6 +77,13 @@ SERVICE_SLUGS = (
     "content-writing",
     "translation",
 )
+COMPARE_PREFIX = "/compare"
+# Public comparison pages. Slugs match src/services/comparisons.py.
+COMPARE_SLUGS = (
+    "tidio",
+    "manychat",
+    "intercom-fin",
+)
 
 
 def site_origin() -> str:
@@ -96,6 +103,8 @@ def is_public_path(path: str) -> bool:
         return True
     if base.startswith(SERVICE_PREFIX + "/"):
         return base[len(SERVICE_PREFIX) + 1 :] in SERVICE_SLUGS
+    if base.startswith(COMPARE_PREFIX + "/"):
+        return base[len(COMPARE_PREFIX) + 1 :] in COMPARE_SLUGS
     return base in {p for p, _c, _pr in CORE_PAGES}
 
 
@@ -155,6 +164,8 @@ def indexable_page(path: str) -> bool:
         return False
     if base.startswith(f"{SERVICE_PREFIX}/"):
         return base[len(SERVICE_PREFIX) + 1 :] in SERVICE_SLUGS
+    if base.startswith(f"{COMPARE_PREFIX}/"):
+        return base[len(COMPARE_PREFIX) + 1 :] in COMPARE_SLUGS
     return base in {page for page, _freq, _priority in CORE_PAGES}
 
 
@@ -229,6 +240,8 @@ def build_sitemap(agent_slugs: list[str], articles: list[dict]) -> str:
         entries.append(_url_entry(path, changefreq, priority))
     for slug in SERVICE_SLUGS:
         entries.append(_url_entry(f"{SERVICE_PREFIX}/{slug}", "monthly", 0.8))
+    for slug in COMPARE_SLUGS:
+        entries.append(_url_entry(f"{COMPARE_PREFIX}/{slug}", "monthly", 0.7))
     for slug in agent_slugs:
         entries.append(_url_entry(f"{PUBLIC_AGENT_PREFIX}/{slug}", "monthly", 0.7))
     for article in articles:
@@ -297,6 +310,9 @@ def build_llms(employees: list[tuple[str, dict]]) -> str:
         ("Service level", "/sla"),
         ("Partnerships", "/partnerships"),
         ("API reference", "/docs"),
+        ("Compare with Tidio", "/compare/tidio"),
+        ("Compare with ManyChat", "/compare/manychat"),
+        ("Compare with Intercom Fin", "/compare/intercom-fin"),
     ]
     page_lines = [f"- {label}: {origin}/ar{path} · {origin}/en{path}" for label, path in pages]
     service_lines = [
