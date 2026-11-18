@@ -26,7 +26,7 @@ Machine-readable status: [https://alnarjisai.com/api/status](https://alnarjisai.
 
 ## Features
 
-- **39 agents** plus the AI CEO who staffs a plan from the live catalog. Count and prices come from `src/services/catalog.py`.
+- **39 specialist agents** across the platform, plus one coordinating AI CEO. Subscription staff counts are not the complete platform roster: Starter includes 5 specialists, Growth includes 15 specialists, and Enterprise includes 34 specialists plus the AI CEO (35 displayed). Count and prices come from `src/services/catalog.py`.
 - **Plans:** البداية / Starter 790 SAR, النمو / Growth 1,490 SAR, الشركات / Enterprise 2,990 SAR per month. VAT is not added while the operator is not VAT-registered.
 - **Customer portal** at `/portal`. Signup links (`/signup`, `/ar/signup`, `/en/signup`) redirect there.
 - **Moyasar** guest card checkout (mada, Visa, Mastercard). PayPal exists in the code and is shown only when live mode is turned on.
