@@ -94,6 +94,16 @@ def test_mobile_pages_and_language_switch(context, width, path):
         expect(page.locator('body')).to_have_attribute('data-lang', lang)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         assert page.locator('a[href="#"]').count() == 0
+        if path == '/home' and width <= 980:
+            menu = page.locator('.mobile-nav')
+            summary = menu.locator('summary')
+            summary.click()
+            expect(menu).to_have_attribute('open', '')
+            item = menu.get_by_role('link').first
+            item.focus()
+            item.press('Escape')
+            expect(menu).not_to_have_attribute('open', '')
+            expect(summary).to_be_focused()
     if path == '/home':
         tag = page.locator('[data-plan="bidaya"] .tag').bounding_box()
         card = page.locator('[data-plan="bidaya"]').bounding_box()

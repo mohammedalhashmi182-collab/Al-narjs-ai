@@ -1,4 +1,4 @@
-/* Public xAI voice page. The API key stays on the server; this file uses a short-lived client secret. */
+/* Public voice and text advisor. The optional xAI session uses a short-lived client secret. */
 (function () {
   const MAX = 180;
   const RATE = 24000;
@@ -17,15 +17,19 @@
         endedTime: "The call reached its 3-minute limit.",
         mic: "We could not use the microphone. Type here and we will reply in text.",
         noMic: "No microphone was found on this device. Type here and we will reply in text.",
-        limit: "The daily call limit has been reached, or the line is busy. Email or call us, or try again later.",
-        missing: "The live call is not available right now. Email or call us and we will help.",
-        down: "The connection failed. Check your internet and try again, or email or call us.",
+        limit: "The voice line is busy or at its daily limit. Use text chat or try again later.",
+        missing: "Voice is temporarily unavailable. You can still use text chat.",
+        down: "The connection failed. Check your connection and try again.",
         dropped: "The call dropped before it started.",
         youHung: "The call has ended. You can start another one.",
         missingShort: "Unavailable",
         limitShort: "Daily limit reached",
         unavailable: "Call unavailable",
-        title: "Talk to the Al-Narjis agent",
+        title: "Talk to the Al-Narjis AI advisor",
+        textChat: "Text chat",
+        noSpeech: "We couldn't hear you. Try another call or use text chat.",
+        noAudio: "We couldn't play audio on this device. You can continue in text.",
+        hello: "Welcome to Al-Narjis. I'm the Al-Narjis AI advisor. How can I help?",
         placeholder: "Type to the Al-Narjis advisor",
       }
     : {
@@ -41,15 +45,19 @@
         endedTime: "انتهى وقت المكالمة (3 دقائق).",
         mic: "ما قدرنا نستخدم المايك. اكتب هنا، ونرد عليك كتابة.",
         noMic: "ما لقينا مايك في جهازك. اكتب هنا، ونرد عليك كتابة.",
-        limit: "وصلنا للحد اليومي للمكالمات أو الخط مشغول. راسلنا أو اتصل، أو جرّب بعدين.",
-        missing: "المكالمة الحية غير متاحة حالياً. راسلنا أو اتصل ونساعدك.",
-        down: "صار خلل في الاتصال. تأكد من الإنترنت وجرّب مرة ثانية، أو راسلنا أو اتصل.",
+        limit: "الخط مشغول أو بلغ الحد اليومي للمكالمات. استخدم الدردشة النصية أو جرّب لاحقًا.",
+        missing: "الصوت غير متاح مؤقتًا. تقدر تستخدم الدردشة النصية.",
+        down: "صار خلل في الاتصال. تأكد من اتصالك وجرّب مرة ثانية.",
         dropped: "انقطعت المكالمة قبل أن تبدأ.",
         youHung: "انتهت المكالمة. تقدر تبدأ مكالمة جديدة.",
         missingShort: "غير متاحة",
         limitShort: "الحد اليومي",
         unavailable: "المكالمة غير متاحة",
-        title: "تحدث مع مستشار النرجس",
+        title: "تحدّث مع مستشار النرجس الذكي",
+        textChat: "دردشة نصية",
+        noSpeech: "ما قدرنا نسمعك. جرّب مكالمة جديدة أو استخدم الدردشة النصية.",
+        noAudio: "ما قدرنا نشغّل الصوت على جهازك. تقدر تكمّل كتابة.",
+        hello: "حياك الله في النرجس. معك مستشار النرجس الذكي. كيف أقدر أساعدك؟",
         placeholder: "اكتب لمستشار النرجس",
       };
 
@@ -57,8 +65,8 @@
   const card = $("p");
   const status = $("s");
   const log = $("log");
-  const vid = $("vid");
   const mute = $("mute");
+  const end = $("end");
   const timer = $("tm");
   const start = $("start");
   const wave = $("wave");
@@ -66,6 +74,7 @@
   const chatPanel = $("chatPanel");
   const say = $("say");
   const composer = $("composer");
+  const send = $("send");
   if (!card || !start || !wave || !chatBtn || !chatPanel || !say || !composer) return;
 
   document.title = T.title;
@@ -73,35 +82,45 @@
   log.setAttribute("aria-label", EN ? "Chat with the Al-Narjis advisor" : "دردشة مستشار النرجس");
   if (EN) {
     mute.setAttribute("aria-label", "Mute microphone");
-    $("end").setAttribute("aria-label", "End call");
+    end.setAttribute("aria-label", "End call");
     card.setAttribute("aria-label", "Live call with the Al-Narjis agent");
-    if (vid) vid.setAttribute("aria-label", "Al-Narjis voice orb");
   }
-  for (let k = 0; k < 44; k++) {
+  const motion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+  const waveBars = [];
+  for (let index = 0; index < 23; index++) {
     const bar = document.createElement("i");
-    bar.style.setProperty("--h", (8 + Math.abs(Math.sin(k * 0.7)) * 36 * (1 - Math.abs(k - 15) / 30)) + "px");
-    bar.style.animationDelay = (k % 7) * 0.1 + "s";
     wave.append(bar);
+    waveBars.push(bar);
   }
 
   const ST = { idle: T.idle, connecting: T.connecting, listening: T.listening, thinking: T.thinking, speaking: T.speaking, ended: T.ended };
   let voiceMode = "speech";
+  let mode = "idle";
+  let callVersion = 0;
+  let speechActive = false;
   let recognition = null;
+  let cancelRecognition = null;
+  let cancelSpeech = null;
+  let resumeListening = null;
   let speechHistory = [];
   let socket = null;
   let audioCtx = null;
   let micStream = null;
+  let micRequestId = 0;
   let processor = null;
+  let micSource = null;
   let tick = null;
   let startedAt = 0;
   let ending = false;
   let blocked = false;
   let playAt = 0;
-  let outLevel = 0;
-  let inLevel = 0;
   let micAnalyser = null;
-  let micTap = null;
+  let micSilence = null;
   let outAnalyser = null;
+  let waveFrame = null;
+  let connectionTimer = null;
+  let playbackTimer = null;
+  const playing = new Set();
   let agentRow = null;
   let sessionReady = false;
   let sessionInstructions = "";
@@ -110,25 +129,47 @@
   let greetingSent = false;
   let greetingDone = false;
   let openingSettled = false;
-  let textMode = false;
   let chatOpen = false;
   let starting = null;
-  const blockedIds = {};
-  const heldAudio = {};
+  const blockedIds = new Set();
+  const heldAudio = new Map();
   const typedQueue = [];
 
+  function isMuted() { return mute.getAttribute("aria-pressed") === "true"; }
+
   function setMode(name) {
+    mode = name;
     card.classList.remove("idle", "listening", "speaking", "thinking", "ready", "ended", "connecting");
     card.classList.add(name === "connecting" ? "ready" : name);
+    card.classList.toggle("call-active", speechActive || name === "connecting" || !!socket);
     if (name === "connecting") card.classList.add("connecting");
-    const muted = mute.getAttribute("aria-pressed") === "true";
-    status.textContent = name === "listening" && muted ? T.muted : ST[name];
-    if (vid) {
-      vid.classList.toggle("talk", name === "speaking");
-      vid.classList.toggle("listen", name === "listening" || name === "connecting");
-      vid.classList.toggle("think", name === "thinking");
-    }
+    status.textContent = chatOpen && name !== "thinking" ? T.textChat : name === "listening" && isMuted() ? T.muted : ST[name];
+    updateWave();
   }
+
+  let waveSignal = null;
+  let waveData = null;
+  function updateWave() {
+    const signal = chatOpen || (motion && motion.matches) ? null : mode === "speaking" ? outAnalyser
+      : mode === "listening" && !isMuted() ? micAnalyser : null;
+    if (signal !== waveSignal) {
+      waveSignal = signal;
+      waveData = signal ? new Uint8Array(signal.frequencyBinCount) : null;
+      if (!signal) waveBars.forEach((bar) => bar.style.setProperty("--amplitude", "1"));
+    }
+    if (!signal || waveFrame !== null || !window.requestAnimationFrame) return;
+    waveFrame = window.requestAnimationFrame(() => {
+      waveFrame = null;
+      if (!waveSignal || (motion && motion.matches)) return;
+      waveSignal.getByteFrequencyData(waveData);
+      waveBars.forEach((bar, index) => {
+        const sample = waveData[1 + Math.abs(index - 11) * 3];
+        bar.style.setProperty("--amplitude", (1 + sample / 36).toFixed(2));
+      });
+      updateWave();
+    });
+  }
+  if (motion && motion.addEventListener) motion.addEventListener("change", updateWave);
 
   let userRow = null;
 
@@ -202,6 +243,9 @@
 
   function finish() {
     clearInterval(tick);
+    tick = null;
+    clearTimeout(connectionTimer);
+    connectionTimer = null;
     setMode("ended");
     mute.setAttribute("aria-pressed", "false");
     card.classList.remove("muted");
@@ -210,6 +254,7 @@
   }
 
   function stopMic() {
+    micRequestId++;
     if (processor) {
       try { processor.disconnect(); } catch (error) { /* already stopped */ }
       processor.onaudioprocess = null;
@@ -219,15 +264,19 @@
       try { micAnalyser.disconnect(); } catch (error) { /* already stopped */ }
       micAnalyser = null;
     }
-    if (micTap) {
-      try { micTap.disconnect(); } catch (error) { /* already stopped */ }
-      micTap = null;
+    if (micSilence) {
+      try { micSilence.disconnect(); } catch (error) { /* already stopped */ }
+      micSilence = null;
     }
-    window.__voiceInAnalyser = null;
+    if (micSource) {
+      try { micSource.disconnect(); } catch (error) { /* already stopped */ }
+      micSource = null;
+    }
     if (micStream) {
       micStream.getTracks().forEach((track) => track.stop());
       micStream = null;
     }
+    updateWave();
   }
 
   function ensureOutAnalyser() {
@@ -238,7 +287,7 @@
       node.smoothingTimeConstant = 0.45;
       node.connect(audioCtx.destination);
       outAnalyser = node;
-      window.__voiceOutAnalyser = node;
+      updateWave();
       return node;
     } catch (error) {
       return null;
@@ -249,19 +298,39 @@
     const current = socket;
     socket = null;
     if (current) {
+      current.onmessage = null;
       current.onclose = null;
       try { current.close(); } catch (error) { /* already closed */ }
     }
   }
 
+  function stopPlayback() {
+    clearTimeout(playbackTimer);
+    playbackTimer = null;
+    for (const source of playing) {
+      try { source.stop(); } catch (error) { /* already stopped */ }
+      source.disconnect();
+    }
+    playing.clear();
+    playAt = 0;
+    if (cancelSpeech) cancelSpeech();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
   function endCall() {
     if (ending) return;
     ending = true;
+    callVersion++;
+    speechActive = false;
+    sessionReady = false;
     stopMic();
     stopRecognition();
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (resumeListening) resumeListening();
+    stopPlayback();
     closeSocket();
-    window.__outLvl = window.__inLvl = null;
+    if (audioCtx && audioCtx.close) audioCtx.close().catch(() => {});
+    audioCtx = null;
+    outAnalyser = null;
     finish();
   }
 
@@ -302,18 +371,19 @@
     if (!count) return;
     const buffer = audioCtx.createBuffer(1, count, RATE);
     const channel = buffer.getChannelData(0);
-    let energy = 0;
     for (let i = 0; i < count; i++) {
       channel[i] = view.getInt16(i * 2, true) / 0x8000;
-      energy += channel[i] * channel[i];
     }
-    outLevel = Math.min(1, Math.sqrt(energy / count) * 4);
     const source = audioCtx.createBufferSource();
     source.buffer = buffer;
     const tap = ensureOutAnalyser();
     source.connect(tap || audioCtx.destination);
     const now = audioCtx.currentTime;
     const when = Math.max(now, playAt);
+    playing.add(source);
+    source.onended = () => {
+      if (playing.delete(source)) source.disconnect();
+    };
     source.start(when);
     playAt = when + buffer.duration;
   }
@@ -336,8 +406,8 @@
 
   function dropEarly(event) {
     const id = responseId(event);
-    if (greetingSent && !(id && blockedIds[id])) return false;
-    if (id) blockedIds[id] = true;
+    if (greetingSent && !(id && blockedIds.has(id))) return false;
+    if (id) blockedIds.add(id);
     return true;
   }
 
@@ -347,12 +417,13 @@
 
   function heldRow(id) {
     const key = id || "_";
-    return heldAudio[key] || (heldAudio[key] = { chunks: [], text: "" });
+    if (!heldAudio.has(key)) heldAudio.set(key, { chunks: [], text: "" });
+    return heldAudio.get(key);
   }
 
   function cancelResponse(id) {
-    if (id) blockedIds[id] = true;
-    const row = heldAudio[id || "_"];
+    if (id) blockedIds.add(id);
+    const row = heldAudio.get(id || "_");
     if (row) row.chunks = [];
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     const cancel = { type: "response.cancel" };
@@ -370,7 +441,9 @@
       return;
     }
     if (type === "session.updated") {
-      if (textMode || chatOpen) greetInText();
+      clearTimeout(connectionTimer);
+      connectionTimer = null;
+      if (chatOpen) greetInText();
       else speakGreeting();
       sessionReady = true;
       if (!tick) startTimer();
@@ -383,12 +456,16 @@
       setMode("listening");
       return;
     }
+    if (type === "input_audio_buffer.speech_stopped") {
+      setMode("thinking");
+      return;
+    }
     if (type === "response.created") {
       if (dropEarly(event)) {
         cancelResponse(responseId(event));
         return;
       }
-      if (openingSettled) setMode("speaking");
+      if (openingSettled) setMode("thinking");
       return;
     }
     if (type === "response.output_audio.delta" || type === "response.audio.delta") {
@@ -445,26 +522,21 @@
     }
     if (type === "response.done") {
       const doneId = responseId(event);
-      if (greetingSent && !greetingDone && !(doneId && blockedIds[doneId])) {
+      if (greetingSent && !greetingDone && !(doneId && blockedIds.has(doneId))) {
         greetingDone = true;
         flushTyped();
       }
-      setMode(mute.getAttribute("aria-pressed") === "true" ? "listening" : "listening");
-      outLevel *= 0.4;
+      clearTimeout(playbackTimer);
+      if (!chatOpen && audioCtx && playAt > audioCtx.currentTime) {
+        playbackTimer = setTimeout(() => setMode("listening"), (playAt - audioCtx.currentTime) * 1000);
+      } else setMode("listening");
+      heldAudio.delete(doneId || "_");
       return;
     }
     if (type === "error") {
-      const detail = (event.error && (event.error.message || event.error.code)) || event.message || "";
-      console.warn("voice session error", { type: event.error && event.error.type, code: event.error && event.error.code, message: detail });
-      add(detail ? T.down + " (" + String(detail).slice(0, 160) + ")" : T.down, "sys");
-      reveal("upstream", false);
+      showMicProblem(T.down);
+      endCall();
     }
-  }
-
-  function closeMessage(event) {
-    const code = event && typeof event.code === "number" ? event.code : 0;
-    const reason = event && event.reason ? String(event.reason).replace(/\s+/g, " ").slice(0, 160) : "";
-    return T.dropped + (code ? " (" + code + ")" : "") + (reason ? " — " + reason : "");
   }
 
   function sessionOptions(payload) {
@@ -483,46 +555,46 @@
     if (audioCtx.state === "suspended") await audioCtx.resume();
   }
 
-  async function attachMic() {
+  async function attachMic(version) {
+    const requestId = ++micRequestId;
     await ensureAudio();
-    micStream = await navigator.mediaDevices.getUserMedia({
+    if (version !== callVersion || requestId !== micRequestId || chatOpen) return;
+    if (!audioCtx || !navigator.mediaDevices) throw new Error("Audio capture unavailable");
+    const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
     });
-    const source = audioCtx.createMediaStreamSource(micStream);
+    if (version !== callVersion || requestId !== micRequestId || chatOpen) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+    micStream = stream;
+    if (isMuted()) stream.getAudioTracks().forEach((track) => { track.enabled = false; });
+    micSource = audioCtx.createMediaStreamSource(micStream);
     processor = audioCtx.createScriptProcessor(4096, 1, 1);
-    const muteGain = audioCtx.createGain();
-    muteGain.gain.value = 0;
+    micSilence = audioCtx.createGain();
+    micSilence.gain.value = 0;
     processor.onaudioprocess = (event) => {
       const input = event.inputBuffer.getChannelData(0);
-      let energy = 0;
-      for (let i = 0; i < input.length; i++) energy += input[i] * input[i];
-      inLevel = Math.min(1, Math.sqrt(energy / input.length) * 4);
       if (!sessionReady || !socket || socket.readyState !== WebSocket.OPEN) return;
-      if (mute.getAttribute("aria-pressed") === "true") return;
+      if (chatOpen || isMuted()) return;
       if (audioCtx.currentTime < playAt) return;
       const samples = resample(input, audioCtx.sampleRate);
       socket.send(JSON.stringify({ type: "input_audio_buffer.append", audio: pcm16Base64(samples) }));
     };
-    source.connect(processor);
-    processor.connect(muteGain);
-    muteGain.connect(audioCtx.destination);
+    micSource.connect(processor);
+    processor.connect(micSilence);
+    micSilence.connect(audioCtx.destination);
     if (typeof audioCtx.createAnalyser === "function") {
       try {
         const analyser = audioCtx.createAnalyser();
         analyser.fftSize = 1024;
         analyser.smoothingTimeConstant = 0.45;
-        source.connect(analyser);
-        const tap = audioCtx.createGain();
-        tap.gain.value = 0;
-        analyser.connect(tap);
-        tap.connect(audioCtx.destination);
+        micSource.connect(analyser);
+        analyser.connect(micSilence);
         micAnalyser = analyser;
-        micTap = tap;
-        window.__voiceInAnalyser = analyser;
+        updateWave();
       } catch (error) { /* the call still sends audio without a visual tap */ }
     }
-    window.__outLvl = () => outLevel;
-    window.__inLvl = () => inLevel;
   }
 
   function configureSession() {
@@ -549,6 +621,7 @@
     playAt = 0;
     if (!line) {
       greetingDone = true;
+      openingSettled = true;
       flushTyped();
       return;
     }
@@ -578,9 +651,16 @@
   }
 
   function openChat() {
-    chatOpen = true;
+    if (!chatOpen) {
+      chatOpen = true;
+      stopMic();
+      stopPlayback();
+      if (speechActive) endCall();
+      setMode(mode);
+    }
     card.classList.add("chat-open");
     chatPanel.hidden = false;
+    chatBtn.setAttribute("aria-expanded", "true");
     if (say.focus) say.focus();
   }
 
@@ -588,6 +668,8 @@
     chatOpen = false;
     card.classList.remove("chat-open");
     chatPanel.hidden = true;
+    chatBtn.setAttribute("aria-expanded", "false");
+    setMode(mode);
   }
 
   function showMicProblem(note) {
@@ -598,6 +680,12 @@
       box.textContent = note;
     }
     openChat();
+  }
+
+  function clearMicProblem() {
+    const note = $("micNote");
+    if (note) note.hidden = true;
+    card.classList.remove("no-mic");
   }
 
   function sendTyped(line) {
@@ -618,19 +706,17 @@
     while (typedQueue.length) sendTyped(typedQueue.shift());
   }
 
-  async function beginCall(options) {
-    const useMic = !options || options.mic !== false;
-    const asText = !!(options && options.text);
-    const keepLog = !!(options && options.keepLog);
+  async function beginCall() {
     if (blocked) return false;
     if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return true;
     if (starting) return starting;
-    starting = runCall();
+    starting = startRealtime();
     try { return await starting; }
     finally { starting = null; }
+  }
 
-    async function runCall() {
-    textMode = asText;
+  async function startRealtime() {
+    const version = ++callVersion;
     ending = false;
     sessionReady = false;
     sessionInstructions = "";
@@ -640,27 +726,23 @@
     greetingDone = false;
     openingSettled = false;
     typedQueue.splice(0, typedQueue.length);
-    Object.keys(blockedIds).forEach((id) => { delete blockedIds[id]; });
-    Object.keys(heldAudio).forEach((id) => { delete heldAudio[id]; });
+    blockedIds.clear();
+    heldAudio.clear();
     agentRow = null;
     playAt = 0;
     start.disabled = true;
-    if (!keepLog) {
-      log.innerHTML = "";
-      typedQueue.splice(0, typedQueue.length);
-    }
+    log.innerHTML = "";
     setMode("connecting");
     let payload = {};
     try {
       const response = await fetch("/api/voice/session?lang=" + (EN ? "en" : "ar"), { method: "POST", headers: { Accept: "application/json" } });
       try { payload = await response.json(); } catch (error) { payload = {}; }
+      if (version !== callVersion) return false;
       if (!response.ok || !payload.ok) {
         const reason = payload.reason || (response.status === 429 ? "daily_limit" : "upstream");
         add(gateMessage(reason), "sys");
         reveal(reason, reason === "unconfigured" || limited(reason));
-        stopMic();
-        ending = true;
-        finish();
+        endCall();
         return false;
       }
       sessionInstructions = typeof payload.instructions === "string" ? payload.instructions : "";
@@ -669,61 +751,43 @@
       if (!options) {
         add(T.missing, "sys");
         reveal("unconfigured", true);
-        ending = true;
-        finish();
+        endCall();
         return false;
       }
-      if (useMic) {
-        try {
-          await attachMic();
-        } catch (error) {
-          const name = String(error && error.name || "");
-          showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
-          stopMic();
-          textMode = true;
-        }
+      try {
+        await attachMic(version);
+      } catch (error) {
+        if (version !== callVersion) return false;
+        const name = String(error && error.name || "");
+        showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
       }
-      await ensureAudio();
+      if (version !== callVersion) return false;
       socket = new WebSocket(options.url, [options.protocol]);
-      socket.onopen = () => {
-        console.info("voice websocket open");
-      };
+      connectionTimer = setTimeout(() => {
+        showMicProblem(T.dropped);
+        endCall();
+      }, 15000);
       socket.onmessage = (message) => {
         if (typeof message.data !== "string") return;
         try { onEvent(JSON.parse(message.data)); } catch (error) { /* ignore a bad frame */ }
       };
-      socket.onerror = () => {
-        console.warn("voice websocket error");
-        if (!ending) add(T.down, "sys");
-      };
       socket.onclose = (event) => {
         const code = event && event.code;
-        const reason = event && event.reason ? String(event.reason).slice(0, 160) : "";
-        console.warn("voice websocket closed", { code: code, reason: reason, wasClean: !!(event && event.wasClean), ready: sessionReady });
         socket = null;
         if (!ending) {
-          ending = true;
           const early = !sessionReady || (code && code !== 1000);
-          if (early) {
-            add(closeMessage(event), "sys");
-            reveal("upstream", false);
-          }
-          stopMic();
-          finish();
-          if (early) status.textContent = T.dropped;
+          if (early) showMicProblem(T.dropped);
+          endCall();
         }
       };
       start.disabled = false;
       return true;
     } catch (error) {
-      add(T.down, "sys");
-      reveal("upstream", false);
-      stopMic();
-      closeSocket();
-      ending = true;
-      finish();
+      if (version === callVersion) {
+        showMicProblem(T.down);
+        endCall();
+      }
       return false;
-    }
     }
   }
 
@@ -736,7 +800,9 @@
     recognition = null;
     if (!current) return;
     current.onresult = current.onerror = current.onend = null;
-    try { current.stop(); } catch (error) { /* already stopped */ }
+    try { current.abort(); } catch (error) { /* already stopped */ }
+    if (cancelRecognition) cancelRecognition();
+    cancelRecognition = null;
   }
 
   function pickVoice() {
@@ -748,147 +814,180 @@
 
   function speakAloud(text) {
     return new Promise((resolve) => {
-      if (!text || !window.speechSynthesis) {
-        resolve();
+      if (!text || !window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+        resolve(false);
         return;
       }
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new window.SpeechSynthesisUtterance(text);
       utterance.lang = EN ? "en-US" : "ar-SA";
       const voice = pickVoice();
       if (voice) utterance.voice = voice;
-      utterance.onend = () => resolve();
-      utterance.onerror = () => resolve();
+      const done = (played) => {
+        utterance.onend = utterance.onerror = null;
+        cancelSpeech = null;
+        resolve(played);
+      };
+      cancelSpeech = () => done(false);
+      utterance.onend = () => done(true);
+      utterance.onerror = () => done(false);
       setMode("speaking");
-      window.speechSynthesis.speak(utterance);
+      try { window.speechSynthesis.speak(utterance); } catch (error) { done(false); }
     });
   }
 
   function listenOnce() {
     const Ctor = speechInput();
-    if (!Ctor || ending) return Promise.resolve("");
+    if (!Ctor || ending) return Promise.resolve({ error: "aborted" });
     stopRecognition();
     return new Promise((resolve) => {
       let settled = false;
-      const done = (value) => {
+      const done = (result) => {
         if (settled) return;
         settled = true;
-        resolve(value || "");
+        resolve(result);
       };
       const rec = new Ctor();
       recognition = rec;
+      cancelRecognition = () => done({ error: "cancelled" });
       rec.lang = EN ? "en-US" : "ar-SA";
       rec.interimResults = false;
       rec.continuous = false;
       rec.onresult = (event) => {
         const result = event.results && event.results[0] && event.results[0][0];
-        done(result && result.transcript);
+        done({ text: (result && result.transcript || "").trim() });
       };
-      rec.onerror = () => done("");
-      rec.onend = () => done("");
+      rec.onerror = (event) => done({ error: event.error });
+      rec.onend = () => {
+        if (recognition === rec) {
+          recognition = null;
+          cancelRecognition = null;
+        }
+        done({ error: "no-speech" });
+      };
       setMode("listening");
-      try { rec.start(); } catch (error) { done(""); }
+      try { rec.start(); } catch (error) { done({ error: "not-allowed" }); }
     });
   }
 
   async function askReply(line) {
-    const response = await fetch("/api/voice/reply", {
-      method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({ text: line, lang: EN ? "en" : "ar", history: speechHistory.slice(-8) }),
-    });
-    let payload = {};
-    try { payload = await response.json(); } catch (error) { payload = {}; }
-    if (!response.ok || !payload.ok || !payload.reply) return "";
-    speechHistory.push({ role: "user", content: line });
-    speechHistory.push({ role: "assistant", content: payload.reply });
-    return payload.reply;
+    try {
+      const response = await fetch("/api/voice/reply", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ text: line.slice(0, 500), lang: EN ? "en" : "ar", history: speechHistory.slice(-8) }),
+      });
+      const payload = await response.json();
+      if (response.ok && payload.ok && payload.reply) return payload.reply;
+    } catch (error) { /* report a localized connection failure */ }
+    return "";
+  }
+
+  function rememberReply(line, reply) {
+    speechHistory = speechHistory.slice(-6);
+    speechHistory.push({ role: "user", content: line.slice(0, 500) }, { role: "assistant", content: reply });
   }
 
   async function beginSpeech() {
-    if (blocked || ending === false && recognition) return;
+    if (speechActive) return;
     if (!speechInput()) {
-      add(T.noRec, "sys");
-      openChat();
+      showMicProblem(T.noRec);
       return;
     }
+    const version = ++callVersion;
     ending = false;
+    speechActive = true;
     start.disabled = true;
-    if (!sessionGreeting) {
-      try {
-        const status = await fetch("/api/voice/status", { headers: { Accept: "application/json" } });
-        const payload = await status.json();
-        if (payload && payload.greeting) sessionGreeting = payload.greeting;
-      } catch (error) { /* the local greeting below still speaks */ }
-    }
-    const hello = sessionGreeting || (EN ? "Welcome to Al-Narjis, this is Karim. How can I help?" : "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟");
+    const hello = sessionGreeting || T.hello;
     startTimer();
-    await speakAloud(hello);
     add(hello, "");
-    while (!ending && (MAX - (performance.now() - startedAt) / 1000) > 1) {
-      const heard = (await listenOnce()).trim();
-      if (ending) break;
-      if (!heard) continue;
-      add(heard, "u");
-      setMode("thinking");
-      const reply = await askReply(heard);
-      if (ending) break;
-      if (!reply) {
-        add(T.down, "sys");
-        break;
-      }
-      add(reply, "");
-      await speakAloud(reply);
+    if (!await speakAloud(hello) && version === callVersion) {
+      showMicProblem(T.noAudio);
+      return;
     }
-    if (!ending) endCall();
+    while (version === callVersion) {
+      setMode("listening");
+      if (isMuted()) {
+        await new Promise((resolve) => { resumeListening = resolve; });
+        resumeListening = null;
+        continue;
+      }
+      const { text, error } = await listenOnce();
+      if (version !== callVersion) return;
+      if (error === "cancelled") continue;
+      if (!text) {
+        const note = error === "audio-capture" ? T.noMic : error === "no-speech" ? T.noSpeech : T.mic;
+        showMicProblem(note);
+        return;
+      }
+      add(text, "u");
+      if (wantsChat(text)) {
+        openChat();
+        return;
+      }
+      setMode("thinking");
+      const reply = await askReply(text);
+      if (version !== callVersion) return;
+      if (!reply) {
+        showMicProblem(T.down);
+        return;
+      }
+      rememberReply(text, reply);
+      add(reply, "");
+      if (!await speakAloud(reply) && version === callVersion) {
+        showMicProblem(T.noAudio);
+        return;
+      }
+    }
   }
 
   start.onclick = () => {
-    const note = $("micNote");
-    if (note) note.hidden = true;
-    card.classList.remove("no-mic");
-    if (voiceMode === "xai") return beginCall({ mic: true });
-    return beginSpeech();
+    if (chatOpen || start.disabled) return;
+    clearMicProblem();
+    const call = voiceMode === "xai" ? beginCall() : beginSpeech();
+    if (!chatOpen && end.focus) end.focus();
+    return call;
   };
 
-  chatBtn.onclick = () => {
-    openChat();
-    if (voiceMode === "xai" && !socket && !blocked) beginCall({ mic: false, text: true, keepLog: true });
-  };
+  chatBtn.onclick = openChat;
 
   composer.onsubmit = async (event) => {
     event.preventDefault();
     openChat();
-    if (blocked) {
-      add(gateMessage("unconfigured"), "sys");
-      return;
-    }
     const line = say.value.trim();
-    if (!line) return;
+    if (!line || send.disabled) return;
     say.value = "";
     add(line, "u");
-    if (voiceMode !== "xai") {
-      setMode("thinking");
-      const reply = await askReply(line);
-      if (!reply) add(T.down, "sys");
-      else {
-        add(reply, "");
-        await speakAloud(reply);
+    if (socket || starting) {
+      typedQueue.push(line);
+      if (socket || await starting) {
+        flushTyped();
+        return;
       }
-      if (!ending) setMode("idle");
-      return;
+      typedQueue.length = 0;
     }
-    typedQueue.push(line);
-    const ok = await beginCall({ mic: false, text: !socket, keepLog: true });
-    if (!ok) add(T.down, "sys");
-    else flushTyped();
+    send.disabled = true;
+    const previous = mode;
+    setMode("thinking");
+    const reply = await askReply(line);
+    send.disabled = false;
+    if (!reply) add(T.down, "sys");
+    else {
+      rememberReply(line, reply);
+      add(reply, "");
+    }
+    if (mode === "thinking") setMode(previous);
   };
 
   $("voiceBack").onclick = async () => {
     closeChat();
-    if (!socket || micStream || blocked) return;
+    if (!socket || blocked) {
+      (start.disabled ? chatBtn : start).focus();
+      return;
+    }
     try {
-      await attachMic();
+      await attachMic(callVersion);
+      if (micStream && !chatOpen) clearMicProblem();
     } catch (error) {
       const name = String(error && error.name || "");
       showMicProblem(/NotFound|device/i.test(name) ? T.noMic : T.mic);
@@ -896,16 +995,20 @@
   };
 
   mute.onclick = () => {
-    if (!socket) return;
-    const on = mute.getAttribute("aria-pressed") !== "true";
+    if (!socket && !speechActive) return;
+    const on = !isMuted();
     mute.setAttribute("aria-pressed", on ? "true" : "false");
     card.classList.toggle("muted", on);
-    if (!card.classList.contains("speaking")) status.textContent = on ? T.muted : ST.listening;
+    if (on) stopRecognition();
+    else if (resumeListening) resumeListening();
+    if (micStream) micStream.getAudioTracks().forEach((track) => { track.enabled = !on; });
+    setMode(mode);
   };
 
-  $("end").onclick = () => {
+  end.onclick = () => {
     if (socket) add(T.youHung, "sys");
     endCall();
+    if (!chatOpen && !start.disabled) start.focus();
   };
 
   window.addEventListener("pagehide", () => endCall());
@@ -915,7 +1018,7 @@
     .then((payload) => {
       if (payload && payload.greeting) sessionGreeting = payload.greeting;
       if (payload && payload.mode === "xai") voiceMode = "xai";
-      if (!payload || payload.ok) return;
+      if (!payload || payload.ok || voiceMode !== "xai") return;
       reveal(payload.reason, payload.reason === "unconfigured" || limited(payload.reason));
     })
     .catch(() => { /* the start button still asks the server */ });

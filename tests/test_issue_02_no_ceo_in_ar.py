@@ -1,11 +1,12 @@
+import re
+from http import HTTPStatus
 from pathlib import Path
+
+from fastapi.testclient import TestClient
+from src.main import app
 
 LANDING = Path(__file__).resolve().parents[1] / "src/web/templates/landing.html"
 LINES = LANDING.read_text(encoding="utf-8").split("\n")
-
-
-def _ar(line):
-    return line.split("{% if ar %}", 1)[1].split("{% else %}", 1)[0]
 
 
 def _find(needle):
@@ -14,12 +15,21 @@ def _find(needle):
     return hits
 
 
-def test_arabic_cta_has_no_ceo():
-    for l in _find("ناقش هدفك مع"):
-        assert "CEO" not in _ar(l)
-    for needle in ("يقوده", "يرشّح لك"):
-        for l in _find(needle):
-            assert "CEO" not in _ar(l)
+def test_arabic_cta_has_no_ceo() -> None:
+    with TestClient(app) as client:
+        response = client.get("/ar/home")
+    assert response.status_code == HTTPStatus.OK
+    html = response.text
+    actions = re.findall(r'<a\b[^>]*href="(?:/ar)?/consult"[^>]*>(.*?)</a>', html, re.S)
+    assert actions
+    assert any("الرئيس التنفيذي" in action for action in actions)
+    assert all(not re.search(r"\bCEO\b", action) for action in actions)
+    for element_id in ("team", "consult"):
+        section = re.search(rf'<section\b[^>]*id="{element_id}"[^>]*>(.*?)</section>', html, re.S)
+        assert section
+        text = re.sub(r"<[^>]+>", "", section.group(1))
+        assert "الرئيس التنفيذي" in text
+        assert not re.search(r"\bCEO\b", text)
 
 
 def test_stage_label_arabic():
