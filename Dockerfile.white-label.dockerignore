@@ -1,0 +1,6 @@
+**
+!Dockerfile.white-label
+!src/
+!src/__init__.py
+!src/white_label/
+!src/white_label/*.py

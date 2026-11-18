@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Any, Optional
 from uuid import UUID
 
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 from pydantic import BaseModel, Field
 
 from src.core.state_manager import StateManager, WorkflowState, StepState, WorkflowStatus, StepStatus
@@ -65,6 +66,7 @@ class WorkflowEngine:
         self.state_manager = state_manager
         self.context_manager = context_manager
         self.max_concurrent_steps = max_concurrent_steps
+        self._condition_environment = ImmutableSandboxedEnvironment()
         self._running_workflows: dict[UUID, asyncio.Task] = {}
 
     async def execute(
@@ -270,13 +272,10 @@ class WorkflowEngine:
 
     def _evaluate_condition(self, condition: StepCondition, context: dict) -> bool:
         try:
-            from jinja2 import Environment, BaseLoader
-            env = Environment(loader=BaseLoader())
-            template = env.from_string(f"{{% if {condition.expression} %}}true{{% else %}}false{{% endif %}}")
-            result = template.render(**context)
-            return result.strip().lower() == "true"
-        except Exception as e:
-            logger.warning(f"Condition evaluation failed: {e}")
+            expression = self._condition_environment.compile_expression(condition.expression)
+            return bool(expression(**context))
+        except Exception:
+            logger.warning("Workflow condition evaluation failed")
             return False
 
     async def cancel_workflow(self, workflow_id: UUID) -> bool:
