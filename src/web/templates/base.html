@@ -87,8 +87,10 @@
             <header class="n-nav">
                 <div class="flex items-center justify-between px-4 py-3">
                     <div class="flex items-center gap-2">
-                        <button id="sidebar-toggle" class="lg:hidden p-2 rounded-2xl hover:bg-black/5" style="color:var(--n-brown);">
-                            <i class="fas fa-bars text-xl"></i>
+                        <button type="button" id="sidebar-toggle" class="lg:hidden p-2 rounded-2xl hover:bg-black/5"
+                                aria-controls="sidebar" aria-expanded="false"
+                                aria-label="{{ 'القائمة الجانبية' if _lang == 'ar' else 'Sidebar' }}" style="color:var(--n-brown);">
+                            <i class="fas fa-bars text-xl" aria-hidden="true"></i>
                         </button>
                         <h2 class="text-lg font-bold" style="color:var(--n-brown);">{% block page_title %}{% endblock %}</h2>
                     </div>
@@ -101,7 +103,6 @@
                         <span class="text-sm hidden sm:inline" style="color:var(--n-brown-2);">
                             {% if _lang == 'ar' %}<span>النظام جاهز</span>{% else %}<span data-inline>System Ready</span>{% endif %}
                         </span>
-                        <button class="p-2 rounded-2xl hover:bg-black/5" style="color:var(--n-brown);"><i class="fas fa-bell"></i></button>
                     </div>
                 </div>
             </header>
@@ -144,11 +145,14 @@
 
             const sidebar = document.getElementById('sidebar');
             const sbToggle = document.getElementById('sidebar-toggle');
-            if (sbToggle) sbToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+            if (sbToggle) sbToggle.addEventListener('click', () => {
+                sbToggle.setAttribute('aria-expanded', String(sidebar.classList.toggle('open')));
+            });
 
             document.addEventListener('click', (e) => {
-                if (window.innerWidth < 768 && !sidebar.contains(e.target) && e.target !== sbToggle && !sbToggle.contains(e.target)) {
+                if (sbToggle && window.innerWidth < 768 && !sidebar.contains(e.target) && !sbToggle.contains(e.target)) {
                     sidebar.classList.remove('open');
+                    sbToggle.setAttribute('aria-expanded', 'false');
                 }
             });
         })();

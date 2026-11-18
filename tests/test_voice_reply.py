@@ -6,7 +6,6 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
-
 from src.main import app
 from src.services import voice_live
 from src.utils.rate_limit import voice_reply_limiter
@@ -22,8 +21,9 @@ def client():
 
 def test_spoken_prompt_keeps_prices_and_drops_vat_and_store_claims() -> None:
     prompt = voice_live.spoken_system_prompt("ar")
-    assert "مستشار النرجس" in prompt
-    assert "كريم" in prompt
+    assert "مستشار النرجس الذكي" in prompt
+    assert "The initial diagnosis is free" in prompt
+    assert "Do not present private trials as public offers" in prompt
     assert "790 SAR per month" in prompt
     assert "1,490 SAR per month" in prompt
     assert "2,990 SAR per month" in prompt

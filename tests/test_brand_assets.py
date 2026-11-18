@@ -1,10 +1,11 @@
 """New logo: brand assets exist, are served, and are wired into templates."""
 import json
+from http import HTTPStatus
 from pathlib import Path
+from xml.etree import ElementTree
 
 import pytest
 from fastapi.testclient import TestClient
-
 from src.main import app
 
 STATIC = Path("src/web/static")
@@ -62,3 +63,28 @@ def test_landing_uses_new_logo(client):
     assert "/static/favicon.svg" in html
     assert "/brand/og-image.jpg" in html
     assert "/static/logo.png" not in html
+
+
+@pytest.mark.parametrize("asset", [
+    "logo.svg", "logo-dark.svg", "favicon.svg", "brand/vnext/mark-mono.svg",
+    "brand/vnext/logo-ar.svg", "brand/vnext/logo-en.svg",
+    "brand/vnext/app-icon.svg", "brand/vnext/app-icon-maskable.svg",
+])
+def test_vnext_mark_is_a_self_contained_vector(client: TestClient, asset: str) -> None:
+    response = client.get(f"/static/{asset}")
+    assert response.status_code == HTTPStatus.OK
+    svg = ElementTree.fromstring(response.content)
+    assert svg.tag == "{http://www.w3.org/2000/svg}svg" and svg.get("viewBox")
+    assert {el.tag.rsplit("}", 1)[-1] for el in svg.iter()} <= {"svg", "g", "rect", "path"}
+
+
+@pytest.mark.parametrize(("lang", "direction"), [("ar", "rtl"), ("en", "ltr")])
+def test_landing_links_to_localized_license_options(
+    client: TestClient, lang: str, direction: str,
+) -> None:
+    page = client.get(f"/{lang}/home").text
+    assert f'<html lang="{lang}" dir="{direction}">' in page
+    assert f'href="/{lang}/partnerships#white-label-offer"' in page
+    details = client.get(f"/{lang}/partnerships")
+    assert details.status_code == HTTPStatus.OK
+    assert 'id="white-label-offer"' in details.text

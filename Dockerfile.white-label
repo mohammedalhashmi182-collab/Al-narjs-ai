@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+WORKDIR /app
+
+RUN --mount=type=secret,id=build_ca \
+    if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi; \
+    python -m pip install --no-cache-dir \
+    "pydantic>=2.6,<3" "starlette>=0.36,<2" "uvicorn>=0.27,<1" "Pillow>=11.3.0" tzdata
+
+COPY src/__init__.py ./src/
+COPY src/white_label/*.py ./src/white_label/
+
+USER 65534:65534
+EXPOSE 8080
+
+CMD ["uvicorn", "src.white_label.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8080", "--no-proxy-headers", "--no-access-log"]

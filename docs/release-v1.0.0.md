@@ -11,7 +11,7 @@ request is squash-merged.
 ## Summary
 
 First numbered release of Al-Narjis AI, the Arabic-first platform at
-https://alnarjisai.com. An AI CEO plus 39 agents, customer portal, and live
+https://alnarjisai.com. A roster of 39 agents including the AI CEO, a customer portal, and live
 Moyasar card checkout (mada, Visa, Mastercard).
 
 ## What shipped before this version number
@@ -22,7 +22,7 @@ These are already on `main`. The dates are from git history.
 - Search work: per-agent pages, hreflang, `llms.txt`, English locale redirects
   (11 November 2026).
 - Six public service pages (17 October 2026).
-- The public roster is 39 agents.
+- The public roster includes 38 specialists and the AI CEO.
 
 ## What this release adds
 

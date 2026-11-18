@@ -45,7 +45,7 @@ def verify_webhook_signature(signature: Optional[str], raw_body: bytes) -> bool:
     if not secret or not signature:
         return False
     expected = "sha256=" + hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    return hmac.compare_digest(expected.encode(), signature.encode())
 
 
 # --- Lead mapping -------------------------------------------------------------

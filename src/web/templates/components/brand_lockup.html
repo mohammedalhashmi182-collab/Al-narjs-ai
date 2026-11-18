@@ -1,0 +1,6 @@
+{% macro lockup(href, name, mark_url, descriptor='') -%}
+<a class="logo" href="{{ href }}">
+    <img src="{{ mark_url }}" alt="" width="36" height="36">
+    <span class="logo-txt">{{ name }}{% if descriptor %} <span class="logo-sub">{{ descriptor }}</span>{% endif %}</span>
+</a>
+{%- endmacro %}
