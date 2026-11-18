@@ -181,8 +181,8 @@ def test_the_origin_story_is_visible_on_the_page(client: TestClient) -> None:
     # Each language page carries its own language only (no hidden mixed SEO text).
     ar_html = client.get("/ar/home").text
     en_html = client.get("/en/home").text
-    assert "كريم" in ar_html
-    assert "Karim" in en_html
+    assert "أحمد الزهراني" in ar_html
+    assert "Ahmad Al Zahrani" in en_html
     assert "سيرفر محلي" in ar_html, "the local-server origin is not stated in Arabic"
     assert "single local server" in en_html, "the local-server origin is not stated in English"
 
