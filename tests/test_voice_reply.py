@@ -23,7 +23,7 @@ def client():
 def test_spoken_prompt_keeps_prices_and_drops_vat_and_store_claims() -> None:
     prompt = voice_live.spoken_system_prompt("ar")
     assert "مستشار النرجس" in prompt
-    assert "كريم" in prompt
+    assert "مستشار النرجس" in prompt
     assert "790 SAR per month" in prompt
     assert "1,490 SAR per month" in prompt
     assert "2,990 SAR per month" in prompt

@@ -138,6 +138,10 @@
                         <option>{% if _lang == 'ar' %}منظومة الأتمتة الشاملة{% else %}Full Automation System{% endif %}</option>
                     </select>
                 </div>
+                <label style="display:flex;gap:8px;align-items:start;font-size:13px;line-height:1.5;margin:12px 0">
+                    <input type="checkbox" name="attribution_consent" value="yes" style="margin-top:4px">
+                    <span>{% if _lang == 'ar' %}أوافق اختيارياً على حفظ مصدر الحملة ومعرّف نقرة الإعلان لتحسين تتبع طلبات النرجس. التسجيل متاح دون هذه الموافقة.{% else %}I optionally allow Al-Narjis to save campaign source and ad-click ID for attribution. Registration works without this consent.{% endif %} <a href="/privacy">Privacy</a></span>
+                </label>
                 <button type="submit" class="submit" id="eaSubmit">{% if _lang == 'ar' %}تسجيل في قائمة الوصول المبكر{% else %}Join Early Access{% endif %}</button>
             </form>
             <div class="msg" id="eaMsg"></div>
@@ -208,6 +212,13 @@
         btn.disabled = true;
         var data = Object.fromEntries(new FormData(form).entries());
         data.package = 'early_access';
+        data.attribution_consent = data.attribution_consent === 'yes';
+        if (data.attribution_consent) {
+            const query = new URLSearchParams(window.location.search);
+            for (const key of ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid']) {
+                if (query.has(key)) data[key] = query.get(key);
+            }
+        }
         fetch('/api/leads', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
         }).then(function (r) {

@@ -821,7 +821,7 @@
         if (payload && payload.greeting) sessionGreeting = payload.greeting;
       } catch (error) { /* the local greeting below still speaks */ }
     }
-    const hello = sessionGreeting || (EN ? "Welcome to Al-Narjis, this is Karim. How can I help?" : "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟");
+    const hello = sessionGreeting || (EN ? "Welcome to Al-Narjis AI. I'm the Al-Narjis advisor. How can I help?" : "حياكم الله في النرجس للذكاء الاصطناعي، معكم مستشار النرجس، كيف أقدر أساعدكم؟");
     startTimer();
     await speakAloud(hello);
     add(hello, "");

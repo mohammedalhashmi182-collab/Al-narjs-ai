@@ -147,6 +147,10 @@ footer b { color:var(--gold-b); }
                 <div class="field"><label>{% if ar %}الاسم{% else %}Name{% endif %}</label><input name="name" type="text" required placeholder="{% if ar %}مثال: سارة{% else %}e.g. Sarah{% endif %}"></div>
                 <div class="field"><label>{% if ar %}رقم الجوال (اختياري){% else %}Mobile number (optional){% endif %}</label><input name="phone" type="tel" placeholder="05xxxxxxxx"></div>
                 <div class="field"><label>{% if ar %}البريد الإلكتروني{% else %}Email{% endif %}</label><input name="email" type="email" required placeholder="you@example.com"></div>
+                <label style="display:flex;gap:8px;align-items:start;font-size:13px;line-height:1.5;margin:12px 0">
+                    <input type="checkbox" name="attribution_consent" value="yes">
+                    <span>{% if ar %}أوافق اختيارياً على حفظ مصدر الحملة ومعرّف نقرة الإعلان لقياس طلبات التواصل، ويمكنني تحميل الدليل دون الموافقة.{% else %}I optionally allow storage of campaign attribution and ad-click ID. I can get the guide without opting in.{% endif %} <a href="/privacy">Privacy</a></span>
+                </label>
                 <button type="submit">{% if ar %}احصل على الدليل الآن{% else %}Get the guide now{% endif %}</button>
             </form>
             <div class="msg" id="guideMsg"></div>
@@ -196,6 +200,13 @@ form.addEventListener('submit', function (e) {
     msg.style.display = 'block';
     var data = Object.fromEntries(new FormData(form).entries());
     data.package = 'guide';
+    data.attribution_consent = data.attribution_consent === 'yes';
+    if (data.attribution_consent) {
+        const query = new URLSearchParams(window.location.search);
+        for (const key of ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid']) {
+            if (query.has(key)) data[key] = query.get(key);
+        }
+    }
     fetch('/api/leads', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
     }).then(function (r) {

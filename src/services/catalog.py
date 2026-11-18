@@ -133,7 +133,8 @@ PACKAGES = {
         "name_en": "Enterprise",
         "amount": 299000,
         "price": "2990",
-        # Specialists the CEO can staff. Not printed on public pages.
+        # Enterprise includes 34 specialists plus the one coordinating AI CEO = 35 displayed.
+        # The platform-wide roster of 39 specialists is NOT included in full in this tier.
         "agents": 34,
         "display_agents": 35,
         "roster_all": True,

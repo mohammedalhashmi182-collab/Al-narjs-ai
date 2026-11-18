@@ -3289,6 +3289,7 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     )
     from src.services.lead_priority import score_lead
     from src.services.lead_segmentation import classify, suggest_package
+    from src.services.lead_attribution import lead_attribution
 
     name = (body.get("name") or "").strip()
     raw_phone = (body.get("phone") or "").strip()
@@ -3303,6 +3304,7 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     phone = normalize_phone(raw_phone)
 
     segment, _reason = classify(name)
+    attribution = lead_attribution(body)
     priority = score_lead(company_name=name, phone=phone, email=email, segment=segment)
 
     async with app.state.session_factory() as session:
@@ -3312,7 +3314,8 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
             phone=phone,
             phone_raw=(body.get("phone") or None),
             email=email,
-            source="website",
+            source="meta_ads" if attribution and attribution.get("acquisition_channel") == "meta_ads" else "website",
+            raw_data={"attribution": attribution} if attribution else None,
             segment=segment,
             suggested_package=package or suggest_package(segment),
             lead_status="NEW",
