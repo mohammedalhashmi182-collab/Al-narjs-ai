@@ -101,7 +101,7 @@
       "@context": "https://schema.org",
       "@type": "Person",
       "@id": "https://alnarjisai.com/#founder",
-      "name": {{ ("كريم" if ar else "Karim") | tojson }},
+      "name": {{ ("أحمد الزهراني" if ar else "Ahmad Al Zahrani") | tojson }},
       "jobTitle": {{ ("مؤسس المنصة" if ar else "Founder") | tojson }},
       "description": {% if ar %}"بدأ الفكرة على سيرفر محلي واحد بهدف جعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها، وطوّرها إلى منصة باشتراكات شهرية وفواتير."{% else %}"Started the idea on a single local server with the aim of making AI assistance available to whoever needs it, and developed it into a platform with monthly subscriptions and invoicing."{% endif %},
       "worksFor": {"@id": "https://alnarjisai.com/#business"},
@@ -397,7 +397,7 @@
             <h2 id="about-h" class="sr-only">{% if ar %}من نحن{% else %}About us{% endif %}</h2>
             <div class="founder">
                 <span class="founder-disc" aria-hidden="true">{% if ar %}ك{% else %}K{% endif %}</span>
-                <div><b class="founder-name">{% if ar %}كريم{% else %}Karim{% endif %}</b><span class="founder-role">{% if ar %}مؤسس المنصة{% else %}Founder{% endif %}</span></div>
+                <div><b class="founder-name">{% if ar %}أحمد الزهراني{% else %}Ahmad Al Zahrani{% endif %}</b><span class="founder-role">{% if ar %}مؤسس المنصة{% else %}Founder{% endif %}</span></div>
             </div>
             <p class="founder-story">{% if ar %}بدأت الفكرة على سيرفر محلي واحد، قبل أن تكون منصة أو شركة: سؤال واحد — كيف نجعل المساعدة بالذكاء الاصطناعي متاحة لمن يحتاجها فعلاً؟ كل ما هنا نما من ذلك السيرفر، وما زال يعمل على نفس المبدأ: أن يبني لك الفريق ما تحتاجه فعلاً.{% else %}This started on a single local server, before it was a platform or a company: one question — how do you make AI assistance genuinely available to the people who need it? Everything here grew out of that server, and it still runs on the same principle: build the team your work actually needs.{% endif %}</p>
         </div>
