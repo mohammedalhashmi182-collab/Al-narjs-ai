@@ -8,8 +8,8 @@ import pytest
 import yaml
 from jinja2 import Environment
 from jinja2.exceptions import TemplateError
-
 from src.core.model_provider import ModelSpec
+from src.services.catalog import CEO_SLUG, EMPLOYEES
 
 BASE = Path(__file__).resolve().parent.parent / "agents" / "base"
 VALID_CATEGORIES = {"support", "marketing", "content", "analysis", "automation", "general"}
@@ -57,5 +57,11 @@ def test_gemini_flash_is_used_for_all_agents():
         assert data["model"] == "gemini:gemini-3.6-flash", f"{yaml_path.name}: unexpected model {data['model']}"
 
 
-def test_known_agent_count_includes_the_capability_agents():
-    assert len(list(BASE.glob("*.yaml"))) == 39
+def test_catalog_matches_the_39_system_definitions_including_the_ceo():
+    slugs = {path.stem for path in BASE.glob("*.yaml")}
+    assert slugs == EMPLOYEES.keys()
+    assert CEO_SLUG in slugs
+    assert len(slugs - {CEO_SLUG}) == 38
+    assert {employee["no"] for employee in EMPLOYEES.values()} == {
+        f"AG-{number:03d}" for number in range(1, 40)
+    }

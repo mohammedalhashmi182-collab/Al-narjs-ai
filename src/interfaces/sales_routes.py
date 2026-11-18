@@ -75,6 +75,8 @@ def _parse_dt(value: Optional[str]) -> Optional[datetime]:
 # ---------------------------------------------------------------------------
 
 def _lead_dict(lead: AcquisitionLead) -> dict:
+    from src.services.lead_attribution import attribution_summary
+
     next_action = compute_next_action(lead)
     return {
         "next_action": next_action["next_action"],
@@ -90,6 +92,7 @@ def _lead_dict(lead: AcquisitionLead) -> dict:
         "phone_raw": lead.phone_raw,
         "email": lead.email,
         "source": lead.source,
+        "attribution": attribution_summary(lead.raw_data),
         "source_sheet": lead.source_sheet,
         "historical_customer": lead.historical_customer,
         "quotation_without_purchase": lead.quotation_without_purchase,

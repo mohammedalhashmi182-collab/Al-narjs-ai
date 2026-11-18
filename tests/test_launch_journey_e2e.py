@@ -1,11 +1,12 @@
 """Launch journey end to end:
-landing -> CEO consult (HTTP) -> plan -> portal project -> bank-transfer invoice ->
-owner confirms receipt -> activation exactly once (a second confirm is idempotent) ->
-agents assigned. No card gateway is called."""
+landing -> CEO consult -> plan -> CRM lead -> portal project -> hosted card invoice ->
+mocked Moyasar verification -> activation, CRM conversion and staffing exactly once."""
 
 from __future__ import annotations
 
 import json
+from unittest.mock import AsyncMock
+from uuid import UUID
 
 import httpx
 import pytest
@@ -14,7 +15,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from src.db.session import Base
-from src.models import ClientAgent, ClientProject, Payment
+from src.models import AcquisitionLead, ClientAgent, ClientProject, Payment
 from src.models.ops import FunnelEvent
 from src.services import catalog, funnel
 from src.utils.rate_limit import consult_limiter
@@ -30,13 +31,8 @@ async def maker(monkeypatch):
     await engine.dispose()
 
 
-@pytest.fixture
-def bank_transfer(monkeypatch):
-    monkeypatch.setenv("CUSTOMER_BANK_TRANSFER_ENABLED", "1")
-
-
 @pytest.mark.usefixtures("founding_full")
-async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer, monkeypatch):
+async def test_full_launch_journey_activates_exactly_once(maker, monkeypatch):
     from src.config.settings import get_settings
     from src.core.agent_registry import AgentRegistry
     from src.main import app
@@ -54,6 +50,7 @@ async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer, 
         return {"id": "inv_journey", "checkout_url": "https://checkout.moyasar.com/invoices/inv_journey?lang=ar"}
 
     monkeypatch.setattr(pm, "initiate_moyasar", _initiate)
+    monkeypatch.setattr("src.main._lead_side_effects", AsyncMock())
 
     app.state.session_factory = maker
     registry = AgentRegistry(maker)
@@ -62,15 +59,11 @@ async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer, 
     consult_limiter.reset()
     transport = httpx.ASGITransport(app=app)
 
-    from src.core.owner_auth import make_session_token
-
-    owner_cookie = {"cookie": f"narjis_owner={make_session_token()}"}
-
-    async def call(method, path, body=None, headers=None):
+    async def call(method, path, body=None):
         req = (
-            httpx.Request(method, f"http://test{path}", json=body, headers=headers)
+            httpx.Request(method, f"http://test{path}", json=body)
             if body is not None
-            else httpx.Request(method, f"http://test{path}", headers=headers)
+            else httpx.Request(method, f"http://test{path}")
         )
         resp = await transport.handle_async_request(req)
         await resp.aread()
@@ -90,6 +83,9 @@ async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer, 
     tier = diag["plan"]["key"]
     assert tier in catalog.PACKAGES
     recommended = [a["slug"] for a in diag["agents"]]
+    code, raw = await call("POST", "/api/leads", {"name": "عميل تجريبي", "phone": "0555123456"})
+    assert code == 200, raw
+    lead_id = json.loads(raw)["lead_id"]
     # 4. portal
     code, _ = await call("GET", "/portal")
     assert code == 200
@@ -117,20 +113,27 @@ async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer, 
             "customer_name": "عميل تجريبي",
             "customer_phone": "0555123456",
             "project_id": proj["project_id"],
+            "lead_id": lead_id,
             "addons": 0,
         },
     )
     assert code == 200, raw
     pay = json.loads(raw)
-    # 6. owner confirms the transfer, then the same confirm delivered again
-    for _ in range(2):
+    # 6. The invoice callback only locates the order. The API confirms the charge.
+    gateway_get = AsyncMock(return_value=httpx.Response(200, json={
+        "id": "inv_journey", "status": "paid", "amount": pay["total"], "currency": "SAR",
+    }))
+    monkeypatch.setattr(httpx.AsyncClient, "get", gateway_get)
+    for already in (False, True):
         code, raw = await call(
             "POST",
-            f"/api/payments/{pay['payment_id']}/confirm-received",
-            {"note": "received"},
-            headers=owner_cookie,
+            "/webhooks/moyasar/invoice",
+            {"id": "inv_journey", "metadata": {"order_id": pay["payment_id"]}},
         )
         assert code == 200, raw
+        assert json.loads(raw)["already"] is already
+    gateway_get.assert_awaited_once()
+    assert gateway_get.await_args.args[0] == f"{pm.MOYASAR_INVOICES_URL}/inv_journey"
 
     async with maker() as s:
         project = (await s.execute(select(ClientProject))).scalar_one()
@@ -140,8 +143,10 @@ async def test_full_launch_journey_activates_exactly_once(maker, bank_transfer, 
             .all()
         )
         payments = (await s.execute(select(Payment))).scalars().all()
+        lead = await s.get(AcquisitionLead, UUID(lead_id))
         events = [e.event for e in (await s.execute(select(FunnelEvent))).scalars()]
     assert project.status == "active"
+    assert lead.lead_status == "WON"
     assert len(payments) == 1 and payments[0].status == "paid"
     # 7. agents assigned once, no duplicates after the replayed webhook
     expected = catalog.staff_team(tier, 0, preferred=recommended)

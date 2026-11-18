@@ -78,7 +78,7 @@ def test_owner_surfaces_label_raw_keys():
     owner = (TPL / "owner_command.html").read_text(encoding="utf-8")
     dash = (TPL / "dashboard.html").read_text(encoding="utf-8")
     portal = (TPL / "portal.html").read_text(encoding="utf-8")
-    assert "moyasar:'بطاقة (سابق)'" in owner and "lbl(r.plan)" in owner and "lbl(t.status)" in owner
+    assert "moyasar: tr('ميسّر', 'Moyasar')" in owner and "lbl(r.plan)" in owner and "lbl(t.status)" in owner
     assert "OC_LABELS" in dash and "ocLabel(p.status)" in dash
     assert "'المنتجات والهندسة': 'Product & Engineering'" in portal
     assert "sharikat: 'Enterprise'" in portal

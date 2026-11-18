@@ -7,6 +7,7 @@ when there is no safe handler, and a draft cap for inbound enquiries only.
 
 from __future__ import annotations
 
+import asyncio
 from uuid import uuid4
 
 import httpx
@@ -14,7 +15,6 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
-
 from src.automation.ceo_engine import CompanyBrain
 from src.core.owner_auth import make_session_token
 from src.db.session import Base
@@ -152,6 +152,91 @@ async def test_qualify_drafts_at_most_five_inbound_and_is_idempotent(maker) -> N
         bodies = " ".join(row.message_text or "" for row in drafts)
         assert "example.com" not in str(task.result)
         assert bodies  # the draft lives on the campaign row, not in the task report
+
+
+async def test_concurrent_drains_claim_each_task_once(tmp_path) -> None:
+    from src.models import Task
+
+    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'tasks.db'}")
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with engine.begin() as connection:
+            await connection.run_sync(Base.metadata.create_all)
+        async with factory() as session:
+            session.add_all([_task(key=f"task-{i}") for i in range(8)])
+            await session.commit()
+
+        reports = await asyncio.gather(*(run_queued_tasks(factory) for _ in range(3)))
+        claimed_keys = [task["key"] for report in reports for task in report["tasks"]]
+        assert sorted(claimed_keys) == [f"task-{i}" for i in range(8)]
+        assert sum(report["completed"] for report in reports) == 8
+
+        async with factory() as session:
+            assert set(await session.scalars(select(Task.status))) == {"completed"}
+    finally:
+        await engine.dispose()
+
+
+async def test_executor_failure_rolls_back_partial_campaign(maker, monkeypatch) -> None:
+    from src.models import Campaign, CampaignLead, Task
+    from src.services import lead_outreach
+
+    original = lead_outreach.generate_message
+    calls = 0
+
+    def fail_second_draft(lead):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise RuntimeError("draft builder failed")
+        return original(lead)
+
+    monkeypatch.setattr(lead_outreach, "generate_message", fail_second_draft)
+    async with maker() as session:
+        session.add_all([
+            _lead(email="first@example.com", source="website", priority_score=90),
+            _lead(email="second@example.com", source="website", priority_score=80),
+            _task(key="rollback-task"),
+        ])
+        await session.commit()
+
+    report = await run_queued_tasks(maker)
+
+    assert calls == 2
+    assert report["failed"] == 1
+    assert report["tasks"][0]["blocker_code"] == "executor_error"
+    async with maker() as session:
+        task = (await session.execute(select(Task))).scalar_one()
+        assert task.status == "failed"
+        assert task.result["error_type"] == "RuntimeError"
+        assert not (await session.scalars(select(Campaign))).all()
+        assert not (await session.scalars(select(CampaignLead))).all()
+
+
+async def test_owner_cancellation_during_execution_is_preserved(maker) -> None:
+    from src.models import Campaign, Task
+
+    async with maker() as session:
+        task = _task(key="owner-cancelled-task")
+        session.add_all([task, _lead(email="inbound@example.com", source="website")])
+        await session.commit()
+        task_id = task.id
+
+    class Governance:
+        async def authorize(self, _agent, _action):
+            async with maker() as session:
+                claimed = await session.get(Task, task_id)
+                assert claimed.status == "running"
+                claimed.status = "cancelled"
+                await session.commit()
+            return {"allowed": True}
+
+    report = await run_queued_tasks(maker, governance=Governance())
+
+    assert report["tasks"][0]["blocker_code"] == "claim_lost"
+    async with maker() as session:
+        assert (await session.get(Task, task_id)).status == "cancelled"
+        assert not (await session.scalars(select(Campaign))).all()
 
 
 async def test_unknown_task_is_escalated_with_a_blocker(maker) -> None:

@@ -111,7 +111,7 @@ class DynamicRouter:
         """Choose the agent for ``task`` (explicit slug wins)."""
         if agent_slug:
             entry = self.catalog.get(agent_slug)
-            if entry is not None:
+            if entry is not None and (include_owner_only or not entry.owner_only):
                 return RouteDecision(
                     agent_slug=entry.slug,
                     model_spec=entry.default_model,
@@ -139,7 +139,7 @@ class DynamicRouter:
                 reason="capability match",
             )
 
-        fallback = self.catalog.fallback()
+        fallback = self.catalog.fallback(include_owner_only=include_owner_only)
         return RouteDecision(
             agent_slug=fallback.slug,
             model_spec=fallback.default_model,
