@@ -3314,7 +3314,7 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
             phone=phone,
             phone_raw=(body.get("phone") or None),
             email=email,
-            source="website",
+            source="meta_ads" if attribution and attribution.get("acquisition_channel") == "meta_ads" else "website",
             raw_data={"attribution": attribution} if attribution else None,
             segment=segment,
             suggested_package=package or suggest_package(segment),
