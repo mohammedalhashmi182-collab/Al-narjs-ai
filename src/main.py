@@ -3688,6 +3688,7 @@ class PaymentCreateRequest(BaseModel):
     voice_packs: int = 0             # +100 voice minutes / month, 99 SAR each
     # Mandatory: buyer ticked policies.REFUND_CONSENT_AR (setup-fee exception included).
     refund_consent: bool = False
+    lead_token: Optional[str] = None
 
 
 def _require_refund_consent(consent) -> None:
@@ -3830,7 +3831,11 @@ def _payment_replay_key(request: Request, body: "PaymentCreateRequest") -> Optio
     who = (body.customer_phone or body.customer_email or "").strip().lower()
     if not who:
         return None
-    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", body.billing_period.lower(), str(body.addons), str(body.conversation_packs), str(body.voice_packs)))
+    token_tag = ""
+    if (body.lead_token or "").strip():
+        import hashlib
+        token_tag = hashlib.sha256(body.lead_token.strip().encode()).hexdigest()[:12]
+    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", token_tag, body.billing_period.lower(), str(body.addons), str(body.conversation_packs), str(body.voice_packs)))
 
 
 @app.post("/api/payments")
@@ -3924,11 +3929,15 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         from uuid import UUID as _UUID
 
         lead_uuid = None
+        owner_lead = None
         if body.lead_id:
             try:
-                lead_uuid = _UUID(body.lead_id)
+                proposed_lead = _UUID(body.lead_id)
             except ValueError:
                 raise HTTPException(422, "lead_id must be a valid UUID")
+            if owner_invoice:
+                owner_lead = proposed_lead
+                lead_uuid = owner_lead
 
         project_uuid = None
         if body.project_id:
@@ -3962,6 +3971,16 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         if body.refund_consent is True:
             payment.refund_consent_at = _dt.now(_tz.utc)
             payment.refund_consent_version = policies.POLICY_VERSION
+            await session.commit()
+
+        if (body.lead_token or "").strip() or owner_lead is not None:
+            from src.services.funnel_payments import link_payment
+            await link_payment(
+                session, payment,
+                token=(body.lead_token or "").strip() or None,
+                owner=bool(owner_invoice and owner_lead is not None and not (body.lead_token or "").strip()),
+                owner_lead_id=owner_lead,
+            )
             await session.commit()
 
         if method == "paypal":
