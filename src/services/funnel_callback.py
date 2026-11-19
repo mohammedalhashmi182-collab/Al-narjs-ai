@@ -149,7 +149,7 @@ def public_callback(row) -> dict:
     }
 
 
-async def open_website_case(session, *, name, email, phone, message, package, segment, segment_reason, priority, priority_score, priority_reason, consent_marketing: bool = False) -> dict:
+async def open_website_case(session, *, name, email, phone, message, package, segment, segment_reason, priority, priority_score, priority_reason, consent_marketing: bool = False, attribution: dict | None = None) -> dict:
     resolved = await resolve_lead(
         session,
         email=email,
@@ -163,6 +163,7 @@ async def open_website_case(session, *, name, email, phone, message, package, se
         priority=priority,
         priority_score=priority_score,
         priority_reason=priority_reason,
+        attribution=attribution,
     )
     lead = resolved["lead"]
     if lead is None:
