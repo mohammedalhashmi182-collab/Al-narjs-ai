@@ -99,6 +99,7 @@ async def resolve_lead(
     priority: str | None = None,
     priority_score: int | None = None,
     priority_reason: list | None = None,
+    attribution: dict | None = None,
 ) -> dict:
     """Return ``{lead, created, conflict}``. Creates a lead only when needed."""
     from src.models import AcquisitionLead, LeadEvent
@@ -149,7 +150,8 @@ async def resolve_lead(
             phone=phone_key,
             phone_raw=(phone or None),
             email=email_key,
-            source=source,
+            source="meta_ads" if source == "website" and attribution and attribution.get("acquisition_channel") == "meta_ads" else source,
+            raw_data={"attribution": attribution} if attribution else None,
             segment=segment or "unknown",
             segment_reason=segment_reason,
             suggested_package=package or suggest_package(segment or "unknown"),
