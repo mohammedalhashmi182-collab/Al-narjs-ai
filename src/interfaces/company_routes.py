@@ -34,6 +34,90 @@ async def company_state(request: Request):
     return await observatory.snapshot()
 
 
+@router.get("/api/company/service-jobs", dependencies=[Depends(require_owner)])
+async def owner_internal_service_jobs(request: Request, limit: int = 20):
+    """Owner-only, aggregate and safe internal job statuses (not paid orders).
+
+    This view intentionally exposes no client brief, file bytes, email,
+    telephone, encryption metadata or receipt.
+    """
+    from sqlalchemy import func, select
+    from src.models.service_delivery import ServiceJob
+
+    bound = max(1, min(limit, 50))
+    async with request.app.state.session_factory() as session:
+        counts = (await session.execute(
+            select(ServiceJob.status, func.count(ServiceJob.id)).group_by(ServiceJob.status)
+        )).all()
+        jobs = (await session.execute(
+            select(ServiceJob).order_by(
+                ServiceJob.created_at.desc(), ServiceJob.id.desc()
+            ).limit(bound)
+        )).scalars().all()
+    return {
+        "mode": "internal_preview_only",
+        "counts": {status: int(count) for status, count in counts},
+        "jobs": [
+            {
+                "id": str(job.id),
+                "project_id": str(job.project_id),
+                "status": job.status,
+                "attempts": job.attempts,
+                "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+            }
+            for job in jobs
+        ],
+    }
+
+
+@router.get("/api/company/website-inquiries", dependencies=[Depends(require_owner)])
+async def owner_website_inquiries(request: Request, limit: int = 20):
+    """Known website enquiries, never anonymous visits or imported contacts.
+
+    The current lead model does not persist explicit communication consent.
+    Display a manual-review state; do NOT trigger outbound messages based only
+    on having a phone/email field.
+    """
+    from sqlalchemy import func, or_, select
+    from src.models import ACTIVE_STATUSES, AcquisitionLead
+
+    bound = max(1, min(int(limit), 50))
+    condition = (
+        AcquisitionLead.source == "website",
+        AcquisitionLead.opt_out.is_(False),
+        AcquisitionLead.lead_status.in_(ACTIVE_STATUSES),
+        or_(AcquisitionLead.phone.is_not(None), AcquisitionLead.email.is_not(None)),
+    )
+    async with request.app.state.session_factory() as session:
+        total = (await session.execute(
+            select(func.count()).select_from(AcquisitionLead).where(*condition)
+        )).scalar_one()
+        rows = (await session.execute(
+            select(AcquisitionLead).where(*condition).order_by(
+                AcquisitionLead.priority_score.desc(),
+                AcquisitionLead.created_at.desc(),
+            ).limit(bound)
+        )).scalars().all()
+    return {
+        "mode": "manual_review_only",
+        "count": int(total),
+        "permission": "unverified_no_automatic_outreach",
+        "inquiries": [
+            {
+                "id": str(lead.id),
+                "company_name": lead.company_name,
+                "lead_status": lead.lead_status,
+                "priority": lead.priority,
+                "next_followup_at": (
+                    lead.next_followup_at.isoformat() if lead.next_followup_at else None
+                ),
+                "contact_method_on_file": bool(lead.phone or lead.email),
+            }
+            for lead in rows
+        ],
+    }
+
+
 @router.get("/api/company/what-happened", dependencies=[Depends(require_owner)])
 async def company_what_happened(request: Request, limit: int = 10):
     from sqlalchemy import desc, select
