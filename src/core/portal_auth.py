@@ -82,6 +82,28 @@ def make_magic_token(project_id, nonce: str, now: float | None = None) -> str:
 PAYMENT_TOKEN_TTL = 24 * 3600
 
 
+LEAD_TOKEN_TTL = 7 * 24 * 3600
+
+
+def make_lead_token(lead_id, now: float | None = None) -> str:
+    """Signed checkout reference for one canonical lead. The raw lead id is not enough."""
+    return _encode(
+        {
+            "lead": str(lead_id),
+            "jti": secrets.token_urlsafe(8),
+            "exp": int((now or time.time()) + LEAD_TOKEN_TTL),
+        },
+        "lead",
+    )
+
+
+def read_lead_token(token: Optional[str]) -> Optional[dict]:
+    body = _decode(token, "lead")
+    if not body or not body.get("lead"):
+        return None
+    return body
+
+
 def make_payment_token(payment_id, now: float | None = None) -> str:
     """Short-lived bearer for one payment, carried in the gateway return URL so
     the buyer can read/capture it before any portal session exists."""
