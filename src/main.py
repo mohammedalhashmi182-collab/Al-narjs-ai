@@ -3308,37 +3308,32 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     priority = score_lead(company_name=name, phone=phone, email=email, segment=segment)
     attribution = lead_attribution(body)
 
+    from src.services.funnel_callback import open_website_case
+
     async with app.state.session_factory() as session:
-        lead = AcquisitionLead(
-            company_name=name or "عميل محتمل",
-            contact_name=name or None,
-            phone=phone,
-            phone_raw=(body.get("phone") or None),
+        opened = await open_website_case(
+            session,
+            name=name or None,
             email=email,
-            source="website",
-            raw_data={"attribution": attribution} if attribution else None,
+            phone=raw_phone,
+            message=message,
+            package=package,
             segment=segment,
-            suggested_package=package or suggest_package(segment),
-            lead_status="NEW",
+            segment_reason=_reason,
             priority=priority.priority,
             priority_score=priority.score,
             priority_reason=priority.reasons,
-            notes=message,
+            consent_marketing=body.get("consent") is True,
+            attribution=attribution,
         )
-        session.add(lead)
-        await session.flush()
-        session.add(LeadEvent(
-            lead_id=lead.id,
-            event_type="captured",
-            status_after="NEW",
-            channel="website",
-            message=message,
-        ))
+        lead = opened["lead"]
+        if lead is None:
+            raise HTTPException(400, "أدخل الاسم أو الجوال أو البريد")
         await session.commit()
-        await session.refresh(lead)
         lead_id = lead.id
         lead_email = lead.email
         lead_name = lead.contact_name or lead.company_name
+        created = bool(opened["created"])
 
     _name = body.get("name") or "عميل جديد"
     _phone = body.get("phone") or "—"
@@ -3355,11 +3350,66 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     # The visitor is answered the moment the record is committed. Welcome email,
     # follow-up scheduling and the owner alert run after the response so a slow
     # SMTP or Telegram call can never stall the public form.
-    background_tasks.add_task(
-        _lead_side_effects, lead_id, lead_email, lead_name, alert_text
-    )
+    if created:
+        background_tasks.add_task(
+            _lead_side_effects, lead_id, lead_email, lead_name, alert_text
+        )
 
-    return {"success": True, "lead_id": str(lead_id), "email_queued": bool(lead_email)}
+    return {
+        "success": True,
+        "lead_id": str(lead_id),
+        "email_queued": bool(lead_email) and created,
+        "deduped": not created,
+    }
+
+
+class ConsultCallbackRequest(BaseModel):
+    name: str = ""
+    email: str = ""
+    phone: str = ""
+    message: str = ""
+    consent: bool = False
+
+
+@app.post("/api/consult/callback", dependencies=[Depends(rate_limit_consult)])
+async def consult_callback(body: ConsultCallbackRequest):
+    """Owner follow-up for an identified consult visitor. Sends nothing."""
+    from src.services.funnel_callback import open_callback
+    from src.services.funnel_identity import resolve_lead
+
+    async with app.state.session_factory() as session:
+        resolved = await resolve_lead(
+            session, email=body.email, phone=body.phone,
+            name=body.name, source="consult_assistant",
+            message=(body.message or "").strip() or None,
+        )
+        lead = resolved["lead"]
+        if lead is None:
+            raise HTTPException(422, "أدخل بريداً أو جوالاً")
+        callback = await open_callback(
+            session, lead, source="consult_assistant",
+            consent_marketing=body.consent is True,
+        )
+        await session.commit()
+        lead_id = lead.id
+        created = bool(resolved["created"])
+    return {"success": True, "lead_id": str(lead_id), "created": created, "callback": callback}
+
+
+@app.get("/api/owner/funnel/daily", dependencies=[Depends(require_owner_api)])
+async def owner_funnel_daily(day: Optional[str] = None):
+    """Owner-only aggregate data, excluding names and message bodies."""
+    from datetime import datetime
+    from src.services.funnel_metrics import daily_kpis
+
+    parsed = None
+    if day:
+        try:
+            parsed = datetime.fromisoformat(day + "T00:00:00+00:00")
+        except ValueError:
+            raise HTTPException(422, "day must be YYYY-MM-DD")
+    async with app.state.session_factory() as session:
+        return await daily_kpis(session, day=parsed)
 
 
 @app.post("/api/leads/{lead_id}/demo-viewed")
