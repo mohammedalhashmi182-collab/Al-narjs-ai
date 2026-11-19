@@ -3375,7 +3375,10 @@ class ConsultCallbackRequest(BaseModel):
 async def consult_callback(body: ConsultCallbackRequest):
     """Owner follow-up for an identified consult visitor. Sends nothing."""
     from src.services.funnel_callback import open_callback
-    from src.services.funnel_identity import resolve_lead
+    from src.services.funnel_identity import canonical_email, canonical_phone, resolve_lead
+
+    if not (canonical_email(body.email) or canonical_phone(body.phone)):
+        raise HTTPException(422, "أدخل بريداً إلكترونياً أو جوالاً صحيحاً")
 
     async with app.state.session_factory() as session:
         resolved = await resolve_lead(
