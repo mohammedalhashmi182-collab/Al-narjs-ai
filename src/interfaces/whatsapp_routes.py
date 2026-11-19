@@ -13,11 +13,9 @@ payload is persisted (only a payload hash for audits).
 
 from __future__ import annotations
 
-import hashlib
 import hmac
 import json
 import logging
-import os
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request, Response
@@ -34,24 +32,17 @@ router = APIRouter(prefix="/webhooks", tags=["whatsapp-webhook"])
 
 _VERIFY_RESPONSE = "نلتزم بذلك ✓"
 
-# Process-local (scraped, no secrets) diagnostics for signature rejections.
-# A short prefix of the received/expected digest is kept so a human can compare
-# them offline; the full signature is never stored and secrets are never shown.
+# Process-local diagnostics for signature rejections. Never expose signature
+# material or request bodies through the public health endpoint or logs.
 _rx: dict = {"rejected_total": 0, "last_reject": None}
+MAX_WHATSAPP_BODY_BYTES = 1024 * 1024
 
 
-def _signature_prefix(signature: str) -> str:
-    """First 28 chars of a signature value (safe for diagnostics)."""
-    return (signature or "")[:28]
-
-
-def _record_reject(reason: str, received: str, expected_prefix: str, body_len: int) -> None:
+def _record_reject(reason: str, body_len: int) -> None:
     _rx["rejected_total"] += 1
     _rx["last_reject"] = {
         "at": datetime.now(timezone.utc).isoformat(),
         "reason": reason,
-        "received_prefix": _signature_prefix(received),
-        "expected_prefix": expected_prefix,
         "body_len": body_len,
     }
 
@@ -68,7 +59,7 @@ async def whatsapp_webhook_verification(request: Request):
     challenge = request.query_params.get("hub.challenge")
 
     if mode == "subscribe" and token and settings.whatsapp_webhook_verify_token:
-        if token == settings.whatsapp_webhook_verify_token:
+        if hmac.compare_digest(token.encode(), settings.whatsapp_webhook_verify_token.encode()):
             return Response(content=challenge or _VERIFY_RESPONSE, media_type="text/plain")
     return Response(content="Verification failed", status_code=403)
 
@@ -81,22 +72,23 @@ async def whatsapp_webhook(request: Request):
     processed transactionally inside one session. Always answers quickly with
     a 200 so Meta does not retry a well-formed delivery.
     """
-    raw = await request.body()
-
     if webhook_disabled_reason():
         log.warning("WhatsApp webhook disabled: %s", webhook_disabled_reason())
         return JSONResponse({"status": "disabled"}, status_code=200)
 
     signature = request.headers.get("X-Hub-Signature-256")
     if not signature:
-        _record_reject("missing_header", "", "", len(raw))
+        _record_reject("missing_header", 0)
         return JSONResponse({"status": "invalid_signature"}, status_code=403)
+
+    raw = bytearray()
+    async for chunk in request.stream():
+        if len(raw) + len(chunk) > MAX_WHATSAPP_BODY_BYTES:
+            return JSONResponse({"status": "body_too_large"}, status_code=413)
+        raw.extend(chunk)
+
     if not verify_webhook_signature(signature, raw):
-        secret = settings.whatsapp_app_secret or ""
-        expected_hex = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
-        _record_reject("signature_mismatch", signature, expected_hex[:28], len(raw))
-        if os.environ.get("WHATSAPP_WEBHOOK_DEBUG", "").lower() == "true":
-            log.info("RX_DEBUG sig=%s body=%r", signature, raw)
+        _record_reject("signature_mismatch", len(raw))
         return JSONResponse({"status": "invalid_signature"}, status_code=403)
 
     try:
