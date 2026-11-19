@@ -6,6 +6,7 @@ from src.services.agent_profiles import TOOL_AGENTS
 from src.services.catalog import EMPLOYEES
 from src.services.docgen import DocGenError, build_docpack, parse_formats
 from src.services.docgen.store import PACKS
+from src.services.docgen.release_gate import ReleaseApproval, require_release
 
 DOCPACK_AGENTS = TOOL_AGENTS["docpack"]
 
@@ -89,8 +90,14 @@ async def build(
     )
 
 
-def publish(pack) -> dict:
-    token = PACKS.put(pack.files)
+def publish(
+    pack, *, scope: str = "owner", project_id: str | None = None,
+    approval: ReleaseApproval | None = None,
+) -> dict:
+    """Publish a short-lived pack. Only approved files reach customer scope."""
+    if scope == "project":
+        require_release(pack, approval)
+    token = PACKS.put(pack.files, scope=scope, project_id=project_id)
     return {
         "id": token,
         "agent_key": pack.meta.agent_key,
@@ -131,9 +138,19 @@ def summary_facts(pack) -> list[dict]:
     return rows
 
 
-async def email_pack(to: str, pack) -> bool:
+async def email_pack(to: str, pack, *, approval: ReleaseApproval | None = None) -> bool:
+    # No proof => no send, including legacy src/main.py callers.
+    try:
+        require_release(pack, approval)
+    except DocGenError:
+        return False
     if not to:
         return False
+    # Legacy agent-generated packs also must pass artifact integrity checks
+    # before attempting email. This does NOT replace an independent review of
+    # substantive content or customer authorization.
+    from src.services.docgen.team_pilot import verify_pack_files
+    verify_pack_files(pack, [item.format for item in pack.files])
     from src.services import email_service
 
     lines = [f"{fact.label_ar}: {fact.display}" for fact in pack.analysis.facts if fact.kind == "total"]
