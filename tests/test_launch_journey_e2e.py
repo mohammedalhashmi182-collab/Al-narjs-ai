@@ -35,6 +35,7 @@ async def maker(monkeypatch):
 async def test_full_launch_journey_activates_exactly_once(maker, monkeypatch):
     from src.config.settings import get_settings
     from src.core.agent_registry import AgentRegistry
+    from src.core.portal_auth import make_lead_token
     from src.main import app
     from src.services import payments as pm
 
@@ -113,7 +114,7 @@ async def test_full_launch_journey_activates_exactly_once(maker, monkeypatch):
             "customer_name": "عميل تجريبي",
             "customer_phone": "0555123456",
             "project_id": proj["project_id"],
-            "lead_id": lead_id,
+            "lead_token": make_lead_token(UUID(lead_id)),
             "addons": 0,
         },
     )
