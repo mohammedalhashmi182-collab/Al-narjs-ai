@@ -5,9 +5,9 @@
 [![python](https://img.shields.io/badge/python-3.12-black)](pyproject.toml)
 [![tests](https://github.com/mohammedalhashmi182-collab/Al-narjs-ai/actions/workflows/tests.yml/badge.svg)](https://github.com/mohammedalhashmi182-collab/Al-narjs-ai/actions/workflows/tests.yml)
 
-منصة وكلاء ذكاء اصطناعي عربية أولاً، من الرياض. رئيس تنفيذي ذكي و**39 وكيلاً**، بوابة عميل، ودفع بالبطاقة عبر Moyasar. الموقع يعمل على [alnarjisai.com](https://alnarjisai.com).
+منصة وكلاء ذكاء اصطناعي عربية أولاً، من الرياض. تضم **39 وكيلاً** بمن فيهم الرئيس التنفيذي الذكي، مع بوابة عميل ودفع بالبطاقة عبر Moyasar. الموقع يعمل على [alnarjisai.com](https://alnarjisai.com).
 
-Arabic-first AI-agent platform from Riyadh. An AI CEO and **39 agents**, a customer portal, and card checkout through Moyasar. The live site is [alnarjisai.com](https://alnarjisai.com).
+Arabic-first AI-agent platform from Riyadh. The roster has **39 agents**, including the AI CEO, with a customer portal and card checkout through Moyasar. The live site is [alnarjisai.com](https://alnarjisai.com).
 
 **Stack:** FastAPI, SQLAlchemy (asyncpg), Alembic, PostgreSQL, Jinja2, on Render.
 
@@ -26,7 +26,7 @@ Machine-readable status: [https://alnarjisai.com/api/status](https://alnarjisai.
 
 ## Features
 
-- **39 agents** plus the AI CEO who staffs a plan from the live catalog. Count and prices come from `src/services/catalog.py`.
+- **39 agents** including the AI CEO, who staffs each plan with specialists from the live catalog. The roster and prices come from `src/services/catalog.py`.
 - **Plans:** البداية / Starter 790 SAR, النمو / Growth 1,490 SAR, الشركات / Enterprise 2,990 SAR per month. VAT is not added while the operator is not VAT-registered.
 - **Customer portal** at `/portal`. Signup links (`/signup`, `/ar/signup`, `/en/signup`) redirect there.
 - **Moyasar** guest card checkout (mada, Visa, Mastercard). PayPal exists in the code and is shown only when live mode is turned on.

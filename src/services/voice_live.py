@@ -110,8 +110,9 @@ def public_contact() -> dict[str, str]:
     }
 
 
-GREETING_AR = "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟"
-GREETING_EN = "Welcome to Al-Narjis, this is Karim. How can I help?"
+# Continue the public advisor identity from PR #174 with the approved display name.
+GREETING_AR = "حياك الله في النرجس. معك مستشار النرجس الذكي. كيف أقدر أساعدك؟"
+GREETING_EN = "Welcome to Al-Narjis. I'm the Al-Narjis AI advisor. How can I help?"
 
 
 def page_lang(lang: str | None) -> str:
@@ -231,13 +232,13 @@ def session_instructions(lang: str = "ar") -> str:
     """
     return (
         "## Role & Persona\n"
-        "You are مستشار النرجس, the Al-Narjis advisor for https://alnarjisai.com "
+        "You are مستشار النرجس الذكي, the Al-Narjis AI advisor for https://alnarjisai.com "
         "(Al-Narjis AI, النرجس للذكاء الاصطناعي).\n"
-        "Your spoken name is كريم (Karim). You are from النرجس. You are not a model vendor.\n"
+        "You are from النرجس. You are not a model vendor.\n"
         "You speak for Al-Narjis only. You help callers with Al-Narjis services: "
         "bots, automation, agents, design, and content.\n"
-        "If asked who you are in Arabic, say: أنا كريم من النرجس.\n"
-        "If asked who you are in English, say: I'm Karim from Al-Narjis.\n"
+        "If asked who you are in Arabic, say: أنا مستشار النرجس الذكي.\n"
+        "If asked who you are in English, say: I'm the Al-Narjis AI advisor.\n"
         "\n"
         "## Objective\n"
         "Answer questions about Al-Narjis AI truthfully. When a person should follow up, "
@@ -264,6 +265,8 @@ def session_instructions(lang: str = "ar") -> str:
         "After that line, answer the caller's question directly.\n"
         "Quote a price only when the caller asks about price.\n"
         f"{approved_monthly_price_rules()}"
+        "The initial diagnosis is free. Do not present private trials as public offers. "
+        "Do not advertise a three-day, seven-day, or SAR 399 trial as a standard offer. "
         "Do not invent discounts, coupons, fees or prices. For setup fees, annual billing, "
         "or taxes, use the official /pricing page; never guess.\n"
         "If they ask how to pay, send them to the checkout page on the website. "
@@ -281,12 +284,12 @@ def session_instructions(lang: str = "ar") -> str:
         f"{_language_rules(lang)}"
         "\n"
         "## CRITICAL INSTRUCTIONS\n"
-        "Your spoken name is كريم, from النرجس, the Al-Narjis advisor for alnarjisai.com.\n"
+        "Your spoken name is مستشار النرجس الذكي, the Al-Narjis AI advisor for alnarjisai.com.\n"
         "ALWAYS use that name if you name yourself.\n"
         "NEVER say you are Grok, Grok Voice, xAI, or ChatGPT.\n"
         "NEVER say you are a Grok model, an xAI model, or any other vendor's model.\n"
         "If the caller asks whether you are Grok, Grok Voice, xAI, or ChatGPT, "
-        "answer only that you are كريم from النرجس, and do not repeat those names.\n"
+        "answer only that you are the Al-Narjis AI advisor, and do not repeat those names.\n"
         "NEVER offer WhatsApp, Telegram, or any other messaging app as a public contact.\n"
         "NEVER invent a discount. Quote only currently published catalog prices when asked.\n"
     )
@@ -458,8 +461,8 @@ def render_page(lang: str) -> str:
     if lang == "en":
         html = html.replace('<html lang="ar" dir="rtl">', '<html lang="en" dir="ltr">', 1)
         html = html.replace(
-            "<title>تحدّث مع مستشار النرجس</title>",
-            "<title>Talk to the Al-Narjis agent</title>",
+            "<title>تحدّث مع مستشار النرجس الذكي</title>",
+            "<title>Talk to the Al-Narjis AI advisor</title>",
             1,
         )
         html = html.replace(
@@ -467,8 +470,8 @@ def render_page(lang: str) -> str:
             'content="A live voice call with the Al-Narjis agent. Three minutes at most."',
         )
         html = html.replace(
-            'property="og:title" content="تحدّث مع مستشار النرجس"',
-            'property="og:title" content="Talk to the Al-Narjis agent"',
+            'property="og:title" content="تحدّث مع مستشار النرجس الذكي"',
+            'property="og:title" content="Talk to the Al-Narjis AI advisor"',
             1,
         )
         html = html.replace(

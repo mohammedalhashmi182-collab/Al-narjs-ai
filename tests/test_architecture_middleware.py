@@ -117,6 +117,14 @@ def test_catalog_best_match_and_fallback():
     assert include_owner is None or include_owner.agent is not None
 
 
+def test_catalog_fallback_cannot_select_an_owner_only_agent():
+    catalog = AgentCatalog(AGENT_DIR)
+    catalog.add_from_yaml(AGENT_DIR / "orchestrator.yaml")
+
+    assert catalog.fallback().slug == "general"
+    assert catalog.fallback(include_owner_only=True).slug == "orchestrator"
+
+
 # ---------------------------------------------------------------------------
 # Dynamic router
 # ---------------------------------------------------------------------------
@@ -159,6 +167,20 @@ async def test_router_exact_decision_and_fallback_execution():
     assert result.content == "fallback-ok"
     assert ("complete", "gemini:gemini-3.6-flash") in provider.calls
     assert ("fallback", "gemini") in provider.calls
+
+
+def test_router_exact_slug_respects_owner_only_scope():
+    catalog = AgentCatalog(AGENT_DIR)
+    catalog.load_dir()
+    router = DynamicRouter(catalog)
+
+    public = router.decide("operating report", agent_slug="orchestrator")
+    assert public.agent_slug != "orchestrator"
+    assert all(candidate["slug"] != "orchestrator" for candidate in public.candidates)
+
+    owner = router.decide("operating report", agent_slug="orchestrator", include_owner_only=True)
+    assert owner.agent_slug == "orchestrator"
+    assert owner.strategy.value == "exact"
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,7 @@
 # Al-Narjis Design System — ODSF v0.3
 
+The vNext homepage and shared brand assets use [Modern Najdi Intelligence](vnext/design-system.md). This document records the design rules for the existing platform and printed documents.
+
 Single source of truth for the visual identity of [alnarjisai.com](https://alnarjisai.com).
 `tests/test_design_system.py` enforces this file. If a test fails, fix the CSS — not the test.
 

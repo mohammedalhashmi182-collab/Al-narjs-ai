@@ -5,7 +5,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from jinja2 import BaseLoader, Environment, StrictUndefined, Undefined, meta
+from jinja2 import BaseLoader, StrictUndefined, Undefined, meta
+from jinja2.exceptions import SecurityError
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 from pydantic import BaseModel, ValidationError
 
 from src.utils.logger import get_logger
@@ -25,7 +27,7 @@ class RenderedPrompt:
 class PromptEngine:
     def __init__(self, strict: bool = False):
         self.strict = strict
-        self.env = Environment(
+        self.env = ImmutableSandboxedEnvironment(
             loader=BaseLoader(),
             autoescape=False,
             undefined=StrictUndefined if strict else Undefined,
@@ -53,42 +55,50 @@ class PromptEngine:
         strict: bool | None = None,
     ) -> RenderedPrompt:
         strict_mode = strict if strict is not None else self.strict
-        required_vars, _ = self.parse_template(template_text)
-        provided_vars = set(variables.keys())
-        missing = required_vars - provided_vars
+        source = template_text.lstrip()
+        has_system_prompt = source.startswith("{{#system}}")
+        if has_system_prompt:
+            system_source, user_marker, user_source = source.removeprefix("{{#system}}").partition(
+                "{{#user}}"
+            )
+        else:
+            system_source, user_marker, user_source = "", "", template_text
 
+        required_vars = self.parse_template(system_source)[0] | self.parse_template(user_source)[0]
+        provided_vars = set(variables)
+        missing = required_vars - provided_vars
         if strict_mode and missing:
             raise ValueError(f"Missing required variables: {missing}")
 
-        try:
-            template = self.env.from_string(template_text)
-            rendered = template.render(**variables)
-        except Exception as e:
-            logger.error(f"Template rendering failed: {e}")
-            if strict_mode:
-                raise
-            rendered = template_text
-            for key, value in variables.items():
-                rendered = rendered.replace(f"{{{{{key}}}}}", str(value))
-
-        system_prompt = ""
-        user_prompt = rendered
-
-        if "{{#system}}" in rendered:
-            parts = rendered.split("{{#user}}", 1)
-            system_prompt = parts[0].replace("{{#system}}", "").strip()
-            user_prompt = parts[1].strip() if len(parts) > 1 else ""
-        elif "{{#system}}" in rendered and "{{#user}}" not in rendered:
-            system_prompt = rendered.replace("{{#system}}", "").strip()
-            user_prompt = ""
+        system_rendered = self._render_text(system_source, variables, strict_mode)
+        user_rendered = self._render_text(user_source, variables, strict_mode)
+        raw_rendered = user_rendered
+        if has_system_prompt:
+            prefix = template_text[: len(template_text) - len(source)]
+            raw_rendered = f"{prefix}{{{{#system}}}}{system_rendered}{user_marker}{user_rendered}"
 
         return RenderedPrompt(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
+            system_prompt=system_rendered.strip(),
+            user_prompt=user_rendered.strip() if has_system_prompt else user_rendered,
             variables_used=required_vars & provided_vars,
             missing_variables=missing,
-            raw_rendered=rendered,
+            raw_rendered=raw_rendered,
         )
+
+    def _render_text(self, source: str, variables: dict[str, Any], strict: bool) -> str:
+        if not source:
+            return ""
+        try:
+            return self.env.from_string(source).render(**variables)
+        except SecurityError:
+            raise ValueError("Unsafe prompt template") from None
+        except Exception as e:
+            logger.error(f"Template rendering failed: {e}")
+            if strict:
+                raise
+            for key, value in variables.items():
+                source = source.replace(f"{{{{{key}}}}}", str(value))
+            return source
 
     def validate_template(self, template_text: str) -> tuple[bool, list[str]]:
         try:

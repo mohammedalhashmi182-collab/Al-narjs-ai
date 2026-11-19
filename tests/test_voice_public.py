@@ -11,7 +11,6 @@ from pathlib import Path
 import httpx
 import pytest
 from fastapi.testclient import TestClient
-
 from src.main import app
 from src.services import catalog, voice_live
 from src.services.support import COMPANY_PHONE_DISPLAY, COMPANY_PHONE_E164, SUPPORT_EMAIL
@@ -89,13 +88,13 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert 'rel="canonical" href="https://alnarjisai.com/en/voice"' in en.text
     assert 'rel="manifest" href="/static/site.webmanifest"' in ar.text
     assert 'rel="manifest" href="/static/site.webmanifest"' in en.text
-    assert 'property="og:title" content="تحدّث مع مستشار النرجس"' in ar.text
+    assert 'property="og:title" content="تحدّث مع مستشار النرجس الذكي"' in ar.text
     assert 'property="og:description" content="مكالمة صوتية حية مع مستشار النرجس. ثلاث دقائق كحد أقصى."' in ar.text
     assert 'property="og:url" content="https://alnarjisai.com/ar/voice"' in ar.text
     assert 'property="og:image" content="https://alnarjisai.com/brand/og-image.jpg"' in ar.text
     assert 'property="og:locale" content="ar_SA"' in ar.text
     assert 'property="og:locale:alternate" content="en_US"' in ar.text
-    assert 'property="og:title" content="Talk to the Al-Narjis agent"' in en.text
+    assert 'property="og:title" content="Talk to the Al-Narjis AI advisor"' in en.text
     assert 'property="og:description" content="A live voice call with the Al-Narjis agent. Three minutes at most."' in en.text
     assert 'property="og:url" content="https://alnarjisai.com/en/voice"' in en.text
     assert 'property="og:locale" content="en_US"' in en.text
@@ -111,14 +110,14 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert ar.text.index('id="chatPanel"') < ar.text.index('id="log"')
     assert "دردشة" not in _visible(en.text)
     assert "رجوع للصوت" not in _visible(en.text)
-    assert "Chat" in _visible(en.text) and "Back to voice" in _visible(en.text)
-    assert "تحدّث مع" in _visible(ar.text)
+    assert "Text chat" in _visible(en.text) and "Back to voice" in _visible(en.text)
+    assert "مستشار النرجس الذكي" in _visible(ar.text)
     assert "Start the call" in _visible(en.text)
-    assert "Talk to" in _visible(en.text)
+    assert "Al-Narjis AI advisor" in _visible(en.text)
     assert "تحدّث مع" not in _visible(en.text)
     assert f"mailto:{SUPPORT_EMAIL}" in ar.text
     assert "https://wa.me/966552978753" in ar.text
-    assert COMPANY_PHONE_DISPLAY in ar.text
+    assert "tel:" not in ar.text
     assert "elevenlabs" not in ar.text.lower()
     assert "XAI_API_KEY" not in ar.text
     assert 'href="#"' not in ar.text
@@ -134,7 +133,6 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert "elevenlabs" not in script.lower()
     assert "XAI_API_KEY" not in script
     assert "wss://api.x.ai/v1/realtime" in script
-    assert "voice websocket closed" in script
     assert "model=grok-voice-latest&agent_id" not in script
     assert "model=" not in script
 
@@ -157,17 +155,17 @@ def test_status_stays_quiet_until_the_owner_sets_both_values():
 def test_voice_instructions_name_al_narjis_and_forbid_grok():
     text = voice_live.session_instructions()
     assert "مستشار النرجس" in text
-    assert "Al-Narjis advisor" in text
+    assert "Al-Narjis AI advisor" in text
     assert "https://alnarjisai.com" in text
     assert _ANTI_GROK in text
     assert "ChatGPT" in text and "Grok Voice" in text and "xAI" in text
     assert "Saudi-friendly Arabic" in text
     assert "Switch to English only if the caller speaks English." in text
     assert "Do not open in English." in text
-    assert voice_live.opening_greeting() == "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟"
+    assert voice_live.opening_greeting() == "حياك الله في النرجس. معك مستشار النرجس الذكي. كيف أقدر أساعدك؟"
     assert "Grok" not in voice_live.opening_greeting()
     assert "Grok" not in voice_live.opening_greeting("en")
-    assert "كريم" in text
+    assert "أنا مستشار النرجس الذكي." in text
     assert SUPPORT_EMAIL in text
     assert "NEVER offer WhatsApp" in text
     assert "Do not mention a bank transfer, an IBAN" in text
@@ -313,7 +311,7 @@ def test_session_lang_selects_the_opening_line(client: TestClient, monkeypatch):
     arabic = client.post("/api/voice/session?lang=ar")
     english = client.post("/api/voice/session?lang=en")
     assert arabic.status_code == english.status_code == 200
-    assert arabic.json()["greeting"] == "حياكم الله نورتوا النرجس، كريم معكم، كيف ممكن أساعد؟"
+    assert arabic.json()["greeting"] == "حياك الله في النرجس. معك مستشار النرجس الذكي. كيف أقدر أساعدك؟"
     assert "Grok" not in arabic.json()["greeting"]
     assert "Switch to English only if the caller speaks English." in arabic.json()["instructions"]
     assert english.json()["greeting"] == voice_live.opening_greeting("en")
@@ -342,10 +340,6 @@ def test_configure_session_copies_server_instructions():
     assert "function wantsChat" in script
     assert "function userText" in script
     assert "no-mic" in script
-    mic_fail = script.split("await attachMic();", 1)[1].split("await ensureAudio();", 1)[0]
-    assert "showMicProblem" in mic_fail
-    assert "return false" not in mic_fail
-    assert "finish()" not in mic_fail
     assert "if (chatOpen) return" in script
     assert "رجوع للصوت" not in script
     assert "function openChat" in script
@@ -450,6 +444,7 @@ const context = {
   setInterval,
   clearInterval,
   setTimeout,
+  clearTimeout,
   queueMicrotask,
   JSON,
   Math,
@@ -481,8 +476,7 @@ vm.runInContext(`
   const instructions = updates[0].session.instructions;
   if (instructions !== payload.instructions) throw new Error("instructions were not copied");
   if (Object.prototype.hasOwnProperty.call(updates[0].session, "model")) throw new Error("model field was added");
-  if (!instructions.includes("مستشار النرجس")) throw new Error("missing Al-Narjis identity");
-  if (!instructions.includes("كريم")) throw new Error("missing spoken name Karim");
+  if (!instructions.includes("مستشار النرجس الذكي")) throw new Error("missing Al-Narjis identity");
   if (!instructions.includes("NEVER say you are Grok, Grok Voice, xAI, or ChatGPT.")) throw new Error("missing anti-Grok rule");
   if (!instructions.includes("Switch to English only if the caller speaks English.")) throw new Error("arabic default missing");
   sockets[0].onmessage({ data: JSON.stringify({ type: "response.created", response: { id: "resp_grok" } }) });

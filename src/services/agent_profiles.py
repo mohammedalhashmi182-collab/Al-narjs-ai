@@ -71,7 +71,6 @@ TOOL_AGENTS = {
     "data_files": frozenset({
         "data_analyst", "finance_pricing", "market_analyst", "competitor_analyst", "financial_forecast",
     }),
-    "store": frozenset({"store_manager", "product_describer", "marketing_agent", "data_analyst"}),
     "knowledge_base": frozenset({
         "customer_service", "customer_manager", "sales_closer", "lead_acquisition",
         "marketing_agent", "social_media", "content_writer", "article_writer",

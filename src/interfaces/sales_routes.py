@@ -75,6 +75,8 @@ def _parse_dt(value: Optional[str]) -> Optional[datetime]:
 # ---------------------------------------------------------------------------
 
 def _lead_dict(lead: AcquisitionLead) -> dict:
+    from src.services.lead_attribution import attribution_summary
+
     next_action = compute_next_action(lead)
     return {
         "next_action": next_action["next_action"],
@@ -90,6 +92,7 @@ def _lead_dict(lead: AcquisitionLead) -> dict:
         "phone_raw": lead.phone_raw,
         "email": lead.email,
         "source": lead.source,
+        "attribution": attribution_summary(lead.raw_data),
         "source_sheet": lead.source_sheet,
         "historical_customer": lead.historical_customer,
         "quotation_without_purchase": lead.quotation_without_purchase,
@@ -392,9 +395,16 @@ async def sales_lead_detail(request: Request, lead_id: str):
             )
         ).scalars().all()
         draft = generate_message(lead)
+        from src.models.funnel import FunnelCallback
+        from src.services.funnel_callback import public_callback
+
+        callback_row = (
+            await session.execute(select(FunnelCallback).where(FunnelCallback.lead_id == lead.id))
+        ).scalar_one_or_none()
     return {
         "lead": _lead_dict(lead),
         "events": [_event_dict(e) for e in events],
+        "callback": public_callback(callback_row) if callback_row is not None else None,
         "draft": draft,
         "follow_up": prepare_follow_up(lead, events),
         "variants": VARIANT_LABELS_AR,

@@ -389,6 +389,25 @@ async def test_invoice_callback_mismatched_invoice_id_is_ignored(monkeypatch):
     assert response.json().get("ignored") == "no invoice id"
 
 
+async def test_moyasar_does_not_settle_when_api_returns_different_reference(monkeypatch):
+    _live(monkeypatch)
+    from src.main import app
+
+    payment = _payment()
+    monkeypatch.setattr(app.state, "session_factory", lambda: _Session(payment), raising=False)
+    _api(monkeypatch, {"id": "inv_other", "status": "paid", "amount": 49900, "currency": "SAR"})
+
+    response = await _post_invoice(app, {"id": payment.gateway_payment_id})
+    assert response.status_code == 502
+    assert payment.status == "pending"
+
+
+def test_moyasar_amount_must_be_integral_halalas():
+    payment = _payment()
+    assert pm.gateway_amount_matches(payment, {"amount": "49900", "currency": "SAR"})
+    assert not pm.gateway_amount_matches(payment, {"amount": 49900.5, "currency": "SAR"})
+
+
 async def test_dashboard_webhook_still_requires_token(monkeypatch):
     _live(monkeypatch)
     from src.main import app

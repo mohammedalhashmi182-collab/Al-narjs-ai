@@ -1,0 +1,18 @@
+:root {
+  --narjis-ink: #12100d;
+  --narjis-surface: #1c1915;
+  --narjis-ivory: #f4eee2;
+  --narjis-stone: #b8ae9c;
+  --narjis-gold: #c9a27a;
+  --narjis-action: #ff5a36;
+  --narjis-action-ink: #9a321b;
+  --narjis-secondary-ink: #5a5046;
+  --narjis-on-dark-line: rgba(244,238,226,.2);
+  --narjis-on-light-line: rgba(18,16,13,.2);
+  --narjis-font: 'IBM Plex Sans', system-ui, sans-serif;
+  --narjis-font-ar: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, sans-serif;
+  --narjis-layout-width: 1240px;
+  --narjis-space: 8px;
+  --narjis-control-radius: 10px;
+  --narjis-panel-radius: 16px;
+}

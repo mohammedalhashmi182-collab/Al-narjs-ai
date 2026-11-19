@@ -360,6 +360,97 @@ async def test_lead_won_and_success_log_only_after_activation(maker, currency, a
         assert dec[0].status == "review" and dec[0].actual == "review"
 
 
+async def test_moyasar_paid_retry_recovers_outcome_and_deduplicates(maker, monkeypatch):
+    from unittest.mock import AsyncMock
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from src import main
+    from src.models import AcquisitionLead, Decision
+
+    project, pay, lead_id = await _lead_payment(maker, "SAR")
+    async with maker() as session:
+        payment = await session.get(Payment, pay.id)
+        payment.gateway_payment_id = "inv_test_recovery"
+        payment.gateway_source = "invoice"
+        await session.commit()
+
+    commit = AsyncSession.commit
+    fail_once = True
+
+    async def flaky_commit(session):
+        nonlocal fail_once
+        if fail_once and session.bind is maker.kw["bind"]:
+            fail_once = False
+            raise RuntimeError("simulated interrupted outcome")
+        await commit(session)
+
+    verified = AsyncMock(side_effect=AssertionError("settled payment must never contact gateway"))
+    track = AsyncMock()
+    monkeypatch.setattr(pm, "verify_payment", verified)
+    monkeypatch.setattr("src.services.funnel.track", track)
+    monkeypatch.setattr(AsyncSession, "commit", flaky_commit)
+    monkeypatch.setattr(main.app.state, "session_factory", maker, raising=False)
+
+    transport = httpx.ASGITransport(app=main.app, raise_app_exceptions=False)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        body = {"id": "inv_test_recovery"}
+        failed = await client.post("/webhooks/moyasar/invoice", json=body)
+        assert failed.status_code == 500
+        async with maker() as session:
+            assert (await session.get(Payment, pay.id)).status == "paid"
+            assert (await session.get(ClientProject, project.id)).status == "pending"
+            assert (await session.get(AcquisitionLead, lead_id)).lead_status == "NEW"
+
+        recovered = await client.post("/webhooks/moyasar/invoice", json=body)
+        assert recovered.json()["already"] is True
+        async with maker() as session:
+            end = (await session.get(ClientProject, project.id)).current_period_end
+        secret = "unit_test_moyasar_recovery"
+        with _settings(moyasar_webhook_secret=secret):
+            repeated = await client.post("/webhooks/moyasar", json={
+                "type": "payment_paid", "data": {"invoice_id": body["id"]}, "secret_token": secret,
+            })
+        assert repeated.json()["already"] is True
+
+    async with maker() as session:
+        active = await session.get(ClientProject, project.id)
+        assert active.status == "active"
+        assert active.current_period_end == end
+        assert (await session.get(AcquisitionLead, lead_id)).lead_status == "WON"
+        decisions = await session.scalars(select(Decision).where(Decision.reason == f"payment_ref:{pay.id}"))
+        assert len(decisions.all()) == 1
+    verified.assert_not_awaited()
+    assert [call.args[0] for call in track.await_args_list] == ["payment_succeeded", "project_activated"]
+
+
+async def test_paid_order_without_contact_does_not_activate_unrelated_project(maker):
+    project = await _project(maker, package="numuw")
+    async with maker() as session:
+        payment = Payment(amount=_price("numuw"), currency="SAR", package="numuw", status="paid")
+        session.add(payment)
+        await session.commit()
+
+        result = await pm.activate_subscription(session, payment)
+        assert result["reason"] == "no matching project"
+        assert (await session.get(ClientProject, project.id)).status == "pending"
+
+
+async def test_owner_cannot_manually_mark_moyasar_order_paid(maker):
+    async with maker() as session:
+        payment = Payment(amount=_price("numuw"), currency="SAR", package="numuw", status="pending",
+                          gateway="moyasar", gateway_payment_id="inv_test_requires_verification")
+        session.add(payment)
+        await session.commit()
+        payment_id = payment.id
+
+    async with _client(maker, owner=True) as client:
+        response = await client.post(f"/api/payments/{payment_id}/confirm-received", json={})
+    assert response.status_code == 409
+    async with maker() as session:
+        assert (await session.get(Payment, payment_id)).status == "pending"
+
+
 async def _keyed_runs(maker, monkeypatch, keys, header=True):
     from src.services import email_service
 

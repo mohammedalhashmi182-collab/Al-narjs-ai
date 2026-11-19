@@ -1,96 +1,105 @@
 {% extends "base.html" %}
 
-{% block title %}مركز القيادة - النرجس للذكاء الاصطناعي{% endblock %}
-{% block page_title %}مركز القيادة{% endblock %}
+{% macro tr(arabic, english) %}{{ arabic if _lang == 'ar' else english }}{% endmacro %}
+
+{% block title %}{{ tr('مركز القيادة | النرجس للذكاء الاصطناعي', 'Owner command center | Al-Narjis AI') }}{% endblock %}
+{% block page_title %}{{ tr('مركز القيادة', 'Owner command center') }}{% endblock %}
 
 {% block content %}
-<div class="cc" dir="rtl" id="cc">
+<div class="cc" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}" id="cc">
     <section class="cc-hero">
         <div>
-            <h1 class="cc-h1">مركز القيادة</h1>
-            <p class="cc-mut">كل ما يحتاجه المالك في شاشة واحدة — أرقام حيّة من القاعدة. <span id="ccStamp"></span></p>
+            <h1 class="cc-h1">{{ tr('مركز القيادة', 'Owner command center') }}</h1>
+            <p class="cc-mut" id="ccStamp" role="status">{{ tr('جارٍ تحميل المؤشرات…', 'Loading the overview…') }}</p>
         </div>
-        <div class="cc-actions" aria-label="إجراءات سريعة">
-            <button type="button" class="cc-qa" id="ccRefresh">تحديث</button>
-            <button type="button" class="cc-qa" id="ccRenewals">تشغيل دورة التجديد</button>
-            <a class="cc-qa" href="/owner/automation">طابور المراجعة</a>
-            <a class="cc-qa" href="/">لوحة التشغيل</a>
+        <div class="cc-actions" aria-label="{{ tr('إجراءات سريعة', 'Quick actions') }}">
+            <button type="button" class="cc-qa" id="ccRefresh">{{ tr('تحديث', 'Refresh') }}</button>
+            <button type="button" class="cc-qa" id="ccRenewals">{{ tr('تشغيل دورة التجديد', 'Run billing renewals') }}</button>
+            <a class="cc-qa" href="/owner/automation">{{ tr('طابور المراجعة', 'Review queue') }}</a>
+            <a class="cc-qa" href="/">{{ tr('لوحة التشغيل', 'Operations dashboard') }}</a>
             <a class="cc-qa" href="/api/owner/summary" target="_blank" rel="noopener">JSON</a>
         </div>
     </section>
 
     <section class="cc-kpis">
-        <div class="cc-kpi"><span class="cc-v" id="kMrr">-</span><span class="cc-l">الإيراد الشهري المتكرر (MRR)</span></div>
-        <div class="cc-kpi"><span class="cc-v" id="kRev">-</span><span class="cc-l">المحصّل هذا الشهر</span></div>
-        <div class="cc-kpi"><span class="cc-v" id="kSubs">-</span><span class="cc-l">اشتراكات نشطة</span></div>
-        <div class="cc-kpi warn"><span class="cc-v" id="kRenew">-</span><span class="cc-l">تجديدات خلال 7 أيام</span></div>
-        <div class="cc-kpi warn"><span class="cc-v" id="kTransfers">-</span><span class="cc-l">تحويلات بانتظار التأكيد</span></div>
-        <div class="cc-kpi"><span class="cc-v" id="kReview">-</span><span class="cc-l">ردود بانتظار المراجعة</span></div>
-        <div class="cc-kpi" id="kHealthBox"><span class="cc-v" id="kHealth">-</span><span class="cc-l">صحة الموقع</span></div>
+        <div class="cc-kpi"><span class="cc-v" id="kMrr">—</span><span class="cc-l">{{ tr('الإيراد الشهري المتكرر المقدّر', 'Estimated monthly recurring revenue') }}</span></div>
+        <div class="cc-kpi"><span class="cc-v" id="kRev">—</span><span class="cc-l">{{ tr('مدفوعات هذا الشهر قبل الضريبة', 'Payments this month before tax') }}</span></div>
+        <div class="cc-kpi"><span class="cc-v" id="kSubs">—</span><span class="cc-l">{{ tr('اشتراكات نشطة', 'Active subscriptions') }}</span></div>
+        <div class="cc-kpi warn"><span class="cc-v" id="kRenew">—</span><span class="cc-l">{{ tr('تجديدات مستحقة خلال 7 أيام', 'Renewals due within 7 days') }}</span></div>
+        <div class="cc-kpi warn"><span class="cc-v" id="kTransfers">—</span><span class="cc-l">{{ tr('تحويلات بانتظار التأكيد', 'Transfers awaiting confirmation') }}</span></div>
+        <div class="cc-kpi"><span class="cc-v" id="kReview">—</span><span class="cc-l">{{ tr('ردود بانتظار المراجعة', 'Replies awaiting review') }}</span></div>
+        <div class="cc-kpi" id="kHealthBox"><span class="cc-v" id="kHealth">—</span><span class="cc-l">{{ tr('حالة التشغيل المسجّلة', 'Recorded system health') }}</span></div>
     </section>
 
     <div class="cc-grid">
         <section class="cc-card cc-wide">
-            <h2 class="cc-h2">تحويلات بنكية وطلبات غير مدفوعة</h2>
+            <h2 class="cc-h2" id="ordersHeading">{{ tr('تحويلات بنكية وطلبات غير مدفوعة', 'Bank transfers and unpaid orders') }}</h2>
             <p class="cc-mut" id="ordersNote"></p>
-            <div class="cc-scroll"><table class="cc-t">
-                <thead><tr><th>العميل</th><th>الباقة</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th></th></tr></thead>
-                <tbody id="tOrders"><tr><td colspan="6" class="cc-empty">جارٍ التحميل…</td></tr></tbody>
+            <div class="cc-scroll" tabindex="0" role="region" aria-labelledby="ordersHeading"><table class="cc-t">
+                <thead><tr><th scope="col">{{ tr('العميل', 'Customer') }}</th><th scope="col">{{ tr('الباقة', 'Plan') }}</th><th scope="col">{{ tr('المبلغ', 'Amount') }}</th><th scope="col">{{ tr('الحالة', 'Status') }}</th><th scope="col">{{ tr('التاريخ', 'Date') }}</th><th scope="col">{{ tr('الإجراء', 'Action') }}</th></tr></thead>
+                <tbody id="tOrders"><tr><td colspan="6" class="cc-empty">{{ tr('جارٍ التحميل…', 'Loading…') }}</td></tr></tbody>
             </table></div>
         </section>
 
         <section class="cc-card">
-            <h2 class="cc-h2">الاشتراكات حسب الباقة</h2>
-            <div class="cc-scroll"><table class="cc-t">
-                <thead><tr><th>الباقة</th><th>العدد</th><th>MRR</th></tr></thead>
+            <h2 class="cc-h2" id="plansHeading">{{ tr('الاشتراكات حسب الباقة', 'Subscriptions by plan') }}</h2>
+            <p class="cc-mut">{{ tr('التقدير مبني على السعر الشهري المعلن لكل باقة وإضافاتها.', 'This estimate uses each plan’s monthly list price and add-ons.') }}</p>
+            <div class="cc-scroll" tabindex="0" role="region" aria-labelledby="plansHeading"><table class="cc-t">
+                <thead><tr><th scope="col">{{ tr('الباقة', 'Plan') }}</th><th scope="col">{{ tr('العدد', 'Count') }}</th><th scope="col">MRR</th></tr></thead>
                 <tbody id="tPlans"></tbody>
             </table></div>
         </section>
 
         <section class="cc-card">
-            <h2 class="cc-h2">تجديدات مستحقة (7 أيام)</h2>
-            <div class="cc-scroll"><table class="cc-t">
-                <thead><tr><th>العميل</th><th>الباقة</th><th>ينتهي</th><th>الفاتورة</th></tr></thead>
+            <h2 class="cc-h2" id="renewalsHeading">{{ tr('التجديدات المستحقة', 'Renewals due') }}</h2>
+            <div class="cc-scroll" tabindex="0" role="region" aria-labelledby="renewalsHeading"><table class="cc-t">
+                <thead><tr><th scope="col">{{ tr('العميل', 'Customer') }}</th><th scope="col">{{ tr('الباقة', 'Plan') }}</th><th scope="col">{{ tr('ينتهي', 'Expires') }}</th><th scope="col">{{ tr('الفاتورة', 'Invoice') }}</th></tr></thead>
                 <tbody id="tRenew"></tbody>
             </table></div>
         </section>
 
         <section class="cc-card" id="fCard" hidden>
-            <h2 class="cc-h2">مقاعد العملاء المؤسسين</h2>
+            <h2 class="cc-h2">{{ tr('مقاعد العملاء المؤسسين', 'Founding customer seats') }}</h2>
             <div class="cc-bar"><span id="fBar"></span></div>
             <p class="cc-mut" id="fText"></p>
             <ul class="cc-list" id="fList"></ul>
         </section>
 
         <section class="cc-card">
-            <h2 class="cc-h2">مسار العملاء المحتملين</h2>
+            <h2 class="cc-h2">{{ tr('مسار العملاء المحتملين', 'Sales pipeline') }}</h2>
             <div class="cc-funnel" id="leads"></div>
+            <p class="cc-mut" id="leadTotals"></p>
+            <h3 class="cc-h2">{{ tr('مصادر الفرص المسجّلة', 'Recorded lead sources') }}</h3>
+            <ul class="cc-list" id="leadSources"></ul>
+            <h3 class="cc-h2 cc-campaign-title">{{ tr('مصادر الحملات بموافقة الزائر', 'Campaign sources with visitor consent') }}</h3>
+            <ul class="cc-list" id="campaignSources"></ul>
         </section>
 
         <section class="cc-card cc-wide">
-            <h2 class="cc-h2">الاستهلاك لكل عميل</h2>
-            <p class="cc-mut">تنبيه عند 80٪ وتجاوز عند 100٪ من حدود الباقة.</p>
-            <div class="cc-scroll"><table class="cc-t">
-                <thead><tr><th>العميل</th><th>الباقة</th><th>المحادثات</th><th>دقائق الصوت</th><th>رسوم Meta</th><th>الحالة</th></tr></thead>
+            <h2 class="cc-h2" id="usageHeading">{{ tr('الاستهلاك لكل عميل', 'Usage by customer') }}</h2>
+            <p class="cc-mut">{{ tr('تنبيه عند 80٪ وتجاوز عند 100٪ من حدود الباقة.', 'Warning at 80% and over the limit at 100% of plan usage.') }}</p>
+            <div class="cc-scroll" tabindex="0" role="region" aria-labelledby="usageHeading"><table class="cc-t">
+                <thead><tr><th scope="col">{{ tr('العميل', 'Customer') }}</th><th scope="col">{{ tr('الباقة', 'Plan') }}</th><th scope="col">{{ tr('المحادثات', 'Conversations') }}</th><th scope="col">{{ tr('دقائق الصوت', 'Voice minutes') }}</th><th scope="col">{{ tr('رسوم Meta', 'Meta fees') }}</th><th scope="col">{{ tr('الحالة', 'Status') }}</th></tr></thead>
                 <tbody id="tUsage"></tbody>
             </table></div>
         </section>
 
         <section class="cc-card">
-            <h2 class="cc-h2">طابور مراجعة الوكلاء</h2>
+            <h2 class="cc-h2">{{ tr('طابور مراجعة الوكلاء', 'Agent review queue') }}</h2>
             <ul class="cc-list" id="review"></ul>
         </section>
 
         <section class="cc-card cc-wide" id="ticketsCard">
-            <h2 class="cc-h2">تذاكر الدعم من مساعد الموقع</h2>
-            <div class="cc-scroll"><table class="cc-t">
-                <thead><tr><th>المرجع</th><th>الاسم</th><th>البريد</th><th>السؤال</th><th>الحالة</th><th>التاريخ</th></tr></thead>
-                <tbody id="tTickets"><tr><td colspan="6" class="cc-empty">جارٍ التحميل…</td></tr></tbody>
+            <h2 class="cc-h2" id="ticketsHeading">{{ tr('تذاكر الدعم من مساعد الموقع', 'Website assistant support tickets') }}</h2>
+            <div class="cc-scroll" tabindex="0" role="region" aria-labelledby="ticketsHeading"><table class="cc-t">
+                <thead><tr><th scope="col">{{ tr('المرجع', 'Reference') }}</th><th scope="col">{{ tr('الاسم', 'Name') }}</th><th scope="col">{{ tr('البريد', 'Email') }}</th><th scope="col">{{ tr('السؤال', 'Question') }}</th><th scope="col">{{ tr('الحالة', 'Status') }}</th><th scope="col">{{ tr('التاريخ', 'Date') }}</th></tr></thead>
+                <tbody id="tTickets"><tr><td colspan="6" class="cc-empty">{{ tr('جارٍ التحميل…', 'Loading…') }}</td></tr></tbody>
             </table></div>
         </section>
         <section class="cc-card">
-            <h2 class="cc-h2">صحة الموقع وآخر الأخطاء</h2>
+            <h2 class="cc-h2">{{ tr('حالة التشغيل وآخر الأخطاء', 'System health and recent errors') }}</h2>
             <p id="healthLine"></p>
+            <p class="cc-mut">{{ tr('حالة الدفع وفق الإعدادات المتاحة. الأخطاء محسوبة من سجل سير العمل.', 'Payment status reflects the available configuration. Error counts come from workflow records.') }}</p>
             <ul class="cc-list" id="errors"></ul>
         </section>
     </div>
@@ -105,13 +114,14 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
 .cc-hero{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end}
 .cc-h1{font-size:24px;font-weight:800;margin:0}
 .cc-h2{font-size:15px;font-weight:700;margin:0 0 10px}
+.cc-campaign-title{margin-top:12px}
 .cc-mut{color:var(--mut);font-size:13px;margin:2px 0 8px}
 .cc-actions{display:flex;flex-wrap:wrap;gap:8px}
 .cc-qa,.cc-btn{display:inline-flex;align-items:center;padding:7px 13px;border-radius:9px;font-size:13px;font-weight:600;
     border:1px solid var(--line);background:var(--soft);color:var(--txt);cursor:pointer;text-decoration:none;white-space:nowrap}
 .cc-qa:hover{border-color:var(--acc)}
 .cc-btn{background:var(--acc);border-color:var(--acc);color:#fff;padding:5px 11px;font-size:12.5px}
-.cc-btn:disabled{opacity:.5;cursor:default}
+.cc-btn:disabled,.cc-qa:disabled{opacity:.5;cursor:default}
 .cc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .cc-kpi{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px}
 .cc-kpi.warn .cc-v{color:var(--warn)} .cc-kpi.bad .cc-v{color:var(--bad)} .cc-kpi.ok .cc-v{color:var(--ok)}
@@ -142,122 +152,260 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
 <script>
 (function () {
     const $ = id => document.getElementById(id);
+    const ar = document.documentElement.lang === 'ar';
+    const locale = ar ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-GB';
+    const tr = (arabic, english) => ar ? arabic : english;
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const sar = v => Number(v || 0).toLocaleString('en-US', {maximumFractionDigits: 0}) + ' ر.س';
-    const day = iso => iso ? new Date(iso).toLocaleDateString('ar-SA-u-nu-latn', {timeZone: 'Asia/Riyadh', day: 'numeric', month: 'short'}) : '—';
-    const tag = (cls, t) => '<span class="cc-tag ' + cls + '">' + esc(t) + '</span>';
-    const empty = (n, t) => '<tr><td colspan="' + n + '" class="cc-empty">' + esc(t) + '</td></tr>';
-    const STAGES = {new: 'جديد', qualified: 'مؤهَّل', offer_sent: 'عرض مُرسل', payment_link_sent: 'رابط دفع مُرسل', paid: 'مدفوع', lost: 'خسارة'};
-    const PAY = {pending: 'بانتظار الدفع', initiated: 'بدأ', authorized: 'معلّق'};
-    const L = {pending:'قيد الانتظار', paid:'مدفوع', failed:'فشل', review:'مراجعة', authorized:'مُفوَّض', open:'مفتوح', closed:'مغلق', running:'قيد التشغيل', done:'مكتمل', converted:'تحوّل', contacted:'تم التواصل',
-        bidaya:'البداية', numuw:'النمو', sharikat:'الشركات', radd:'البداية', bay:'النمو', tashgheel:'الشركات', starter:'البداية', growth:'النمو', enterprise:'الشركات',
-        moyasar:'بطاقة (سابق)', paypal:'PayPal', invoice:'فاتورة'};
-    const lbl = k => esc(L[k] || k);
+    const num = new Intl.NumberFormat(locale);
+    const currency = new Intl.NumberFormat(locale, {style: 'currency', currency: 'SAR', minimumFractionDigits: 0});
+    const sar = value => currency.format(value);
+    const riyadh = {timeZone: 'Asia/Riyadh'};
+    const day = iso => iso ? new Date(iso).toLocaleDateString(locale, {...riyadh, day: 'numeric', month: 'short'}) : '—';
+    const tag = (cls, text) => '<span class="cc-tag ' + cls + '">' + esc(text) + '</span>';
+    const empty = (n, text) => '<tr><td colspan="' + n + '" class="cc-empty">' + esc(text) + '</td></tr>';
+    const emptyList = text => '<li class="cc-mut">' + esc(text) + '</li>';
+    const L = {
+        new: tr('جديد', 'New'),
+        qualified: tr('مؤهَّل', 'Qualified'),
+        offer_sent: tr('عرض مُرسل', 'Offer sent'),
+        payment_link_sent: tr('رابط دفع مُرسل', 'Payment link sent'),
+        paid: tr('مدفوع', 'Paid'),
+        lost: tr('خسارة', 'Lost'),
+        pending: tr('قيد الانتظار', 'Pending'),
+        initiated: tr('بدأ', 'Initiated'),
+        failed: tr('فشل', 'Failed'),
+        review: tr('مراجعة', 'In review'),
+        authorized: tr('مُفوَّض', 'Authorized'),
+        open: tr('مفتوح', 'Open'),
+        closed: tr('مغلق', 'Closed'),
+        running: tr('قيد التشغيل', 'Running'),
+        done: tr('مكتمل', 'Done'),
+        converted: tr('تحوّل', 'Converted'),
+        contacted: tr('تم التواصل', 'Contacted'),
+        moyasar: tr('ميسّر', 'Moyasar'),
+        paypal: 'PayPal',
+        invoice: tr('فاتورة', 'Invoice'),
+        website: tr('الموقع', 'Website'),
+        meta_ads: tr('إعلانات Meta بحسب بيانات الزائر', 'Meta ads as reported by visitors'),
+        meta: tr('إحالات Meta', 'Meta referrals'),
+        campaign: tr('حملات أخرى', 'Other campaigns'),
+        excel_import: tr('استيراد من Excel', 'Excel import'),
+    };
+    let planLabels = {};
+    const label = key => {
+        if (Object.hasOwn(planLabels, key)) return planLabels[key][ar ? 'ar' : 'en'];
+        return Object.hasOwn(L, key) ? L[key] : key;
+    };
+    const lbl = key => esc(label(key));
+    const countedList = entries => Object.entries(entries).map(([key, count]) =>
+        '<li><span>' + lbl(key) + '</span><b>' + num.format(count) + '</b></li>').join('');
+    const loadingFailed = tr('تعذّر تحميل المؤشرات. أعد المحاولة بالتحديث.', 'Could not load the overview. Refresh to try again.');
 
-    function usageCell(m, money) {
-        if (!m) return '—';
-        const used = money ? sar(m.used / 100) : m.used;
-        const lim = m.limit ? (money ? sar(m.limit / 100) : m.limit) : '∞';
-        const cls = m.pct >= 100 ? 'bad' : m.pct >= 80 ? 'warn' : 'mut';
-        return used + ' / ' + lim + ' ' + tag(cls, Math.round(m.pct) + '٪');
+    function usageCell(metric, money) {
+        if (!metric) return '—';
+        const format = value => money ? sar(value / 100) : num.format(value);
+        const limit = metric.limit ? format(metric.limit) : '∞';
+        const cls = metric.pct >= 100 ? 'bad' : metric.pct >= 80 ? 'warn' : 'mut';
+        return format(metric.used) + ' / ' + limit + ' ' + tag(cls, num.format(Math.round(metric.pct)) + tr('٪', '%'));
+    }
+
+    function renderOrders(orders) {
+        const shown = orders.awaiting_transfer_confirmation.length + orders.pending_gateway.length;
+        const note = tr(
+            num.format(orders.unpaid_count) + ' طلب غير مدفوع بإجمالي ' + sar(orders.unpaid_sar) + ' قبل الضريبة.',
+            num.format(orders.unpaid_count) + (orders.unpaid_count === 1 ? ' unpaid order' : ' unpaid orders')
+                + ' totaling ' + sar(orders.unpaid_sar) + ' before tax.'
+        );
+        $('ordersNote').textContent = note + (shown < orders.unpaid_count ? tr(
+            ' المعروض ' + num.format(shown) + ' طلبًا من الأحدث.',
+            ' Showing ' + num.format(shown) + ' of the most recent orders.'
+        ) : '');
+        const transfers = orders.awaiting_transfer_confirmation.map(p =>
+            '<tr><td>' + esc(p.customer) + (p.is_renewal ? ' ' + tag('mut', tr('تجديد', 'Renewal')) : '')
+            + '</td><td>' + lbl(p.plan || '—') + '</td><td>' + sar(p.amount_sar)
+            + '</td><td>' + tag('warn', tr('تحويل بنكي', 'Bank transfer')) + '</td><td>' + day(p.created_at)
+            + '</td><td><button type="button" class="cc-btn" data-confirm="' + esc(p.payment_id) + '">'
+            + tr('تأكيد الاستلام', 'Confirm receipt') + '</button> <a class="cc-mut" href="'
+            + esc(p.invoice_url) + '">' + tr('الفاتورة', 'Invoice') + '</a></td></tr>');
+        const gateways = orders.pending_gateway.map(p =>
+            '<tr><td>' + esc(p.customer) + '</td><td>' + lbl(p.plan || '—') + '</td><td>' + sar(p.amount_sar)
+            + '</td><td>' + tag('mut', label(p.status) + ' · ' + label(p.gateway))
+            + '</td><td>' + day(p.created_at) + '</td><td></td></tr>');
+        $('tOrders').innerHTML = transfers.concat(gateways).join('') || empty(6, tr('لا توجد طلبات معلّقة', 'No pending orders'));
     }
 
     function render(d) {
-        $('ccStamp').textContent = '· آخر تحديث ' + new Date(d.generated_at).toLocaleTimeString('ar-SA-u-nu-latn', {timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit'});
+        planLabels = d.plan_labels;
+        $('ccStamp').textContent = tr('آخر تحديث ', 'Updated ') + new Date(d.generated_at).toLocaleTimeString(locale, {...riyadh, hour: '2-digit', minute: '2-digit'});
         $('kMrr').textContent = sar(d.subscriptions.mrr_sar);
         $('kRev').textContent = sar(d.revenue.revenue_sar);
-        $('kSubs').textContent = d.subscriptions.active;
-        $('kRenew').textContent = d.renewals_due.count;
-        $('kTransfers').textContent = d.orders.awaiting_transfer_confirmation.length;
-        $('kReview').textContent = d.review_queue.pending_total;
+        $('kSubs').textContent = num.format(d.subscriptions.active);
+        $('kRenew').textContent = num.format(d.renewals_due.count);
+        $('kTransfers').textContent = num.format(d.orders.awaiting_transfer_count);
+        $('kReview').textContent = num.format(d.review_queue.pending_total);
         const h = d.health.status;
-        $('kHealth').textContent = {ok: 'سليم', degraded: 'أخطاء', down: 'متوقف'}[h] || h;
+        $('kHealth').textContent = {ok: tr('سليم', 'Operational'), degraded: tr('متأثر', 'Degraded'), down: tr('متوقف', 'Down')}[h] || '—';
         $('kHealthBox').className = 'cc-kpi ' + (h === 'ok' ? 'ok' : h === 'down' ? 'bad' : 'warn');
+        renderOrders(d.orders);
 
-        const o = d.orders;
-        $('ordersNote').textContent = o.unpaid_count + ' طلب غير مدفوع بإجمالي ' + sar(o.unpaid_sar) + ' (قبل الضريبة).';
-        const rows = o.awaiting_transfer_confirmation.map(p => '<tr><td>' + esc(p.customer) + (p.is_renewal ? ' ' + tag('mut', 'تجديد') : '') + '</td><td>' + esc(p.plan || '-') + '</td><td>' + sar(p.amount_sar)
-            + '</td><td>' + tag('warn', 'تحويل بنكي') + '</td><td>' + day(p.created_at) + '</td><td><button type="button" class="cc-btn" data-confirm="' + esc(p.payment_id) + '">تأكيد الاستلام</button> <a class="cc-mut" href="' + esc(p.invoice_url) + '">الفاتورة</a></td></tr>')
-            .concat(o.pending_gateway.map(p => '<tr><td>' + esc(p.customer) + '</td><td>' + lbl(p.plan || '-') + '</td><td>' + sar(p.amount_sar) + '</td><td>' + tag('mut', (PAY[p.status] || L[p.status] || p.status) + ' · ' + (L[p.gateway] || p.gateway)) + '</td><td>' + day(p.created_at) + '</td><td></td></tr>'));
-        $('tOrders').innerHTML = rows.join('') || empty(6, 'لا توجد طلبات معلّقة');
+        $('tPlans').innerHTML = d.subscriptions.by_plan.map(p =>
+            '<tr><td>' + lbl(p.plan) + '</td><td>' + num.format(p.count)
+            + '</td><td>' + sar(p.mrr_sar) + '</td></tr>').join('') || empty(3, tr('لا اشتراكات نشطة', 'No active subscriptions'));
+        $('tRenew').innerHTML = d.renewals_due.items.map(r =>
+            '<tr><td>' + esc(r.client_name) + '</td><td>' + lbl(r.plan) + '</td><td>' + day(r.period_end)
+            + ' ' + (r.overdue ? tag('bad', tr('متأخر', 'Overdue')) : tag('warn', num.format(r.days_left) + tr(' يوم', ' days')))
+            + '</td><td>' + (r.renewal_invoice_raised ? tag('ok', tr('صدرت', 'Issued')) : tag('mut', tr('لم تصدر', 'Not issued')))
+            + '</td></tr>').join('') || empty(4, tr('لا تجديدات مستحقة', 'No renewals due'));
 
-        $('tPlans').innerHTML = d.subscriptions.by_plan.map(b => '<tr><td>' + esc(b.name) + '</td><td>' + b.count + '</td><td>' + sar(b.mrr_sar) + '</td></tr>').join('') || empty(3, 'لا اشتراكات نشطة');
-        $('tRenew').innerHTML = d.renewals_due.items.map(r => '<tr><td>' + esc(r.client_name) + '</td><td>' + lbl(r.plan) + '</td><td>' + day(r.period_end) + ' ' + (r.overdue ? tag('bad', 'متأخر') : tag('warn', r.days_left + ' يوم'))
-            + '</td><td>' + (r.renewal_invoice_raised ? tag('ok', 'صدرت') : tag('mut', 'لم تصدر')) + '</td></tr>').join('') || empty(4, 'لا تجديدات خلال 7 أيام');
-
-        const f = d.founding;
-        $('fCard').hidden = !(f && f.enabled);
-        if (f && f.enabled) {
-        $('fBar').style.width = (f.seats_total ? Math.round(f.seats_used * 100 / f.seats_total) : 0) + '%';
-        $('fText').textContent = 'مستخدم ' + f.seats_used + ' من ' + f.seats_total + ' — متبقٍ ' + f.seats_remaining;
-        $('fList').innerHTML = f.customers.map(c => '<li><span>' + esc(c.client_name) + ' <span class="cc-mut">' + lbl(c.package) + '</span></span>'
-            + (c.revoked_at ? tag('mut', 'أُلغي') : '<button type="button" class="cc-qa" data-revoke="' + esc(c.project_id) + '">إلغاء سعر المؤسس</button>') + '</li>').join('') || '<li class="cc-mut">لا يوجد مؤسسون بعد</li>';
+        const founding = d.founding;
+        $('fCard').hidden = !founding?.enabled;
+        if (founding?.enabled) {
+            $('fBar').style.width = (founding.seats_total ? Math.round(founding.seats_used * 100 / founding.seats_total) : 0) + '%';
+            $('fText').textContent = tr(
+                'المستخدم ' + num.format(founding.seats_used) + ' من ' + num.format(founding.seats_total) + '، والمتبقي ' + num.format(founding.seats_remaining),
+                num.format(founding.seats_used) + ' of ' + num.format(founding.seats_total) + ' used, ' + num.format(founding.seats_remaining) + ' remaining'
+            );
+            $('fList').innerHTML = founding.customers.map(c =>
+                '<li><span>' + esc(c.client_name) + ' <span class="cc-mut">' + lbl(c.package) + '</span></span>'
+                + (c.revoked_at ? tag('mut', tr('أُلغي', 'Revoked')) : '<button type="button" class="cc-qa" data-revoke="'
+                    + esc(c.project_id) + '">' + tr('إلغاء سعر المؤسس', 'Revoke founding price') + '</button>')
+                + '</li>').join('') || emptyList(tr('لا توجد مقاعد مؤسسين مسجّلة', 'No founding customer seats recorded'));
         }
 
-        const p = d.leads.pipeline, max = Math.max(1, ...Object.values(p));
-        $('leads').innerHTML = Object.keys(p).map(k => '<div><b>' + p[k] + '</b><i style="width:' + Math.round(p[k] * 70 / max) + '%"></i><span class="cc-mut">' + esc(STAGES[k] || k) + '</span></div>').join('')
-            + '<p class="cc-mut">إجمالي العملاء المحتملين: ' + d.leads.total_leads + '</p>';
+        const pipeline = d.leads.pipeline;
+        const max = Math.max(1, ...Object.values(pipeline));
+        $('leads').innerHTML = Object.entries(pipeline).map(([stage, count]) =>
+            '<div><b>' + num.format(count) + '</b><i style="width:' + Math.round(count * 70 / max)
+            + '%"></i><span class="cc-mut">' + lbl(stage) + '</span></div>').join('');
+        $('leadTotals').textContent = tr(
+            'الفرص المسجّلة ' + num.format(d.leads.total_leads) + '، والمرتبطة بدفعة مؤكدة ' + num.format(d.leads.paid_leads),
+            num.format(d.leads.total_leads) + (d.leads.total_leads === 1 ? ' recorded lead, ' : ' recorded leads, ')
+                + num.format(d.leads.paid_leads) + ' linked to a confirmed payment'
+        );
+        $('leadSources').innerHTML = countedList(d.leads.by_source)
+            || emptyList(tr('لا توجد مصادر مسجّلة', 'No recorded sources'));
+        $('campaignSources').innerHTML = countedList(d.leads.campaign_sources)
+            || emptyList(tr('لا توجد حملات مسجّلة بموافقة الزائر', 'No campaigns recorded with visitor consent'));
 
-        $('tUsage').innerHTML = d.usage.customers.map(c => '<tr><td>' + esc(c.client_name) + '</td><td>' + lbl(c.plan) + '</td><td>' + usageCell(c.metrics.conversations) + '</td><td>' + usageCell(c.metrics.voice_minutes)
-            + '</td><td>' + usageCell(c.metrics.meta_fees, true) + '</td><td>' + (c.flag === 'over' ? tag('bad', 'تجاوز 100٪') : c.flag === 'warn' ? tag('warn', 'تجاوز 80٪') : tag('ok', 'ضمن الحد')) + '</td></tr>').join('') || empty(6, 'لا يوجد استهلاك بعد');
+        $('tUsage').innerHTML = d.usage.customers.map(c =>
+            '<tr><td>' + esc(c.client_name) + '</td><td>' + lbl(c.plan) + '</td><td>' + usageCell(c.metrics.conversations)
+            + '</td><td>' + usageCell(c.metrics.voice_minutes) + '</td><td>' + usageCell(c.metrics.meta_fees, true)
+            + '</td><td>' + (c.flag === 'over' ? tag('bad', tr('تجاوز الحد', 'Over limit'))
+                : c.flag === 'warn' ? tag('warn', tr('تنبيه', 'Warning')) : tag('ok', tr('ضمن الحد', 'Within limit')))
+            + '</td></tr>').join('') || empty(6, d.usage.error
+                ? tr('بيانات الاستهلاك غير متاحة', 'Usage data unavailable') : tr('لا يوجد استهلاك مسجّل', 'No recorded usage'));
 
-        const rq = d.review_queue.by_project;
-        $('review').innerHTML = Object.keys(rq).map(k => '<li><span>' + (k === 'karma' ? 'صندوق مبيعات النرجس' : esc(k)) + '</span><b>' + rq[k] + '</b></li>').join('') || '<li class="cc-mut">لا شيء بانتظار المراجعة</li>';
+        $('review').innerHTML = Object.entries(d.review_queue.by_project).map(([project, count]) =>
+            '<li><span>' + (project === 'karma' ? tr('صندوق مبيعات النرجس', 'Al-Narjis sales inbox') : esc(project))
+            + '</span><b>' + num.format(count) + '</b></li>').join('') || emptyList(tr('لا شيء بانتظار المراجعة', 'Nothing awaiting review'));
 
-        const hl = d.health;
-        $('healthLine').innerHTML = 'قاعدة البيانات: ' + (hl.database ? tag('ok', 'متصلة') : tag('bad', 'متوقفة')) + ' · أخطاء آخر 24 ساعة: <b>' + hl.errors_24h + '</b> · PayPal: '
-            + (hl.payment_methods.paypal ? tag('ok', 'مفعّل') : tag('mut', 'غير مفعّل'))
-            + ' · التحويل البنكي: ' + (hl.payment_methods.invoice ? tag('ok', 'مفعّل') : tag('mut', 'غير مفعّل'));
-        $('errors').innerHTML = hl.recent_errors.map(e => '<li><span>' + esc(e.message || 'فشل غير موصوف') + '</span><span class="cc-mut">' + day(e.at) + '</span></li>').join('') || '<li class="cc-mut">لا أخطاء حديثة</li>';
+        const health = d.health;
+        const payment = key => {
+            const available = health.payment_methods[key];
+            if (available === undefined) return tag('mut', tr('غير متاح للتحقق', 'Status unavailable'));
+            return available ? tag('ok', tr('مفعّل', 'Enabled')) : tag('mut', tr('غير مفعّل', 'Disabled'));
+        };
+        $('healthLine').innerHTML = tr('قاعدة البيانات ', 'Database ')
+            + (health.database ? tag('ok', tr('متصلة', 'Connected')) : tag('bad', tr('متوقفة', 'Offline')))
+            + tr(' · أخطاء سير العمل خلال 24 ساعة ', ' · Workflow errors in the last 24 hours ')
+            + '<b>' + (health.errors_24h == null ? '—' : num.format(health.errors_24h)) + '</b>'
+            + ' · ' + lbl('moyasar') + ' ' + payment('moyasar') + ' · PayPal ' + payment('paypal')
+            + tr(' · التحويل البنكي للزوّار ', ' · Guest bank transfer ') + payment('invoice');
+        $('errors').innerHTML = health.recent_errors.map(e =>
+            '<li><span>' + esc(e.message || tr('فشل غير موصوف', 'Failure without details'))
+            + '</span><span class="cc-mut">' + day(e.at) + '</span></li>').join('')
+            || emptyList(health.errors_24h == null
+                ? tr('سجل الأخطاء غير متاح', 'Error records unavailable') : tr('لا توجد أخطاء مسجّلة', 'No recorded errors'));
     }
 
     const MAILTO = 'mail' + 'to:';
     async function loadTickets() {
         try {
-            const r = await fetch('/api/owner/tickets', {credentials: 'same-origin'});
-            if (!r.ok) throw new Error(r.status);
-            const d = await r.json();
-            $('tTickets').innerHTML = d.tickets.map(t => '<tr><td dir="ltr"><b>' + esc(t.reference) + '</b></td><td>' + esc(t.name) + '</td><td dir="ltr"><a href="' + MAILTO + encodeURIComponent(t.email) + '?subject=' + encodeURIComponent('[' + t.reference + ']') + '">' + esc(t.email) + '</a></td><td>' + esc(String(t.question).slice(0, 300)) + '</td><td>' + lbl(t.status) + '</td><td>' + day(t.created_at) + '</td></tr>').join('') || empty(6, 'لا تذاكر بعد');
-        } catch (e) { $('tTickets').innerHTML = empty(6, 'تعذّر تحميل التذاكر'); }
+            const response = await fetch('/api/owner/tickets', {credentials: 'same-origin', cache: 'no-store'});
+            if (!response.ok) throw new Error(response.status);
+            const data = await response.json();
+            $('tTickets').innerHTML = data.tickets.map(t =>
+                '<tr><td dir="ltr"><b>' + esc(t.reference) + '</b></td><td>' + esc(t.name)
+                + '</td><td dir="ltr"><a href="' + MAILTO + encodeURIComponent(t.email) + '?subject='
+                + encodeURIComponent('[' + t.reference + ']') + '">' + esc(t.email) + '</a></td><td>'
+                + esc(String(t.question).slice(0, 300)) + '</td><td>' + lbl(t.status) + '</td><td>' + day(t.created_at)
+                + '</td></tr>').join('') || empty(6, tr('لا تذاكر بعد', 'No support tickets yet'));
+        } catch {
+            $('tTickets').innerHTML = empty(6, tr('تعذّر تحميل التذاكر', 'Could not load support tickets'));
+        }
     }
-    loadTickets();
 
-    async function load() {
+    let hasSnapshot = false;
+    async function loadSummary() {
         try {
-            const r = await fetch('/api/owner/summary', {credentials: 'same-origin'});
-            if (r.status === 401 || r.status === 403) { location.href = '/login'; return; }
-            render(await r.json());
-        } catch (e) {
-            $('tOrders').innerHTML = empty(6, 'تعذّر التحميل');
+            const response = await fetch('/api/owner/summary', {credentials: 'same-origin', cache: 'no-store'});
+            if (response.status === 401 || response.status === 403) {
+                location.href = '/login';
+                return;
+            }
+            if (!response.ok) throw new Error(response.status);
+            render(await response.json());
+            hasSnapshot = true;
+        } catch {
+            $('ccStamp').textContent = loadingFailed;
+            if (!hasSnapshot) $('tOrders').innerHTML = empty(6, loadingFailed);
         }
     }
 
-    document.addEventListener('click', async function (e) {
-        const t = e.target;
-        if (!t || !t.getAttribute) return;
-        const pid = t.getAttribute('data-confirm');
-        const rid = t.getAttribute('data-revoke');
-        if (pid) {
-            if (!confirm('تأكيد استلام التحويل البنكي وتفعيل الاشتراك؟')) return;
-            t.disabled = true;
-            const r = await fetch('/api/payments/' + encodeURIComponent(pid) + '/confirm-received', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({confirmed_by: 'owner'})});
-            if (!r.ok) { alert('تعذّر التأكيد (' + r.status + ')'); t.disabled = false; return; }
-            load();
-        } else if (rid) {
-            if (!confirm('إلغاء سعر العميل المؤسس؟ يتحرر المقعد ولا يُطبّق الخصم على التجديدات القادمة.')) return;
-            t.disabled = true;
-            await fetch('/api/owner/founding/' + encodeURIComponent(rid) + '/revoke', {method: 'POST'});
-            load();
+    let refreshRequest;
+    function refresh() {
+        if (refreshRequest) return refreshRequest;
+        const button = $('ccRefresh');
+        button.disabled = true;
+        $('ccStamp').textContent = tr('جارٍ تحديث المؤشرات…', 'Refreshing the overview…');
+        refreshRequest = Promise.all([loadSummary(), loadTickets()]).finally(() => {
+            button.disabled = false;
+            refreshRequest = null;
+        });
+        return refreshRequest;
+    }
+
+    async function runAction(button, url, confirmation, failure, body, success) {
+        if (!confirm(confirmation)) return;
+        button.disabled = true;
+        try {
+            const options = {method: 'POST', credentials: 'same-origin'};
+            if (body) {
+                options.headers = {'Content-Type': 'application/json'};
+                options.body = JSON.stringify(body);
+            }
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(response.status);
+            if (success) alert(success);
+            await refreshRequest;
+            await refresh();
+        } catch {
+            alert(failure);
+        } finally {
+            button.disabled = false;
         }
+    }
+
+    $('cc').addEventListener('click', function (event) {
+        const button = event.target.closest('button[data-confirm], button[data-revoke]');
+        if (!button) return;
+        if (button.dataset.confirm) {
+            runAction(button, '/api/payments/' + encodeURIComponent(button.dataset.confirm) + '/confirm-received',
+                tr('تأكيد استلام التحويل البنكي وتفعيل الاشتراك؟', 'Confirm receipt of the bank transfer and activate the subscription?'),
+                tr('تعذّر تأكيد الاستلام', 'Could not confirm receipt'), {confirmed_by: 'owner'});
+            return;
+        }
+        runAction(button, '/api/owner/founding/' + encodeURIComponent(button.dataset.revoke) + '/revoke',
+            tr('إلغاء سعر العميل المؤسس وتحرير المقعد؟', 'Revoke the founding customer price and release the seat?'),
+            tr('تعذّر إلغاء سعر المؤسس', 'Could not revoke the founding price'));
     });
-    $('ccRefresh').addEventListener('click', load);
-    $('ccRenewals').addEventListener('click', async function () {
-        if (!confirm('تشغيل دورة التجديد الآن؟ تصدر فواتير التجديد ومسودات التذكير (لا يُرسل شيء تلقائياً).')) return;
-        const r = await fetch('/api/owner/billing/renewals/run', {method: 'POST'});
-        alert(r.ok ? 'تمّت دورة التجديد' : 'تعذّر التشغيل (' + r.status + ')');
-        load();
+    $('ccRefresh').addEventListener('click', refresh);
+    $('ccRenewals').addEventListener('click', function () {
+        runAction(this, '/api/owner/billing/renewals/run',
+            tr('تشغيل دورة التجديد الآن لإصدار الفواتير ومسودات التذكير؟', 'Run billing renewals now to create invoices and reminder drafts?'),
+            tr('تعذّر تشغيل دورة التجديد', 'Could not run billing renewals'), null, tr('تمّت دورة التجديد', 'Billing renewals completed'));
     });
-    load();
+    refresh();
 })();
 </script>
 {% endblock %}

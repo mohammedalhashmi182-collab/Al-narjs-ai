@@ -2907,6 +2907,11 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
     last_user = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
     locale = reply_locale(last_user, page_locale)
+    try:
+        from src.services.funnel_callback import note_consult_turn
+        await note_consult_turn(app.state.session_factory, history)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("consult callback skipped (%s)", type(exc).__name__)
 
     from src.services import catalog as _catalog
 
@@ -2958,12 +2963,8 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
         lead_data, reply = extract_lead(response.content)
         if lead_data:
-            import asyncio
-
             from src.services import karma_lead as _karma_lead
-            asyncio.get_running_loop().create_task(
-                _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
-            )
+            await _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
         content = sanitize_public_text(reply or response.content.strip())
         content = enforce_reply_policy(
             content, locale=locale,
@@ -3281,6 +3282,7 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     """
     body = await request.json()
     from src.models import AcquisitionLead, LeadEvent
+    from src.services.lead_attribution import lead_attribution
     from src.services.lead_normalize import (
         is_reachable_mobile,
         is_valid_phone,
@@ -3304,37 +3306,34 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
 
     segment, _reason = classify(name)
     priority = score_lead(company_name=name, phone=phone, email=email, segment=segment)
+    attribution = lead_attribution(body)
+
+    from src.services.funnel_callback import open_website_case
 
     async with app.state.session_factory() as session:
-        lead = AcquisitionLead(
-            company_name=name or "عميل محتمل",
-            contact_name=name or None,
-            phone=phone,
-            phone_raw=(body.get("phone") or None),
+        opened = await open_website_case(
+            session,
+            name=name or None,
             email=email,
-            source="website",
+            phone=raw_phone,
+            message=message,
+            package=package,
             segment=segment,
-            suggested_package=package or suggest_package(segment),
-            lead_status="NEW",
+            segment_reason=_reason,
             priority=priority.priority,
             priority_score=priority.score,
             priority_reason=priority.reasons,
-            notes=message,
+            consent_marketing=body.get("consent") is True,
+            attribution=attribution,
         )
-        session.add(lead)
-        await session.flush()
-        session.add(LeadEvent(
-            lead_id=lead.id,
-            event_type="captured",
-            status_after="NEW",
-            channel="website",
-            message=message,
-        ))
+        lead = opened["lead"]
+        if lead is None:
+            raise HTTPException(400, "أدخل الاسم أو الجوال أو البريد")
         await session.commit()
-        await session.refresh(lead)
         lead_id = lead.id
         lead_email = lead.email
         lead_name = lead.contact_name or lead.company_name
+        created = bool(opened["created"])
 
     _name = body.get("name") or "عميل جديد"
     _phone = body.get("phone") or "—"
@@ -3351,11 +3350,69 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     # The visitor is answered the moment the record is committed. Welcome email,
     # follow-up scheduling and the owner alert run after the response so a slow
     # SMTP or Telegram call can never stall the public form.
-    background_tasks.add_task(
-        _lead_side_effects, lead_id, lead_email, lead_name, alert_text
-    )
+    if created:
+        background_tasks.add_task(
+            _lead_side_effects, lead_id, lead_email, lead_name, alert_text
+        )
 
-    return {"success": True, "lead_id": str(lead_id), "email_queued": bool(lead_email)}
+    return {
+        "success": True,
+        "lead_id": str(lead_id),
+        "email_queued": bool(lead_email) and created,
+        "deduped": not created,
+    }
+
+
+class ConsultCallbackRequest(BaseModel):
+    name: str = ""
+    email: str = ""
+    phone: str = ""
+    message: str = ""
+    consent: bool = False
+
+
+@app.post("/api/consult/callback", dependencies=[Depends(rate_limit_consult)])
+async def consult_callback(body: ConsultCallbackRequest):
+    """Owner follow-up for an identified consult visitor. Sends nothing."""
+    from src.services.funnel_callback import open_callback
+    from src.services.funnel_identity import canonical_email, canonical_phone, resolve_lead
+
+    if not (canonical_email(body.email) or canonical_phone(body.phone)):
+        raise HTTPException(422, "أدخل بريداً إلكترونياً أو جوالاً صحيحاً")
+
+    async with app.state.session_factory() as session:
+        resolved = await resolve_lead(
+            session, email=body.email, phone=body.phone,
+            name=body.name, source="consult_assistant",
+            message=(body.message or "").strip() or None,
+        )
+        lead = resolved["lead"]
+        if lead is None:
+            raise HTTPException(422, "أدخل بريداً أو جوالاً")
+        callback = await open_callback(
+            session, lead, source="consult_assistant",
+            consent_marketing=body.consent is True,
+        )
+        await session.commit()
+        lead_id = lead.id
+        created = bool(resolved["created"])
+    return {"success": True, "lead_id": str(lead_id), "created": created, "callback": callback}
+
+
+@app.get("/api/owner/funnel/daily", dependencies=[Depends(require_owner_api)])
+async def owner_funnel_daily(day: Optional[str] = None):
+    """Owner-only aggregate data, excluding names and message bodies."""
+    from datetime import datetime
+    from src.services.funnel_metrics import daily_kpis
+
+    parsed = None
+    if day:
+        try:
+            parsed = datetime.fromisoformat(day + "T00:00:00+00:00")
+        except ValueError:
+            raise HTTPException(422, "day must be YYYY-MM-DD")
+    async with app.state.session_factory() as session:
+        return await daily_kpis(session, day=parsed)
 
 
 @app.post("/api/leads/{lead_id}/demo-viewed")
@@ -3634,6 +3691,7 @@ class PaymentCreateRequest(BaseModel):
     voice_packs: int = 0             # +100 voice minutes / month, 99 SAR each
     # Mandatory: buyer ticked policies.REFUND_CONSENT_AR (setup-fee exception included).
     refund_consent: bool = False
+    lead_token: Optional[str] = None
 
 
 def _require_refund_consent(consent) -> None:
@@ -3776,7 +3834,11 @@ def _payment_replay_key(request: Request, body: "PaymentCreateRequest") -> Optio
     who = (body.customer_phone or body.customer_email or "").strip().lower()
     if not who:
         return None
-    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", body.billing_period.lower(), str(body.addons), str(body.conversation_packs), str(body.voice_packs)))
+    token_tag = ""
+    if (body.lead_token or "").strip():
+        import hashlib
+        token_tag = hashlib.sha256(body.lead_token.strip().encode()).hexdigest()[:12]
+    return "|".join(("cust", who, body.package, body.method.lower(), (body.promo or "").strip().upper(), body.project_id or "", body.lead_id or "", token_tag, body.billing_period.lower(), str(body.addons), str(body.conversation_packs), str(body.voice_packs)))
 
 
 @app.post("/api/payments")
@@ -3870,11 +3932,15 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         from uuid import UUID as _UUID
 
         lead_uuid = None
+        owner_lead = None
         if body.lead_id:
             try:
-                lead_uuid = _UUID(body.lead_id)
+                proposed_lead = _UUID(body.lead_id)
             except ValueError:
                 raise HTTPException(422, "lead_id must be a valid UUID")
+            if owner_invoice:
+                owner_lead = proposed_lead
+                lead_uuid = owner_lead
 
         project_uuid = None
         if body.project_id:
@@ -3908,6 +3974,16 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
         if body.refund_consent is True:
             payment.refund_consent_at = _dt.now(_tz.utc)
             payment.refund_consent_version = policies.POLICY_VERSION
+            await session.commit()
+
+        if (body.lead_token or "").strip() or owner_lead is not None:
+            from src.services.funnel_payments import link_payment
+            await link_payment(
+                session, payment,
+                token=(body.lead_token or "").strip() or None,
+                owner=bool(owner_invoice and owner_lead is not None and not (body.lead_token or "").strip()),
+                owner_lead_id=owner_lead,
+            )
             await session.commit()
 
         if method == "paypal":
@@ -4103,8 +4179,13 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
     from src.models import AcquisitionLead, Decision, LeadEvent, Payment as _Payment
     from src.services import payments as _pm
 
+    # A callback retry or portal poll can arrive while another worker is
+    # applying the same paid order. Keep the lock through all outcome writes.
     payment = (
-        await session.execute(_sel(_Payment).where(_Payment.id == payment_id))
+        await session.execute(
+            _sel(_Payment).where(_Payment.id == payment_id)
+            .with_for_update().execution_options(populate_existing=True)
+        )
     ).scalar_one_or_none()
     if not payment or payment.status != "paid":
         return {"applied": False, "reason": "payment not paid"}
@@ -4113,21 +4194,18 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
 
     marker = f"payment_ref:{payment.id}"
     existing = (
-        await session.execute(_sel(Decision).where(Decision.reason == marker))
+        await session.execute(_sel(Decision.id).where(Decision.reason == marker).limit(1))
     ).scalar_one_or_none()
     if existing:
         return {"applied": True, "deduplicated": True}
 
-    from src.services import funnel
-
-    await funnel.track("payment_succeeded", None, {"plan": payment.package or "", "method": payment.gateway or ""})
     package = payment.package or "social"
     total_halalas = _pm.payment_total(payment)
 
     # Activate first: the success entry and the lead's WON status are written
     # only when the paid order really activated the project. A refused order
     # (mismatch -> payment in review) is logged as review and leaves the lead.
-    activation = await _pm.activate_subscription(session, payment)
+    activation = await _pm.activate_subscription(session, payment, commit=False)
     # A refusal (wrong currency/package/amount) moved the payment to review.
     # A lead-only payment with no portal project has nothing to activate and
     # still counts as won once the money is verified.
@@ -4180,6 +4258,12 @@ async def _apply_paid_outcome(session, payment_id: UUID, *, note: str = "") -> d
             )
 
     await session.commit()
+    if activated:
+        from src.services import funnel
+
+        await funnel.track("payment_succeeded", None, {"plan": payment.package or "", "method": payment.gateway or ""})
+        if activation.get("activated") and not activation.get("already_active") and not payment.is_renewal:
+            await funnel.track("project_activated", None, {"plan": payment.package or ""})
     return {"applied": True, **activation}
 
 
@@ -4381,7 +4465,7 @@ async def owner_revoke_founding(project_id: str):
 
 
 @app.get("/api/owner/summary", dependencies=[Depends(require_owner_api)])
-async def owner_summary():
+async def owner_summary(response: Response):
     """Owner-only, read-only snapshot for the command center and assistant bots:
     revenue/MRR, plans, renewals due in 7 days, unpaid orders and bank transfers
     awaiting confirmation, founding seats, usage flags (80/100%), review queue,
@@ -4391,6 +4475,7 @@ async def owner_summary():
     async with app.state.session_factory() as session:
         data = await _os.build_summary(session)
         await session.rollback()
+    response.headers["Cache-Control"] = "no-store"
     return data
 
 
@@ -4399,8 +4484,10 @@ async def owner_command_center(request: Request):
     from src.core.owner_auth import check_owner
 
     if not check_owner(request):
-        return RedirectResponse("/login")
-    return templates.TemplateResponse(request, "owner_command.html", {})
+        return RedirectResponse("/login", headers={"Cache-Control": "no-store"})
+    return templates.TemplateResponse(
+        request, "owner_command.html", {}, headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.post("/api/owner/billing/backfill", dependencies=[Depends(require_owner_api)])
@@ -4434,26 +4521,33 @@ async def confirm_payment_received(payment_id: str, body: ConfirmReceivedRequest
 
     async with app.state.session_factory() as session:
         payment = (
-            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid))
+            await session.execute(_select(_Payment).where(_Payment.id == payment_uuid).with_for_update())
         ).scalar_one_or_none()
         if not payment:
             raise HTTPException(404, "Payment not found")
 
-        if payment.status == "paid":
+        already_paid = payment.status == "paid"
+        provider = _pm.payment_provider(payment)
+        live_probe = _pm.is_moyasar_live_test(payment)
+        if already_paid and (provider != "none" or live_probe):
             return {"payment_id": str(payment.id), "status": "paid", "already_paid": True}
 
         if payment.gateway == "paypal" and payment.gateway_payment_id:
             raise HTTPException(409, "PayPal payment must be captured through PayPal")
-
-        payment.status = "paid"
-        await session.commit()
+        if provider == "moyasar" or live_probe:
+            raise HTTPException(409, "Moyasar payment must be verified through Moyasar")
 
         note = (body.note or "التحقق يدوي من استلام التحويل البنكي/فاتورة").strip()
+        if not already_paid:
+            payment.status = "paid"
+            await session.flush()
         outcome = await _apply_paid_outcome(session, payment.id, note=note)
+        if already_paid:
+            return {"payment_id": str(payment.id), "status": payment.status, "already_paid": True}
 
         return {
             "payment_id": str(payment.id),
-            "status": "paid",
+            "status": payment.status,
             "amount": payment.amount,
             "vat": _pm.payment_vat(payment),
             "total": _pm.payment_total(payment),
@@ -4671,12 +4765,28 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
             raise HTTPException(404, "Payment not found")
         if payment.status == "paid":
             raise HTTPException(409, "This invoice is already paid")
+        if payment.status == _pm.REVIEW_STATUS:
+            raise HTTPException(409, "This invoice is under review")
         _record_refund_consent(payment)
         await session.commit()
 
         if not _pm.moyasar_collects_money():
             raise HTTPException(503, _pm.CARD_ACTIVATING_AR)
 
+        # Keep the invoice row locked until its hosted reference is saved.
+        # Simultaneous retries then reuse the same link across workers.
+        payment = (
+            await session.execute(
+                _select(_Payment).where(_Payment.id == payment_uuid)
+                .with_for_update().execution_options(populate_existing=True)
+            )
+        ).scalar_one_or_none()
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+        if payment.status == "paid":
+            raise HTTPException(409, "This invoice is already paid")
+        if payment.status == _pm.REVIEW_STATUS:
+            raise HTTPException(409, "This invoice is under review")
         if payment.gateway == "moyasar" and payment.gateway_payment_id:
             return {
                 "payment_id": str(payment.id),
@@ -4794,10 +4904,12 @@ async def moyasar_webhook(request: Request):
             result = await pm.handle_moyasar_webhook(session, event)
         except pm.PaymentError:
             raise HTTPException(502, "could not verify with Moyasar")
-        if result.get("status") == "paid" and not result.get("already"):
+        if result.get("status") == "paid":
             from uuid import UUID as _UUID
 
-            await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook ميسر")
+            outcome = await _apply_paid_outcome(session, _UUID(result["payment_id"]), note="webhook ميسر")
+            if outcome.get("review"):
+                result["status"] = pm.REVIEW_STATUS
     return result
 
 
@@ -4847,17 +4959,17 @@ async def moyasar_invoice_callback(request: Request):
             payment = (
                 await session.execute(_select(_Payment).where(_Payment.gateway_payment_id == ref))
             ).scalars().first()
-        if payment is None or payment.gateway_payment_id != ref:
+        if payment is None or payment.gateway_payment_id != ref or pm.payment_provider(payment) != "moyasar":
             return {"ok": True, "ignored": "unknown order"}
-        if payment.status == "paid":
-            return {"ok": True, "payment_id": str(payment.id), "status": "paid", "already": True}
-        try:
-            payment = await pm.verify_payment(session, payment.id)
-        except pm.PaymentError:
-            raise HTTPException(502, "could not verify with Moyasar")
+        already_paid = payment.status == "paid"
+        if not already_paid:
+            try:
+                payment = await pm.verify_payment(session, payment.id)
+            except pm.PaymentError:
+                raise HTTPException(502, "could not verify with Moyasar")
         if payment.status == "paid":
             await _apply_paid_outcome(session, payment.id, note="invoice callback ميسر")
-        return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": False}
+        return {"ok": True, "payment_id": str(payment.id), "status": payment.status, "already": already_paid}
 
 
 @app.post(
