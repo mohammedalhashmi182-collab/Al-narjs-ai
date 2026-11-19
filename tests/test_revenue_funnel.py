@@ -293,6 +293,8 @@ async def test_e2e_visit_consult_reply_proposal_sandbox_and_report(monkeypatch):
         visit = await anon.get("/consult", follow_redirects=True)
         assert visit.status_code == 200
         assert "consult" in str(visit.url)
+        incomplete = await anon.post("/api/consult/callback", json={"name": "غير قابل للتواصل"})
+        assert incomplete.status_code == 422
         opened = await anon.post("/api/consult/callback", json={
             "name": "شركة التجربة",
             "email": "journey@example.com",
