@@ -150,7 +150,7 @@ async def resolve_lead(
             phone=phone_key,
             phone_raw=(phone or None),
             email=email_key,
-            source="meta_ads" if source == "website" and attribution and attribution.get("acquisition_channel") == "meta_ads" else source,
+            source=source,
             raw_data={"attribution": attribution} if attribution else None,
             segment=segment or "unknown",
             segment_reason=segment_reason,
