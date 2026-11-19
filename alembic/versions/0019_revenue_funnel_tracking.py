@@ -53,6 +53,7 @@ def upgrade() -> None:
             sa.UniqueConstraint("idempotency_key", name="uq_funnel_event_idempotency"),
         )
         op.create_index("ix_funnel_events_lead_id", "funnel_events", ["lead_id"])
+        op.create_index("ix_funnel_events_lead_created", "funnel_events", ["lead_id", "created_at"])
     if "funnel_messages" not in tables:
         op.create_table(
             "funnel_messages",
@@ -74,6 +75,7 @@ def upgrade() -> None:
         )
         op.create_index("ix_funnel_messages_state", "funnel_messages", ["state"])
         op.create_index("ix_funnel_messages_lead_id", "funnel_messages", ["lead_id"])
+        op.create_index("ix_funnel_messages_state_occurred", "funnel_messages", ["state", "occurred_at"])
     if "funnel_replies" not in tables:
         op.create_table(
             "funnel_replies",
@@ -98,6 +100,7 @@ def upgrade() -> None:
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         )
         op.create_index("ix_lead_consents_lead_id", "lead_consents", ["lead_id"])
+        op.create_index("ix_lead_consents_lead_channel", "lead_consents", ["lead_id", "channel", "created_at"])
     if "funnel_callbacks" not in tables:
         op.create_table(
             "funnel_callbacks",
