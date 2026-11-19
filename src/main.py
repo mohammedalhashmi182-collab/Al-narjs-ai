@@ -2907,6 +2907,11 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
 
     last_user = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
     locale = reply_locale(last_user, page_locale)
+    try:
+        from src.services.funnel_callback import note_consult_turn
+        await note_consult_turn(app.state.session_factory, history)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("consult callback skipped (%s)", type(exc).__name__)
 
     from src.services import catalog as _catalog
 
@@ -2958,12 +2963,8 @@ async def consult_chat(request: ConsultRequest, http_request: Request):
         response = await app.state.model_provider.complete_with_fallback("gemini", model_request)
         lead_data, reply = extract_lead(response.content)
         if lead_data:
-            import asyncio
-
             from src.services import karma_lead as _karma_lead
-            asyncio.get_running_loop().create_task(
-                _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
-            )
+            await _karma_lead.capture_consult_lead(app.state.session_factory, lead_data)
         content = sanitize_public_text(reply or response.content.strip())
         content = enforce_reply_policy(
             content, locale=locale,
