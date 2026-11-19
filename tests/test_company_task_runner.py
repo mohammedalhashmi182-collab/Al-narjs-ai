@@ -493,3 +493,23 @@ async def test_queue_worker_uses_configured_retry_limit() -> None:
         assert explicit.max_retries == 1
     finally:
         object.__setattr__(settings, "queue_max_retries", previous)
+
+
+async def test_funnel_hold_tasks_are_not_claimed_by_generic_worker(maker) -> None:
+    """Owner-reviewed funnel follow-ups must not become generic auto-executed tasks."""
+    from src.models import Task
+
+    async with maker() as session:
+        session.add_all([
+            _task(key="funnel:sales:" + uuid4().hex, priority=999, evidence={"handler": "funnel_hold"}),
+            _task(key="safe-qualify-task", priority=100),
+        ])
+        await session.commit()
+
+    report = await run_queued_tasks(maker)
+    assert report["claimed"] == 1
+    async with maker() as session:
+        held = (await session.execute(select(Task).where(Task.key.like("funnel:%")))).scalar_one()
+        safe = (await session.execute(select(Task).where(Task.key == "safe-qualify-task"))).scalar_one()
+        assert held.status == "queued"
+        assert safe.status in ("completed", "escalated")
