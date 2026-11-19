@@ -87,7 +87,7 @@ async def _claim_next(session_factory) -> UUID | None:
     # PostgreSQL workers skip locked rows. SQLite serializes the UPDATE.
     candidate = (
         select(Task.id)
-        .where(Task.status == "queued")
+        .where(Task.status == "queued", ~Task.key.like("funnel:%"))
         .order_by(Task.priority.desc(), Task.created_at.asc(), Task.id.asc())
         .limit(1)
         .with_for_update(skip_locked=True)
