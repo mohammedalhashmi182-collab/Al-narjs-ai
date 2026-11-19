@@ -99,7 +99,7 @@
                         {{ input('cemail', type='email', attrs={'dir': 'ltr'}) }}
                     </div>
                     <div>
-                        <div id="pkgSummary" class="portal-summary text-sm font-bold"></div>
+                        <div id="pkgSummary" class="portal-summary text-sm font-bold" role="status" aria-live="polite"></div>
                     </div>
                 </div>
                 <div class="flex justify-center pt-2">
@@ -276,7 +276,7 @@
                 if (!Array.isArray(data.packages) || !data.packages.length) throw new Error('packages');
                 $('pkg-status').textContent = '';
                 $('pkg-grid').innerHTML = data.packages.map(p => `
-                    {% call card(class_name='pkg cursor-pointer selectable', attrs={'data-pkg': '${p.key}'}) %}
+                    {% call card(class_name='pkg cursor-pointer selectable', attrs={'data-pkg': '${p.key}', 'role': 'button', 'tabindex': '0', 'aria-pressed': 'false', 'aria-label': 'اختيار باقة ${p.name}' if _lang == 'ar' else 'Select ${p.name_en} plan'}) %}
                         <div class="portal-plan-icon mb-2" data-icon="${p.icon}" style="color:var(--accent-foreground);"><i class="${p.icon}"></i></div>
                         <h3 class="n-title text-lg">
                             {% if _lang == 'ar' %}<span>${p.name}</span>{% else %}<span data-inline>${p.name_en}</span>{% endif %}
@@ -302,17 +302,31 @@
                         <div class="price mt-1">{% if _lang == 'ar' %}<span>بعرض سعر — من نحو ${Number(data.enterprise.price_from).toLocaleString('en')} ريال/شهر</span>{% else %}<span data-inline>By quote — from about SAR ${Number(data.enterprise.price_from).toLocaleString('en')}/mo</span>{% endif %}</div>
                         <div class="text-xs mt-2" style="color:var(--n-brown-2);">{% if _lang == 'ar' %}<span>${data.enterprise.tagline}</span>{% else %}<span data-inline>${data.enterprise.tagline_en}</span>{% endif %}</div>
                     </a>` : '');
+                const annualSelected = new URLSearchParams(window.location.search).get('billing') === 'annual';
                 document.querySelectorAll('.pkg').forEach(c => {
                     c.addEventListener('click', () => {
-                        document.querySelectorAll('.pkg').forEach(x => x.classList.remove('selected'));
+                        document.querySelectorAll('.pkg').forEach(x => {
+                            x.classList.remove('selected');
+                            x.setAttribute('aria-pressed', 'false');
+                        });
                         c.classList.add('selected');
+                        c.setAttribute('aria-pressed', 'true');
                         state.pkg = c.dataset.pkg;
                         const p = data.packages.find(x => x.key === state.pkg);
-                        $('pkgSummary').textContent = txt(
+                        $('pkgSummary').textContent = annualSelected ? txt(
+                            'تم اختيار: ' + p.name + ' — فوترة سنوية (السعر الأساسي ' + p.price + ' ر.س/شهر؛ يظهر الإجمالي قبل الدفع)',
+                            'Selected: ' + p.name_en + ' — annual billing (base price ' + p.price + ' SAR/mo; total shown before payment)'
+                        ) : txt(
                             'تم اختيار: ' + p.name + ' — ' + p.price + ' ر.س/شهر',
                             'Selected: ' + p.name_en + ' — ' + p.price + ' SAR/mo'
                         );
                         $('regForm').classList.remove('hidden');
+                    });
+                    c.addEventListener('keydown', e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            c.click();
+                        }
                     });
                 });
 
@@ -616,41 +630,7 @@
             const coAddons = Math.max(0, Math.min(12, parseInt(coQs.get('addons') || '0', 10) || 0));
             const coConvPacks = 0; // conversation packs are not for sale
             const coVoicePacks = 0; // voice packs are not sold yet
-            function showCoSummary() {
-                const p = coPkg; if (!p) return;
-                const ar = isAr();
-                const cur = ar ? 'ر.س' : 'SAR';
-                const pct = window.NARJIS_PROMO && window.NARJIS_PROMO.active && window.NARJIS_PROMO.code.toUpperCase() === ($('promoInput') ? $('promoInput').value.trim().toUpperCase() : '') ? window.NARJIS_PROMO.percent : 0;
-                const addonPrice = (window.NARJIS_ADDON && parseFloat(window.NARJIS_ADDON.price)) || 0;
-                const months = coBilling === 'annual' ? 10 : 1;
-                const planBase = (parseFloat(p.price) + coAddons * addonPrice) * months;
-                const ua = window.NARJIS_USAGE || {};
-                const convPrice = (ua.conversations && parseFloat(ua.conversations.price)) || 0;
-                const voicePrice = (ua.voice_minutes && parseFloat(ua.voice_minutes.price)) || 0;
-                const packs = (coConvPacks * convPrice + coVoicePacks * voicePrice) * months;
-                const base = planBase + packs;
-                const disc = pct ? Math.round(planBase * pct / 100) : 0;
-                // One-time setup fee on a first order, monthly or annual; outside the promo.
-                const setup = (Number(p.setup_fee) || 0) / 100;
-                const after = base - disc + setup;
-                const VAT_RATE = {{ vat_rate() | tojson }};
-                const vat = VAT_RATE > 0 ? Math.round(after * VAT_RATE) : 0;
-                const total = after + vat;
-                $('coSummary').innerHTML =
-                    '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
-                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:#ff5a36;">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt({{ ('المبلغ قبل الضريبة: ' if vat_enabled() else 'المبلغ: ')|tojson }}, 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
-                    {% if vat_enabled() %}(vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة ' + Math.round(VAT_RATE*100) + '%: ', 'VAT ' + Math.round(VAT_RATE*100) + '%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +{% endif %}
-                    (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة: ', 'One-time setup fee: ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
-                    (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
-                    '' +
-                    (coBilling === 'annual' ? '<div style="font-size:.85rem;color:#ff5a36;">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
-                    (setup
-                        // A one-time fee is not monthly: show what is due today, then the recurring amount.
-                        ? '<div class="mt-1 text-lg" style="color:#ff5a36;">' + txt('المستحق اليوم: ', 'Due today: ') + total.toLocaleString() + ' ' + cur + '</div>' +
-                          '<div style="font-size:.85rem;opacity:.8;">' + txt('ثم ', 'then ') + (base - disc).toLocaleString() + ' ' + cur + '/' + txt('شهر', 'mo') + '</div>'
-                        : '<div class="mt-1 text-lg" style="color:#ff5a36;">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>');
-                window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
-            }
+            {% include 'partials/_portal_checkout_summary.js.html' %}
             function openCheckout() {
                 fetch('/api/portal/packages').then(r => r.json()).then(d => {
                     window.NARJIS_ADDON = d.addon || null;

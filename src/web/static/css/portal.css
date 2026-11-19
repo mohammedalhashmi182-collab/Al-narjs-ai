@@ -208,6 +208,7 @@
 .portal-page .ui-card:hover,
 .portal-page .n-card:hover { border-color: var(--border); box-shadow: var(--shadow-sm); }
 .portal-page .pkg { cursor: pointer; text-align: start; }
+.portal-page .pkg:focus-visible { outline: 3px solid var(--structural); outline-offset: 3px; }
 .portal-page .pkg:hover,
 .portal-page .emp-card:hover { border-color: var(--input); }
 .portal-page .pkg.selected {

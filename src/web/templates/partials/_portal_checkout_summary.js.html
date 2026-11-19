@@ -1,0 +1,35 @@
+            function showCoSummary() {
+                const p = coPkg; if (!p) return;
+                const ar = isAr();
+                const cur = ar ? 'ر.س' : 'SAR';
+                const pct = window.NARJIS_PROMO && window.NARJIS_PROMO.active && window.NARJIS_PROMO.code.toUpperCase() === ($('promoInput') ? $('promoInput').value.trim().toUpperCase() : '') ? window.NARJIS_PROMO.percent : 0;
+                const addonPrice = (window.NARJIS_ADDON && parseFloat(window.NARJIS_ADDON.price)) || 0;
+                const months = coBilling === 'annual' ? 10 : 1;
+                const planBase = (parseFloat(p.price) + coAddons * addonPrice) * months;
+                const ua = window.NARJIS_USAGE || {};
+                const convPrice = (ua.conversations && parseFloat(ua.conversations.price)) || 0;
+                const voicePrice = (ua.voice_minutes && parseFloat(ua.voice_minutes.price)) || 0;
+                const packs = (coConvPacks * convPrice + coVoicePacks * voicePrice) * months;
+                const base = planBase + packs;
+                const disc = pct ? Math.round(planBase * pct / 100) : 0;
+                // One-time setup fee on a first order, monthly or annual; outside the promo.
+                const setup = (Number(p.setup_fee) || 0) / 100;
+                const after = base - disc + setup;
+                const VAT_RATE = {{ vat_rate() | tojson }};
+                const vat = VAT_RATE > 0 ? Math.round(after * VAT_RATE) : 0;
+                const total = after + vat;
+                $('coSummary').innerHTML =
+                    '<div class="mb-1">' + txt('الباقة: ', 'Package: ') + '<b>' + (ar ? p.name : p.name_en) + '</b></div>' +
+                    (pct ? '<div class="mb-1">' + txt('كود الإطلاق ', 'Launch code ') + '<b style="color:#ff5a36;">%' + pct + '</b> ' + txt('خصم', 'off') + ' <span style="text-decoration:line-through;opacity:.6;">' + base.toLocaleString() + '</span> → <b>' + (base - disc).toLocaleString() + ' ' + cur + '</b></div>' : '<div>' + txt({{ ('المبلغ قبل الضريبة: ' if vat_enabled() else 'المبلغ: ')|tojson }}, 'Subtotal: ') + base.toLocaleString() + ' ' + cur + '</div>') +
+                    {% if vat_enabled() %}(vat ? '<div style="font-size:.85rem;opacity:.7;">' + txt('ضريبة القيمة المضافة ' + Math.round(VAT_RATE*100) + '%: ', 'VAT ' + Math.round(VAT_RATE*100) + '%: ') + vat.toLocaleString() + ' ' + cur + '</div>' : '') +{% endif %}
+                    (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة: ', 'One-time setup fee: ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
+                    (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
+                    '' +
+                    (coBilling === 'annual' ? '<div style="font-size:.85rem;color:#ff5a36;">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
+                    (setup
+                        // A one-time fee is not monthly: show what is due today, then the recurring amount.
+                        ? '<div class="mt-1 text-lg" style="color:#ff5a36;">' + txt('المستحق اليوم: ', 'Due today: ') + total.toLocaleString() + ' ' + cur + '</div>' +
+                          '<div style="font-size:.85rem;opacity:.8;">' + txt('ثم ', 'then ') + (base - disc).toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>'
+                        : '<div class="mt-1 text-lg" style="color:#ff5a36;">' + txt('الإجمالي: ', 'Total: ') + total.toLocaleString() + ' ' + cur + '/' + (coBilling === 'annual' ? txt('سنة', 'yr') : txt('شهر', 'mo')) + '</div>');
+                window.NARJIS_CO = { base: base, disc: disc, after: after, vat: vat, total: total };
+            }
