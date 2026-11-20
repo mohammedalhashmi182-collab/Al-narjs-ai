@@ -4,7 +4,7 @@
    Does not alter APIs, authentication, payments, or worker behavior. */
 :root {
   --ng-ink:#1b2630; --ng-panel:#24313c; --ng-panel-alt:#2a3843;
-  --ng-text:#f5f1ec; --ng-muted:#c1cbd1; --ng-metal:#d4c7b8;
+  --ng-text:#f0f5f8; --ng-muted:#c1cbd1; --ng-metal:#cad6df;
   --ng-hair:rgba(220,225,228,.17); --ng-focus:#d9dfeb;
 }
 body.nj {
@@ -44,22 +44,22 @@ body.narjis-owner-next main .bg-cyan-100,
 body.narjis-owner-next main .bg-blue-100,
 body.narjis-owner-next main .bg-amber-50,
 body.narjis-owner-next main .bg-rose-50 {
- background:#24343f!important;color:#f4f1ed!important;
+ background:#24343f!important;color:#f0f5f8!important;
  border-color:var(--ng-hair)!important;box-shadow:none!important;
 }
 body.narjis-owner-next main [class*="text-gray-9"],
-body.narjis-owner-next main [class*="text-gray-7"] {color:#f4f1ed!important}
+body.narjis-owner-next main [class*="text-gray-7"] {color:#f0f5f8!important}
 body.narjis-owner-next main [class*="text-gray-5"],
 body.narjis-owner-next main [class*="text-gray-4"] {color:#becbd2!important}
 body.narjis-owner-next main .rounded-2xl {border-radius:16px}
 body.narjis-owner-next main table {border-collapse:separate;border-spacing:0}
-body.narjis-owner-next main thead {background:#31414d;color:#e7e4df}
-body.narjis-owner-next main tbody tr:hover {background:rgba(211,202,186,.07)}
+body.narjis-owner-next main thead {background:#31414d;color:#e7eef3}
+body.narjis-owner-next main tbody tr:hover {background:rgba(168,184,198,.07)}
 body.narjis-owner-next main th,body.narjis-owner-next main td {border-color:var(--ng-hair)!important}
 body.narjis-owner-next main button {transition:transform .18s ease,filter .18s ease}
 body.narjis-owner-next main button:hover {filter:brightness(1.08)}
-body.narjis-owner-next #runCEO {background:#d4c7b8!important;color:#18232e!important}
-body.narjis-owner-next .n-nav h2 {color:#f4f1ed!important}
+body.narjis-owner-next #runCEO {background:#cad6df!important;color:#18232e!important}
+body.narjis-owner-next .n-nav h2 {color:#f0f5f8!important}
 @media(max-width:720px){
  body.narjis-owner-next main {padding:16px!important}
  body.narjis-owner-next main table {min-width:650px}
@@ -73,15 +73,15 @@ body.narjis-owner-next .n-nav h2 {color:#f4f1ed!important}
    disabled/illustrative content never impersonates completed execution. */
 .nj .ng-workspace {margin:24px 0;padding:25px;border:1px solid var(--ng-hair);border-radius:20px;background:linear-gradient(130deg,#263641,#192833);color:var(--ng-text);box-shadow:0 24px 65px rgba(2,9,16,.20)}
 .nj .ng-preview-title {font-size:clamp(21px,2.8vw,30px);font-weight:700;line-height:1.35;margin-bottom:8px}
-.nj .ng-preview-badge {display:inline-flex;border:1px solid rgba(229,220,208,.46);border-radius:6px;padding:3px 10px;color:#f0e4d7;font-size:12px;letter-spacing:.01em}
+.nj .ng-preview-badge {display:inline-flex;border:1px solid rgba(229,220,208,.46);border-radius:6px;padding:3px 10px;color:#dfeaf2;font-size:12px;letter-spacing:.01em}
 .nj .ng-preview-note {font-size:13px;line-height:1.85;color:#dce3e7;margin:12px 0 19px}
 .nj .ng-preview-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .nj .ng-preview-card {min-height:110px;background:#30414d;border:1px solid var(--ng-hair);border-radius:12px;padding:17px 13px;display:flex;flex-direction:column;justify-content:space-between;gap:15px}
-.nj .ng-preview-card b {color:#faf8f3;font-size:15px}
+.nj .ng-preview-card b {color:#f4f8fb;font-size:15px}
 .nj .ng-preview-card small {color:#d2dce1;font-size:12px;line-height:1.55}
 .nj .ng-preview-team {padding-top:16px;margin-top:15px;border-top:1px solid var(--ng-hair)}
 .nj .ng-preview-team b {display:block;margin-bottom:6px}
-.nj .ng-preview-team p {color:#e3e4e3;font-size:14px}
-.nj #ceoBusiness {width:100%;border:1px solid rgba(212,199,184,.55);border-radius:10px;padding:12px 15px;margin:6px 0 15px;font:inherit;background:#f9f8f5;color:#1b2630}
+.nj .ng-preview-team p {color:#e1e9ef;font-size:14px}
+.nj #ceoBusiness {width:100%;border:1px solid rgba(212,199,184,.55);border-radius:10px;padding:12px 15px;margin:6px 0 15px;font:inherit;background:#f6f9fb;color:#1b2630}
 .nj #ceoBusiness:focus-visible {outline:3px solid var(--ng-focus);outline-offset:2px}
 @media(max-width:640px){.nj .ng-workspace{padding:17px}.nj .ng-preview-grid{grid-template-columns:1fr}.nj .ng-preview-card{min-height:74px}}
