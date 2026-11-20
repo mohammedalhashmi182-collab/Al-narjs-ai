@@ -5,6 +5,8 @@
 {% block page_title %}{% if _lang == 'ar' %}<span>قيادة الشركة</span>{% else %}<span data-inline>Company OS</span>{% endif %}{% endblock %}
 
 {% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/static/css/narjis-next-review.css">
 <script>
   document.body.classList.add('narjis-owner-next');
@@ -13,6 +15,23 @@
     if (mark) mark.src = '/static/brand-narjis-gate.svg';
   });
 </script>
+
+<section class="ng-owner-hero" aria-label="{% if _lang == 'ar' %}مركز قيادة النرجس{% else %}Narjis command center{% endif %}">
+  <div>
+    <span class="ng-owner-eyebrow">NARJIS / EXECUTIVE CONTROL ROOM</span>
+    <h1>{% if _lang == 'ar' %}مركز قيادة النرجس{% else %}Narjis Command Center{% endif %}</h1>
+    <p>{% if _lang == 'ar' %}قرارات الرئيس التنفيذي، حالة فريق الوكلاء، طلبات العملاء، وفرص الإيرادات من مصادرها الفعلية — في مساحة عمل واحدة.{% else %}CEO decisions, agent operations, client requests and verified revenue signals, together in one workspace.{% endif %}</p>
+  </div>
+  <nav class="ng-owner-actions" aria-label="{% if _lang == 'ar' %}الانتقال السريع{% else %}Quick actions{% endif %}">
+    <a href="/acquisition">{% if _lang == 'ar' %}اكتساب العملاء{% else %}Acquisition{% endif %}</a>
+    <a href="/agents">{% if _lang == 'ar' %}فريق الوكلاء{% else %}Agent team{% endif %}</a>
+    <a href="/executions">{% if _lang == 'ar' %}سجل التنفيذ{% else %}Execution log{% endif %}</a>
+  </nav>
+</section>
+<div class="ng-metric-legend" aria-label="{% if _lang == 'ar' %}دلالة البيانات{% else %}Data legend{% endif %}">
+  <span><i aria-hidden="true"></i>{% if _lang == 'ar' %}المؤشرات تُحمّل من النظام{% else %}Metrics load from the platform{% endif %}</span>
+  <span><i aria-hidden="true"></i>{% if _lang == 'ar' %}البيانات الناقصة تبقى غير معروفة، وليست صفرًا{% else %}Missing data stays unknown, not zero{% endif %}</span>
+</div>
 
 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
     <div>
@@ -80,7 +99,7 @@
                 {% if _lang == 'ar' %}<span>غرفة عمليات الإيرادات</span>{% else %}<span data-inline>Revenue War Room</span>{% endif %}
             </h3>
             <p class="text-xs text-gray-500">
-                {% if _lang == 'ar' %}<span>الهدف 10,000 ر.س اليوم — المصدق فقط يزداد، والإمكاني يُعرض منفصلاً دون أي تزوير</span>{% else %}<span data-inline>Target 10,000 SAR today — only verified revenue counts; potential is shown separately.</span>{% endif %}
+                {% if _lang == 'ar' %}<span>نحسب الإيرادات المدفوعة الموثقة فقط، ونفصل الفرص المحتملة عن المبالغ المحصلة</span>{% else %}<span data-inline>Target 10,000 SAR today — only verified revenue counts; potential is shown separately.</span>{% endif %}
             </p>
         </div>
         <span id="rev-wave" class="px-2 py-1 text-xs font-bold rounded-full bg-white border border-gray-200 text-gray-700"></span>
