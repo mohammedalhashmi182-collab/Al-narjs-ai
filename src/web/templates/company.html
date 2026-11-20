@@ -5,6 +5,15 @@
 {% block page_title %}{% if _lang == 'ar' %}<span>قيادة الشركة</span>{% else %}<span data-inline>Company OS</span>{% endif %}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="/static/css/narjis-next-review.css">
+<script>
+  document.body.classList.add('narjis-owner-next');
+  document.addEventListener('DOMContentLoaded', function () {
+    var mark = document.querySelector('.n-sidebar .brand img');
+    if (mark) mark.src = '/static/brand-narjis-gate.svg';
+  });
+</script>
+
 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
     <div>
         <h3 class="text-lg font-bold" style="color:var(--n-brown);">Autonomous Company Operating System</h3>
