@@ -44,3 +44,19 @@ Do not auto-install TestSprite, premium video APIs, cloud services or paid MCPs.
 
 ## First assignment
 Audit why queued lead discovery, Gmail sent messages, CRM and company task runner do not form a provider-acknowledged revenue pipeline. Review PRs #170, #174, #175 and #177, document conflicts, and propose isolated tests and the smallest possible corrective branch. Do not merge or deploy.
+
+## Cost-aware DeepSeek onboarding (20 November 2026)
+
+1. Open the official [DeepSeek Platform](https://platform.deepseek.com/) and generate an API key. Do not paste or commit it. **Do not purchase anything without reviewing the checkout and approving the amount.**
+2. In the already-installed OpenCode, run `/connect` → DeepSeek, provide your key only in the secure OpenCode prompt; then `/models` → select **`deepseek-flash`** if offered. The official model/pricing docs use `deepseek-flash`, the current V4.1 Flash model ID. If the UI offers only an older name, inspect current provider model list before selecting it.
+3. Keep the existing optional `genspark-llm-proxy` config untouched; no new token, provider, API key or service is configured in this PR.
+4. Start with read-only questions; keep cost low by using small targeted context, not repeatedly dumping the entire repository. Prefer existing CI over optional paid QA platforms.
+5. Suggested initial spend ceiling: **USD 5 total** only if the DeepSeek console actually supports a configurable cap or prepaid budget. If it does not, stop manually and monitor usage in the console. Do NOT claim that a cap was applied without an acknowledgment.
+6. DeepSeek's official published model API rates on 2026-11-20 are [here](https://api-docs.deepseek.com/quick_start/pricing/). Flash input cache miss off-peak USD 0.15 / 1M tokens, peak 0.30; output off-peak 0.60 / 1M tokens, peak 1.20. Prices can change; cache-hit pricing differs. Use only official billing data to estimate cost.
+7. Before requesting an MCP connector to Github, Google, Render, WhatsApp or an image/video service, verify authorization scopes, billing, webhook integrity, and data-access boundaries. Third-party image/video generation is not enabled by the DeepSeek key alone.
+
+### First acceptance command to run in OpenCode
+
+```text
+Use narjis-deepseek. Read CLAUDE.md, docs/design-system.md, and docs/AGENT_TOOLS.md. Inspect PR #179 and agent roles. Perform a read-only inventory of lead funnel, queued tasks and Gmail CRM synchronization. List files, proof, integration gaps and estimated token cost. Do not edit files, send messages, publish, spend, or deploy.
+```
