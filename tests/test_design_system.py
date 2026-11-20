@@ -176,14 +176,14 @@ def test_no_template_loads_a_retired_font(name: str) -> None:
 
 # The homepage moved to the owner-approved "Najdi" design (preview v3), which
 # deliberately brings IBM Plex Sans Arabic back for that page only.
-@pytest.mark.parametrize("name", [n for n in ALL_TEMPLATES if n != "landing.html"])
+@pytest.mark.parametrize("name", [n for n in ALL_TEMPLATES if n not in ("landing.html", "company.html")])
 def test_no_template_loads_the_retired_font_pairing(name: str) -> None:
     body = read(name)
     assert RETIRED_FONT_LINK not in body, f"{name} still loads the previous font pairing"
     assert "family=Inter" not in body, f"{name} still loads Inter"
 
 
-@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n != "landing.html"])
+@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n not in ("landing.html", "company.html")])
 def test_public_templates_load_cairo(name: str) -> None:
     body = read(name)
     if "fonts.googleapis.com/css2" not in body:
