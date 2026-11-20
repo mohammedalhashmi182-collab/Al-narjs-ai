@@ -2,6 +2,15 @@
 description: Arabic-first Narjis ad storyboard and creative direction; coordinates approved external image/video tools.
 mode: subagent
 permissions:
+  - action: read
+    resource: "*.env"
+    effect: deny
+  - action: read
+    resource: "*.env.*"
+    effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: deny
