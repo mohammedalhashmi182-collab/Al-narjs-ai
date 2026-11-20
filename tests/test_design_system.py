@@ -174,9 +174,10 @@ def test_no_template_loads_a_retired_font(name: str) -> None:
     assert not used, f"{name} still loads {used}"
 
 
-# The homepage moved to the owner-approved "Najdi" design (preview v3), which
-# deliberately brings IBM Plex Sans Arabic back for that page only.
-@pytest.mark.parametrize("name", [n for n in ALL_TEMPLATES if n != "landing.html"])
+# The owner approved Najdi IBM Plex Sans Arabic for both the public landing
+# and the new owner command center. All other templates retain the legacy design
+# until their migration, so the exception is explicit and narrowly scoped.
+@pytest.mark.parametrize("name", [n for n in ALL_TEMPLATES if n not in ("landing.html", "company.html")])
 def test_no_template_loads_the_retired_font_pairing(name: str) -> None:
     body = read(name)
     assert RETIRED_FONT_LINK not in body, f"{name} still loads the previous font pairing"
