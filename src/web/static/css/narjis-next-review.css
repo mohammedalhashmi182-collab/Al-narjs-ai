@@ -266,3 +266,45 @@ body.narjis-owner-next .ng-metric-legend span:last-child i {background:#9ca3a7}
     animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;
   }
 }
+
+/* Owner revenue operating chart. Actual API values only. */
+body.narjis-owner-next .ng-revenue-visual {
+  border:1px solid #43494d;border-radius:18px;overflow:hidden;
+  background:radial-gradient(ellipse at right top,rgba(255,90,54,.065),transparent 54%),#1c2022;
+  padding:clamp(20px,3vw,35px);margin:0 0 28px;
+  box-shadow:0 20px 53px rgba(0,0,0,.15)
+}
+body.narjis-owner-next .ng-revenue-heading {
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  margin-bottom:27px
+}
+body.narjis-owner-next .ng-revenue-heading h2 {
+  color:#fff;font-size:clamp(21px,3vw,29px);font-weight:700;margin:4px 0 7px
+}
+body.narjis-owner-next .ng-revenue-heading p {
+  color:#c7d0d3;font-size:13px;line-height:1.85;margin:0
+}
+body.narjis-owner-next #ng-revenue-source {
+  font:600 11px/1.65 "IBM Plex Sans",system-ui,sans-serif;
+  color:#c8d0d4;border:1px solid #53595d;border-radius:6px;padding:7px 12px
+}
+body.narjis-owner-next .ng-revenue-rows {display:grid;gap:25px}
+body.narjis-owner-next .ng-revenue-row>div:first-child {
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  color:#e9edf0;margin-bottom:10px;font-size:14px
+}
+body.narjis-owner-next .ng-revenue-row b {font-weight:700}
+body.narjis-owner-next .ng-revenue-row span {font-variant-numeric:tabular-nums}
+body.narjis-owner-next .ng-revenue-track {
+  display:block;height:14px;background:#353a3d;border-radius:4px;
+  overflow:hidden;border:1px solid #464e53;
+}
+body.narjis-owner-next .ng-revenue-track>span {
+  display:block;height:100%;width:0%;background:#ff5a36;
+  border-radius:3px;transition:width .35s ease-out
+}
+body.narjis-owner-next .ng-revenue-potential-track>span {background:#9cabb3}
+body.narjis-owner-next .ng-revenue-gap-track>span {background:#65747b}
+@media(prefers-reduced-motion:reduce) {
+ body.narjis-owner-next .ng-revenue-track>span {transition:none!important}
+}
