@@ -672,8 +672,8 @@
         var sub = document.getElementById('ceoSubscribe');
         var closed = r.offer === false || r.notice === 'payments_closed';
         if (closed) {
-            sub.href = "mailto:AlNarjisai@gmail.com";
-            sub.textContent = AR ? 'راسلنا بالبريد' : 'Email us';
+            sub.href = '/consult';
+            sub.textContent = AR ? 'ناقش الخطوة التالية' : 'Discuss next steps';
             sub.hidden = false;
             sub.style.display = '';
         } else {
@@ -697,7 +697,7 @@
         fetch('/api/ceo/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem: text, lang: AR ? 'ar' : 'en' }) })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(render)
-            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على AlNarjisai@gmail.com.' : 'Could not reach the CEO — try again or email AlNarjisai@gmail.com.'; msg.hidden = false; })
+            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى.' : 'Could not reach the CEO — please try again.'; msg.hidden = false; })
             .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
 
