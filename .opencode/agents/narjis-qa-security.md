@@ -2,6 +2,15 @@
 description: Independent read-only code, security, integration and reliability auditor.
 mode: subagent
 permissions:
+  - action: read
+    resource: "*.env"
+    effect: deny
+  - action: read
+    resource: "*.env.*"
+    effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: deny
