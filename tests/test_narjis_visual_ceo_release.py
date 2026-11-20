@@ -9,14 +9,18 @@ import shutil
 import subprocess
 
 import pytest
+from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "src" / "web"
 
 
 @pytest.mark.parametrize("url", ["/ar/home", "/en/home"])
-def test_ceo_hero_is_real_interactive_form(client, url):
-    page = client.get(url)
+def test_ceo_hero_is_real_interactive_form(url):
+    from src.main import app
+
+    with TestClient(app) as client:
+        page = client.get(url)
     assert page.status_code == 200
     html = page.text
     assert 'id="ngHeroForm"' in html
