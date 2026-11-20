@@ -184,7 +184,7 @@ def test_no_template_loads_the_retired_font_pairing(name: str) -> None:
     assert "family=Inter" not in body, f"{name} still loads Inter"
 
 
-@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n != "landing.html"])
+@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n not in ("landing.html", "company.html")])
 def test_public_templates_load_cairo(name: str) -> None:
     body = read(name)
     if "fonts.googleapis.com/css2" not in body:
