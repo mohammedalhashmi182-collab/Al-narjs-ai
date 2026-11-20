@@ -71,3 +71,10 @@ For local coding agents only, `opencode.json` exposes the optional **Genspark LL
 ## Communication
 
 The operator replies in Arabic. Report changes in concise Arabic: what changed, what was verified, and what still needs his decision. Never claim something works without a live check.
+
+## Cursor Cloud specific instructions
+
+- Python dependencies live in `/opt/alnarjis-venv` and are on `PATH` as `python`, `pytest`, `uvicorn`, `alembic`, and `ruff`. The project is not a setuptools package (CI installs `pyproject.toml` dependencies directly). Run commands from the repo root so `import src` works. Do not use `pip install -e .`.
+- On boot, the environment starts `uvicorn src.main:app` on port 8000 with local SQLite at `data/dev_ai_agent_system.db`. `SECRET_KEY` and `OWNER_PASSWORD` fall back to development placeholders when unset. Postgres, Redis, Ollama, and model API keys are not required for the test suite or the public pages.
+- Tests, matching CI: `python -m pytest -q --disable-socket --allow-unix-socket`. Mobile browser checks: `RUN_BROWSER_TESTS=1 python -m pytest -q tests/test_public_mobile.py --disable-socket --allow-unix-socket` (Chromium is installed by the environment).
+- Local checks stay on this machine. Do not create leads, payments, or webhook traffic against `https://karmaai.online` from the dev server.
