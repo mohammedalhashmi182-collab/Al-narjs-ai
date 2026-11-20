@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">النرجس AI — بوابة هندسية</title><desc id="desc">هوية هندسية مجردة مستوحاة من بوابات العمارة النجدية وحرف N بلا أي رموز نباتية</desc>
+  <rect width="128" height="128" rx="24" fill="#1B2630"/>
+  <path d="M25 101V42L64 19L103 42V101" fill="none" stroke="#C5B8A8" stroke-width="7" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M44 99V50L84 98V50" fill="none" stroke="#F0E9E0" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M24 109H104" fill="none" stroke="#A8B3BA" stroke-width="4"/>
+  <path d="M59 32H69" stroke="#D4C6B7" stroke-width="5" stroke-linecap="square"/>
+</svg>
