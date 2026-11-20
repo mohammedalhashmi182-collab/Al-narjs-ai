@@ -2,12 +2,27 @@
 description: DeepSeek operations orchestrator for Al-Narjis AI; coordinates coding, media planning and integration audits with evidence.
 mode: primary
 permissions:
+  - action: read
+    resource: "*.env"
+    effect: deny
+  - action: read
+    resource: "*.env.*"
+    effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: ask
   - action: shell
     resource: "*"
     effect: ask
+  - action: shell
+    resource: "git push *"
+    effect: deny
+  - action: shell
+    resource: "git push --*"
+    effect: deny
   - action: subagent
     resource: "*"
     effect: deny
