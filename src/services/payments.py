@@ -765,14 +765,18 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
     if not settings.moyasar_api_secret:
         return payment
 
-    invoice_mode = payment.gateway_source == "invoice" or str(payment.gateway_payment_id).startswith("inv_")
+    gateway_ref = str(payment.gateway_payment_id)
+    invoice_mode = payment.gateway_source == "invoice" or gateway_ref.startswith("inv_")
     endpoint = MOYASAR_INVOICES_URL if invoice_mode else MOYASAR_API_URL
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(
-            f"{endpoint}/{payment.gateway_payment_id}",
-            headers={"Authorization": _auth_header(settings)},
-        )
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"{endpoint}/{gateway_ref}",
+                headers={"Authorization": _auth_header(settings)},
+            )
+    except httpx.HTTPError as exc:
+        raise PaymentError("Moyasar verification unavailable") from exc
 
     if resp.status_code != 200:
         from src.services import error_monitor
@@ -780,7 +784,28 @@ async def verify_payment(session: AsyncSession, payment_id: UUID) -> Payment:
         error_monitor.report("moyasar", error_type=f"http_{resp.status_code}", route="moyasar_verify_error")
         raise PaymentError(f"Moyasar verify error {resp.status_code}")
 
-    data = resp.json()
+    try:
+        data = resp.json()
+    except ValueError as exc:
+        raise PaymentError("Moyasar verification returned invalid JSON") from exc
+    if not isinstance(data, dict) or data.get("id") != gateway_ref:
+        raise PaymentError("Moyasar verification returned a different reference")
+
+    # Validate against current state so concurrent polls or callbacks cannot
+    # overwrite a payment that was settled or flagged while we awaited Moyasar.
+    payment = (
+        await session.execute(
+            select(Payment).where(Payment.id == payment_id)
+            .with_for_update().execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+    if payment is None:
+        raise PaymentNotFound("Payment not found")
+    if payment.status in ("paid", REVIEW_STATUS):
+        return payment
+    if payment_provider(payment) != "moyasar" or payment.gateway_payment_id != gateway_ref:
+        raise PaymentError("Payment reference changed during Moyasar verification")
+
     apply_gateway_status(payment, data)
     src = data.get("source", {})
     if isinstance(src, dict):
@@ -812,9 +837,14 @@ def expected_charge(payment: Payment) -> int:
 
 def gateway_amount_matches(payment: Payment, data: dict) -> bool:
     """The gateway's amount (halalas) and currency must equal the order's total in SAR."""
+    raw_amount = data.get("amount")
+    if isinstance(raw_amount, bool):
+        return False
+    if not isinstance(raw_amount, int) and not (isinstance(raw_amount, str) and raw_amount.isdecimal()):
+        return False
     try:
-        amount = int(data.get("amount"))
-    except (TypeError, ValueError):
+        amount = int(raw_amount)
+    except ValueError:
         return False
     currency = str(data.get("currency") or "").upper()
     return amount == expected_charge(payment) and currency == "SAR"
@@ -903,7 +933,7 @@ def apply_gateway_status(payment: Payment, data: dict) -> None:
     A ``paid`` verdict is trusted only when the amount and currency match the
     order. Anything else is parked as ``review`` and never marked paid.
     """
-    if payment.status == "paid":
+    if payment.status in ("paid", REVIEW_STATUS):
         return
     status = data.get("status")
     if status == "paid":
@@ -938,6 +968,7 @@ async def handle_moyasar_webhook(session: AsyncSession, event: dict) -> dict:
 
     data = event.get("data") if isinstance(event.get("data"), dict) else {}
     metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
+    refs = [ref for ref in (data.get("invoice_id"), data.get("id")) if isinstance(ref, str) and ref]
 
     payment = None
     order_id = metadata.get("order_id")
@@ -949,12 +980,13 @@ async def handle_moyasar_webhook(session: AsyncSession, event: dict) -> dict:
         except ValueError:
             payment = None
     if payment is None:
-        refs = [r for r in (data.get("invoice_id"), data.get("id")) if r]
         if refs:
             payment = (
                 await session.execute(select(Payment).where(Payment.gateway_payment_id.in_(refs)))
             ).scalars().first()
-    if payment is None:
+    if payment is None or payment_provider(payment) != "moyasar":
+        return {"ok": True, "ignored": "unknown order"}
+    if refs and payment.gateway_payment_id not in refs:
         return {"ok": True, "ignored": "unknown order"}
 
     if payment.status == "paid":
@@ -1345,19 +1377,21 @@ def order_mismatch(payment: Payment, project) -> Optional[str]:
     return None
 
 
-async def activate_subscription(session: AsyncSession, payment: Payment) -> dict:
+async def activate_subscription(session: AsyncSession, payment: Payment, *, commit: bool = True) -> dict:
     """Activate the client's portal project once a payment is confirmed paid.
 
     Links the paid payment to the matching ``ClientProject`` (by explicit
     ``project_id``, else by phone+package against the latest pending project)
     and flips it to ``active`` so portal agents can be woken and run.
 
-    Returns a dict describing the outcome; never raises.
+    Returns a dict describing the outcome. Set commit=False to include the
+    activation in the caller's payment outcome transaction.
     """
     from datetime import datetime, timezone
     from uuid import UUID as _UUID
 
     from sqlalchemy import select as _sel
+    from sqlalchemy.orm.attributes import set_committed_value
 
     from src.models import ClientProject
 
@@ -1375,22 +1409,34 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
             pid = None
         if pid is not None:
             project = (
-                await session.execute(_sel(ClientProject).where(ClientProject.id == pid))
+                await session.execute(
+                    _sel(ClientProject).where(ClientProject.id == pid)
+                    .with_for_update().execution_options(populate_existing=True)
+                )
             ).scalar_one_or_none()
 
-    if project is None:
-        # Legacy fallback: match the latest pending project on phone+package.
+    if project is None and (payment.customer_phone or payment.customer_email):
+        # Legacy fallback: match the latest project by contact and package.
         query = _sel(ClientProject)
         if payment.customer_phone:
             query = query.where(ClientProject.phone == payment.customer_phone)
         else:
-            query = query.where(ClientProject.email == payment.customer_email) if payment.customer_email else query
+            query = query.where(ClientProject.email == payment.customer_email)
         query = query.where(ClientProject.package == payment.package)
         query = query.order_by(ClientProject.created_at.desc())
-        project = (await session.execute(query.limit(1))).scalar_one_or_none()
+        project = (await session.execute(
+            query.limit(1).with_for_update().execution_options(populate_existing=True)
+        )).scalar_one_or_none()
 
     if project is None:
         return {"activated": False, "reason": "no matching project"}
+
+    current_end = project.current_period_end
+    if current_end is not None and current_end.tzinfo is None:
+        current_end = current_end.replace(tzinfo=timezone.utc)
+        # SQLite returns a naive timestamp after the locked refresh. Normalize
+        # the in-memory representation without updating the persisted period.
+        set_committed_value(project, "current_period_end", current_end)
 
     # Idempotent: the same paid order never extends the period twice.
     if project.last_payment_id is not None and str(project.last_payment_id) == str(payment.id):
@@ -1403,14 +1449,12 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
     if mismatch:
         logger.warning("refusing activation of %s for payment %s: %s", project.id, payment.id, mismatch)
         payment.status = REVIEW_STATUS
-        await session.commit()
+        if commit:
+            await session.commit()
         return {"activated": False, "reason": f"order does not match project: {mismatch}", "review": True}
 
     now = datetime.now(timezone.utc)
     period = catalog.resolve_billing_period(getattr(payment, "billing_period", None))
-    current_end = project.current_period_end
-    if current_end is not None and current_end.tzinfo is None:
-        current_end = current_end.replace(tzinfo=timezone.utc)
     # A renewal paid early (or inside the grace window) extends from the old end
     # so the client never loses or gains days; a lapsed one restarts from now.
     start = current_end if (current_end is not None and current_end > now - RENEWAL_GRACE) else now
@@ -1434,11 +1478,12 @@ async def activate_subscription(session: AsyncSession, payment: Payment) -> dict
         f"{verb} by payment {payment.id} on {now.isoformat()} "
         f"({period}) until {project.current_period_end.isoformat()}"
     )
-    await session.commit()
-    if verb == "activated":
-        from src.services import funnel
+    if commit:
+        await session.commit()
+        if verb == "activated":
+            from src.services import funnel
 
-        await funnel.track("project_activated", None, {"plan": project.package or ""})
+            await funnel.track("project_activated", None, {"plan": project.package or ""})
     return {
         "activated": True,
         "already_active": was_active,

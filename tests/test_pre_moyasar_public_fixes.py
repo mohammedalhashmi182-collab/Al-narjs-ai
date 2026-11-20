@@ -53,7 +53,7 @@ def test_landing_does_not_claim_card_payments_while_closed():
     assert "بوابة ميسر" not in html
     assert "نهاية الفترة المدفوعة" in html
     assert "/ai-agent/" in html
-    assert "mailto:AlNarjisai@gmail.com" in html
+    assert "mailto:AlNarjisai@gmail.com" not in html
 
 
 def test_cancel_copy_closes_the_team_at_period_end():
@@ -78,7 +78,7 @@ def test_owner_surfaces_label_raw_keys():
     owner = (TPL / "owner_command.html").read_text(encoding="utf-8")
     dash = (TPL / "dashboard.html").read_text(encoding="utf-8")
     portal = (TPL / "portal.html").read_text(encoding="utf-8")
-    assert "moyasar:'بطاقة (سابق)'" in owner and "lbl(r.plan)" in owner and "lbl(t.status)" in owner
+    assert "moyasar: tr('ميسّر', 'Moyasar')" in owner and "lbl(r.plan)" in owner and "lbl(t.status)" in owner
     assert "OC_LABELS" in dash and "ocLabel(p.status)" in dash
     assert "'المنتجات والهندسة': 'Product & Engineering'" in portal
     assert "sharikat: 'Enterprise'" in portal

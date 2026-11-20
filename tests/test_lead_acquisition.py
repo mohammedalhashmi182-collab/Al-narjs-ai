@@ -521,6 +521,51 @@ async def test_captured_lead_is_visible_in_acquisition_api(api) -> None:
     assert overview.json()["leads"]["total"] >= 1
 
 
+@pytest.mark.parametrize("consent", [True, False, "true"])
+async def test_campaign_attribution_is_optional_and_discards_click_id(api, monkeypatch, consent) -> None:
+    from unittest.mock import AsyncMock
+
+    monkeypatch.setattr("src.main._lead_side_effects", AsyncMock())
+    client, maker = api
+    response = await client.post("/api/leads", json={
+        "name": "Test campaign enquiry",
+        "package": "guide",
+        "attribution_consent": consent,
+        "utm_source": "facebook",
+        "utm_medium": "paid_social",
+        "utm_campaign": "حملة-نوفمبر",
+        "utm_content": "<invalid>",
+        "utm_term": "a" * 101,
+        "fbclid": "FakeClickId_123",
+        "extra": "do not record",
+    })
+    assert response.status_code == 200
+    lead_id = UUID(response.json()["lead_id"])
+    async with maker() as session:
+        lead = await session.get(AcquisitionLead, lead_id)
+        assert lead.source == "website"
+        expected = {
+            "utm_source": "facebook",
+            "utm_medium": "paid_social",
+            "utm_campaign": "حملة-نوفمبر",
+            "meta_click": True,
+            "acquisition_channel": "meta_ads",
+        }
+        assert lead.raw_data == ({"attribution": {"consent": True, **expected}} if consent is True else None)
+    detail = await client.get(f"/api/acquisition/leads/{lead_id}")
+    assert detail.status_code == 200
+    assert detail.json()["lead"]["attribution"] == (expected if consent is True else None)
+
+
+def test_click_id_without_paid_medium_is_only_a_meta_referral() -> None:
+    from src.services.lead_attribution import lead_attribution
+
+    assert lead_attribution({"attribution_consent": True, "fbclid": "token"}) == {
+        "consent": True, "meta_click": True, "acquisition_channel": "meta",
+    }
+    assert lead_attribution({"attribution_consent": True, "fbclid": "<invalid>"}) is None
+
+
 async def test_acquisition_workflow_message_demo_and_followup(api) -> None:
     client, _maker = api
     created = (await client.post("/api/leads", json={"name": "مطعم الأصالة", "phone": "0553078789"})).json()

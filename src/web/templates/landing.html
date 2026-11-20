@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
+{% from "components/brand_lockup.html" import lockup %}
 {% set _lang = page_lang(request) %}
+{% set locale_path = '/' ~ _lang %}
 {% set ar = _lang == 'ar' %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if ar else 'ltr' }}">
 <head>
@@ -67,7 +69,7 @@
       "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
       "legalName": {{ ("النرجس" if ar else "Al-Narjs") | tojson }},
       "url": "https://alnarjisai.com",
-      "description": {% if ar %}"رئيس تنفيذي ذكي يشخّص مشكلة عملك ويقود فريقاً من {{ agent_count }} وكيلاً في {{ division_count }} أقسام متخصصة."{% else %}"An AI CEO that diagnoses your business problem and leads a team of {{ agent_count }} agents across {{ division_count }} specialist departments."{% endif %},
+      "description": {% if ar %}"منظومة من {{ agent_count }} وكيلاً بمن فيهم الرئيس التنفيذي الذكي، الذي يقترح فريقك من {{ division_count }} أقسام متخصصة."{% else %}"The AI CEO diagnoses your business problem and proposes a team. The platform has {{ agent_count }} agents including the AI CEO, across {{ division_count }} departments."{% endif %},
       "inLanguage": "{{ _lang }}",
       "image": "https://alnarjisai.com/brand/og-image.jpg",
       "logo": "https://alnarjisai.com/brand/logo.png",
@@ -114,7 +116,7 @@
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        {"@type": "Question", "name": "What is Al-Narjis AI?", "acceptedAnswer": {"@type": "Answer", "text": "Al-Narjis AI is a Riyadh-based platform where an AI CEO diagnoses your business problem and leads a team of {{ agent_count }} specialized AI agents across {{ division_count }} departments."}},
+        {"@type": "Question", "name": "What is Al-Narjis AI?", "acceptedAnswer": {"@type": "Answer", "text": "Al-Narjis AI is a Riyadh-based platform. Its AI CEO helps diagnose your business problem and proposes a team from a roster of {{ agent_count }} agents including the AI CEO, across {{ division_count }} departments."}},
         {"@type": "Question", "name": "How much do the plans cost?", "acceptedAnswer": {"@type": "Answer", "text": "{% for plan in plans %}{{ plan.name_en }}: SAR {{ '{:,}'.format(plan.price|int) }}/month{% if not loop.last %}; {% endif %}{% endfor %}. Annual billing: pay for 10 months, get 12. Extra agents: SAR {{ addon.price }} per agent per month.{% if vat_enabled() %} {{ vat_percent() }}% VAT is added at checkout.{% else %}{% endif %}"}},
         {"@type": "Question", "name": "How does the CEO choose my agents?", "acceptedAnswer": {"@type": "Answer", "text": "You describe the problem; the CEO maps it to the departments involved, picks the agents from the live roster and recommends the smallest plan that covers that team."}},
         {"@type": "Question", "name": "Can I cancel?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Subscriptions are monthly or annual and can be cancelled at any time before renewal. A renewal invoice is issued a few days before the period ends; unpaid subscriptions pause 3 days after it ends. We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com."}},
@@ -129,7 +131,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap"></noscript>
     <link rel="preload" as="image" href="/static/img/hero-najdi.webp" imagesrcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" imagesizes="100vw" fetchpriority="high">
+    <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
+    <link rel="stylesheet" href="/static/css/narjis-next-review.css">
 </head>
 <body class="nj" data-lang="{{ _lang }}">
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
@@ -141,16 +145,27 @@
 
 <header class="nj-nav" id="nav">
     <div class="wrap">
-        <a href="/home" class="logo"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="32" height="32"><span>{% if ar %}<span class="logo-txt">النرجس <span class="logo-sub">للذكاء الاصطناعي</span></span>{% else %}Al-Narjis <span class="num">AI</span>{% endif %}</span></a>
+        {{ lockup(locale_path ~ '/home', 'النرجس' if ar else 'Al-Narjis', '/static/logo.svg', 'للذكاء الاصطناعي' if ar else 'AI') }}
         <nav class="links" aria-label="{% if ar %}القائمة الرئيسية{% else %}Main navigation{% endif %}">
             <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
-            <a href="#results">{% if ar %}نماذج النتائج{% else %}Sample results{% endif %}</a>
-            <a href="#pricing">{% if ar %}الاشتراكات{% else %}Plans{% endif %}</a>
+            <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
+            <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
+            <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
         </nav>
         <div class="navr">
-            <a class="lang" data-lang-btn="ar" href="/ar{{ _base_path }}"{% if ar %} aria-current="true" hidden{% endif %}>العربية</a><a class="lang" data-lang-btn="en" href="/en{{ _base_path }}"{% if not ar %} aria-current="true" hidden{% endif %}>English</a>
+            <a class="lang" data-lang-btn="ar" lang="ar" hreflang="ar" href="/ar{{ _base_path }}"{% if ar %} aria-current="true" hidden{% endif %}>العربية</a><a class="lang" data-lang-btn="en" lang="en" hreflang="en" href="/en{{ _base_path }}"{% if not ar %} aria-current="true" hidden{% endif %}>English</a>
             <a class="btn-login" href="/portal"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="5" r="3"/><path d="M2 15c1-3.5 11-3.5 12 0"/></svg>{% if ar %}دخول العملاء{% else %}Client login{% endif %}</a>
-            <a class="btn nav-cta" href="/consult">{% if ar %}ناقش هدفك مع الرئيس التنفيذي{% else %}Discuss your goal with the CEO{% endif %}</a>
+            <a class="btn nav-cta" href="/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a>
+            <details class="mobile-nav">
+                <summary>{% if ar %}القائمة{% else %}Menu{% endif %}</summary>
+                <nav aria-label="{% if ar %}أقسام الصفحة{% else %}Page sections{% endif %}">
+                    <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+                    <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
+                    <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
+                    <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
+                    <a href="/portal">{% if ar %}دخول العملاء{% else %}Client login{% endif %}</a>
+                </nav>
+            </details>
         </div>
     </div>
 </header>
@@ -169,13 +184,13 @@
                     {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
                 </a>
             </div>
-            <div class="eyebrow">{% if ar %}<h1>النرجس — حلول الذكاء الاصطناعي وأتمتة الأعمال في السعودية</h1>{% else %}<h1>Al-Narjis — AI solutions and business automation in Saudi Arabia</h1>{% endif %}</div>
+            <p class="eyebrow">{% if ar %}ذكاء اصطناعي لأعمالك، من الرياض{% else %}Business AI from Riyadh{% endif %}</p>
             {% if ar %}
-            <p class="display" id="hero-h">اشرح هدفك.<span class="l2">نختار فريقك <em>ونقود التنفيذ.</em></span></p>
-            <p class="lead">ناقش احتياجك مع الرئيس التنفيذي الذكي للنرجس. يقترح الوكلاء المناسبين وخطة العمل، وتتابع التنفيذ حتى تستلم مخرجًا قابلًا للمراجعة.</p>
+            <h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>
+            <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
             {% else %}
-            <p class="display" id="hero-h">Explain your goal.<span class="l2">We pick your team <em>and lead the work.</em></span></p>
-            <p class="lead">Talk your need through with the Al-Narjis AI CEO. It proposes the right agents and a work plan, and you follow the work until you receive an output ready for review.</p>
+            <h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>
+            <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
             {% endif %}
             <div class="ctas">
                 <a class="btn" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
@@ -183,19 +198,41 @@
                 <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
             </div>
         </div>
-        <div class="portal" role="group" aria-label="{% if ar %}مثال: من الطلب إلى المخرج{% else %}Example: from request to output{% endif %}">
-            <div class="hc req">
-                <div class="hd"><b>{% if ar %}طلب العميل{% else %}Client request{% endif %}</b><span class="badge">{% if ar %}مثال توضيحي{% else %}Illustrative{% endif %}</span></div>
-                <span class="who">{% if ar %}متجر إلكتروني{% else %}Online store{% endif %}</span>
-                <p>{% if ar %}«عروض الأسعار اللي نرسلها ما أحد يتابعها، ونخسر عملاء.»{% else %}“Nobody follows up on the quotes we send, and we lose customers.”{% endif %}</p>
+        <div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
+            <div class="ng-app-top">
+                <div class="ng-app-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                <b>NARJIS / AI CEO</b>
+                <span>{% if ar %}تشخيص تفاعلي{% else %}Interactive diagnosis{% endif %}</span>
             </div>
-            <div class="hc res">
-                <div class="hd"><b>{% if ar %}المخرج للمراجعة{% else %}Output for review{% endif %}</b><span class="badge">{% if ar %}مثال توضيحي{% else %}Illustrative{% endif %}</span></div>
-                {% if ar %}
-                <ul><li>رسائل متابعة جاهزة بنبرة متجرك</li><li>جدول تذكير لكل عرض سعر</li><li>ملخص أسبوعي بالحالات المفتوحة</li></ul>
-                {% else %}
-                <ul><li>Follow-up messages ready in your store's voice</li><li>A reminder schedule for every quote</li><li>A weekly summary of open cases</li></ul>
-                {% endif %}
+            <form class="ng-app-body" id="ngHeroForm" action="/api/ceo/consult" method="post">
+                <span class="ng-app-eyebrow">{% if ar %}مكتب الرئيس التنفيذي{% else %}THE CEO DESK{% endif %}</span>
+                <h2>{% if ar %}من فكرة إلى فريق عمل مصمم لنشاطك.{% else %}Your business. Your AI team. Your blueprint.{% endif %}</h2>
+                <p>{% if ar %}صف التحدي، وسيقترح الرئيس التنفيذي فريقك ويعرض لك رسمًا واضحًا لما سيحدث بعد التفعيل.{% else %}Describe the challenge and get a tailored team plus a visual plan of what happens after activation.{% endif %}</p>
+                <label class="ng-hero-field" for="ngHeroProblem">{% if ar %}ما أول مشكلة تريد حلّها؟{% else %}What's the first problem you want solved?{% endif %}</label>
+                <textarea id="ngHeroProblem" name="problem" required minlength="8" maxlength="2000" placeholder="{% if ar %}مثال: عندي عيادة وأحتاج تنظيم المواعيد والرد على الاستفسارات ومتابعة الحجوزات...{% else %}Example: I run a clinic and need appointment follow-up and patient enquiry management...{% endif %}"></textarea>
+                <div class="ng-hero-choices" aria-label="{% if ar %}أمثلة قابلة للاختيار{% else %}Choose a prompt example{% endif %}">
+                    {% if ar %}
+                    <button type="button" class="ng-hero-choice" data-ng-example="أدير عيادة طبية وأحتاج تنظيم الحجوزات والرد على استفسارات المرضى">عيادة</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="عندي متجر على سلة وأحتاج متابعة العملاء والطلبات والسلات المتروكة">متجر سلة</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="أدير شركة خدمات وأحتاج متابعة العملاء المحتملين وإعداد عروض الأسعار">شركة خدمات</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="أدير شركة عقارية وأحتاج تأهيل العملاء وترتيب العروض والمتابعات">عقار</button>
+                    {% else %}
+                    <button type="button" class="ng-hero-choice" data-ng-example="I run a medical clinic and need appointment and enquiry management">Clinic</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="I run an online store and need abandoned cart and customer follow-up">Store</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="I manage a service company and need qualified lead and quotation follow-up">Services</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="I run a real estate firm and need lead qualification and follow-up">Property</button>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn ng-hero-submit">
+                    <span>{% if ar %}ابدأ التشخيص وشاهد التصور{% else %}Diagnose & visualize{% endif %}</span>
+                    <span aria-hidden="true">{% if ar %}←{% else %}→{% endif %}</span>
+                </button>
+                <p class="ng-app-proof">{% if ar %}تجربة أولية مجانية، من دون تسجيل. لا تنفيذ ولا إرسال رسائل قبل الموافقة والربط.{% else %}Free initial diagnosis, no sign-up. No integrations or messages until approval.{% endif %}</p>
+            </form>
+            <div class="ng-app-bottom">
+                <span><strong>{% if ar %}01 / تشخيص{% else %}01 / Diagnose{% endif %}</strong>{% if ar %}نفهم هدفك{% else %}Your goal{% endif %}</span>
+                <span><strong>{% if ar %}02 / تخصيص{% else %}02 / Match{% endif %}</strong>{% if ar %}نرشح فريقك{% else %}Your agents{% endif %}</span>
+                <span><strong>{% if ar %}03 / تصور{% else %}03 / Blueprint{% endif %}</strong>{% if ar %}تشاهد النتيجة{% else %}Your visual plan{% endif %}</span>
             </div>
         </div>
     </div>
@@ -204,7 +241,7 @@
 <!-- ==================== HOW IT WORKS ==================== -->
 <section class="ivory" id="how" aria-labelledby="how-h">
     <div class="wrap">
-        <div class="sh rv"><h2 id="how-h">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</h2><p>{% if ar %}ثلاث خطوات قصيرة. المثال الكامل بعدها.{% else %}Three short steps. The full example follows.{% endif %}</p></div>
+        <div class="sh rv"><h2 id="how-h">{% if ar %}من هدفك إلى نتيجة تراجعها{% else %}From your goal to work you can review{% endif %}</h2></div>
         <ol class="steps">
             {% if ar %}
             <li class="step rv"><span class="n num">01</span><h3>تشرح هدفك</h3><p>تتحدث مع الرئيس التنفيذي الذكي بكلماتك، بدون نماذج طويلة.</p></li>
@@ -216,6 +253,32 @@
             <li class="step rv"><span class="n num">03</span><h3>You review the output</h3><p>You receive work ready for review, then approve it or ask for changes.</p></li>
             {% endif %}
         </ol>
+    </div>
+</section>
+
+<!-- ==================== THE TEAM (real roster from the catalogue) ==================== -->
+<section class="scene" id="team" aria-labelledby="team-h">
+    <div class="wrap">
+        <div class="sh rv">
+            <h2 id="team-h">{% if ar %}وكلاء بأدوار متخصصة{% else %}Agents with defined roles{% endif %}</h2>
+            <p>{% if ar %}كل وكيل له رقم وظيفي ومسمّى ومهمة واضحة. الرئيس التنفيذي يستدعي منهم من تحتاجه فقط.{% else %}Every agent has an employee number, a title and a clear job. The CEO calls in only the ones you need.{% endif %}</p>
+        </div>
+        <div class="facts" id="pulse-live">
+            <div data-pulse="agents"><b class="num" data-target="{{ agent_count }}">{{ agent_count }}</b><span>{% if ar %}وكيلاً بمن فيهم الرئيس التنفيذي{% else %}agents including the AI CEO{% endif %}</span></div>
+            <div data-pulse="divisions"><b class="num" data-target="{{ division_count }}">{{ division_count }}</b><span>{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
+            <div data-pulse="plans"><b class="num">{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
+            <div data-pulse="leads_received" hidden><b class="num" id="pulseLeads"></b><span>{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
+            <div data-pulse="projects" hidden><b class="num" id="pulseProjects"></b><span>{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
+        </div>
+        <div class="divs">
+            {% for d in divisions %}
+            <details class="dv rv" data-division="{{ d.slug }}">
+                <summary><b>{% if ar %}{{ d.name_ar }} <small lang="en" dir="ltr">{{ d.name_en }}</small>{% else %}{{ d.name_en }}{% endif %}</b><span class="num">{{ d.count }} {% if ar %}وكلاء{% else %}agents{% endif %}</span></summary>
+                <p>{% if ar %}{{ d.blurb_ar }}{% else %}{{ d.blurb_en }}{% endif %}</p>
+                <ul class="roster">{% for slug in d.agents %}{% set e = catalog_employees[slug] %}<li><a href="/ai-agent/{{ slug }}">{% if ar %}{{ e.title_ar }}{% else %}{{ e.title_en }}{% endif %}</a></li>{% endfor %}</ul>
+            </details>
+            {% endfor %}
+        </div>
     </div>
 </section>
 
@@ -308,38 +371,6 @@
     </div>
 </section>
 
-<!-- ==================== THE TEAM (real roster from the catalogue) ==================== -->
-<section class="scene" id="team" aria-labelledby="team-h">
-    <div class="wrap">
-        <div class="sh rv">
-            <h2 id="team-h">{% if ar %}الفريق الذي يقوده الرئيس التنفيذي{% else %}The team the CEO leads{% endif %}</h2>
-            <p>{% if ar %}كل وكيل له رقم وظيفي ومسمّى ومهمة واضحة. الرئيس التنفيذي يستدعي منهم من تحتاجه فقط.{% else %}Every agent has an employee number, a title and a clear job. The CEO calls in only the ones you need.{% endif %}</p>
-        </div>
-        <div class="facts" id="pulse-live">
-            <div data-pulse="agents"><b class="num" data-target="{{ agent_count }}">{{ agent_count }}</b><span>{% if ar %}وكيلاً متخصصاً{% else %}specialist agents{% endif %}</span></div>
-            <div data-pulse="divisions"><b class="num" data-target="{{ division_count }}">{{ division_count }}</b><span>{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
-            <div data-pulse="plans"><b class="num">{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
-            <div data-pulse="leads_received" hidden><b class="num" id="pulseLeads"></b><span>{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
-            <div data-pulse="projects" hidden><b class="num" id="pulseProjects"></b><span>{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
-        </div>
-        <p class="facts-note">{% if ar %}الأرقام تُقرأ مباشرة من النظام. لا نخترع آراء ولا أرقام.{% else %}These numbers are read live from the system. We don't invent reviews or numbers.{% endif %}</p>
-        <div class="divs">
-            {% for d in divisions %}
-            <details class="dv rv" data-division="{{ d.slug }}">
-                <summary><b>{% if ar %}{{ d.name_ar }} <small lang="en" dir="ltr">{{ d.name_en }}</small>{% else %}{{ d.name_en }}{% endif %}</b><span class="num">{{ d.count }} {% if ar %}وكلاء{% else %}agents{% endif %}</span></summary>
-                <p>{% if ar %}{{ d.blurb_ar }}{% else %}{{ d.blurb_en }}{% endif %}</p>
-                <ul class="roster">{% for slug in d.agents %}{% set e = catalog_employees[slug] %}<li><a href="/ai-agent/{{ slug }}">{% if ar %}{{ e.title_ar }}{% else %}{{ e.title_en }}{% endif %}</a></li>{% endfor %}</ul>
-            </details>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-
-<!-- ==================== PLANS (shared partial: prices and plan content from src/services/catalog.py) ==================== -->
-{% include "partials/_pricing_section.html" %}
-<div class="wrap"><p class="ceo-pick">{% if ar %}يرشّح لك الرئيس التنفيذي الباقة المناسبة بعد النقاش. <a href="/consult" style="color:var(--nj-accent)">ناقش هدفك مع الرئيس التنفيذي</a>{% else %}The CEO recommends the right plan after your conversation. <a href="/consult" style="color:var(--nj-accent)">Discuss your goal with the CEO</a>{% endif %}</p></div>
-<div class="wrap"><p class="guar">{% if ar %}التشخيص مجاني، وترى الفريق والسعر كاملاً قبل أي التزام. شهري وبلا عقد طويل: ألغِ في أي وقت قبل التجديد، كما في <a href="/terms">الشروط</a>. تبقى الخدمة حتى نهاية الفترة المدفوعة. لا نعد هنا بنتيجة استرداد، وأسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.{% else %}The diagnosis is free, and you see the team and the full price before any commitment. Monthly with no long contract: cancel any time before renewal, per the <a href="/terms">terms</a>. The service continues until the end of the paid period. We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.{% endif %}</p></div>
-
 <!-- ==================== START: real CEO diagnosis ==================== -->
 <section class="final" id="consult" aria-labelledby="final-h">
     <div class="wrap">
@@ -354,6 +385,8 @@
                 </div>
             </div>
             <form id="ceoForm" action="/api/ceo/consult" method="post" novalidate>
+                <label for="ceoBusiness">{% if ar %}اسم النشاط (اختياري — للمعاينة فقط){% else %}Business name (optional — local preview only){% endif %}</label>
+                <input id="ceoBusiness" type="text" maxlength="70" autocomplete="organization" placeholder="{% if ar %}مثال: مركز الندى{% else %}e.g. Al Nada Clinic{% endif %}">
                 <label for="ceoProblem">{% if ar %}ما الهدف الذي تريد تحقيقه في عملك؟{% else %}What goal do you want to reach in your business?{% endif %}</label>
                 <textarea id="ceoProblem" name="problem" required minlength="8" maxlength="2000" placeholder="{% if ar %}مثال: نرسل عروض أسعار على واتساب ولا أحد يتابعها، ونخسر عملاء.{% else %}Example: we send quotes on WhatsApp, nobody follows up, and we lose customers.{% endif %}"></textarea>
                 <div class="chips" role="group" aria-label="{% if ar %}أمثلة{% else %}Examples{% endif %}">
@@ -374,6 +407,7 @@
             <div class="ceo-result" id="ceoResult" hidden aria-live="polite">
                 <h3>{% if ar %}تشخيص الرئيس التنفيذي{% else %}The CEO's diagnosis{% endif %}</h3>
                 <p class="ceo-diag" id="ceoDiag"></p>
+                <section id="ceoWorkspace" class="ng-workspace" aria-label="{% if ar %}معاينة مساحة العمل المقترحة{% else %}Proposed workspace preview{% endif %}"></section>
                 <b id="ceoTeamTitle"></b>
                 <ul class="ceo-agents" id="ceoAgents"></ul>
                 <div class="ceo-plan">
@@ -389,6 +423,24 @@
 
 {% if testimonials %}<section aria-label="{% if ar %}آراء العملاء{% else %}Client feedback{% endif %}"><div class="wrap">{% include "partials/_testimonials.html" %}</div></section>{% endif %}
 {% if case_studies %}<section aria-label="{% if ar %}دراسات حالة{% else %}Case studies{% endif %}"><div class="wrap">{% include "partials/_case_studies.html" %}</div></section>{% endif %}
+
+<!-- ==================== PLANS (shared partial: prices and plan content from src/services/catalog.py) ==================== -->
+{% include "partials/_pricing_section.html" %}
+<div class="wrap"><p class="ceo-pick">{% if ar %}يرشّح لك الرئيس التنفيذي الباقة المناسبة بعد النقاش. <a href="/consult" style="color:var(--nj-accent)">ناقش هدفك مع الرئيس التنفيذي</a>{% else %}The CEO recommends the right plan after your conversation. <a href="/consult" style="color:var(--nj-accent)">Discuss your goal with the CEO</a>{% endif %}</p></div>
+<div class="wrap"><p class="guar">{% if ar %}التشخيص مجاني، وترى الفريق والسعر كاملاً قبل أي التزام. شهري وبلا عقد طويل: ألغِ في أي وقت قبل التجديد، كما في <a href="/terms">الشروط</a>. تبقى الخدمة حتى نهاية الفترة المدفوعة. لا نعد هنا بنتيجة استرداد، وأسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.{% else %}The diagnosis is free, and you see the team and the full price before any commitment. Monthly with no long contract: cancel any time before renewal, per the <a href="/terms">terms</a>. The service continues until the end of the paid period. We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.{% endif %}</p></div>
+
+<section class="white-label" id="white-label" aria-labelledby="white-label-h">
+    <div class="wrap">
+        <div class="license-panel">
+            <div class="license-mark" aria-hidden="true"><img src="/static/logo-dark.svg" alt="" width="108" height="108" loading="lazy"></div>
+            <div>
+                <h2 id="white-label-h">{% if ar %}النرجس بعلامتك التجارية{% else %}Al-Narjis under your brand{% endif %}</h2>
+                <p>{% if ar %}ناقش خيار الترخيص المناسب لشركتك أو وكالتك، سواء استضفنا النسخة لك أو جهّزناها لبيئتك. يُراجع نطاق التخصيص وشروط الترخيص قبل التعاقد.{% else %}Discuss the right licensing option for your business or agency, from a hosted edition to an installation in your own environment. We review the branding scope and license terms with you before an agreement.{% endif %}</p>
+                <a class="btn-sec" href="{{ locale_path }}/partnerships#white-label-offer">{% if ar %}اطّلع على خيارات الترخيص <span aria-hidden="true">←</span>{% else %}Explore licensing options <span aria-hidden="true">→</span>{% endif %}</a>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- ==================== ABOUT + VISION ==================== -->
 <section id="about" aria-labelledby="about-h">
@@ -441,13 +493,14 @@
     </div>
 </footer>
 
-<!-- Mobile bar: CEO consult + sample delivery. -->
+<!-- Mobile actions -->
 <div class="mbar">
-    <a class="btn" href="/consult">{% if ar %}ناقش هدفك مع الرئيس التنفيذي{% else %}Discuss your goal with the CEO{% endif %}</a>
-    <a class="btn-sec" id="mbarWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
+    <a class="btn" href="/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a>
+    <a class="btn-sec" id="mbarWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer" aria-label="{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}">{% if ar %}واتساب{% else %}WhatsApp{% endif %}</a>
 </div>
 
 {% include "partials/_landing_sample_dialog.html" %}
+<script src="/static/js/narjis-client-workspace.js"></script>
 
 
 <script>
@@ -455,6 +508,24 @@
     document.documentElement.classList.add('js');
     var AR = document.body.dataset.lang === 'ar';
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function () {
+      var form = document.getElementById('ngHeroForm');
+      var area = document.getElementById('ngHeroProblem');
+      var target = document.getElementById('ceoProblem');
+      var targetForm = document.getElementById('ceoForm');
+      if (!form || !area || !target || !targetForm) return;
+      document.querySelectorAll('[data-ng-example]').forEach(function (b) {
+        b.addEventListener('click', function() { area.value = b.getAttribute('data-ng-example') || ''; area.focus(); });
+      });
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (area.value.trim().length < 8) { area.focus(); return; }
+        target.value = area.value.trim();
+        document.getElementById('ceo').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+        if (targetForm.requestSubmit) targetForm.requestSubmit();
+        else targetForm.dispatchEvent(new Event('submit', {bubbles:true,cancelable:true}));
+      });
+    })();
     // Reveal is decoration only: content must never stay invisible.
     var rvs = document.querySelectorAll('.rv');
     function revealAll() { rvs.forEach(function (el) { el.classList.add('in'); }); }
@@ -478,6 +549,16 @@
     function solid() { nav.classList.toggle('solid', window.scrollY > 40); }
     solid(); window.addEventListener('scroll', solid, { passive: true });
     var navLinks = document.querySelectorAll('.links a[href^="#"]');
+    var mobileNav = nav.querySelector('.mobile-nav');
+    mobileNav.addEventListener('click', function (e) {
+        if (e.target.closest('a')) mobileNav.open = false;
+    });
+    mobileNav.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && mobileNav.open) {
+            mobileNav.open = false;
+            mobileNav.querySelector('summary').focus();
+        }
+    });
     if (io) {
         var spy = new IntersectionObserver(function (es) {
             es.forEach(function (e) {
@@ -564,6 +645,11 @@
     billingBtns.forEach(function (b) { b.addEventListener('click', function () { setBilling(b.dataset.billing); }); });
     function sar(h) { return (h / 100).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function render(r) {
+        if (window.NarjisPreview) window.NarjisPreview.render(
+          document.getElementById('ceoWorkspace'), r,
+          document.getElementById('ceoProblem').value,
+          (document.getElementById('ceoBusiness').value || '').trim().slice(0,70), AR
+        );
         document.getElementById('ceoDiag').textContent = AR ? r.diagnosis_ar : r.diagnosis_en;
         document.getElementById('ceoTeamTitle').textContent = AR
             ? 'الفريق المرشّح: ' + r.agent_count + (r.agent_count === 1 ? ' وكيل' : ' وكلاء') + ' بقيادة الرئيس التنفيذي'
@@ -586,8 +672,8 @@
         var sub = document.getElementById('ceoSubscribe');
         var closed = r.offer === false || r.notice === 'payments_closed';
         if (closed) {
-            sub.href = "mailto:AlNarjisai@gmail.com";
-            sub.textContent = AR ? 'راسلنا بالبريد' : 'Email us';
+            sub.href = '/consult';
+            sub.textContent = AR ? 'ناقش الخطوة التالية' : 'Discuss next steps';
             sub.hidden = false;
             sub.style.display = '';
         } else {
@@ -611,7 +697,7 @@
         fetch('/api/ceo/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem: text, lang: AR ? 'ar' : 'en' }) })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(render)
-            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على AlNarjisai@gmail.com.' : 'Could not reach the CEO — try again or email AlNarjisai@gmail.com.'; msg.hidden = false; })
+            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى.' : 'Could not reach the CEO — please try again.'; msg.hidden = false; })
             .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
 

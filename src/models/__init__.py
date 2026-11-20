@@ -384,5 +384,14 @@ from src.models.store_integration import StoreConnection, StoreOAuthNonce, Store
 from src.models.usage import SubscriptionUsage, UsageEvent  # noqa: E402,F401
 from src.models.ops import ErrorEvent, FunnelEvent, WeeklyReport, WhatsAppTemplate  # noqa: E402,F401
 from src.models.support import SupportTicket  # noqa: E402,F401
+from src.models.funnel import (  # noqa: E402,F401
+    FunnelCallback,
+    FunnelEvent,
+    FunnelMessage,
+    FunnelReply,
+    LeadAlias,
+    LeadConsent,
+    PaymentLeadLink,
+)
 from src.models.rag import KnowledgeChunk  # noqa: E402,F401
 from src.models.capabilities import CapabilityEvalLog, ClientStyleProfile  # noqa: E402,F401

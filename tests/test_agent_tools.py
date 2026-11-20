@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import io
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import httpx
 import pytest
 import yaml
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
-
 from src.core.owner_auth import make_session_token
 from src.db.session import Base
 from src.models import ClientProject
@@ -185,6 +185,35 @@ async def test_portal_upload_requires_active_subscription(maker):
 
 
 # ---------------------------------------------------------------- stores
+async def test_portal_agent_does_not_use_the_owners_store(maker, monkeypatch):
+    from src.services.agent_profiles import profile_for
+
+    owner_store = {
+        "platform": "salla", "configured": True,
+        "products": [{"name": "Internal owner product"}], "orders": [],
+    }
+    snapshots = AsyncMock(return_value=[owner_store])
+    owner_snapshot = AsyncMock(return_value=owner_store)
+    monkeypatch.setattr(store_connectors, "snapshots", snapshots)
+    monkeypatch.setattr(store_connectors.SallaConnector, "snapshot", owner_snapshot)
+    project = await _project(maker)
+    async with maker() as session:
+        context = await agent_tools.run_context(session, "store_manager", project, {})
+
+    snapshots.assert_not_awaited()
+    assert "Internal owner product" not in context
+    assert "store" not in profile_for("store_manager", "analysis").tools
+    async with _client(maker, project=project) as client:
+        denied = await client.get("/api/owner/stores/salla/snapshot")
+        assert denied.status_code in (401, 403)
+    owner_snapshot.assert_not_awaited()
+    async with _client(maker, owner=True) as client:
+        allowed = await client.get("/api/owner/stores/salla/snapshot")
+        assert allowed.status_code == 200
+        assert allowed.json() == owner_store
+    owner_snapshot.assert_awaited_once()
+
+
 async def test_store_connectors_unconfigured_make_no_calls(monkeypatch):
     async def _never(*a, **k):
         raise AssertionError("no network without credentials")

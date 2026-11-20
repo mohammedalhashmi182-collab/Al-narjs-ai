@@ -18,7 +18,9 @@ This runner is the missing consumer. It is deliberately narrow:
 
 from __future__ import annotations
 
-from sqlalchemy import func, select
+from uuid import UUID
+
+from sqlalchemy import func, select, update
 
 from src.utils.logger import get_logger
 
@@ -55,10 +57,12 @@ def handler_for(task) -> str:
 
 async def run_queued_tasks(session_factory, *, governance=None, limit: int = MAX_TASKS_PER_RUN) -> dict:
     """Claim queued company tasks and finish or escalate each one."""
-    claimed = await _claim(session_factory, limit)
     completed = escalated = failed = 0
     reports: list[dict] = []
-    for task_id in claimed:
+    for _ in range(limit):
+        task_id = await _claim_next(session_factory)
+        if task_id is None:
+            break
         outcome = await _execute_one(session_factory, task_id, governance)
         reports.append(outcome)
         status = outcome.get("status")
@@ -69,7 +73,7 @@ async def run_queued_tasks(session_factory, *, governance=None, limit: int = MAX
         else:
             failed += 1
     return {
-        "claimed": len(claimed),
+        "claimed": len(reports),
         "completed": completed,
         "escalated": escalated,
         "failed": failed,
@@ -77,32 +81,31 @@ async def run_queued_tasks(session_factory, *, governance=None, limit: int = MAX
     }
 
 
-async def _claim(session_factory, limit: int) -> list:
+async def _claim_next(session_factory) -> UUID | None:
     from src.models import Task
 
+    # PostgreSQL workers skip locked rows. SQLite serializes the UPDATE.
+    candidate = (
+        select(Task.id)
+        .where(Task.status == "queued", ~Task.key.like("funnel:%"))
+        .order_by(Task.priority.desc(), Task.created_at.asc(), Task.id.asc())
+        .limit(1)
+        .with_for_update(skip_locked=True)
+    )
     async with session_factory() as session:
-        rows = (
+        task_id = (
             await session.execute(
-                select(Task.id)
-                .where(Task.status == "queued")
-                .order_by(Task.priority.desc(), Task.created_at.asc())
-                .limit(limit)
+                update(Task)
+                .where(Task.id == candidate.scalar_subquery(), Task.status == "queued")
+                .values(status="running")
+                .returning(Task.id)
             )
-        ).all()
-        claimed = []
-        for (task_id,) in rows:
-            task = await session.get(Task, task_id)
-            if task is None or task.status != "queued":
-                continue
-            task.status = "running"
-            await session.commit()
-            fresh = await session.get(Task, task_id)
-            if fresh is not None and fresh.status == "running":
-                claimed.append(task_id)
-        return claimed
+        ).scalar_one_or_none()
+        await session.commit()
+        return task_id
 
 
-async def _execute_one(session_factory, task_id, governance) -> dict:
+async def _execute_one(session_factory, task_id: UUID, governance) -> dict:
     from src.models import Task
 
     async with session_factory() as session:
@@ -110,23 +113,27 @@ async def _execute_one(session_factory, task_id, governance) -> dict:
         if task is None:
             return {"status": "failed", "blocker_code": "missing"}
         key = task.key
+        if task.status != "running":
+            return {"key": key, "status": "failed", "blocker_code": "claim_lost"}
         try:
             handler = handler_for(task)
             if handler == "qualify_new_ready":
-                if governance is not None:
-                    auth = await governance.authorize(task.owner_agent or "sales_closer", "internal")
-                    if not auth.get("allowed"):
-                        task.status = "escalated"
-                        task.learning = _DENIED_LEARNING
-                        task.result = {
+                allowed = governance is None or (
+                    await governance.authorize(task.owner_agent or "sales_closer", "internal")
+                ).get("allowed")
+                if allowed:
+                    payload = await _qualify(session, task)
+                else:
+                    payload = {
+                        "status": "escalated",
+                        "learning": _DENIED_LEARNING,
+                        "result": {
                             "handler": handler,
                             "blocker_code": "policy_denied",
                             "sent": 0,
                             "lead_status_changed": 0,
-                        }
-                        await session.commit()
-                        return {"key": key, "status": "escalated", "blocker_code": "policy_denied"}
-                payload = await _qualify(session, task)
+                        },
+                    }
             else:
                 payload = {
                     "status": "escalated",
@@ -138,28 +145,48 @@ async def _execute_one(session_factory, task_id, governance) -> dict:
                         "lead_status_changed": 0,
                     },
                 }
-            task.status = payload["status"]
-            task.learning = payload["learning"]
-            task.result = payload["result"]
-            await session.commit()
-            return {
-                "key": key,
-                "status": task.status,
-                "blocker_code": (task.result or {}).get("blocker_code"),
-                "drafts_prepared": (task.result or {}).get("drafts_prepared", 0),
-            }
+            if not await _save_outcome(session, task_id, payload):
+                return {"key": key, "status": "failed", "blocker_code": "claim_lost"}
         except Exception as exc:  # noqa: BLE001 - one task must not stall the drain
-            logger.exception("company task failed: %s", type(exc).__name__)
-            task.status = "failed"
-            task.learning = _FAILED_LEARNING
-            task.result = {
-                "blocker_code": "executor_error",
-                "error_type": type(exc).__name__,
-                "sent": 0,
-                "lead_status_changed": 0,
+            await session.rollback()
+            logger.warning("company task failed", error_type=type(exc).__name__)
+            failure = {
+                "status": "failed",
+                "learning": _FAILED_LEARNING,
+                "result": {
+                    "blocker_code": "executor_error",
+                    "error_type": type(exc).__name__,
+                    "sent": 0,
+                    "lead_status_changed": 0,
+                },
             }
-            await session.commit()
-            return {"key": key, "status": "failed", "blocker_code": "executor_error"}
+            saved = await _save_outcome(session, task_id, failure)
+            blocker = "executor_error" if saved else "claim_lost"
+            return {"key": key, "status": "failed", "blocker_code": blocker}
+        return {
+            "key": key,
+            "status": payload["status"],
+            "blocker_code": payload["result"].get("blocker_code"),
+            "drafts_prepared": payload["result"].get("drafts_prepared", 0),
+        }
+
+
+async def _save_outcome(session, task_id: UUID, payload: dict) -> bool:
+    from src.models import Task
+
+    saved = (
+        await session.execute(
+            update(Task)
+            .where(Task.id == task_id, Task.status == "running")
+            .values(**payload)
+            .returning(Task.id)
+        )
+    ).scalar_one_or_none()
+    if saved is None:
+        await session.rollback()
+        return False
+    await session.commit()
+    return True
 
 
 async def _qualify(session, task) -> dict:

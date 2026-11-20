@@ -103,7 +103,7 @@ def test_contact_links_are_real_or_absent(page: str) -> None:
     assert "m.me/" not in page
     assert 'id="siteAssistant"' not in page
     assert "tel:" not in page
-    assert "mailto:AlNarjisai@gmail.com" in page
+    assert "mailto:AlNarjisai@gmail.com" not in page
     assert "mailto:" not in page.replace("mailto:AlNarjisai@gmail.com", "")
     assert "data-open-assistant" not in page
     assert 'href="/consult"' in page

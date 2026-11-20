@@ -147,6 +147,7 @@ footer b { color:var(--gold-b); }
                 <div class="field"><label>{% if ar %}الاسم{% else %}Name{% endif %}</label><input name="name" type="text" required placeholder="{% if ar %}مثال: سارة{% else %}e.g. Sarah{% endif %}"></div>
                 <div class="field"><label>{% if ar %}رقم الجوال (اختياري){% else %}Mobile number (optional){% endif %}</label><input name="phone" type="tel" placeholder="05xxxxxxxx"></div>
                 <div class="field"><label>{% if ar %}البريد الإلكتروني{% else %}Email{% endif %}</label><input name="email" type="email" required placeholder="you@example.com"></div>
+                {% with attribution_ar = ar %}{% include "partials/_lead_attribution.html" %}{% endwith %}
                 <button type="submit">{% if ar %}احصل على الدليل الآن{% else %}Get the guide now{% endif %}</button>
             </form>
             <div class="msg" id="guideMsg"></div>
@@ -184,6 +185,7 @@ footer b { color:var(--gold-b); }
 
     <footer>{% if ar %}النرجس للذكاء الاصطناعي · <b>Al-Narjis AI</b> · الرياض — alnarjisai.com{% else %}<b>Al-Narjis AI</b> · Riyadh — alnarjisai.com{% endif %}</footer>
 </div>
+<script src="/static/js/lead-attribution.js"></script>
 <script>
 var AR = {{ 'true' if ar else 'false' }};
 var form = document.getElementById('guideForm');
@@ -196,6 +198,7 @@ form.addEventListener('submit', function (e) {
     msg.style.display = 'block';
     var data = Object.fromEntries(new FormData(form).entries());
     data.package = 'guide';
+    if (window.narjisLeadAttribution) window.narjisLeadAttribution(data);
     fetch('/api/leads', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
     }).then(function (r) {

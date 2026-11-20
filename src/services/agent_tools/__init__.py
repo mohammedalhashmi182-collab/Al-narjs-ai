@@ -1,18 +1,23 @@
-"""Tools the specialist agents can use. Everything here is read-only towards the
-outside world: web search and store connectors only fetch; nothing is sent or
-posted on anyone's behalf. Missing credentials disable a tool with a clear
-message instead of failing the agent run."""
+"""Specialist agent tools and owner connector status.
 
-from src.services.agent_tools import data_files, docpack_tool, knowledge_base, store_connectors, web_search  # noqa: F401
+Store snapshots use owner credentials and are available in the owner console.
+Portal runs use their project's uploaded data, knowledge and permitted tools.
+"""
+
+from src.services.agent_profiles import TOOL_AGENTS
+from src.services.agent_tools import (
+    data_files,
+    docpack_tool,
+    knowledge_base,
+    store_connectors,
+    web_search,
+)
 
 # Which agents get which tool context injected into their run.
 # Runtime permissions are authoritative in agent_profiles. Keep these aliases
 # for backwards-compatible tests/imports, but do not maintain a second policy.
-from src.services.agent_profiles import TOOL_AGENTS
-
 WEB_SEARCH_AGENTS = TOOL_AGENTS["web_search"]
 DATA_FILE_AGENTS = TOOL_AGENTS["data_files"]
-STORE_AGENTS = TOOL_AGENTS["store"]
 KNOWLEDGE_AGENTS = TOOL_AGENTS["knowledge_base"]
 DOCPACK_AGENTS = TOOL_AGENTS["docpack"]
 
@@ -54,8 +59,6 @@ async def run_context(session, slug: str, project, answers: dict | None) -> str:
             rows = (await session.execute(select(ProjectDataFile).where(ProjectDataFile.project_id == project.id)
                                           .order_by(ProjectDataFile.created_at.desc()).limit(5))).scalars().all()
             out += data_files.context_block([{"filename": r.filename, "summary": r.summary} for r in rows])
-        if slug in STORE_AGENTS:
-            out += store_connectors.context_block(await store_connectors.snapshots())
         if slug in KNOWLEDGE_AGENTS:
             q = _query_from(answers, "")
             # Tenant knowledge first: never mix another customer's content.

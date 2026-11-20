@@ -318,6 +318,14 @@ class CompanyBrain:
         except Exception as e:  # pragma: no cover - the drain must not break the loop
             logger.warning("Company task drain failed: %s", type(e).__name__)
 
+        funnel_routed = {"assigned": 0, "already_assigned": 0}
+        try:
+            from src.services.agent_dispatch import route_open_callbacks
+
+            funnel_routed = await route_open_callbacks(self._db_session_factory)
+        except Exception as e:  # pragma: no cover - routing must not break the loop
+            logger.warning("Funnel routing skipped: %s", type(e).__name__)
+
         summary = {
             "ts": datetime.now(UTC).isoformat(),
             "priority_count": len(created_opportunities),
@@ -325,6 +333,7 @@ class CompanyBrain:
             "promoted_tasks": promoted,
             "revenue": metrics.to_dict() if metrics is not None else None,
             "task_runs": task_runs,
+            "funnel_routed": funnel_routed,
         }
         await self._record_decision(summary)
 
@@ -335,4 +344,5 @@ class CompanyBrain:
             "revenue": metrics.to_dict() if metrics is not None else None,
             "snapshot": snap,
             "task_runs": task_runs,
+            "funnel_routed": funnel_routed,
         }

@@ -1,6 +1,7 @@
-"""Public surfaces use black, white, grey, and #FF5A36.
+"""Legacy public surfaces use black, white, grey, and #FF5A36.
 
 Green, purple, gold, and beige are rejected by hue, not by a fixed hex list.
+Modern Najdi Intelligence adds ivory, stone and refined gold in the brand pack.
 Owner-console templates and the dark admin stylesheet are out of scope.
 """
 import colorsys
@@ -77,6 +78,13 @@ def banned_hue(r: int, g: int, b: int) -> str | None:
     return None
 
 
+def _uses_vnext_palette(path: Path) -> bool:
+    brand = ROOT / "static" / "brand" / "vnext"
+    return path.parent == brand or path.relative_to(ROOT).as_posix() in {
+        "static/favicon.svg", "static/logo.svg", "static/logo-dark.svg",
+    }
+
+
 def _public_files():
     """Public templates, hand-written public CSS, plus JS and SVG."""
     templates = ROOT / "templates"
@@ -90,6 +98,7 @@ def _public_files():
             if path.name in OWNER_CSS or path.name.endswith("-tw.css"):
                 continue
             yield path
+    yield ROOT / "static" / "brand" / "vnext" / "tokens.css"
     for path in ROOT.rglob("*"):
         if path.suffix.lower() in {".js", ".svg"}:
             yield path
@@ -101,6 +110,8 @@ def test_public_surfaces_have_no_green_purple_gold_or_beige():
         text = path.read_text(encoding="utf-8", errors="replace")
         rel = path.relative_to(ROOT)
         for number, line in enumerate(text.splitlines(), 1):
+            if _uses_vnext_palette(path):
+                line = re.sub(r"#(?:f4eee2|b8ae9c|c9a27a)\b|rgba?\(244,238,226,[^)]*\)", "", line, flags=re.I)
             if FORBIDDEN.search(line):
                 hits.append(f"{rel}:{number} denylist")
                 continue

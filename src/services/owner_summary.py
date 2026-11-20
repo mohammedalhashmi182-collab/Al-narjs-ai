@@ -1,6 +1,6 @@
 """Owner command center: one read-only snapshot of the business.
 
-Feeds both the Arabic owner page (``/owner/command``) and the JSON endpoint
+Feeds both the owner page (``/owner/command``) and the JSON endpoint
 ``GET /api/owner/summary`` that an assistant bot reads. Everything here is a
 read: no row is modified. Amounts are halalas (pre-VAT) plus a SAR float.
 Nothing secret is returned: error texts are cut short and scrubbed of anything
@@ -8,19 +8,20 @@ that looks like a key or token.
 """
 from __future__ import annotations
 
-import re
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from sqlalchemy import desc, func, select
+from sqlalchemy import case, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.pii_mask import mask
+from src.services import error_monitor
 
 RIYADH = timezone(timedelta(hours=3))
 RENEWAL_WINDOW_DAYS = 7
 USAGE_WARN_PCT = 80.0
 USAGE_LIMIT_PCT = 100.0
 UNPAID_STATUSES = ("pending", "initiated", "authorized")
-_SECRETISH = re.compile(r"(?i)(sk|pk|key|token|secret|bearer|password)[-_=: ]*[A-Za-z0-9._\-]{6,}|[A-Za-z0-9_\-]{32,}")
 
 
 def _utc(dt: Optional[datetime]) -> Optional[datetime]:
@@ -40,8 +41,8 @@ def _sar(halalas) -> float:
 
 def scrub(text: Optional[str], limit: int = 160) -> str:
     """Short, key-free one-liner for an error message."""
-    t = " ".join(str(text or "").split())[:limit]
-    return _SECRETISH.sub("[redacted]", t)
+    safe_line, _ = mask(str(text or "")[: limit * 4])
+    return error_monitor.scrub(safe_line, limit=limit)
 
 
 def month_start(now: datetime) -> datetime:
@@ -51,7 +52,7 @@ def month_start(now: datetime) -> datetime:
 
 
 def monthly_value(project) -> int:
-    """List-price monthly value (halalas) of an active subscription; annual spread over 12."""
+    """Monthly list-price estimate in halalas, independent of billing period."""
     from src.services import catalog
 
     pkg = project.package
@@ -70,23 +71,22 @@ def _plan_name(key: Optional[str]) -> str:
     return pkg.get("name") or (key or "-")
 
 
-def _is_bank_transfer(p) -> bool:
-    # Manual payments only. Historical rows may still store gateway="moyasar";
-    # those are not bank transfers, and the column is left intact.
-    return (p.gateway or "") not in ("moyasar", "paypal")
-
-
 async def _revenue(session, now) -> dict:
     from src.models import Payment
 
     start = month_start(now)
-    paid = (await session.execute(select(Payment).where(Payment.status == "paid"))).scalars().all()
-    this_month = [p for p in paid if (_utc(p.updated_at or p.created_at) or start) >= start]
-    total = sum(int(p.amount or 0) for p in this_month)
-    return {"month_start": start.isoformat(), "paid_count": len(this_month),
+    recorded = func.coalesce(Payment.updated_at, Payment.created_at)
+    month = (recorded >= start) & (recorded <= now)
+    count, total, all_time = (await session.execute(
+        select(
+            func.count().filter(month),
+            func.coalesce(func.sum(Payment.amount).filter(month), 0),
+            func.coalesce(func.sum(Payment.amount), 0),
+        ).where(Payment.status == "paid")
+    )).one()
+    return {"month_start": start.isoformat(), "paid_count": count,
             "revenue_halalas": total, "revenue_sar": _sar(total),
-            "all_time_halalas": sum(int(p.amount or 0) for p in paid),
-            "all_time_sar": _sar(sum(int(p.amount or 0) for p in paid))}
+            "all_time_halalas": all_time, "all_time_sar": _sar(all_time)}
 
 
 async def _subscriptions(session, now) -> tuple[dict, list[dict]]:
@@ -120,7 +120,7 @@ async def _subscriptions(session, now) -> tuple[dict, list[dict]]:
             })
     renewals.sort(key=lambda r: r["period_end"])
     subs = {"active": len(active), "mrr_halalas": mrr, "mrr_sar": _sar(mrr),
-            "mrr_note": "list price, annual plans spread over 12 months",
+            "mrr_note": "estimated from monthly list prices, independent of billing period",
             "by_plan": sorted(by_plan.values(), key=lambda b: -b["count"])}
     return subs, renewals
 
@@ -128,9 +128,28 @@ async def _subscriptions(session, now) -> tuple[dict, list[dict]]:
 async def _orders(session) -> dict:
     from src.models import Payment
 
+    unpaid = Payment.status.in_(UNPAID_STATUSES)
+    # Match the legacy Moyasar inference in the payment service. Older card
+    # orders can have a provider reference with no explicit gateway name.
+    gateway = func.lower(func.trim(func.coalesce(Payment.gateway, "")))
+    legacy_card = gateway.in_(("", "none")) & (func.coalesce(Payment.gateway_payment_id, "") != "")
+    provider = case((legacy_card, "moyasar"), else_=gateway)
+    manual_transfer = ~provider.in_(("moyasar", "paypal"))
+    count, total, transfers_count = (await session.execute(
+        select(
+            func.count(),
+            func.coalesce(func.sum(Payment.amount), 0),
+            func.count().filter(manual_transfer),
+        ).where(unpaid)
+    )).one()
     rows = (await session.execute(
-        select(Payment).where(Payment.status.in_(UNPAID_STATUSES)).order_by(desc(Payment.created_at)).limit(200)
-    )).scalars().all()
+        select(
+            Payment.id, Payment.customer_name, Payment.customer_email, Payment.package,
+            Payment.status, provider.label("gateway"), Payment.amount, Payment.is_renewal,
+            Payment.created_at,
+            manual_transfer.label("is_manual_transfer"),
+        ).where(unpaid).order_by(desc(Payment.created_at)).limit(200)
+    )).all()
 
     def row(p):
         return {"payment_id": str(p.id), "customer": p.customer_name or p.customer_email or "-",
@@ -138,9 +157,10 @@ async def _orders(session) -> dict:
                 "amount_sar": _sar(p.amount), "is_renewal": bool(p.is_renewal),
                 "created_at": _iso(p.created_at), "invoice_url": f"/invoice/{p.id}"}
 
-    transfers = [row(p) for p in rows if _is_bank_transfer(p)]
-    others = [row(p) for p in rows if not _is_bank_transfer(p)]
-    return {"unpaid_count": len(rows), "unpaid_sar": _sar(sum(int(p.amount or 0) for p in rows)),
+    transfers = [row(p) for p in rows if p.is_manual_transfer]
+    others = [row(p) for p in rows if not p.is_manual_transfer]
+    return {"unpaid_count": count, "unpaid_sar": _sar(total),
+            "awaiting_transfer_count": transfers_count,
             "awaiting_transfer_confirmation": transfers, "pending_gateway": others[:50]}
 
 
@@ -179,16 +199,40 @@ async def _review_queue(session) -> dict:
 
 
 async def _leads(session) -> dict:
-    from src.models import AcquisitionLead
+    from src.models import AcquisitionLead, Payment
     from src.models.automation import PIPELINE_STAGES, LeadPipeline
 
     stages = dict((await session.execute(
         select(LeadPipeline.stage, func.count()).group_by(LeadPipeline.stage))).all())
     statuses = dict((await session.execute(
         select(AcquisitionLead.lead_status, func.count()).group_by(AcquisitionLead.lead_status))).all())
+    sources = dict((await session.execute(
+        select(AcquisitionLead.source, func.count()).group_by(AcquisitionLead.source))).all())
+    attribution = AcquisitionLead.raw_data["attribution"]
+    channel = attribution["acquisition_channel"].as_string()
+    if session.get_bind().dialect.name == "postgresql":
+        consent = (func.json_typeof(attribution["consent"]) == "boolean") & (
+            attribution["consent"].as_string() == "true"
+        )
+    else:
+        consent = func.json_type(AcquisitionLead.raw_data, "$.attribution.consent") == "true"
+    campaign_sources = dict((await session.execute(
+        select(channel, func.count())
+        .where(AcquisitionLead.source == "website", consent, channel.in_(("meta_ads", "meta", "campaign")))
+        .group_by(channel)
+    )).all())
+    paid_leads = await session.scalar(
+        select(func.count(func.distinct(Payment.lead_id)))
+        .select_from(Payment)
+        .join(AcquisitionLead, Payment.lead_id == AcquisitionLead.id)
+        .where(Payment.status == "paid")
+    )
     return {"pipeline": {s: int(stages.get(s, 0)) for s in PIPELINE_STAGES},
             "lead_status": {k: int(v) for k, v in sorted(statuses.items(), key=lambda kv: str(kv[0]))},
-            "total_leads": int(sum(statuses.values()))}
+            "by_source": {k: int(v) for k, v in sorted(sources.items())},
+            "campaign_sources": {k: int(v) for k, v in sorted(campaign_sources.items())},
+            "total_leads": int(sum(statuses.values())),
+            "paid_leads": paid_leads}
 
 
 async def _health(session, now) -> dict:
@@ -201,12 +245,18 @@ async def _health(session, now) -> dict:
         db_ok = False
     since = _utc(now) - timedelta(hours=24)
     errors = []
+    count = None
+    failed = WorkflowExecution.status == "failed"
+    failed_at = func.coalesce(WorkflowExecution.completed_at, WorkflowExecution.created_at)
     try:
+        count = await session.scalar(
+            select(func.count()).where(failed, failed_at >= since, failed_at <= now)
+        )
         rows = (await session.execute(
-            select(WorkflowExecution).where(WorkflowExecution.status == "failed")
-            .order_by(desc(WorkflowExecution.created_at)).limit(10)
-        )).scalars().all()
-        errors = [{"source": "workflow", "id": str(e.id), "at": _iso(e.created_at),
+            select(WorkflowExecution.id, WorkflowExecution.error, failed_at.label("failed_at"))
+            .where(failed).order_by(desc(failed_at)).limit(10)
+        )).all()
+        errors = [{"source": "workflow", "id": str(e.id), "at": _iso(e.failed_at),
                    "message": scrub(e.error)} for e in rows]
     except Exception:
         pass
@@ -216,16 +266,16 @@ async def _health(session, now) -> dict:
 
         caps = pm.capabilities()  # config booleans only; no live probe here
         pay = {k: v for k, v in (caps.get("methods") or caps).items() if isinstance(v, bool)}
+        pay["moyasar"] = bool(caps.get("card"))
     except Exception:
         pay = {}
-    recent = [e for e in errors if e["at"] and e["at"] >= since.isoformat()]
-    status = "down" if not db_ok else ("degraded" if recent else "ok")
-    return {"status": status, "database": db_ok, "errors_24h": len(recent),
+    status = "down" if not db_ok else ("degraded" if count is None or count else "ok")
+    return {"status": status, "database": db_ok, "errors_24h": count,
             "payment_methods": pay, "recent_errors": errors}
 
 
 async def build_summary(session: AsyncSession, now: Optional[datetime] = None) -> dict:
-    from src.services import founding
+    from src.services import catalog, founding
 
     now = _utc(now) or datetime.now(timezone.utc)
     subs, renewals = await _subscriptions(session, now)
@@ -233,6 +283,10 @@ async def build_summary(session: AsyncSession, now: Optional[datetime] = None) -
     return {
         "generated_at": now.isoformat(),
         "currency": "SAR",
+        "plan_labels": {
+            key: {"ar": plan["name"], "en": plan["name_en"]}
+            for key, plan in (catalog.LEGACY_TIERS | catalog.PACKAGES).items()
+        },
         "revenue": await _revenue(session, now),
         "subscriptions": subs,
         "renewals_due": {"window_days": RENEWAL_WINDOW_DAYS, "count": len(renewals), "items": renewals},

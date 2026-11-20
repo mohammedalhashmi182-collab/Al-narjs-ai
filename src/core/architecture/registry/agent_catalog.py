@@ -266,14 +266,19 @@ class AgentCatalog:
         )
         return matches[0] if matches else None
 
-    def fallback(self) -> AgentCapability:
+    def fallback(self, *, include_owner_only: bool = False) -> AgentCapability:
         """Deterministic default agent for capability misses."""
+        eligible = {
+            slug: entry
+            for slug, entry in self._entries.items()
+            if include_owner_only or not entry.owner_only
+        }
         for slug in ("customer_service", "social_media", "marketing_agent"):
-            entry = self._entries.get(slug)
+            entry = eligible.get(slug)
             if entry is not None:
                 return entry
-        if self._entries:
-            return min(self._entries.values(), key=lambda e: e.slug)
+        if eligible:
+            return eligible[min(eligible)]
         return AgentCapability(
             slug="general",
             name="General Agent",

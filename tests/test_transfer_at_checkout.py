@@ -151,5 +151,5 @@ def test_the_landing_page_has_no_floating_channel_buttons(client: TestClient) ->
         assert marker not in body, marker
     assert 'id="siteAssistant"' not in body
     assert "tel:" not in body
-    assert "mailto:AlNarjisai@gmail.com" in body
+    assert "mailto:AlNarjisai@gmail.com" not in body
     assert "mailto:" not in body.replace("mailto:AlNarjisai@gmail.com", "")

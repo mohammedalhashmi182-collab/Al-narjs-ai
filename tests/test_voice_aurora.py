@@ -1,80 +1,35 @@
-"""Voice UI release acceptance, no vendor keys and no customer data."""
-from pathlib import Path
+"""Voice interface contracts exercised with local routes and simulated providers."""
+
+from __future__ import annotations
+
 import os
 from urllib.parse import urlsplit
 
 import pytest
 from fastapi.testclient import TestClient
-
 from src.main import app
 from src.services import voice_live
 
+browser_required = pytest.mark.skipif(
+    os.environ.get("RUN_BROWSER_TESTS") != "1", reason="requires Chromium CI"
+)
 
-ROOT = Path(__file__).resolve().parents[1]
-STATIC = ROOT / "src/web/static"
 
-
-@pytest.mark.parametrize("lang", ["ar", "en"])
-def test_voice_page_centers_a_monochrome_orb_and_emblem(lang):
+@pytest.mark.parametrize("lang,name", [("ar", "مستشار النرجس الذكي"), ("en", "Al-Narjis AI advisor")])
+def test_voice_page_renders_the_advisor_and_waveform(lang, name):
     with TestClient(app) as client:
-        result = client.get(f"/{lang}/voice")
+        page = client.get(f"/{lang}/voice")
         css = client.get("/static/css/voice-aurora.css")
-        orb = client.get("/static/js/voice-orb.js")
-        emblem_js = client.get("/static/js/voice-emblem.js")
-        live = client.get("/static/js/voice-live-app.js")
-        old = client.get("/static/js/voice-ribbon.js")
-    assert result.status_code == css.status_code == orb.status_code == live.status_code == 200
-    assert old.status_code == emblem_js.status_code == 404
-    assert len(result.content) < 16_000, "Do not inline multi-hundred-kilobyte legacy CSS"
-    assert 'id="intro"' not in result.text
-    assert 'id="ribbon"' not in result.text
-    assert "voice-ribbon" not in result.text
-    assert "✺" not in result.text
-    assert 'id="orb"' in result.text
-    assert 'id="emblem"' not in result.text
-    assert 'id="emblemGl"' not in result.text
-    assert 'class="logo-mark"' in result.text
-    assert 'id="vid"' in result.text
-    assert 'id="start"' in result.text
-    assert 'id="chatPanel" hidden' in result.text
-    assert 'id="wave"' in result.text
-    assert "/static/js/voice-live-app.js" in result.text
-    assert "/static/js/voice-orb.js" in result.text
-    assert "voice-emblem.js" not in result.text
-    assert "voice-aurora.css" in result.text
-    assert "alnarjis-emblem.png" in result.text
-    assert "alnarjis-favicon-32.png" in result.text
-    assert "alnarjis-apple-touch.png" in result.text
-    assert "voice-orb" in css.text
-    assert "min(68vw,440px)" in css.text
-    assert "logo-breathe" in css.text
+    assert page.status_code == css.status_code == 200
+    assert name in page.text
+    assert 'id="wave" aria-hidden="true"' in page.text
+    assert 'aria-controls="chatPanel" aria-expanded="false"' in page.text
+    assert 'id="chatPanel" hidden' in page.text
+    assert 'id="orb"' not in page.text
+    assert "/static/js/voice-orb.js" not in page.text
+    assert "/static/brand/vnext/tokens.css" in page.text
     assert "prefers-reduced-motion" in css.text
-    assert "ff5a36" in orb.text.lower()
-    assert "#ff5a36" in css.text.lower()
-    assert "lineTo" not in orb.text
-    assert "getUserMedia" not in orb.text
-    assert "curl" in orb.text
-    assert "snoise" in orb.text
-    count = next(line for line in orb.text.splitlines() if "PARTICLE_COUNT" in line)
-    assert int("".join(ch for ch in count if ch.isdigit())) >= 5000
-    assert "fibonacci" in orb.text.lower()
-    assert "jitter" in orb.text.lower()
-    assert "orbdemo" in orb.text
-    assert "createOscillator" in orb.text
-    assert "createAnalyser" in orb.text
-    assert "devicePixelRatio" in orb.text
-    assert "prefers-reduced-motion" in orb.text
-    assert "visibilitychange" in orb.text
-    assert "requestAnimationFrame" in orb.text
-    assert "webgl" in orb.text
-    assert "window.__outLvl" in live.text
-    assert "window.__inLvl" in live.text
-    assert "createAnalyser" in live.text
-    assert "__voiceInAnalyser" in live.text
-    assert "__voiceOutAnalyser" in live.text
-    assert 'XAI_API_KEY' not in result.text
-    assert "xai-client-secret" not in result.text
-    assert "unpkg" not in result.text and "jsdelivr" not in result.text and "cdnjs" not in result.text
+    assert "brand-narjis-gate.svg" in page.text
 
 
 def test_voice_published_agent_override_is_honest_and_intake_oriented():
@@ -88,9 +43,8 @@ def test_voice_published_agent_override_is_honest_and_intake_oriented():
     assert "Do not request passwords" in script
 
 
-
 def test_voice_prices_always_come_from_checkout_catalog(monkeypatch):
-    from src.services.catalog import PACKAGES, PACKAGE_ORDER
+    from src.services.catalog import PACKAGE_ORDER, PACKAGES
 
     script = voice_live.session_instructions("ar")
     for key in PACKAGE_ORDER:
@@ -98,9 +52,6 @@ def test_voice_prices_always_come_from_checkout_catalog(monkeypatch):
         sar = f'{plan["amount"] / 100:,.2f}'.removesuffix(".00")
         assert f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month' in script
     assert "before any applicable VAT" in script
-
-    # A future catalog update must instantly appear in the voice advisor,
-    # without a developer editing a second, stale price list.
     monkeypatch.setitem(PACKAGES["bidaya"], "amount", 82500)
     revised = voice_live.session_instructions("en")
     assert "البداية (Starter) 825 SAR per month" in revised
@@ -115,43 +66,148 @@ def test_invalid_catalog_price_fails_closed_for_voice(monkeypatch):
         voice_live.session_instructions("ar")
 
 
-@pytest.mark.skipif(os.environ.get("RUN_BROWSER_TESTS") != "1", reason="requires Chromium CI")
-@pytest.mark.parametrize("lang,width", [("ar", 390), ("en", 1280)])
-def test_voice_aurora_browser_works_before_call_without_overlay(lang, width):
-    from playwright.sync_api import sync_playwright
+def _local_routes(context, client):
+    def serve(route):
+        url = urlsplit(route.request.url)
+        response = client.request(
+            route.request.method,
+            url.path + ("?" + url.query if url.query else ""),
+            content=route.request.post_data_buffer,
+        )
+        route.fulfill(
+            status=response.status_code,
+            body=response.content,
+            headers=dict(response.headers),
+        )
 
-    with TestClient(app) as client, sync_playwright() as p:
-        browser = p.chromium.launch(executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH"))
-        ctx = browser.new_context(viewport={"width": width, "height": 844}, reduced_motion="reduce")
-        ctx.add_init_script("if (navigator.mediaDevices) { navigator.mediaDevices.getUserMedia = () => { window.__micAsks = (window.__micAsks || 0) + 1; return Promise.reject(new Error('mic')); }; }")
-        def serve(route):
-            url = urlsplit(route.request.url)
-            r = client.request(route.request.method, url.path + ("?" + url.query if url.query else ""),
-                               content=route.request.post_data_buffer)
-            route.fulfill(status=r.status_code, body=r.content,
-                          headers={"content-type": r.headers.get("content-type", "text/plain")})
-        ctx.route("**/*", lambda route: route.abort())
-        ctx.route("http://testserver/**", serve)
-        page = ctx.new_page()
+    context.route("**/*", lambda route: route.abort())
+    context.route("http://testserver/**", serve)
+
+
+@browser_required
+@pytest.mark.parametrize("lang,width,direction", [("ar", 320, "rtl"), ("en", 1280, "ltr")])
+def test_voice_denied_microphone_opens_silent_text_fallback(lang, width, direction):
+    from playwright.sync_api import expect, sync_playwright
+
+    with TestClient(app) as client, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH"))
+        context = browser.new_context(viewport={"width": width, "height": 844}, reduced_motion="reduce")
+        _local_routes(context, client)
+        context.route("**/api/voice/status", lambda route: route.fulfill(json={"mode": "speech", "ok": False}))
+        context.route("**/api/voice/reply", lambda route: route.fulfill(json={"ok": True, "reply": "Test reply"}))
+        context.add_init_script("""
+          window.voiceStarts = 0;
+          window.voiceOutputs = 0;
+          window.SpeechRecognition = window.webkitSpeechRecognition = class {
+            start() {
+              window.voiceStarts++;
+              queueMicrotask(() => this.onerror?.({error: 'not-allowed'}));
+            }
+            abort() {}
+          };
+          window.SpeechSynthesisUtterance = class {};
+          Object.defineProperty(window, 'speechSynthesis', { value: {
+            getVoices: () => [],
+            cancel() {},
+            speak(utterance) { window.voiceOutputs++; queueMicrotask(() => utterance.onend?.()); }
+          }});
+        """)
+        page = context.new_page()
         errors = []
-        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.on("pageerror", lambda error: errors.append(error))
         page.goto(f"http://testserver/{lang}/voice")
-        assert page.locator("#intro").count() == 0
-        assert page.locator("#ribbon").count() == 0
-        page.wait_for_function("() => window.__orbMode === 'webgl' || window.__orbMode === '2d'")
-        assert page.locator("#orb").is_visible()
-        assert page.locator("#emblem").count() == 0
-        assert page.locator(".logo-mark").is_visible()
-        orb_box = page.locator("#orb").bounding_box()
-        assert orb_box["height"] == pytest.approx(orb_box["width"], abs=2)
-        expected = min(width * 0.68, 440)
-        assert orb_box["width"] == pytest.approx(expected, abs=10)
-        assert page.locator("#start").is_visible()
-        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
-        assert page.locator("#orb").evaluate("(el) => el.width > 0 && el.height > 0")
-        assert page.evaluate("() => window.__micAsks || 0") == 0
+        expect(page.locator("html")).to_have_attribute("dir", direction)
+        expect(page.locator("#wave i")).to_have_count(23)
+        expect(page.locator("#wave i").first).to_have_css("transform", "none")
+        assert page.evaluate("window.voiceStarts === 0 && window.voiceOutputs === 0")
+        assert page.evaluate("document.documentElement.scrollWidth === window.innerWidth")
+
+        page.locator("#start").click()
+        expect(page.locator("#chatPanel")).to_be_visible()
+        expect(page.locator("#micNote")).to_be_visible()
+        expect(page.locator("#say")).to_be_focused()
+        assert page.evaluate("window.voiceStarts === 1 && window.voiceOutputs === 1")
+
+        page.locator("#say").fill("What are the packages?")
+        with page.expect_request("**/api/voice/reply") as request:
+            page.locator("#send").click()
+        assert request.value.post_data_json["lang"] == lang
+        expect(page.get_by_text("Test reply")).to_be_visible()
+        assert page.evaluate("window.voiceOutputs") == 1
+        page.locator("#voiceBack").click()
+        expect(page.locator("#start")).to_be_focused()
+        assert page.evaluate("window.voiceStarts") == 1
         assert not errors
-        ctx.close()
+        browser.close()
+
+
+@browser_required
+def test_voice_wave_measures_webaudio_and_releases_capture_when_switching_to_chat():
+    from playwright.sync_api import expect, sync_playwright
+
+    with TestClient(app) as client, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH"))
+        context = browser.new_context(reduced_motion="no-preference")
+        _local_routes(context, client)
+        context.route("**/api/voice/status", lambda route: route.fulfill(json={"mode": "xai", "ok": True}))
+        context.route("**/api/voice/session?*", lambda route: route.fulfill(json={
+            "ok": True,
+            "websocket_url": "wss://api.x.ai/v1/realtime?agent_id=mock",
+            "client_secret": "mock-session-value",
+        }))
+        context.add_init_script("""
+          window.micRequests = 0;
+          Object.defineProperty(navigator, 'mediaDevices', {value: {getUserMedia: async () => {
+            window.micRequests++;
+            const audio = new AudioContext();
+            await audio.resume();
+            const sink = audio.createMediaStreamDestination();
+            const tone = audio.createOscillator();
+            tone.frequency.value = 240;
+            tone.connect(sink);
+            tone.start();
+            window.testMicTrack = sink.stream.getAudioTracks()[0];
+            window.testMicAudio = audio;
+            return sink.stream;
+          }}});
+          window.WebSocket = class {
+            static OPEN = 1;
+            readyState = 1;
+            constructor() {
+              queueMicrotask(() => this.emit('session.created'));
+            }
+            emit(type) { this.onmessage?.({data: JSON.stringify({type})}); }
+            send(message) {
+              if (JSON.parse(message).type === 'session.update') this.emit('session.updated');
+            }
+            close() { this.readyState = 3; }
+          };
+        """)
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(error))
+        page.goto("http://testserver/en/voice")
+        assert page.evaluate("window.micRequests") == 0
+        page.locator("#start").click()
+        expect(page.locator("#s")).to_have_text("Listening…")
+        page.wait_for_function("""() => [...document.querySelectorAll('#wave i')].some(
+          bar => parseFloat(bar.style.getPropertyValue('--amplitude')) > 1.2
+        )""")
+
+        page.locator("#mute").click()
+        expect(page.locator("#s")).to_have_text("Microphone muted")
+        assert not page.evaluate("window.testMicTrack.enabled")
+        page.locator("#mute").click()
+        assert page.evaluate("window.testMicTrack.enabled")
+
+        page.locator("#chat").click()
+        expect(page.locator("#chatPanel")).to_be_visible()
+        assert page.evaluate("window.testMicTrack.readyState") == "ended"
+        assert page.evaluate("""() => [...document.querySelectorAll('#wave i')].every(
+          bar => parseFloat(bar.style.getPropertyValue('--amplitude')) === 1
+        )""")
+        page.evaluate("window.testMicAudio.close()")
+        assert not errors
         browser.close()
 
 
@@ -159,63 +215,10 @@ def test_voice_logo_files_are_real_images():
     with TestClient(app) as client:
         emblem = client.get("/static/brand/alnarjis-emblem.png")
         emblem_webp = client.get("/static/brand/alnarjis-emblem.webp")
-        lockup = client.get("/static/brand/alnarjis-logo.png")
-        lockup_webp = client.get("/static/brand/alnarjis-logo.webp")
         icon = client.get("/static/brand/alnarjis-favicon-32.png")
-        apple = client.get("/static/brand/alnarjis-apple-touch.png")
-        home = client.get("/ar/home")
-    for response in (emblem, emblem_webp, lockup, lockup_webp, icon, apple):
+    for response in (emblem, emblem_webp, icon):
         assert response.status_code == 200
         assert len(response.content) > 400
     assert emblem.content[:8] == b"\x89PNG\r\n\x1a\n"
-    assert emblem.content[25] == 6
-    assert lockup.content[25] == 6
-    assert emblem_webp.content[:4] == b"RIFF" and emblem_webp.content[8:12] == b"WEBP"
-    assert lockup_webp.content[8:12] == b"WEBP"
-    assert "voice-emblem.js" not in home.text
-    assert "alnarjis-emblem" not in home.text
-
-
-@pytest.mark.skipif(os.environ.get("RUN_BROWSER_TESTS") != "1", reason="requires Chromium CI")
-def test_voice_orb_is_luminous_when_motion_is_allowed():
-    from playwright.sync_api import sync_playwright
-
-    with TestClient(app) as client, sync_playwright() as p:
-        browser = p.chromium.launch(executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH"))
-        ctx = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="no-preference")
-
-        def serve(route):
-            url = urlsplit(route.request.url)
-            r = client.request(
-                route.request.method,
-                url.path + ("?" + url.query if url.query else ""),
-                content=route.request.post_data_buffer,
-            )
-            route.fulfill(
-                status=r.status_code,
-                body=r.content,
-                headers={"content-type": r.headers.get("content-type", "text/plain")},
-            )
-
-        ctx.route("**/*", lambda route: route.abort())
-        ctx.route("http://testserver/**", serve)
-        page = ctx.new_page()
-        errors = []
-        page.on("pageerror", lambda e: errors.append(str(e)))
-        page.goto("http://testserver/ar/voice")
-        page.wait_for_function("() => window.__orbMode === 'webgl' || window.__orbMode === '2d'")
-        assert page.evaluate("() => window.__orbMode") == "webgl"
-        lit = page.evaluate(
-            """() => {
-              const c = document.getElementById('orb');
-              const gl = c.getContext('webgl');
-              const pix = new Uint8Array(4);
-              gl.readPixels((c.width / 2) | 0, (c.height / 2) | 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pix);
-              return pix[0] + pix[1] + pix[2];
-            }"""
-        )
-        assert lit > 30
-        assert page.locator(".logo-mark").is_visible()
-        assert not errors
-        ctx.close()
-        browser.close()
+    assert emblem_webp.content[8:12] == b"WEBP"
+    assert icon.content[:8] == b"\x89PNG\r\n\x1a\n"

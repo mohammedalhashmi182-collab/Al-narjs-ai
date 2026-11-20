@@ -176,14 +176,14 @@ def test_no_template_loads_a_retired_font(name: str) -> None:
 
 # The homepage moved to the owner-approved "Najdi" design (preview v3), which
 # deliberately brings IBM Plex Sans Arabic back for that page only.
-@pytest.mark.parametrize("name", [n for n in ALL_TEMPLATES if n != "landing.html"])
+@pytest.mark.parametrize("name", [n for n in ALL_TEMPLATES if n not in ("landing.html", "company.html")])
 def test_no_template_loads_the_retired_font_pairing(name: str) -> None:
     body = read(name)
     assert RETIRED_FONT_LINK not in body, f"{name} still loads the previous font pairing"
     assert "family=Inter" not in body, f"{name} still loads Inter"
 
 
-@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n != "landing.html"])
+@pytest.mark.parametrize("name", [n for n in PUBLIC_TEMPLATES if n not in ("landing.html", "company.html")])
 def test_public_templates_load_cairo(name: str) -> None:
     body = read(name)
     if "fonts.googleapis.com/css2" not in body:
@@ -439,16 +439,20 @@ def test_unknown_department_falls_back_to_the_same_glyph_on_both_sides() -> None
 
 
 # --------------------------------------------------------------------------
-# "Najdi" homepage (owner-approved preview v3): warm black canvas, #FF5A36
-# action, ivory text, IBM Plex Sans Arabic. No purple, no neon.
+# Modern Najdi Intelligence homepage. App and document surfaces keep their
+# own design system contracts.
 # --------------------------------------------------------------------------
 NAJDI_CSS = CSS_DIR / "narjis-najdi.css"
+NAJDI_BRAND_CSS = CSS_DIR.parent / "brand" / "vnext" / "tokens.css"
 NAJDI_TOKENS = {
-    "--nj-ink": "#12100d",
-    "--nj-ivory": "#ffffff",
-    "--nj-accent": ACCENT,
-    "--nj-ivory2": "#b3b3b3",
-    "--nj-ink-soft": "#5a5046",
+    "--narjis-ink": "#12100d",
+    "--narjis-surface": "#1c1915",
+    "--narjis-ivory": "#f4eee2",
+    "--narjis-stone": "#b8ae9c",
+    "--narjis-gold": "#c9a27a",
+    "--narjis-action": ACCENT,
+    "--narjis-action-ink": "#9a321b",
+    "--narjis-secondary-ink": "#5a5046",
 }
 
 
@@ -457,12 +461,13 @@ def _najdi() -> str:
 
 
 def test_landing_declares_the_najdi_theme_colour() -> None:
-    assert f'<meta name="theme-color" content="{NAJDI_TOKENS["--nj-ink"]}">' in read("landing.html")
+    assert f'<meta name="theme-color" content="{NAJDI_TOKENS["--narjis-ink"]}">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
     body = read("landing.html")
     assert "/static/css/narjis-najdi.css" in body
+    assert "/static/brand/vnext/tokens.css" in body
     assert '<body class="nj"' in body
     assert "family=IBM+Plex+Sans+Arabic" in body
     assert 'rel="preload" as="style"' in body
@@ -472,25 +477,29 @@ def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
 
 
 def test_najdi_layer_tokens_and_no_purple() -> None:
+    tokens = NAJDI_BRAND_CSS.read_text(encoding="utf-8").lower()
     css = _najdi()
     for token, value in NAJDI_TOKENS.items():
-        assert f"{token}: {value}" in css, f"missing najdi token {token}"
+        assert f"{token}: {value}" in tokens, f"missing Najdi token {token}"
     for purple in ("#7a5cb8", "#8a6fc4", "#f6f2fb", "purple", "violet", "lavender"):
-        assert purple not in css
+        assert purple not in css + tokens
     assert "prefers-reduced-motion" in css
 
 
 def test_najdi_text_meets_wcag_aa() -> None:
-    ink, ivory = NAJDI_TOKENS["--nj-ink"], NAJDI_TOKENS["--nj-ivory"]
+    ink, ivory = NAJDI_TOKENS["--narjis-ink"], NAJDI_TOKENS["--narjis-ivory"]
     assert _contrast(ivory, ink) >= 7
-    assert _contrast(NAJDI_TOKENS["--nj-ivory2"], ink) >= 4.5
-    assert _contrast(NAJDI_TOKENS["--nj-ink-soft"], ivory) >= 4.5
+    assert _contrast(NAJDI_TOKENS["--narjis-stone"], ink) >= 4.5
+    assert _contrast(NAJDI_TOKENS["--narjis-secondary-ink"], ivory) >= 4.5
+    assert _contrast(NAJDI_TOKENS["--narjis-action-ink"], ivory) >= 4.5
+    assert _contrast(NAJDI_TOKENS["--narjis-gold"], NAJDI_TOKENS["--narjis-surface"]) >= 4.5
     assert _contrast(ACCENT, ink) >= 4.5  # accent buttons carry ink text
 
 
-def test_najdi_hero_uses_the_approved_copy_and_a_real_image() -> None:
+def test_najdi_hero_has_a_bilingual_product_heading_and_a_real_image() -> None:
     body = read("landing.html")
-    assert "اشرح هدفك." in body and "نختار فريقك <em>ونقود التنفيذ.</em>" in body
+    assert '<h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>' in body
+    assert '<h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>' in body
     assert "ناقش هدفك مع الرئيس التنفيذي" in body and "شاهد نموذج تسليم" in body
     assert "base64" not in body
     for img in ("hero-najdi.webp", "hero-najdi-800.webp"):

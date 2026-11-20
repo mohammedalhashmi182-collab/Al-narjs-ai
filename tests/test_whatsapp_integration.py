@@ -327,17 +327,21 @@ class TestWebhookVerification:
             r = await api.post("/webhooks/whatsapp", content=raw)
             assert r.status_code == 403
 
-    async def test_debug_log_flag_does_not_break_rejection(self, api, monkeypatch):
+    async def test_rejected_payload_and_signature_are_never_logged(self, api, monkeypatch, caplog):
         monkeypatch.setenv("WHATSAPP_WEBHOOK_DEBUG", "true")
+        caplog.set_level("INFO", logger="src.interfaces.whatsapp_routes")
         with _creds():
-            raw = json.dumps(_inbound_payload("m1", "كم السعر؟")).encode("utf-8")
+            raw = json.dumps(_inbound_payload("m1", "private-test-message")).encode("utf-8")
+            signature = "sha256=" + "0" * 64
             r = await api.post(
                 "/webhooks/whatsapp",
                 content=raw,
-                headers={"X-Hub-Signature-256": "sha256=" + "0" * 64},
+                headers={"X-Hub-Signature-256": signature},
             )
             assert r.status_code == 403
             assert r.json()["status"] == "invalid_signature"
+            assert "private-test-message" not in caplog.text
+            assert signature not in caplog.text
 
     async def test_health_reports_signature_rejections(self, api):
         with _creds():
@@ -353,8 +357,7 @@ class TestWebhookVerification:
             assert rx["rejected_total"] >= 1
             reject = rx["last_reject"]
             assert reject["reason"] == "signature_mismatch"
-            assert reject["received_prefix"].startswith("sha256=000")
-            assert reject["expected_prefix"]
+            assert set(reject) == {"at", "reason", "body_len"}
             assert reject["body_len"] > 0
             assert TOKEN not in json.dumps(health)
 
