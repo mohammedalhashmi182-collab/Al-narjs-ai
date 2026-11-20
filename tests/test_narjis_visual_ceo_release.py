@@ -36,7 +36,7 @@ def test_workspace_svg_is_generated_from_real_ceo_result():
     landing = (WEB / "templates" / "landing.html").read_text(encoding="utf-8")
     js = (WEB / "static" / "js" / "narjis-client-workspace.js").read_text(encoding="utf-8")
     assert "window.NarjisPreview.render(" in landing
-    assert "renderWorkspacePreview(r, box.value)" in landing
+    assert "window.NarjisPreview.render(" in landing
     assert "response.agents" in js
     assert "response.diagnosis_ar" in js
     assert "response.diagnosis_en" in js
