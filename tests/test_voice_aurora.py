@@ -29,7 +29,7 @@ def test_voice_page_renders_the_advisor_and_waveform(lang, name):
     assert "/static/js/voice-orb.js" not in page.text
     assert "/static/brand/vnext/tokens.css" in page.text
     assert "prefers-reduced-motion" in css.text
-    assert "alnarjis-emblem.png" in page.text
+    assert "brand-narjis-gate.svg" in page.text
 
 
 def test_voice_published_agent_override_is_honest_and_intake_oriented():
