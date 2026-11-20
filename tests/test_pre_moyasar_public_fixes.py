@@ -53,7 +53,7 @@ def test_landing_does_not_claim_card_payments_while_closed():
     assert "بوابة ميسر" not in html
     assert "نهاية الفترة المدفوعة" in html
     assert "/ai-agent/" in html
-    assert "mailto:AlNarjisai@gmail.com" in html
+    assert "mailto:AlNarjisai@gmail.com" not in html
 
 
 def test_cancel_copy_closes_the_team_at_period_end():
