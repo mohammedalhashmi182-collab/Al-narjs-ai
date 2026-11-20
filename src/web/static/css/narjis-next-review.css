@@ -1,0 +1,70 @@
+/* NARJIS | New Gate, 2026-11-20. Experimental review-branch-only visual layer.
+   Reference: owner-approved Ewan architectural hero + control room inspiration.
+   No flowers or plant iconography. No forced orange/black palette.
+   Does not alter APIs, authentication, payments, or worker behavior. */
+:root {
+  --ng-ink:#1b2630; --ng-panel:#24313c; --ng-panel-alt:#2a3843;
+  --ng-text:#f5f1ec; --ng-muted:#c1cbd1; --ng-metal:#d4c7b8;
+  --ng-hair:rgba(220,225,228,.17); --ng-focus:#d9dfeb;
+}
+body.nj {
+  --nj-ink:var(--ng-ink); --nj-ink2:var(--ng-panel);
+  --nj-ivory:var(--ng-text); --nj-ivory2:var(--ng-muted);
+  --nj-ivory3:var(--ng-text); --nj-accent:var(--ng-metal);
+  --nj-mud:var(--ng-metal); --nj-line:var(--ng-hair);
+  background:var(--ng-ink); color:var(--ng-text);
+}
+.nj .nj-nav.solid {background:rgba(27,38,48,.94);border-bottom-color:var(--ng-hair)}
+.nj .btn,.nj .nav-cta,.nj .skip {background:var(--ng-metal);color:#1b2630;box-shadow:none}
+.nj .btn:hover {box-shadow:0 14px 36px rgba(7,15,24,.20)}
+.nj .btn-login,.nj .btn-sec {border-color:rgba(220,225,228,.33)}
+.nj .logo img {background:transparent;padding:0;border-radius:9px}
+.nj .hero::after {background:linear-gradient(90deg,rgba(12,23,33,.88),rgba(12,23,33,.32) 70%),linear-gradient(0deg,rgba(12,23,33,.75),transparent 60%)}
+.nj .hero h1,.nj .hero h2 {text-wrap:balance;letter-spacing:-.025em}
+.nj .hero .btn {border:1px solid rgba(255,255,255,.12)}
+.nj .simtag,.nj .badge {color:var(--ng-ink)}
+.nj :focus-visible {outline:3px solid var(--ng-focus);outline-offset:4px}
+@media(prefers-reduced-motion:reduce){
+  .nj *, .nj *::before, .nj *::after {animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+/* Owner control room — restricted to /company template via opt-in body class */
+body.narjis-owner-next {
+ --n-sand:#18232e;--n-sand-2:#263540;--n-cream:#25343e;
+ --n-cream-2:#25343e;--n-brown:#eff2f3;--n-brown-2:#c1cbd1;
+ --n-line:rgba(240,245,248,.14);
+ background:#18232e;color:#eff2f3;
+}
+body.narjis-owner-next main {background:#18232e!important;color:#eff2f3}
+body.narjis-owner-next .n-nav {background:#24313c;border-bottom:1px solid var(--ng-hair)}
+body.narjis-owner-next .n-sidebar {background:#1c2831;border-inline-end:1px solid var(--ng-hair)}
+body.narjis-owner-next main .bg-white,
+body.narjis-owner-next main .bg-gradient-to-r,
+body.narjis-owner-next main .bg-emerald-50,
+body.narjis-owner-next main .bg-cyan-100,
+body.narjis-owner-next main .bg-blue-100,
+body.narjis-owner-next main .bg-amber-50,
+body.narjis-owner-next main .bg-rose-50 {
+ background:#24343f!important;color:#f4f1ed!important;
+ border-color:var(--ng-hair)!important;box-shadow:none!important;
+}
+body.narjis-owner-next main [class*="text-gray-9"],
+body.narjis-owner-next main [class*="text-gray-7"] {color:#f4f1ed!important}
+body.narjis-owner-next main [class*="text-gray-5"],
+body.narjis-owner-next main [class*="text-gray-4"] {color:#becbd2!important}
+body.narjis-owner-next main .rounded-2xl {border-radius:16px}
+body.narjis-owner-next main table {border-collapse:separate;border-spacing:0}
+body.narjis-owner-next main thead {background:#31414d;color:#e7e4df}
+body.narjis-owner-next main tbody tr:hover {background:rgba(211,202,186,.07)}
+body.narjis-owner-next main th,body.narjis-owner-next main td {border-color:var(--ng-hair)!important}
+body.narjis-owner-next main button {transition:transform .18s ease,filter .18s ease}
+body.narjis-owner-next main button:hover {filter:brightness(1.08)}
+body.narjis-owner-next #runCEO {background:#d4c7b8!important;color:#18232e!important}
+body.narjis-owner-next .n-nav h2 {color:#f4f1ed!important}
+@media(max-width:720px){
+ body.narjis-owner-next main {padding:16px!important}
+ body.narjis-owner-next main table {min-width:650px}
+ body.narjis-owner-next main .overflow-x-auto {overflow-x:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ body.narjis-owner-next *,body.narjis-owner-next *::before,body.narjis-owner-next *::after {animation:none!important;transition:none!important}
+}
