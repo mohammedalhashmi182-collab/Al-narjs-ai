@@ -2,6 +2,15 @@
 description: Read-only operational auditor of Google, Salla, Zid, WhatsApp, Telegram, Moyasar and Render integrations.
 mode: subagent
 permissions:
+  - action: read
+    resource: "*.env"
+    effect: deny
+  - action: read
+    resource: "*.env.*"
+    effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: deny
