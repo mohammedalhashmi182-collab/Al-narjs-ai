@@ -57,7 +57,7 @@ def test_favicon_ico_route(client):
 
 def test_landing_uses_new_logo(client):
     html = client.get("/ar/home").text
-    assert "/static/logo.svg" in html
+    assert "/static/brand-narjis-gate.svg" in html
     assert 'rel="manifest"' in html
     assert "/static/favicon.svg" in html
     assert "/brand/og-image.jpg" in html

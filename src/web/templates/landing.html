@@ -130,6 +130,7 @@
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap"></noscript>
     <link rel="preload" as="image" href="/static/img/hero-najdi.webp" imagesrcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" imagesizes="100vw" fetchpriority="high">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
+    <link rel="stylesheet" href="/static/css/narjis-next-review.css">
 </head>
 <body class="nj" data-lang="{{ _lang }}">
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
@@ -141,7 +142,7 @@
 
 <header class="nj-nav" id="nav">
     <div class="wrap">
-        <a href="/home" class="logo"><img src="/static/logo.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="32" height="32"><span>{% if ar %}<span class="logo-txt">النرجس <span class="logo-sub">للذكاء الاصطناعي</span></span>{% else %}Al-Narjis <span class="num">AI</span>{% endif %}</span></a>
+        <a href="/home" class="logo"><img src="/static/brand-narjis-gate.svg" alt="{% if ar %}شعار النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI logo{% endif %}" width="32" height="32"><span>{% if ar %}<span class="logo-txt">النرجس <span class="logo-sub">للذكاء الاصطناعي</span></span>{% else %}Al-Narjis <span class="num">AI</span>{% endif %}</span></a>
         <nav class="links" aria-label="{% if ar %}القائمة الرئيسية{% else %}Main navigation{% endif %}">
             <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
             <a href="#results">{% if ar %}نماذج النتائج{% else %}Sample results{% endif %}</a>
@@ -183,19 +184,41 @@
                 <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
             </div>
         </div>
-        <div class="portal" role="group" aria-label="{% if ar %}مثال: من الطلب إلى المخرج{% else %}Example: from request to output{% endif %}">
-            <div class="hc req">
-                <div class="hd"><b>{% if ar %}طلب العميل{% else %}Client request{% endif %}</b><span class="badge">{% if ar %}مثال توضيحي{% else %}Illustrative{% endif %}</span></div>
-                <span class="who">{% if ar %}متجر إلكتروني{% else %}Online store{% endif %}</span>
-                <p>{% if ar %}«عروض الأسعار اللي نرسلها ما أحد يتابعها، ونخسر عملاء.»{% else %}“Nobody follows up on the quotes we send, and we lose customers.”{% endif %}</p>
+        <div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
+            <div class="ng-app-top">
+                <div class="ng-app-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                <b>NARJIS / AI CEO</b>
+                <span>{% if ar %}تشخيص تفاعلي{% else %}Interactive diagnosis{% endif %}</span>
             </div>
-            <div class="hc res">
-                <div class="hd"><b>{% if ar %}المخرج للمراجعة{% else %}Output for review{% endif %}</b><span class="badge">{% if ar %}مثال توضيحي{% else %}Illustrative{% endif %}</span></div>
-                {% if ar %}
-                <ul><li>رسائل متابعة جاهزة بنبرة متجرك</li><li>جدول تذكير لكل عرض سعر</li><li>ملخص أسبوعي بالحالات المفتوحة</li></ul>
-                {% else %}
-                <ul><li>Follow-up messages ready in your store's voice</li><li>A reminder schedule for every quote</li><li>A weekly summary of open cases</li></ul>
-                {% endif %}
+            <form class="ng-app-body" id="ngHeroForm" action="/api/ceo/consult" method="post">
+                <span class="ng-app-eyebrow">{% if ar %}مكتب الرئيس التنفيذي{% else %}THE CEO DESK{% endif %}</span>
+                <h2>{% if ar %}من فكرة إلى فريق عمل مصمم لنشاطك.{% else %}Your business. Your AI team. Your blueprint.{% endif %}</h2>
+                <p>{% if ar %}صف التحدي، وسيقترح الرئيس التنفيذي فريقك ويعرض لك رسمًا واضحًا لما سيحدث بعد التفعيل.{% else %}Describe the challenge and get a tailored team plus a visual plan of what happens after activation.{% endif %}</p>
+                <label class="ng-hero-field" for="ngHeroProblem">{% if ar %}ما أول مشكلة تريد حلّها؟{% else %}What's the first problem you want solved?{% endif %}</label>
+                <textarea id="ngHeroProblem" name="problem" required minlength="8" maxlength="2000" placeholder="{% if ar %}مثال: عندي عيادة وأحتاج تنظيم المواعيد والرد على الاستفسارات ومتابعة الحجوزات...{% else %}Example: I run a clinic and need appointment follow-up and patient enquiry management...{% endif %}"></textarea>
+                <div class="ng-hero-choices" aria-label="{% if ar %}أمثلة قابلة للاختيار{% else %}Choose a prompt example{% endif %}">
+                    {% if ar %}
+                    <button type="button" class="ng-hero-choice" data-ng-example="أدير عيادة طبية وأحتاج تنظيم الحجوزات والرد على استفسارات المرضى">عيادة</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="عندي متجر على سلة وأحتاج متابعة العملاء والطلبات والسلات المتروكة">متجر سلة</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="أدير شركة خدمات وأحتاج متابعة العملاء المحتملين وإعداد عروض الأسعار">شركة خدمات</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="أدير شركة عقارية وأحتاج تأهيل العملاء وترتيب العروض والمتابعات">عقار</button>
+                    {% else %}
+                    <button type="button" class="ng-hero-choice" data-ng-example="I run a medical clinic and need appointment and enquiry management">Clinic</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="I run an online store and need abandoned cart and customer follow-up">Store</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="I manage a service company and need qualified lead and quotation follow-up">Services</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="I run a real estate firm and need lead qualification and follow-up">Property</button>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn ng-hero-submit">
+                    <span>{% if ar %}ابدأ التشخيص وشاهد التصور{% else %}Diagnose & visualize{% endif %}</span>
+                    <span aria-hidden="true">{% if ar %}←{% else %}→{% endif %}</span>
+                </button>
+                <p class="ng-app-proof">{% if ar %}تجربة أولية مجانية، من دون تسجيل. لا تنفيذ ولا إرسال رسائل قبل الموافقة والربط.{% else %}Free initial diagnosis, no sign-up. No integrations or messages until approval.{% endif %}</p>
+            </form>
+            <div class="ng-app-bottom">
+                <span><strong>{% if ar %}01 / تشخيص{% else %}01 / Diagnose{% endif %}</strong>{% if ar %}نفهم هدفك{% else %}Your goal{% endif %}</span>
+                <span><strong>{% if ar %}02 / تخصيص{% else %}02 / Match{% endif %}</strong>{% if ar %}نرشح فريقك{% else %}Your agents{% endif %}</span>
+                <span><strong>{% if ar %}03 / تصور{% else %}03 / Blueprint{% endif %}</strong>{% if ar %}تشاهد النتيجة{% else %}Your visual plan{% endif %}</span>
             </div>
         </div>
     </div>
@@ -354,6 +377,8 @@
                 </div>
             </div>
             <form id="ceoForm" action="/api/ceo/consult" method="post" novalidate>
+                <label for="ceoBusiness">{% if ar %}اسم نشاطك (اختياري — للمعاينة فقط){% else %}Business name (optional, preview only){% endif %}</label>
+                <input id="ceoBusiness" type="text" maxlength="70" autocomplete="organization" placeholder="{% if ar %}مثال: مركز الندى{% else %}e.g. Al Nada Clinic{% endif %}">
                 <label for="ceoProblem">{% if ar %}ما الهدف الذي تريد تحقيقه في عملك؟{% else %}What goal do you want to reach in your business?{% endif %}</label>
                 <textarea id="ceoProblem" name="problem" required minlength="8" maxlength="2000" placeholder="{% if ar %}مثال: نرسل عروض أسعار على واتساب ولا أحد يتابعها، ونخسر عملاء.{% else %}Example: we send quotes on WhatsApp, nobody follows up, and we lose customers.{% endif %}"></textarea>
                 <div class="chips" role="group" aria-label="{% if ar %}أمثلة{% else %}Examples{% endif %}">
@@ -374,6 +399,7 @@
             <div class="ceo-result" id="ceoResult" hidden aria-live="polite">
                 <h3>{% if ar %}تشخيص الرئيس التنفيذي{% else %}The CEO's diagnosis{% endif %}</h3>
                 <p class="ceo-diag" id="ceoDiag"></p>
+                <section id="ceoWorkspace" class="ng-workspace" aria-label="{% if ar %}معاينة مساحة العمل المقترحة{% else %}Proposed workspace preview{% endif %}"></section>
                 <b id="ceoTeamTitle"></b>
                 <ul class="ceo-agents" id="ceoAgents"></ul>
                 <div class="ceo-plan">
@@ -448,6 +474,7 @@
 </div>
 
 {% include "partials/_landing_sample_dialog.html" %}
+<script src="/static/js/narjis-client-workspace.js"></script>
 
 
 <script>
@@ -455,6 +482,31 @@
     document.documentElement.classList.add('js');
     var AR = document.body.dataset.lang === 'ar';
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // The primary CTA is a real input, not a separate fake chat. It reuses
+    // the single /api/ceo/consult form and its existing rate limiting.
+    (function () {
+        var heroForm = document.getElementById('ngHeroForm');
+        var heroText = document.getElementById('ngHeroProblem');
+        var target = document.getElementById('ceoProblem');
+        var targetForm = document.getElementById('ceoForm');
+        if (!heroForm || !heroText || !target || !targetForm) return;
+        document.querySelectorAll('[data-ng-example]').forEach(function (choice) {
+            choice.addEventListener('click', function () {
+                heroText.value = choice.getAttribute('data-ng-example') || '';
+                heroText.focus();
+            });
+        });
+        heroForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var value = heroText.value.trim();
+            if (value.length < 8) { heroText.focus(); return; }
+            target.value = value;
+            document.getElementById('ceo').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+            if (typeof targetForm.requestSubmit === 'function') targetForm.requestSubmit();
+            else targetForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        });
+    })();
+
     // Reveal is decoration only: content must never stay invisible.
     var rvs = document.querySelectorAll('.rv');
     function revealAll() { rvs.forEach(function (el) { el.classList.add('in'); }); }
@@ -563,8 +615,47 @@
     }
     billingBtns.forEach(function (b) { b.addEventListener('click', function () { setBilling(b.dataset.billing); }); });
     function sar(h) { return (h / 100).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    // The preview is based on the real CEO diagnosis and catalog-backed agents.
+    // It does NOT create a tenant or execute tasks. Never imply it does.
+    function renderWorkspacePreview(r, problem) {
+        if (window.NarjisPreview) {
+            window.NarjisPreview.render(document.getElementById('ceoWorkspace'), r, problem, (document.getElementById('ceoBusiness').value || '').trim().slice(0,70), AR);
+            return;
+        }
+        var host = document.getElementById('ceoWorkspace');
+        host.replaceChildren();
+        var name = (document.getElementById('ceoBusiness').value || '').trim().slice(0,70);
+        var input = (problem || '').toLowerCase();
+        var sector = /عياد|مركز طبي|مريض|موعد|حجز|clinic|patient|appointment/.test(input) ? 'clinic'
+            : /متجر|سلة|زد|منتج|سلات|store|shop|salla|zid|cart/.test(input) ? 'store'
+            : 'services';
+        var groups = {
+            clinic: AR ? ['المواعيد','استفسارات المرضى','طلبات المتابعة'] : ['Appointments','Patient enquiries','Follow-ups'],
+            store: AR ? ['الطلبات','استفسارات المنتجات','فرص الاستعادة'] : ['Orders','Product enquiries','Recovery opportunities'],
+            services: AR ? ['العملاء المحتملون','عروض الأسعار','المتابعات'] : ['Prospects','Quotations','Follow-ups']
+        };
+        var title = el('h4','ng-preview-title',name || (AR ? 'مساحة عمل شركتك' : 'Your business workspace'));
+        var note = el('p','ng-preview-note',AR
+            ? 'معاينة مقترحة بناءً على وصفك. لا تتضمن بيانات أعمال حقيقية، ولا تنفّذ مهامًا أو ترسل رسائل.'
+            : 'Suggested layout based on your description. No live business data, task execution, or messages.');
+        var badge = el('span','ng-preview-badge',AR ? 'تصور توضيحي · غير مفعل' : 'Illustrative · not activated');
+        var cards = el('div','ng-preview-grid');
+        groups[sector].forEach(function (label) {
+            var card = el('div','ng-preview-card');
+            card.appendChild(el('b',null,label));
+            card.appendChild(el('small',null,AR ? 'بانتظار الربط أو التفعيل' : 'Awaiting integration or activation'));
+            cards.appendChild(card);
+        });
+        var selected = Array.isArray(r.agents) ? r.agents.slice(0,5) : [];
+        var team = el('div','ng-preview-team');
+        team.appendChild(el('b',null,AR ? 'فريقك المقترح' : 'Proposed team'));
+        var names = el('p',null,selected.map(function(a){return AR ? a.title_ar : a.title_en}).filter(Boolean).join(' · '));
+        team.appendChild(names);
+        host.append(title,badge,note,cards,team);
+    }
     function render(r) {
         document.getElementById('ceoDiag').textContent = AR ? r.diagnosis_ar : r.diagnosis_en;
+        renderWorkspacePreview(r, box.value);
         document.getElementById('ceoTeamTitle').textContent = AR
             ? 'الفريق المرشّح: ' + r.agent_count + (r.agent_count === 1 ? ' وكيل' : ' وكلاء') + ' بقيادة الرئيس التنفيذي'
             : 'Proposed team: ' + r.agent_count + ' agent' + (r.agent_count === 1 ? '' : 's') + ' led by the CEO';
@@ -586,8 +677,8 @@
         var sub = document.getElementById('ceoSubscribe');
         var closed = r.offer === false || r.notice === 'payments_closed';
         if (closed) {
-            sub.href = "mailto:AlNarjisai@gmail.com";
-            sub.textContent = AR ? 'راسلنا بالبريد' : 'Email us';
+            sub.href = '/consult';
+            sub.textContent = AR ? 'ناقش الخطوة التالية' : 'Discuss next steps';
             sub.hidden = false;
             sub.style.display = '';
         } else {
@@ -611,7 +702,7 @@
         fetch('/api/ceo/consult', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem: text, lang: AR ? 'ar' : 'en' }) })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(render)
-            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى أو راسلنا على AlNarjisai@gmail.com.' : 'Could not reach the CEO — try again or email AlNarjisai@gmail.com.'; msg.hidden = false; })
+            .catch(function () { msg.textContent = AR ? 'تعذّر الوصول الآن — جرّب مرة أخرى.' : 'Could not reach the CEO — please try again.'; msg.hidden = false; })
             .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
 

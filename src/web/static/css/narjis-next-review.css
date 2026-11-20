@@ -1,0 +1,310 @@
+/* NARJIS AI — architectural edition / 20 Nov 2026
+   Original geometry and restrained Najdi-inspired editorial art direction.
+   This file is a scoped layer: no payment, routing or data semantics changed.
+   Responsive Arabic/English, accessible motion, non-botanical wordmark. */
+:root {
+  --ng-ink:#141516;
+  --ng-deep:#0e1011;
+  --ng-panel:#202224;
+  --ng-panel-alt:#282b2e;
+  --ng-surface:#2c3033;
+  --ng-text:#f4f5f5;
+  --ng-muted:#c3c8cb;
+  --ng-muted-dim:#a5adb3;
+  --ng-action:#ff5a36;
+  --ng-line:rgba(228,231,234,.16);
+  --ng-focus:#f4f5f5;
+  --ng-radius:18px;
+}
+.nj {
+  --nj-ink:var(--ng-ink);
+  --nj-ink2:var(--ng-panel);
+  --nj-ivory:var(--ng-text);
+  --nj-ivory2:var(--ng-muted);
+  --nj-ivory3:var(--ng-text);
+  --nj-accent:var(--ng-action);
+  --nj-mud:var(--ng-action);
+  --nj-line:var(--ng-line);
+  background:var(--ng-ink);
+  color:var(--ng-text);
+  font-family:"IBM Plex Sans Arabic","IBM Plex Sans",system-ui,sans-serif;
+}
+.nj .nj-nav.solid {
+  background:rgba(14,16,17,.94);
+  border-bottom:1px solid var(--ng-line);
+  box-shadow:0 15px 35px rgba(0,0,0,.15);
+}
+.nj .logo {font-weight:700;letter-spacing:-.02em}
+.nj .logo img {background:transparent;padding:0;border-radius:7px;width:40px;height:40px}
+.nj .logo-txt {filter:drop-shadow(0 0 9px rgba(244,245,245,.12))}
+.nj .hero {
+  min-height:850px;
+  isolation:isolate;
+  border-bottom:1px solid rgba(235,235,235,.12);
+}
+.nj .hero::after {
+  background:linear-gradient(90deg,rgba(10,12,13,.91) 0%,rgba(11,13,14,.82) 36%,rgba(11,13,14,.45) 77%,rgba(11,13,14,.72) 100%),linear-gradient(0deg,rgba(12,13,14,.82),transparent 65%);
+}
+[dir="rtl"] .nj .hero::after {
+  background:linear-gradient(270deg,rgba(10,12,13,.92) 0%,rgba(11,13,14,.82) 36%,rgba(11,13,14,.45) 77%,rgba(11,13,14,.72) 100%),linear-gradient(0deg,rgba(12,13,14,.82),transparent 65%);
+}
+.nj .hero>.wrap {
+  max-width:1360px;
+  min-height:850px;
+  grid-template-columns:minmax(0,1fr) minmax(370px,.91fr);
+  gap:clamp(20px,5vw,82px);
+  padding-top:115px;
+  padding-bottom:65px;
+}
+.nj .hero .copy {max-width:680px}
+.nj .hero .display {font-size:clamp(45px,5.8vw,88px);line-height:1.17;letter-spacing:-.05em;text-wrap:balance;font-weight:700}
+.nj .hero .display em {color:#ff795a;text-shadow:0 0 38px rgba(255,90,54,.17);font-style:normal}
+.nj .hero .lead {font-size:clamp(17px,1.7vw,21px);max-width:550px;line-height:1.95;color:#e1e3e4}
+.nj .hero .eyebrow {color:#e6e8e9;letter-spacing:.01em}
+.nj .hero .ctas {gap:12px;flex-wrap:wrap}
+.nj .btn,.nj .nav-cta,.nj .skip {background:#ff5a36;color:#141516;border-radius:9px;border:1px solid rgba(255,255,255,.13);box-shadow:none}
+.nj .btn:hover {box-shadow:0 13px 30px rgba(255,90,54,.2)}
+.nj .btn-sec,.nj .btn-login {border-color:rgba(230,232,235,.38)}
+.nj .btn-sec:hover,.nj .btn-login:hover {border-color:#f4f5f5}
+.nj :focus-visible {outline:3px solid var(--ng-focus);outline-offset:4px}
+.nj .simtag {color:#ff7f61}
+.nj .badge {background:#ff5a36;color:#161616}
+/* An interactive CEO intake occupies the old illustrative hero portal */
+.nj .ng-ceo-portal {
+  width:100%;max-width:580px;
+  align-self:center;justify-self:end;
+  display:block;
+  padding:0;
+  border:1px solid rgba(236,238,239,.24);
+  border-radius:22px;
+  background:rgba(19,21,22,.89);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+  box-shadow:0 35px 96px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);
+  overflow:hidden;
+}
+.nj .ng-app-top {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:15px;padding:18px 22px;background:rgba(35,37,40,.75);
+  border-bottom:1px solid var(--ng-line);
+}
+.nj .ng-app-dots {display:flex;align-items:center;gap:7px}
+.nj .ng-app-dots i {width:7px;height:7px;background:#71777b;border-radius:50%;display:block}
+.nj .ng-app-top b {font-family:"IBM Plex Sans",sans-serif;font-size:12px;letter-spacing:.13em;color:#e4e8ea}
+.nj .ng-app-top span {font-size:11px;color:#bfc6cb}
+.nj .ng-app-body {padding:clamp(22px,3vw,38px)}
+.nj .ng-app-eyebrow {display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:#ff977e;letter-spacing:.04em}
+.nj .ng-app-eyebrow::before {content:"";width:24px;height:1px;background:#ff5a36;display:inline-block}
+.nj .ng-app-body h2 {font-size:clamp(24px,3vw,36px);line-height:1.45;margin:15px 0 9px;color:#f4f5f5;font-weight:700;letter-spacing:-.035em}
+.nj .ng-app-body>p {color:#cad0d4;font-size:14px;line-height:1.85;margin:0 0 25px}
+.nj .ng-hero-field {display:block;font-size:14px;font-weight:700;color:#f2f3f4;margin:0 0 9px}
+.nj #ngHeroProblem {
+  width:100%;min-height:128px;resize:vertical;
+  padding:18px;background:#101214;color:#f4f5f5;
+  border:1px solid #565c60;border-radius:10px;
+  font:500 16px/1.8 "IBM Plex Sans Arabic",system-ui,sans-serif;
+}
+.nj #ngHeroProblem::placeholder {color:#b9bfc4}
+.nj #ngHeroProblem:focus-visible {outline:2px solid #f4f5f5;outline-offset:2px}
+.nj .ng-hero-choices {display:flex;gap:8px;flex-wrap:wrap;margin:13px 0 22px}
+.nj .ng-hero-choice {
+  padding:8px 12px;border:1px solid #565b60;border-radius:7px;
+  background:#2b2e30;color:#f2f3f4;font:inherit;font-size:13px;cursor:pointer;
+}
+.nj .ng-hero-choice:hover,.nj .ng-hero-choice:focus-visible {border-color:#ff795a;color:#fff}
+.nj .ng-hero-submit {width:100%;display:flex;justify-content:space-between;align-items:center;min-height:54px;font-size:16px}
+.nj .ng-app-proof {margin-top:15px;font-size:12px;color:#bfc6ca;line-height:1.8}
+.nj .ng-app-bottom {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ng-line)}
+.nj .ng-app-bottom span {
+  padding:15px 12px;text-align:center;
+  font-size:11px;color:#d8dddf;border-inline-end:1px solid var(--ng-line)
+}
+.nj .ng-app-bottom span:last-child {border:0}
+.nj .ng-app-bottom strong {display:block;font-size:12px;color:#fff;font-weight:700;margin-bottom:4px}
+/* CEO results: actual backend diagnosis + responsive, illustrated business workspace */
+.nj .ceo-box {max-width:1100px;padding:clamp(20px,3vw,43px);border:1px solid #45494b;border-radius:21px;background:#1b1d1f}
+.nj .ceo-result {border-color:var(--ng-line)}
+.nj #ceoBusiness {display:block;width:100%;background:#111315;color:#f4f5f5;border:1px solid #656a6e;border-radius:9px;padding:13px 16px;margin:6px 0 18px;font:inherit;min-height:48px}
+.nj #ceoBusiness::placeholder {color:#b0b9be}
+.nj #ceoBusiness:focus-visible {outline:3px solid var(--ng-focus)}
+.nj .ng-workspace {width:100%;margin:23px 0 26px;padding:0;border:0;background:transparent;overflow:visible}
+.nj .ng-visual-shell {border:1px solid #43494d;border-radius:21px;background:#181a1c;overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.28)}
+.nj .ng-workspace-heading {display:flex;justify-content:space-between;align-items:start;gap:14px;padding:24px clamp(17px,3vw,30px) 13px}
+.nj .ng-kicker {font:700 11px/1.6 "IBM Plex Sans",sans-serif;letter-spacing:.13em;color:#ff8a6f}
+.nj .ng-preview-title {margin:9px 0!important;font-size:clamp(21px,3vw,32px)!important;line-height:1.32!important;color:#fff}
+.nj .ng-preview-badge {display:inline-block;flex:none;padding:7px 12px;border:1px solid #777b7e;border-radius:8px;color:#e5e8ea;font-size:11px;line-height:1.5}
+.nj .ng-preview-note {font-size:14px;line-height:1.8;color:#cbd1d5;margin:8px 0!important}
+.nj .ng-vertical-tabs {display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px clamp(17px,3vw,30px) 19px}
+.nj .ng-sector-choice {padding:9px 16px;background:#292c2f;color:#e4e8ea;border:1px solid #4a5054;border-radius:8px;font:inherit;font-size:13px;cursor:pointer}
+.nj .ng-sector-choice[aria-pressed="true"] {background:#ff5a36;color:#151515;border-color:#ff5a36;font-weight:700}
+.nj .ng-sector-choice:hover {filter:brightness(1.13)}
+.nj .ng-mini-dash {margin:0 clamp(17px,3vw,30px);border:1px solid #42484b;border-radius:14px;overflow:hidden;background:#202325}
+.nj .ng-dash-title {padding:14px 19px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #42484b;color:#f4f5f5}
+.nj .ng-dash-title strong {font-size:15px}
+.nj .ng-dash-dot {background:#ff5a36;width:8px;height:8px;display:inline-block;border-radius:2px}
+.nj .ng-dash-right {margin-inline-start:auto;font:500 12px/1.5 "IBM Plex Sans",sans-serif;color:#c5cace}
+.nj .ng-preview-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px}
+.nj .ng-preview-card {background:#2a2d30;min-height:104px;border:1px solid #44494e;border-radius:10px;padding:17px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.nj .ng-preview-card strong {font-size:15px;color:#f4f5f5;font-weight:700}
+.nj .ng-preview-card small {font-size:12px;color:#c3c9cc;line-height:1.65}
+.nj .ng-dash-footer {display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#c8cdd0;font-size:12px;padding:14px 19px;border-top:1px solid #42484b}
+.nj .ng-flow-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:27px clamp(17px,3vw,30px) 12px}
+.nj .ng-flow-heading h5 {font-size:17px;font-weight:700;color:#f4f5f5;margin:0}
+.nj .ng-download-blueprint {font:inherit;font-size:13px;font-weight:700;color:#fff;background:#34383b;border:1px solid #5c6266;border-radius:8px;padding:10px 14px;cursor:pointer}
+.nj .ng-download-blueprint:hover {border-color:#ff5a36}
+.nj .ng-blueprint-scroll {overflow-x:auto;overflow-y:hidden;margin:0 clamp(17px,3vw,30px);border-radius:13px;scrollbar-color:#747a7e #202224}
+.nj .ng-blueprint-scroll svg {width:100%;min-width:620px;height:auto;display:block;background:#181a1c;border-radius:14px}
+.nj .ng-preview-team {margin-top:19px;padding:19px clamp(17px,3vw,30px) 26px;border-top:1px solid #42484b}
+.nj .ng-preview-team strong {display:block;color:#f2f5f6;font-size:15px}
+.nj .ng-agent-chips {display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.nj .ng-agent-chips a,.nj .ng-agent-chips span {display:inline-block;padding:7px 11px;background:#2a2d30;color:#e8eef1;border:1px solid #4d555a;border-radius:7px;font-size:13px;text-decoration:none}
+.nj .ng-agent-chips a:hover {border-color:#ff5a36}
+.nj .ng-preview-disclaimer {font-size:12px;color:#c2c9cc;line-height:1.8;margin:11px 0 0!important}
+.nj .ng-msg-alt {font-size:12px;color:#bfc8ce}
+/* Actual owner dashboard, not fictitious KPI tiles; preserved /company API data. */
+body.narjis-owner-next {
+  --n-sand:#131516;--n-sand-2:#202224;--n-cream:#202224;
+  --n-cream-2:#292c2f;--n-brown:#f2f3f4;--n-brown-2:#c3c9cc;
+  --n-line:rgba(233,236,238,.15);--n-gold:#ff5a36;
+  --font-ar:"IBM Plex Sans Arabic","Segoe UI",sans-serif;
+  --font-head:"IBM Plex Sans Arabic","Segoe UI",sans-serif;
+  color:#f2f3f4;background:#131516;
+  font-family:var(--font-ar);
+}
+body.narjis-owner-next main {background:#131516!important;color:#f2f3f4!important;padding:clamp(18px,2.2vw,34px)!important}
+body.narjis-owner-next .n-nav {background:#1b1d1f!important;border-bottom:1px solid var(--ng-line);box-shadow:none}
+body.narjis-owner-next .n-nav h2 {color:#fff!important}
+body.narjis-owner-next .n-sidebar {background:#181a1b!important;border-inline-end:1px solid #3c4042}
+body.narjis-owner-next .n-sidebar a {border-radius:9px;transition:background .18s ease}
+body.narjis-owner-next .n-sidebar a:hover {background:#2a2c2e}
+body.narjis-owner-next .n-sidebar .brand {font-size:15px;font-weight:700}
+body.narjis-owner-next .n-sidebar .brand img {width:40px!important;height:40px!important;background:transparent!important;border-radius:8px!important}
+body.narjis-owner-next main .bg-white,
+body.narjis-owner-next main .bg-gradient-to-r,
+body.narjis-owner-next main .bg-cyan-100,
+body.narjis-owner-next main .bg-blue-100,
+body.narjis-owner-next main .bg-emerald-50,
+body.narjis-owner-next main .bg-amber-50,
+body.narjis-owner-next main .bg-rose-50,
+body.narjis-owner-next main .bg-gray-100 {
+  background:#212427!important;color:#e9ecee!important;border-color:#3f4548!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.11)!important;
+}
+body.narjis-owner-next main [class*="text-gray-9"],
+body.narjis-owner-next main [class*="text-gray-7"] {color:#f2f3f4!important}
+body.narjis-owner-next main [class*="text-gray-5"],
+body.narjis-owner-next main [class*="text-gray-4"] {color:#bec5c8!important}
+body.narjis-owner-next main [class*="text-emerald-"],
+body.narjis-owner-next main [class*="text-blue-"],
+body.narjis-owner-next main [class*="text-rose-"] {color:#f0f2f4!important}
+body.narjis-owner-next main .border-cyan-500,
+body.narjis-owner-next main .border-blue-500,
+body.narjis-owner-next main .border-emerald-500,
+body.narjis-owner-next main .border-amber-500,
+body.narjis-owner-next main .border-t-4 {border-top-color:#ff5a36!important}
+body.narjis-owner-next main .rounded-2xl {border-radius:13px}
+body.narjis-owner-next main .shadow {box-shadow:none!important}
+body.narjis-owner-next main input,
+body.narjis-owner-next main textarea,
+body.narjis-owner-next main select {background:#292d2f;color:#f3f5f6;border-color:#555b5f}
+body.narjis-owner-next main table {border-collapse:separate;border-spacing:0}
+body.narjis-owner-next main table thead {color:#d6dcdf;background:#2b3033}
+body.narjis-owner-next main table th {font-size:12px;font-weight:700;letter-spacing:.015em;white-space:nowrap}
+body.narjis-owner-next main table td {border-color:#3d4447!important;font-size:13px}
+body.narjis-owner-next main tbody tr:hover {background:#2a2d30}
+body.narjis-owner-next main button,
+body.narjis-owner-next main a {transition:filter .15s,transform .15s}
+body.narjis-owner-next main button:hover {filter:brightness(1.1)}
+body.narjis-owner-next #runCEO {background:#ff5a36!important;color:#121212!important;border-radius:9px!important;padding:12px 18px}
+body.narjis-owner-next .ng-owner-hero {
+  position:relative;display:flex;align-items:center;justify-content:space-between;gap:30px;
+  padding:clamp(25px,3.5vw,47px);margin-bottom:27px;border-radius:17px;
+  border:1px solid #45494b;background:radial-gradient(circle at 10% 95%,rgba(255,90,54,.09),transparent 36%),linear-gradient(130deg,#232729,#1a1c1e);
+  overflow:hidden;
+}
+body.narjis-owner-next .ng-owner-hero::after {
+  content:"";position:absolute;inset-inline-end:-36px;top:-110px;
+  width:340px;height:340px;border:2px solid rgba(228,229,231,.10);
+  transform:rotate(45deg);pointer-events:none
+}
+body.narjis-owner-next .ng-owner-eyebrow {font:700 11px/1.8 "IBM Plex Sans",sans-serif;letter-spacing:.16em;color:#ff997f}
+body.narjis-owner-next .ng-owner-hero h1 {font-size:clamp(27px,3.4vw,47px);line-height:1.4;font-weight:700;letter-spacing:-.04em;color:#fff;margin:10px 0}
+body.narjis-owner-next .ng-owner-hero p {font-size:14px;line-height:1.9;color:#cbd1d4;max-width:690px}
+body.narjis-owner-next .ng-owner-actions {display:flex;gap:9px;flex-wrap:wrap;z-index:1}
+body.narjis-owner-next .ng-owner-actions a {display:inline-flex;align-items:center;justify-content:center;padding:11px 15px;color:#f1f2f3;border:1px solid #64686b;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;background:#2b2e30}
+body.narjis-owner-next .ng-owner-actions a:first-child {background:#ff5a36;color:#101112;border-color:#ff5a36}
+body.narjis-owner-next .ng-owner-actions a:hover {filter:brightness(1.1)}
+body.narjis-owner-next .ng-metric-legend {margin:-10px 0 24px;display:flex;flex-wrap:wrap;gap:18px;font-size:12px;color:#c5cbce}
+body.narjis-owner-next .ng-metric-legend span {display:inline-flex;align-items:center;gap:7px}
+body.narjis-owner-next .ng-metric-legend i {width:7px;height:7px;border-radius:50%;display:inline-block;background:#ff5a36}
+body.narjis-owner-next .ng-metric-legend span:last-child i {background:#9ca3a7}
+@media(max-width:1050px) {
+  .nj .hero>.wrap {grid-template-columns:1fr;gap:38px;padding-top:135px;padding-bottom:70px}
+  .nj .ng-ceo-portal {max-width:760px;justify-self:stretch}
+  .nj .hero,.nj .hero>.wrap {min-height:0}
+  .nj .hero-bg {height:100%;object-position:42% 50%}
+  .nj .hero::after,[dir="rtl"] .nj .hero::after {background:linear-gradient(0deg,#111315 5%,rgba(15,17,18,.72) 64%,rgba(15,17,18,.38))}
+}
+@media(max-width:720px) {
+  .nj .hero>.wrap {padding-top:115px}
+  .nj .hero .display {font-size:clamp(37px,8vw,58px)}
+  .nj .ng-app-body {padding:22px}
+  .nj .ng-app-top {padding:14px 19px}
+  .nj .ng-preview-grid {grid-template-columns:1fr}
+  .nj .ng-preview-card {min-height:75px}
+  .nj .ng-workspace-heading {flex-direction:column}
+  .nj .ng-mini-dash {margin:0 13px}
+  .nj .ng-blueprint-scroll {margin:0 13px}
+  .nj .ng-app-bottom span {font-size:10px;padding:12px 8px}
+  body.narjis-owner-next .ng-owner-hero {flex-direction:column;align-items:stretch}
+  body.narjis-owner-next main table {min-width:660px}
+  body.narjis-owner-next main .overflow-x-auto {overflow-x:auto}
+}
+@media(prefers-reduced-motion:reduce) {
+  .nj *,.nj *::before,.nj *::after,
+  body.narjis-owner-next *,body.narjis-owner-next *::before,body.narjis-owner-next *::after {
+    animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;
+  }
+}
+
+/* Owner revenue operating chart. Actual API values only. */
+body.narjis-owner-next .ng-revenue-visual {
+  border:1px solid #43494d;border-radius:18px;overflow:hidden;
+  background:radial-gradient(ellipse at right top,rgba(255,90,54,.065),transparent 54%),#1c2022;
+  padding:clamp(20px,3vw,35px);margin:0 0 28px;
+  box-shadow:0 20px 53px rgba(0,0,0,.15)
+}
+body.narjis-owner-next .ng-revenue-heading {
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  margin-bottom:27px
+}
+body.narjis-owner-next .ng-revenue-heading h2 {
+  color:#fff;font-size:clamp(21px,3vw,29px);font-weight:700;margin:4px 0 7px
+}
+body.narjis-owner-next .ng-revenue-heading p {
+  color:#c7d0d3;font-size:13px;line-height:1.85;margin:0
+}
+body.narjis-owner-next #ng-revenue-source {
+  font:600 11px/1.65 "IBM Plex Sans",system-ui,sans-serif;
+  color:#c8d0d4;border:1px solid #53595d;border-radius:6px;padding:7px 12px
+}
+body.narjis-owner-next .ng-revenue-rows {display:grid;gap:25px}
+body.narjis-owner-next .ng-revenue-row>div:first-child {
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  color:#e9edf0;margin-bottom:10px;font-size:14px
+}
+body.narjis-owner-next .ng-revenue-row b {font-weight:700}
+body.narjis-owner-next .ng-revenue-row span {font-variant-numeric:tabular-nums}
+body.narjis-owner-next .ng-revenue-track {
+  display:block;height:14px;background:#353a3d;border-radius:4px;
+  overflow:hidden;border:1px solid #464e53;
+}
+body.narjis-owner-next .ng-revenue-track>span {
+  display:block;height:100%;width:0%;background:#ff5a36;
+  border-radius:3px;transition:width .35s ease-out
+}
+body.narjis-owner-next .ng-revenue-potential-track>span {background:#9cabb3}
+body.narjis-owner-next .ng-revenue-gap-track>span {background:#65747b}
+@media(prefers-reduced-motion:reduce) {
+ body.narjis-owner-next .ng-revenue-track>span {transition:none!important}
+}

@@ -5,6 +5,34 @@
 {% block page_title %}{% if _lang == 'ar' %}<span>قيادة الشركة</span>{% else %}<span data-inline>Company OS</span>{% endif %}{% endblock %}
 
 {% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/static/css/narjis-next-review.css">
+<script>
+  document.body.classList.add('narjis-owner-next');
+  document.addEventListener('DOMContentLoaded', function () {
+    var mark = document.querySelector('.n-sidebar .brand img');
+    if (mark) mark.src = '/static/brand-narjis-gate.svg';
+  });
+</script>
+
+<section class="ng-owner-hero" aria-label="{% if _lang == 'ar' %}مركز قيادة النرجس{% else %}Narjis command center{% endif %}">
+  <div>
+    <span class="ng-owner-eyebrow">NARJIS / EXECUTIVE CONTROL ROOM</span>
+    <h1>{% if _lang == 'ar' %}مركز قيادة النرجس{% else %}Narjis Command Center{% endif %}</h1>
+    <p>{% if _lang == 'ar' %}قرارات الرئيس التنفيذي، حالة فريق الوكلاء، طلبات العملاء، وفرص الإيرادات من مصادرها الفعلية — في مساحة عمل واحدة.{% else %}CEO decisions, agent operations, client requests and verified revenue signals, together in one workspace.{% endif %}</p>
+  </div>
+  <nav class="ng-owner-actions" aria-label="{% if _lang == 'ar' %}الانتقال السريع{% else %}Quick actions{% endif %}">
+    <a href="/acquisition">{% if _lang == 'ar' %}اكتساب العملاء{% else %}Acquisition{% endif %}</a>
+    <a href="/agents">{% if _lang == 'ar' %}فريق الوكلاء{% else %}Agent team{% endif %}</a>
+    <a href="/executions">{% if _lang == 'ar' %}سجل التنفيذ{% else %}Execution log{% endif %}</a>
+  </nav>
+</section>
+<div class="ng-metric-legend" aria-label="{% if _lang == 'ar' %}دلالة البيانات{% else %}Data legend{% endif %}">
+  <span><i aria-hidden="true"></i>{% if _lang == 'ar' %}المؤشرات تُحمّل من النظام{% else %}Metrics load from the platform{% endif %}</span>
+  <span><i aria-hidden="true"></i>{% if _lang == 'ar' %}البيانات الناقصة تبقى غير معروفة، وليست صفرًا{% else %}Missing data stays unknown, not zero{% endif %}</span>
+</div>
+
 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
     <div>
         <h3 class="text-lg font-bold" style="color:var(--n-brown);">Autonomous Company Operating System</h3>
@@ -64,6 +92,31 @@
     </div>
 </div>
 
+<section class="ng-revenue-visual" aria-label="{% if _lang == 'ar' %}تحليل الإيرادات الفعلية{% else %}Verified revenue breakdown{% endif %}">
+  <div class="ng-revenue-heading">
+    <div>
+      <span class="ng-owner-eyebrow">REVENUE INTELLIGENCE / LIVE DATA</span>
+      <h2>{% if _lang == 'ar' %}الأرقام تُثبت القرار{% else %}Evidence before decisions{% endif %}</h2>
+      <p>{% if _lang == 'ar' %}القيم من لوحة الإيرادات فقط. لا تشمل المبيعات المتوقعة ضمن المحصل فعليًا.{% else %}Source-backed revenue only; potential is never counted as collected.{% endif %}</p>
+    </div>
+    <span id="ng-revenue-source" aria-live="polite">{% if _lang == 'ar' %}جاري قراءة النظام…{% else %}Loading from system…{% endif %}</span>
+  </div>
+  <div class="ng-revenue-rows">
+    <div class="ng-revenue-row">
+      <div><b>{% if _lang == 'ar' %}إيراد موثق{% else %}Verified revenue{% endif %}</b><span id="ng-revenue-verified-label">—</span></div>
+      <div class="ng-revenue-track" id="ng-revenue-verified-track" role="progressbar" aria-label="{% if _lang == 'ar' %}الإيراد الموثق نسبة للهدف{% else %}Verified revenue versus target{% endif %}" aria-valuemin="0" aria-valuenow="0" aria-valuemax="100"><span id="ng-revenue-verified-fill"></span></div>
+    </div>
+    <div class="ng-revenue-row">
+      <div><b>{% if _lang == 'ar' %}فرص محتملة{% else %}Potential (uncollected){% endif %}</b><span id="ng-revenue-potential-label">—</span></div>
+      <div class="ng-revenue-track ng-revenue-potential-track" id="ng-revenue-potential-track" role="progressbar" aria-label="{% if _lang == 'ar' %}الفرص غير المحصلة مقارنة بالهدف{% else %}Potential compared with target{% endif %}" aria-valuemin="0" aria-valuenow="0" aria-valuemax="100"><span id="ng-revenue-potential-fill"></span></div>
+    </div>
+    <div class="ng-revenue-row">
+      <div><b>{% if _lang == 'ar' %}المتبقي من الهدف{% else %}Remaining gap{% endif %}</b><span id="ng-revenue-gap-label">—</span></div>
+      <div class="ng-revenue-track ng-revenue-gap-track" id="ng-revenue-gap-track" role="progressbar" aria-label="{% if _lang == 'ar' %}فجوة تحقيق الهدف{% else %}Target gap{% endif %}" aria-valuemin="0" aria-valuenow="0" aria-valuemax="100"><span id="ng-revenue-gap-fill"></span></div>
+    </div>
+  </div>
+</section>
+
 <div class="bg-gradient-to-r from-emerald-50 to-amber-50 rounded-2xl shadow border-t-4 border-amber-500 mb-8 p-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
@@ -71,7 +124,7 @@
                 {% if _lang == 'ar' %}<span>غرفة عمليات الإيرادات</span>{% else %}<span data-inline>Revenue War Room</span>{% endif %}
             </h3>
             <p class="text-xs text-gray-500">
-                {% if _lang == 'ar' %}<span>الهدف 10,000 ر.س اليوم — المصدق فقط يزداد، والإمكاني يُعرض منفصلاً دون أي تزوير</span>{% else %}<span data-inline>Target 10,000 SAR today — only verified revenue counts; potential is shown separately.</span>{% endif %}
+                {% if _lang == 'ar' %}<span>نحسب الإيرادات المدفوعة الموثقة فقط، ونفصل الفرص المحتملة عن المبالغ المحصلة</span>{% else %}<span data-inline>Target 10,000 SAR today — only verified revenue counts; potential is shown separately.</span>{% endif %}
             </p>
         </div>
         <span id="rev-wave" class="px-2 py-1 text-xs font-bold rounded-full bg-white border border-gray-200 text-gray-700"></span>
@@ -186,10 +239,38 @@
         try {
             const r = await fetch('/api/company/radar?top=10&size=150').then(r => r.json());
             const m = r.metrics || {};
-            document.getElementById('rev-target').textContent = Number(m.target_sar ?? 0).toLocaleString() + ' SAR';
-            document.getElementById('rev-verified').textContent = Number(m.verified_sar ?? 0).toLocaleString() + ' SAR';
-            document.getElementById('rev-gap').textContent = Number(m.gap_sar ?? 0).toLocaleString() + ' SAR';
-            document.getElementById('rev-potential').textContent = Number(m.potential_sar ?? 0).toLocaleString() + ' SAR';
+            // Truthful visualization: missing data is unknown, not assumed zero.
+            const money = value => (typeof value === 'number' && Number.isFinite(value) && value >= 0)
+                ? value.toLocaleString('en') + ' SAR' : '—';
+            const metricValid = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+            const goal = metricValid(m.target_sar) && m.target_sar > 0 ? m.target_sar : null;
+            const known = goal !== null && ['verified_sar','potential_sar','gap_sar'].every(key => metricValid(m[key]));
+            ['verified','potential','gap'].forEach(function (part) {
+                const amount = m[part + '_sar'];
+                const label = document.getElementById('ng-revenue-' + part + '-label');
+                const bar = document.getElementById('ng-revenue-' + part + '-fill');
+                const track = document.getElementById('ng-revenue-' + part + '-track');
+                if (!label || !bar || !track) return;
+                label.textContent = money(amount);
+                if (!goal || !metricValid(amount)) {
+                    track.removeAttribute('aria-valuenow');
+                    track.setAttribute('aria-valuetext', 'Unknown');
+                    bar.style.width = '0%';
+                    return;
+                }
+                const pct = Math.max(0,Math.min(100,Math.round(amount / goal * 100)));
+                track.setAttribute('aria-valuenow', String(pct));
+                track.removeAttribute('aria-valuetext');
+                bar.style.width = pct + '%';
+            });
+            document.getElementById('ng-revenue-source').textContent = known
+                ? 'Company revenue API'
+                : 'Partial or unavailable data';
+
+            document.getElementById('rev-target').textContent = money(m.target_sar);
+            document.getElementById('rev-verified').textContent = money(m.verified_sar);
+            document.getElementById('rev-gap').textContent = money(m.gap_sar);
+            document.getElementById('rev-potential').textContent = money(m.potential_sar);
             document.getElementById('rev-contacts').textContent = (m.required_contacts ?? 0) + ' conversations';
             document.getElementById('rev-wave').textContent = 'Wave size: ' + (r.wave_size ?? (r.top_10 || []).length);
             const tc = r.tier_counts || {};
