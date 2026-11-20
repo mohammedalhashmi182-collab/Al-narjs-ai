@@ -1,6 +1,28 @@
 ---
 description: DeepSeek operations orchestrator for Al-Narjis AI; coordinates coding, media planning and integration audits with evidence.
 mode: primary
+permissions:
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: shell
+    resource: "*"
+    effect: ask
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "narjis-code-engineer"
+    effect: allow
+  - action: subagent
+    resource: "narjis-qa-security"
+    effect: allow
+  - action: subagent
+    resource: "narjis-media-director"
+    effect: allow
+  - action: subagent
+    resource: "narjis-integration-auditor"
+    effect: allow
 ---
 # Al-Narjis AI / DeepSeek Operations Commander
 
