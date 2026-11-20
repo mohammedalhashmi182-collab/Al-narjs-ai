@@ -25,11 +25,12 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
 <link rel="stylesheet" href="/static/css/voice-aurora.css">
+<link rel="stylesheet" href="/static/css/voice-narjis-wave.css">
 </head>
 <body>
 <nav>
-<a class="logo ar-only" href="/ar/home"><img class="logo-mark" src="/static/brand/alnarjis-emblem.png" alt="" width="38" height="38">النرجس <b>للذكاء الاصطناعي</b></a>
-<a class="logo en-only" href="/en/home"><img class="logo-mark" src="/static/brand/alnarjis-emblem.png" alt="" width="38" height="38">Al-Narjis <b>AI</b></a>
+<a class="logo ar-only" href="/ar/home"><img class="logo-mark" src="/static/brand-narjis-gate.svg" alt="" width="38" height="38">النرجس <b>للذكاء الاصطناعي</b></a>
+<a class="logo en-only" href="/en/home"><img class="logo-mark" src="/static/brand-narjis-gate.svg" alt="" width="38" height="38">Al-Narjis <b>AI</b></a>
  <div class="links">
   <a class="ar-only" href="/ar/home">الرئيسية</a><a class="en-only" href="/en/home">Home</a>
   <a class="ar-only" href="/ar/pricing">الباقات</a><a class="en-only" href="/en/pricing">Plans</a>
@@ -39,6 +40,49 @@
  <a class="cta en-only" href="/ar/voice">العربية</a>
 </nav>
 <main>
+ <div class="video voice-stage" id="vid" role="img" aria-label="موجات تفاعل مستشار النرجس الصوتي">
+  <span class="voice-stage-eyebrow" aria-hidden="true">NARJIS VOICE</span>
+  <div class="voice-stage-wordmark" aria-hidden="true">النرجس</div>
+  <div class="voice-stage-ribbon" aria-hidden="true">
+   <i style="--ng-wave-index:0;--ng-wave-height:12px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:1;--ng-wave-height:14px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:2;--ng-wave-height:17px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:3;--ng-wave-height:21px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:4;--ng-wave-height:24px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:5;--ng-wave-height:27px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:6;--ng-wave-height:31px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:7;--ng-wave-height:34px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:8;--ng-wave-height:37px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:9;--ng-wave-height:40px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:10;--ng-wave-height:43px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:11;--ng-wave-height:46px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:12;--ng-wave-height:48px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:13;--ng-wave-height:50px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:14;--ng-wave-height:52px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:15;--ng-wave-height:53px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:16;--ng-wave-height:54px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:17;--ng-wave-height:54px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:18;--ng-wave-height:54px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:19;--ng-wave-height:54px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:20;--ng-wave-height:53px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:21;--ng-wave-height:52px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:22;--ng-wave-height:50px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:23;--ng-wave-height:48px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:24;--ng-wave-height:46px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:25;--ng-wave-height:43px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:26;--ng-wave-height:40px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:27;--ng-wave-height:37px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:28;--ng-wave-height:34px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:29;--ng-wave-height:31px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:30;--ng-wave-height:27px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:31;--ng-wave-height:24px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:32;--ng-wave-height:21px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:33;--ng-wave-height:17px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:34;--ng-wave-height:14px" aria-hidden="true"></i>
+   <i style="--ng-wave-index:35;--ng-wave-height:12px" aria-hidden="true"></i>
+  </div>
+  <span class="voice-stage-sub" aria-hidden="true">INTELLIGENCE IN MOTION</span>
+ </div>
  <section class="hero">
   <h1 class="ar-only">مستشار النرجس الذكي</h1>
   <h1 class="en-only">Al-Narjis AI advisor</h1>
@@ -72,23 +116,19 @@
    <div id="fallback" class="fallback" hidden>
     <p id="fallbackMsg"></p>
     <p class="fallback-links">
-     <span class="ar-only">راسلنا أو اتصل:</span>
-     <span class="en-only">Email or call us:</span>
-     <a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a>
-     <a href="tel:+966540799266" dir="ltr">0540799266</a>
+     <span class="ar-only">تابع عبر المستشار المكتوب:</span>
+     <span class="en-only">Continue with our AI consultation:</span>
+     <a class="ar-only" href="/ar/consult">المستشار الذكي</a>
+     <a class="en-only" href="/en/consult">AI consultation</a>
+     <a href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">WhatsApp</a>
     </p>
    </div>
   </div>
  </section>
 </main>
 <p class="always" id="alwaysContact">
- <span class="ar-only">إذا تعذّرت المكالمة:</span>
- <span class="en-only">If the call cannot start:</span>
- <a href="mailto:AlNarjisai@gmail.com" dir="ltr">AlNarjisai@gmail.com</a>
- <span aria-hidden="true">·</span>
- <a href="tel:+966540799266" dir="ltr">0540799266</a>
- <span class="ar-only">· <a href="/ar/privacy">الخصوصية</a></span>
- <span class="en-only">· <a href="/en/privacy">Privacy</a></span>
+ <span class="ar-only">إذا تعذّرت المكالمة: <a href="/ar/consult">تابع بالمحادثة</a> · <a href="/ar/privacy">الخصوصية</a></span>
+ <span class="en-only">If the call cannot start: <a href="/en/consult">Continue by chat</a> · <a href="/en/privacy">Privacy</a></span>
 </p>
 <script src="/static/js/voice-live-app.js"></script>
 </body></html>
