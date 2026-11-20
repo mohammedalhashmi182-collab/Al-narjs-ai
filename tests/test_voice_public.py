@@ -115,7 +115,7 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert "Start the call" in _visible(en.text)
     assert "Al-Narjis AI advisor" in _visible(en.text)
     assert "تحدّث مع" not in _visible(en.text)
-    assert f"mailto:{SUPPORT_EMAIL}" in ar.text
+    assert f"mailto:{SUPPORT_EMAIL}" not in ar.text
     assert "https://wa.me/966552978753" in ar.text
     assert "tel:" not in ar.text
     assert "elevenlabs" not in ar.text.lower()
