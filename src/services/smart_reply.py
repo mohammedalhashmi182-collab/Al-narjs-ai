@@ -91,7 +91,7 @@ def plan_lines(plan_key: str, addons: int = 0) -> str:
     extra = f" مع {addons} وكيل إضافي" if addons else ""
     return (
         f"باقة «{pkg['name']}»{extra}: {_sar(monthly)} ريال شهرياً، "
-        f"أو {_sar(annual)} ريال سنوياً (تدفع 10 أشهر وتاخذ 12). "
+        f"أو {_sar(annual)} ريال سنوياً. "
         f"تشمل {pkg['limits']['conversations']:,} محادثة ذكية شهرياً"
         + (f" و{pkg['limits']['voice_minutes']} دقيقة صوت عند إطلاق الوكيل الصوتي (قريباً)" if pkg['limits']['voice_minutes'] else "")
         + f"، ورسوم ميتا مشمولة حتى {_sar(pkg['limits']['meta_cap'])} ريال. "

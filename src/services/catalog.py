@@ -283,7 +283,7 @@ META_FEE_RATES = {
 }
 
 # ---------------------------------------------------------------------
-#  Billing periods. Annual = pay for 10 months, get 12 (2 months free).
+#  Billing periods. Annual is billed as 10 months of the monthly price for a 12-month term.
 #  ``months_billed`` multiplies the monthly base; ``months_granted`` is the
 #  access period one paid invoice buys.
 # ---------------------------------------------------------------------
