@@ -395,3 +395,4 @@ from src.models.funnel import (  # noqa: E402,F401
 )
 from src.models.rag import KnowledgeChunk  # noqa: E402,F401
 from src.models.capabilities import CapabilityEvalLog, ClientStyleProfile  # noqa: E402,F401
+from src.models.engagement import CustomerEngagement  # noqa: E402,F401

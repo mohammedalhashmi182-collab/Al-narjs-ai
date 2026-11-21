@@ -73,6 +73,8 @@
             <ul class="cc-list" id="leadSources"></ul>
             <h3 class="cc-h2 cc-campaign-title">{{ tr('مصادر الحملات بموافقة الزائر', 'Campaign sources with visitor consent') }}</h3>
             <ul class="cc-list" id="campaignSources"></ul>
+            <h3 class="cc-h2">{{ tr('موجزات الرئيس التنفيذي', 'CEO briefs') }}</h3>
+            <ul class="cc-list" id="engagementStages"></ul>
         </section>
 
         <section class="cc-card cc-wide">
@@ -286,6 +288,9 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
             || emptyList(tr('لا توجد مصادر مسجّلة', 'No recorded sources'));
         $('campaignSources').innerHTML = countedList(d.leads.campaign_sources)
             || emptyList(tr('لا توجد حملات مسجّلة بموافقة الزائر', 'No campaigns recorded with visitor consent'));
+        const engagementStages = (d.leads.engagements && d.leads.engagements.by_stage) || {};
+        $('engagementStages').innerHTML = countedList(engagementStages)
+            || emptyList(tr('لا توجد موجزات بعد', 'No briefs yet'));
 
         $('tUsage').innerHTML = d.usage.customers.map(c =>
             '<tr><td>' + esc(c.client_name) + '</td><td>' + lbl(c.plan) + '</td><td>' + usageCell(c.metrics.conversations)

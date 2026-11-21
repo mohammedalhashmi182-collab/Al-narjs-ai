@@ -59,6 +59,19 @@ def rate_limit_voice_reply(request: Request) -> None:
         )
 
 
+engagement_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=60)
+
+
+def rate_limit_engagement(request: Request) -> None:
+    ok, retry_after = engagement_limiter.check(f"{client_ip(request)}:/api/engagement")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Too many requests", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
 def rate_limit_consult(request: Request) -> None:
     ok, retry_after = consult_limiter.check(f"{client_ip(request)}:/api/consult")
     if not ok:

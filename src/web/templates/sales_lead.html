@@ -96,7 +96,16 @@ async function load(){
     document.getElementById('meta').innerHTML=`${esc(current.phone||'-')} · ${esc(current.email||'-')} · ${esc(current.segment_label||current.segment)}`;
     document.getElementById('badges').innerHTML=prBadge(current.priority)+`<span class="text-xs text-gray-500">${current.lead_status}</span>`;
 
+    const attr=current.attribution||{};
     const facts=[
+        ['المصدر', current.source||'-'],
+        ['قناة الحملة', attr.acquisition_channel||'-'],
+        ['utm_source', attr.utm_source||'-'],
+        ['utm_medium', attr.utm_medium||'-'],
+        ['utm_campaign', attr.utm_campaign||'-'],
+        ['fbclid', attr.fbclid||'-'],
+        ['مرحلة الموجز', current.engagement_stage||'-'],
+        ['تحويل بشري', current.handoff_reason?((current.handoff_channel||'')+' / '+current.handoff_reason):'-'],
         ['القطاع', current.segment_label||current.segment],
         ['آخر نشاط', current.last_activity?current.last_activity.slice(0,10):'-'],
         ['عميل سابق', current.historical_customer?'نعم':'لا'],

@@ -234,7 +234,15 @@ async def _route_to_tenant(session: AsyncSession, project, rec: InboundMessage, 
 
 async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
     """Process one webhook body: status updates and inbound messages."""
-    summary: dict = {"messages_processed": 0, "duplicates_skipped": 0, "status_updates": 0, "mapped_leads": 0, "unmatched": 0}
+    summary: dict = {
+        "messages_processed": 0,
+        "duplicates_skipped": 0,
+        "status_updates": 0,
+        "mapped_leads": 0,
+        "unmatched": 0,
+        "leads_created": 0,
+        "handoff": 0,
+    }
     now_utc = datetime.now(timezone.utc)
 
     for entry in payload.get("entry") or []:
@@ -301,18 +309,40 @@ async def process_inbound_payload(session: AsyncSession, payload: dict) -> dict:
                     continue
 
                 lead = await _map_sender_to_lead(session, sender, wa_id)
+                created = False
+                if lead is None:
+                    from src.services.channel_handoff import ensure_whatsapp_lead
+
+                    profile_name = None
+                    for contact in value.get("contacts") or []:
+                        profile_name = ((contact or {}).get("profile") or {}).get("name") or profile_name
+                    lead, created = await ensure_whatsapp_lead(session, sender=str(sender or wa_id or ""), name=profile_name)
                 if lead is None:
                     rec.processing_status = "unmatched"
                     summary["unmatched"] += 1
                     await session.flush()
                     continue
+                if created:
+                    summary["leads_created"] += 1
 
                 rec.lead_id = lead.id
-                rec.processing_status = "processed"
                 before = lead.lead_status or "NEW"
                 before_status, after_status = promote_lead(
                     lead, rec.intent or "UNKNOWN", rec.buying_signal, rec.objection
                 )
+                if lead.opt_out or after_status == "DO_NOT_CONTACT":
+                    rec.processing_status = "processed"
+                elif created or rec.buying_signal:
+                    from src.services.channel_handoff import queue_human_handoff
+
+                    reason = "high_intent" if rec.buying_signal else "unmatched"
+                    await queue_human_handoff(
+                        session, lead, channel=CHANNEL, reason=reason, message=rec.text or "",
+                    )
+                    rec.processing_status = "handoff"
+                    summary["handoff"] += 1
+                else:
+                    rec.processing_status = "processed"
                 session.add(LeadEvent(
                     lead_id=lead.id,
                     event_type="message_received",
