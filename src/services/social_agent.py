@@ -40,8 +40,7 @@ def compose_post(theme: str, plan_key: str | None = None) -> str:
     if theme == "plan_spotlight" and plan_key in catalog.PACKAGES:
         pkg = catalog.PACKAGES[plan_key]
         return (f"باقة «{pkg['name']}» 🌟\n"
-                f"{_sar(pkg['amount'])} ريال شهرياً، أو {_sar(catalog.plan_amount(plan_key, 'annual'))} ريال سنوياً "
-                f"(ادفع 10 أشهر واحصل على 12).\n"
+                f"{_sar(pkg['amount'])} ريال شهرياً، أو {_sar(catalog.plan_amount(plan_key, 'annual'))} ريال سنوياً.\n"
                 f"تشمل {pkg['limits']['conversations']:,} محادثة شهرياً، ورسوم ميتا حتى {pkg['limits']['meta_cap'] // 100} ريال.\n"
                 f"اكتب لنا مشكلتك ويرشّح لك الرئيس التنفيذي الباقة المناسبة.\n{link}")
     if theme == "problem_solution":
