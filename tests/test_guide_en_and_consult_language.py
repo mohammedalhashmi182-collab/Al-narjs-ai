@@ -29,7 +29,7 @@ async def test_en_guide_is_english_ltr():
         for inner in re.findall(rf"<{tag}[^>]*>(.*?)</{tag}>", page, flags=re.S):
             assert not _AR.search(inner), (tag, inner[:80])
     assert 'A <span class="grad">30-day</span>' in html
-    assert "<title>30-Day Plan — Free Guide | Al-Narjis AI</title>" in html
+    assert "<title>30-Day Plan — Guide | Al-Narjis AI</title>" in html
     assert 'rel="canonical" href="https://alnarjisai.com/en/guide"' in html
     assert 'hreflang="ar" href="https://alnarjisai.com/ar/guide"' in html
     assert 'property="og:url" content="https://alnarjisai.com/en/guide"' in html
@@ -41,7 +41,7 @@ async def test_en_guide_is_english_ltr():
 async def test_ar_guide_stays_arabic_rtl():
     html = await _get("/ar/guide")
     assert '<html lang="ar" dir="rtl"' in html
-    assert "<title>خطة 30 يوماً للذكاء الاصطناعي — دليل مجاني | النرجس للذكاء الاصطناعي</title>" in html
+    assert "<title>خطة 30 يوماً للذكاء الاصطناعي — دليل | النرجس للذكاء الاصطناعي</title>" in html
     assert "30-Day Plan — Free Guide | Al-Narjis AI" not in html
     assert 'rel="canonical" href="https://alnarjisai.com/ar/guide"' in html
     assert 'hreflang="en" href="https://alnarjisai.com/en/guide"' in html
