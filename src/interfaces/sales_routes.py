@@ -46,10 +46,13 @@ from src.services.lead_segmentation import SEGMENT_LABELS_AR
 router = APIRouter()
 templates = Jinja2Templates(directory="src/web/templates")
 from src.services import payments as _vat_pm  # noqa: E402
+from src.services.checkout_link import subscribe_path as _subscribe_path  # noqa: E402
 templates.env.globals.update(vat_rate=_vat_pm.vat_rate, vat_percent=_vat_pm.vat_percent, vat_enabled=_vat_pm.vat_enabled)
 templates.env.globals["page_lang"] = lambda request: request.cookies.get("narjis_lang", "ar")
 templates.env.globals["settings"] = get_settings()
 templates.env.globals["promo_info"] = lambda: {}
+templates.env.globals["payments_open"] = _vat_pm.payments_open
+templates.env.globals["subscribe_path"] = _subscribe_path
 
 
 def _session_factory(request: Request):
