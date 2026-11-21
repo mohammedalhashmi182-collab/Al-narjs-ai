@@ -77,6 +77,13 @@ def _parse_dt(value: Optional[str]) -> Optional[datetime]:
 # Serialization
 # ---------------------------------------------------------------------------
 
+def _raw_field(lead: AcquisitionLead, group: str, key: str):
+    raw = lead.raw_data if isinstance(lead.raw_data, dict) else {}
+    block = raw.get(group) if isinstance(raw.get(group), dict) else {}
+    value = block.get(key)
+    return value if isinstance(value, str) and value else None
+
+
 def _lead_dict(lead: AcquisitionLead) -> dict:
     from src.services.lead_attribution import attribution_summary
 
@@ -96,6 +103,9 @@ def _lead_dict(lead: AcquisitionLead) -> dict:
         "email": lead.email,
         "source": lead.source,
         "attribution": attribution_summary(lead.raw_data),
+        "engagement_stage": _raw_field(lead, "engagement", "stage"),
+        "handoff_reason": _raw_field(lead, "handoff", "reason"),
+        "handoff_channel": _raw_field(lead, "handoff", "channel"),
         "source_sheet": lead.source_sheet,
         "historical_customer": lead.historical_customer,
         "quotation_without_purchase": lead.quotation_without_purchase,

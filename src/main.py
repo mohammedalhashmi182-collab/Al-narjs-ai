@@ -961,6 +961,10 @@ from src.integrations.routes import router as store_integration_router  # noqa: 
 
 app.include_router(store_integration_router)
 
+from src.interfaces.engagement_routes import router as engagement_router  # noqa: E402
+
+app.include_router(engagement_router)
+
 from src.interfaces.ops_routes import api as ops_api, router as ops_router  # noqa: E402
 
 app.include_router(ops_router)
