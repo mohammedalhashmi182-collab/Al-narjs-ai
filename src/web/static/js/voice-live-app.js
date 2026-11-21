@@ -89,6 +89,7 @@
   const waveBars = [];
   for (let index = 0; index < 23; index++) {
     const bar = document.createElement("i");
+    bar.style.setProperty("--n", String(index));
     wave.append(bar);
     waveBars.push(bar);
   }

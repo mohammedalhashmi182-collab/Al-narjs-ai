@@ -28,7 +28,8 @@ def test_spoken_prompt_keeps_prices_and_drops_vat_and_store_claims() -> None:
     assert "1,490 SAR per month" in prompt
     assert "2,990 SAR per month" in prompt
     assert "before any applicable VAT" not in prompt
-    assert "Do not mention VAT" in prompt
+    assert "Prices are final with no VAT added" in prompt
+    assert "Do not mention VAT" not in prompt
     assert "Do not say Salla or Zid" in prompt
     assert "Do not invent clients" in prompt
     assert "Saudi-friendly Arabic" in prompt

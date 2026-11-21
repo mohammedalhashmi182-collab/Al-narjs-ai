@@ -14,7 +14,7 @@
         <div class="sec-head rv">
             <span class="eyebrow">{% if ar %}الباقات{% else %}Plans{% endif %}</span>
             <h2>{% if ar %}ادفع حسب حد الاستخدام الذي تحتاجه{% else %}Pay for the usage limit you need{% endif %}</h2>
-            <p>{% if ar %}الفرق بين الباقات في حد المحادثات الشهري ورسوم ميتا المشمولة. ادفع شهرياً أو سنوياً (تدفع ١٠ أشهر وتحصل على ١٢){% if vat_enabled() %}، وتُضاف ضريبة القيمة المضافة {{ vat_percent() }}٪ عند الدفع. الأسعار قبل الضريبة.{% else %}.{% endif %}{% else %}Plans differ by the monthly conversation cap and the Meta fees we cover. Pay monthly or yearly (pay for 10 months, get 12).{% if vat_enabled() %} {{ vat_percent() }}% VAT is added at checkout. Prices are before VAT.{% else %}{% endif %}{% endif %}</p>
+            <p>{% if ar %}الفرق بين الباقات في حد المحادثات الشهري ورسوم ميتا المشمولة. ادفع شهرياً أو سنوياً (تدفع ١٠ أشهر وتحصل على ١٢). {% if vat_enabled() %}الأسعار قبل ضريبة القيمة المضافة {{ vat_percent() }}٪، وتُضاف الضريبة عند الدفع.{% else %}الأسعار نهائية بدون ضريبة قيمة مضافة، لأن النرجس غير مسجّلة في ضريبة القيمة المضافة.{% endif %}{% else %}Plans differ by the monthly conversation cap and the Meta fees we cover. Pay monthly or yearly (pay for 10 months, get 12). {% if vat_enabled() %}Prices are before {{ vat_percent() }}% VAT, and VAT is added at checkout.{% else %}Prices are final with no VAT added, because Al-Narjis is not VAT-registered.{% endif %}{% endif %}</p>
         </div>
         <div class="billing-toggle rv" id="billingToggle" role="group" aria-label="{% if ar %}دورة الفوترة{% else %}Billing period{% endif %}">
             <div class="seg">

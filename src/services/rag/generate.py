@@ -118,7 +118,7 @@ def extractive(hits: list[dict]) -> str:
     top = sanitize_public_text(str(hits[0]["text"]))
     if len(top) > 700:
         top = top[:700].rsplit(" ", 1)[0] + "…"
-    return f"أهلًا بك 🌿\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
+    return f"أهلًا بك.\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
 
 
 def build_prompt(question: str, hits: list[dict]) -> str:

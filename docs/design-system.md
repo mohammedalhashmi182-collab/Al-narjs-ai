@@ -22,6 +22,8 @@ supports reading rather than competing with it.
 
 Arabic is the primary language and the layout is RTL. Type is **Cairo** (see §5).
 
+The mark is one Najdi gate: three crenellations, a doorway, and the letter N in `#FF5A36`. It replaces the earlier rust star. There is no flower, plant, or purple in the mark. `logo.svg`, `logo-dark.svg`, `favicon.svg` and `brand-narjis-gate.svg` are that same drawing.
+
 ---
 
 ## 2. Core colors (canonical brand tokens)

@@ -1,3 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Al-Narjis AI">
-  <path d="M17 83V33H30V24H40V15H60V24H70V33H83V83H67V53L50 33 33 53V83Z" fill="none" stroke="#f4eee2" stroke-width="4" stroke-linejoin="round"/><path d="M50 44 54 52 63 51 60 59 65 65 57 67 54 75 50 70 46 75 43 67 35 65 40 59 37 51 46 52Z M50 54 55 59 50 64 45 59Z" fill="#ff5a36" fill-rule="evenodd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="النرجس">
+<path fill="#f6f5f4" d="M18 44 30 28 42 44Z"/>
+<path fill="#f6f5f4" d="M38 44 50 16 62 44Z"/>
+<path fill="#f6f5f4" d="M58 44 70 28 82 44Z"/>
+<path fill="#f6f5f4" fill-rule="evenodd" d="M16 42H84V88H16ZM36 56H64V88H36Z"/>
+<path fill="#f6f5f4" d="M40 62H44V80H40Z"/>
+<path fill="#f6f5f4" d="M56 62H60V80H56Z"/>
+<path fill="#ff5a36" d="M44 80 56 62H60L48 80Z"/>
 </svg>

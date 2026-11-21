@@ -51,7 +51,8 @@ def test_voice_prices_always_come_from_checkout_catalog(monkeypatch):
         plan = PACKAGES[key]
         sar = f'{plan["amount"] / 100:,.2f}'.removesuffix(".00")
         assert f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month' in script
-    assert "before any applicable VAT" in script
+    assert "no VAT added" in script
+    assert "before any applicable VAT" not in script
     monkeypatch.setitem(PACKAGES["bidaya"], "amount", 82500)
     revised = voice_live.session_instructions("en")
     assert "البداية (Starter) 825 SAR per month" in revised

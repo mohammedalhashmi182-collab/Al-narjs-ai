@@ -8,9 +8,13 @@
 {% block content %}
 <div class="cc" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}" id="cc">
     <section class="cc-hero">
-        <div>
-            <h1 class="cc-h1">{{ tr('مركز القيادة', 'Owner command center') }}</h1>
-            <p class="cc-mut" id="ccStamp" role="status">{{ tr('جارٍ تحميل المؤشرات…', 'Loading the overview…') }}</p>
+        <div class="cc-identity">
+            <img src="/static/logo.svg" alt="" width="52" height="52">
+            <div>
+                <p class="cc-kicker">{{ tr('النرجس · للمالك', 'Narjis · owner') }}</p>
+                <h1 class="cc-h1">{{ tr('مركز القيادة', 'Owner command center') }}</h1>
+                <p class="cc-mut" id="ccStamp" role="status">{{ tr('جارٍ تحميل المؤشرات…', 'Loading the overview…') }}</p>
+            </div>
         </div>
         <div class="cc-actions" aria-label="{{ tr('إجراءات سريعة', 'Quick actions') }}">
             <button type="button" class="cc-qa" id="ccRefresh">{{ tr('تحديث', 'Refresh') }}</button>
@@ -21,6 +25,7 @@
         </div>
     </section>
 
+    <p class="cc-source">{{ tr('الأرقام أدناه تُقرأ من سجلات الدفع والاشتراكات والعملاء كما هي. لا تُعرض تقديرات غير محسوبة.', 'The figures below are read from payment, subscription and customer records. Nothing here is an invented total.') }}</p>
     <section class="cc-kpis">
         <div class="cc-kpi"><span class="cc-v" id="kMrr">—</span><span class="cc-l">{{ tr('الإيراد الشهري المتكرر المقدّر', 'Estimated monthly recurring revenue') }}</span></div>
         <div class="cc-kpi"><span class="cc-v" id="kRev">—</span><span class="cc-l">{{ tr('مدفوعات هذا الشهر قبل الضريبة', 'Payments this month before tax') }}</span></div>
@@ -32,6 +37,7 @@
     </section>
 
     <div class="cc-grid">
+        <h2 class="cc-band">{{ tr('المالية', 'Finance') }}</h2>
         <section class="cc-card cc-wide">
             <h2 class="cc-h2" id="ordersHeading">{{ tr('تحويلات بنكية وطلبات غير مدفوعة', 'Bank transfers and unpaid orders') }}</h2>
             <p class="cc-mut" id="ordersNote"></p>
@@ -58,6 +64,7 @@
             </table></div>
         </section>
 
+        <h2 class="cc-band">{{ tr('العملاء', 'Customers') }}</h2>
         <section class="cc-card" id="fCard" hidden>
             <h2 class="cc-h2">{{ tr('مقاعد العملاء المؤسسين', 'Founding customer seats') }}</h2>
             <div class="cc-bar"><span id="fBar"></span></div>
@@ -75,6 +82,7 @@
             <ul class="cc-list" id="campaignSources"></ul>
         </section>
 
+        <h2 class="cc-band">{{ tr('التشغيل', 'Operations') }}</h2>
         <section class="cc-card cc-wide">
             <h2 class="cc-h2" id="usageHeading">{{ tr('الاستهلاك لكل عميل', 'Usage by customer') }}</h2>
             <p class="cc-mut">{{ tr('تنبيه عند 80٪ وتجاوز عند 100٪ من حدود الباقة.', 'Warning at 80% and over the limit at 100% of plan usage.') }}</p>
@@ -107,12 +115,16 @@
 
 <style>
 body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)}
-.cc{--ok:#FF5A36;--warn:#ffffff;--bad:#FF5A36;--line:var(--ad-line,rgba(250,250,249,.09));
-    --soft:var(--ad-sand-2,#232020);--txt:var(--ad-text,#fafaf9);--mut:var(--ad-muted,#a8a29e);
-    --acc:var(--odsf-accent,#ff5a36);color:var(--txt);min-width:0;display:flex;flex-direction:column;gap:16px}
+.cc{--ok:#ff5a36;--warn:#f6f5f4;--bad:#ff8f8f;--line:rgba(246,245,244,.1);
+    --soft:#141211;--txt:#f6f5f4;--mut:#a8a29e;
+    --acc:#ff5a36;color:var(--txt);min-width:0;display:flex;flex-direction:column;gap:20px}
 .min-h-screen,main{min-width:0}
-.cc-hero{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end}
-.cc-h1{font-size:24px;font-weight:800;margin:0}
+.cc-hero{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:flex-end;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.cc-identity{display:flex;gap:14px;align-items:center}
+.cc-identity img{width:52px;height:52px;border-radius:14px}
+.cc-kicker{margin:0 0 4px;color:var(--acc);font-size:12px;font-weight:700;letter-spacing:.12em}
+.cc-h1{font-size:28px;font-weight:700;margin:0;letter-spacing:-.02em}
+.cc-source{margin:0;color:var(--mut);font-size:13px;max-width:68ch}
 .cc-h2{font-size:15px;font-weight:700;margin:0 0 10px}
 .cc-campaign-title{margin-top:12px}
 .cc-mut{color:var(--mut);font-size:13px;margin:2px 0 8px}
@@ -120,14 +132,15 @@ body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)
 .cc-qa,.cc-btn{display:inline-flex;align-items:center;padding:7px 13px;border-radius:9px;font-size:13px;font-weight:600;
     border:1px solid var(--line);background:var(--soft);color:var(--txt);cursor:pointer;text-decoration:none;white-space:nowrap}
 .cc-qa:hover{border-color:var(--acc)}
-.cc-btn{background:var(--acc);border-color:var(--acc);color:#fff;padding:5px 11px;font-size:12.5px}
+.cc-btn{background:var(--acc);border-color:var(--acc);color:#12100d;padding:5px 11px;font-size:12.5px}
 .cc-btn:disabled,.cc-qa:disabled{opacity:.5;cursor:default}
 .cc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .cc-kpi{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px}
 .cc-kpi.warn .cc-v{color:var(--warn)} .cc-kpi.bad .cc-v{color:var(--bad)} .cc-kpi.ok .cc-v{color:var(--ok)}
 .cc-v{font-size:22px;font-weight:800} .cc-l{font-size:12px;color:var(--mut)}
 .cc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.cc-card{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.cc-band{grid-column:1/-1;margin:12px 0 0;font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--mut)}
+.cc-card{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
 .cc-wide{grid-column:1/-1}
 .cc-scroll{overflow-x:auto}
 .cc-t{width:100%;border-collapse:collapse;font-size:13px}

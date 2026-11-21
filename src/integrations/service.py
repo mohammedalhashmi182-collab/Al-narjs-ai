@@ -21,7 +21,7 @@ from src.models.store_integration import StoreConnection, StorePolicy, StoreWebh
 
 log = logging.getLogger(__name__)
 
-_GREET = "أهلًا بك 🌿\n"
+_GREET = "أهلًا بك.\n"
 _TAIL = "\n\nإذا عندك سؤال ثاني أنا حاضر."
 _POLICY_LABELS = {"shipping": "الشحن والتوصيل", "returns": "الاسترجاع", "payment": "الدفع"}
 # Same sentence for a missing order, a phone mismatch, and a masked marketplace

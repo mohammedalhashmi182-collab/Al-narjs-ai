@@ -62,6 +62,7 @@ def _payment_fact() -> str:
 
 def build_consult_system_prompt(*, locale: str, packages_text: str, employees_text: str) -> str:
     """Build the Al-Narjis consultant system prompt for the given visitor locale."""
+    from src.services.vat_copy import tax_en
     lang_instr = (
         "Respond in Modern Standard Arabic (اللغة العربية الفصحى) unless the visitor "
         "explicitly writes in another language, and keep short clear headings and bullets. "
@@ -91,12 +92,11 @@ Current packages: {packages_text}
 Specialist agents available today: {employees_text}
 
 FIXED FACTS (always true; never contradict them)
-- Tax: the operator is NOT VAT-registered. Plan prices have NO VAT added and are not "VAT inclusive".
-  Never promise tax invoices (فاتورة ضريبية); the receipt is an ordinary invoice, not a tax invoice.
+- Tax: {tax_en()} Never use a different VAT sentence.
 - Setup fee: a separate ONE-TIME fee paid on top of the first month (it is not part of the monthly
   price), charged on monthly AND annual billing alike (there is NO annual waiver). Quote the setup amounts only from the list above.
 - Support: by email at AlNarjisai@gmail.com. The Enterprise plan gets a reply within one business day.
-  There is NO phone support and no phone number, and no round-the-clock assistant;
+  There is NO phone support and no round-the-clock assistant. Do not invent a phone number;
   never say "phone support" or "دعم بالهاتف" even if a plan feature text mentions it.
 {_payment_fact()}
 - Store platforms: write Salla as «سلة» (never «سِلا») and Zid as «زد». Connecting a Salla or Zid store
@@ -132,7 +132,8 @@ OPERATING RULES
 - Fact verification: if the request lacks detail, briefly list the missing inputs before proposing.
 - Hand-off to email: if you cannot answer reliably (unknown fact, account/billing specifics, a
   complaint, or anything needing a human), say so plainly and tell the visitor to email AlNarjisai@gmail.com;
-  the team replies by email. Never offer WhatsApp, Telegram, Messenger, or a phone number.
+  the team replies by email. Public WhatsApp is 0552978753.
+  You may share that number. Never offer Telegram or Messenger, and never invent a phone number.
   Work is delivered by email.
 - Complaints: when the visitor reports a problem with the service or makes a complaint, apologise
   briefly and tell them to email AlNarjisai@gmail.com. Do not invent phone numbers.
@@ -203,8 +204,10 @@ _ASK_CONTACT_EN = "If you'd like our team to follow up, email AlNarjisai@gmail.c
 # Wrong tax claims (operator is not VAT-registered).
 _VAT_CLAIM = re.compile(r"شامل(?:ة)?\s+(?:لـ?\s*)?(?:ال)?ضريبة|فاتورة\s+ضريبية|فواتير\s+ضريبية|"
                         r"incl(?:uding|usive)?\.?\s+(?:of\s+)?VAT|VAT[- ]inclusive|tax\s+invoices?", re.I)
-_VAT_FACT_AR = "الأسعار بدون ضريبة قيمة مضافة (لسنا مسجلين في ضريبة القيمة المضافة حالياً)."
-_VAT_FACT_EN = "Prices carry no VAT (we are not VAT-registered at the moment)."
+def _vat_fact(locale: str) -> str:
+    from src.services.vat_copy import tax_ar, tax_en
+
+    return tax_ar() if locale != "en" else tax_en()
 
 # Third-party systems the model has invented support for. A line naming one is
 # dropped unless the knowledge-base sources for this turn name it too.
@@ -267,7 +270,7 @@ def enforce_reply_policy(reply: str, *, locale: str = "ar", sources: str = "") -
             notes.append(_ASK_CONTACT_AR if ar else _ASK_CONTACT_EN)
             continue
         if _VAT_CLAIM.search(line) and not negated:
-            notes.append(_VAT_FACT_AR if ar else _VAT_FACT_EN)
+            notes.append(_vat_fact("ar" if ar else "en"))
             continue
         if _names_unverified(line, sources):
             notes.append(_INTEG_NOTE_AR if ar else _INTEG_NOTE_EN)

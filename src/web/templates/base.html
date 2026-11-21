@@ -21,12 +21,13 @@
     <style>
         .sidebar { transition: transform 0.3s ease-in-out; }
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
+            /* RTL sidebar sits on the right, so it leaves toward the right. */
+            .sidebar { transform: translateX(100%); }
             .sidebar.open { transform: translateX(0); }
+            [dir="ltr"] .sidebar { transform: translateX(-100%); }
+            [dir="ltr"] .sidebar.open { transform: translateX(0); }
         }
         [dir="ltr"] .sidebar.fixed { left: 0; right: auto; }
-        [dir="ltr"] .sidebar { transform: translateX(-100%); }
-        [dir="ltr"] .sidebar.open { transform: translateX(0); }
     </style>
     {% include "partials/_analytics.html" %}
 </head>
@@ -35,7 +36,7 @@
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar n-sidebar fixed inset-y-0 start-0 z-50 w-64 transform lg:relative lg:translate-x-0">
             <div class="flex flex-col h-full">
-                <div class="p-4 border-b" style="border-color: rgba(230,198,101,0.2);">
+                <div class="p-4 border-b" style="border-color: rgba(246,245,244,0.12);">
                     <div class="brand"><img src="/static/logo.svg" alt="Al-Narjis AI" style="height:32px;width:auto;border-radius:8px;object-fit:contain;flex:0 0 auto;">{% if _lang == 'ar' %}<span>النرجس للذكاء الاصطناعي</span>{% else %}<span data-inline>Al-Narjis AI</span>{% endif %}</div>
                     {% if _lang == 'ar' %}<div class="text-xs mt-1" style="color: rgba(251,248,241,0.6);">منصة وكلاء ذكية</div>{% else %}<div class="text-xs mt-1" style="color: rgba(251,248,241,0.6);" data-inline>Smart Agent Platform</div>{% endif %}
                 </div>
@@ -72,7 +73,7 @@
                         <i class="fas fa-globe w-5 me-3 ms-0"></i> {% if _lang == 'ar' %}<span>الصفحة الرئيسية</span>{% else %}<span data-inline>Landing</span>{% endif %}
                     </a>
                 </nav>
-                <div class="p-4 border-t text-center" style="border-color: rgba(230,198,101,0.2);">
+                <div class="p-4 border-t text-center" style="border-color: rgba(246,245,244,0.12);">
                     <a href="/logout" class="inline-flex items-center gap-2 text-xs font-bold" style="color:#e8836d;">
                         <i class="fas fa-sign-out-alt"></i> {% if _lang == 'ar' %}<span>تسجيل الخروج</span>{% else %}<span data-inline>Logout</span>{% endif %}
                     </a>
