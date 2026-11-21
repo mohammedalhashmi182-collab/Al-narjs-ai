@@ -86,6 +86,11 @@ body:has(#cookieConsent) .nj-voice-launch {
   body:not(.consult-thread):has(#cookieConsent) {
     padding-bottom: calc(148px + env(safe-area-inset-bottom));
   }
+  /* Inset plan cards so the 48px FAB sits in a gutter, not over the first card. */
+  .plans {
+    padding-inline-end: 64px;
+    box-sizing: border-box;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .nj-voice-launch {
