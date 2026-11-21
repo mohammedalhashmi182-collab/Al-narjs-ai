@@ -169,7 +169,7 @@ def build_lines(payment) -> list[dict]:
     """Invoice lines (pre-VAT halalas) reconciling exactly to ``payment.amount``."""
     period = catalog.resolve_billing_period(getattr(payment, "billing_period", None) or "monthly")
     months = catalog.BILLING_PERIODS[period]["months_billed"]
-    period_ar = "سنوي — 12 شهراً بسعر 10" if period == "annual" else "شهري"
+    period_ar = "سنوي" if period == "annual" else "شهري"
     conv = int(getattr(payment, "addon_conversation_packs", 0) or 0)
     voice = int(getattr(payment, "addon_voice_packs", 0) or 0)
     conv_unit = catalog.USAGE_ADDONS["conversations"]["amount"]
@@ -207,7 +207,7 @@ def build_lines(payment) -> list[dict]:
     gross = sum(l["net"] for l in lines)
     diff = int(payment.amount) - gross
     if diff < 0:
-        label = "خصم العملاء المؤسسين" if payment.founding else "خصم"
+        label = "سعر العملاء المؤسسين" if payment.founding else "تسوية سعر"
         lines.append(_line(label, 1, diff))
     elif diff > 0:  # price changed since the order: never invent a line, show the difference
         lines.append(_line("تسوية سعر", 1, diff))

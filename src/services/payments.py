@@ -184,13 +184,11 @@ def order_description(package: str, billing_period: str, addons: int, discount_p
         description += f" + {conversation_packs} × باقة ١٬٠٠٠ محادثة إضافية"
     if voice_packs:
         description += f" + {voice_packs} × باقة ١٠٠ دقيقة صوت إضافية"
-    description += " (اشتراك سنوي: 12 شهراً بسعر 10)" if billing_period == "annual" else " (اشتراك شهري)"
+    description += " (اشتراك سنوي)" if billing_period == "annual" else " (اشتراك شهري)"
     if renewal:
         description += " - تجديد"
     if founding:
-        description += f" (سعر العملاء المؤسسين: خصم {discount_pct}%، بدون رسوم إعداد)"
-    elif discount_pct:
-        description += f" (خصم الإطلاق {discount_pct}%)"
+        description += " (سعر العملاء المؤسسين)"
     if setup_fee:
         description += f" + رسوم إعداد لمرة واحدة {setup_fee // 100} ر.س"
     return description

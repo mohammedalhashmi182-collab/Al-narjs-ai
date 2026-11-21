@@ -43,7 +43,7 @@
   color: #FF5A36;
   font-weight: 800;
 }
-/* Landing keeps the pill above the desktop fold, and above the cookie note. */
+/* Landing keeps the pill above the desktop mobile action bar. */
 .nj .nj-voice-launch {
   bottom: calc(78px + env(safe-area-inset-bottom));
 }
@@ -52,6 +52,40 @@ body:has(#cookieConsent) .nj-voice-launch {
 }
 .nj:has(#cookieConsent) .nj-voice-launch {
   bottom: calc(196px + env(safe-area-inset-bottom));
+}
+/* Mobile: icon-only FAB so the wide label never covers the first pricing card.
+   Sit just above the cookie bar instead of lifting into the content. */
+@media (max-width: 720px) {
+  .nj-voice-launch {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    inset-inline-end: 12px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  .nj-voice-launch span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .nj .nj-voice-launch,
+  body:has(#cookieConsent) .nj-voice-launch,
+  .nj:has(#cookieConsent) .nj-voice-launch {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  body:not(.consult-thread) {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  body:not(.consult-thread):has(#cookieConsent) {
+    padding-bottom: calc(148px + env(safe-area-inset-bottom));
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .nj-voice-launch {
