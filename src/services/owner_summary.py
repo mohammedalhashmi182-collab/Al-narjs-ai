@@ -227,10 +227,17 @@ async def _leads(session) -> dict:
         .join(AcquisitionLead, Payment.lead_id == AcquisitionLead.id)
         .where(Payment.status == "paid")
     )
+    from src.models.engagement import CustomerEngagement
+
+    engagement_rows = (await session.execute(
+        select(CustomerEngagement.stage, func.count()).group_by(CustomerEngagement.stage)
+    )).all()
+    engagements = {str(stage): int(count) for stage, count in engagement_rows}
     return {"pipeline": {s: int(stages.get(s, 0)) for s in PIPELINE_STAGES},
             "lead_status": {k: int(v) for k, v in sorted(statuses.items(), key=lambda kv: str(kv[0]))},
             "by_source": {k: int(v) for k, v in sorted(sources.items())},
             "campaign_sources": {k: int(v) for k, v in sorted(campaign_sources.items())},
+            "engagements": {"by_stage": engagements, "total": int(sum(engagements.values()))},
             "total_leads": int(sum(statuses.values())),
             "paid_leads": paid_leads}
 

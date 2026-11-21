@@ -144,6 +144,15 @@
                 </div>
             {% endcall %}
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="team-grid"></div>
+            <section id="store-panel" class="n-card hidden" style="margin-top:24px;padding:16px">
+                <h3 class="n-title text-lg">{% if _lang == 'ar' %}<span>ربط القراءة مع سلة أو زد</span>{% else %}<span data-inline>Read-only Salla or Zid connection</span>{% endif %}</h3>
+                <p class="text-sm" style="color:var(--n-brown-2)">{% if _lang == 'ar' %}<span>يظهر بعد تفعيل المالك. الربط للقراءة ومتابعة المتجر، وليس جزءاً من نص الباقة العامة قبل ذلك.</span>{% else %}<span data-inline>Shown after the owner enables it. The connection is read-only store follow-up, not part of the public plan text before that.</span>{% endif %}</p>
+                <p id="store-status" class="text-sm"></p>
+                <p>
+                    <a id="salla-install" href="/portal">{% if _lang == 'ar' %}ربط سلة{% else %}Connect Salla{% endif %}</a>
+                    · <a id="zid-install" href="/portal">{% if _lang == 'ar' %}ربط زد{% else %}Connect Zid{% endif %}</a>
+                </p>
+            </section>
             <div class="portal-actions text-center mt-10 flex flex-wrap justify-center gap-4">
                 {% call button(variant='primary', attrs={'id': 'subscribeBtn'}) %}
                     {{ icon('credit-card') }}
@@ -435,6 +444,26 @@
                         wakeAgent(c.dataset.slug);
                     });
                 });
+                loadStores(status);
+            }
+
+            function loadStores(status) {
+                const panel = $('store-panel');
+                if (!panel || !state.projectId || status !== 'active') {
+                    if (panel) panel.classList.add('hidden');
+                    return;
+                }
+                const salla = $('salla-install');
+                const zid = $('zid-install');
+                const base = '/api/portal/projects/' + state.projectId + '/stores/';
+                if (salla) salla.href = base + 'salla/install';
+                if (zid) zid.href = base + 'zid/install';
+                fetch('/api/portal/projects/' + state.projectId + '/store').then(r => r.ok ? r.json() : null).then(data => {
+                    if (!data) { panel.classList.add('hidden'); return; }
+                    panel.classList.remove('hidden');
+                    const rows = (data.connections || []).map(c => (c.platform || '') + (c.store_name ? ': ' + c.store_name : '')).join(' · ');
+                    $('store-status').textContent = rows || txt('لا يوجد متجر مرتبط بعد.', 'No store connected yet.');
+                }).catch(() => panel.classList.add('hidden'));
             }
 
             async function wakeAgent(slug) {

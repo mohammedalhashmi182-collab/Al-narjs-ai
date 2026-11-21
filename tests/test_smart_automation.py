@@ -209,7 +209,7 @@ async def test_whatsapp_inbound_in_review_mode_only_drafts(maker, api, wa_sent):
         assert (await s.execute(select(OutboundMessage))).scalars().all() == []
         pipe = await s.get(LeadPipeline, d.lead_id)
         assert pipe.stage == "qualified" and pipe.plan_key == d.plan_key
-        assert (await s.get(AcquisitionLead, d.lead_id)).source == "whatsapp_inbound"
+        assert (await s.get(AcquisitionLead, d.lead_id)).source == "whatsapp"
 
 
 async def test_duplicate_whatsapp_delivery_does_not_redraft(maker, api, wa_sent):
