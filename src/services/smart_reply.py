@@ -285,6 +285,13 @@ async def handle_inbound(
         return None
     recipient = str(recipient)
     text = (text or "").strip()
+    if channel == "whatsapp" and not lead_id:
+        from src.services.lead_normalize import normalize_phone
+
+        # An unusable sender cannot be followed up. The webhook already stored
+        # the message as unmatched; do not invent a CRM row with a bad phone.
+        if normalize_phone(recipient) is None:
+            return None
     mode = await get_mode(session, channel)
     if mode == "off" or not text:
         return None
