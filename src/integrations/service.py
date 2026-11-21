@@ -268,5 +268,8 @@ async def save_install(session, project_id: UUID, platform: str, token_body: dic
     row.store_ref = info.store_ref
     row.store_name = (info.name or "")[:255] or None
     apply_token_response(row, token_body)
+    from src.integrations.pipeline import record_connection
+
+    await record_connection(session, project_id, platform, row.store_name, row.merchant_id)
     await session.commit()
     log.info("store installed platform=%s project=%s merchant=%s", platform, project_id, row.merchant_id or "")
