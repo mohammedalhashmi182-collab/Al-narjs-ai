@@ -59,6 +59,7 @@
                 <thead class="bg-gray-50 text-gray-500 text-xs">
                     <tr>
                         <th class="text-start p-3">الشركة</th>
+                        <th class="text-start p-3">المصدر</th>
                         <th class="text-start p-3">القطاع</th>
                         <th class="text-start p-3">الأولوية</th>
                         <th class="text-start p-3">لماذا؟</th>
@@ -68,7 +69,7 @@
                     </tr>
                 </thead>
                 <tbody id="leads-body">
-                    <tr><td colspan="7" class="p-6 text-center text-gray-500">جاري التحميل...</td></tr>
+                    <tr><td colspan="8" class="p-6 text-center text-gray-500">جاري التحميل...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -137,11 +138,14 @@ async function loadLeads(){
     if(p)params.set('priority',p); if(s)params.set('status',s); if(q)params.set('q',q);
     const d=await fetch('/api/acquisition/leads?'+params).then(r=>r.json());
     const body=document.getElementById('leads-body');
-    if(!d.leads.length){body.innerHTML='<tr><td colspan="7" class="p-6 text-center text-gray-500">لا توجد نتائج</td></tr>';return;}
+    if(!d.leads.length){body.innerHTML='<tr><td colspan="8" class="p-6 text-center text-gray-500">لا توجد نتائج</td></tr>';return;}
     body.innerHTML=d.leads.map(l=>{
         const reasons=(l.priority_reason||[]).slice(0,3).map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+        const channel=(l.attribution&&l.attribution.acquisition_channel)||'';
+        const stage=l.engagement_stage||l.handoff_reason||'';
         return `<tr class="border-t border-gray-100 hover:bg-gray-50">
             <td class="p-3"><div class="font-semibold">${escapeHtml(l.company_name)}</div><div class="text-xs text-gray-400">${escapeHtml(l.phone||l.email||'-')}</div></td>
+            <td class="p-3 text-xs text-gray-700">${escapeHtml(l.source||'-')}${channel?`<div class="text-gray-400">${escapeHtml(channel)}</div>`:''}${stage?`<div class="text-gray-400">${escapeHtml(stage)}</div>`:''}</td>
             <td class="p-3 text-gray-600">${escapeHtml(l.segment_label||l.segment)}</td>
             <td class="p-3">${prBadge(l.priority)}<div class="text-xs text-gray-400 mt-1">${l.priority_score}</div></td>
             <td class="p-3 text-xs text-gray-600"><ul class="list-disc ps-4 m-0">${reasons}</ul></td>
