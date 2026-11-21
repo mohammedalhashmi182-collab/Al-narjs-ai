@@ -9,7 +9,7 @@
 <div class="cc" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}" id="cc">
     <section class="cc-hero">
         <div class="cc-identity">
-            <img src="/static/logo.svg" alt="" width="52" height="52">
+            <img class="nj-lockup" src="/static/logo.svg" alt="" height="48">
             <div>
                 <p class="cc-kicker">{{ tr('النرجس · للمالك', 'Narjis · owner') }}</p>
                 <h1 class="cc-h1">{{ tr('مركز القيادة', 'Owner command center') }}</h1>
@@ -117,11 +117,11 @@
 body,main.bg-sand{background:var(--ad-sand,#1c1917);color:var(--ad-text,#fafaf9)}
 .cc{--ok:#ff5a36;--warn:#f6f5f4;--bad:#ff8f8f;--line:rgba(246,245,244,.1);
     --soft:#141211;--txt:#f6f5f4;--mut:#a8a29e;
-    --acc:#ff5a36;color:var(--txt);min-width:0;display:flex;flex-direction:column;gap:20px}
+    --acc:var(--nj-accent);color:var(--txt);min-width:0;display:flex;flex-direction:column;gap:20px}
 .min-h-screen,main{min-width:0}
 .cc-hero{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:flex-end;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .cc-identity{display:flex;gap:14px;align-items:center}
-.cc-identity img{width:52px;height:52px;border-radius:14px}
+.cc-identity img{height:48px;width:auto;border-radius:0}
 .cc-kicker{margin:0 0 4px;color:var(--acc);font-size:12px;font-weight:700;letter-spacing:.12em}
 .cc-h1{font-size:28px;font-weight:700;margin:0;letter-spacing:-.02em}
 .cc-source{margin:0;color:var(--mut);font-size:13px;max-width:68ch}

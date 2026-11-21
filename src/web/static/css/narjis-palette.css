@@ -1,0 +1,23 @@
+/* Narjis palette — change colors here only.
+   The wordmark outlines are fixed. Re-run scripts/render_wordmark.py after
+   editing the accent stops so the diamond matches this file.
+   --nj-text is the wordmark on dark. --nj-text-on-light is the same word on light. */
+:root {
+  --nj-bg: #12100d;
+  --nj-surface: #1c1915;
+  --nj-text: #ffffff;
+  --nj-text-on-light: #1a1c20;
+  --nj-accent: #ff5a36;
+  --nj-accent-2: #d93f1e;
+  --nj-accent-gradient: linear-gradient(135deg, #ff5a36 0%, #d93f1e 100%);
+}
+
+.nj-lockup {
+  height: 44px;
+  width: auto;
+  max-width: min(240px, 62vw);
+  object-fit: contain;
+  background: transparent;
+  border-radius: 0;
+  flex: none;
+}

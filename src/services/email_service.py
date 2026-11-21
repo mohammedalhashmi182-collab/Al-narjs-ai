@@ -147,10 +147,8 @@ def _pricing_html() -> str:
 def _welcome_html(name: str) -> str:
     return f"""
     <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e3dcc8;border-radius:14px;overflow:hidden;">
-      <div style="background:#0b3d2e;color:#e6c665;text-align:center;padding:22px;">
-        <div style="font-size:26px;">✺</div>
-        <div style="font-size:20px;font-weight:bold;color:#fff;">النرجس للذكاء الاصطناعي</div>
-        <div style="font-size:12px;letter-spacing:2px;color:#e6c665;">AL-NARJIS AI · RIYADH</div>
+      <div style="background:#12100d;text-align:center;padding:22px 16px;">
+        <img src="https://alnarjisai.com/static/brand/alnarjis-logo.png" alt="النرجس AL-NARJIS AI" width="280" style="max-width:100%;height:auto;border:0;">
       </div>
       <div style="padding:26px;color:#3f3526;font-size:15px;line-height:1.9;">
         <p>أهلاً <b>{name}</b>،</p>
@@ -170,7 +168,7 @@ def _welcome_html(name: str) -> str:
 async def send_welcome(to: str, name: str) -> bool:
     return await send_email(
         to=to,
-        subject="أهلاً بك في النرجس للذكاء الاصطناعي ✺",
+        subject="أهلاً بك في النرجس للذكاء الاصطناعي",
         body=f"""أهلاً {name}،
 
 شكراً لاختيارك النرجس للذكاء الاصطناعي. الدعم عبر البريد AlNarjisai@gmail.com، وتسليم العمل يتم بالبريد.
@@ -183,7 +181,7 @@ Al-Narjis AI · Riyadh""",
 
 _FOLLOWUP_COPY = {
     1: {
-        "subject": "وصلنا طلبك ولم نكمل اختيارك بعد ✺",
+        "subject": "وصلنا طلبك ولم نكمل اختيارك بعد",
         "title": "وصلنا طلبك ولم نكمل اختيارك بعد",
         "cta": "اطلع على الباقات",
     },
@@ -206,10 +204,8 @@ def _followup_html(step: int, name: str) -> str:
     link = _PRICING_LINK
     return f"""
     <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e3dcc8;border-radius:14px;overflow:hidden;">
-      <div style="background:#0b3d2e;color:#e6c665;text-align:center;padding:22px;">
-        <div style="font-size:26px;">✺</div>
-        <div style="font-size:20px;font-weight:bold;color:#fff;">النرجس للذكاء الاصطناعي</div>
-        <div style="font-size:12px;letter-spacing:2px;color:#e6c665;">AL-NARJIS AI · RIYADH</div>
+      <div style="background:#12100d;text-align:center;padding:22px 16px;">
+        <img src="https://alnarjisai.com/static/brand/alnarjis-logo.png" alt="النرجس AL-NARJIS AI" width="280" style="max-width:100%;height:auto;border:0;">
       </div>
       <div style="padding:26px;color:#3f3526;font-size:15px;line-height:1.9;">
         <p>أهلاً <b>{name}</b>،</p>
@@ -270,9 +266,8 @@ def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: i
 
     return f"""
     <div dir="{ 'rtl' if ar else 'ltr' }" style="font-family:Tahoma,Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #d8d0bd;border-radius:14px;overflow:hidden;">
-      <div style="background:#0a0b0e;color:#e6c98a;text-align:center;padding:22px;">
-        <div style="font-size:20px;font-weight:bold;color:#fff;">النرجس للذكاء الاصطناعي</div>
-        <div style="font-size:11px;letter-spacing:2px;color:#c8a45e;">AL-NARJIS AI · RIYADH</div>
+      <div style="background:#12100d;text-align:center;padding:22px 16px;">
+        <img src="https://alnarjisai.com/static/brand/alnarjis-logo.png" alt="النرجس AL-NARJIS AI" width="280" style="max-width:100%;height:auto;border:0;">
       </div>
       <div style="padding:26px;color:#2b2620;font-size:14px;line-height:1.8;">
         <div style="display:flex;justify-content:space-between;font-weight:bold;border-bottom:2px solid #0a0b0e;padding-bottom:10px;">

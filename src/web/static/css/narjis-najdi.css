@@ -43,7 +43,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .nj-nav.solid{background:rgba(18,16,13,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom-color:var(--nj-line)}
 .nj .nj-nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:76px}
 .nj .logo{display:flex;gap:10px;align-items:center;font-weight:700;font-size:20px;white-space:nowrap}
-.nj .logo img{width:36px;height:36px;border-radius:10px;background:transparent;flex:none}
+.nj .logo img{height:44px;width:auto;max-width:min(240px,62vw);border-radius:0;background:transparent;flex:none;object-fit:contain}
 .nj .logo .logo-sub{font-weight:500;color:var(--nj-ivory2)}
 .nj .links{display:flex;gap:clamp(12px,2vw,26px);font-size:15px;color:var(--nj-ivory2)}
 .nj .links a{padding:4px 0;transition:color .2s}

@@ -43,7 +43,7 @@ main {padding-top:28px}
   animation-delay:calc(var(--ng-wave-index,0) * -90ms);
 }
 .voice-stage-ribbon i:nth-child(n+14):nth-child(-n+23) {
-  background:#ff5a36;opacity:.92;
+  background:var(--nj-accent);opacity:.92;
 }
 #vid.listen .voice-stage-ribbon i {
   animation-duration:1.1s;opacity:1;box-shadow:0 0 11px rgba(255,90,54,.45);

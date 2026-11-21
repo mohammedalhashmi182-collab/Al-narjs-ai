@@ -64,10 +64,12 @@ html:has(body.consult-thread) {
 }
 
 .ct-brand img {
-  width: 36px;
-  height: 36px;
+  height: 40px;
+  width: auto;
+  max-width: min(220px, 58vw);
   flex: none;
-  border-radius: 10px;
+  border-radius: 0;
+  object-fit: contain;
 }
 
 .ct-brand-name {

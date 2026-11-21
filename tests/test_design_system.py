@@ -125,9 +125,9 @@ def test_design_doc_exists_and_is_the_source_of_truth() -> None:
 def test_design_css_defines_the_odsf_tokens() -> None:
     body = css()
     for token in (
-        f"--odsf-accent: {ACCENT}",
-        f"--odsf-accent-deep: {ACCENT_DEEP}",
-        f"--tg-blue: {ACCENT}",
+        "--odsf-accent: var(--nj-accent)",
+        "--odsf-accent-deep: var(--nj-accent-2)",
+        "--tg-blue: var(--nj-accent)",
         f"--n-sand: {BG}",
         f"--n-brown: {INK}",
         "--r-bubble: 20px",
@@ -450,7 +450,7 @@ NAJDI_TOKENS = {
     "--narjis-ivory": "#f4eee2",
     "--narjis-stone": "#b8ae9c",
     "--narjis-gold": "#c9a27a",
-    "--narjis-action": ACCENT,
+    "--narjis-action": "var(--nj-accent)",
     "--narjis-action-ink": "#9a321b",
     "--narjis-secondary-ink": "#5a5046",
 }
@@ -481,6 +481,9 @@ def test_najdi_layer_tokens_and_no_purple() -> None:
     css = _najdi()
     for token, value in NAJDI_TOKENS.items():
         assert f"{token}: {value}" in tokens, f"missing Najdi token {token}"
+    palette = (CSS_DIR / "narjis-palette.css").read_text(encoding="utf-8").lower()
+    assert f"--nj-accent: {ACCENT}" in palette
+    assert "--nj-accent-gradient:" in palette
     for purple in ("#7a5cb8", "#8a6fc4", "#f6f2fb", "purple", "violet", "lavender"):
         assert purple not in css + tokens
     assert "prefers-reduced-motion" in css

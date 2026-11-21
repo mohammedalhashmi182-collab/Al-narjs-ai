@@ -37,7 +37,7 @@
         <aside id="sidebar" class="sidebar n-sidebar fixed inset-y-0 start-0 z-50 w-64 transform lg:relative lg:translate-x-0">
             <div class="flex flex-col h-full">
                 <div class="p-4 border-b" style="border-color: rgba(246,245,244,0.12);">
-                    <div class="brand"><img src="/static/logo.svg" alt="Al-Narjis AI" style="height:32px;width:auto;border-radius:8px;object-fit:contain;flex:0 0 auto;">{% if _lang == 'ar' %}<span>النرجس للذكاء الاصطناعي</span>{% else %}<span data-inline>Al-Narjis AI</span>{% endif %}</div>
+                    <div class="brand"><img class="nj-lockup" src="/static/logo.svg" alt="{% if _lang == 'ar' %}النرجس{% else %}Al-Narjis AI{% endif %}" style="height:40px;width:auto;object-fit:contain;flex:0 0 auto;"></div>
                     {% if _lang == 'ar' %}<div class="text-xs mt-1" style="color: rgba(251,248,241,0.6);">منصة وكلاء ذكية</div>{% else %}<div class="text-xs mt-1" style="color: rgba(251,248,241,0.6);" data-inline>Smart Agent Platform</div>{% endif %}
                 </div>
                 <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">

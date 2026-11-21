@@ -22,7 +22,7 @@ supports reading rather than competing with it.
 
 Arabic is the primary language and the layout is RTL. Type is **Cairo** (see §5).
 
-The mark is one Najdi gate: three crenellations, a doorway, and the letter N in `#FF5A36`. It replaces the earlier rust star. There is no flower, plant, or purple in the mark. `logo.svg`, `logo-dark.svg`, `favicon.svg` and `brand-narjis-gate.svg` are that same drawing.
+The mark is a wordmark only: «النرجس» in a heavy geometric face, with the noon dot drawn as a diamond, and “AL-NARJIS AI” underneath. There is no gate, flower, or monogram. Colors live in `src/web/static/css/narjis-palette.css` (`--nj-bg`, `--nj-surface`, `--nj-text`, `--nj-accent`, `--nj-accent-2`, `--nj-accent-gradient`). The square icon is the diamond, because the word does not read at 32px.
 
 ---
 
