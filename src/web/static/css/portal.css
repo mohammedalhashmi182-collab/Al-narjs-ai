@@ -463,6 +463,8 @@
   border-radius: var(--radius-lg);
   animation: portal-pulse 1.4s ease-in-out infinite alternate;
 }
+.portal-page .co-identity { text-align: start; display: grid; gap: 8px; margin-bottom: 16px; }
+.portal-page .co-identity p { margin: 0 0 4px; font-size: 0.9rem; }
 .portal-page .spin { display: inline-block; animation: portal-spin 900ms linear infinite; }
 .portal-page .awake-pulse { animation: portal-awake 1.6s ease-in-out infinite; }
 .portal-page .hidden,

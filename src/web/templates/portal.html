@@ -175,6 +175,19 @@
                 <div class="n-divider mb-4 portal-heading-icon" aria-hidden="true">✺</div>
                 <h2 class="n-title portal-title mb-2">{% if _lang == 'ar' %}<span>الاشتراك</span>{% else %}<span data-inline>Subscription</span>{% endif %}</h2>
                 <div id="coSummary" class="n-sub portal-summary mb-6"></div>
+                <div id="coIdentity" class="co-identity hidden">
+                    <p>{% if _lang == 'ar' %}أدخل الاسم والجوال لإتمام الدفع لهذه الباقة.{% else %}Enter your name and mobile number to pay for this plan.{% endif %}</p>
+                    <label for="coName">{% if _lang == 'ar' %}الاسم الكامل{% else %}Full name{% endif %}</label>
+                    {{ input('coName', attrs={'autocomplete': 'name'}) }}
+                    <label for="coPhone">{% if _lang == 'ar' %}رقم الجوال{% else %}Mobile number{% endif %}</label>
+                    {{ input('coPhone', type='tel', attrs={'dir': 'ltr', 'autocomplete': 'tel'}) }}
+                    <label for="coEmail">{% if _lang == 'ar' %}البريد الإلكتروني{% else %}Email{% endif %}</label>
+                    {{ input('coEmail', type='email', attrs={'dir': 'ltr', 'autocomplete': 'email'}) }}
+                    <label for="coConsent" class="portal-consent flex items-start gap-2">
+                        <input type="checkbox" id="coConsent" class="mt-0.5">
+                        <span>{% if _lang == 'ar' %}أوافق على معالجة بياناتي وفق <a href="/privacy" class="portal-text-link">سياسة الخصوصية</a>.{% else %}I agree to my data being processed per the <a href="/privacy" class="portal-text-link">Privacy Policy</a>.{% endif %}</span>
+                    </label>
+                </div>
                 {% if promo_info().active %}
                 <div class="portal-promo flex items-center justify-center gap-2 mb-4" id="promoRow">
                     {{ input('promoInput', class_name='co-input', attrs={'placeholder': 'كود الخصم' if _lang == 'ar' else 'Promo code', 'aria-label': 'كود الخصم' if _lang == 'ar' else 'Promo code', 'autocomplete': 'off'}) }}
@@ -265,6 +278,7 @@
             const txt = (ar, en) => isAr() ? ar : en;
 
             let state = { projectId: null, pkg: null, current: null, questions: [], qIndex: 0, answers: {} };
+            const directCheckout = new URLSearchParams(window.location.search).get('checkout') === '1';
 
             // ---- Load packages ----
             const packageController = new AbortController();
@@ -320,7 +334,12 @@
                 if (qp && data.packages.find(x => x.key === qp)) {
                     const target = document.querySelector(`.pkg[data-pkg="${qp}"]`);
                     if (target) target.click();
-                    $('regForm').scrollIntoView({ behavior: 'smooth' });
+                    if (directCheckout) {
+                        $('step-register').classList.add('hidden');
+                        openCheckout();
+                    } else {
+                        $('regForm').scrollIntoView({ behavior: 'smooth' });
+                    }
                 }
             }).catch(() => {
                 $('pkg-status').innerHTML = '{% if _lang == 'ar' %}<span>تعذّر التحميل، حدّث الصفحة</span>{% else %}<span data-inline>Unable to load, refresh the page</span>{% endif %} <a href="/portal" id="retry-packages">{% if _lang == 'ar' %}<span>إعادة المحاولة</span>{% else %}<span data-inline>Retry</span>{% endif %}</a>';
@@ -616,6 +635,10 @@
             const coAddons = Math.max(0, Math.min(12, parseInt(coQs.get('addons') || '0', 10) || 0));
             const coConvPacks = 0; // conversation packs are not for sale
             const coVoicePacks = 0; // voice packs are not sold yet
+            function syncCheckoutIdentity() {
+                const ident = $('coIdentity');
+                if (ident) ident.classList.toggle('hidden', !!state.projectId);
+            }
             function showCoSummary() {
                 const p = coPkg; if (!p) return;
                 const ar = isAr();
@@ -697,6 +720,7 @@
                         document.querySelectorAll('.co-method').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.m)));
                         $('step-team').classList.add('hidden');
                         $('step-checkout').classList.remove('hidden');
+                        syncCheckoutIdentity();
                         if (window.fbq && window.NARJIS_CO) {
                             fbq('track', 'InitiateCheckout', {
                                 content_ids: [coPkg.key],
@@ -714,6 +738,7 @@
                         }
                         $('step-team').classList.add('hidden');
                         $('step-checkout').classList.remove('hidden');
+                        syncCheckoutIdentity();
                     });
                 }).catch(() => alert(txt('تعذر تحميل بيانات الدفع', 'Failed to load payment data')));
             }
@@ -726,7 +751,8 @@
 
             $('coBack').addEventListener('click', () => {
                 $('step-checkout').classList.add('hidden');
-                $('step-team').classList.remove('hidden');
+                if (state.projectId) $('step-team').classList.remove('hidden');
+                else $('step-register').classList.remove('hidden');
             });
 
             let checkoutBusy = false;
@@ -748,8 +774,40 @@
                     return;
                 }
                 msg.textContent = txt('جارٍ تجهيز الدفع...', 'Preparing payment...');
-                const client = state.client || { name: null, phone: null, email: null };
                 try {
+                if (!state.projectId) {
+                    const name = ($('coName') && $('coName').value.trim()) || '';
+                    const phone = ($('coPhone') && $('coPhone').value.trim()) || '';
+                    const email = ($('coEmail') && $('coEmail').value.trim()) || '';
+                    if (!name || !phone || !$('coConsent') || !$('coConsent').checked) {
+                        msg.textContent = txt('أدخل الاسم والجوال ووافق على سياسة الخصوصية قبل الدفع.', 'Enter your name and mobile number, and agree to the privacy policy, before paying.');
+                        if ($('coName') && !name) $('coName').focus();
+                        release();
+                        return;
+                    }
+                    const createdResp = await fetch('/api/portal/projects', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            client_name: name,
+                            phone: phone,
+                            email: email || null,
+                            package: state.pkg,
+                            agents: (new URLSearchParams(window.location.search).get('agents') || '').split(',').filter(Boolean),
+                            addons: coAddons
+                        })
+                    });
+                    const created = await createdResp.json();
+                    if (!createdResp.ok) {
+                        const detail = created && created.detail;
+                        throw new Error(typeof detail === 'string' ? detail : txt('تعذر بدء الاشتراك', 'Could not start the subscription'));
+                    }
+                    state.projectId = created.project_id;
+                    state.client = { name: name, phone: phone, email: email || null };
+                    localStorage.setItem('narjis-project', state.projectId);
+                    syncCheckoutIdentity();
+                }
+                const client = state.client || { name: null, phone: null, email: null };
                     const r = await fetch('/api/payments', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idemKey },
@@ -815,7 +873,9 @@
                     if (!d || !d.team) return false;
                     state.projectId = d.project_id; state.pkg = d.package; state.client = { name: d.client_name, phone: null, email: null };
                     localStorage.setItem('narjis-project', d.project_id);
-                    renderTeam(d.team, d.status); loadInbox(); return true;
+                    renderTeam(d.team, d.status); loadInbox();
+                    if (directCheckout) openCheckout();
+                    return true;
                 });
             }
             function showLogin() {
@@ -861,7 +921,7 @@
             const wantsLogin = new URLSearchParams(location.search).has('login');
             fetch('/api/portal/session?probe=1').then(r => r.ok ? r.json() : null).then(sess => {
                 if (sess && sess.authenticated) return resume(sess.project_id);
-                if (!pid) { if (wantsLogin) showLogin(); return; }
+                if (!pid) { if (wantsLogin && !directCheckout) showLogin(); return; }
                 return fetch('/api/portal/session/legacy', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ project_id: pid }) }).then(r => r.ok ? resume(pid) : (showLogin(), false));
             }).catch(() => {});
