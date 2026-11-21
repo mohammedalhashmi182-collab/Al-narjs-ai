@@ -23,7 +23,7 @@
 <body data-lang="{{ _lang }}" class="luxury owner-gate">
     <main class="owner-gate-main">
         <a class="owner-gate-brand" href="/home">
-            <img class="nj-lockup" src="/static/logo.svg" alt="{% if _lang == 'ar' %}النرجس{% else %}Al-Narjis AI{% endif %}" height="56">
+            <img class="nj-lockup" src="/static/logo-dark.svg" alt="{% if _lang == 'ar' %}النرجس{% else %}Al-Narjis AI{% endif %}" height="56">
         </a>
         <section class="n-card owner-gate-card">
             <p class="owner-gate-kicker">{% if _lang == 'ar' %}دخول المالك{% else %}Owner access{% endif %}</p>
@@ -39,7 +39,8 @@
         <a class="owner-gate-back" href="/home">{% if _lang == 'ar' %}العودة للصفحة الرئيسية{% else %}Back to home{% endif %}</a>
     </main>
     <style>
-    body.owner-gate{min-height:100vh;display:grid;place-items:center;padding:32px 16px}
+    body.owner-gate{min-height:100vh;display:grid;place-items:center;padding:32px 16px;background:#0b0b0b}
+    body.owner-gate .btn-gold{background:#ffc21a;color:#0b0b0b}
     .owner-gate-main{width:min(420px,100%);display:flex;flex-direction:column;gap:28px}
     .owner-gate-brand{display:flex;align-items:center;gap:14px;color:var(--n-brown);text-decoration:none}
     .owner-gate-brand img{height:56px;width:auto}

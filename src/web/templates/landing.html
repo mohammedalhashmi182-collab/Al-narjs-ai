@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#12100d">
+    <meta name="theme-color" content="#FFFFFF">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
@@ -147,7 +147,7 @@
     <div class="wrap">
         {{ lockup(locale_path ~ '/home', 'النرجس' if ar else 'Al-Narjis', '/static/logo.svg', 'للذكاء الاصطناعي' if ar else 'AI') }}
         <nav class="links" aria-label="{% if ar %}القائمة الرئيسية{% else %}Main navigation{% endif %}">
-            <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+            <a href="#team">{% if ar %}كيف نعمل{% else %}How it works{% endif %}</a>
             <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
             <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
             <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
@@ -159,7 +159,7 @@
             <details class="mobile-nav">
                 <summary>{% if ar %}القائمة{% else %}Menu{% endif %}</summary>
                 <nav aria-label="{% if ar %}أقسام الصفحة{% else %}Page sections{% endif %}">
-                    <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+                    <a href="#team">{% if ar %}كيف نعمل{% else %}How it works{% endif %}</a>
                     <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
                     <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
                     <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
@@ -173,7 +173,16 @@
 <main id="main">
 <!-- ==================== HERO ==================== -->
 <section class="hero" id="top" aria-labelledby="hero-h">
-    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" fetchpriority="high" decoding="async">
+    <div class="sunrise" aria-hidden="true">
+        <div class="blob"></div>
+        <svg class="city" viewBox="0 0 800 360" fill="none">
+            <path d="M0 250h800" stroke="#0B0B0B" stroke-width="1"/>
+            <path d="M40 250V150h30v100M90 250V110h18v140M120 250V170h40v80M180 250V90h22v160M220 250V130h50v120M290 250V70h16v180M320 250V140h36v110M370 250V100h20v150M410 250V160h48v90M470 250V80h14v170M500 250V120h40v130M560 250V150h24v100M600 250V95h18v155M640 250V180h50v70M710 250V130h28v120" stroke="#0B0B0B" stroke-width="1.2"/>
+            <path d="M290 70l8-16 8 16M180 90l11-22 11 22M470 80l7-14 7 14" stroke="#FF5A1F" stroke-width="1.2"/>
+            <circle cx="560" cy="78" r="36" fill="url(#sun)"/>
+            <defs><radialGradient id="sun" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFC21A"/><stop offset="0.55" stop-color="#FF5A1F"/><stop offset="1" stop-color="#E8261C" stop-opacity="0"/></radialGradient></defs>
+        </svg>
+    </div>
     <div class="wrap">
         <div class="copy">
             <div class="nj-brand-row">
@@ -186,10 +195,10 @@
             </div>
             <p class="eyebrow">{% if ar %}ذكاء اصطناعي لأعمالك، من الرياض{% else %}Business AI from Riyadh{% endif %}</p>
             {% if ar %}
-            <h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>
+            <h1 class="display" id="hero-h">مستقبل مشروعك <em>يبدأ هنا.</em></h1>
             <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
             {% else %}
-            <h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>
+            <h1 class="display" id="hero-h">Your project's future <em>starts here.</em></h1>
             <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
             {% endif %}
             <div class="ctas">
@@ -241,7 +250,7 @@
 <!-- ==================== HOW IT WORKS ==================== -->
 <section class="ivory" id="how" aria-labelledby="how-h">
     <div class="wrap">
-        <div class="sh rv"><h2 id="how-h">{% if ar %}من هدفك إلى نتيجة تراجعها{% else %}From your goal to work you can review{% endif %}</h2></div>
+        <div class="sh rv"><h2 id="how-h">{% if ar %}ثلاث خطوات{% else %}Three steps{% endif %}</h2></div>
         <ol class="steps">
             {% if ar %}
             <li class="step rv"><span class="n num">01</span><h3>تشرح هدفك</h3><p>تتحدث مع الرئيس التنفيذي الذكي بكلماتك، بدون نماذج طويلة.</p></li>
@@ -260,7 +269,7 @@
 <section class="scene" id="team" aria-labelledby="team-h">
     <div class="wrap">
         <div class="sh rv">
-            <h2 id="team-h">{% if ar %}وكلاء بأدوار متخصصة{% else %}Agents with defined roles{% endif %}</h2>
+            <h2 id="team-h">{% if ar %}كيف نعمل{% else %}How it works{% endif %}</h2>
             <p>{% if ar %}كل وكيل له رقم وظيفي ومسمّى ومهمة واضحة. الرئيس التنفيذي يستدعي منهم من تحتاجه فقط.{% else %}Every agent has an employee number, a title and a clear job. The CEO calls in only the ones you need.{% endif %}</p>
         </div>
         <div class="facts" id="pulse-live">
@@ -272,6 +281,13 @@
         </div>
         <div class="divs">
             {% for d in divisions %}
+            {% if loop.index0 == (divisions|length // 2) %}
+            <div class="ceo-spot rv">
+                <b>{% if ar %}{{ ceo.title_ar }}{% else %}{{ ceo.title_en }}{% endif %}</b>
+                <span class="num">{{ ceo.no }}</span>
+                <p>{% if ar %}{{ ceo.intro_ar }}{% else %}{{ ceo.intro_en }}{% endif %}</p>
+            </div>
+            {% endif %}
             <details class="dv rv" data-division="{{ d.slug }}">
                 <summary><b>{% if ar %}{{ d.name_ar }} <small lang="en" dir="ltr">{{ d.name_en }}</small>{% else %}{{ d.name_en }}{% endif %}</b><span class="num">{{ d.count }} {% if ar %}وكلاء{% else %}agents{% endif %}</span></summary>
                 <p>{% if ar %}{{ d.blurb_ar }}{% else %}{{ d.blurb_en }}{% endif %}</p>
@@ -372,10 +388,10 @@
 </section>
 
 <!-- ==================== START: real CEO diagnosis ==================== -->
-<section class="final" id="consult" aria-labelledby="final-h">
+<section class="final live-demo" id="consult" aria-labelledby="final-h">
     <div class="wrap">
-        <div class="sh rv" style="justify-content:center"><h2 id="final-h">{% if ar %}ابدأ بهدف واحد.{% else %}Start with one goal.{% endif %}</h2></div>
-        <p>{% if ar %}ناقش احتياجك، وشاهد الفريق والخطة قبل أن تلتزم.{% else %}Talk your need through and see the team and plan before you commit.{% endif %}</p>
+        <div class="sh rv" style="justify-content:center"><p class="eyebrow">{% if ar %}تجربة حية{% else %}Live try{% endif %}</p><h2 id="final-h">{% if ar %}تحدث مع الرئيس التنفيذي{% else %}Talk with the CEO{% endif %}</h2></div>
+        <p>{% if ar %}التشخيص نفسه الموجود في <a href="/consult">المستشار</a>. صف هدفك هنا، أو أكمل هناك.{% else %}The same diagnosis as the <a href="/consult">consultant</a>. Describe your goal here, or continue there.{% endif %}</p>
         <div class="ceo-box" id="ceo">
             <div class="ceo-head">
                 <span class="ceo-avatar" aria-hidden="true">{% if ar %}ر{% else %}CEO{% endif %}</span>
@@ -444,6 +460,14 @@
 
 <!-- ==================== ABOUT + VISION ==================== -->
 <section id="about" aria-labelledby="about-h">
+    <div class="najdi-field" aria-hidden="true">
+        <svg viewBox="0 0 1200 280" preserveAspectRatio="xMidYMid slice">
+            <polygon points="80,240 200,40 320,240" fill="#E8261C"/>
+            <polygon points="260,240 420,70 580,240" fill="#FF5A1F"/>
+            <polygon points="500,240 700,20 900,240" fill="#FFC21A"/>
+            <polygon points="820,240 980,90 1140,240" fill="#E8261C" opacity=".85"/>
+        </svg>
+    </div>
     <div class="wrap about">
         <div class="founder-card rv">
             <h2 id="about-h" class="sr-only">{% if ar %}من نحن{% else %}About us{% endif %}</h2>

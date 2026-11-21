@@ -410,6 +410,8 @@ body.consult-thread .ct-send.is-ready {
 }
 
 body.consult-thread .ct-send.is-ready:hover { background: #d93f1e; }
+body.consult-thread { background: #0b0b0b; --ct-bg: #0b0b0b; --ct-accent: #ffc21a; }
+body.consult-thread .ct-send.is-ready { background: #ffc21a; color: #0b0b0b; }
 
 body.consult-thread .ct-send:disabled {
   cursor: default;

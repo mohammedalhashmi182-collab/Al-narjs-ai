@@ -194,7 +194,8 @@ def wordmark_svg(*, ink: str, plate: str | None) -> str:
     latin_tx = (total_w - width * 0.72) / 2
     # Baseline sits so the cap top begins after the gap. scale(1,-1) turns font-up into SVG-up.
     latin_ty = pad_top + arabic_h + gap + latin_top * latin_scale
-    accent, accent_2 = _colors()[2:]
+    accent, _accent_2 = _colors()[2:]
+    accent_2 = accent
     plate_rect = f'<rect width="{total_w:.2f}" height="{total_h:.2f}" fill="{plate}"/>' if plate else ""
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {total_w:.2f} {total_h:.2f}" role="img" aria-label="النرجس AL-NARJIS AI">
 <defs><linearGradient id="narjis-noon" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="{accent}"/><stop offset="1" stop-color="{accent_2}"/></linearGradient></defs>
@@ -207,7 +208,8 @@ def wordmark_svg(*, ink: str, plate: str | None) -> str:
 def diamond_svg(size: int = 100) -> str:
     inset = 28
     mid = size / 2
-    _, ink, accent, accent_2 = _colors()
+    _, ink, accent, _accent_2 = _colors()
+    accent_2 = accent
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}" role="img" aria-label="النرجس">
 <defs><linearGradient id="narjis-noon" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="{accent}"/><stop offset="1" stop-color="{accent_2}"/></linearGradient></defs>
 <rect width="{size}" height="{size}" rx="{round(size * 0.22)}" fill="{ink}"/>
@@ -235,10 +237,10 @@ def main() -> None:
     text, ink, _accent, _accent_2 = _colors()
     dark = wordmark_svg(ink=text, plate=None)
     light = wordmark_svg(ink=ink, plate=None)
-    dark_plate = wordmark_svg(ink=text, plate=ink)
+    dark_plate = wordmark_svg(ink=text, plate="#0B0B0B")
     light_plate = wordmark_svg(ink=ink, plate="#FFFFFF")
     icon = diamond_svg()
-    (STATIC / "logo.svg").write_text(dark, encoding="utf-8")
+    (STATIC / "logo.svg").write_text(light, encoding="utf-8")
     (STATIC / "logo-dark.svg").write_text(dark, encoding="utf-8")
     (STATIC / "brand-narjis-gate.svg").write_text(dark, encoding="utf-8")
     (STATIC / "favicon.svg").write_text(icon, encoding="utf-8")
@@ -254,7 +256,8 @@ def main() -> None:
     )
     # The maskable icon must fill the canvas; diamond_svg already does, with a radius.
     # A maskable icon keeps the diamond inside the safe area.
-    _, ink, accent, accent_2 = _colors()
+    _, ink, accent, _accent_2 = _colors()
+    accent_2 = accent
     safe = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="النرجس">
 <defs><linearGradient id="narjis-noon" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="{accent}"/><stop offset="1" stop-color="{accent_2}"/></linearGradient></defs>
 <rect width="100" height="100" fill="{ink}"/>

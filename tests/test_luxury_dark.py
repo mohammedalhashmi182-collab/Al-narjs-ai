@@ -87,7 +87,7 @@ class TestVermilionIsThePublicActionHue:
                 f"{token} must follow the palette file"
             )
         palette = (CSS_DIR / "narjis-palette.css").read_text(encoding="utf-8").lower()
-        assert f"--nj-accent: {self.ACCENT}" in palette
+        assert "--nj-accent: #ff5a1f" in palette
 
     def test_the_legacy_gold_names_resolve_to_the_accent(self, luxury: str) -> None:
         """Retired, not deleted: `--n-gold*` still resolves, so nothing breaks."""

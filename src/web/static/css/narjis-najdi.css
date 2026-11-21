@@ -436,3 +436,50 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj *,.nj *::before,.nj *::after{animation:none!important;transition:none!important}
   .js .nj .rv{opacity:1;transform:none}
 }
+
+/* White architectural homepage. Dark rooms keep their own backgrounds. */
+body.nj{background:var(--nj-bg,#fff);color:var(--nj-text,#0b0b0b)}
+.nj .nj-nav,.nj .nj-nav.solid{background:rgba(255,255,255,.94);border-bottom:1px solid rgba(11,11,11,.08);color:#0b0b0b}
+.nj .links,.nj .lang,.nj .links a{color:#5a5a5a}
+.nj .links a:hover,.nj .lang:hover{color:#0b0b0b}
+.nj .hero .ctas > .btn,.nj .navr .btn,.nj .nav-cta{background:#0b0b0b;color:#fff}
+.nj .btn-sec{border:1.5px solid #ff5a1f;color:#0b0b0b;background:transparent}
+.nj .btn-sec:hover{border-color:#e8261c;color:#0b0b0b}
+.nj .btn-login{border-color:rgba(11,11,11,.2);color:#0b0b0b}
+.nj .hero{background:#fff;color:#0b0b0b}
+.nj .hero::after{display:none}
+.nj .sunrise{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.nj .hero>.wrap{z-index:1}
+.nj .city{position:absolute;inset-inline:0;bottom:0;width:100%;height:58%;opacity:.9}
+.nj .blob{position:absolute;width:min(520px,70vw);height:min(520px,70vw);inset-inline-end:-8%;top:-12%;border-radius:46% 54% 62% 38%;background:var(--nj-accent-gradient);filter:blur(2px);opacity:.88;animation:nj-blob 16s ease-in-out infinite}
+.nj .portal{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.8);box-shadow:0 24px 60px rgba(11,11,11,.12);backdrop-filter:blur(16px)}
+.nj .display em{color:#e8261c}
+.nj .eyebrow,.nj .eyebrow::before{color:#ff5a1f;background:none}
+.nj .eyebrow::before{background:#ff5a1f}
+.nj .lead,.nj .sh p{color:#5a5a5a}
+.nj .ivory{background:#fff;color:#0b0b0b}
+.nj .scene{background:#f7f7f5;color:#0b0b0b}
+.nj #how{background:#fff}
+.nj #how .step{background:#f7f7f5;border:1px solid rgba(11,11,11,.06)}
+.nj #team{background:#0b0b0b;color:#fff}
+.nj #team summary,.nj #team a{color:#fff}
+.nj #team .sh p,.nj #team .dv p{color:#d0d0d0}
+.nj .divs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.nj .ceo-spot{grid-column:2;background:#141414;border:1px solid #ffc21a;border-radius:16px;padding:20px;color:#fff}
+.nj .ceo-spot .num{color:#ffc21a}
+.nj .dv{background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff}
+.nj #consult{background:#0b0b0b;color:#fff}
+.nj #consult .btn,.nj #consult .btn-primary{background:#ffc21a;color:#0b0b0b}
+.nj #consult a{color:#ffc21a}
+.nj #about{position:relative;background:#fff;overflow:hidden}
+.nj .najdi-field{position:absolute;inset-inline:0;top:0;height:220px;opacity:.9;pointer-events:none}
+.nj .najdi-field svg{width:100%;height:100%;display:block}
+.nj #about .wrap{position:relative}
+@keyframes nj-blob{0%,100%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(-18px,16px,0) rotate(8deg)}}
+@media (max-width:860px){
+  .nj .divs{grid-template-columns:1fr}
+  .nj .ceo-spot{grid-column:auto}
+}
+@media (prefers-reduced-motion:reduce){
+  .nj .blob{animation:none}
+}
