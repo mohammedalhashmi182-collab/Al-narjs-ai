@@ -54,9 +54,9 @@ def test_landing_prices_come_from_catalog() -> None:
 
 
 def test_plan_order_ctas_point_to_the_payment_portal() -> None:
-    """Every tier CTA opens the existing checkout (portal) with that tier preselected."""
+    """Every tier CTA uses subscribe_path, which opens that plan's checkout when payments are open."""
     body = _read("landing.html")
-    assert 'href="/portal?pkg={{ plan.key }}"' in body
+    assert "subscribe_path(plan.key)" in body
     assert "js-order" not in body
 
 

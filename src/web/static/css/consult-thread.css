@@ -431,6 +431,23 @@ body.consult-thread .ct-send:disabled {
 
 .ct-links a:hover { color: var(--ct-accent); }
 
+.ct-wa,
+.ct-links a.ct-wa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #ff5a36;
+  color: #000000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.ct-wa:hover,
+.ct-links a.ct-wa:hover { background: #d93f1e; color: #000000; }
+
 .ct-legal {
   margin: 10px 0 0;
   text-align: center;

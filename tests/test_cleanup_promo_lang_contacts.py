@@ -287,7 +287,13 @@ def test_retired_offer_prices_and_contact_links_stay_out_of_customer_trees():
                 continue
             rel = str(path.relative_to(ROOT))
             reasons = []
-            allowed_wa_pages = {"src/web/templates/landing.html", "src/web/templates/contact.html", "src/web/static/voice-live.html", "src/services/voice_live.py"}
+            allowed_wa_pages = {
+                "src/web/templates/landing.html",
+                "src/web/templates/contact.html",
+                "src/web/templates/consult.html",
+                "src/web/static/voice-live.html",
+                "src/services/voice_live.py",
+            }
             checked_text = text.replace("https://wa.me/966552978753", "") if rel in allowed_wa_pages else text
             if _HOST.search(checked_text):
                 reasons.append("contact-link")

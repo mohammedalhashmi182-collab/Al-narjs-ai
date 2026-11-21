@@ -207,7 +207,13 @@ async def note_consult_turn(session_factory, history: list[dict]) -> dict | None
             if lead is None:
                 return None
             callback = await open_callback(session, lead, source="consult_assistant")
+            alert = None
+            from src.services.hot_lead import schedule_alert, stamp_hot, trial_requested
+
+            if trial_requested(last):
+                alert = stamp_hot(lead, "trial", excerpt=last)
             await session.commit()
+            schedule_alert(alert)
         logger.info("Consult turn opened callback for lead %s", lead.id)
         return {"lead_id": str(lead.id), "created": resolved["created"], "callback": callback}
     except Exception as exc:  # noqa: BLE001 - the chat reply must still be returned

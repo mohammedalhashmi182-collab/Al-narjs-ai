@@ -899,6 +899,9 @@ templates.env.globals["card_checkout_open"] = _vat_pm.moyasar_collects_money
 templates.env.globals["bank_transfer_open"] = _vat_pm.customer_bank_transfer_enabled
 templates.env.globals["payments_closed_ar"] = _vat_pm.PAYMENTS_CLOSED_AR
 templates.env.globals["payments_closed_en"] = _vat_pm.PAYMENTS_CLOSED_EN
+from src.services.checkout_link import subscribe_path as _subscribe_path  # noqa: E402
+
+templates.env.globals["subscribe_path"] = _subscribe_path
 
 
 def _promo_info() -> dict:
@@ -3292,6 +3295,8 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     from src.services.lead_priority import score_lead
     from src.services.lead_segmentation import classify, suggest_package
 
+    from src.services.hot_lead import deliver_alert, stamp_hot, trial_requested
+
     name = (body.get("name") or "").strip()
     raw_phone = (body.get("phone") or "").strip()
     email = normalize_email(body.get("email"))
@@ -3329,6 +3334,9 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
         lead = opened["lead"]
         if lead is None:
             raise HTTPException(400, "أدخل الاسم أو الجوال أو البريد")
+        hot_text = None
+        if trial_requested(" ".join(part for part in (message, package) if part)):
+            hot_text = stamp_hot(lead, "trial", excerpt=message or package or "")
         await session.commit()
         lead_id = lead.id
         lead_email = lead.email
@@ -3350,17 +3358,88 @@ async def create_lead(request: Request, background_tasks: BackgroundTasks):
     # The visitor is answered the moment the record is committed. Welcome email,
     # follow-up scheduling and the owner alert run after the response so a slow
     # SMTP or Telegram call can never stall the public form.
+    if hot_text:
+        alert_text = hot_text
     if created:
         background_tasks.add_task(
             _lead_side_effects, lead_id, lead_email, lead_name, alert_text
         )
+    elif hot_text:
+        background_tasks.add_task(deliver_alert, hot_text)
 
     return {
         "success": True,
         "lead_id": str(lead_id),
         "email_queued": bool(lead_email) and created,
         "deduped": not created,
+        "hot": bool(hot_text),
     }
+
+
+class HotLeadSignal(BaseModel):
+    kind: str = "whatsapp_click"
+    name: str = ""
+    phone: str = ""
+    email: str = ""
+    message: str = ""
+    page: str = ""
+
+
+@app.post("/api/hot-leads")
+async def hot_lead_signal(request: Request, body: HotLeadSignal, background_tasks: BackgroundTasks):
+    """Consultation WhatsApp click, or a trial ask that already has a phone or email.
+
+    No contact means an owner alert only: a click is not turned into a fake lead.
+    """
+    from src.services.hot_lead import (
+        allow_public_signal,
+        anonymous_click_alert,
+        deliver_alert,
+        stamp_hot,
+        trial_requested,
+    )
+    from src.utils.net import client_ip
+
+    kind = body.kind if body.kind in {"whatsapp_click", "trial"} else "whatsapp_click"
+    if not allow_public_signal(client_ip(request)):
+        return {"ok": True, "alerted": False, "lead_id": None, "hot": False}
+    message = (body.message or "").strip()[:500]
+    page = (body.page or "").strip()[:120]
+    if kind == "trial" and not trial_requested(message):
+        return {"ok": True, "alerted": False, "lead_id": None, "hot": False}
+    excerpt = message or "السلام عليكم، أبغى استشارة عن النرجس"
+    if page:
+        excerpt = f"{excerpt} ({page})"
+    alert = None
+    lead_id = None
+    phone = (body.phone or "").strip()
+    email = (body.email or "").strip()
+    if phone or email:
+        from src.services.funnel_identity import resolve_lead
+
+        async with app.state.session_factory() as session:
+            resolved = await resolve_lead(
+                session,
+                email=email or None,
+                phone=phone or None,
+                name=(body.name or "").strip() or None,
+                source="whatsapp_click" if kind == "whatsapp_click" else "website",
+                message=message or None,
+            )
+            lead = resolved["lead"]
+            if lead is not None:
+                alert = stamp_hot(
+                    lead,
+                    "trial" if kind == "trial" or trial_requested(message) else "whatsapp_click",
+                    excerpt=excerpt,
+                )
+                await session.commit()
+                lead_id = str(lead.id)
+    if alert is None and kind == "whatsapp_click" and lead_id is None:
+        alert = anonymous_click_alert(excerpt)
+    if alert:
+        background_tasks.add_task(deliver_alert, alert)
+    return {"ok": True, "alerted": bool(alert), "lead_id": lead_id, "hot": lead_id is not None}
 
 
 class ConsultCallbackRequest(BaseModel):
@@ -3372,7 +3451,7 @@ class ConsultCallbackRequest(BaseModel):
 
 
 @app.post("/api/consult/callback", dependencies=[Depends(rate_limit_consult)])
-async def consult_callback(body: ConsultCallbackRequest):
+async def consult_callback(body: ConsultCallbackRequest, background_tasks: BackgroundTasks):
     """Owner follow-up for an identified consult visitor. Sends nothing."""
     from src.services.funnel_callback import open_callback
     from src.services.funnel_identity import canonical_email, canonical_phone, resolve_lead
@@ -3393,10 +3472,17 @@ async def consult_callback(body: ConsultCallbackRequest):
             session, lead, source="consult_assistant",
             consent_marketing=body.consent is True,
         )
+        from src.services.hot_lead import deliver_alert, stamp_hot, trial_requested
+
+        hot_text = None
+        if trial_requested(body.message):
+            hot_text = stamp_hot(lead, "trial", excerpt=body.message)
         await session.commit()
         lead_id = lead.id
         created = bool(resolved["created"])
-    return {"success": True, "lead_id": str(lead_id), "created": created, "callback": callback}
+    if hot_text:
+        background_tasks.add_task(deliver_alert, hot_text)
+    return {"success": True, "lead_id": str(lead_id), "created": created, "callback": callback, "hot": bool(hot_text)}
 
 
 @app.get("/api/owner/funnel/daily", dependencies=[Depends(require_owner_api)])
