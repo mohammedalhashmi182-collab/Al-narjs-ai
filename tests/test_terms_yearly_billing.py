@@ -1,4 +1,4 @@
-"""Terms state yearly billing (pay 10 months, get 12) and the setup fee on both cycles."""
+"""Terms state monthly or yearly billing and the setup fee on both cycles."""
 
 import re
 
@@ -18,13 +18,13 @@ async def _get(path):
 
 async def test_terms_ar_mentions_yearly():
     html = await _get("/ar/terms")
-    assert "تدفع 10 أشهر وتحصل على 12 شهراً" in html
+    assert "شهرية أو سنوية" in html
     assert "الشهري والسنوي على حدّ سواء" in html
 
 
 async def test_terms_en_mentions_yearly():
     html = await _get("/en/terms")
-    assert "pay for 10 months, get 12" in html
+    assert "monthly or yearly" in html
     assert "monthly and yearly billing alike" in html
 
 
