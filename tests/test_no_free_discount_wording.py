@@ -77,3 +77,37 @@ def test_assistant_prompts_have_no_discount_framing() -> None:
     text = smart_reply.plan_lines("numuw") + social_agent.compose_post("plan_spotlight", "numuw")
     for phrase in FORBIDDEN:
         assert phrase not in text, f"assistant copy still contains {phrase!r}"
+
+
+def test_invoice_and_moyasar_descriptions_are_neutral() -> None:
+    from src.models import Payment
+    from src.services import payments, zatca
+
+    extra = ("خصم الإطلاق", "بسعر 10", "شهرين مجاناً", "12 شهراً بسعر 10")
+    for period, label in (("monthly", "اشتراك شهري"), ("annual", "اشتراك سنوي")):
+        text = payments.order_description("numuw", period, 0, discount_pct=20, founding=False)
+        assert label in text
+        for phrase in (*FORBIDDEN, *extra, "خصم"):
+            assert phrase not in text, f"{period} descriptor still contains {phrase!r}: {text}"
+
+    founding = payments.order_description("bidaya", "monthly", 0, discount_pct=20, founding=True)
+    assert "سعر العملاء المؤسسين" in founding
+    assert "خصم" not in founding
+
+    annual = Payment(
+        amount=0, currency="SAR", package="numuw", billing_period="annual",
+        addon_agents=0, status="pending",
+    )
+    names = [line["name"] for line in zatca.build_lines(annual)]
+    assert any("اشتراك سنوي" in name for name in names)
+    for name in names:
+        for phrase in (*FORBIDDEN, *extra, "خصم"):
+            assert phrase not in name, name
+
+
+def test_knowledge_base_has_no_discount_framing() -> None:
+    from pathlib import Path
+
+    text = (Path(__file__).resolve().parents[1] / "data/kb/narjs_services.md").read_text(encoding="utf-8")
+    for phrase in FORBIDDEN:
+        assert phrase not in text, f"kb still contains {phrase!r}"

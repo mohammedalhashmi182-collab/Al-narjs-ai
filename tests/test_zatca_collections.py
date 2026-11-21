@@ -108,7 +108,8 @@ def test_annual_invoice_lines_do_not_nest_parentheses():
     names = [line["name"] for line in zatca.build_lines(payment)]
     assert names
     assert all(name.count("(") <= 1 and name.count(")") <= 1 for name in names)
-    assert any("12 شهراً بسعر 10" in name for name in names)
+    assert any("اشتراك سنوي" in name for name in names)
+    assert all("بسعر 10" not in name and "خصم" not in name for name in names)
 
 
 async def test_founding_discount_is_a_line(maker):

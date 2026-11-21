@@ -22,7 +22,7 @@ from sqlalchemy.pool import StaticPool
 
 from src.core.owner_auth import make_session_token
 from src.db.session import Base
-from src.models import AcquisitionLead, InboundMessage, LeadEvent, OutboundMessage
+from src.models import AcquisitionLead, InboundMessage, LeadEvent, OutboundMessage, Task
 from src.services import whatsapp_sender as ws
 from src.services.lead_normalize import normalize_phone
 
@@ -618,3 +618,61 @@ async def _fail_post(record) -> dict:
         "error": "Rate limit hit",
         "error_code": "130429",
     }
+
+
+class TestHumanHandoff:
+    async def test_unknown_sender_becomes_a_whatsapp_lead_and_a_human_task(self, maker, api):
+        with _creds():
+            payload = _inbound_payload("wamid.NEW1", "السلام عليكم", sender="966500000777")
+            payload["entry"][0]["changes"][0]["value"]["contacts"] = [
+                {"profile": {"name": "زائر الاختبار"}, "wa_id": "966500000777"}
+            ]
+            response = await _webhook_post(api, payload)
+            assert response.status_code == 200
+            body = response.json()["summary"]
+            assert body["leads_created"] == 1
+            assert body["handoff"] == 1
+            assert body["unmatched"] == 0
+            async with maker() as session:
+                lead = (await session.execute(select(AcquisitionLead))).scalar_one()
+                assert lead.source == "whatsapp"
+                assert lead.contact_name == "زائر الاختبار"
+                assert lead.lead_status == "REPLIED"
+                assert (lead.raw_data or {})["handoff"]["reason"] == "unmatched"
+                task = (await session.execute(select(Task))).scalar_one()
+                assert task.evidence["handler"] == "human_followup"
+                assert task.owner_agent == "customer_manager"
+
+    async def test_known_high_intent_queues_followup_without_a_second_lead(self, maker, api):
+        with _creds():
+            lead = await _insert_lead(maker, company="BuyerCo", phone="0555555555")
+            response = await _webhook_post(api, _inbound_payload("wamid.HOT1", "كم السعر؟"))
+            assert response.json()["summary"]["handoff"] == 1
+            assert response.json()["summary"]["leads_created"] == 0
+            async with maker() as session:
+                rows = (await session.execute(select(AcquisitionLead))).scalars().all()
+                assert len(rows) == 1 and rows[0].id == lead.id
+                assert rows[0].source != "whatsapp"
+                assert (rows[0].raw_data or {})["handoff"]["reason"] == "high_intent"
+                assert rows[0].lead_status == "INTERESTED"
+
+    async def test_opt_out_from_an_unknown_sender_is_not_queued_for_contact(self, maker, api):
+        with _creds():
+            response = await _webhook_post(
+                api, _inbound_payload("wamid.STOP1", "لا ترسل لي رسائل", sender="966511111222")
+            )
+            assert response.json()["summary"]["handoff"] == 0
+            assert response.json()["summary"]["leads_created"] == 1
+            async with maker() as session:
+                lead = (await session.execute(select(AcquisitionLead))).scalar_one()
+                assert lead.opt_out is True
+                assert lead.lead_status == "DO_NOT_CONTACT"
+                assert (await session.execute(select(Task))).scalar_one_or_none() is None
+
+    async def test_unusable_number_stays_unmatched(self, maker, api):
+        with _creds():
+            response = await _webhook_post(api, _inbound_payload("wamid.BAD1", "مرحبا", sender="123"))
+            assert response.json()["summary"]["unmatched"] == 1
+            assert response.json()["summary"]["leads_created"] == 0
+            async with maker() as session:
+                assert (await session.execute(select(AcquisitionLead))).scalar_one_or_none() is None
