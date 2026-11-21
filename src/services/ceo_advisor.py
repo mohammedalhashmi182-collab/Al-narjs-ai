@@ -450,8 +450,13 @@ _NON_PUBLIC_AGENTS = {"policy_guardian", "finance_pricing"}
 
 HANDOFF_AR = "راسلنا على AlNarjisai@gmail.com ويرد عليك الفريق بالبريد."
 HANDOFF_EN = "Email us at AlNarjisai@gmail.com and the team will reply by email."
-TAX_AR = "أسعارنا نهائية بدون ضريبة قيمة مضافة، لأن الجهة المشغّلة غير مسجّلة في ضريبة القيمة المضافة؛ لذلك لا نصدر فواتير ضريبية، ونرسل فاتورة دفع عادية."
-TAX_EN = "Our prices are final with no VAT, because the operator is not VAT-registered, so we do not issue tax invoices; you get a regular payment invoice."
+def _tax_copy() -> tuple[str, str]:
+    from src.services.vat_copy import tax_ar, tax_en
+
+    return tax_ar(), tax_en()
+
+
+TAX_AR, TAX_EN = _tax_copy()
 
 
 def _prices_line() -> tuple[str, str]:
@@ -500,7 +505,8 @@ def public_output_check(result: dict, problem: str) -> dict:
             "refund",
         )
     if _TAX.search(text):
-        return _no_offer(result, TAX_AR, TAX_EN, "tax")
+        tax_ar, tax_en = _tax_copy()
+        return _no_offer(result, tax_ar, tax_en, "tax")
     pay_now = bool(_PAY_NOW.search(text))
     card_only = payments.moyasar_collects_money() and not payments.paypal_checkout_open()
     if pay_now and closed:

@@ -61,8 +61,10 @@ def banned_hue(r: int, g: int, b: int) -> str | None:
     light = (r + g + b) / (3 * 255)
     if chroma < 18 and not (20 <= hue <= 60 and chroma >= 12 and light >= 0.72):
         return None
-    # #FF5A36 is about 11°. Keep the orange action family.
+    # #FF5A1F is the orange action. #FFC21A is the owner's yellow, not antique gold.
     if 4 <= hue <= 28 and sat >= 0.45 and 0.28 <= light <= 0.72:
+        return None
+    if abs(r - 255) <= 2 and abs(g - 194) <= 2 and abs(b - 26) <= 2:
         return None
     # Status red and pink sit on the other side of the wheel from orange.
     if (hue <= 8 or hue >= 340) and sat >= 0.2:

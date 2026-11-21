@@ -43,7 +43,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .nj-nav.solid{background:rgba(18,16,13,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom-color:var(--nj-line)}
 .nj .nj-nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:76px}
 .nj .logo{display:flex;gap:10px;align-items:center;font-weight:700;font-size:20px;white-space:nowrap}
-.nj .logo img{width:36px;height:36px;border-radius:8px;background:var(--nj-ivory);flex:none}
+.nj .logo img{height:44px;width:auto;max-width:min(240px,62vw);border-radius:0;background:transparent;flex:none;object-fit:contain}
 .nj .logo .logo-sub{font-weight:500;color:var(--nj-ivory2)}
 .nj .links{display:flex;gap:clamp(12px,2vw,26px);font-size:15px;color:var(--nj-ivory2)}
 .nj .links a{padding:4px 0;transition:color .2s}
@@ -285,7 +285,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .ceo-avatar{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--nj-accent);color:var(--nj-ink);font-weight:700;font-size:13px;flex:none}
 .nj .ceo-head b{display:block}
 .nj .ceo-head div > span{color:var(--nj-ivory2);font-size:14px}
-.nj .ceo-online{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5a36;margin-inline-end:6px}
+.nj .ceo-online{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--nj-accent);margin-inline-end:6px}
 .nj #ceoForm label{display:block;font-weight:600;margin-bottom:8px}
 .nj #ceoForm textarea{width:100%;min-height:110px;resize:vertical;border-radius:12px;border:1px solid var(--nj-line);background:var(--nj-ink);color:var(--nj-ivory);font:inherit;font-size:16px;padding:12px 14px}
 .nj #ceoForm textarea::placeholder{color:#8f8678}
@@ -416,7 +416,9 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj .mbar .btn{flex:1}
   .nj .mbar .btn-sec{padding:13px 14px}
   body.nj{padding-bottom:84px}
-  .nj #cookieConsent{bottom:84px!important}
+  .nj #cookieConsent{bottom:0!important;left:0!important;right:0!important;max-width:none!important}
+  body.nj.has-consent-banner{padding-bottom:128px}
+  body.nj.has-consent-banner .mbar{bottom:44px}
 }
 @media (max-width:600px){
   .nj .wrap{padding:0 18px}
@@ -435,4 +437,54 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   html{scroll-behavior:auto}
   .nj *,.nj *::before,.nj *::after{animation:none!important;transition:none!important}
   .js .nj .rv{opacity:1;transform:none}
+}
+
+/* White architectural homepage. Dark rooms keep their own backgrounds. */
+body.nj{background:var(--nj-bg,#fff);color:var(--nj-text,#0b0b0b)}
+.nj .nj-nav,.nj .nj-nav.solid{background:rgba(255,255,255,.94);border-bottom:1px solid rgba(11,11,11,.08);color:#0b0b0b}
+.nj .links,.nj .lang,.nj .links a{color:#5a5a5a}
+.nj .links a:hover,.nj .lang:hover{color:#0b0b0b}
+.nj .hero .ctas > .btn,.nj .navr .btn,.nj .nav-cta{background:#0b0b0b;color:#fff}
+.nj .btn-sec{border:1.5px solid #ff5a1f;color:#0b0b0b;background:transparent}
+.nj .btn-sec:hover{border-color:#e8261c;color:#0b0b0b}
+.nj .btn-login{border-color:rgba(11,11,11,.2);color:#0b0b0b}
+.nj .hero{background:#fff;color:#0b0b0b}
+.nj .hero::after{display:none}
+.nj .hero{display:flex;flex-direction:column}
+.nj .hero>.wrap{z-index:2;background:#fff}
+.nj .sunrise{position:relative;z-index:0;height:156px;flex:0 0 156px;pointer-events:none;overflow:hidden;background:#fff}
+.nj .city{position:absolute;inset-inline:0;left:0;right:0;top:auto;bottom:0;width:100%;height:128px;opacity:1}
+.nj .sunrise .blob{position:absolute;inset:auto 8% 24px 8%;inset-inline:8%;top:auto;bottom:24px;width:auto;height:88px;border-radius:999px;background:linear-gradient(90deg,rgba(232,38,28,0) 0%,rgba(232,38,28,.5) 18%,rgba(255,90,31,.58) 50%,rgba(255,194,26,.52) 82%,rgba(255,194,26,0) 100%);filter:blur(22px);opacity:.9;transform:none;animation:nj-horizon 14s ease-in-out infinite}
+.nj .portal{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.8);box-shadow:0 24px 60px rgba(11,11,11,.12);backdrop-filter:blur(16px)}
+.nj .display em{color:#e8261c}
+.nj .eyebrow,.nj .eyebrow::before{color:#ff5a1f;background:none}
+.nj .eyebrow::before{background:#ff5a1f}
+.nj .lead{color:#3a3a3a}
+.nj .sh p{color:#5a5a5a}
+.nj .ivory{background:#fff;color:#0b0b0b}
+.nj .scene{background:#f7f7f5;color:#0b0b0b}
+.nj #how{background:#fff}
+.nj #how .step{background:#f7f7f5;border:1px solid rgba(11,11,11,.06)}
+.nj #team{background:#0b0b0b;color:#fff}
+.nj #team summary,.nj #team a{color:#fff}
+.nj #team .sh p,.nj #team .dv p{color:#d0d0d0}
+.nj .divs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.nj .ceo-spot{grid-column:2;background:#141414;border:1px solid #ffc21a;border-radius:16px;padding:20px;color:#fff}
+.nj .ceo-spot .num{color:#ffc21a}
+.nj .dv{background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff}
+.nj #consult{background:#0b0b0b;color:#fff}
+.nj #consult .btn,.nj #consult .btn-primary{background:#ffc21a;color:#0b0b0b}
+.nj #consult a{color:#ffc21a}
+.nj #about{position:relative;background:#fff;overflow:hidden}
+.nj .najdi-field{position:absolute;inset-inline:0;top:0;height:220px;opacity:.9;pointer-events:none}
+.nj .najdi-field svg{width:100%;height:100%;display:block}
+.nj #about .wrap{position:relative}
+@keyframes nj-blob{0%,100%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(-18px,16px,0) rotate(8deg)}}
+@keyframes nj-horizon{0%,100%{opacity:.72}50%{opacity:1}}
+@media (max-width:860px){
+  .nj .divs{grid-template-columns:1fr}
+  .nj .ceo-spot{grid-column:auto}
+}
+@media (prefers-reduced-motion:reduce){
+  .nj .blob{animation:none}
 }

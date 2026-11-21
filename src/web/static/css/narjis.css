@@ -1,3 +1,5 @@
+@import url("narjis-palette.css");
+
 /* ==========================================================================
    Al-Narjis AI — design system
    Visual identity: ODSF v0.2 (see docs/design-system.md).
@@ -19,7 +21,7 @@
 
 :root {
   /* --- brand: gold is the action colour, never a background ------------- */
-  --tg-blue: #ff5a36;              /* fills, large type, accents */
+  --tg-blue: var(--nj-accent);     /* fills, large type, accents */
   /* Small text on white / #FAFAF9. #FF5A36 is 3.10:1 / 2.97:1 (fails AA).
      #C2410C is 5.18:1 on #FFFFFF and 4.96:1 on #FAFAF9. #D93F1E is only 4.49:1. */
   --tg-blue-ink: #c2410c;
@@ -46,7 +48,7 @@
   --n-line-2: rgba(41, 37, 36, 0.16);
 
   /* --- status ---------------------------------------------------------- */
-  --n-online: #ff5a36;   /* online dot */
+  --n-online: var(--nj-accent);   /* online dot */
   --n-danger: #9b2c2c;
   --n-warn: #d93f1e;
 
@@ -64,8 +66,8 @@
        white on vermilion .........................  3.10:1   FAILS AA
 
      That last line is why every accent-filled control uses ink, not white. */
-  --odsf-accent: #ff5a36;
-  --odsf-accent-deep: #d93f1e;
+  --odsf-accent: var(--nj-accent);
+  --odsf-accent-deep: var(--nj-accent-2);
   --odsf-accent-wash: #ffeae4;
 
   /* --- legacy aliases kept so existing class names keep working ---------

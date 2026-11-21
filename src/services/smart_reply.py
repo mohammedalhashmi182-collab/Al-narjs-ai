@@ -136,7 +136,7 @@ def compose_greeting() -> str:
 
 
 def compose_closing() -> str:
-    return "تمام، نحترم قرارك 🌷 لو احتجتنا مستقبلاً نحن موجودين. يومك سعيد!"
+    return "تمام، نحترم قرارك. لو احتجتنا مستقبلاً نحن موجودين. يومك سعيد!"
 
 
 def compose_followup(stage: str, attempt: int, plan_key: str | None, payment_url: str | None) -> str:
@@ -378,7 +378,7 @@ def compose_kb_answer(hits: list[dict]) -> str:
     top = hits[0]["text"].strip()
     if len(top) > 600:
         top = top[:600].rsplit(" ", 1)[0] + "…"
-    return f"أهلًا بك 🌿\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
+    return f"أهلًا بك.\n{top}\n\nإذا عندك سؤال ثاني أنا حاضر."
 
 
 async def _greeted_recently(session: AsyncSession, channel: str, recipient: str) -> bool:

@@ -41,11 +41,8 @@
 <body data-lang="{{ _lang }}" class="luxury consult-thread" data-copy="{% if _lang == 'ar' %}نسخ{% else %}Copy{% endif %}" data-copied="{% if _lang == 'ar' %}تم النسخ{% else %}Copied{% endif %}">
     <header class="ct-top">
         <a href="/home" class="ct-brand">
-            <img src="/static/logo-dark.svg" alt="{% if _lang == 'ar' %}شعار النرجس{% else %}Al-Narjis mark{% endif %}" width="36" height="36">
-            <span>
-                <span class="ct-brand-name">{% if _lang == 'ar' %}النرجس <span class="ct-accent">للذكاء الاصطناعي</span>{% else %}Al-Narjis <span class="ct-accent">AI</span>{% endif %}</span>
-                <span class="ct-brand-sub">{% if _lang == 'ar' %}المستشار الذكي{% else %}Smart Consultant{% endif %}</span>
-            </span>
+            <img src="/static/logo-dark.svg" alt="{% if _lang == 'ar' %}النرجس{% else %}Al-Narjis AI{% endif %}" height="40">
+            <span class="ct-brand-sub">{% if _lang == 'ar' %}المستشار الذكي{% else %}Smart Consultant{% endif %}</span>
         </a>
         <div class="ct-tools">
             <div class="lang-pill" id="langToggle">
@@ -66,7 +63,7 @@
             </div>
             <div class="ct-log" id="chatBox" role="log" aria-live="polite">
                 <article class="cmsg ai ct-turn">
-                    <span class="ct-avatar" aria-hidden="true"><img src="/static/logo-dark.svg" alt="" width="28" height="28"></span>
+                    <span class="ct-avatar" aria-hidden="true"><img src="/static/favicon.svg" alt="" width="22" height="22"></span>
                     <div class="ct-body">
                         <div class="ct-prose" dir="auto">
                             <p>{% if _lang == 'ar' %}أهلاً بك! أنا المستشار الذكي للنرجس. احكِ لي عن عملك: ما الذي تقوم به، كيف تسير أعمالك، وأين ترى التحدي؟ سأستكشف وضعك وأقترح لك أفضل خطة ووكلاء.{% else %}Hello! I'm Al-Narjis Smart Consultant. Tell me about your business: what you do, how things go, and where you see the challenge? I'll explore your situation and suggest the best plan and agents.{% endif %}</p>
@@ -115,7 +112,7 @@
     </div>
 
     <template id="ctAvatar">
-        <span class="ct-avatar" aria-hidden="true"><img src="/static/logo-dark.svg" alt="" width="28" height="28"></span>
+        <span class="ct-avatar" aria-hidden="true"><img src="/static/favicon.svg" alt="" width="22" height="22"></span>
     </template>
     <template id="ctCopyBtn">
         <button type="button" class="ct-copy" data-copy>
@@ -374,7 +371,7 @@
             {% if _lang == 'ar' %}نستخدم ملفات تعريف ارتباط ضرورية فقط (حفظ اللغة والجلسة). لمزيد من التفاصيل راجع سياسة الخصوصية.{% else %}We use only essential cookies (language &amp; session). See our Privacy Policy for details.{% endif %}
         </p>
         <button type="button" onclick="acceptCookies()" class="btn btn-gold" style="padding:8px 18px;font-size:.82rem;">{% if _lang == 'ar' %}موافق{% else %}Got it{% endif %}</button>
-        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:#ff5a36;">{% if _lang == 'ar' %}سياسة الخصوصية{% else %}Privacy Policy{% endif %}</a>
+        <a href="/privacy" style="margin-inline-start:12px;font-size:.82rem;color:var(--nj-accent, #ff5a1f);">{% if _lang == 'ar' %}سياسة الخصوصية{% else %}Privacy Policy{% endif %}</a>
     </div>
     <script>
         (function () {

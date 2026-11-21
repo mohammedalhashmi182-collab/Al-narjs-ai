@@ -14,11 +14,11 @@
 .ab-hero .t span{color:#b3b3b3}
 .ab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:10px 0 6px}
 .ab-card{padding:14px;border-radius:14px;background:#0b0b0b;border:1px solid rgba(255,255,255,.2);color:#ffffff}
-.ab-card h3{margin:0 0 6px;font-size:1rem;color:#FF5A36}
+.ab-card h3{margin:0 0 6px;font-size:1rem;color:var(--nj-accent, #ff5a1f)}
 .ab-card p{margin:0;font-size:.92rem;color:#b3b3b3}
 </style>
 <figure class="ab-hero" data-slot="brand-illustration">
-    <img src="/static/logo.svg" alt="{% if ar %}شعار النرجس: زهرة هندسية داخل بوابة نجدية{% else %}Al-Narjis logo: a geometric narcissus inside a Najdi gate{% endif %}" width="112" height="112">
+    <img class="nj-lockup" src="/static/logo.svg" alt="{% if ar %}شعار النرجس{% else %}Al-Narjis wordmark{% endif %}" height="72">
     <figcaption class="t">{% if ar %}<b>النرجس للذكاء الاصطناعي</b><span>صُنع في السعودية، من الرياض.</span>{% else %}<b>Al-Narjis AI</b><span>Built in Saudi Arabia, from Riyadh.</span>{% endif %}</figcaption>
 </figure>
 {% if ar %}
@@ -42,7 +42,7 @@
 <li>المؤسس: كريم</li>
 </ul>
 <h2 class="n-title text-lg">تواصل</h2>
-<p>راسلنا على البريد الرسمي للشركة: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>
+<p>راسلنا على البريد الرسمي للشركة: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:var(--nj-accent, #ff5a1f);font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>
 {% else %}
 <h2 class="n-title text-lg">Our story</h2>
 <p><b>Karim</b> founded Al-Narjis AI in Riyadh with a simple idea: Saudi business owners deserve AI tools that understand their dialect and their market, and that serve them and their teams instead of replacing them. We started on a single local server, and everything we build today follows the same principle: we build the team you actually need, and the decisions stay with you.</p>
@@ -64,7 +64,7 @@
 <li>Founder: Karim</li>
 </ul>
 <h2 class="n-title text-lg">Contact</h2>
-<p>Email us at our official company address: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>
+<p>Email us at our official company address: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:var(--nj-accent, #ff5a1f);font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>
 {% endif %}
 {% include "partials/_testimonials.html" %}
 {% include "partials/_case_studies.html" %}

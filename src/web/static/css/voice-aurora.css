@@ -64,14 +64,24 @@ h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 650; line-height
   border-radius: 9px;
 }
 .wave i {
-  flex: 0 1 4px;
-  height: 8px;
+  flex: 0 1 3px;
+  height: 10px;
   border-radius: 8px;
-  background: var(--voice-gold);
+  background: #f6f5f4;
   transform: scaleY(var(--amplitude, 1));
-  transition: transform 90ms linear, background-color 150ms ease;
+  transform-origin: center;
+  transition: transform 140ms cubic-bezier(.45,.05,.55,.95), background-color 180ms ease;
 }
-.speaking .wave i { background: var(--voice-accent); }
+.wave i:nth-child(n+9):nth-child(-n+15) { background: var(--nj-accent); }
+.card.idle .wave i, .card.ended .wave i, .card.ready .wave i {
+  animation: voice-idle 4.6s cubic-bezier(.45,.05,.55,.95) infinite;
+  animation-delay: calc(var(--n, 0) * -110ms);
+}
+.speaking .wave i, .listening .wave i, .thinking .wave i { animation: none; background: var(--nj-accent); }
+@keyframes voice-idle {
+  0%, 100% { transform: scaleY(.35); }
+  50% { transform: scaleY(1.15); }
+}
 .thinking .wave i, .muted .wave i, .ready .wave i { opacity: .65; }
 .st { text-align: center; color: var(--voice-stone); font-size: 14px; margin-block: 8px 14px; }
 .st b { color: var(--voice-ivory); }
@@ -133,5 +143,12 @@ h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 650; line-height
   .logo-mark { width: 30px; height: 30px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wave i { transition: none; transform: none; }
+  .wave i,
+  .card.idle .wave i,
+  .card.ended .wave i,
+  .card.ready .wave i {
+    transition: none;
+    transform: none;
+    animation: none;
+  }
 }

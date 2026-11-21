@@ -155,17 +155,15 @@ def voice_mode() -> str:
 def spoken_system_prompt(lang: str = "ar") -> str:
     """Voice persona for the text reply, spoken aloud by the browser.
 
-    Same advisor as the xAI session, without telling the caller about VAT.
+    Same advisor and the same VAT sentence as the xAI session.
     """
-    base = session_instructions(lang).replace(
-        "The published monthly base prices, before any applicable VAT, are:",
-        "The published monthly prices in SAR, with nothing added, are:",
-    )
-    return base + (
+    from src.services.vat_copy import spoken_tax_rule
+
+    return session_instructions(lang) + (
         "\n## Spoken reply\n"
         "The caller hears this answer. Use at most three short sentences. "
         "No markdown, no lists, and no emojis.\n"
-        "Do not mention VAT, tax, or ضريبة. Say only the monthly price in SAR.\n"
+        f"{spoken_tax_rule()}"
         "Do not say Salla or Zid is connected, included, or available.\n"
         "Do not invent clients, results, logos, or testimonials.\n"
     )
@@ -218,10 +216,9 @@ def approved_monthly_price_rules() -> str:
             raise ValueError("Invalid canonical package amount")
         sar = f"{amount / 100:,.2f}".removesuffix(".00")
         labels.append(f'{plan["name"]} ({plan["name_en"]}) {sar} SAR per month')
-    return (
-        "The published monthly base prices, before any applicable VAT, are: "
-        + ", ".join(labels) + ".\n"
-    )
+    from src.services.vat_copy import voice_price_intro
+
+    return voice_price_intro() + " " + ", ".join(labels) + ".\n"
 
 
 def session_instructions(lang: str = "ar") -> str:
@@ -271,7 +268,9 @@ def session_instructions(lang: str = "ar") -> str:
         "or taxes, use the official /pricing page; never guess.\n"
         "If they ask how to pay, send them to the checkout page on the website. "
         "Do not mention a bank transfer, an IBAN, or an account number, and do not take card numbers on the call.\n"
-        f"Public contact is this voice page and {SUPPORT_EMAIL}.\n"
+        "Public contact is this voice page, WhatsApp 0552978753 "
+        "(https://wa.me/966552978753), and "
+        f"{SUPPORT_EMAIL}. Work is still delivered by email.\n"
         "\n"
         "## Guardrails & Escalation\n"
         f"Stay inside Al-Narjis services. If you do not know a fact, say so and give {SUPPORT_EMAIL}.\n"
@@ -290,7 +289,9 @@ def session_instructions(lang: str = "ar") -> str:
         "NEVER say you are a Grok model, an xAI model, or any other vendor's model.\n"
         "If the caller asks whether you are Grok, Grok Voice, xAI, or ChatGPT, "
         "answer only that you are the Al-Narjis AI advisor, and do not repeat those names.\n"
-        "NEVER offer WhatsApp, Telegram, or any other messaging app as a public contact.\n"
+        "You may share the public WhatsApp number 0552978753 (https://wa.me/966552978753) "
+        "when the caller asks how to message the company. "
+        "NEVER offer Telegram, and NEVER invent a different phone number.\n"
         "NEVER invent a discount. Quote only currently published catalog prices when asked.\n"
     )
 

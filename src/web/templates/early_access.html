@@ -34,7 +34,7 @@
         a { text-decoration:none; color:inherit; }
         .top { max-width:1120px; margin-inline:auto; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; }
         .top .back { color:#94A3B8; font-size:.92rem; font-weight:700; }
-        .top .back i { color:#FF5A36; margin-inline-end:6px; }
+        .top .back i { color:var(--nj-accent, #ff5a1f); margin-inline-end:6px; }
         .wrap { min-height:calc(100vh - 76px); display:flex; flex-direction:column; justify-content:center; align-items:center; padding:28px 16px 48px; }
         .card {
             width:100%; max-width:420px; background:#0F172A;
@@ -44,12 +44,12 @@
         .head { text-align:center; margin-bottom:26px; }
         .head h1 {
             font-size:1.72rem; font-weight:800; line-height:1.45;
-            background:linear-gradient(90deg,#ffffff,#FF5A36); -webkit-background-clip:text; background-clip:text; color:transparent;
+            background:linear-gradient(90deg,#ffffff,var(--nj-accent, #ff5a1f)); -webkit-background-clip:text; background-clip:text; color:transparent;
         }
         .head p { color:#94A3B8; font-size:.85rem; margin-top:8px; }
         .form { display:flex; flex-direction:column; gap:18px; }
         .field label {
-            display:block; font-size:.7rem; font-weight:700; color:#FF5A36;
+            display:block; font-size:.7rem; font-weight:700; color:var(--nj-accent, #ff5a1f);
             letter-spacing:.02em; margin-bottom:7px;
         }
         .field.opt label span { color:#64748B; font-weight:400; }
@@ -59,7 +59,7 @@
             color:#F8FAFC; outline:none; transition:border-color .18s ease, box-shadow .18s ease;
         }
         .field input::placeholder { color:#475569; }
-        .field input:focus, .field select:focus { border-color:#FF5A36; box-shadow:0 0 0 3px rgba(255,90,54,.16); }
+        .field input:focus, .field select:focus { border-color:var(--nj-accent, #ff5a1f); box-shadow:0 0 0 3px rgba(255,90,54,.16); }
         .field input.bad, .field select.bad { border-color:#F87171; box-shadow:0 0 0 3px rgba(248,113,113,.16); }
         .field .hint { display:none; margin-top:7px; font-size:.74rem; font-weight:600; color:#FCA5A5; }
         .field .hint.on { display:block; }
@@ -68,7 +68,7 @@
         .field select { appearance:none; background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:left 16px center; padding-inline-end:40px; padding-inline-start:16px; }
         .submit {
             width:100%; margin-top:6px; border:0; cursor:pointer;
-            background:#FF5A36; color:#000000;
+            background:var(--nj-accent, #ff5a1f); color:#000000;
             font-family:inherit; font-weight:800; font-size:1rem; padding:15px 18px; border-radius:14px;
             transition:filter .18s ease, transform .12s ease, box-shadow .18s ease;
             box-shadow:0 14px 30px rgba(255,90,54,.22);
@@ -84,19 +84,19 @@
         .tg-cta { display:none; margin-top:16px; padding:18px 16px; text-align:center; border:1px solid rgba(255,90,54,.34); background:rgba(255,90,54,.07); border-radius:18px; }
         .tg-cta.on { display:block; }
         .tg-cta p { color:#94A3B8; font-size:.84rem; margin-bottom:12px; }
-        .tg-cta a { display:inline-flex; align-items:center; gap:9px; padding:13px 24px; border-radius:12px; font-weight:800; font-size:.94rem; color:#000000; background:#FF5A36; box-shadow:0 12px 26px rgba(255,90,54,.24); transition:filter .18s ease, transform .12s ease; }
+        .tg-cta a { display:inline-flex; align-items:center; gap:9px; padding:13px 24px; border-radius:12px; font-weight:800; font-size:.94rem; color:#000000; background:var(--nj-accent, #ff5a1f); box-shadow:0 12px 26px rgba(255,90,54,.24); transition:filter .18s ease, transform .12s ease; }
         .tg-cta a:hover { filter:brightness(1.06); }
         .tg-cta a:active { transform:scale(.98); }
         .note { margin-top:16px; font-size:.76rem; color:#64748B; text-align:center; }
-        .note a { color:#FF5A36; text-decoration:underline; }
+        .note a { color:var(--nj-accent, #ff5a1f); text-decoration:underline; }
         .tg-line { margin-top:18px; display:flex; align-items:center; gap:10px; justify-content:center; font-size:.82rem; color:#94A3B8; }
         .tg-line .dot { width:38px; height:38px; border-radius:50%; flex:0 0 auto; box-shadow:0 4px 12px rgba(255,90,54,.28); }
-        .tg-line a { color:#FF5A36; font-weight:700; margin-inline-start:4px; }
+        .tg-line a { color:var(--nj-accent, #ff5a1f); font-weight:700; margin-inline-start:4px; }
         .foot { text-align:center; margin-top:26px; color:#64748B; font-size:.82rem; }
-        .foot b { color:#FF5A36; }
+        .foot b { color:var(--nj-accent, #ff5a1f); }
         .foot .links { margin-top:6px; display:flex; gap:14px; justify-content:center; }
         .foot .links a { color:#64748B; }
-        .foot .links a:hover { color:#FF5A36; }
+        .foot .links a:hover { color:var(--nj-accent, #ff5a1f); }
         @media (max-width:520px){ .card { padding:24px 20px; } .head h1 { font-size:1.45rem; } }
         @media (prefers-reduced-motion: reduce){ * { transition:none !important; transform:none !important; scroll-behavior:auto; } .submit:active { transform:none; } }
     </style>
@@ -143,7 +143,7 @@
             </form>
             <div class="msg" id="eaMsg"></div>
             <p class="note">{% if _lang == 'ar' %}بالتسجيل أنت توافق على <a href="/privacy">سياسة الخصوصية</a> وحقك في <a href="/data-deletion">حذف بياناتك</a>{% else %}By registering you agree to our <a href="/privacy">Privacy Policy</a> and your <a href="/data-deletion">data-deletion rights</a>{% endif %}</p>
-            <p class="note">{% if _lang == 'ar' %}أو راسلنا على{% else %}Or email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a></p>
+            <p class="note">{% if _lang == 'ar' %}أو راسلنا على{% else %}Or email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:var(--nj-accent, #ff5a1f);font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a></p>
         </div>
 
         <div class="foot">
