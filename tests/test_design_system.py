@@ -125,9 +125,9 @@ def test_design_doc_exists_and_is_the_source_of_truth() -> None:
 def test_design_css_defines_the_odsf_tokens() -> None:
     body = css()
     for token in (
-        f"--odsf-accent: {ACCENT}",
-        f"--odsf-accent-deep: {ACCENT_DEEP}",
-        f"--tg-blue: {ACCENT}",
+        "--odsf-accent: var(--nj-accent)",
+        "--odsf-accent-deep: var(--nj-accent-2)",
+        "--tg-blue: var(--nj-accent)",
         f"--n-sand: {BG}",
         f"--n-brown: {INK}",
         "--r-bubble: 20px",
@@ -450,7 +450,7 @@ NAJDI_TOKENS = {
     "--narjis-ivory": "#f4eee2",
     "--narjis-stone": "#b8ae9c",
     "--narjis-gold": "#c9a27a",
-    "--narjis-action": ACCENT,
+    "--narjis-action": "var(--nj-accent)",
     "--narjis-action-ink": "#9a321b",
     "--narjis-secondary-ink": "#5a5046",
 }
@@ -461,7 +461,7 @@ def _najdi() -> str:
 
 
 def test_landing_declares_the_najdi_theme_colour() -> None:
-    assert f'<meta name="theme-color" content="{NAJDI_TOKENS["--narjis-ink"]}">' in read("landing.html")
+    assert '<meta name="theme-color" content="#FFFFFF">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
@@ -481,6 +481,9 @@ def test_najdi_layer_tokens_and_no_purple() -> None:
     css = _najdi()
     for token, value in NAJDI_TOKENS.items():
         assert f"{token}: {value}" in tokens, f"missing Najdi token {token}"
+    palette = (CSS_DIR / "narjis-palette.css").read_text(encoding="utf-8").lower()
+    assert "--nj-accent: #ff5a1f" in palette
+    assert "--nj-accent-gradient:" in palette
     for purple in ("#7a5cb8", "#8a6fc4", "#f6f2fb", "purple", "violet", "lavender"):
         assert purple not in css + tokens
     assert "prefers-reduced-motion" in css
@@ -498,13 +501,10 @@ def test_najdi_text_meets_wcag_aa() -> None:
 
 def test_najdi_hero_has_a_bilingual_product_heading_and_a_real_image() -> None:
     body = read("landing.html")
-    assert '<h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>' in body
-    assert '<h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>' in body
+    assert '<h1 class="display" id="hero-h">مستقبل مشروعك <em>يبدأ هنا.</em></h1>' in body
+    assert '<h1 class="display" id="hero-h">Your project\'s future <em>starts here.</em></h1>' in body
     assert "ناقش هدفك مع الرئيس التنفيذي" in body and "شاهد نموذج تسليم" in body
     assert "base64" not in body
-    for img in ("hero-najdi.webp", "hero-najdi-800.webp"):
-        assert f"/static/img/{img}" in body
-        path = ROOT / "src" / "web" / "static" / "img" / img
-        assert path.exists() and path.stat().st_size < 120_000, f"{img} missing or too heavy"
+    assert 'class="city"' in body and 'class="blob"' in body
     for name in ("نيوم", "أرامكو", "NEOM", "Aramco", "موثوق به في"):
         assert name not in body

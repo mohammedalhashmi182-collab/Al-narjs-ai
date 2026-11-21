@@ -12,7 +12,7 @@
   document.body.classList.add('narjis-owner-next');
   document.addEventListener('DOMContentLoaded', function () {
     var mark = document.querySelector('.n-sidebar .brand img');
-    if (mark) mark.src = '/static/brand-narjis-gate.svg';
+    if (mark) mark.src = '/static/logo.svg';
   });
 </script>
 
@@ -196,7 +196,7 @@
     <div class="bg-white rounded-2xl shadow">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900">{% if _lang == 'ar' %}<span>المهام الموكلة</span>{% else %}<span data-inline>Tasks</span>{% endif %}</h3>
-            <button type="button" id="runQueuedTasks" class="text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:#FF5A36">{% if _lang == 'ar' %}<span>تنفيذ المهام المنتظرة</span>{% else %}<span data-inline>Run queued tasks</span>{% endif %}</button>
+            <button type="button" id="runQueuedTasks" class="text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:var(--nj-accent, #ff5a1f)">{% if _lang == 'ar' %}<span>تنفيذ المهام المنتظرة</span>{% else %}<span data-inline>Run queued tasks</span>{% endif %}</button>
         </div>
         <div class="p-4" style="max-height:420px;overflow-y:auto;">
             <table class="w-full">

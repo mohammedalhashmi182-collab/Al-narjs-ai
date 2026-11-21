@@ -83,11 +83,11 @@ class TestVermilionIsThePublicActionHue:
 
     def test_the_layer_defines_the_accent(self, luxury: str) -> None:
         for token in ("--n-accent", "--odsf-accent"):
-            match = re.search(rf"{token}:\s*(#[0-9a-f]{{6}})", luxury, re.I)
-            assert match, f"{token} is not defined in the luxury layer"
-            assert match.group(1).lower() == self.ACCENT, (
-                f"{token} is {match.group(1)}, expected the owner's {self.ACCENT}"
+            assert re.search(rf"{token}:\s*var\(--nj-accent\)", luxury, re.I), (
+                f"{token} must follow the palette file"
             )
+        palette = (CSS_DIR / "narjis-palette.css").read_text(encoding="utf-8").lower()
+        assert "--nj-accent: #ff5a1f" in palette
 
     def test_the_legacy_gold_names_resolve_to_the_accent(self, luxury: str) -> None:
         """Retired, not deleted: `--n-gold*` still resolves, so nothing breaks."""
@@ -127,7 +127,7 @@ class TestVermilionIsThePublicActionHue:
     def test_the_accent_is_the_only_action_colour_on_public_pages(self) -> None:
         """One action hue per view. The accent owns it."""
         layer = read(CSS_DIR / "narjis-luxury.css")
-        assert re.search(r"--n-accent:\s*#ff5a36", layer, re.I), (
+        assert re.search(r"--n-accent:\s*var\(--nj-accent\)", layer, re.I), (
             "the luxury pages no longer resolve the action colour to the accent"
         )
 

@@ -1,10 +1,12 @@
+@import url("../../css/narjis-palette.css");
+
 :root {
   --narjis-ink: #12100d;
   --narjis-surface: #1c1915;
   --narjis-ivory: #f4eee2;
   --narjis-stone: #b8ae9c;
   --narjis-gold: #c9a27a;
-  --narjis-action: #ff5a36;
+  --narjis-action: var(--nj-accent);
   --narjis-action-ink: #9a321b;
   --narjis-secondary-ink: #5a5046;
   --narjis-on-dark-line: rgba(244,238,226,.2);

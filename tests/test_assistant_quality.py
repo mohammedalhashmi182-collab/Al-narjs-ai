@@ -22,7 +22,7 @@ def _prompt(locale="ar"):
 
 def test_prompt_states_tax_and_setup_facts():
     p = _prompt()
-    assert "NOT VAT-registered" in p and "NO VAT" in p and "tax invoices" in p
+    assert "not VAT-registered" in p and "no VAT added" in p and "do not issue tax invoices" in p
     assert "ONE-TIME" in p and "NO annual waiver" in p and "WAIVED" not in p and "not part of the monthly" in p
 
 

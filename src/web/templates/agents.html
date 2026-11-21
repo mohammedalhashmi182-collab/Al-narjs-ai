@@ -66,7 +66,7 @@
         <option value="general">عام</option>
     </select>
     <div class="flex rounded-2xl overflow-hidden" style="border:1px solid var(--n-line);">
-        <button id="view-grid" onclick="setView('grid')" class="px-4 py-2" style="background:#FF5A36;color:#0a0b0e;"> <i class="fas fa-th-large"></i></button>
+        <button id="view-grid" onclick="setView('grid')" class="px-4 py-2" style="background:var(--nj-accent, #ff5a1f);color:#0a0b0e;"> <i class="fas fa-th-large"></i></button>
         <button id="view-table" onclick="setView('table')" class="px-4 py-2" style="background:transparent;color:var(--n-brown-2);"><i class="fas fa-list-ul"></i></button>
     </div>
     <button onclick="openCreateModal()" class="btn btn-gold" style="white-space:nowrap;">
@@ -233,7 +233,7 @@
     .agent-card { padding: 20px; display: flex; flex-direction: column; gap: 13px; }
     .emp-ava {
         width: 52px; height: 52px; border-radius: 20px; flex: 0 0 auto;
-        background: linear-gradient(135deg, #FF5A36, #FF5A36 60%, #00879F);
+        background: linear-gradient(135deg, var(--nj-accent, #ff5a1f), var(--nj-accent, #ff5a1f) 60%, #00879F);
         color: #0a0b0e; font-weight: 800; font-size: 1.2rem;
         display: grid; place-items: center;
     }
@@ -271,7 +271,7 @@
     .rev-ava {
         width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto;
         display: grid; place-items: center; font-weight: 800; color: #0a0b0e;
-        background: linear-gradient(135deg, #FF5A36, #FF5A36 60%, #00879F);
+        background: linear-gradient(135deg, var(--nj-accent, #ff5a1f), var(--nj-accent, #ff5a1f) 60%, #00879F);
     }
     .toggle-switch { position: relative; display: inline-block; width: 38px; height: 21px; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -283,8 +283,8 @@
         content: ""; position: absolute; width: 15px; height: 15px; border-radius: 50%;
         left: 3px; top: 2px; background: var(--n-brown-2); transition: .2s;
     }
-    .toggle-switch input:checked + .slider { background: #FF5A36; border-color: #c2410c; }
-    .toggle-switch input:checked + .slider::before { transform: translateX(17px); background: #FF5A36; }
+    .toggle-switch input:checked + .slider { background: var(--nj-accent, #ff5a1f); border-color: #c2410c; }
+    .toggle-switch input:checked + .slider::before { transform: translateX(17px); background: var(--nj-accent, #ff5a1f); }
     [dir="ltr"] .toggle-switch .slider::before { left: auto; right: 3px; }
     [dir="ltr"] .toggle-switch input:checked + .slider::before { transform: translateX(-17px); }
 </style>
@@ -479,9 +479,9 @@
 
     function setView(mode) {
         viewMode = mode;
-        document.getElementById('view-grid').style.background = mode === 'grid' ? '#FF5A36' : 'transparent';
+        document.getElementById('view-grid').style.background = mode === 'grid' ? 'var(--nj-accent, #ff5a1f)' : 'transparent';
         document.getElementById('view-grid').style.color = mode === 'grid' ? '#0a0b0e' : 'var(--n-brown-2)';
-        document.getElementById('view-table').style.background = mode === 'table' ? '#FF5A36' : 'transparent';
+        document.getElementById('view-table').style.background = mode === 'table' ? 'var(--nj-accent, #ff5a1f)' : 'transparent';
         document.getElementById('view-table').style.color = mode === 'table' ? '#0a0b0e' : 'var(--n-brown-2)';
         renderAgents(agents);
     }

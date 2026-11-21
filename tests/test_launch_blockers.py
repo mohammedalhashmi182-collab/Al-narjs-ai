@@ -508,7 +508,10 @@ def test_kb_and_grounding_have_no_phone_or_email():
 
     kb = pathlib.Path("data/kb/narjs_services.md").read_text(encoding="utf-8")
     src = inspect.getsource(main._consult_grounded)
-    for text in (kb, src, pathlib.Path("content/contact.json").read_text(encoding="utf-8")):
+    # The owner publishes one WhatsApp number. No other mobile number belongs in the KB.
+    assert kb.count("0552978753") >= 1
+    kb_other = kb.replace("0552978753", "")
+    for text in (kb_other, src, pathlib.Path("content/contact.json").read_text(encoding="utf-8")):
         assert not _PHONE.search(text)
     assert not _EMAIL.search(src)
     assert not _EMAIL.search(pathlib.Path("content/contact.json").read_text(encoding="utf-8"))

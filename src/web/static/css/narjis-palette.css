@@ -1,0 +1,36 @@
+/* Narjis palette — change colors here only.
+   Re-run scripts/render_wordmark.py after editing --nj-accent so the noon
+   diamond matches. --nj-text is the word on dark surfaces.
+   --nj-text-on-light is the same word on white. */
+:root {
+  --nj-bg: #ffffff;
+  --nj-surface: #f7f7f5;
+  --nj-text: #0b0b0b;
+  --nj-text-on-light: #0b0b0b;
+  --nj-muted: #5a5a5a;
+  --nj-accent: #ff5a1f;
+  --nj-accent-2: #ffc21a;
+  --nj-accent-3: #e8261c;
+  --nj-accent-gradient: linear-gradient(135deg, #e8261c 0%, #ff5a1f 50%, #ffc21a 100%);
+}
+
+/* Dark rooms: the live chat and the owner desk use yellow on near-black. */
+body.consult-thread,
+body.owner-gate,
+body:has(.cc) {
+  --nj-bg: #0b0b0b;
+  --nj-surface: #141414;
+  --nj-text: #ffffff;
+  --nj-accent: #ffc21a;
+  --nj-accent-2: #ffc21a;
+}
+
+.nj-lockup {
+  height: 44px;
+  width: auto;
+  max-width: min(240px, 62vw);
+  object-fit: contain;
+  background: transparent;
+  border-radius: 0;
+  flex: none;
+}
