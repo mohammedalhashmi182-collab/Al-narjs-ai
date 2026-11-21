@@ -285,7 +285,7 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
 .nj .ceo-avatar{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--nj-accent);color:var(--nj-ink);font-weight:700;font-size:13px;flex:none}
 .nj .ceo-head b{display:block}
 .nj .ceo-head div > span{color:var(--nj-ivory2);font-size:14px}
-.nj .ceo-online{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5a36;margin-inline-end:6px}
+.nj .ceo-online{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--nj-accent);margin-inline-end:6px}
 .nj #ceoForm label{display:block;font-weight:600;margin-bottom:8px}
 .nj #ceoForm textarea{width:100%;min-height:110px;resize:vertical;border-radius:12px;border:1px solid var(--nj-line);background:var(--nj-ink);color:var(--nj-ivory);font:inherit;font-size:16px;padding:12px 14px}
 .nj #ceoForm textarea::placeholder{color:#8f8678}
@@ -416,7 +416,9 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   .nj .mbar .btn{flex:1}
   .nj .mbar .btn-sec{padding:13px 14px}
   body.nj{padding-bottom:84px}
-  .nj #cookieConsent{bottom:84px!important}
+  .nj #cookieConsent{bottom:0!important;left:0!important;right:0!important;max-width:none!important}
+  body.nj.has-consent-banner{padding-bottom:128px}
+  body.nj.has-consent-banner .mbar{bottom:44px}
 }
 @media (max-width:600px){
   .nj .wrap{padding:0 18px}
@@ -448,15 +450,17 @@ body.nj{background:var(--nj-bg,#fff);color:var(--nj-text,#0b0b0b)}
 .nj .btn-login{border-color:rgba(11,11,11,.2);color:#0b0b0b}
 .nj .hero{background:#fff;color:#0b0b0b}
 .nj .hero::after{display:none}
-.nj .sunrise{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.nj .hero>.wrap{z-index:1}
-.nj .city{position:absolute;inset-inline:0;bottom:0;width:100%;height:58%;opacity:.9}
-.nj .blob{position:absolute;width:min(520px,70vw);height:min(520px,70vw);inset-inline-end:-8%;top:-12%;border-radius:46% 54% 62% 38%;background:var(--nj-accent-gradient);filter:blur(2px);opacity:.88;animation:nj-blob 16s ease-in-out infinite}
+.nj .hero{display:flex;flex-direction:column}
+.nj .hero>.wrap{z-index:2;background:#fff}
+.nj .sunrise{position:relative;z-index:0;height:156px;flex:0 0 156px;pointer-events:none;overflow:hidden;background:#fff}
+.nj .city{position:absolute;inset-inline:0;left:0;right:0;top:auto;bottom:0;width:100%;height:128px;opacity:1}
+.nj .sunrise .blob{position:absolute;inset:auto 8% 24px 8%;inset-inline:8%;top:auto;bottom:24px;width:auto;height:88px;border-radius:999px;background:linear-gradient(90deg,rgba(232,38,28,0) 0%,rgba(232,38,28,.5) 18%,rgba(255,90,31,.58) 50%,rgba(255,194,26,.52) 82%,rgba(255,194,26,0) 100%);filter:blur(22px);opacity:.9;transform:none;animation:nj-horizon 14s ease-in-out infinite}
 .nj .portal{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.8);box-shadow:0 24px 60px rgba(11,11,11,.12);backdrop-filter:blur(16px)}
 .nj .display em{color:#e8261c}
 .nj .eyebrow,.nj .eyebrow::before{color:#ff5a1f;background:none}
 .nj .eyebrow::before{background:#ff5a1f}
-.nj .lead,.nj .sh p{color:#5a5a5a}
+.nj .lead{color:#3a3a3a}
+.nj .sh p{color:#5a5a5a}
 .nj .ivory{background:#fff;color:#0b0b0b}
 .nj .scene{background:#f7f7f5;color:#0b0b0b}
 .nj #how{background:#fff}
@@ -476,6 +480,7 @@ body.nj{background:var(--nj-bg,#fff);color:var(--nj-text,#0b0b0b)}
 .nj .najdi-field svg{width:100%;height:100%;display:block}
 .nj #about .wrap{position:relative}
 @keyframes nj-blob{0%,100%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(-18px,16px,0) rotate(8deg)}}
+@keyframes nj-horizon{0%,100%{opacity:.72}50%{opacity:1}}
 @media (max-width:860px){
   .nj .divs{grid-template-columns:1fr}
   .nj .ceo-spot{grid-column:auto}

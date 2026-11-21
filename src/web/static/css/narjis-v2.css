@@ -1,3 +1,4 @@
+@import url("narjis-palette.css");
 /* =====================================================================
    Al-Narjis v2 — "Lavender Najd" identity (CEO-advisor rebrand, 2026)
    The public landing page's design contract. See docs/design-system.md.
@@ -15,12 +16,12 @@
   --v2-earth: #8a8580;
   --v2-ink: #292524;
   --v2-muted: #8a8580;
-  --v2-green: #c2410c;           /* light-theme action. #FF5A36 with a white label is 3.10:1; #C2410C is 5.18:1. Dark pricing overrides this to #FF5A36 with black labels. */
+  --v2-green: #c2410c;           /* light-theme action. var(--nj-accent) with a white label is 3.10:1; #C2410C is 5.18:1. Dark pricing overrides this to var(--nj-accent) with black labels. */
   --v2-green-deep: #9a3412;
-  --v2-lavender: #ff5a36;
+  --v2-lavender: var(--nj-accent);
   --v2-lavender-soft: #f3f3f3;
   --v2-plum: #12100d;
-  --v2-saffron: #ff5a36;         /* detail accent, same hue as the action colour */
+  --v2-saffron: var(--nj-accent);         /* detail accent, same hue as the action colour */
   --v2-saffron-soft: #f3f3f3;
   --v2-saudi: #c2410c;           /* confirmation marks on light surfaces; dark pricing overrides this to ivory */
   --v2-sage: #8a8580;
@@ -224,14 +225,14 @@ a.card.svc:hover { border-color: var(--v2-lavender); }
 .channel b { display: block; font-family: var(--v2-font-display); }
 .channel small { color: var(--v2-on-dark-muted); }
 .channel.is-missing { opacity: .55; pointer-events: none; border-style: dashed; }
-.ch-wa svg { color: #ff5a36; }
+.ch-wa svg { color: var(--nj-accent); }
 .ch-tg svg { color: #2aabee; }
 .ch-ms svg { color: #0a7cff; }
 
 .fab-cluster { position: fixed; bottom: 20px; inset-inline-end: 20px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
 .fab { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; color: #ffffff; box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .45); text-decoration: none; }
 .fab svg { width: 26px; height: 26px; }
-.fab-wa { background: #ff5a36; color: #000000; }
+.fab-wa { background: var(--nj-accent); color: #000000; }
 .fab-tg { background: #1d7fb8; }
 .fab-ms { background: #0a6be0; }
 
@@ -384,16 +385,15 @@ a.card.svc:hover { border-color: var(--v2-lavender); }
 @media (max-width: 860px) { .steps::before { display: none; } .how-sprig { width: 60px; opacity: .6; } }
 
 /* cookie consent banner open: keep page content clear of it */
-body.has-consent-banner { padding-bottom: 140px; }
+body.has-consent-banner { padding-bottom: 52px; }
 
-/* Al-Narjs dark identity (pricing): black field, #FF5A36 accent, light text.
-   Same palette as narjis-najdi.css (--nj-*). */
+/* Dark pricing: black field, palette accent, light text. */
 body.v2.v2-dark {
   --v2-canvas: #12100d; --v2-canvas-2: #1b1814; --v2-ivory: #12100d; --v2-paper: #1b1814;
-  --v2-beige: #0b0b0b; --v2-earth: #ff5a36;
+  --v2-beige: #0b0b0b; --v2-earth: var(--nj-accent);
   --v2-ink: #ffffff; --v2-muted: #b3b3b3;
-  --v2-green: #ff5a36; --v2-green-deep: #e84a28; --v2-lavender: #ff5a36; --v2-lavender-soft: #1a1a1a;
-  --v2-plum: #0b0b0b; --v2-saffron: #ff5a36; --v2-saffron-soft: #1a1a1a; --v2-saudi: #fafaf9;
+  --v2-green: var(--nj-accent); --v2-green-deep: #e84a28; --v2-lavender: var(--nj-accent); --v2-lavender-soft: #1a1a1a;
+  --v2-plum: #0b0b0b; --v2-saffron: var(--nj-accent); --v2-saffron-soft: #1a1a1a; --v2-saudi: #fafaf9;
   --v2-line: rgba(255,255,255,.2); --v2-line-dark: rgba(255,255,255,.2);
   --v2-on-dark: #ffffff; --v2-on-dark-muted: #b3b3b3;
   --v2-shadow: 0 18px 40px -20px rgba(0,0,0,.6);
@@ -401,8 +401,8 @@ body.v2.v2-dark {
 }
 body.v2-dark .v2-nav { background: rgba(18, 16, 13, .9); }
 body.v2-dark .v2-footer { background: #0c0b09; }
-body.v2-dark .payments-closed-banner { background: #0b0b0b !important; color: #ffffff !important; border-color: rgba(255, 90, 54, .55) !important; }
-/* #FF5A36 with a white label is 3.10:1. Black on the same fill is 6.77:1. */
+body.v2-dark .payments-closed-banner { background: #0b0b0b !important; color: #ffffff !important; border-color: color-mix(in srgb, var(--nj-accent) 55%, transparent) !important; }
+/* White on the accent fails AA. Black on the same fill passes. */
 body.v2-dark .btn-primary,
 body.v2-dark a.btn-primary,
 body.v2-dark .billing-toggle button[aria-pressed="true"],

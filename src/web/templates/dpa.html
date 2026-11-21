@@ -21,7 +21,7 @@
         .ops-cta a { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:12px; text-decoration:none; font-weight:700; border:1px solid currentColor; color:var(--n-brown-2); }
         .ops-mobile-cta { display:none; }
         @media (max-width: 640px) {
-            .ops-mobile-cta { display:block; position:fixed; inset-inline:12px; bottom:12px; padding:14px; border-radius:14px; text-align:center; font-weight:800; text-decoration:none; background:#FF5A36; color:#000; z-index:50; }
+            .ops-mobile-cta { display:block; position:fixed; inset-inline:12px; bottom:12px; padding:14px; border-radius:14px; text-align:center; font-weight:800; text-decoration:none; background:var(--nj-accent, #ff5a1f); color:#000; z-index:50; }
             body { padding-bottom:72px; }
         }
     </style>
@@ -56,7 +56,7 @@
 
             <div class="n-card mt-6" style="padding:24px;" id="contact-email">
                 <h2 class="n-title text-lg">{% if _lang == 'ar' %}تواصل معنا{% else %}Contact us{% endif %}</h2>
-                <p class="n-sub">{% if _lang == 'ar' %}راسلنا على{% else %}Email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>
+                <p class="n-sub">{% if _lang == 'ar' %}راسلنا على{% else %}Email us at{% endif %} <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:var(--nj-accent, #ff5a1f);font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>
             </div>
             <p class="n-sub mt-6" style="font-size:0.85rem;">
                 <a href="/privacy">{% if _lang == 'ar' %}الخصوصية{% else %}Privacy{% endif %}</a> ·

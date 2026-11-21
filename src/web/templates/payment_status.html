@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/static/css/narjis-luxury.css">
     <style>
         .pay-kicker { display:inline-block; margin-bottom:12px; padding:4px 12px; border-radius:999px; font-size:13px; font-weight:800; letter-spacing:.04em; }
-        .pay-kicker.ok { background:#FF5A36; color:#000000; }
+        .pay-kicker.ok { background:var(--nj-accent, #ff5a1f); color:#000000; }
         .pay-kicker.bad { background:#e6e6e6; color:#1a1a1a; border:1px solid #8a8a8a; }
         .pay-title.ok { font-weight:800; }
         .pay-title.bad { font-weight:500; }
@@ -32,7 +32,7 @@
         <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</div>
         <div class="text-5xl mb-5">
             {% if result == "success" %}
-            <i id="payIcon" class="fas fa-check-circle" style="color:#FF5A36;"></i>
+            <i id="payIcon" class="fas fa-check-circle" style="color:var(--nj-accent, #ff5a1f);"></i>
             {% else %}
             <i id="payIcon" class="fas fa-times-circle" style="color:#cfcfcf;"></i>
             {% endif %}
@@ -107,7 +107,7 @@
                 var ok = st && st.status === 'paid';
                 if (icon) {
                     icon.className = ok ? 'fas fa-check-circle' : 'fas fa-times-circle';
-                    icon.style.color = ok ? '#FF5A36' : '#cfcfcf';
+                    icon.style.color = ok ? 'var(--nj-accent, #ff5a1f)' : '#cfcfcf';
                 }
                 if (kicker) {
                     kicker.textContent = ok ? paidKicker : failKicker;

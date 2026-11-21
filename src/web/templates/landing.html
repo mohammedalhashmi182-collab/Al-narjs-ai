@@ -173,16 +173,6 @@
 <main id="main">
 <!-- ==================== HERO ==================== -->
 <section class="hero" id="top" aria-labelledby="hero-h">
-    <div class="sunrise" aria-hidden="true">
-        <div class="blob"></div>
-        <svg class="city" viewBox="0 0 800 360" fill="none">
-            <path d="M0 250h800" stroke="#0B0B0B" stroke-width="1"/>
-            <path d="M40 250V150h30v100M90 250V110h18v140M120 250V170h40v80M180 250V90h22v160M220 250V130h50v120M290 250V70h16v180M320 250V140h36v110M370 250V100h20v150M410 250V160h48v90M470 250V80h14v170M500 250V120h40v130M560 250V150h24v100M600 250V95h18v155M640 250V180h50v70M710 250V130h28v120" stroke="#0B0B0B" stroke-width="1.2"/>
-            <path d="M290 70l8-16 8 16M180 90l11-22 11 22M470 80l7-14 7 14" stroke="#FF5A1F" stroke-width="1.2"/>
-            <circle cx="560" cy="78" r="36" fill="url(#sun)"/>
-            <defs><radialGradient id="sun" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFC21A"/><stop offset="0.55" stop-color="#FF5A1F"/><stop offset="1" stop-color="#E8261C" stop-opacity="0"/></radialGradient></defs>
-        </svg>
-    </div>
     <div class="wrap">
         <div class="copy">
             <div class="nj-brand-row">
@@ -203,8 +193,8 @@
             {% endif %}
             <div class="ctas">
                 <a class="btn" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
-                <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
                 <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
+                <a class="hero-sample" href="#results" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</a>
             </div>
         </div>
         <div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
@@ -244,6 +234,45 @@
                 <span><strong>{% if ar %}03 / تصور{% else %}03 / Blueprint{% endif %}</strong>{% if ar %}تشاهد النتيجة{% else %}Your visual plan{% endif %}</span>
             </div>
         </div>
+    </div>
+    <div class="sunrise" aria-hidden="true">
+        <div class="blob"></div>
+        <svg class="city" viewBox="0 0 1440 160" preserveAspectRatio="xMidYMax meet" fill="none">
+            <g stroke="#0B0B0B" stroke-width="1" stroke-linejoin="miter" opacity="0.16">
+                <path d="M0 150H1440"/>
+                <path d="M20 150V122h16v28M48 150V110h10v40M70 150V128h24v22M108 150V104h8v46M128 150V118h14v32M156 150V96h7v54M176 150V120h20v30M210 150V108h11v42M234 150V130h28v20M276 150V100h12v50M302 150V116h16v34M332 150V92h7v58M350 150V112h12v38M376 150V132h32v18M422 150V106h10v44M444 150V94h7v56M462 150V118h18v32M494 150V102h9v48M516 150V126h22v24M552 150V98h8v52M572 150V114h14v36M600 150V124h20v26M634 150V90h7v60M652 150V108h16v42M682 150V120h26v30M722 150V100h9v50M742 150V116h13v34M768 150V106h7v44M786 150V128h22v22M822 150V96h10v54M844 150V112h16v38M874 150V102h8v48M894 150V120h15v30M922 150V132h26v18M962 150V108h10v42M984 150V94h7v56M1002 150V116h14v34M1028 150V126h24v24M1066 150V104h9v46M1086 150V90h7v60M1104 150V114h15v36M1132 150V124h22v26M1168 150V100h8v50M1188 150V116h16v34M1216 150V96h7v54M1234 150V122h18v28M1264 150V110h12v40M1288 150V130h24v20M1326 150V104h10v46M1348 150V118h14v32M1374 150V110h11v40M1396 150V126h24v24"/>
+            </g>
+            <g stroke="#0B0B0B" stroke-width="1" stroke-linejoin="miter" opacity="0.32">
+                <path d="M0 154H1440"/>
+                <path d="M32 154V112h26V90h16V68h-16V90h-26V154"/>
+                <path d="M90 154V64h8V46M94 46V28"/>
+                <path d="M114 154V100l14-18h22l14 18V154"/>
+                <path d="M180 154V70h10V154M204 154V70h10V154M180 86h34"/>
+                <path d="M232 154V106h42V84h-14V66h-14V84h-14V154"/>
+                <path d="M292 154V96l18-30 18 30V154"/>
+                <path d="M346 154V52h6V36M349 36V18"/>
+                <path d="M368 154V122h52V154"/>
+                <path d="M438 154V114l26-34h8V154"/>
+                <path d="M492 154V108h36V154M492 108a18 16 0 0 1 36 0"/>
+                <path d="M548 154V86h12V66h8V48h-8V66h-12V154"/>
+                <path d="M584 154V102h16V80h10V154"/>
+                <path d="M626 154V74h14V52l8-16 8 16V74h14V154M654 36V18"/>
+                <path d="M678 154V92h34V72h-10V56h-14V72h-10V154"/>
+                <path d="M730 154V108h20l12-16 12 16h20V154"/>
+                <path d="M812 154V80h8V62M816 62V42"/>
+                <path d="M836 154V116h44V96h-12V80h-20V96h-12V154"/>
+                <path d="M898 154V90l16-24h8l16 24V154"/>
+                <path d="M954 154V70h8V52M958 52V34"/>
+                <path d="M978 154V112h14V92h12V154"/>
+                <path d="M1020 154V98h38V154M1020 98a19 16 0 0 1 38 0"/>
+                <path d="M1076 154V82h12V62h10V44h-10V62h-12V154"/>
+                <path d="M1116 154V104h24V84l14-18 14 18V104h24V154"/>
+                <path d="M1210 154V92h10V68M1215 68V48"/>
+                <path d="M1238 154V120h56V102h-16V86h-24V102h-16V154"/>
+                <path d="M1312 154V78l20-28 20 28V154"/>
+                <path d="M1368 154V114h36V154"/>
+            </g>
+        </svg>
     </div>
 </section>
 
@@ -627,7 +656,10 @@
     // Illustrative sample delivery dialog.
     var dlg = document.getElementById('sample');
     document.querySelectorAll('[data-open-sample]').forEach(function (b) {
-        b.addEventListener('click', function () { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); });
+        b.addEventListener('click', function (e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+        });
     });
     dlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }); });
     dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
