@@ -66,9 +66,10 @@
     </div>
 
     <div class="text-center mt-10 flex flex-wrap justify-center gap-4">
-        <a href="/portal?pkg={{ detail.key }}" class="btn btn-gold">
+        {% set _cta = subscribe_path(detail.key) if subscribe_path is defined else ('/portal?pkg=' ~ detail.key) %}
+        <a href="{{ _cta }}" class="btn btn-gold">
             <i class="fas fa-bolt"></i>
-            {% if _ar %}جرّب هذا الفريق{% else %}Try this team{% endif %}
+            {% if payments_open is defined and not payments_open() %}{% if _ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif _ar %}اشترك في هذه الباقة{% else %}Subscribe to this plan{% endif %}
         </a>
         <a href="/home#pricing" class="btn btn-outline">
             {% if _ar %}عرض الباقات{% else %}View plans{% endif %}
