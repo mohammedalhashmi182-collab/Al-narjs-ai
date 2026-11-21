@@ -63,6 +63,7 @@ CORE_PAGES: list[tuple[str, str, float]] = [
     ("/partnerships", "monthly", 0.6),
 ]
 
+PACKAGE_PREFIX = "/packages"
 PUBLIC_AGENT_PREFIX = "/ai-agent"
 INTENT_PAGE = "/ai-agents-saudi-businesses"
 BLOG_PREFIX = "/blog"
@@ -104,6 +105,10 @@ def is_public_path(path: str) -> bool:
         return base[len(SERVICE_PREFIX) + 1 :] in SERVICE_SLUGS
     if base.startswith(COMPARE_PREFIX + "/"):
         return base[len(COMPARE_PREFIX) + 1 :] in COMPARE_SLUGS
+    if base.startswith(PACKAGE_PREFIX + "/"):
+        from src.services.catalog import PACKAGES
+
+        return base[len(PACKAGE_PREFIX) + 1 :] in PACKAGES
     return base in {p for p, _c, _pr in CORE_PAGES}
 
 
@@ -165,6 +170,11 @@ def indexable_page(path: str) -> bool:
         return base[len(SERVICE_PREFIX) + 1 :] in SERVICE_SLUGS
     if base.startswith(f"{COMPARE_PREFIX}/"):
         return base[len(COMPARE_PREFIX) + 1 :] in COMPARE_SLUGS
+    if base.startswith(f"{PACKAGE_PREFIX}/"):
+        from src.services.catalog import PACKAGES
+
+        key = base[len(PACKAGE_PREFIX) + 1 :]
+        return bool(key) and "/" not in key and key in PACKAGES
     return base in {page for page, _freq, _priority in CORE_PAGES}
 
 
@@ -237,6 +247,10 @@ def build_sitemap(agent_slugs: list[str], articles: list[dict]) -> str:
     entries: list[str] = []
     for path, changefreq, priority in CORE_PAGES:
         entries.append(_url_entry(path, changefreq, priority))
+    from src.services.catalog import PACKAGE_ORDER
+
+    for key in PACKAGE_ORDER:
+        entries.append(_url_entry(f"{PACKAGE_PREFIX}/{key}", "weekly", 0.8))
     for slug in SERVICE_SLUGS:
         entries.append(_url_entry(f"{SERVICE_PREFIX}/{slug}", "monthly", 0.8))
     for slug in COMPARE_SLUGS:
@@ -293,6 +307,9 @@ def build_llms(employees: list[tuple[str, dict]]) -> str:
     pages = [
         ("Home", "/home"),
         ("Pricing", "/pricing"),
+        ("Starter plan", "/packages/bidaya"),
+        ("Growth plan", "/packages/numuw"),
+        ("Enterprise plan", "/packages/sharikat"),
         ("Consultant", "/consult"),
         ("Voice advisor", "/voice"),
         ("About", "/about"),
