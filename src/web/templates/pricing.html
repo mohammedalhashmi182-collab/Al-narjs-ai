@@ -40,7 +40,7 @@
       "brand": {"@type": "Brand", "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }}},
       "image": "https://alnarjisai.com/brand/og-image.jpg",
       "offers": [
-        {% for plan in plans %}{"@type": "Offer", "name": {{ (plan.name if ar else plan.name_en) | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://alnarjisai.com/portal?pkg={{ plan.key }}", "availability": "https://schema.org/InStock"}{% if not loop.last %},{% endif %}
+        {% for plan in plans %}{"@type": "Offer", "name": {{ (plan.name if ar else plan.name_en) | tojson }}, "price": "{{ plan.price }}", "priceCurrency": "SAR", "url": "https://alnarjisai.com{{ subscribe_path(plan.key) }}", "availability": "https://schema.org/InStock"}{% if not loop.last %},{% endif %}
         {% endfor %}
       ]
     }

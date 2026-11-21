@@ -54,13 +54,20 @@ async def capture_consult_lead(session_factory, data: dict) -> dict:
             lead = resolved["lead"]
             if lead is None:
                 return {"created": False, "lead_id": None, "dedupe": False}
+            from src.services.hot_lead import schedule_alert, stamp_hot, trial_requested
+
+            hot = None
+            if trial_requested(" ".join(part for part in (notes, package) if part)):
+                hot = stamp_hot(lead, "trial", excerpt=notes or "")
             if not resolved["created"]:
                 await open_callback(session, lead, source="consult_assistant")
                 await session.commit()
+                schedule_alert(hot)
                 logger.info("Consult lead already on file: %s", lead.id)
                 return {"created": False, "lead_id": str(lead.id), "dedupe": True}
             await open_callback(session, lead, source="consult_assistant")
             await session.commit()
+            schedule_alert(hot)
             lead_id = lead.id
             lead_email = lead.email
             lead_name = lead.contact_name or lead.company_name

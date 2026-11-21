@@ -308,6 +308,8 @@ async def handle_inbound(
         lead.opt_out = True
         lead_pipeline.set_stage(pipe, "lost", "opt_out")
         return None
+    if not _is_owner_chat(recipient):
+        await _flag_hot_reply(lead, text, channel=channel)
     if intent == "NOT_INTERESTED":
         lead_pipeline.set_stage(pipe, "lost", "not_interested")
         body = compose_closing()
@@ -400,6 +402,30 @@ async def has_contacted(session: AsyncSession, channel: str, recipient: str) -> 
     row = (await session.execute(select(ReplyDraft.id).where(
         ReplyDraft.channel == channel, ReplyDraft.recipient == str(recipient)).limit(1))).first()
     return row is not None
+
+
+def _is_owner_chat(recipient: str) -> bool:
+    from src.config.settings import settings
+
+    owner = str(settings.telegram_owner_chat_id or "")
+    return bool(owner) and str(recipient) == owner
+
+
+async def _flag_hot_reply(lead, text: str, *, channel: str) -> None:
+    """First reply, or a trial ask, raises priority. Never raises.
+
+    Telegram already tells the owner about each inbound message, and it stays
+    quiet when the owner is the sender. Other channels had no such alert.
+    """
+    try:
+        from src.services.hot_lead import deliver_alert, stamp_hot, trial_requested
+
+        kind = "trial" if trial_requested(text) else "reply"
+        alert = stamp_hot(lead, kind, excerpt=text)
+        if channel != "telegram":
+            await deliver_alert(alert)
+    except Exception:  # noqa: BLE001 - a reply must still be drafted
+        log.warning("hot lead flag skipped", exc_info=True)
 
 
 async def safe_handle_inbound(session_factory, **kwargs) -> None:

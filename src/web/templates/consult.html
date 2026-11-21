@@ -45,6 +45,8 @@
             <span class="ct-brand-sub">{% if _lang == 'ar' %}المستشار الذكي{% else %}Smart Consultant{% endif %}</span>
         </a>
         <div class="ct-tools">
+            {% set _wa_text = 'السلام عليكم، أبغى استشارة عن النرجس' %}
+            <a class="ct-wa" id="consultWhatsapp" data-hot="whatsapp" data-message="{{ _wa_text }}" href="https://wa.me/966552978753?text={{ _wa_text|urlencode }}" target="_blank" rel="noopener noreferrer">{% if _lang == 'ar' %}واتساب{% else %}WhatsApp{% endif %}</a>
             <div class="lang-pill" id="langToggle">
                 <button type="button" data-lang-btn="ar" class="arabic {{ 'active' if _lang == 'ar' else '' }}">عربي</button>
                 <button type="button" data-lang-btn="en" class="english {{ 'active' if _lang == 'en' else '' }}">EN</button>
@@ -95,6 +97,8 @@
                 </button>
             </form>
             <div class="ct-links">
+                {% set _wa_text = 'السلام عليكم، أبغى استشارة عن النرجس' %}
+                <a class="ct-wa" data-hot="whatsapp" data-message="{{ _wa_text }}" href="https://wa.me/966552978753?text={{ _wa_text|urlencode }}" target="_blank" rel="noopener noreferrer">{% if _lang == 'ar' %}واتساب{% else %}WhatsApp{% endif %}</a>
                 <a href="/portal">{% if _lang == 'ar' %}فعّل فريقك الآن{% else %}Wake Your Team Now{% endif %}</a>
                 <a href="/home#pricing">{% if _lang == 'ar' %}عرض الباقات{% else %}View Plans{% endif %}</a>
             </div>
@@ -363,6 +367,22 @@
             syncSend();
             placeVoice();
             window.addEventListener('resize', placeVoice);
+            document.querySelectorAll('[data-hot="whatsapp"]').forEach(link => {
+                link.addEventListener('click', () => {
+                    const payload = JSON.stringify({
+                        kind: 'whatsapp_click',
+                        page: location.pathname,
+                        message: link.getAttribute('data-message') || ''
+                    });
+                    try {
+                        if (navigator.sendBeacon) {
+                            navigator.sendBeacon('/api/hot-leads', new Blob([payload], { type: 'application/json' }));
+                        } else {
+                            fetch('/api/hot-leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true });
+                        }
+                    } catch (e) { /* the WhatsApp tab still opens */ }
+                });
+            });
         })();
     </script>
 

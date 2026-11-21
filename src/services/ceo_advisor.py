@@ -301,9 +301,9 @@ def build_result(d: Diagnosis) -> dict:
         f"مرحباً، أرشّح لي الرئيس التنفيذي في النرجس باقة {pkg['name']}{addon_txt} "
         f"({base // 100} ر.س شهرياً). أريد البدء."
     )
-    subscribe = f"/portal?pkg={plan_key}" + (f"&addons={addons}" if addons else "")
-    if d.agents:
-        subscribe += "&agents=" + ",".join(d.agents)
+    from src.services.checkout_link import subscribe_path
+
+    subscribe = subscribe_path(plan_key, addons=addons, agents=list(d.agents))
     channels = transfer.contact_channels(wa_text)
     ceo = catalog.EMPLOYEES[catalog.CEO_SLUG]
     return {
