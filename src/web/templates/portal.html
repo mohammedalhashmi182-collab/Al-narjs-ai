@@ -666,7 +666,7 @@
                     (setup ? '<div style="font-size:.85rem;opacity:.7;">' + txt('رسوم إعداد لمرة واحدة: ', 'One-time setup fee: ') + setup.toLocaleString() + ' ' + cur + '</div>' : '') +
                     (coAddons ? '<div style="font-size:.85rem;opacity:.7;">' + txt('وكلاء إضافيون: ', 'Extra agents: ') + coAddons + ' × ' + addonPrice + ' ' + cur + '</div>' : '') +
                     '' +
-                    (coBilling === 'annual' ? '<div style="font-size:.85rem;color:#ff5a36;">' + txt('اشتراك سنوي: 12 شهراً بسعر 10', 'Annual: 12 months for the price of 10') + '</div>' : '') +
+                    (coBilling === 'annual' ? '<div style="font-size:.85rem;color:#ff5a36;">' + txt('اشتراك سنوي', 'Annual subscription') + '</div>' : '') +
                     (setup
                         // A one-time fee is not monthly: show what is due today, then the recurring amount.
                         ? '<div class="mt-1 text-lg" style="color:#ff5a36;">' + txt('المستحق اليوم: ', 'Due today: ') + total.toLocaleString() + ' ' + cur + '</div>' +
