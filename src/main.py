@@ -462,7 +462,7 @@ class LocaleMiddleware:
             or path.startswith("/brand/")
             or path.startswith("/api")
             or path.startswith("/webhooks")
-            or path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico", "/googlefb84d00839a6c89c.html")
+            or path in ("/robots.txt", "/sitemap.xml", "/llms.txt", "/favicon.ico", "/apple-touch-icon.png", "/apple-touch-icon-precomposed.png", "/googlefb84d00839a6c89c.html")
             or "/health" in path
         )
         effective = locale or cookies.get(_LOCALE_COOKIE) or _detect_accepted_language(scope)
@@ -818,11 +818,33 @@ def _legacy_redirect_enabled() -> bool:
     return (settings.domain or "").strip().rstrip(".").lower() not in _LEGACY_HOSTS
 
 
-class LegacyDomainRedirectMiddleware:
-    """301 the previous domain (karmaai.online) to https://alnarjisai.com.
+def _is_render_fallback_host(hostname: str) -> bool:
+    """True for Render's default hostname (and any other *.onrender.com host).
 
-    Active once the DOMAIN setting is the new domain. GET and HEAD only, so
-    payment and store webhooks that still POST to the old host keep working. ``/health`` and ``/webhooks/`` are never moved.
+    Compared after _hostname_from_host_header, so a lookalike such as
+    al-narjs-ai-1.onrender.com.evil.example does not match.
+    """
+    return hostname == "onrender.com" or hostname.endswith(".onrender.com")
+
+
+def _should_canonical_host_redirect(hostname: str, method: str, path: str) -> bool:
+    """GET/HEAD on a leftover host, except health checks and webhooks."""
+    if method not in {"GET", "HEAD"}:
+        return False
+    if path == "/health" or path.startswith("/webhooks/"):
+        return False
+    if hostname in _LEGACY_HOSTS:
+        return _legacy_redirect_enabled()
+    return _is_render_fallback_host(hostname)
+
+
+class LegacyDomainRedirectMiddleware:
+    """301 leftover hosts to https://alnarjisai.com.
+
+    Covers the previous domain (karmaai.online) once DOMAIN is the new
+    domain, and Render's *.onrender.com fallback hostname. GET and HEAD
+    only, so payment, Telegram, and store webhooks that still POST to an
+    old host keep working. ``/health`` and ``/webhooks/`` are never moved.
     Path and query are kept, percent-encoded, exactly as received.
     """
 
@@ -836,13 +858,7 @@ class LegacyDomainRedirectMiddleware:
         hostname = _hostname_from_host_header(_first_header(scope, b"host"))
         method = (scope.get("method") or "GET").upper()
         path = scope.get("path") or "/"
-        if (
-            hostname in _LEGACY_HOSTS
-            and _legacy_redirect_enabled()
-            and method in {"GET", "HEAD"}
-            and path != "/health"
-            and not path.startswith("/webhooks/")
-        ):
+        if _should_canonical_host_redirect(hostname, method, path):
             raw_path = scope.get("raw_path") or b""
             if isinstance(raw_path, (bytes, bytearray)):
                 raw_path = bytes(raw_path).split(b"?", 1)[0]
@@ -1656,6 +1672,13 @@ def _brand_response(name: str):
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return _brand_response("favicon.ico")
+
+
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+@app.get("/apple-touch-icon-precomposed.png", include_in_schema=False)
+async def apple_touch_icon():
+    """iOS requests these at the site root; serve the current logo icon."""
+    return _brand_response("apple-touch-icon.png")
 
 
 @app.get("/brand/{name}", include_in_schema=False)

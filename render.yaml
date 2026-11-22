@@ -3,6 +3,7 @@ services:
     name: al-narjis-ai
     env: docker
     plan: starter
+    healthCheckPath: /health
     dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL

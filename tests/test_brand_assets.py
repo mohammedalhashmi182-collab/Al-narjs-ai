@@ -44,9 +44,22 @@ def test_raster_brand_routes(client):
 
 def test_manifest_valid_and_icons_resolve(client):
     data = json.loads((STATIC / "site.webmanifest").read_text(encoding="utf-8"))
+    assert data["name"] == "النرجس للذكاء الاصطناعي"
     assert data["short_name"] == "النرجس"
+    assert "Al-Narjs" not in json.dumps(data)
     for icon in data["icons"]:
         assert client.get(icon["src"]).status_code == 200, icon["src"]
+
+
+def test_apple_touch_icon_is_served_at_the_root(client):
+    brand = client.get("/brand/apple-touch-icon.png")
+    assert brand.status_code == 200
+    for path in ("/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"):
+        r = client.get(path)
+        assert r.status_code == 200, path
+        assert r.headers["content-type"] == "image/png"
+        assert r.content.startswith(b"\x89PNG")
+        assert r.content == brand.content
 
 
 def test_favicon_ico_route(client):
