@@ -86,7 +86,9 @@ def _uses_vnext_palette(path: Path) -> bool:
 
 
 def _uses_narcissus_palette(path: Path) -> bool:
-    """Owner-directed homepage layers. v5 (Nov 2026): warm paper, red to orange to amber."""
+    """Owner-directed homepage layers. v5 (Nov 2026): warm paper, red to orange to amber.
+    v6 (22 Nov 2026): the owner freed the palette for a new visionOS-glass look; the orb's
+    iridescent edges (lilac / aqua / peach) are part of that direction, on the homepage only."""
     return path.relative_to(ROOT).as_posix() in {
         "static/css/narjis-gsap.css",
         "static/css/narjis-v5.css",
@@ -94,6 +96,10 @@ def _uses_narcissus_palette(path: Path) -> bool:
         "static/css/narjis-v5-art-more.css",
         "static/js/narjis-v5.js",
         "templates/partials/_v5_logo.html",
+        "static/css/narjis-v6.css",
+        "static/css/narjis-v6-orb.css",
+        "static/js/narjis-v6.js",
+        "static/favicon-v6.svg",
     }
 
 

@@ -461,7 +461,7 @@ def _najdi() -> str:
 
 
 def test_landing_declares_the_najdi_theme_colour() -> None:
-    assert '<meta name="theme-color" content="#17120E">' in read("landing.html")
+    assert '<meta name="theme-color" content="#F1ECE8">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
@@ -503,11 +503,12 @@ def test_najdi_hero_has_a_bilingual_product_heading_and_a_real_image() -> None:
     assert '<span class="v5-line">AI that</span> <span class="v5-line"><em class="v5-grad">executes your idea.</em></span></h1>' in body
     assert "ناقش هدفك مع الرئيس التنفيذي" in body and "شاهد نموذج تسليم" in body
     assert "base64" not in body
-    # The hero art is the owner's Flow sculpture (clip + stills), not the old Najdi photo.
-    assert 'id="v5-video"' in body and "/static/media/v5-sculpt" in body
-    for name in ("sculpt-480.mp4", "sculpt-480.webm", "sculpt-720.mp4", "sculpt-720.webm"):
-        path = ROOT / "src" / "web" / "static" / "media" / f"v5-{name}.b64"
-        limit = 1_400_000 if "720" in name else 700_000
-        assert path.exists() and path.stat().st_size < limit, f"{name} missing or too heavy"
+    # v6: the hero art is the owner's Flow glass orb (poster first, then a lazy loop clip).
+    assert 'id="v5-video"' in body and 'data-src="/static/media/v6-"' in body
+    for clip in ("orb", "orb_eyes"):
+        for name in ("480.mp4", "480.webm", "720.mp4", "720.webm"):
+            path = ROOT / "src" / "web" / "static" / "media" / f"v6-{clip}-{name}.b64"
+            limit = 900_000 if "720" in name else 450_000
+            assert path.exists() and path.stat().st_size < limit, f"{clip}-{name} missing or too heavy"
     for name in ("نيوم", "أرامكو", "NEOM", "Aramco", "موثوق به في"):
         assert name not in body

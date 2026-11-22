@@ -1,31 +1,33 @@
-"""Guards for the v5 homepage layer: self-hosted motion, fallbacks, brand mark and claims."""
+"""Guards for the v5/v6 homepage layers: self-hosted motion, fallbacks, brand mark and claims."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LANDING = ROOT / "src/web/templates/landing.html"
 CSS = ROOT / "src/web/static/css/narjis-v5.css"
-ART = ROOT / "src/web/static/css/narjis-v5-art.css"
-JS = ROOT / "src/web/static/js/narjis-v5.js"
+CSS6 = ROOT / "src/web/static/css/narjis-v6.css"
+ORB = ROOT / "src/web/static/css/narjis-v6-orb.css"
+JS = ROOT / "src/web/static/js/narjis-v6.js"
 LOGO = ROOT / "src/web/templates/partials/_v5_logo.html"
 
 
 def test_motion_assets_are_self_hosted():
     html = LANDING.read_text(encoding="utf-8")
-    for asset in ("/static/css/narjis-v5.css", "/static/css/narjis-v5-art.css", "/static/js/narjis-v5.js",
+    for asset in ("/static/css/narjis-v5.css", "/static/css/narjis-v6.css", "/static/css/narjis-v6-orb.css", "/static/js/narjis-v6.js",
                   "/static/vendor/gsap.min.js", "/static/vendor/ScrollTrigger.min.js", "/static/vendor/lenis.min.js"):
         assert asset in html, asset
-    font_css = (ROOT / "src/web/static/css/narjis-kufi-font.css").read_text(encoding="utf-8")
-    assert "Noto Kufi Arabic" in font_css and "data:font/woff2;base64," in font_css
-    assert "fonts.googleapis" not in font_css
     for name in ("gsap.min.js", "ScrollTrigger.min.js", "lenis.min.js"):
         path = ROOT / "src/web/static/vendor" / name
         assert path.exists() and path.stat().st_size > 1000, name
-    for banned in ("cdn.jsdelivr", "unpkg.com", "three.module", "narjis-cinematic.js", "narjis-gsap.js"):
+    for banned in ("cdn.jsdelivr", "unpkg.com", "three.module", "narjis-cinematic.js", "narjis-gsap.js", "narjis-v5.js"):
         assert banned not in html
-    assert CSS.exists() and JS.exists() and ART.exists()
-    assert ART.stat().st_size < 80_000  # first-paint sculpture only
-    MORE = ART.with_name("narjis-v5-art-more.css")
-    assert MORE.exists() and MORE.stat().st_size < 160_000
+    assert CSS.exists() and CSS6.exists() and JS.exists() and ORB.exists()
+    assert ORB.stat().st_size < 70_000  # first-paint orb posters + the blurred room only
+
+
+def test_glass_has_a_fallback_and_readable_tokens():
+    css = CSS6.read_text(encoding="utf-8")
+    assert "backdrop-filter" in css and "@supports not" in css
+    assert "--v6-cta-a: #D93A46" in css and "--v6-cta-b: #B8285A" in css  # white CTA text >= 4.5:1
 
 
 def test_boot_has_reduced_motion_and_save_data_gates():
@@ -34,9 +36,9 @@ def test_boot_has_reduced_motion_and_save_data_gates():
     assert "prefers-reduced-motion" in html and "saveData" in html
     js = JS.read_text(encoding="utf-8")
     assert "prefers-reduced-motion" in js and "pin:" in js
-    css = CSS.read_text(encoding="utf-8")
+    css = CSS6.read_text(encoding="utf-8")
     assert "prefers-reduced-motion" in css
-    assert "html.v5-static .v5-orbit-video" in css
+    assert "html.v5-static .v6-orb-video" in css
 
 
 def test_hero_clip_is_muted_inline_and_lazy():
