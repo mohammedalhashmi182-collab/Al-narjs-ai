@@ -32,8 +32,9 @@ card    : false
 - Bank transfer / manual invoice is offered when `content/transfer.json` has a
   valid Saudi IBAN, account name, and bank name. Owner-raised invoices stay a
   separate authenticated path.
-- With no published account and PayPal off, public pages show the
-  payments-closed banner and the checkout does not create a customer payment.
+- With no published account and PayPal off, plan buttons open the plan request
+  form on /portal (no payment-status banner, by owner rule) and the checkout does
+  not create a customer payment.
   Card checkout stays closed.
 
 **1.2 Production data is destroyed on every deploy.**
