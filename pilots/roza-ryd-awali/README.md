@@ -1,6 +1,6 @@
-# Roza / العوالي — WhatsApp pilot (22 Nov 2026)
+# مطعم حديقة روزا / Roza — WhatsApp pilot (22 Nov 2026)
 
-**Status:** preparation only. Not deployed, not connected to a customer's WhatsApp account, no messages sent. Source: customer-provided screenshot, held by the owner. No personally identifiable chat transcript or API credentials are committed.
+**Status:** preparation only. Not deployed, not connected to a customer's WhatsApp account, no messages sent. Source: an existing static restaurant WhatsApp greeting sent to the owner, plus a separate direct request for a WhatsApp-reply trial. The greeting is **not** a Narjis AI bot reply or evidence of a connected WhatsApp Cloud API. No personally identifiable chat transcript or API credentials are committed.
 
 ## Existing platform capabilities confirmed from `main`
 
@@ -10,11 +10,13 @@
 - `src/interfaces/portal_routes.py` already exposes authenticated reply review and customer token configuration.
 - `src/services/agent_tools/knowledge_base.py` supports tenant-specific `KnowledgeDoc` entries.
 
-These code-level findings are **not** proof of production connectivity. The public health endpoint could not be read in this session, and the Render workspace listed through the current connection was `My Workspace`, not the previously named `alnarjis`. Do not pick or change that workspace without explicit owner confirmation.
+These code-level findings are **not** proof of production connectivity. The owner confirmed the Render workspace `My Workspace` is the same as Al-Narjis. Render service `Al-narjs-ai-1` is deployed live from `main`; the PR branch is not deployed. Public WhatsApp health retrieval failed from available tools, and Render log retrieval returned HTTP 503, so production WhatsApp API connectivity is **unverified**.
 
 ## Source-grounded knowledge
 
-`manifest.json` contains the location, maps, menu and TikTok links supplied by the customer. The menu URL was **not** readable from the web retrieval tool; do **not** claim specific dishes, prices or stock from it. Business hours, delivery availability, allergy information, reservations and checkout terms remain unverified. An independently found website may match the business phone, but its claims are not incorporated until the customer confirms their own details.
+Correct merchant name: **مطعم حديقة روزا**. Current long WhatsApp message is the restaurant's existing greeting/auto-reply, not the product being built. Preserve it until the merchant approves any change.
+
+`manifest.json` contains the location, maps, menu and TikTok links supplied by the customer. The menu URL was **not** readable from the web retrieval tool; do **not** claim specific dishes, prices or stock from it. Business hours, delivery availability, allergy information, reservations and checkout terms remain unverified. Only the merchant-provided links and location are included; no independently inferred menu items or service terms are used.
 
 ## Activation sequence — no surprises
 
