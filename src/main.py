@@ -913,8 +913,8 @@ templates.env.globals["payments_open"] = _vat_pm.payments_open
 templates.env.globals["paypal_checkout_open"] = _vat_pm.paypal_checkout_open
 templates.env.globals["card_checkout_open"] = _vat_pm.moyasar_collects_money
 templates.env.globals["bank_transfer_open"] = _vat_pm.customer_bank_transfer_enabled
-templates.env.globals["payments_closed_ar"] = _vat_pm.PAYMENTS_CLOSED_AR
-templates.env.globals["payments_closed_en"] = _vat_pm.PAYMENTS_CLOSED_EN
+templates.env.globals["request_followup_ar"] = _vat_pm.REQUEST_FOLLOWUP_AR
+templates.env.globals["request_followup_en"] = _vat_pm.REQUEST_FOLLOWUP_EN
 from src.services.checkout_link import subscribe_path as _subscribe_path  # noqa: E402
 
 templates.env.globals["subscribe_path"] = _subscribe_path
@@ -4031,7 +4031,7 @@ async def _create_payment(request: Request, body: PaymentCreateRequest):
     if method == "applepay":
         raise HTTPException(400, "Apple Pay is not available.")
     if method in pm.CARD_METHODS and not pm.moyasar_collects_money():
-        raise HTTPException(503, pm.CARD_ACTIVATING_AR)
+        raise HTTPException(503, pm.CHECKOUT_UNAVAILABLE_AR)
     if method == "paypal" and not pm.customer_paypal_enabled():
         raise HTTPException(400, "PayPal is not available. Pay by card through Moyasar.")
     if method == "invoice" and not owner_invoice:
@@ -4884,7 +4884,7 @@ async def pay_invoice_by_card(payment_id: str, body: InvoiceConsentRequest, requ
         await session.commit()
 
         if not _pm.moyasar_collects_money():
-            raise HTTPException(503, _pm.CARD_ACTIVATING_AR)
+            raise HTTPException(503, _pm.CHECKOUT_UNAVAILABLE_AR)
 
         # Keep the invoice row locked until its hosted reference is saved.
         # Simultaneous retries then reuse the same link across workers.
@@ -5223,7 +5223,7 @@ def _moyasar_live_test_page(request: Request, *, closed: bool, error: bool):
             "error": error,
             "amount_sar": f"{pm.MOYASAR_LIVE_TEST_HALALAS / 100:.2f}",
             "description": pm.MOYASAR_LIVE_TEST_DESCRIPTION,
-            "closed_message": pm.CARD_ACTIVATING_AR,
+            "closed_message": pm.CHECKOUT_UNAVAILABLE_AR,
         },
         status_code=502 if error else 200,
         headers=_LIVE_TEST_HEADERS,
