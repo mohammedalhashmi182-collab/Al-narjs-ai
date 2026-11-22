@@ -3,8 +3,8 @@
 There is no separate ``/checkout`` route. Card payment is the ``#step-checkout``
 section on ``/portal``: it shows the chosen plan, then ``POST /api/payments``
 sends the buyer to the live gateway. ``checkout=1`` opens that step for the
-plan in ``pkg``. While payments are closed the same link stays the interest
-form, without a checkout flag, so the label «سجّل اهتمامك» is not a dead pay button.
+plan in ``pkg``. While payments are closed the same link opens the plan request
+form, without a checkout flag, so the button is never a dead pay button.
 """
 
 from __future__ import annotations

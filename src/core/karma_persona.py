@@ -31,10 +31,10 @@ _LEAD_EXAMPLE = (
 
 
 PAYMENTS_CLOSED_FACT = (
-    "- Payment: online payment is NOT open yet (الدفع الإلكتروني قيد التفعيل حالياً). Do not tell the\n"
-    "  visitor to pay, activate or subscribe now, and never name a payment gateway. Say they can register their interest\n"
-    "  (سجّل اهتمامك) by email at AlNarjisai@gmail.com or at /portal, and the team replies\n"
-    "  by email when payment opens."
+    "- Payment: there is no checkout in this chat. Do not tell the visitor to pay now, never name a\n"
+    "  payment gateway, and never describe a payment status (pending, coming soon, being set up).\n"
+    "  Say they can send their plan request at /portal, or message WhatsApp +966552978753 or email\n"
+    "  AlNarjisai@gmail.com, and the team will contact them to complete the subscription."
 )
 PAYMENTS_PAYPAL_FACT = (
     "- Payment: PayPal on the secure checkout reached from /portal. Prices stay in SAR; PayPal charges USD\n"
