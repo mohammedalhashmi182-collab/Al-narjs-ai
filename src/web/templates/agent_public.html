@@ -66,7 +66,7 @@
         <h1>{{ agent.title_ar if _lang == 'ar' else agent.title_en }}</h1>
         <p class="muted">{{ agent.intro_ar if _lang == 'ar' else agent.intro_en }}</p>
         <div class="cta">
-            <a class="btn btn-gold" href="{{ subscribe_path(recommended_pkg) }}">{% if not payments_open() %}{% if _lang == 'ar' %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif _lang == 'ar' %}اشترك مع هذا الوكيل{% else %}Subscribe with this agent{% endif %}</a>
+            <a class="btn btn-gold" href="{{ subscribe_path(recommended_pkg) }}">{% if not payments_open() %}{% if _lang == 'ar' %}اطلب الباقة{% else %}Request this plan{% endif %}{% elif _lang == 'ar' %}اشترك مع هذا الوكيل{% else %}Subscribe with this agent{% endif %}</a>
             <a class="btn btn-ghost" href="mailto:AlNarjisai@gmail.com">{% if _lang == 'ar' %}راسلنا بالبريد{% else %}Email us{% endif %}</a>
             <a class="btn btn-ghost" href="/consult">{% if _lang == 'ar' %}اسأل المستشار{% else %}Ask the consultant{% endif %}</a>
             <a class="btn btn-ghost" href="/{{ _lang }}/voice">{% if _lang == 'ar' %}تحدث مع المستشار الصوتي{% else %}Talk to the voice advisor{% endif %}</a>
