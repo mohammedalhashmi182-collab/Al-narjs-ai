@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+{% set _lang = page_lang(request) %}
+{% set ar = _lang == 'ar' %}
+{% set _path = request.url.path %}
+{% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
+{% import "partials/_seo.html" as seo with context %}
+<html lang="{{ _lang }}" dir="{{ 'rtl' if ar else 'ltr' }}">
+<head>
+{{ seo.head(
+    "النرجس | موظف ذكي يكتب منتجات متجرك ويرد على عملائك",
+    "Al-Narjis | AI that writes your product pages and answers your customers",
+    "وصف منتجات احترافي وردود ذكية على عملاء متجرك بالعربي والإنجليزي. جرّبه مجاناً الحين بدون تسجيل.",
+    "Professional product copy and smart customer replies in Arabic and English. Try it free now, no sign-up.",
+    _base_path, 'website',
+    {"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Al-Narjis AI",
+     "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "url": "https://alnarjisai.com/" ~ _lang ~ "/start",
+     "offers": {"@type": "AggregateOffer", "priceCurrency": "SAR", "lowPrice": "0", "highPrice": "489", "offerCount": "4"}}
+) }}
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+<link rel="manifest" href="/static/site.webmanifest">
+<meta name="theme-color" content="#F4F6FB">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/static/css/narjis-saas.css">
+</head>
+<body class="sx" data-lang="{{ _lang }}">
+<a class="sx-skip" href="#main">{{ 'تخطَّ إلى المحتوى' if ar else 'Skip to content' }}</a>
+
+<header class="sx-wrap sx-top">
+  <nav class="sx-glass sx-nav" aria-label="{{ 'القائمة الرئيسية' if ar else 'Main menu' }}">
+    <a class="sx-brand" href="/{{ _lang }}/start"><img src="/static/logo.svg" alt="" width="40" height="40"><span><b>{{ 'النرجس' if ar else 'Al-Narjis' }}</b><small>AL-NARJIS AI</small></span></a>
+    <div class="sx-links">
+      <a href="#demo">{{ 'جرّب' if ar else 'Try it' }}</a>
+      <a href="#solutions">{{ 'الحلول' if ar else 'Solutions' }}</a>
+      <a href="#pricing">{{ 'الأسعار' if ar else 'Pricing' }}</a>
+      <a href="#faq">{{ 'الأسئلة' if ar else 'FAQ' }}</a>
+    </div>
+    <div class="sx-actions">
+      {% if ar %}<a class="sx-lang" href="/en{{ _base_path }}" hreflang="en" lang="en">EN</a>{% else %}<a class="sx-lang" href="/ar{{ _base_path }}" hreflang="ar" lang="ar">ع</a>{% endif %}
+      <a class="sx-btn sx-btn-ghost" href="/portal">{{ 'دخول' if ar else 'Log in' }}</a>
+      <a class="sx-btn sx-btn-dark" href="#demo">{{ 'ابدأ مجاناً' if ar else 'Start free' }}</a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+<section class="sx-wrap" aria-labelledby="hero-h">
+  <div class="sx-hero">
+    <div class="sx-hero-copy">
+      <span class="sx-pill sx-glass"><i class="sx-dot"></i>{{ 'بالعربي والإنجليزي · من الرياض' if ar else 'Arabic & English · from Riyadh' }}</span>
+      <h1 id="hero-h">{% if ar %}متجرك يبيع<br><span class="sx-mark">وأنت نايم.</span>{% else %}Your store sells<br><span class="sx-mark">while you sleep.</span>{% endif %}</h1>
+      <p class="sx-lead">{{ 'النرجس يكتب وصف منتجاتك، ويرد على عملائك خلال دقيقة، ويجهّز محتواك التسويقي، بالعربي والإنجليزي.' if ar else 'Al-Narjis writes your product pages, answers customers within a minute and drafts your marketing, in Arabic and English.' }}</p>
+      <div class="sx-ctas">
+        <a class="sx-btn sx-btn-dark sx-btn-lg" href="#demo">{{ 'ابدأ مجاناً' if ar else 'Start free' }} <span aria-hidden="true">{{ '←' if ar else '→' }}</span></a>
+        <a class="sx-btn sx-btn-glass sx-btn-lg" href="#pricing">{{ 'شوف الأسعار' if ar else 'See pricing' }}</a>
+      </div>
+      <p class="sx-note">{{ '30 مهمة مجانية كل شهر · بدون بطاقة' if ar else '30 free tasks every month · no card' }}</p>
+    </div>
+    <div class="sx-hero-cards" aria-hidden="true">
+      <div class="sx-glass sx-float sx-float-a"><b>{{ 'وصف منتج' if ar else 'Product copy' }}</b><p>{{ 'عطر عود ملكي: ثبات يدوم طول اليوم، بلمسة شرقية تفرق.' if ar else 'Royal Oud perfume: lasts all day, with an Eastern touch that stands out.' }}</p><small>{{ 'مثال توضيحي' if ar else 'Illustrative example' }}</small></div>
+      <div class="sx-glass sx-float sx-float-b"><span class="sx-wa"></span><div><b>{{ 'واتساب · رد خلال دقيقة' if ar else 'WhatsApp · reply in a minute' }}</b><p>{{ 'هلا وغلا! متوفر بمقاسين، تبيه يوصلك اليوم؟' if ar else 'Hi! It comes in two sizes. Want it delivered today?' }}</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="demo" class="sx-wrap sx-sec" aria-labelledby="demo-h">
+  <h2 id="demo-h">{{ 'جرّبه الحين، بدون تسجيل' if ar else 'Try it now, no sign-up' }}</h2>
+  <p class="sx-sub">{{ 'اكتب منتج أو سؤال عميل، وشوف النتيجة قدامك.' if ar else 'Type a product or a customer question and watch the result.' }}</p>
+  <div class="sx-glass sx-demo">
+    <div class="sx-tabs" role="tablist" aria-label="{{ 'نوع التجربة' if ar else 'Demo type' }}">
+      <button type="button" role="tab" id="tab-product" aria-selected="true" aria-controls="demoForm" data-mode="product">{{ 'وصف منتج' if ar else 'Product description' }}</button>
+      <button type="button" role="tab" id="tab-reply" aria-selected="false" aria-controls="demoForm" data-mode="reply">{{ 'رد على عميل' if ar else 'Customer reply' }}</button>
+    </div>
+    <form id="demoForm" class="sx-demo-form" action="/api/demo/generate" method="post" novalidate>
+      <div class="sx-field">
+        <label for="demoName" data-label-product="{{ 'اسم المنتج' if ar else 'Product name' }}" data-label-reply="{{ 'اسم المتجر' if ar else 'Store name' }}">{{ 'اسم المنتج' if ar else 'Product name' }}</label>
+        <input id="demoName" name="name" maxlength="80" value="{{ 'عطر عود ملكي' if ar else 'Royal Oud perfume' }}" data-sample-product="{{ 'عطر عود ملكي' if ar else 'Royal Oud perfume' }}" data-sample-reply="{{ 'متجر الورد' if ar else 'Al-Ward Store' }}">
+      </div>
+      <div class="sx-field">
+        <label for="demoDetails" data-label-product="{{ 'أهم المميزات (افصل بفاصلة)' if ar else 'Key features (comma separated)' }}" data-label-reply="{{ 'رسالة العميل' if ar else 'Customer message' }}">{{ 'أهم المميزات (افصل بفاصلة)' if ar else 'Key features (comma separated)' }}</label>
+        <textarea id="demoDetails" name="details" rows="3" maxlength="240" data-sample-product="{{ 'ثبات طول اليوم، خشب عود كمبودي، عبوة 100 مل' if ar else 'All-day longevity, Cambodian oud wood, 100 ml bottle' }}" data-sample-reply="{{ 'السلام عليكم، هل يوصل الطلب للرياض اليوم؟' if ar else 'Hi, can my order reach Riyadh today?' }}">{{ 'ثبات طول اليوم، خشب عود كمبودي، عبوة 100 مل' if ar else 'All-day longevity, Cambodian oud wood, 100 ml bottle' }}</textarea>
+      </div>
+      <button type="submit" class="sx-btn sx-btn-accent sx-btn-lg" id="demoBtn" data-busy="{{ 'يكتب الحين…' if ar else 'Writing…' }}">{{ 'ولّد' if ar else 'Generate' }}</button>
+      <p class="sx-demo-left" id="demoLeft" data-template="{{ 'باقي لك اليوم: {n} تجارب' if ar else 'Tries left today: {n}' }}"></p>
+    </form>
+    <div class="sx-demo-out" aria-live="polite">
+      <div class="sx-out-head"><b>{{ 'النتيجة' if ar else 'Result' }}</b><button type="button" class="sx-copy" id="demoCopy" data-done="{{ 'تم النسخ' if ar else 'Copied' }}" hidden>{{ 'نسخ' if ar else 'Copy' }}</button></div>
+      <pre id="demoOut" class="sx-out">{{ 'اضغط «ولّد» وشوف موظفك الذكي يكتب.' if ar else 'Press “Generate” and watch your AI employee write.' }}</pre>
+      <p class="sx-demo-msg" id="demoMsg" role="alert" hidden data-error="{{ 'تعذّر التوليد الحين. جرّب بعد شوي.' if ar else 'Could not generate right now. Try again shortly.' }}" data-limit="{{ 'خلصت تجارب اليوم. سجّل مجاناً وخذ 30 مهمة كل شهر.' if ar else 'You used today’s tries. Sign up free for 30 tasks a month.' }}"></p>
+    </div>
+  </div>
+</section>
+
+<section id="solutions" class="sx-wrap sx-sec" aria-labelledby="sol-h">
+  <h2 id="sol-h">{{ 'حلّين، لشغلين مختلفين' if ar else 'Two solutions for two jobs' }}</h2>
+  <div class="sx-two">
+    <article class="sx-glass sx-sol">
+      <span class="sx-ico sx-ico-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16l-1.5 11h-13zM9 7a3 3 0 0 1 6 0"/></svg></span>
+      <h3>{{ 'أتمتة المتاجر الإلكترونية' if ar else 'E-commerce automation' }}</h3>
+      <ul>
+        <li>{{ 'وصف منتجات بالعربي والإنجليزي، مفرد أو دفعات من ملف CSV' if ar else 'Arabic and English product pages, one by one or in bulk from CSV' }}</li>
+        <li>{{ 'رد على أسئلة العملاء في الموقع وواتساب خلال دقيقة' if ar else 'Customer answers on your site and WhatsApp within a minute' }}</li>
+        <li>{{ 'رسائل متابعة للسلات المتروكة' if ar else 'Follow-up messages for abandoned carts' }}</li>
+      </ul>
+    </article>
+    <article class="sx-glass sx-sol">
+      <span class="sx-ico sx-ico-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5zM9 12h6M9 16h4"/></svg></span>
+      <h3>{{ 'صناعة المحتوى والمحادثة' if ar else 'Content and conversation' }}</h3>
+      <ul>
+        <li>{{ 'منشورات سوشيال بنبرة علامتك' if ar else 'Social posts in your brand voice' }}</li>
+        <li>{{ 'مقالات وصفحات هبوط محسّنة للبحث' if ar else 'Search-friendly articles and landing pages' }}</li>
+        <li>{{ 'مساعد محادثة يفهم نشاطك ويجاوب عنه' if ar else 'A chat assistant that knows your business' }}</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section id="pricing" class="sx-wrap sx-sec" aria-labelledby="price-h">
+  <h2 id="price-h">{{ 'أسعار واضحة' if ar else 'Simple pricing' }}</h2>
+  <p class="sx-sub">{{ 'كل مهمة = رصيد واحد. ابدأ مجاناً، وارقَ لما تحتاج.' if ar else 'One task = one credit. Start free, upgrade when you need to.' }}</p>
+  <div class="sx-toggle" role="group" aria-label="{{ 'فترة الدفع' if ar else 'Billing period' }}">
+    <button type="button" data-period="monthly" aria-pressed="true">{{ 'شهري' if ar else 'Monthly' }}</button>
+    <button type="button" data-period="annual" aria-pressed="false">{{ 'سنوي' if ar else 'Yearly' }} <span class="sx-save">−20%</span></button>
+  </div>
+  <div class="sx-plans">
+    {% for p in plans %}
+    <article class="sx-plan {{ 'sx-plan-pop' if p.popular else 'sx-glass' }}">
+      {% if p.popular %}<span class="sx-badge">{{ 'الأكثر طلباً' if ar else 'Most popular' }}</span>{% endif %}
+      <h3>{{ p.name }}</h3>
+      <div class="sx-price"><b data-monthly="{{ p.monthly }}" data-annual="{{ p.annual }}">{{ p.monthly }}</b><span>{{ 'ريال / شهرياً' if ar else 'SAR / month' }}</span></div>
+      {% if p.monthly %}<p class="sx-usd" data-monthly="{{ '≈ $' ~ p.usd_monthly }}" data-annual="{{ '≈ $' ~ p.usd_annual }}">≈ ${{ p.usd_monthly }}</p>{% endif %}
+      <p class="sx-billed" data-monthly="{{ ('بدون التزام' if ar else 'No commitment') if p.monthly else ('مجاني دائماً' if ar else 'Free forever') }}" data-annual="{{ (('يُدفع سنوياً ' ~ '{:,}'.format(p.annual_total) ~ ' ريال') if ar else ('Billed SAR ' ~ '{:,}'.format(p.annual_total) ~ ' yearly')) if p.monthly else ('مجاني دائماً' if ar else 'Free forever') }}">{{ ('بدون التزام' if ar else 'No commitment') if p.monthly else ('مجاني دائماً' if ar else 'Free forever') }}</p>
+      <ul>{% for f in p.features %}<li>{{ f }}</li>{% endfor %}</ul>
+      {% if p.monthly == 0 %}
+      <a class="sx-btn sx-btn-line" href="#demo">{{ 'ابدأ مجاناً' if ar else 'Start free' }}</a>
+      {% else %}
+      <a class="sx-btn {{ 'sx-btn-accent' if p.popular else 'sx-btn-line' }}" href="{{ p.href_monthly }}" data-href-monthly="{{ p.href_monthly }}" data-href-annual="{{ p.href_annual }}">{{ 'اشترك' if ar else 'Subscribe' }}</a>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  <div class="sx-glass sx-topup">
+    <div><b>{{ 'شحن رصيد إضافي، ما ينتهي' if ar else 'Extra credits that never expire' }}</b>
+      <p>{% for c, sar in topups %}{{ '{:,}'.format(c) }} {{ 'رصيد' if ar else 'credits' }} = {{ sar }} {{ 'ريال' if ar else 'SAR' }}{% if not loop.last %} · {% endif %}{% endfor %}</p></div>
+    <div class="sx-costs">{% for a, e, n in credit_costs %}<span>{{ a if ar else e }}: <b>{{ n }}</b></span>{% endfor %}</div>
+  </div>
+  <div class="sx-glass sx-managed">
+    <div><b>{{ 'تبينا نشغّل كل شي عنك؟' if ar else 'Want us to run it all for you?' }}</b><p>{{ 'النرجس المُدار: فريقنا يركّب ويشغّل ويراجع، بباقات بالريال للمنشآت في السعودية والخليج.' if ar else 'Al-Narjis Managed: our team sets up, runs and reviews everything, with SAR plans for businesses in Saudi Arabia and the Gulf.' }}</p></div>
+    <a class="sx-btn sx-btn-dark" href="/{{ _lang }}/home#pricing">{{ 'شوف الباقات المُدارة' if ar else 'See managed plans' }}</a>
+  </div>
+</section>
+
+<section id="faq" class="sx-wrap sx-sec" aria-labelledby="faq-h">
+  <h2 id="faq-h">{{ 'أسئلة شائعة' if ar else 'Questions' }}</h2>
+  <div class="sx-trust">
+    <span class="sx-glass">{{ 'ادفع بمدى أو البطاقة أو Apple Pay عبر ميسّر، أو PayPal' if ar else 'Pay with mada, card or Apple Pay via Moyasar, or PayPal' }}</span>
+    <span class="sx-glass">{{ 'ألغِ بأي وقت' if ar else 'Cancel anytime' }}</span>
+    <span class="sx-glass"><a href="/{{ _lang }}/data-deletion">{{ 'بياناتك لك، احذفها متى ما تبي' if ar else 'Your data is yours, delete it anytime' }}</a></span>
+    <span class="sx-glass">{{ 'من الرياض' if ar else 'Built in Riyadh' }}</span>
+  </div>
+  <div class="sx-faq">
+    {% set faqs = [
+      ('هل أحتاج بطاقة للباقة المجانية؟', 'لا. 30 مهمة كل شهر بدون بطاقة.', 'Do I need a card for the free plan?', 'No. 30 tasks every month, no card.'),
+      ('وش يصير لو خلص رصيدي؟', 'تشحن رصيد إضافي ما ينتهي، أو ترقّي الباقة.', 'What if I run out of credits?', 'Top up with credits that never expire, or upgrade your plan.'),
+      ('هل يكتب باللهجة السعودية؟', 'نعم، وتختار النبرة اللي تناسب علامتك.', 'Can it write in Saudi dialect?', 'Yes, and you choose the tone that fits your brand.'),
+      ('هل يرد على واتساب؟', 'نعم من باقة النمو. رسوم رسائل واتساب اللي تأخذها ميتا تكون على حسابك.', 'Does it answer on WhatsApp?', 'Yes, from the Growth plan. WhatsApp message fees charged by Meta are billed to your account.'),
+      ('وين تنحفظ بياناتي؟', 'في خوادم مشفّرة، وتقدر تحذفها من صفحة حذف البيانات.', 'Where is my data stored?', 'On encrypted servers, and you can delete it from the data deletion page.'),
+      ('أقدر ألغي بأي وقت؟', 'نعم، ويظل الاشتراك شغال لين نهاية الفترة المدفوعة.', 'Can I cancel anytime?', 'Yes. Your plan stays active until the end of the paid period.'),
+      ('هل يشتغل مع سلة وزد وشوبيفاي؟', 'الحين تنسخ النص أو ترفع ملف CSV. الربط المباشر قريباً.', 'Does it work with Salla, Zid and Shopify?', 'Today you copy the text or upload a CSV. Direct integrations are coming soon.'),
+      ('وش طرق الدفع؟', 'مدى والبطاقات وApple Pay عبر ميسّر بالريال، أو PayPal بالدولار بسعر الصرف الثابت 3.75.', 'How can I pay?', 'mada, cards and Apple Pay via Moyasar in SAR, or PayPal in USD at the fixed 3.75 rate.')
+    ] %}
+    {% for qa, aa, qe, ae in faqs %}
+    <details class="sx-glass"><summary>{{ qa if ar else qe }}</summary><p>{{ aa if ar else ae }}</p></details>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="sx-wrap sx-sec" aria-labelledby="end-h">
+  <div class="sx-glass sx-end">
+    <div><h2 id="end-h">{{ 'جرّب قبل ما تقرر' if ar else 'Try before you decide' }}</h2><p>{{ 'ثلاث تجارب مجانية الحين، و30 مهمة كل شهر بعد التسجيل.' if ar else 'Three free tries now, and 30 tasks a month after sign-up.' }}</p></div>
+    <div class="sx-ctas"><a class="sx-btn sx-btn-dark sx-btn-lg" href="#demo">{{ 'ابدأ مجاناً' if ar else 'Start free' }}</a><a class="sx-btn sx-btn-glass sx-btn-lg" href="{{ whatsapp }}" target="_blank" rel="noopener noreferrer">{{ 'واتساب' if ar else 'WhatsApp' }}</a></div>
+  </div>
+</section>
+</main>
+
+<footer class="sx-wrap sx-foot">
+  <span>© 2026 {{ 'النرجس للذكاء الاصطناعي · الرياض' if ar else 'Al-Narjis AI · Riyadh' }}</span>
+  <nav aria-label="{{ 'روابط قانونية' if ar else 'Legal' }}">
+    <a href="mailto:AlNarjisai@gmail.com">AlNarjisai@gmail.com</a>
+    <a href="/{{ _lang }}/voice">{{ 'تحدث مع النرجس' if ar else 'Talk to Al-Narjis' }}</a>
+    <a href="/{{ _lang }}/privacy">{{ 'الخصوصية' if ar else 'Privacy' }}</a>
+    <a href="/{{ _lang }}/terms">{{ 'الشروط' if ar else 'Terms' }}</a>
+    <a href="/{{ _lang }}/refund-policy">{{ 'الاسترجاع' if ar else 'Refunds' }}</a>
+    <a href="/{{ _lang }}/data-deletion">{{ 'حذف البيانات' if ar else 'Data deletion' }}</a>
+  </nav>
+</footer>
+
+<a class="sx-btn sx-btn-dark sx-mobile-cta" href="#demo">{{ 'ابدأ مجاناً' if ar else 'Start free' }}</a>
+
+<script src="/static/js/narjis-saas.js" defer></script>
+</body>
+</html>

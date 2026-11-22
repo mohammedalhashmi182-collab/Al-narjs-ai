@@ -1720,6 +1720,37 @@ async def consult_page(request: Request):
     return templates.TemplateResponse(request, "consult.html")
 
 
+@app.get("/start", response_class=HTMLResponse)
+async def saas_start_page(request: Request):
+    """Self-serve landing (SAR credit plans via Moyasar/PayPal + live demo). /ar/start and /en/start."""
+    from src.services import saas_offer
+
+    lang = _page_lang(request)
+    plans = []
+    for p in saas_offer.PLANS:
+        plans.append({
+            "key": p.key,
+            "name": p.name_ar if lang == "ar" else p.name_en,
+            "monthly": p.monthly_sar,
+            "annual": p.annual_monthly_sar,
+            "annual_total": p.annual_total_sar,
+            "usd_monthly": p.usd(p.monthly_sar),
+            "usd_annual": p.usd(p.annual_monthly_sar),
+            "credits": p.credits,
+            "features": p.features_ar if lang == "ar" else p.features_en,
+            "popular": p.popular,
+            "href_monthly": saas_offer.checkout_href(p, "monthly", lang),
+            "href_annual": saas_offer.checkout_href(p, "annual", lang),
+        })
+    return templates.TemplateResponse(request, "saas.html", {
+        "ar": lang == "ar",
+        "plans": plans,
+        "topups": saas_offer.TOPUPS,
+        "credit_costs": saas_offer.CREDIT_COSTS,
+        "whatsapp": saas_offer.PUBLIC_WHATSAPP,
+    })
+
+
 @app.get("/guide", response_class=HTMLResponse)
 async def guide_page(request: Request):
     return templates.TemplateResponse(request, "guide.html")
@@ -2214,12 +2245,15 @@ async def delete_workflow(slug: str):
 # ---------------- Client Portal (System 1: package -> dormant team -> wake -> interview) ----------------
 
 @app.get("/api/portal/packages")
-async def portal_packages():
+async def portal_packages(line: str = ""):
+    """Managed tiers by default; ?line=self lists the self-serve plans from /start."""
     from src.services import catalog
 
     icons = {"bidaya": "fas fa-comments", "numuw": "fas fa-seedling", "sharikat": "fas fa-building"}
     result = []
-    for key, p in catalog.PACKAGES.items():
+    source = ({k: catalog.SELF_SERVE[k] for k in catalog.SELF_SERVE_ORDER} if line == "self"
+              else catalog.PACKAGES)
+    for key, p in source.items():
         result.append({
             "key": key,
             "name": p["name"],
@@ -2232,7 +2266,7 @@ async def portal_packages():
             "annual_amount": catalog.plan_amount(key, "annual"),
             "setup_fee": p["setup_fee"],
             "limits": p["limits"],
-            "recommended": key == catalog.RECOMMENDED_PACKAGE,
+            "recommended": key in (catalog.RECOMMENDED_PACKAGE, "ss_growth"),
             "features": p["scope"],
             "features_en": p["scope_en"],
             "coming": p.get("coming", []),
@@ -2405,7 +2439,7 @@ async def portal_create_project(request: PortalProjectCreate):
     from src.services import catalog
     from src.models import ClientProject, ClientAgent
 
-    if request.package not in catalog.PACKAGES:
+    if not catalog.is_billable(request.package):
         raise HTTPException(400, "Unknown package")
 
     async with app.state.session_factory() as session:
@@ -2776,6 +2810,32 @@ async def ceo_consult(request: CeoConsultRequest, http_request: Request):
     if isinstance(plan, dict) and result.get("offer", True):
         await funnel.track("ceo_plan_recommended", http_request,
                            {"lang": lang, "plan": str(plan.get("key") or "")})
+    return result
+
+
+class DemoGenerateRequest(BaseModel):
+    mode: str = "product"
+    name: str = ""
+    details: str = ""
+    lang: Optional[str] = None
+
+
+@app.post("/api/demo/generate", dependencies=[Depends(rate_limit_consult)])
+async def demo_generate(body: DemoGenerateRequest, http_request: Request):
+    """Public live demo: one product description or one customer reply.
+
+    Shares the consult rate limit, so an anonymous visitor cannot burn credits.
+    Falls back to a deterministic template when no model key is configured.
+    """
+    from src.services import saas_offer
+
+    try:
+        mode, name, details = saas_offer.validate_demo(body.mode, body.name, body.details)
+    except ValueError:
+        raise HTTPException(400, "Fill in the product name or the customer message")
+    lang = body.lang or http_request.cookies.get(_LOCALE_COOKIE, "ar")
+    provider = getattr(app.state, "model_provider", None)
+    result = await saas_offer.generate_demo(mode, name, details, lang=lang, provider=provider)
     return result
 
 

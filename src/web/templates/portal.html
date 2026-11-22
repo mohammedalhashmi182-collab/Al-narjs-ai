@@ -291,7 +291,7 @@
             // ---- Load packages ----
             const packageController = new AbortController();
             const packageTimeout = setTimeout(() => packageController.abort(), 5000);
-            fetch('/api/portal/packages', { signal: packageController.signal }).then(r => {
+            fetch('/api/portal/packages' + (/^ss_/.test(new URLSearchParams(window.location.search).get('pkg') || '') ? '?line=self' : ''), { signal: packageController.signal }).then(r => {
                 if (!r.ok) throw new Error('packages');
                 return r.json();
             }).then(data => {
@@ -408,8 +408,8 @@
                     const pc = $('pendingCta');
                     if (pc) pc.addEventListener('click', () => openCheckout());
                 }
-                const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال', bidaya: 'البداية', numuw: 'النمو', sharikat: 'الشركات', radd: 'البداية', bay: 'النمو', tashgheel: 'الشركات' };
-                const pkgNamesEn = { social: 'Social media', ecommerce: 'Online stores', content: 'Content marketing', growth: 'Business growth', bidaya: 'Starter', numuw: 'Growth', sharikat: 'Enterprise', radd: 'Starter', bay: 'Growth', tashgheel: 'Enterprise' };
+                const pkgNames = { social: 'سوشيال ميديا', ecommerce: 'متاجر إلكترونية', content: 'تسويق محتوى', growth: 'نمو الأعمال', bidaya: 'البداية', numuw: 'النمو', sharikat: 'الشركات', ss_starter: 'المبتدئ', ss_growth: 'النمو الذاتي', ss_pro: 'الاحترافي', radd: 'البداية', bay: 'النمو', tashgheel: 'الشركات' };
+                const pkgNamesEn = { social: 'Social media', ecommerce: 'Online stores', content: 'Content marketing', growth: 'Business growth', bidaya: 'Starter', numuw: 'Growth', sharikat: 'Enterprise', ss_starter: 'Starter', ss_growth: 'Self-serve Growth', ss_pro: 'Pro', radd: 'Starter', bay: 'Growth', tashgheel: 'Enterprise' };
             const DEPT_EN = {
                 'التسويق الرقمي': 'Digital Marketing',
                 'المحتوى': 'Content',
@@ -674,7 +674,9 @@
                 const pct = window.NARJIS_PROMO && window.NARJIS_PROMO.active && window.NARJIS_PROMO.code.toUpperCase() === ($('promoInput') ? $('promoInput').value.trim().toUpperCase() : '') ? window.NARJIS_PROMO.percent : 0;
                 const addonPrice = (window.NARJIS_ADDON && parseFloat(window.NARJIS_ADDON.price)) || 0;
                 const months = coBilling === 'annual' ? 10 : 1;
-                const planBase = (parseFloat(p.price) + coAddons * addonPrice) * months;
+                // annual_amount comes from catalog.plan_amount (self-serve plans: 12 months at 20% off).
+                const planBase = (coBilling === 'annual' && p.annual_amount
+                    ? Number(p.annual_amount) / 100 : parseFloat(p.price) * months) + coAddons * addonPrice * months;
                 const ua = window.NARJIS_USAGE || {};
                 const convPrice = (ua.conversations && parseFloat(ua.conversations.price)) || 0;
                 const voicePrice = (ua.voice_minutes && parseFloat(ua.voice_minutes.price)) || 0;

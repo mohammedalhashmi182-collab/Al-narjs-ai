@@ -1,0 +1,82 @@
+/* Al-Narjis — CEO concierge (hero conversation + initial offer + docked CEO).
+   Black, white and the action accent #FF5A36 only. Bubbles follow the
+   conversation contract: 20px radius with one 8px corner. */
+.nj .ngc { display:flex; flex-direction:column; gap:12px; padding:clamp(18px,2.6vw,30px); }
+.nj .ngc-who { display:flex; align-items:center; gap:12px; }
+.nj .ngc-who img { border-radius:12px; flex:none; }
+.nj .ngc-who b { display:block; color:#f4f5f5; font-size:15px; }
+.nj .ngc-who span { display:flex; align-items:center; gap:6px; color:#bfc6cb; font-size:12px; }
+.nj .ngc-online { width:8px; height:8px; border-radius:50%; background:#FF5A36; box-shadow:0 0 0 4px rgba(255,90,54,.18); display:inline-block; }
+
+.nj .ngc-thread { display:flex; flex-direction:column; gap:10px; max-height:min(46vh,420px); overflow-y:auto; padding:4px 2px; scroll-behavior:smooth; overscroll-behavior:contain; }
+.nj .ngc-msg { max-width:88%; }
+.nj .ngc-msg p { margin:0; padding:11px 15px; font-size:14.5px; line-height:1.85; border-radius:20px; }
+.nj .ngc-msg.ceo { align-self:flex-start; }
+.nj .ngc-msg.ceo p { background:rgba(255,255,255,.07); color:#eef0f1; border:1px solid rgba(255,255,255,.08); border-start-start-radius:8px; }
+.nj .ngc-msg.me { align-self:flex-end; }
+.nj .ngc-msg.me p { background:#FF5A36; color:#12100d; font-weight:600; border-start-end-radius:8px; }
+.nj .ngc-msg.is-typing p { color:#bfc6cb; animation:ngc-pulse 1.4s ease-in-out infinite; }
+@keyframes ngc-pulse { 50% { opacity:.55; } }
+
+.nj .ngc-quick { display:flex; flex-wrap:wrap; gap:8px; margin:0; }
+.nj .ngc-chip { font:inherit; font-size:13px; padding:8px 14px; border-radius:999px; cursor:pointer; color:#e9ecee; background:transparent; border:1px solid rgba(255,255,255,.22); transition:border-color .2s, color .2s, background .2s; }
+.nj .ngc-chip:hover, .nj .ngc-chip:focus-visible { border-color:#FF5A36; color:#fff; background:rgba(255,90,54,.10); outline:none; }
+
+.nj .ngc-composer { display:flex; align-items:flex-end; gap:8px; padding:6px; border-radius:20px; border:1px solid rgba(255,255,255,.18); background:rgba(0,0,0,.28); }
+.nj .ngc-composer:focus-within { border-color:#FF5A36; }
+.nj .ngc-composer #ngHeroProblem, .nj .ngc-composer textarea { flex:1; width:auto; height:44px; box-shadow:none; border-radius:14px; resize:none; min-height:44px; max-height:140px; border:0; background:transparent; color:#f4f5f5; font:inherit; font-size:15px; line-height:1.7; padding:9px 10px; outline:none; field-sizing:content; }
+.nj .ngc-composer textarea::placeholder { color:#9aa2a7; }
+.nj .ngc-composer .ng-hero-submit { width:44px; min-height:44px; height:44px; padding:0; border-radius:14px; justify-content:center; flex:none; }
+.nj .ngc-composer[aria-busy="true"] { opacity:.7; }
+.nj .ngc-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* Initial offer card */
+.nj .ngc-offer { align-self:stretch; border-radius:20px; border-start-start-radius:8px; padding:16px; background:#fbfaf8; color:#12100d; border:1px solid rgba(255,90,54,.45); }
+.nj .ngc-offer-kicker { display:inline-block; font-size:12px; font-weight:700; color:#C2410C; letter-spacing:.02em; }
+.nj .ngc-offer-diag { margin:6px 0 12px; font-size:14.5px; line-height:1.85; color:#12100d; }
+.nj .ngc-offer-label { display:block; font-size:13px; margin-bottom:6px; color:#12100d; }
+.nj .ngc-offer-team { list-style:none; margin:0 0 12px; padding:0; display:grid; gap:8px; }
+.nj .ngc-offer-team li { display:flex; gap:10px; align-items:flex-start; }
+.nj .ngc-offer-team .no { flex:none; font-size:11px; font-weight:700; padding:3px 7px; border-radius:8px; background:#12100d; color:#fff; }
+.nj .ngc-offer-team b { display:block; font-size:14px; }
+.nj .ngc-offer-team small { display:block; font-size:12.5px; color:#5a5046; line-height:1.7; }
+.nj .ngc-offer-plan { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; border-radius:14px; background:#12100d; color:#fff; }
+.nj .ngc-offer-plan small { display:block; font-size:12px; color:#bfc6cb; }
+.nj .ngc-offer-plan strong { font-size:16px; }
+.nj .ngc-offer-price { text-align:end; }
+.nj .ngc-offer-price strong { color:#FF5A36; font-size:18px; }
+.nj .ngc-offer-note { margin:10px 0 12px; font-size:12px; line-height:1.8; color:#5a5046; }
+.nj .ngc-offer-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.nj .ngc-offer-actions .ngc-primary { background:#FF5A36; color:#12100d; font-weight:700; }
+.nj .ngc-offer-actions .ngc-wa { color:#12100d; border:1px solid #12100d; background:transparent; }
+.nj .ngc-offer-actions .ngc-wa:hover { background:#12100d; color:#fff; }
+.nj .ngc-link { font:inherit; font-size:13px; background:none; border:0; padding:6px 4px; color:#5a5046; text-decoration:underline; cursor:pointer; }
+
+/* Docked CEO: stays with the visitor once an offer exists */
+.ngc-dock { position:fixed; inset-inline-start:16px; bottom:16px; z-index:60; display:flex; align-items:center; gap:4px; padding:6px; border-radius:999px; background:#12100d; border:1px solid rgba(255,90,54,.55); box-shadow:0 18px 48px rgba(0,0,0,.4); }
+.ngc-dock[hidden] { display:none; }
+.ngc-dock-open { display:flex; align-items:center; gap:8px; font:inherit; font-size:13.5px; font-weight:600; color:#fff; background:none; border:0; padding:4px 10px 4px 4px; cursor:pointer; }
+.ngc-dock-open img { border-radius:9px; }
+.ngc-dock-x { width:30px; height:30px; border-radius:50%; border:0; background:rgba(255,255,255,.08); color:#fff; font-size:18px; cursor:pointer; }
+
+@media (max-width:640px) {
+  .nj .ngc-thread { max-height:52vh; }
+  .ngc-dock { inset-inline:12px; bottom:12px; justify-content:space-between; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nj .ngc-thread { scroll-behavior:auto; }
+  .nj .ngc-msg.is-typing p { animation:none; }
+  .nj .ngc-chip { transition:none; }
+}
+@media print {
+  body.ngc-printing * { visibility:hidden !important; }
+  body.ngc-printing .ngc-print, body.ngc-printing .ngc-print * { visibility:visible !important; }
+  body.ngc-printing .ngc-print { position:absolute; top:0; inset-inline:0; margin:24px; }
+  body.ngc-printing .ngc-offer-actions { display:none !important; }
+  .ngc-dock { display:none !important; }
+}
+
+/* Hero art: the Najdi gate and its reflection replaces the flower. */
+html.cine-on .nj .hero-bg,
+html.cine-fallback .nj .hero-bg { opacity:.62; visibility:visible; }
+html.cine-fallback .cine-fallback-art, .cine-fallback-art { display:none !important; }

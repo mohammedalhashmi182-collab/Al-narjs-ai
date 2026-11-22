@@ -137,7 +137,7 @@ def package_amount(package: str, billing_period: Optional[str] = None, addons: i
     # the tier that staffs a full domain team; tier keys pass through.
     if package in catalog.DOMAINS:
         package = catalog.resolve_tier(package)
-    if package not in catalog.PACKAGES:
+    if not catalog.is_billable(package):
         raise PaymentError(f"Unknown package: {package}")
     return catalog.plan_amount(package, _validate_period(billing_period), _validate_addons(addons))
 
@@ -176,7 +176,7 @@ def add_months(dt, months: int):
 
 def order_description(package: str, billing_period: str, addons: int, discount_pct: int = 0, renewal: bool = False, setup_fee: int = 0,
                       conversation_packs: int = 0, voice_packs: int = 0, founding: bool = False) -> str:
-    pkg = catalog.PACKAGES.get(package) or catalog.LEGACY_TIERS[package]
+    pkg = catalog.PACKAGES.get(package) or catalog.SELF_SERVE.get(package) or catalog.LEGACY_TIERS[package]
     description = f"باقة {pkg['name']} - النرجس للذكاء الاصطناعي"
     if addons:
         description += f" + {addons} وكيل إضافي"
@@ -531,7 +531,8 @@ def transfer_instructions(payment: Payment) -> dict:
     total = payment_total(payment)
     total_sar = round(total / 100, 2)
     customer = payment.customer_name or payment.customer_phone or payment.customer_email
-    pkg = _catalog.PACKAGES.get(payment.package or "") or _catalog.LEGACY_TIERS.get(payment.package or "") or {}
+    pkg = (_catalog.PACKAGES.get(payment.package or "") or _catalog.SELF_SERVE.get(payment.package or "")
+           or _catalog.LEGACY_TIERS.get(payment.package or "") or {})
     plan_ar = pkg.get("name") or (payment.package or "")
     plan_en = pkg.get("name_en") or plan_ar
     amount_text = f"{total_sar:.2f}"
@@ -576,7 +577,7 @@ async def create_payment(
     # Grandfathering: a legacy tier can only be renewed (at its old price),
     # never bought new.
     legacy_renewal = is_renewal and catalog.GRANDFATHER_RENEWALS and catalog.is_legacy_tier(package)
-    if package not in catalog.PACKAGES and not legacy_renewal:
+    if not catalog.is_billable(package) and not legacy_renewal:
         raise PaymentError(f"Unknown package: {package}")
     period = _validate_period(billing_period)
     addons = _validate_addons(addons)

@@ -66,7 +66,8 @@
   }
 
   afterPaint(function () {
-    startFlower();
+    // Owner decision (Nov 2026): the brand is about reflection, not the flower.
+    // The 3D flower stays in the file but is no longer started on the homepage.
     if (enhancePins) startPins();
     else {
       window.addEventListener("scroll", onScrollLite, { passive: true });

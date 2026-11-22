@@ -294,6 +294,49 @@ BILLING_PERIODS = {
 DEFAULT_BILLING_PERIOD = "monthly"
 
 # ---------------------------------------------------------------------
+# Self-serve line (/start): e-commerce credit plans, owner-approved 22 Nov 2026.
+# Billed in SAR through the same Moyasar / PayPal checkout as the managed tiers,
+# but kept out of PACKAGES so managed pricing pages, sitemap and sales copy
+# are unchanged. Annual = 12 months at 20% off (not the managed "10 months").
+# "conversations" is the monthly task allowance (one task = one credit).
+SELF_SERVE_ANNUAL_DISCOUNT = 0.20
+
+
+def _ss(name, name_en, sar, agents, credits, scope, scope_en):
+    monthly = sar * 100
+    annual = int(round(monthly * 12 * (1 - SELF_SERVE_ANNUAL_DISCOUNT) / 100.0)) * 100
+    return {
+        "name": name, "name_en": name_en, "amount": monthly, "price": str(sar),
+        "annual_amount": annual, "agents": agents, "display_agents": agents, "setup_fee": 0,
+        "limits": {"conversations": credits, "voice_minutes": 0, "meta_cap": 0},
+        "tagline": f"{credits:,} مهمة شهرياً", "tagline_en": f"{credits:,} tasks a month",
+        "scope": scope, "scope_en": scope_en, "coming": [], "coming_en": [], "self_serve": True,
+    }
+
+
+SELF_SERVE: dict[str, dict] = {
+    "ss_starter": _ss("المبتدئ", "Starter", 79, 2, 400,
+                      ["400 مهمة شهرياً", "متجر واحد", "نبرة علامتك التجارية"],
+                      ["400 tasks a month", "One store", "Your brand voice"]),
+    "ss_growth": _ss("النمو الذاتي", "Self-serve Growth", 189, 5, 1500,
+                     ["1,500 مهمة شهرياً", "ردود على واتساب", "3 متاجر", "توليد دفعات من CSV"],
+                     ["1,500 tasks a month", "WhatsApp replies", "3 stores", "Bulk generation from CSV"]),
+    "ss_pro": _ss("الاحترافي", "Pro", 489, 10, 5000,
+                  ["5,000 مهمة شهرياً", "5 مستخدمين", "واجهة برمجية API", "أولوية بالدعم"],
+                  ["5,000 tasks a month", "5 team seats", "API access", "Priority support"]),
+}
+SELF_SERVE_ORDER = ["ss_starter", "ss_growth", "ss_pro"]
+
+
+def is_self_serve(key: str | None) -> bool:
+    return (key or "") in SELF_SERVE
+
+
+def is_billable(key: str | None) -> bool:
+    """A key a new order may be created for: a managed tier or a self-serve plan."""
+    return (key or "") in PACKAGES or (key or "") in SELF_SERVE
+
+# ---------------------------------------------------------------------
 #  Launch policies (approved Oct 2026).
 # ---------------------------------------------------------------------
 # Founding customers: the first 15. 30% off annual (locked 12 months) or 20%
@@ -375,6 +418,12 @@ def plan_amount(package_key: str, billing_period: str = "monthly", addons: int =
 
     Legacy tiers price at their grandfathered amount and add-on rate.
     """
+    if package_key in SELF_SERVE:
+        pkg = SELF_SERVE[package_key]
+        addons = max(0, int(addons or 0))
+        if resolve_billing_period(billing_period) == "annual":
+            return pkg["annual_amount"] + addons * ADDON_AGENT["amount"] * BILLING_PERIODS["annual"]["months_billed"]
+        return pkg["amount"] + addons * ADDON_AGENT["amount"]
     if package_key in PACKAGES:
         pkg, addon_amount = PACKAGES[package_key], ADDON_AGENT["amount"]
     else:
@@ -393,7 +442,7 @@ def setup_fee(package_key: str, billing_period: str = "monthly", *, renewal: boo
     """
     if renewal or founding:
         return 0
-    return int(PACKAGES.get(package_key, {}).get("setup_fee", 0) or 0)
+    return int((PACKAGES.get(package_key) or SELF_SERVE.get(package_key) or {}).get("setup_fee", 0) or 0)
 
 
 def founding_amount(package_key: str, billing_period: str = "monthly", addons: int = 0) -> int:
@@ -430,7 +479,7 @@ def plan_limits(package_key: str, addon_conversations: int = 0, addon_voice: int
     A grandfathered tier keeps the allowance it was sold with. Older tiers
     that never had one follow the smallest current plan that covers them.
     """
-    own = PACKAGES.get(package_key) or LEGACY_TIERS.get(package_key) or {}
+    own = PACKAGES.get(package_key) or SELF_SERVE.get(package_key) or LEGACY_TIERS.get(package_key) or {}
     if own.get("limits"):
         limits = dict(own["limits"])
     else:
@@ -1154,14 +1203,14 @@ def divisions_for_agent(agent_slug: str) -> dict | None:
 
 def get_package(package_key: str) -> dict | None:
     """Current tier, or the historical package a stored payment refers to."""
-    return PACKAGES.get(package_key) or LEGACY_PACKAGES.get(package_key)
+    return PACKAGES.get(package_key) or SELF_SERVE.get(package_key) or LEGACY_PACKAGES.get(package_key)
 
 
 def resolve_tier(key: str | None) -> str:
     """Tier key for a tier, a grandfathered legacy tier or a domain key;
     unknown -> the entry tier."""
     key = (key or "").strip()
-    if key in PACKAGES or key in LEGACY_TIERS:
+    if key in PACKAGES or key in LEGACY_TIERS or key in SELF_SERVE:
         return key
     return DOMAIN_TIER.get(key, PACKAGE_ORDER[0])
 
@@ -1169,12 +1218,12 @@ def resolve_tier(key: str | None) -> str:
 def tier_price_sar(key: str | None) -> int:
     """Pre-VAT monthly price in SAR for a tier or domain key."""
     tier = resolve_tier(key)
-    return (PACKAGES.get(tier) or LEGACY_TIERS[tier])["amount"] // 100
+    return (PACKAGES.get(tier) or SELF_SERVE.get(tier) or LEGACY_TIERS[tier])["amount"] // 100
 
 
 def plan_agent_count(key: str) -> int:
     """Specialist agents a tier staffs; the CEO is on top and not counted."""
-    agents = (PACKAGES.get(key) or LEGACY_TIERS[key])["agents"]
+    agents = (PACKAGES.get(key) or SELF_SERVE.get(key) or LEGACY_TIERS[key])["agents"]
     return AGENT_COUNT - 1 if agents is None else agents
 
 
@@ -1245,6 +1294,12 @@ def _build_package_teams() -> dict[str, list[str]]:
         "tashgheel": [CEO_SLUG, *[s for s in ["customer_service", "customer_manager", "sales_closer",
                                              "store_manager", *growth_first] if s != "cv_writer"]],
         "starter": [CEO_SLUG, "marketing_agent"],
+        # Self-serve e-commerce plans (/start).
+        "ss_starter": [CEO_SLUG, "product_describer", "customer_service"],
+        "ss_growth": [CEO_SLUG, "product_describer", "customer_service", "customer_manager",
+                      "content_writer", "social_media"],
+        "ss_pro": [CEO_SLUG, "product_describer", "customer_service", "customer_manager", "content_writer",
+                   "social_media", "store_manager", "ad_writer", "email_writer", "marketing_agent", "data_analyst"],
         "team": [CEO_SLUG, *DOMAIN_TEAMS["social"][:3]],
         "scale": [CEO_SLUG, *DOMAIN_TEAMS["social"], "store_manager"],
         "company": [CEO_SLUG, *[s for s in growth_first if s != "cv_writer"][:12]],
