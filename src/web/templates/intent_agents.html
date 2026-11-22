@@ -93,7 +93,7 @@
             <ul>
                 {% for m in t.members %}<li><a href="/ai-agent/{{ m.slug }}" style="color:#FF5A36">{{ m.no }}</a> · {{ m.title_ar if _lang == 'ar' else m.title_en }}</li>{% endfor %}
             </ul>
-            <a class="btn btn-ghost" href="{{ subscribe_path(t.key) }}">{% if not payments_open() %}{% if _lang == 'ar' %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif _lang == 'ar' %}اشترك في الباقة{% else %}Subscribe{% endif %}</a>
+            <a class="btn btn-ghost" href="{{ subscribe_path(t.key) }}">{% if not payments_open() %}{% if _lang == 'ar' %}اطلب الباقة{% else %}Request this plan{% endif %}{% elif _lang == 'ar' %}اشترك في الباقة{% else %}Subscribe{% endif %}</a>
         </div>
         {% endfor %}
     </div>
