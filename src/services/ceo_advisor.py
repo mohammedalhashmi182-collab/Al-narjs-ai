@@ -477,7 +477,7 @@ def public_output_check(result: dict, problem: str) -> dict:
     """Deterministic last pass over a CEO result before a visitor sees it.
 
     (a) no internal escalation/owner wording, (b) no tax-invoice/ZATCA/VAT promise,
-    (c) pay/buy-now questions get the payments-closed notice and no purchase CTA,
+    (c) pay/buy-now questions while checkout is off get the plan-request next step,
     (d) out-of-scope or refund/complaint requests get no sales offer.
     """
     text = _fold(problem)
@@ -507,8 +507,8 @@ def public_output_check(result: dict, problem: str) -> dict:
         prices_ar, prices_en = _prices_line()
         return _no_offer(
             result,
-            payments.PAYMENTS_CLOSED_AR + " " + prices_ar,
-            payments.PAYMENTS_CLOSED_EN + " " + prices_en,
+            payments.REQUEST_FOLLOWUP_AR + " " + prices_ar,
+            payments.REQUEST_FOLLOWUP_EN + " " + prices_en,
             "payments_closed",
         )
     if pay_now and card_only:
