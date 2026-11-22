@@ -133,26 +133,24 @@
     <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
     <link rel="stylesheet" href="/static/css/narjis-next-review.css">
-    <link rel="stylesheet" href="/static/css/narjis-cinematic.css">
+    <link rel="preload" as="style" href="/static/css/narjis-kufi-font.css">
+    <link rel="stylesheet" href="/static/css/narjis-kufi-font.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/static/css/narjis-kufi-font.css"></noscript>
+    <link rel="stylesheet" href="/static/css/narjis-gsap.css">
     <script>
     (function () {
-      var on = false;
+      var staticMode = false;
       try {
-        var c = document.createElement('canvas');
-        var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
         var save = navigator.connection && navigator.connection.saveData;
         var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var mem = navigator.deviceMemory;
-        var cores = navigator.hardwareConcurrency || 0;
-        var wide = window.matchMedia('(min-width: 900px)').matches;
-        var capable = !!gl && !save && !reduce && wide && (mem == null || mem >= 4) && cores >= 4;
-        on = capable;
+        staticMode = !!(reduce || save);
       } catch (e) {}
-      document.documentElement.classList.add(on ? 'cine-on' : 'cine-fallback');
+      document.documentElement.classList.add(staticMode ? 'v3-static' : 'v3-motion');
     })();
     </script>
 </head>
 <body class="nj" data-lang="{{ _lang }}">
+<div class="v3-progress" id="v3-progress" aria-hidden="true"></div>
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
     <symbol id="i-msg" viewBox="0 0 32 32"><path d="M4 7h24v15H13l-6 5v-5H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 13h12M10 17h7" stroke="currentColor" stroke-width="1.5"/></symbol>
@@ -190,35 +188,80 @@
 <main id="main">
 <!-- ==================== HERO ==================== -->
 <section class="hero" id="top" aria-labelledby="hero-h">
-    <div id="cineBg" aria-hidden="true"></div>
     <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" decoding="async">
-    <div class="cine-stage" id="cineStage" aria-hidden="true"></div>
-    <img class="cine-fallback-art" src="/static/img/narcissus-fallback.svg" width="400" height="520" alt="" decoding="async">
-    <div class="wrap">
-        <div class="copy">
-            <div class="nj-brand-row">
-                <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
-                        <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
-                    </svg>
-                    {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
-                </a>
+    <div class="v3-journey" id="v3-journey">
+        <div class="v3-frame" id="v3-frame">
+            <div class="v3-copy">
+                <div class="nj-brand-row">
+                    <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                            <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
+                        </svg>
+                        {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
+                    </a>
+                </div>
+                <p class="eyebrow">{% if ar %}ذكاء اصطناعي لأعمالك، من الرياض{% else %}Business AI from Riyadh{% endif %}</p>
+                {% if ar %}
+                <h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>
+                <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
+                {% else %}
+                <h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>
+                <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
+                {% endif %}
             </div>
-            <p class="eyebrow">{% if ar %}ذكاء اصطناعي لأعمالك، من الرياض{% else %}Business AI from Riyadh{% endif %}</p>
-            {% if ar %}
-            <h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>
-            <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
-            {% else %}
-            <h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>
-            <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
-            {% endif %}
-            <div class="ctas">
-                <a class="btn" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
-                <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
-                <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
+            <div class="v3-actions ctas">
+                <a class="btn" id="heroSubscribe" href="#pricing">{% if ar %}اشترك{% else %}Subscribe{% endif %}</a>
+                <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}واتساب{% else %}WhatsApp{% endif %}</a>
+                <a class="v3-quiet" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي{% else %}Discuss your goal with the CEO{% endif %}</a>
+                <button class="v3-quiet" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
+            </div>
+            <div class="v3-stage">
+                <p class="v3-field" aria-hidden="true">{% if ar %}النرجس{% else %}Al-Narjis{% endif %}</p>
+                <figure class="v3-phone">
+                    <div class="v3-phone-shell">
+                        <div class="v3-phone-screen">
+                            <header class="v3-chat-head">
+                                <img src="/static/logo.svg" width="32" height="32" alt="">
+                                <div>
+                                    <strong>{% if ar %}موظف النرجس{% else %}Al-Narjis agent{% endif %}</strong>
+                                    <small>{% if ar %}محاكاة توضيحية{% else %}Illustrative simulation{% endif %}</small>
+                                </div>
+                            </header>
+                            <div class="v3-thread">
+                                <div class="v3-rest" aria-hidden="true"><img src="/static/logo.svg" width="56" height="56" alt=""></div>
+                                <p class="v3-bubble in" data-step="1">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}</p>
+                                <p class="v3-bubble out" data-step="2">{% if ar %}وعليكم السلام، حاضر. طلبكم عندي، وأحدّثك أول ما يصير جديد.{% else %}Hello, of course. I have your request, and I’ll update you as soon as there is news.{% endif %}</p>
+                                <aside class="v3-alert" data-step="3">
+                                    <b>{% if ar %}طلب جديد{% else %}New request{% endif %}</b>
+                                    <span>{% if ar %}سُجّل الطلب، وصلك تنبيه.{% else %}The request is recorded, and you are alerted.{% endif %}</span>
+                                </aside>
+                            </div>
+                        </div>
+                    </div>
+                </figure>
+            </div>
+            <div class="v3-beats">
+                <div class="v3-beat" data-beat="1">
+                    <p class="v3-kicker">{% if ar %}٠١{% else %}01{% endif %}</p>
+                    <h2 id="v3-msg">{% if ar %}رسالة من عميل.{% else %}A customer message.{% endif %}</h2>
+                    <p>{% if ar %}يكتب لك على واتساب.{% else %}They write to you on WhatsApp.{% endif %}</p>
+                </div>
+                <div class="v3-beat" data-beat="2">
+                    <p class="v3-kicker">{% if ar %}٠٢{% else %}02{% endif %}</p>
+                    <h2 id="v3-reply">{% if ar %}الموظف الذكي يردّ.{% else %}The AI employee replies.{% endif %}</h2>
+                    <p>{% if ar %}باللهجة السعودية، كما تُضبط عند الإعداد. يراجع فريقك ما يُرسل.{% else %}In Saudi dialect, as set during setup. Your team reviews what goes out.{% endif %}</p>
+                </div>
+                <div class="v3-beat" data-beat="3">
+                    <p class="v3-kicker">{% if ar %}٠٣{% else %}03{% endif %}</p>
+                    <h2 id="v3-alert">{% if ar %}الطلب يُسجَّل، ويصلك تنبيه.{% else %}The request is recorded, and you are alerted.{% endif %}</h2>
+                    <p>{% if ar %}تصل التفاصيل إلى صاحب المنشأة لمتابعتها.{% else %}The details reach the business owner for follow-up.{% endif %}</p>
+                    <p class="v3-note">{% if ar %}المحادثة أعلاه محاكاة لتوضيح الفكرة، وليست شهادة عميل.{% else %}The conversation above is a simulation to illustrate the idea, not a client testimonial.{% endif %}</p>
+                </div>
             </div>
         </div>
-        <div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
+    </div>
+    <div class="wrap v3-desk">
+<div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
             <div class="ng-app-top">
                 <div class="ng-app-dots" aria-hidden="true"><i></i><i></i><i></i></div>
                 <b>NARJIS / AI CEO</b>
@@ -258,36 +301,6 @@
     </div>
 </section>
 
-
-<!-- Cinematic story (illustrative scenes, not a client testimonial) -->
-<section class="cine-chapter" id="cine-missed" aria-labelledby="cine-missed-h">
-    <div class="wrap">
-        <div class="cine-rise">
-            <p class="cine-kicker">{% if ar %}الفصل الأول{% else %}Chapter one{% endif %}</p>
-            <h2 id="cine-missed-h" class="cine-display">{% if ar %}رسالة وصلت. <em>ولم يردّ أحد.</em>{% else %}A message arrived. <em>No one replied.</em>{% endif %}</h2>
-            <p class="cine-copy">{% if ar %}عملاؤك يكتبون على واتساب حين يكون الفريق مشغولاً. الرسالة تبقى، والفرصة تبرد.{% else %}Customers write on WhatsApp while the team is busy. The message sits there, and the moment cools.{% endif %}</p>
-        </div>
-        <div class="cine-phone cine-rise" aria-hidden="true">
-            <div class="cine-phone-bar"><span></span><div>{% if ar %}عميل{% else %}Customer{% endif %}<small>{% if ar %}واتساب · محاكاة توضيحية{% else %}WhatsApp · illustrative simulation{% endif %}</small></div></div>
-            <div class="cine-bubble missed">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}<span class="cine-time">{% if ar %}منذ ساعات{% else %}Hours ago{% endif %}</span><span class="cine-unread">{% if ar %}بلا رد{% else %}Unanswered{% endif %}</span></div>
-        </div>
-    </div>
-</section>
-<section class="cine-chapter is-flip" id="cine-reply" aria-labelledby="cine-reply-h">
-    <div class="wrap">
-        <div class="cine-phone cine-rise" aria-hidden="true">
-            <div class="cine-phone-bar"><span></span><div>{% if ar %}موظف النرجس{% else %}Al-Narjis agent{% endif %}<small>{% if ar %}محاكاة توضيحية، ليست لعميل حقيقي{% else %}Illustrative simulation, not a real client{% endif %}</small></div></div>
-            <div class="cine-bubble in">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}</div>
-            <div class="cine-bubble out">{% if ar %}وعليكم السلام، حاضر. طلبكم قيد التجهيز وأحدّثك بالمستجد أول ما يصير.{% else %}Hello, of course. Your order is being prepared, and I’ll update you as soon as there is news.{% endif %}<span class="cine-time">{% if ar %}الآن{% else %}Now{% endif %}</span></div>
-        </div>
-        <div class="cine-rise">
-            <p class="cine-kicker">{% if ar %}الفصل الثاني{% else %}Chapter two{% endif %}</p>
-            <h2 id="cine-reply-h" class="cine-display">{% if ar %}الموظف الذكي <em>يردّ على واتساب.</em>{% else %}The AI employee <em>replies on WhatsApp.</em>{% endif %}</h2>
-            <p class="cine-copy">{% if ar %}قناة الباقات هي واتساب لردود عملاء منشأتك. تُضبط اللهجة — منها اللهجة السعودية — عند الإعداد، ويراجع فريقك ما يُرسل.{% else %}The plan channel is WhatsApp, for replies to your customers. Dialect — including Saudi dialect — is set during setup, and your team reviews what goes out.{% endif %}</p>
-            <p class="cine-note">{% if ar %}المحادثة أعلاه محاكاة لتوضيح الفكرة، وليست شهادة عميل.{% else %}The conversation above is a simulation to illustrate the idea, not a client testimonial.{% endif %}</p>
-        </div>
-    </div>
-</section>
 
 <!-- ==================== HOW IT WORKS ==================== -->
 <section class="ivory" id="how" aria-labelledby="how-h">
@@ -546,13 +559,13 @@
 
 <!-- Mobile actions -->
 <div class="mbar">
-    <a class="btn" href="/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a>
+    <a class="btn" id="mbarSubscribe" href="#pricing">{% if ar %}اشترك{% else %}Subscribe{% endif %}</a>
     <a class="btn-sec" id="mbarWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer" aria-label="{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}">{% if ar %}واتساب{% else %}WhatsApp{% endif %}</a>
 </div>
 
 {% include "partials/_landing_sample_dialog.html" %}
 <script src="/static/js/narjis-client-workspace.js"></script>
-<script src="/static/js/narjis-cinematic.js" defer></script>
+<script src="/static/js/narjis-gsap.js" defer></script>
 
 
 <script>

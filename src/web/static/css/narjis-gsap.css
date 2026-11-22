@@ -1,0 +1,557 @@
+/* V3 homepage motion layer. Loaded after narjis-najdi.css. Display face is narjis-kufi-font.css. */
+
+:root {
+  --v3-void: #0a0908;
+  --v3-ink: #12100d;
+  --v3-line: rgba(255, 255, 255, 0.12);
+  --v3-ivory: #f5f5f5;
+  --v3-muted: #b3b3b3;
+  --v3-accent: #FF5A36;
+  --v3-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --v3-display: "Noto Kufi Arabic", "IBM Plex Sans Arabic", sans-serif;
+  --v3-ui: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif;
+}
+
+html.v3-motion,
+html.v3-static {
+  background: var(--v3-void);
+  overflow-x: clip;
+  overflow-y: auto;
+}
+html.v3-motion body.nj,
+html.v3-static body.nj {
+  background: var(--v3-void);
+  color: var(--v3-ivory);
+  font-family: var(--v3-ui);
+  overflow: visible !important;
+}
+
+.v3-progress {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  height: 1px;
+  z-index: 120;
+  transform: scaleX(0);
+  transform-origin: right center;
+  background: var(--v3-accent);
+  pointer-events: none;
+}
+[dir="ltr"] .v3-progress { transform-origin: left center; }
+
+html.v3-motion .nj main .hero,
+html.v3-static .nj main .hero {
+  overflow: visible;
+  background: var(--v3-void);
+  min-height: 100svh;
+}
+html.v3-motion .nj .hero-bg,
+html.v3-static .nj .hero-bg,
+html.v3-motion .nj .hero::after,
+html.v3-static .nj .hero::after {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.v3-journey { position: relative; }
+
+/* Tracks are physical-logical via the page direction: first column is inline-start. */
+.v3-frame {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  grid-template-rows: auto 7.5rem auto;
+  grid-template-areas:
+    "copy stage"
+    "beats stage"
+    "actions stage";
+  align-items: center;
+  align-content: center;
+  column-gap: clamp(40px, 6vw, 96px);
+  row-gap: 4px;
+  min-height: 100svh;
+  height: 100svh;
+  padding: 96px 32px 40px;
+  max-width: 1320px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.v3-copy { grid-area: copy; }
+.v3-beats { grid-area: beats; }
+.v3-actions { grid-area: actions; }
+.v3-stage { grid-area: stage; }
+
+.v3-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 14.5em;
+  align-self: end;
+  padding-bottom: 8px;
+}
+
+html.v3-motion .nj .hero .display,
+html.v3-static .nj .hero .display {
+  font-family: var(--v3-display);
+  font-size: clamp(40px, 4.7vw, 72px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--v3-ivory);
+  text-wrap: balance;
+  margin: 0;
+}
+html.v3-motion .nj .hero .display em,
+html.v3-static .nj .hero .display em {
+  color: var(--v3-accent);
+  font-style: normal;
+}
+.v3-copy.is-dimmed .display em {
+  color: var(--v3-ivory);
+}
+
+html.v3-motion .nj .hero .eyebrow,
+html.v3-static .nj .hero .eyebrow {
+  font-family: var(--v3-ui);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--v3-muted);
+  margin: 0 0 18px;
+}
+html.v3-motion .nj .hero .lead,
+html.v3-static .nj .hero .lead {
+  color: var(--v3-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 22em;
+  margin: 18px 0 0;
+}
+
+html.v3-motion .nj .nj-voice-inline,
+html.v3-static .nj .nj-voice-inline {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin-bottom: 18px;
+  color: var(--v3-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  border-radius: 0;
+}
+html.v3-motion .nj .nj-voice-inline svg,
+html.v3-static .nj .nj-voice-inline svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
+
+html.v3-motion .nj .hero .v3-actions,
+html.v3-static .nj .hero .v3-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  align-items: center;
+  align-self: start;
+  padding-top: 8px;
+  z-index: 4;
+}
+html.v3-motion .nj .hero .v3-actions .btn,
+html.v3-static .nj .hero .v3-actions .btn,
+html.v3-motion .nj .hero .v3-actions .btn-sec,
+html.v3-static .nj .hero .v3-actions .btn-sec {
+  width: auto;
+  min-height: 48px;
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+html.v3-motion .nj .hero .v3-actions #heroSubscribe,
+html.v3-static .nj .hero .v3-actions #heroSubscribe,
+html.v3-motion .nj .hero .v3-actions #heroWhatsapp,
+html.v3-static .nj .hero .v3-actions #heroWhatsapp {
+  min-width: 136px;
+}
+.v3-quiet {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 8px 0;
+  margin: 0;
+  color: var(--v3-muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.v3-quiet:hover,
+.v3-quiet:focus-visible {
+  color: var(--v3-ivory);
+}
+
+/* One caption at a time, reserved band in the copy column */
+.v3-beats {
+  position: relative;
+  min-height: 6.5rem;
+  align-self: stretch;
+  z-index: 3;
+}
+.v3-beat {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+html.v3-static .v3-beat,
+.v3-beat.is-on {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+}
+html.v3-static .v3-beat + .v3-beat { margin-top: 28px; }
+
+.v3-kicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  color: var(--v3-accent);
+  margin: 0 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+.v3-beat h2 {
+  font-family: var(--v3-display);
+  font-size: clamp(26px, 2.8vw, 40px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--v3-ivory);
+  margin: 0 0 8px;
+}
+.v3-beat p {
+  margin: 0;
+  color: var(--v3-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 24em;
+}
+.v3-note {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.v3-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-height: 0;
+  perspective: 1400px;
+  overflow: visible;
+}
+.v3-stage::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 100%;
+  height: 96px;
+  background: var(--v3-void);
+  pointer-events: none;
+}
+.v3-field {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-family: var(--v3-display);
+  font-weight: 700;
+  font-size: clamp(64px, 7.2vw, 120px);
+  line-height: 0.85;
+  color: var(--v3-ivory);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  overflow: visible;
+  max-width: 100%;
+}
+
+.v3-phone {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 300px);
+  margin: 0;
+  transform-style: preserve-3d;
+}
+.v3-phone-shell {
+  background: #161616;
+  border: 1px solid var(--v3-line);
+  border-radius: 32px;
+  padding: 9px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
+}
+.v3-phone-screen {
+  background: #0c0c0c;
+  border-radius: 24px;
+  overflow: hidden;
+  min-height: 460px;
+  max-height: calc(100svh - 200px);
+  display: flex;
+  flex-direction: column;
+}
+.v3-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--v3-line);
+}
+.v3-chat-head img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  flex: none;
+}
+.v3-chat-head strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--v3-ivory);
+}
+.v3-chat-head small {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--v3-muted);
+}
+.v3-thread {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  flex: 1;
+}
+.v3-rest {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s var(--v3-ease);
+}
+.v3-rest img {
+  width: 56px;
+  height: 56px;
+  opacity: 0.9;
+}
+.v3-thread.is-live .v3-rest { opacity: 0; }
+
+.v3-bubble {
+  max-width: 88%;
+  margin: 0;
+  padding: 12px 0 10px;
+  border-radius: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--v3-ivory);
+  background: transparent;
+  border-bottom: 1px solid var(--v3-line);
+}
+.v3-bubble.in { align-self: flex-start; }
+.v3-bubble.out {
+  align-self: flex-end;
+  color: var(--v3-ivory);
+  border-bottom-color: rgba(255, 90, 54, 0.35);
+}
+.v3-bubble[data-step],
+.v3-alert[data-step] {
+  opacity: 0;
+  transform: translateY(10px);
+}
+html.v3-static .v3-bubble[data-step],
+html.v3-static .v3-alert[data-step],
+.v3-bubble.is-on,
+.v3-alert.is-on {
+  opacity: 1;
+  transform: none;
+}
+.v3-alert {
+  margin-top: 10px;
+  padding: 12px 0 4px;
+  border: 0;
+  border-top: 1px solid var(--v3-line);
+  border-radius: 0;
+  background: transparent;
+}
+.v3-alert b {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: var(--v3-accent);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.v3-alert span {
+  color: var(--v3-ivory);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.v3-desk {
+  position: relative;
+  z-index: 2;
+  padding: 80px 28px 100px;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+html.v3-motion .nj .ivory,
+html.v3-static .nj .ivory,
+html.v3-motion .nj .sec,
+html.v3-static .nj .sec {
+  background: var(--v3-void);
+  color: var(--v3-ivory);
+}
+html.v3-motion .nj h2,
+html.v3-static .nj .h2,
+html.v3-static .nj h2 {
+  color: var(--v3-ivory);
+}
+html.v3-motion .nj .nj-nav,
+html.v3-static .nj .nj-nav {
+  background: rgba(10, 9, 8, 0.86);
+  border-bottom: 1px solid var(--v3-line);
+}
+
+@media (max-width: 899px) {
+  .v3-frame {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "copy"
+      "actions"
+      "stage"
+      "beats";
+    height: auto;
+    min-height: 0;
+    padding: 84px 20px 96px;
+    gap: 20px;
+  }
+  .v3-copy {
+    max-width: none;
+    align-self: start;
+  }
+  html.v3-motion .nj .hero .display,
+  html.v3-static .nj .hero .display {
+    font-size: clamp(34px, 10vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+  html.v3-motion .nj .hero .lead,
+  html.v3-static .nj .hero .lead {
+    font-size: 0.9rem;
+    margin-top: 14px;
+  }
+  html.v3-motion .nj .hero .v3-actions,
+  html.v3-static .nj .hero .v3-actions {
+    padding-top: 0;
+  }
+  html.v3-motion .nj .hero .v3-actions #heroSubscribe,
+  html.v3-static .nj .hero .v3-actions #heroSubscribe,
+  html.v3-motion .nj .hero .v3-actions #heroWhatsapp,
+  html.v3-static .nj .hero .v3-actions #heroWhatsapp {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+    display: inline-flex !important;
+  }
+  .v3-stage {
+    position: sticky;
+    top: 88px;
+    z-index: 2;
+    overflow: visible;
+    min-height: 0;
+    padding: 8px 0 20px;
+    margin-bottom: 8px;
+    background: var(--v3-void);
+  }
+  .v3-phone { width: min(100%, 236px); margin-inline: auto; }
+  .v3-phone-screen { min-height: 248px; max-height: 30svh; }
+  .v3-field { font-size: 16vw; }
+  html.v3-motion .nj .hero .lead,
+  html.v3-static .nj .hero .lead {
+    display: none;
+  }
+  .v3-beats {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 50vh;
+  }
+  .v3-beat {
+    position: relative;
+    opacity: 0;
+    min-height: calc(100svh - 88px - 30svh - 96px);
+    padding-top: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .v3-beat.is-on {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  html.v3-static .v3-beat {
+    min-height: 0;
+    opacity: 1;
+    margin-top: 20px;
+  }
+  .v3-desk { padding: 40px 18px 48px; }
+
+  @supports (animation-timeline: view()) {
+    .v3-beat,
+    .v3-bubble[data-step],
+    .v3-alert[data-step] {
+      animation: v3-appear linear both;
+      animation-timeline: view();
+      animation-range: entry 15% cover 40%;
+    }
+    .v3-rest {
+      animation: v3-rest-out linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 20%;
+    }
+  }
+}
+
+@keyframes v3-appear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes v3-rest-out {
+  from { opacity: 0.18; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-progress { display: none; }
+  .v3-bubble[data-step],
+  .v3-alert[data-step],
+  .v3-beat,
+  .v3-rest {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    min-height: 0;
+  }
+  .v3-stage { position: relative; top: auto; }
+}
