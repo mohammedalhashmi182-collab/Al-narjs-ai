@@ -343,7 +343,7 @@ def build_spec() -> dict[str, Any]:
         "/api/leads": {
             "post": _op(
                 tag="Support",
-                summary="Register interest",
+                summary="Send a request",
                 description=(
                     "Public lead form. A phone, when sent, must be a real number. "
                     "The response contains the new lead id only."
