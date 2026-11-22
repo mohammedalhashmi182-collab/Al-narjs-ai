@@ -1,0 +1,90 @@
+{
+  "pilot_id": "roza_ryd_awali",
+  "label": "مطعم حديقة روزا — الرياض (تحديد الفرع يحتاج تأكيد)",
+  "purpose": "مساعدة زوار المطعم في الحصول على روابط المنيو والموقع والمعلومات المؤكدة فقط",
+  "status": "draft_customer_approval_required",
+  "source": "رد ترحيبي تلقائي قائم للمطعم كما صححه المستخدم بتاريخ 2026-11-22؛ لا يدل وحده على وجود بوت ذكاء اصطناعي أو اتصال API",
+  "configuration": {
+    "reply_mode": "review",
+    "auto_send": false,
+    "customer_meta_authorization_required": true,
+    "customer_project_required": true,
+    "customer_wa_phone_id_required": true,
+    "customer_wa_access_token_required": true
+  },
+  "knowledge_docs": [
+    {
+      "title": "موقع مطعم حديقة روزا",
+      "content": "الموقع كما ورد من المطعم: الرياض، الطريق الدائري الغربي، مخرج 27. رابط خرائط Google الذي أرسله المطعم: https://maps.app.goo.gl/SHfGq4RbHoMJy2D18?g_st=ipc",
+      "approval_required": true
+    },
+    {
+      "title": "قائمة مطعم حديقة روزا",
+      "content": "يمكنك استعراض المنيو من الرابط الذي أرسله المطعم: https://app.qlub.io/qr/sa/roza_ryd_awali/8/_/_/563a414a3d . لم نتحقق من الأصناف أو الأسعار، لذلك لا نقدّم أسعارًا أو تأكيدًا بتوفر صنف من دون مراجعة القائمة الفعلية.",
+      "approval_required": true
+    },
+    {
+      "title": "حساب تيك توك",
+      "content": "حساب تيك توك الذي أرسله المطعم: https://www.tiktok.com/@hadiqat_ruza?_t=ZS-8xQT1GrsqG2&_r=1",
+      "approval_required": true
+    }
+  ],
+  "unsupported_topics_handoff": [
+    "الأسعار والتوفر إذا لم تُستخرج من منيو معتمد",
+    "أوقات العمل",
+    "التوصيل ورسومه ومناطقه",
+    "حجز الطاولات أو استلام الطلبات",
+    "الشكاوى وطلبات الاسترجاع",
+    "الحساسية الغذائية والمكونات",
+    "طلب الدفع أو التحصيل",
+    "أي معلومة لم يؤكدها المطعم"
+  ],
+  "outbound_guardrails": [
+    "الرسالة الترحيبية التلقائية الحالية للمطعم تخصه؛ لا تعتبرها ردًّا مولَّدًا بواسطة النرجس أو مصادقة Meta",
+    "لا تُرسل رسائل استباقية من حساب المطعم",
+    "لا تُغيّر reply_mode من review إلى auto إلا بعد موافقة صاحب المطعم واختبار الإرسال",
+    "لا تُرسل مواعيد أو تأكيد طلبات أو فواتير",
+    "لا تشارك بيانات المحادثات مع مشاريع أخرى",
+    "لا تستخدم رقم واتساب النرجس للرد باسم مطعم حديقة روزا",
+    "لا تُحفظ أي رموز وصول أو مفاتيح API في المستودع"
+  ],
+  "acceptance_tests": [
+    {
+      "incoming": "وين موقعكم؟",
+      "expected": "الدائري الغربي، مخرج 27 + رابط الخرائط",
+      "type": "kb"
+    },
+    {
+      "incoming": "أرسل المنيو",
+      "expected": "رابط qlub المرسل من المطعم فقط دون اختراع أصناف",
+      "type": "kb"
+    },
+    {
+      "incoming": "عندكم توصيل؟",
+      "expected": "تحويل لموظف دون تأكيد التوصيل",
+      "type": "handoff"
+    },
+    {
+      "incoming": "كم سعر الصنف؟",
+      "expected": "عدم اختراع السعر؛ إرشاد للمنيو أو تحويل لموظف",
+      "type": "handoff"
+    },
+    {
+      "incoming": "أبغى أطلب",
+      "expected": "تحويل لموظف ولا يتم إنشاء طلب فعلي",
+      "type": "handoff"
+    },
+    {
+      "incoming": "أبي أكلم موظف",
+      "expected": "تحويل لموظف",
+      "type": "handoff"
+    }
+  ],
+  "business_name": "مطعم حديقة روزا",
+  "existing_whatsapp_greeting": {
+    "type": "existing_static_auto_reply",
+    "note": "هذه رسالة المطعم الترحيبية الحالية، وليست ردًا صادرًا عن النرجس ولا إثباتًا لربط Meta Cloud API",
+    "opening": "مطعم حديقة روزا 🌷🌷",
+    "should_preserve_until_customer_approval": true
+  }
+}
