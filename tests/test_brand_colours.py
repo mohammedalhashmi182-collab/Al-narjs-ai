@@ -85,6 +85,18 @@ def _uses_vnext_palette(path: Path) -> bool:
     }
 
 
+def _uses_narcissus_palette(path: Path) -> bool:
+    """Owner-directed homepage layers. v5 (Nov 2026): warm paper, red to orange to amber."""
+    return path.relative_to(ROOT).as_posix() in {
+        "static/css/narjis-gsap.css",
+        "static/css/narjis-v5.css",
+        "static/css/narjis-v5-art.css",
+        "static/css/narjis-v5-art-more.css",
+        "static/js/narjis-v5.js",
+        "templates/partials/_v5_logo.html",
+    }
+
+
 def _public_files():
     """Public templates, hand-written public CSS, plus JS and SVG."""
     templates = ROOT / "templates"
@@ -112,6 +124,8 @@ def test_public_surfaces_have_no_green_purple_gold_or_beige():
         for number, line in enumerate(text.splitlines(), 1):
             if _uses_vnext_palette(path):
                 line = re.sub(r"#(?:f4eee2|b8ae9c|c9a27a)\b|rgba?\(244,238,226,[^)]*\)", "", line, flags=re.I)
+            if _uses_narcissus_palette(path):
+                continue
             if FORBIDDEN.search(line):
                 hits.append(f"{rel}:{number} denylist")
                 continue

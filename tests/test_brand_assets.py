@@ -71,7 +71,11 @@ def test_favicon_ico_route(client):
 
 def test_landing_uses_new_logo(client):
     html = client.get("/ar/home").text
-    assert "/static/logo.svg" in html
+    # Owner direction (Nov 2026): the homepage carries the live «النرجس» wordmark
+    # with the orange diamond dot; the old mark files stay on disk for other pages.
+    assert 'class="v5-mark"' in html and "v5-dot" in html
+    assert "AL-NARJIS AI" in html
+    assert (Path(__file__).resolve().parents[1] / "src/web/static/logo.svg").exists()
     assert 'rel="manifest"' in html
     assert "/static/favicon.svg" in html
     assert "/brand/og-image.jpg" in html
