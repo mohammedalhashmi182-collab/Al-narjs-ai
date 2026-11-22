@@ -1,7 +1,6 @@
 /**
- * Homepage scroll choreography: one pinned device, GSAP + ScrollTrigger.
- * Lenis only on wide, motion-capable desktops. Never required for first paint.
- * The first customer message plays on load (typing, then arrival) on every width.
+ * Homepage scroll choreography: one pinned photoreal phone, GSAP + ScrollTrigger.
+ * Lenis only on wide desktops. First customer message plays on load at every width.
  */
 (function () {
   var html = document.documentElement;
@@ -16,8 +15,19 @@
   var typing = journey.querySelector(".v3-typing");
   var b1 = journey.querySelector('.v3-bubble[data-step="1"]');
   var b2 = journey.querySelector('.v3-bubble[data-step="2"]');
-  var alert = journey.querySelector('.v3-alert[data-step="3"]');
+  var alertCard = journey.querySelector('.v3-alert[data-step="3"]');
   var thread = journey.querySelector(".v3-thread");
+  var beats = journey.querySelectorAll(".v3-beat");
+
+  function setChapter(name) {
+    frame.setAttribute("data-chapter", name);
+    var focus = name === "1" || name === "2" || name === "3";
+    frame.classList.toggle("is-focus", focus);
+    frame.classList.toggle("is-resolve", name === "resolve");
+    beats.forEach(function (el) {
+      el.classList.toggle("is-on", el.getAttribute("data-beat") === name);
+    });
+  }
 
   function showFirstMessage() {
     if (typing) typing.classList.remove("is-on");
@@ -28,6 +38,8 @@
   function playIntro() {
     if (reduce || html.classList.contains("v3-static")) {
       showFirstMessage();
+      if (b2) b2.classList.add("is-on");
+      if (alertCard) alertCard.classList.add("is-on");
       return;
     }
     if (typing) typing.classList.add("is-on");
@@ -62,21 +74,17 @@
   var wide = window.matchMedia("(min-width: 900px)").matches;
 
   afterPaint(function () {
-    if (!wide) {
-      revealOnScroll();
-      return;
-    }
-    Promise.all([
+    var loaders = [
       loadScript("/static/vendor/gsap.min.js"),
-      loadScript("/static/vendor/ScrollTrigger.min.js"),
-      loadScript("/static/vendor/lenis.min.js")
-    ]).then(start).catch(function () {
+      loadScript("/static/vendor/ScrollTrigger.min.js")
+    ];
+    if (wide) loaders.push(loadScript("/static/vendor/lenis.min.js"));
+    Promise.all(loaders).then(start).catch(function () {
       revealOnScroll();
     });
   });
 
   function revealOnScroll() {
-    var beats = journey.querySelectorAll(".v3-beat");
     if (!("IntersectionObserver" in window)) {
       beats.forEach(function (el) { el.classList.add("is-on"); });
       journey.querySelectorAll("[data-step]").forEach(function (el) { el.classList.add("is-on"); });
@@ -85,12 +93,11 @@
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        var beat = e.target;
-        beats.forEach(function (b) { b.classList.toggle("is-on", b === beat); });
-        var n = Number(beat.getAttribute("data-beat") || "0");
+        var n = e.target.getAttribute("data-beat") || "1";
+        setChapter(n);
         journey.querySelectorAll("[data-step]").forEach(function (el) {
           var step = Number(el.getAttribute("data-step") || "0");
-          el.classList.toggle("is-on", step <= n);
+          el.classList.toggle("is-on", step <= Number(n));
         });
       });
     }, { threshold: 0.45, rootMargin: "0px 0px -10% 0px" });
@@ -107,7 +114,7 @@
     }
     gsap.registerPlugin(ScrollTrigger);
 
-    if (typeof Lenis === "function") {
+    if (wide && typeof Lenis === "function") {
       var lenis = new Lenis({ lerp: 0.085, smoothWheel: true });
       window.__v3lenis = lenis;
       lenis.on("scroll", ScrollTrigger.update);
@@ -117,25 +124,18 @@
 
     var ease = "power3.out";
     var phone = frame.querySelector(".v3-phone");
-    var field = frame.querySelector(".v3-field");
-    var glare = frame.querySelector(".v3-glare");
     var copy = frame.querySelector(".v3-copy");
     var display = frame.querySelector(".display");
     var heroExit = frame.querySelectorAll(".eyebrow, .lead, .nj-voice-inline");
-    var beats = gsap.utils.toArray(frame.querySelectorAll(".v3-beat"));
+    var actions = frame.querySelector(".v3-actions");
+    var beatEls = gsap.utils.toArray(frame.querySelectorAll(".v3-beat"));
     var resolve = document.getElementById("v3-resolve");
+    var flower = frame.querySelector(".v3-flower");
+    var toast = frame.querySelector(".v3-toast");
 
-    var toCenter = 0;
-    if (phone) {
-      var fr = frame.getBoundingClientRect();
-      var pr = phone.getBoundingClientRect();
-      toCenter = (fr.left + fr.width / 2) - (pr.left + pr.width / 2);
-    }
-
-    gsap.set(phone, { rotateY: 22, rotateX: 7, y: 16, scale: 0.96, transformPerspective: 1600 });
-    gsap.set(field, { opacity: 0, x: -28 });
-    if (glare) gsap.set(glare, { xPercent: -8 });
-    beats.forEach(function (el) { gsap.set(el, { opacity: 0, y: 18 }); });
+    setChapter("hero");
+    if (phone) gsap.set(phone, { y: wide ? 8 : 20, scale: wide ? 0.98 : 0.94 });
+    beatEls.forEach(function (el) { gsap.set(el, { opacity: 0, y: 18 }); });
     if (resolve) gsap.set(resolve, { opacity: 0, y: 14, scale: 0.94 });
 
     var tl = gsap.timeline({
@@ -143,10 +143,10 @@
       scrollTrigger: {
         trigger: journey,
         start: "top top",
-        end: "+=380%",
+        end: wide ? "+=380%" : "+=300%",
         pin: frame,
         pinSpacing: true,
-        scrub: 0.7,
+        scrub: wide ? 0.7 : 0.55,
         anticipatePin: 1,
         onUpdate: function (self) {
           window.__v3st = self;
@@ -155,27 +155,27 @@
       }
     });
 
-    /* Signature: headline scales and leaves, phone walks to centre. */
-    tl.to(display, { scale: 1.18, opacity: 0, y: -24, duration: 1.1 }, 0.15)
-      .to(heroExit, { opacity: 0, y: -8, duration: 0.5 }, 0.15)
-      .add(function () { if (frame) frame.classList.add("is-focus"); }, 0.35)
-      .to(phone, { rotateY: 0, rotateX: 0, x: toCenter, y: -40, scale: 1.02, duration: 1.25 }, 0.2)
-      .to(field, { x: 36, opacity: 0.04, duration: 1.25 }, 0.2)
-      .to(glare, { xPercent: 14, duration: 1.25 }, 0.2)
-      .to(beats[0], { opacity: 1, y: 0, duration: 0.4 }, 1.15)
-      .to(beats[0], { opacity: 0, y: -14, duration: 0.25 }, 2.15)
-      .to(beats[1], { opacity: 1, y: 0, duration: 0.35 }, 2.2)
-      .to(b2, { opacity: 1, y: 0, duration: 0.35 }, 2.25)
-      .to(phone, { rotateY: -10, rotateX: 2, duration: 0.7 }, 2.2)
-      .to(glare, { xPercent: -6, duration: 0.7 }, 2.2)
-      .to(beats[1], { opacity: 0, y: -14, duration: 0.25 }, 3.25)
-      .to(beats[2], { opacity: 1, y: 0, duration: 0.35 }, 3.3)
-      .to(alert, { opacity: 1, y: 0, duration: 0.35 }, 3.35)
-      .to(phone, { rotateY: 0, rotateX: 0, y: -36, scale: 1.03, duration: 0.6 }, 3.3)
-      .to(glare, { xPercent: 4, duration: 0.6 }, 3.3)
-      .to(beats[2], { opacity: 0, y: -10, duration: 0.3 }, 3.6)
-      .add(function () { if (frame) frame.classList.add("is-resolve"); }, 3.6)
-      .to(resolve, { opacity: 1, y: 0, scale: 1, duration: 0.5 }, 3.65)
-      .to({}, { duration: 0.85 });
+    tl.to(display, { scale: wide ? 1.12 : 1.06, opacity: 0, y: -20, duration: 0.9 }, 0.12)
+      .to(heroExit, { opacity: 0, y: -8, duration: 0.4 }, 0.12)
+      .to(actions, { opacity: 0, duration: 0.35 }, 0.15)
+      .add(function () { setChapter("1"); }, 0.4)
+      .to(phone, { y: wide ? -12 : -8, scale: wide ? 1.04 : 1.02, duration: 1.1 }, 0.2)
+      .to(beatEls[0], { opacity: 1, y: 0, duration: 0.4 }, 1.05)
+      .add(function () { if (b1) b1.classList.add("is-on"); }, 1.05)
+      .to(beatEls[0], { opacity: 0, y: -14, duration: 0.25 }, 2.05)
+      .add(function () { setChapter("2"); }, 2.1)
+      .to(beatEls[1], { opacity: 1, y: 0, duration: 0.35 }, 2.15)
+      .add(function () { if (b2) b2.classList.add("is-on"); }, 2.2)
+      .to(phone, { y: wide ? -4 : 0, scale: 1, duration: 0.6 }, 2.15)
+      .to(beatEls[1], { opacity: 0, y: -14, duration: 0.25 }, 3.15)
+      .add(function () { setChapter("3"); }, 3.2)
+      .to(beatEls[2], { opacity: 1, y: 0, duration: 0.35 }, 3.25)
+      .add(function () { if (alertCard) alertCard.classList.add("is-on"); }, 3.3)
+      .to(phone, { y: wide ? -16 : -6, scale: wide ? 1.03 : 1.01, duration: 0.55 }, 3.25)
+      .to(beatEls[2], { opacity: 0, y: -10, duration: 0.28 }, 3.7)
+      .add(function () { setChapter("resolve"); }, 3.75)
+      .to(actions, { opacity: 1, duration: 0.4 }, 3.8)
+      .to(resolve, { opacity: 1, y: 0, scale: 1, duration: 0.45 }, 3.8)
+      .to({}, { duration: 0.7 });
   }
 })();
