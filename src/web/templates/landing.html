@@ -130,10 +130,27 @@
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap"></noscript>
-    <link rel="preload" as="image" href="/static/img/hero-najdi.webp" imagesrcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" imagesizes="100vw" fetchpriority="high">
     <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
     <link rel="stylesheet" href="/static/css/narjis-next-review.css">
+    <link rel="stylesheet" href="/static/css/narjis-cinematic.css">
+    <script>
+    (function () {
+      var on = false;
+      try {
+        var c = document.createElement('canvas');
+        var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+        var save = navigator.connection && navigator.connection.saveData;
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var mem = navigator.deviceMemory;
+        var cores = navigator.hardwareConcurrency || 0;
+        var wide = window.matchMedia('(min-width: 900px)').matches;
+        var capable = !!gl && !save && !reduce && wide && (mem == null || mem >= 4) && cores >= 4;
+        on = capable;
+      } catch (e) {}
+      document.documentElement.classList.add(on ? 'cine-on' : 'cine-fallback');
+    })();
+    </script>
 </head>
 <body class="nj" data-lang="{{ _lang }}">
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
@@ -173,7 +190,10 @@
 <main id="main">
 <!-- ==================== HERO ==================== -->
 <section class="hero" id="top" aria-labelledby="hero-h">
-    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" fetchpriority="high" decoding="async">
+    <div id="cineBg" aria-hidden="true"></div>
+    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" decoding="async">
+    <div class="cine-stage" id="cineStage" aria-hidden="true"></div>
+    <img class="cine-fallback-art" src="/static/img/narcissus-fallback.svg" width="400" height="520" alt="" decoding="async">
     <div class="wrap">
         <div class="copy">
             <div class="nj-brand-row">
@@ -234,6 +254,37 @@
                 <span><strong>{% if ar %}02 / تخصيص{% else %}02 / Match{% endif %}</strong>{% if ar %}نرشح فريقك{% else %}Your agents{% endif %}</span>
                 <span><strong>{% if ar %}03 / تصور{% else %}03 / Blueprint{% endif %}</strong>{% if ar %}تشاهد النتيجة{% else %}Your visual plan{% endif %}</span>
             </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Cinematic story (illustrative scenes, not a client testimonial) -->
+<section class="cine-chapter" id="cine-missed" aria-labelledby="cine-missed-h">
+    <div class="wrap">
+        <div class="cine-rise">
+            <p class="cine-kicker">{% if ar %}الفصل الأول{% else %}Chapter one{% endif %}</p>
+            <h2 id="cine-missed-h" class="cine-display">{% if ar %}رسالة وصلت. <em>ولم يردّ أحد.</em>{% else %}A message arrived. <em>No one replied.</em>{% endif %}</h2>
+            <p class="cine-copy">{% if ar %}عملاؤك يكتبون على واتساب حين يكون الفريق مشغولاً. الرسالة تبقى، والفرصة تبرد.{% else %}Customers write on WhatsApp while the team is busy. The message sits there, and the moment cools.{% endif %}</p>
+        </div>
+        <div class="cine-phone cine-rise" aria-hidden="true">
+            <div class="cine-phone-bar"><span></span><div>{% if ar %}عميل{% else %}Customer{% endif %}<small>{% if ar %}واتساب · محاكاة توضيحية{% else %}WhatsApp · illustrative simulation{% endif %}</small></div></div>
+            <div class="cine-bubble missed">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}<span class="cine-time">{% if ar %}منذ ساعات{% else %}Hours ago{% endif %}</span><span class="cine-unread">{% if ar %}بلا رد{% else %}Unanswered{% endif %}</span></div>
+        </div>
+    </div>
+</section>
+<section class="cine-chapter is-flip" id="cine-reply" aria-labelledby="cine-reply-h">
+    <div class="wrap">
+        <div class="cine-phone cine-rise" aria-hidden="true">
+            <div class="cine-phone-bar"><span></span><div>{% if ar %}موظف النرجس{% else %}Al-Narjis agent{% endif %}<small>{% if ar %}محاكاة توضيحية، ليست لعميل حقيقي{% else %}Illustrative simulation, not a real client{% endif %}</small></div></div>
+            <div class="cine-bubble in">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}</div>
+            <div class="cine-bubble out">{% if ar %}وعليكم السلام، حاضر. طلبكم قيد التجهيز وأحدّثك بالمستجد أول ما يصير.{% else %}Hello, of course. Your order is being prepared, and I’ll update you as soon as there is news.{% endif %}<span class="cine-time">{% if ar %}الآن{% else %}Now{% endif %}</span></div>
+        </div>
+        <div class="cine-rise">
+            <p class="cine-kicker">{% if ar %}الفصل الثاني{% else %}Chapter two{% endif %}</p>
+            <h2 id="cine-reply-h" class="cine-display">{% if ar %}الموظف الذكي <em>يردّ على واتساب.</em>{% else %}The AI employee <em>replies on WhatsApp.</em>{% endif %}</h2>
+            <p class="cine-copy">{% if ar %}قناة الباقات هي واتساب لردود عملاء منشأتك. تُضبط اللهجة — منها اللهجة السعودية — عند الإعداد، ويراجع فريقك ما يُرسل.{% else %}The plan channel is WhatsApp, for replies to your customers. Dialect — including Saudi dialect — is set during setup, and your team reviews what goes out.{% endif %}</p>
+            <p class="cine-note">{% if ar %}المحادثة أعلاه محاكاة لتوضيح الفكرة، وليست شهادة عميل.{% else %}The conversation above is a simulation to illustrate the idea, not a client testimonial.{% endif %}</p>
         </div>
     </div>
 </section>
@@ -501,6 +552,7 @@
 
 {% include "partials/_landing_sample_dialog.html" %}
 <script src="/static/js/narjis-client-workspace.js"></script>
+<script src="/static/js/narjis-cinematic.js" defer></script>
 
 
 <script>
