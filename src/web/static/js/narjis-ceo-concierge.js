@@ -286,18 +286,6 @@
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event('submit', { cancelable: true })); }
   });
 
-  // On the homepage, "talk to the CEO" buttons bring the visitor to this desk instead of another page.
-  ['heroCeo'].concat(Array.prototype.slice.call(document.querySelectorAll('.nav-cta')).map(function (n) { return n; }))
-    .forEach(function (n) {
-      var node = typeof n === 'string' ? document.getElementById(n) : n;
-      if (!node) return;
-      node.addEventListener('click', function (e) {
-        e.preventDefault();
-        root.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
-        setTimeout(function () { area.focus({ preventScroll: true }); }, reduce ? 0 : 450);
-      });
-    });
-
   var firstChips = Array.prototype.slice.call(quick.children);
   bindFirstStepChips();
 
