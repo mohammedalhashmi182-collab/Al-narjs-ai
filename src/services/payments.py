@@ -296,14 +296,15 @@ def paypal_collects_money() -> bool:
 def payments_open() -> bool:
     """Whether a customer can pay right now (live Moyasar card checkout or PayPal).
 
-    Drives the public "payment is not open yet" banner and CTA labels.
+    Decides whether plan buttons open checkout or the plan request form.
     """
     return moyasar_collects_money() or paypal_checkout_open()
 
 
-# Shown when checkout has no live Moyasar key. Bank transfer is not offered.
-CARD_ACTIVATING_AR = (
-    "الدفع الإلكتروني قيد التفعيل. أكمل طلبك عبر البريد AlNarjisai@gmail.com."
+# Returned when checkout has no live gateway. Neutral next step, no payment-status wording.
+# Bank transfer is not offered.
+CHECKOUT_UNAVAILABLE_AR = (
+    "أكمل طلبك عبر واتساب 966552978753+ أو البريد AlNarjisai@gmail.com، ويتواصل معك فريقنا."
 )
 
 
@@ -389,14 +390,15 @@ def paypal_checkout_open() -> bool:
     return customer_paypal_enabled() and paypal_collects_money()
 
 
-# Plain-language notice shown while payments_open() is False. No dates, no
-# gateway names, no contact details beyond the site assistant and email.
-PAYMENTS_CLOSED_AR = (
-    "الدفع الإلكتروني قيد التفعيل حالياً. سجّل اهتمامك الآن ونتواصل معك بالبريد الإلكتروني عند فتح الدفع."
+# Next-step line used while payments_open() is False (portal follow-up, CEO
+# answers to pay-now questions). Owner rule: never announce a payment status;
+# point to a working request path instead. There is no public banner any more.
+REQUEST_FOLLOWUP_AR = (
+    "أرسل طلب باقتك من صفحة الباقات ويتواصل معك فريقنا لإكمال اشتراكك، أو راسلنا على واتساب."
 )
-PAYMENTS_CLOSED_EN = (
-    "Online payment is not open yet. Register your interest now and we will contact you "
-    "by email when payment opens."
+REQUEST_FOLLOWUP_EN = (
+    "Send your plan request from the plans page and our team will contact you to complete "
+    "your subscription, or message us on WhatsApp."
 )
 
 
