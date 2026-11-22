@@ -22,7 +22,6 @@
                 <button type="button" data-billing="annual" aria-pressed="false">{% if ar %}سنوي{% else %}Annual{% endif %}</button>
             </div>
         </div>
-        {% set _ar = ar %}{% include "partials/_payments_closed_banner.html" %}
         {% if payments_open() and card_checkout_open() and not paypal_checkout_open() %}
         <p class="addon-note" id="cardPaymentNote">{% if ar %}الدفع المتاح: مدى أو فيزا أو ماستركارد من صفحة الدفع الآمنة.{% else %}Payment available: mada, Visa, or Mastercard on the secure checkout page.{% endif %}</p>
         {% endif %}
@@ -46,7 +45,7 @@
                     <ul>{% for line in _coming %}<li>{{ line }}</li>{% endfor %}</ul>
                 </div>
                 {% endif %}
-                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="{{ subscribe_path(plan.key) }}" data-href-monthly="{{ subscribe_path(plan.key) }}" data-href-annual="{{ subscribe_path(plan.key, billing='annual') }}">{% if not payments_open() %}{% if ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
+                <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="{{ subscribe_path(plan.key) }}" data-href-monthly="{{ subscribe_path(plan.key) }}" data-href-annual="{{ subscribe_path(plan.key, billing='annual') }}">{% if not payments_open() %}{% if ar %}اطلب باقة {{ plan.name }}{% else %}Request {{ plan.name_en }}{% endif %}{% elif ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
             </article>
             {% endfor %}
         </div>

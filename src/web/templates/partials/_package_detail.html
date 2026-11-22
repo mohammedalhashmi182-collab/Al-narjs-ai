@@ -69,7 +69,7 @@
         {% set _cta = subscribe_path(detail.key) if subscribe_path is defined else ('/portal?pkg=' ~ detail.key) %}
         <a href="{{ _cta }}" class="btn btn-gold">
             <i class="fas fa-bolt"></i>
-            {% if payments_open is defined and not payments_open() %}{% if _ar %}سجّل اهتمامك{% else %}Register interest{% endif %}{% elif _ar %}اشترك في هذه الباقة{% else %}Subscribe to this plan{% endif %}
+            {% if payments_open is defined and not payments_open() %}{% if _ar %}اطلب الباقة{% else %}Request this plan{% endif %}{% elif _ar %}اشترك في هذه الباقة{% else %}Subscribe to this plan{% endif %}
         </a>
         <a href="/home#pricing" class="btn btn-outline">
             {% if _ar %}عرض الباقات{% else %}View plans{% endif %}
