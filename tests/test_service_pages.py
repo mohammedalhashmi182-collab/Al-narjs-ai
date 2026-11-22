@@ -78,7 +78,7 @@ def test_home_links_to_services_and_uses_the_supplied_meta(client: TestClient) -
     assert 'property="og:title" content="النرجس للذكاء الاصطناعي | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات"' in html
     assert 'name="twitter:description" content="النرجس للذكاء الاصطناعي من الرياض:' in html
     assert 'property="og:image:alt" content="شعار النرجس — حلول الذكاء الاصطناعي من الرياض"' in html
-    assert '<h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>' in html
+    assert '<h1 class="v5-display" id="hero-h" data-split><span class="v5-line">الذكاء اللي</span>' in html
     assert 'hreflang="x-default" href="https://alnarjisai.com/ar/home"' in html
 
 
