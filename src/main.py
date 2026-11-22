@@ -604,6 +604,8 @@ CONTENT_SECURITY_POLICY = "; ".join(
         "https://cdn.moyasar.com https://*.moyasar.com",
         "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
         "img-src 'self' data: blob: https:",
+        # Homepage hero clip is fetched as text and played from a same-origin blob URL.
+        "media-src 'self' blob:",
         "connect-src 'self' https://www.facebook.com https://connect.facebook.net "
         "https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com "
         "https://www.paypal.com https://*.paypal.com https://api.moyasar.com https://*.moyasar.com",

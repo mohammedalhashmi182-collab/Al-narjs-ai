@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% from "partials/_telegram_mark.html" import tg_plane, tg_plane_cls, tg_badge %}
 {% from "components/brand_lockup.html" import lockup %}
+{% from "partials/_v5_logo.html" import v5_logo %}
 {% set _lang = page_lang(request) %}
 {% set locale_path = '/' ~ _lang %}
 {% set ar = _lang == 'ar' %}
@@ -8,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#12100d">
+    <meta name="theme-color" content="#17120E">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
@@ -133,38 +134,51 @@
     <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
     <link rel="stylesheet" href="/static/css/narjis-next-review.css">
-    <link rel="stylesheet" href="/static/css/narjis-cinematic.css">
+    <link rel="preload" as="style" href="/static/css/narjis-v5-art.css" fetchpriority="high">
+    <link rel="preload" as="style" href="/static/css/narjis-kufi-font.css">
+    <link rel="stylesheet" href="/static/css/narjis-kufi-font.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/static/css/narjis-kufi-font.css"></noscript>
+    <link rel="stylesheet" href="/static/css/narjis-v5.css">
+    <link rel="stylesheet" href="/static/css/narjis-v5-art.css" media="print" onload="this.media='all';document.documentElement.classList.add('v5-art-ready')">
+    <noscript><link rel="stylesheet" href="/static/css/narjis-v5-art.css"></noscript>
     <script>
     (function () {
-      var on = false;
+      var staticMode = false;
       try {
-        var c = document.createElement('canvas');
-        var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
         var save = navigator.connection && navigator.connection.saveData;
         var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var mem = navigator.deviceMemory;
-        var cores = navigator.hardwareConcurrency || 0;
-        var wide = window.matchMedia('(min-width: 900px)').matches;
-        var capable = !!gl && !save && !reduce && wide && (mem == null || mem >= 4) && cores >= 4;
-        on = capable;
+        staticMode = !!(reduce || save);
       } catch (e) {}
-      document.documentElement.classList.add(on ? 'cine-on' : 'cine-fallback');
+      document.documentElement.classList.add(staticMode ? 'v5-static' : 'v5-motion');
     })();
     </script>
 </head>
 <body class="nj" data-lang="{{ _lang }}">
+<div class="v5-progress" id="v5-progress" aria-hidden="true"></div>
+<div class="v5-bg" id="v5-bg" aria-hidden="true"><i class="v5-bg-glow"></i></div>
+<div class="v5-liquid-layer" id="v5-liquid-layer" aria-hidden="true">
+    <div class="v5-blob-fallback" id="v5-blob-fallback"><i></i><b></b></div>
+    <div class="v5-sculpt" id="v5-sculpt"><i class="v5-sculpt-shadow"></i><i class="s s-a"></i><i class="s s-c"></i><i class="s s-b"></i></div>
+    <canvas class="v5-liquid" id="v5-liquid"></canvas>
+</div>
 <a class="skip" href="#main">{% if ar %}تخطَّ إلى المحتوى{% else %}Skip to content{% endif %}</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
     <symbol id="i-msg" viewBox="0 0 32 32"><path d="M4 7h24v15H13l-6 5v-5H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 13h12M10 17h7" stroke="currentColor" stroke-width="1.5"/></symbol>
     <symbol id="i-rep" viewBox="0 0 32 32"><path d="M5 27h22M8 23v-7M14 23V9M20 23v-10M26 23V5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="i-filter" viewBox="0 0 32 32"><path d="M5 7h22l-8 10v8l-6 3V17z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-analytics" viewBox="0 0 32 32"><path d="M5 26h22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 21l6-7 5 4 8-10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="26" cy="8" r="2" fill="currentColor"/></symbol>
+    <symbol id="i-dev" viewBox="0 0 32 32"><path d="M11 9l-7 7 7 7M21 9l7 7-7 7M18 6l-4 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-design" viewBox="0 0 32 32"><path d="M16 4l12 12-12 12L4 16z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M16 10l6 6-6 6-6-6z" fill="currentColor" opacity=".9"/></symbol>
+    <symbol id="i-sales" viewBox="0 0 32 32"><path d="M6 20l6 6 14-16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8h10M6 13h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-marketing" viewBox="0 0 32 32"><path d="M5 13v6l14 6V7L5 13zM19 11c4 0 6 2 6 5s-2 5-6 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 20l2 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-voice" viewBox="0 0 24 24"><path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
 </defs></svg>
 
-<header class="nj-nav" id="nav">
+<header class="nj-nav v5-nav" id="nav">
     <div class="wrap">
-        {{ lockup(locale_path ~ '/home', 'النرجس' if ar else 'Al-Narjis', '/static/logo.svg', 'للذكاء الاصطناعي' if ar else 'AI') }}
+        {{ v5_logo(locale_path ~ '/home', ar, 'h', 'ink') }}
         <nav class="links" aria-label="{% if ar %}القائمة الرئيسية{% else %}Main navigation{% endif %}">
-            <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+            <a href="#how">{% if ar %}كيف نعمل{% else %}How we work{% endif %}</a>
             <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
             <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
             <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
@@ -176,10 +190,11 @@
             <details class="mobile-nav">
                 <summary>{% if ar %}القائمة{% else %}Menu{% endif %}</summary>
                 <nav aria-label="{% if ar %}أقسام الصفحة{% else %}Page sections{% endif %}">
-                    <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+                    <a href="#how">{% if ar %}كيف نعمل{% else %}How we work{% endif %}</a>
                     <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
                     <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
                     <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
+                    <a href="/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a>
                     <a href="/portal">{% if ar %}دخول العملاء{% else %}Client login{% endif %}</a>
                 </nav>
             </details>
@@ -189,36 +204,213 @@
 
 <main id="main">
 <!-- ==================== HERO ==================== -->
-<section class="hero" id="top" aria-labelledby="hero-h">
-    <div id="cineBg" aria-hidden="true"></div>
-    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" decoding="async">
-    <div class="cine-stage" id="cineStage" aria-hidden="true"></div>
-    <img class="cine-fallback-art" src="/static/img/narcissus-fallback.svg" width="400" height="520" alt="" decoding="async">
-    <div class="wrap">
-        <div class="copy">
-            <div class="nj-brand-row">
-                <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
-                        <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
-                    </svg>
-                    {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
-                </a>
-            </div>
-            <p class="eyebrow">{% if ar %}ذكاء اصطناعي لأعمالك، من الرياض{% else %}Business AI from Riyadh{% endif %}</p>
+<section class="hero v5-hero" id="top" aria-labelledby="hero-h" data-bg="hero">
+    <div class="wrap v5-hero-grid">
+        <div class="v5-hero-copy">
+            <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
+                <span class="v5-chip-dot" aria-hidden="true"></span>
+                {% if ar %}الرئيس التنفيذي الذكي · تحدث مع النرجس{% else %}The AI CEO · Talk to Al-Narjis{% endif %}
+            </a>
             {% if ar %}
-            <h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>
-            <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
+            <h1 class="v5-display" id="hero-h" data-split><span class="v5-line">الذكاء اللي</span> <span class="v5-line"><em class="v5-grad">ينفّذ فكرتك.</em></span></h1>
+            <p class="v5-lead" data-rise>اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
             {% else %}
-            <h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>
-            <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
+            <h1 class="v5-display" id="hero-h" data-split><span class="v5-line">AI that</span> <span class="v5-line"><em class="v5-grad">executes your idea.</em></span></h1>
+            <p class="v5-lead" data-rise>Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
             {% endif %}
-            <div class="ctas">
-                <a class="btn" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
-                <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
-                <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
+            <div class="v5-ctas ctas" data-rise>
+                <a class="btn v5-pill" id="heroSubscribe" href="#pricing">{% if ar %}اشترك الآن{% else %}Subscribe{% endif %}<span class="v5-pill-arrow" aria-hidden="true">{% if ar %}←{% else %}→{% endif %}</span></a>
+                <a class="btn-sec v5-ghost" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}واتساب{% else %}WhatsApp{% endif %}</a>
+            </div>
+            <div class="v5-quiet-row" data-rise>
+                <a class="v5-quiet" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي{% else %}Discuss your goal with the CEO{% endif %}</a>
+                <button class="v5-quiet" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
             </div>
         </div>
-        <div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
+        <div class="v5-hero-stage" id="v5-hero-stage" aria-hidden="true">
+            <div class="v5-orbit" data-anchor="hero" data-morph="0"><i class="v5-orbit-art v5-art-a"></i><video class="v5-orbit-video" id="v5-video" muted playsinline loop preload="none" aria-hidden="true" tabindex="-1" data-src="/static/media/v5-sculpt"></video></div>
+            <div class="v5-glass v5-glass--ceo" data-float="1">
+                <span class="v5-glass-ic"><svg><use href="#i-voice"/></svg></span>
+                <span><b>{% if ar %}الرئيس التنفيذي الذكي{% else %}The AI CEO{% endif %}</b><small>{% if ar %}يسمع هدفك ويقترح فريقك{% else %}Hears your goal, proposes your team{% endif %}</small></span>
+                <span class="v5-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            </div>
+            <div class="v5-glass v5-glass--team" data-float="2">
+                <b class="num">{{ agent_count }}</b>
+                <small>{% if ar %}وكيلاً في {{ division_count }} أقسام{% else %}agents in {{ division_count }} departments{% endif %}</small>
+            </div>
+            <div class="v5-glass v5-glass--wa" data-float="3">
+                <span class="v5-glass-ic v5-glass-ic--soft"><svg><use href="#i-msg"/></svg></span>
+                <span><b>{% if ar %}ردود واتساب{% else %}WhatsApp replies{% endif %}</b><small>{% if ar %}باللهجة اللي تختارها{% else %}In the dialect you choose{% endif %}</small></span>
+            </div>
+            <div class="v5-glass v5-glass--review" data-float="4">
+                <span class="v5-check" aria-hidden="true">✓</span>
+                <small>{% if ar %}يراجع فريقك ما يُرسل{% else %}Your team reviews what goes out{% endif %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="v5-scrollcue" aria-hidden="true"><i></i>{% if ar %}مرّر{% else %}Scroll{% endif %}</div>
+</section>
+
+<!-- Kinetic type band -->
+<div class="v5-marquee" aria-hidden="true">
+    <div class="v5-marquee-track" id="v5-marquee">
+        {% for _ in range(3) %}<span>{% if ar %}نفهم<i>◆</i>ننفذ<i>◆</i>نقيس<i>◆</i>{% else %}Understand<i>◆</i>Execute<i>◆</i>Measure<i>◆</i>{% endif %}</span>{% endfor %}
+    </div>
+</div>
+
+<!-- ==================== HOW WE WORK ==================== -->
+<section class="v5-how" id="how" aria-labelledby="how-h" data-bg="how">
+    <div class="v5-anchor v5-anchor--how" data-anchor="how" data-morph="1" aria-hidden="true"></div>
+    <div class="wrap">
+        <div class="v5-sh">
+            <p class="v5-eyebrow" data-rise>{% if ar %}كيف نعمل{% else %}How we work{% endif %}</p>
+            <h2 class="v5-h2" id="how-h" data-split>{% if ar %}من هدفك إلى نتيجة تراجعها.{% else %}From your goal to work you can review.{% endif %}</h2>
+        </div>
+        <div class="v5-steps-wrap">
+            <svg class="v5-flow" id="v5-flow" viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true">
+                <defs><linearGradient id="v5flowg" x1="1" x2="0"><stop class="v5-stop-red" offset="0"/><stop class="v5-stop-orange" offset=".55"/><stop class="v5-stop-amber" offset="1"/></linearGradient></defs>
+                <path class="v5-flow-ghost" d="M1180 110 C 1010 -10, 880 230, 700 110 S 390 -10, 220 110 S 60 190, 20 110"/>
+                <path class="v5-flow-line" d="M1180 110 C 1010 -10, 880 230, 700 110 S 390 -10, 220 110 S 60 190, 20 110" stroke="url(#v5flowg)"/>
+            </svg>
+            <ol class="v5-steps steps">
+                {% if ar %}
+                <li class="v5-step step" data-rise><span class="v5-step-n num">01</span><h3>نفهم</h3><p>تتحدث مع الرئيس التنفيذي الذكي بكلماتك، بدون نماذج طويلة. يحدد هدفك والأقسام المعنية به.</p></li>
+                <li class="v5-step step" data-rise><span class="v5-step-n num">02</span><h3>ننفذ</h3><p>يرشّح وكلاء بأدوار محددة ويشرح سبب كل اختيار، ثم يجهّز الفريق العمل لمراجعتك.</p></li>
+                <li class="v5-step step" data-rise><span class="v5-step-n num">03</span><h3>نقيس</h3><p>تراجع المخرج وتعتمده أو تطلب تعديله، ووكلاء التحليلات يقرؤون الأرقام ويخبرونك بما يجب تغييره.</p></li>
+                {% else %}
+                <li class="v5-step step" data-rise><span class="v5-step-n num">01</span><h3>Understand</h3><p>Talk to the AI CEO in your own words, with no long forms. It pins down your goal and the departments involved.</p></li>
+                <li class="v5-step step" data-rise><span class="v5-step-n num">02</span><h3>Execute</h3><p>It proposes agents with clear roles, explains every choice, and the team prepares the work for your review.</p></li>
+                <li class="v5-step step" data-rise><span class="v5-step-n num">03</span><h3>Measure</h3><p>You approve the output or ask for changes, and the analytics agents read the numbers and tell you what to change.</p></li>
+                {% endif %}
+            </ol>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== STORY: the phone ==================== -->
+<section class="v5-story" id="story" aria-labelledby="story-h" data-bg="story">
+    <div class="v5-story-pin" id="v5-story-pin">
+        <div class="wrap v5-story-grid">
+            <div class="v5-story-copy">
+                <p class="v5-eyebrow">{% if ar %}الموظف الذكي على واتساب{% else %}The AI employee on WhatsApp{% endif %}</p>
+                <h2 class="v5-sr" id="story-h">{% if ar %}كيف يردّ الموظف الذكي على عملائك{% else %}How the AI employee answers your customers{% endif %}</h2>
+                <div class="v5-beats">
+                    <div class="v5-beat is-on" data-beat="1">
+                        <span class="v5-beat-n num">01</span>
+                        <h3>{% if ar %}رسالة من عميل.{% else %}A customer message.{% endif %}</h3>
+                        <p>{% if ar %}يكتب لك على واتساب، في أي وقت.{% else %}They write to you on WhatsApp, whenever they like.{% endif %}</p>
+                    </div>
+                    <div class="v5-beat" data-beat="2">
+                        <span class="v5-beat-n num">02</span>
+                        <h3>{% if ar %}الموظف الذكي يردّ.{% else %}The AI employee replies.{% endif %}</h3>
+                        <p>{% if ar %}باللهجة السعودية، كما تُضبط عند الإعداد. يراجع فريقك ما يُرسل.{% else %}In Saudi dialect, as set during setup. Your team reviews what goes out.{% endif %}</p>
+                    </div>
+                    <div class="v5-beat" data-beat="3">
+                        <span class="v5-beat-n num">03</span>
+                        <h3>{% if ar %}الطلب يُسجَّل، ويصلك تنبيه.{% else %}The request is recorded, and you are alerted.{% endif %}</h3>
+                        <p>{% if ar %}تصل التفاصيل إلى صاحب المنشأة لمتابعتها.{% else %}The details reach the business owner for follow-up.{% endif %}</p>
+                    </div>
+                </div>
+                <p class="v5-note">{% if ar %}المحادثة في الجوال محاكاة لتوضيح الفكرة، وليست شهادة عميل.{% else %}The conversation on the phone is a simulation to illustrate the idea, not a client testimonial.{% endif %}</p>
+            </div>
+            <div class="v5-phone-scene" aria-hidden="true">
+                <div class="v5-anchor v5-anchor--story" data-anchor="story" data-morph="0.4"></div>
+                <div class="v5-phone" id="v5-phone">
+                    {% for i in range(14) %}<i class="v5-ph-slice" style="--i:{{ i }}"></i>{% endfor %}
+                    <i class="v5-ph-btn v5-ph-btn--a"></i><i class="v5-ph-btn v5-ph-btn--b"></i><i class="v5-ph-btn v5-ph-btn--c"></i>
+                    <div class="v5-ph-front">
+                        <div class="v5-ph-bezel">
+                            <div class="v5-ph-screen">
+                                <div class="v5-ph-status"><span class="num">9:41</span><i class="v5-ph-island"></i><span class="v5-ph-sig"><i></i><i></i><i></i></span></div>
+                                <div class="v5-chat-head">
+                                    <span class="v5-chat-av"><svg viewBox="0 0 24 24"><path d="M12 3l9 9-9 9-9-9z"/></svg></span>
+                                    <span><b>{% if ar %}موظف النرجس{% else %}Al-Narjis agent{% endif %}</b><small>{% if ar %}محاكاة توضيحية{% else %}Illustrative simulation{% endif %}</small></span>
+                                </div>
+                                <div class="v5-thread">
+                                    <p class="v5-day">{% if ar %}اليوم{% else %}Today{% endif %}</p>
+                                    <p class="v5-bubble in" data-step="1">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}<small class="num">9:41</small></p>
+                                    <div class="v5-typing" data-step="2"><i></i><i></i><i></i></div>
+                                    <p class="v5-bubble out" data-step="2">{% if ar %}وعليكم السلام، حاضر. طلبكم عندي، وأحدّثك أول ما يصير جديد.{% else %}Hello, of course. I have your request, and I’ll update you as soon as there is news.{% endif %}<small class="num">9:41 ✓✓</small></p>
+                                    <aside class="v5-alert" data-step="3">
+                                        <i class="v5-alert-dot"></i>
+                                        <span><b>{% if ar %}طلب جديد{% else %}New request{% endif %}</b><small>{% if ar %}سُجّل الطلب، وصلك تنبيه.{% else %}The request is recorded, and you are alerted.{% endif %}</small></span>
+                                    </aside>
+                                </div>
+                                <div class="v5-ph-input"><span>{% if ar %}اكتب رسالة{% else %}Message{% endif %}</span><i></i></div>
+                            </div>
+                            <i class="v5-ph-glare"></i>
+                        </div>
+                    </div>
+                </div>
+                <i class="v5-phone-shadow"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== THE AGENT NETWORK (real roster) ==================== -->
+<section class="v5-team" id="team" aria-labelledby="team-h" data-bg="team">
+    <div class="v5-anchor v5-anchor--team" data-anchor="team" data-morph="1.6" aria-hidden="true"></div>
+    <div class="wrap">
+        <div class="v5-sh v5-sh--split">
+            <div>
+                <p class="v5-eyebrow" data-rise>{% if ar %}شبكة الوكلاء{% else %}The agent network{% endif %}</p>
+                <h2 class="v5-h2" id="team-h" data-split>{% if ar %}وكلاء بأدوار متخصصة.{% else %}Agents with defined roles.{% endif %}</h2>
+            </div>
+            <p data-rise>{% if ar %}كل وكيل له رقم وظيفي ومسمّى ومهمة واضحة. الرئيس التنفيذي يستدعي منهم من تحتاجه فقط.{% else %}Every agent has an employee number, a title and a clear job. The CEO calls in only the ones you need.{% endif %}</p>
+        </div>
+        {% set _net = [
+            ('analytics', 'i-analytics', 'تحليل', 'Analytics', ['data_analyst', 'market_analyst', 'competitor_analyst']),
+            ('product-engineering', 'i-dev', 'تطوير', 'Development', ['software_engineer', 'integrations_engineer', 'qa_engineer']),
+            ('product-engineering', 'i-design', 'تصميم', 'Design', ['product_designer', 'prototype_engineer']),
+            ('digital-marketing', 'i-sales', 'مبيعات', 'Sales', ['sales_closer', 'lead_acquisition', 'customer_manager']),
+            ('digital-marketing', 'i-marketing', 'تسويق', 'Marketing', ['marketing_agent', 'social_media', 'ad_writer']),
+        ] %}
+        {% set _div = {} %}{% for d in divisions %}{% set _ = _div.update({d.slug: d}) %}{% endfor %}
+        <ul class="v5-net">
+            {% for slug, icon, name_ar, name_en, members in _net %}
+            <li class="v5-net-card" data-rise>
+                <span class="v5-net-ic"><svg aria-hidden="true"><use href="#{{ icon }}"/></svg></span>
+                <h3>{% if ar %}{{ name_ar }}{% else %}{{ name_en }}{% endif %}</h3>
+                {% set _lead = catalog_employees.get(members[0]) %}{% if _lead %}<p>{{ ((_lead.intro_ar if ar else _lead.intro_en).split('. ', 1))[-1] }}</p>{% elif _div.get(slug) %}<p>{% if ar %}{{ _div[slug].blurb_ar }}{% else %}{{ _div[slug].blurb_en }}{% endif %}</p>{% endif %}
+                <ul class="v5-net-roster">
+                    {% for m in members %}{% if catalog_employees.get(m) %}{% set e = catalog_employees[m] %}<li><a href="/ai-agent/{{ m }}">{% if ar %}{{ e.title_ar }}{% else %}{{ e.title_en }}{% endif %}</a></li>{% endif %}{% endfor %}
+                </ul>
+                <i class="v5-net-glow" aria-hidden="true"></i>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="facts v5-facts" id="pulse-live">
+            <div data-pulse="agents"><b class="num" data-target="{{ agent_count }}">{{ agent_count }}</b><span>{% if ar %}وكيلاً بمن فيهم الرئيس التنفيذي{% else %}agents including the AI CEO{% endif %}</span></div>
+            <div data-pulse="divisions"><b class="num" data-target="{{ division_count }}">{{ division_count }}</b><span>{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
+            <div data-pulse="plans"><b class="num">{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
+            <div data-pulse="leads_received" hidden><b class="num" id="pulseLeads"></b><span>{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
+            <div data-pulse="projects" hidden><b class="num" id="pulseProjects"></b><span>{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
+        </div>
+        <details class="v5-all-divs">
+            <summary>{% if ar %}كل الأقسام والوكلاء{% else %}All departments and agents{% endif %}</summary>
+            <div class="divs">
+                {% for d in divisions %}
+                <details class="dv" data-division="{{ d.slug }}">
+                    <summary><b>{% if ar %}{{ d.name_ar }} <small lang="en" dir="ltr">{{ d.name_en }}</small>{% else %}{{ d.name_en }}{% endif %}</b><span class="num">{{ d.count }} {% if ar %}وكلاء{% else %}agents{% endif %}</span></summary>
+                    <p>{% if ar %}{{ d.blurb_ar }}{% else %}{{ d.blurb_en }}{% endif %}</p>
+                    <ul class="roster">{% for slug in d.agents %}{% set e = catalog_employees[slug] %}<li><a href="/ai-agent/{{ slug }}">{% if ar %}{{ e.title_ar }}{% else %}{{ e.title_en }}{% endif %}</a></li>{% endfor %}</ul>
+                </details>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+</section>
+
+<!-- ==================== CEO DESK ==================== -->
+<section class="v5-desk" id="ceo-desk" aria-label="{% if ar %}مكتب الرئيس التنفيذي{% else %}The CEO desk{% endif %}" data-bg="desk">
+    <div class="v5-anchor v5-anchor--desk" data-anchor="desk" data-morph="0.7" aria-hidden="true"></div>
+    <div class="wrap">
+        <div class="v5-sh v5-sh--center">
+            <p class="v5-eyebrow" data-rise>{% if ar %}مكتب الرئيس التنفيذي{% else %}The CEO desk{% endif %}</p>
+            <h2 class="v5-h2" data-split>{% if ar %}جرّب التشخيص الحين.{% else %}Try the diagnosis now.{% endif %}</h2>
+        </div>
+<div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
             <div class="ng-app-top">
                 <div class="ng-app-dots" aria-hidden="true"><i></i><i></i><i></i></div>
                 <b>NARJIS / AI CEO</b>
@@ -254,81 +446,6 @@
                 <span><strong>{% if ar %}02 / تخصيص{% else %}02 / Match{% endif %}</strong>{% if ar %}نرشح فريقك{% else %}Your agents{% endif %}</span>
                 <span><strong>{% if ar %}03 / تصور{% else %}03 / Blueprint{% endif %}</strong>{% if ar %}تشاهد النتيجة{% else %}Your visual plan{% endif %}</span>
             </div>
-        </div>
-    </div>
-</section>
-
-
-<!-- Cinematic story (illustrative scenes, not a client testimonial) -->
-<section class="cine-chapter" id="cine-missed" aria-labelledby="cine-missed-h">
-    <div class="wrap">
-        <div class="cine-rise">
-            <p class="cine-kicker">{% if ar %}الفصل الأول{% else %}Chapter one{% endif %}</p>
-            <h2 id="cine-missed-h" class="cine-display">{% if ar %}رسالة وصلت. <em>ولم يردّ أحد.</em>{% else %}A message arrived. <em>No one replied.</em>{% endif %}</h2>
-            <p class="cine-copy">{% if ar %}عملاؤك يكتبون على واتساب حين يكون الفريق مشغولاً. الرسالة تبقى، والفرصة تبرد.{% else %}Customers write on WhatsApp while the team is busy. The message sits there, and the moment cools.{% endif %}</p>
-        </div>
-        <div class="cine-phone cine-rise" aria-hidden="true">
-            <div class="cine-phone-bar"><span></span><div>{% if ar %}عميل{% else %}Customer{% endif %}<small>{% if ar %}واتساب · محاكاة توضيحية{% else %}WhatsApp · illustrative simulation{% endif %}</small></div></div>
-            <div class="cine-bubble missed">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}<span class="cine-time">{% if ar %}منذ ساعات{% else %}Hours ago{% endif %}</span><span class="cine-unread">{% if ar %}بلا رد{% else %}Unanswered{% endif %}</span></div>
-        </div>
-    </div>
-</section>
-<section class="cine-chapter is-flip" id="cine-reply" aria-labelledby="cine-reply-h">
-    <div class="wrap">
-        <div class="cine-phone cine-rise" aria-hidden="true">
-            <div class="cine-phone-bar"><span></span><div>{% if ar %}موظف النرجس{% else %}Al-Narjis agent{% endif %}<small>{% if ar %}محاكاة توضيحية، ليست لعميل حقيقي{% else %}Illustrative simulation, not a real client{% endif %}</small></div></div>
-            <div class="cine-bubble in">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}</div>
-            <div class="cine-bubble out">{% if ar %}وعليكم السلام، حاضر. طلبكم قيد التجهيز وأحدّثك بالمستجد أول ما يصير.{% else %}Hello, of course. Your order is being prepared, and I’ll update you as soon as there is news.{% endif %}<span class="cine-time">{% if ar %}الآن{% else %}Now{% endif %}</span></div>
-        </div>
-        <div class="cine-rise">
-            <p class="cine-kicker">{% if ar %}الفصل الثاني{% else %}Chapter two{% endif %}</p>
-            <h2 id="cine-reply-h" class="cine-display">{% if ar %}الموظف الذكي <em>يردّ على واتساب.</em>{% else %}The AI employee <em>replies on WhatsApp.</em>{% endif %}</h2>
-            <p class="cine-copy">{% if ar %}قناة الباقات هي واتساب لردود عملاء منشأتك. تُضبط اللهجة — منها اللهجة السعودية — عند الإعداد، ويراجع فريقك ما يُرسل.{% else %}The plan channel is WhatsApp, for replies to your customers. Dialect — including Saudi dialect — is set during setup, and your team reviews what goes out.{% endif %}</p>
-            <p class="cine-note">{% if ar %}المحادثة أعلاه محاكاة لتوضيح الفكرة، وليست شهادة عميل.{% else %}The conversation above is a simulation to illustrate the idea, not a client testimonial.{% endif %}</p>
-        </div>
-    </div>
-</section>
-
-<!-- ==================== HOW IT WORKS ==================== -->
-<section class="ivory" id="how" aria-labelledby="how-h">
-    <div class="wrap">
-        <div class="sh rv"><h2 id="how-h">{% if ar %}من هدفك إلى نتيجة تراجعها{% else %}From your goal to work you can review{% endif %}</h2></div>
-        <ol class="steps">
-            {% if ar %}
-            <li class="step rv"><span class="n num">01</span><h3>تشرح هدفك</h3><p>تتحدث مع الرئيس التنفيذي الذكي بكلماتك، بدون نماذج طويلة.</p></li>
-            <li class="step rv"><span class="n num">02</span><h3>يختار فريقك</h3><p>يرشّح وكلاء بأدوار محددة ويشرح سبب كل اختيار.</p></li>
-            <li class="step rv"><span class="n num">03</span><h3>تراجع المخرج</h3><p>تستلم عملًا جاهزًا للمراجعة، وتعتمده أو تطلب تعديله.</p></li>
-            {% else %}
-            <li class="step rv"><span class="n num">01</span><h3>You explain your goal</h3><p>Talk to the AI CEO in your own words, with no long forms.</p></li>
-            <li class="step rv"><span class="n num">02</span><h3>It picks your team</h3><p>It proposes agents with clear roles and explains every choice.</p></li>
-            <li class="step rv"><span class="n num">03</span><h3>You review the output</h3><p>You receive work ready for review, then approve it or ask for changes.</p></li>
-            {% endif %}
-        </ol>
-    </div>
-</section>
-
-<!-- ==================== THE TEAM (real roster from the catalogue) ==================== -->
-<section class="scene" id="team" aria-labelledby="team-h">
-    <div class="wrap">
-        <div class="sh rv">
-            <h2 id="team-h">{% if ar %}وكلاء بأدوار متخصصة{% else %}Agents with defined roles{% endif %}</h2>
-            <p>{% if ar %}كل وكيل له رقم وظيفي ومسمّى ومهمة واضحة. الرئيس التنفيذي يستدعي منهم من تحتاجه فقط.{% else %}Every agent has an employee number, a title and a clear job. The CEO calls in only the ones you need.{% endif %}</p>
-        </div>
-        <div class="facts" id="pulse-live">
-            <div data-pulse="agents"><b class="num" data-target="{{ agent_count }}">{{ agent_count }}</b><span>{% if ar %}وكيلاً بمن فيهم الرئيس التنفيذي{% else %}agents including the AI CEO{% endif %}</span></div>
-            <div data-pulse="divisions"><b class="num" data-target="{{ division_count }}">{{ division_count }}</b><span>{% if ar %}أقسام متخصصة{% else %}specialist departments{% endif %}</span></div>
-            <div data-pulse="plans"><b class="num">{{ plans|length }}</b><span>{% if ar %}باقات واضحة{% else %}clear plans{% endif %}</span></div>
-            <div data-pulse="leads_received" hidden><b class="num" id="pulseLeads"></b><span>{% if ar %}طلب استشارة استلمناه{% else %}consultation requests received{% endif %}</span></div>
-            <div data-pulse="projects" hidden><b class="num" id="pulseProjects"></b><span>{% if ar %}مشروع عميل في البوابة{% else %}client projects in the portal{% endif %}</span></div>
-        </div>
-        <div class="divs">
-            {% for d in divisions %}
-            <details class="dv rv" data-division="{{ d.slug }}">
-                <summary><b>{% if ar %}{{ d.name_ar }} <small lang="en" dir="ltr">{{ d.name_en }}</small>{% else %}{{ d.name_en }}{% endif %}</b><span class="num">{{ d.count }} {% if ar %}وكلاء{% else %}agents{% endif %}</span></summary>
-                <p>{% if ar %}{{ d.blurb_ar }}{% else %}{{ d.blurb_en }}{% endif %}</p>
-                <ul class="roster">{% for slug in d.agents %}{% set e = catalog_employees[slug] %}<li><a href="/ai-agent/{{ slug }}">{% if ar %}{{ e.title_ar }}{% else %}{{ e.title_en }}{% endif %}</a></li>{% endfor %}</ul>
-            </details>
-            {% endfor %}
         </div>
     </div>
 </section>
@@ -529,8 +646,9 @@
 </section>
 </main>
 
-<footer class="nj-footer" id="site-footer">
+<footer class="nj-footer v5-footer" id="site-footer">
     <div class="wrap">
+        <div class="v5-footer-brand">{{ v5_logo(locale_path ~ '/home', ar, 'f', 'light') }}<p>{% if ar %}النرجس للذكاء الاصطناعي، من الرياض.{% else %}Al-Narjis AI, from Riyadh.{% endif %}</p></div>
         <nav class="svc-links" aria-label="{% if ar %}روابط المنصة{% else %}Platform links{% endif %}">
             <a href="/portal">{% if ar %}بوابة العميل{% else %}Client portal{% endif %}</a>
             <a href="/ai-agents-saudi-businesses">{% if ar %}وكلاء الذكاء الاصطناعي في السعودية{% else %}AI agents in KSA{% endif %}</a>
@@ -546,13 +664,16 @@
 
 <!-- Mobile actions -->
 <div class="mbar">
-    <a class="btn" href="/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a>
+    <a class="btn" id="mbarSubscribe" href="#pricing">{% if ar %}اشترك{% else %}Subscribe{% endif %}</a>
     <a class="btn-sec" id="mbarWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer" aria-label="{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}">{% if ar %}واتساب{% else %}WhatsApp{% endif %}</a>
 </div>
 
 {% include "partials/_landing_sample_dialog.html" %}
 <script src="/static/js/narjis-client-workspace.js"></script>
-<script src="/static/js/narjis-cinematic.js" defer></script>
+<script src="/static/vendor/gsap.min.js" defer></script>
+<script src="/static/vendor/ScrollTrigger.min.js" defer></script>
+<script src="/static/vendor/lenis.min.js" defer></script>
+<script src="/static/js/narjis-v5.js" defer></script>
 
 
 <script>
