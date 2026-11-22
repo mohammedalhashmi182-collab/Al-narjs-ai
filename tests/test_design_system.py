@@ -461,7 +461,7 @@ def _najdi() -> str:
 
 
 def test_landing_declares_the_najdi_theme_colour() -> None:
-    assert f'<meta name="theme-color" content="{NAJDI_TOKENS["--narjis-ink"]}">' in read("landing.html")
+    assert '<meta name="theme-color" content="#1F2A1F">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
