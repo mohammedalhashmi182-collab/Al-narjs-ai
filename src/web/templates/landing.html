@@ -134,8 +134,7 @@
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
     <link rel="stylesheet" href="/static/css/narjis-next-review.css">
     <link rel="preload" as="style" href="/static/css/narjis-kufi-font.css">
-    <link rel="stylesheet" href="/static/css/narjis-kufi-font.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="/static/css/narjis-kufi-font.css"></noscript>
+    <link rel="stylesheet" href="/static/css/narjis-kufi-font.css">
     <link rel="stylesheet" href="/static/css/narjis-gsap.css">
     <script>
     (function () {
@@ -210,16 +209,20 @@
                 {% endif %}
             </div>
             <div class="v3-actions ctas">
+                <div class="v3-resolve" id="v3-resolve">
+                    <img src="/static/logo.svg" width="52" height="52" alt="">
+                </div>
                 <a class="btn" id="heroSubscribe" href="#pricing">{% if ar %}اشترك{% else %}Subscribe{% endif %}</a>
                 <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}واتساب{% else %}WhatsApp{% endif %}</a>
                 <a class="v3-quiet" href="/consult" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي{% else %}Discuss your goal with the CEO{% endif %}</a>
                 <button class="v3-quiet" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
             </div>
+            <p class="v3-field" aria-hidden="true">{% if ar %}النرجس{% else %}Al-Narjis{% endif %}</p>
             <div class="v3-stage">
-                <p class="v3-field" aria-hidden="true">{% if ar %}النرجس{% else %}Al-Narjis{% endif %}</p>
                 <figure class="v3-phone">
                     <div class="v3-phone-shell">
                         <div class="v3-phone-screen">
+                            <span class="v3-glare" aria-hidden="true"></span>
                             <header class="v3-chat-head">
                                 <img src="/static/logo.svg" width="32" height="32" alt="">
                                 <div>
@@ -228,7 +231,7 @@
                                 </div>
                             </header>
                             <div class="v3-thread">
-                                <div class="v3-rest" aria-hidden="true"><img src="/static/logo.svg" width="56" height="56" alt=""></div>
+                                <div class="v3-typing" aria-hidden="true"><i></i><i></i><i></i></div>
                                 <p class="v3-bubble in" data-step="1">{% if ar %}السلام عليكم، باقي طلبنا؟ نحتاج رد اليوم.{% else %}Hello, is our order still coming? We need a reply today.{% endif %}</p>
                                 <p class="v3-bubble out" data-step="2">{% if ar %}وعليكم السلام، حاضر. طلبكم عندي، وأحدّثك أول ما يصير جديد.{% else %}Hello, of course. I have your request, and I’ll update you as soon as there is news.{% endif %}</p>
                                 <aside class="v3-alert" data-step="3">
@@ -238,6 +241,7 @@
                             </div>
                         </div>
                     </div>
+                    <span class="v3-floor" aria-hidden="true"></span>
                 </figure>
             </div>
             <div class="v3-beats">
