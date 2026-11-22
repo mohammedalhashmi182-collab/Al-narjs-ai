@@ -3,7 +3,7 @@
 Usage (run from the project root so ``.env`` is picked up)::
 
     python scripts/verify_whatsapp_credentials.py
-    python scripts/verify_whatsapp_credentials.py --graph-version v23.0
+    python scripts/verify_whatsapp_credentials.py --graph-version v26.0
     python scripts/verify_whatsapp_credentials.py --json
 
 It performs three read-only checks against the Graph API — no message is ever
@@ -39,8 +39,8 @@ from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 GRAPH_HOST = "https://graph.facebook.com"
-DEFAULT_VERSION = "v21.0"
-VERSION_FALLBACKS = ("v23.0", "v22.0", "v20.0", "v19.0")
+DEFAULT_VERSION = "v26.0"
+VERSION_FALLBACKS = ("v25.0", "v24.0", "v23.0")
 DEFAULT_TIMEOUT = 20
 
 RED = "\033[31m"
