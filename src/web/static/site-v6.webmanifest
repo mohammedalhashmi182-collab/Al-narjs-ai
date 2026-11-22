@@ -1,0 +1,27 @@
+{
+  "name": "النرجس للذكاء الاصطناعي",
+  "short_name": "النرجس",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F1ECE8",
+  "theme_color": "#F1ECE8",
+  "icons": [
+    {
+      "src": "/brand/v6-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/v6-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/favicon-v6.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

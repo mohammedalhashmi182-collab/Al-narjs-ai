@@ -77,7 +77,10 @@ def test_landing_uses_new_logo(client):
     assert "AL-NARJIS AI" in html
     assert (Path(__file__).resolve().parents[1] / "src/web/static/logo.svg").exists()
     assert 'rel="manifest"' in html
-    assert "/static/favicon.svg" in html
+    # v6: the homepage favicon / manifest carry the new orb-and-diamond mark;
+    # the old favicon stays on disk for the rest of the site.
+    assert "/static/favicon-v6.svg" in html and "/static/site-v6.webmanifest" in html
+    assert (Path(__file__).resolve().parents[1] / "src/web/static/favicon.svg").exists()
     assert "/brand/og-image.jpg" in html
     assert "/static/logo.png" not in html
 
