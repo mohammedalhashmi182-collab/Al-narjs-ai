@@ -49,7 +49,8 @@ def test_landing_does_not_claim_card_payments_while_closed():
     html = (TPL / "landing.html").read_text(encoding="utf-8")
     assert '"paymentAccepted": "Moyasar"' not in html
     assert "payments_open()" in html
-    assert "الدفع الإلكتروني قيد التفعيل حالياً" in html
+    assert "قيد التفعيل" not in html
+    assert "أرسل طلبك من صفحة الباقات" in html
     assert "بوابة ميسر" not in html
     assert "نهاية الفترة المدفوعة" in html
     assert "/ai-agent/" in html
