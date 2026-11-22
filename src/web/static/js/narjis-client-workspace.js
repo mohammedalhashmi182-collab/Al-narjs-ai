@@ -41,8 +41,8 @@
   function scenario(ar, sector) {
     var data = {
       clinic: {
-        ar: ['عيادة ومواعيد', 'تجميع الاستفسارات', 'اقتراح تنظيم الحجز', 'مراجعة تسلسل الرد', 'متابعة المواعيد'],
-        en: ['Clinic & appointments', 'Collect enquiries', 'Plan booking flow', 'Review responses', 'Follow appointments']
+        ar: ['عيادة', 'تجميع الاستفسارات', 'ترتيب الردود', 'مراجعة تسلسل الرد', 'متابعة الرسائل'],
+        en: ['Clinic', 'Collect enquiries', 'Draft replies', 'Review responses', 'Follow messages']
       },
       store: {
         ar: ['متجر إلكتروني', 'فهم طلبات الشراء', 'توزيع خدمة المتجر', 'صياغة المتابعات', 'استعادة الفرص'],

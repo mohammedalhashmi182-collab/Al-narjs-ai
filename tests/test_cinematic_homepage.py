@@ -37,3 +37,17 @@ def test_story_does_not_invent_proof_or_forbidden_offers():
     for banned in ("24/7", "مجانا", "خصم", "ضريبة", "أفضل متجر", "عميل سعيد", "★★", "موثوق به"):
         assert banned not in chunk
     assert "محاكاة" in chunk or "illustrative" in chunk.lower()
+
+
+def test_homepage_has_no_appointment_or_booking_wording():
+    html = LANDING.read_text(encoding="utf-8")
+    lowered = html.lower()
+    for banned in (
+        "تنظيم المواعيد",
+        "الحجوزات",
+        "احجز",
+        "appointment",
+        "booking",
+        "book a diagnosis",
+    ):
+        assert banned.lower() not in lowered, banned
