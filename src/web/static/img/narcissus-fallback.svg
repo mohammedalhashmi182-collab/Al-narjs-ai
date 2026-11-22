@@ -1,21 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" fill="none" aria-hidden="true">
   <defs>
-    <linearGradient id="stem" x1="200" y1="200" x2="200" y2="520"><stop stop-color="#2a2a2a"/><stop offset="1" stop-color="#151515"/></linearGradient>
-    <linearGradient id="petal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5f5f5"/><stop offset="1" stop-color="#d0d0d0"/></linearGradient>
-    <radialGradient id="cup" cx="50%" cy="40%" r="60%"><stop stop-color="#ff7a55"/><stop offset="1" stop-color="#c4361b"/></radialGradient>
+    <linearGradient id="stem" x1="200" y1="200" x2="200" y2="520"><stop stop-color="#1A2618"/><stop offset="1" stop-color="#0F1C12"/></linearGradient>
+    <linearGradient id="petal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fafafa"/><stop offset="1" stop-color="#e8e8e8"/></linearGradient>
+    <radialGradient id="cup" cx="50%" cy="30%" r="70%"><stop stop-color="#ff7a55"/><stop offset="1" stop-color="#c4361b"/></radialGradient>
   </defs>
-  <path d="M202 210 C198 300 210 400 198 510" stroke="url(#stem)" stroke-width="10" stroke-linecap="round"/>
-  <path d="M196 340 C120 300 90 250 130 260 C170 272 190 310 196 340Z" fill="#2e2e2e"/>
-  <path d="M208 360 C290 330 330 270 280 275 C240 280 216 330 208 360Z" fill="#242424"/>
-  <g transform="translate(200 175)">
-    <g transform="rotate(0)"><ellipse cx="0" cy="-70" rx="32" ry="70" fill="url(#petal)"/></g>
-    <g transform="rotate(60)"><ellipse cx="0" cy="-70" rx="32" ry="70" fill="url(#petal)"/></g>
-    <g transform="rotate(120)"><ellipse cx="0" cy="-70" rx="32" ry="70" fill="url(#petal)"/></g>
-    <g transform="rotate(180)"><ellipse cx="0" cy="-70" rx="32" ry="70" fill="url(#petal)"/></g>
-    <g transform="rotate(240)"><ellipse cx="0" cy="-70" rx="32" ry="70" fill="url(#petal)"/></g>
-    <g transform="rotate(300)"><ellipse cx="0" cy="-70" rx="32" ry="70" fill="url(#petal)"/></g>
-    <ellipse cx="0" cy="4" rx="36" ry="28" fill="url(#cup)"/>
-    <circle cx="0" cy="-2" r="10" fill="#ff5a36"/>
-    <circle cx="-6" cy="2" r="3" fill="#FF5A36"/><circle cx="6" cy="2" r="3" fill="#FF5A36"/><circle cx="0" cy="-6" r="3" fill="#FF5A36"/>
+  <path d="M200 198 C198 305 204 410 198 510" stroke="url(#stem)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M197 328 C148 292 122 236 154 252 C178 266 190 304 197 328Z" fill="#1A2618"/>
+  <path d="M204 348 C258 318 292 258 262 272 C232 284 214 322 204 348Z" fill="#152A18"/>
+  <g transform="translate(200 170)">
+    <g transform="rotate(0)"><path d="M0 6 C-16 28 -30 68 0 114 C30 68 16 28 0 6Z" fill="url(#petal)"/></g>
+    <g transform="rotate(60)"><path d="M0 6 C-16 28 -30 68 0 114 C30 68 16 28 0 6Z" fill="url(#petal)"/></g>
+    <g transform="rotate(120)"><path d="M0 6 C-16 28 -30 68 0 114 C30 68 16 28 0 6Z" fill="url(#petal)"/></g>
+    <g transform="rotate(180)"><path d="M0 6 C-16 28 -30 68 0 114 C30 68 16 28 0 6Z" fill="url(#petal)"/></g>
+    <g transform="rotate(240)"><path d="M0 6 C-16 28 -30 68 0 114 C30 68 16 28 0 6Z" fill="url(#petal)"/></g>
+    <g transform="rotate(300)"><path d="M0 6 C-16 28 -30 68 0 114 C30 68 16 28 0 6Z" fill="url(#petal)"/></g>
+    <ellipse cx="0" cy="10" rx="36" ry="22" fill="url(#cup)"/>
+    <ellipse cx="0" cy="6" rx="22" ry="13" fill="#FF5A36"/>
+    <ellipse cx="0" cy="2" rx="9" ry="6" fill="#c4361b"/>
+    <circle cx="-5" cy="8" r="2.2" fill="#FF5A36"/>
+    <circle cx="5" cy="8" r="2.2" fill="#FF5A36"/>
+    <circle cx="0" cy="3" r="2.2" fill="#FF5A36"/>
   </g>
 </svg>

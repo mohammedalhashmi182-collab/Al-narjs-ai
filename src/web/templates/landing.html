@@ -229,15 +229,15 @@
                 <h2>{% if ar %}من فكرة إلى فريق عمل مصمم لنشاطك.{% else %}Your business. Your AI team. Your blueprint.{% endif %}</h2>
                 <p>{% if ar %}صف التحدي، وسيقترح الرئيس التنفيذي فريقك ويعرض لك رسمًا واضحًا لما سيحدث بعد التفعيل.{% else %}Describe the challenge and get a tailored team plus a visual plan of what happens after activation.{% endif %}</p>
                 <label class="ng-hero-field" for="ngHeroProblem">{% if ar %}ما أول مشكلة تريد حلّها؟{% else %}What's the first problem you want solved?{% endif %}</label>
-                <textarea id="ngHeroProblem" name="problem" required minlength="8" maxlength="2000" placeholder="{% if ar %}مثال: عندي عيادة وأحتاج تنظيم المواعيد والرد على الاستفسارات ومتابعة الحجوزات...{% else %}Example: I run a clinic and need appointment follow-up and patient enquiry management...{% endif %}"></textarea>
+                <textarea id="ngHeroProblem" name="problem" required minlength="8" maxlength="2000" placeholder="{% if ar %}مثال: عملاؤنا يراسلوننا على واتساب، والاستفسارات تتراكم من دون رد سريع...{% else %}Example: customers message us on WhatsApp, and enquiries pile up without a timely reply...{% endif %}"></textarea>
                 <div class="ng-hero-choices" aria-label="{% if ar %}أمثلة قابلة للاختيار{% else %}Choose a prompt example{% endif %}">
                     {% if ar %}
-                    <button type="button" class="ng-hero-choice" data-ng-example="أدير عيادة طبية وأحتاج تنظيم الحجوزات والرد على استفسارات المرضى">عيادة</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="أدير عيادة طبية وأحتاج الرد على استفسارات العملاء عبر واتساب">عيادة</button>
                     <button type="button" class="ng-hero-choice" data-ng-example="عندي متجر على سلة وأحتاج متابعة العملاء والطلبات والسلات المتروكة">متجر سلة</button>
                     <button type="button" class="ng-hero-choice" data-ng-example="أدير شركة خدمات وأحتاج متابعة العملاء المحتملين وإعداد عروض الأسعار">شركة خدمات</button>
                     <button type="button" class="ng-hero-choice" data-ng-example="أدير شركة عقارية وأحتاج تأهيل العملاء وترتيب العروض والمتابعات">عقار</button>
                     {% else %}
-                    <button type="button" class="ng-hero-choice" data-ng-example="I run a medical clinic and need appointment and enquiry management">Clinic</button>
+                    <button type="button" class="ng-hero-choice" data-ng-example="I run a medical clinic and need timely replies to customer enquiries on WhatsApp">Clinic</button>
                     <button type="button" class="ng-hero-choice" data-ng-example="I run an online store and need abandoned cart and customer follow-up">Store</button>
                     <button type="button" class="ng-hero-choice" data-ng-example="I manage a service company and need qualified lead and quotation follow-up">Services</button>
                     <button type="button" class="ng-hero-choice" data-ng-example="I run a real estate firm and need lead qualification and follow-up">Property</button>
@@ -478,7 +478,7 @@
 <!-- ==================== PLANS (shared partial: prices and plan content from src/services/catalog.py) ==================== -->
 {% include "partials/_pricing_section.html" %}
 <div class="wrap"><p class="ceo-pick">{% if ar %}يرشّح لك الرئيس التنفيذي الباقة المناسبة بعد النقاش. <a href="/consult" style="color:var(--nj-accent)">ناقش هدفك مع الرئيس التنفيذي</a>{% else %}The CEO recommends the right plan after your conversation. <a href="/consult" style="color:var(--nj-accent)">Discuss your goal with the CEO</a>{% endif %}</p></div>
-<div class="wrap"><p class="guar">{% if ar %}احجز تشخيصاً، وترى الفريق والسعر كاملاً قبل أي التزام. شهري وبلا عقد طويل: ألغِ في أي وقت قبل التجديد، كما في <a href="/terms">الشروط</a>. تبقى الخدمة حتى نهاية الفترة المدفوعة. لا نعد هنا بنتيجة استرداد، وأسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.{% else %}Book a diagnosis, and you see the team and the full price before any commitment. Monthly with no long contract: cancel any time before renewal, per the <a href="/terms">terms</a>. The service continues until the end of the paid period. We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.{% endif %}</p></div>
+<div class="wrap"><p class="guar">{% if ar %}ابدأ تشخيصاً، وترى الفريق والسعر كاملاً قبل أي التزام. شهري وبلا عقد طويل: ألغِ في أي وقت قبل التجديد، كما في <a href="/terms">الشروط</a>. تبقى الخدمة حتى نهاية الفترة المدفوعة. لا نعد هنا بنتيجة استرداد، وأسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.{% else %}Start a diagnosis, and you see the team and the full price before any commitment. Monthly with no long contract: cancel any time before renewal, per the <a href="/terms">terms</a>. The service continues until the end of the paid period. We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.{% endif %}</p></div>
 
 <section class="white-label" id="white-label" aria-labelledby="white-label-h">
     <div class="wrap">
