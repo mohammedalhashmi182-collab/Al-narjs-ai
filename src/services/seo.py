@@ -40,6 +40,7 @@ PRIVATE_PREFIXES = (
 CORE_PAGES: list[tuple[str, str, float]] = [
     ("/home", "weekly", 1.0),
     ("/pricing", "weekly", 0.9),
+    ("/start", "weekly", 0.9),
     ("/consult", "monthly", 0.9),
     ("/brief", "monthly", 0.8),
     ("/about", "monthly", 0.6),
