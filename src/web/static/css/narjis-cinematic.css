@@ -1,0 +1,359 @@
+/* Cinematic homepage layer. Loaded after narjis-najdi.css. Dark editorial. */
+:root {
+  --cine-void: #080808;
+  --cine-ink: #12100d;
+  --cine-mid: #161616;
+  --cine-line: rgba(255, 255, 255, 0.12);
+  --cine-ivory: var(--nj-ivory, #f5f5f5);
+  --cine-muted: var(--nj-ivory2, #c8c8c8);
+  --cine-gold: var(--nj-mud, #FF5A36);
+  --cine-action: #FF5A36;
+  --cine-shift: 0;
+}
+
+html.cine-on,
+html.cine-fallback {
+  background: var(--cine-void);
+}
+html.cine-on body.nj,
+html.cine-fallback body.nj {
+  background: transparent;
+  color: var(--cine-ivory);
+}
+#cineBg {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 700px at calc(50% + var(--cine-shift, 0) * 20%) 20%, rgba(255, 90, 54, calc(0.16 + var(--cine-shift, 0) * 0.18)), transparent 60%),
+    radial-gradient(900px 800px at 80% calc(70% + var(--cine-shift, 0) * 10%), rgba(90, 24, 16, 0.55), transparent 55%),
+    radial-gradient(800px 600px at 10% 90%, rgba(20, 16, 16, calc(0.35 + var(--cine-shift, 0) * 0.25)), transparent 50%),
+    linear-gradient(180deg, #080808 0%, #12100d 45%, #0b0b0b 100%);
+}
+html.cine-fallback #cineBg {
+  background:
+    radial-gradient(900px 600px at 70% 18%, rgba(255, 90, 54, 0.18), transparent 62%),
+    linear-gradient(180deg, #080808, #141414 50%, #0c0c0c);
+}
+
+.cine-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+html.cine-on .cine-stage { display: block; }
+.cine-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.cine-fallback-art {
+  position: absolute;
+  inset: 12% auto auto 8%;
+  width: min(46vw, 520px);
+  height: auto;
+  pointer-events: none;
+  z-index: 0;
+  display: none;
+}
+[dir="rtl"] .cine-fallback-art { inset: 12% 8% auto auto; }
+html.cine-fallback .cine-fallback-art {
+  display: block;
+  opacity: 0.8;
+}
+html.cine-on .hero-bg,
+html.cine-fallback .hero-bg {
+  opacity: 0;
+  visibility: hidden;
+}
+html.cine-on .nj .hero::after,
+html.cine-fallback .nj .hero::after {
+  background: linear-gradient(90deg, rgba(7,6,5,0.55) 0%, rgba(7,6,5,0.22) 48%, rgba(7,6,5,0.55) 100%);
+}
+html.cine-on .nj .hero,
+html.cine-fallback .nj .hero {
+  min-height: 100svh;
+  background: transparent;
+}
+html.cine-on .nj .hero > .wrap,
+html.cine-fallback .nj .hero > .wrap {
+  position: relative;
+  z-index: 2;
+}
+html.cine-on .cine-stage {
+  z-index: 0;
+}
+html.cine-on .nj .display,
+html.cine-fallback .nj .display {
+  font-size: clamp(34px, 6.2vw, 86px);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--cine-ivory);
+  text-wrap: balance;
+  text-shadow: 0 1px 18px rgba(8, 8, 8, 0.45);
+}
+html.cine-on .nj .display em,
+html.cine-fallback .nj .display em {
+  color: var(--cine-action);
+  font-style: normal;
+}
+html.cine-on .nj .lead,
+html.cine-fallback .nj .lead {
+  color: var(--cine-muted);
+  font-size: clamp(16px, 1.5vw, 20px);
+  max-width: 36em;
+}
+html.cine-on .nj .eyebrow,
+html.cine-fallback .nj .eyebrow {
+  color: var(--cine-gold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* Story chapters */
+.cine-chapter {
+  position: relative;
+  padding: clamp(72px, 14vw, 160px) 0;
+  overflow: hidden;
+}
+.cine-chapter .wrap {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(28px, 6vw, 96px);
+  align-items: center;
+}
+.cine-chapter.is-flip .wrap { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+html.cine-on .cine-chapter { min-height: 100svh; display: flex; align-items: center; }
+.cine-kicker {
+  color: var(--cine-gold);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin-bottom: 18px;
+}
+.cine-display {
+  font-size: clamp(32px, 6vw, 92px);
+  line-height: 1.05;
+  font-weight: 600;
+  color: var(--cine-ivory);
+  text-wrap: balance;
+  margin: 0 0 22px;
+}
+.cine-display em { font-style: normal; color: var(--cine-action); }
+.cine-copy {
+  color: var(--cine-muted);
+  font-size: clamp(16px, 1.45vw, 20px);
+  line-height: 1.7;
+  max-width: 34em;
+  margin: 0;
+}
+.cine-note {
+  margin-top: 18px;
+  font-size: 0.78rem;
+  color: rgba(200, 200, 200, 0.8);
+}
+
+/* Illustrative WhatsApp frame — not a live product chrome claim */
+.cine-phone {
+  width: min(100%, 340px);
+  margin-inline: auto;
+  background: #0e0e0e;
+  border: 1px solid var(--cine-line);
+  border-radius: 36px;
+  padding: 14px 12px 18px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.45);
+}
+.cine-phone-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 14px;
+  border-bottom: 1px solid var(--cine-line);
+  color: var(--cine-ivory);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.cine-phone-bar span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #FF5A36, #9a321b);
+  flex: none;
+}
+.cine-phone-bar small {
+  display: block;
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--cine-muted);
+}
+.cine-bubble {
+  max-width: 82%;
+  margin: 12px 8px 0;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.cine-bubble.in {
+  margin-inline-start: auto;
+  background: #1c1c1c;
+  color: var(--cine-ivory);
+  border-end-end-radius: 4px;
+}
+.cine-bubble.missed {
+  margin-inline-start: auto;
+  background: #1c1c1c;
+  color: var(--cine-ivory);
+  border-end-end-radius: 4px;
+  position: relative;
+}
+.cine-unread {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--cine-action);
+  color: #000;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+.cine-bubble.out {
+  background: #2a2a2a;
+  color: #f3f3f3;
+  border-end-start-radius: 4px;
+}
+.cine-time {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+/* Reveal — JS adds .is-in. Reduced motion and fallback stay visible. */
+.cine-rise { opacity: 1; transform: none; }
+html.cine-on .cine-rise {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+html.cine-on .cine-rise.is-in { opacity: 1; transform: none; }
+html.cine-fallback .cine-rise,
+html.cine-on[data-reduce] .cine-rise {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Existing sections stay dark and airy */
+html.cine-on .nj .ivory,
+html.cine-fallback .nj .ivory,
+html.cine-on .nj .sec,
+html.cine-fallback .nj .sec,
+html.cine-on .nj #team,
+html.cine-fallback .nj #team,
+html.cine-on .nj #services,
+html.cine-fallback .nj #services,
+html.cine-on .nj #consult,
+html.cine-fallback .nj #consult,
+html.cine-on .nj #about,
+html.cine-fallback .nj #about,
+html.cine-on .nj #vision,
+html.cine-fallback .nj #vision,
+html.cine-on .nj #faq,
+html.cine-fallback .nj #faq,
+html.cine-on .nj #white-label,
+html.cine-fallback .nj #white-label {
+  background: transparent;
+  color: var(--cine-ivory);
+}
+html.cine-on .nj h2,
+html.cine-fallback .nj h2,
+html.cine-on .nj h3,
+html.cine-fallback .nj h3 {
+  color: var(--cine-ivory);
+}
+html.cine-on .nj .nj-nav,
+html.cine-fallback .nj .nj-nav {
+  background: rgba(7, 6, 5, 0.72);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--cine-line);
+}
+html.cine-on .nj .nj-footer,
+html.cine-fallback .nj .nj-footer {
+  background: transparent;
+  border-top: 1px solid var(--cine-line);
+  color: var(--cine-muted);
+}
+
+@media (max-width: 900px) {
+  html.cine-on .cine-chapter,
+  html.cine-fallback .cine-chapter { min-height: 0; padding: 72px 0; }
+  .cine-chapter .wrap,
+  .cine-chapter.is-flip .wrap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+  html.cine-fallback .cine-fallback-art {
+    width: min(78vw, 300px);
+    inset: 72px -40px auto auto;
+    opacity: 0.42;
+  }
+  html.cine-on .nj .display,
+  html.cine-fallback .nj .display {
+    font-size: clamp(32px, 9.2vw, 44px);
+  }
+  .cine-display { font-size: clamp(30px, 9vw, 48px); }
+}
+
+@media (max-width: 390px) {
+  html.cine-on .nj .hero > .wrap,
+  html.cine-fallback .nj .hero > .wrap { gap: 22px; }
+  .cine-phone { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #cineBg { background: #0c0c0c; }
+  .cine-rise, html.cine-on .cine-rise {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+html.cine-on .nj .ivory .sh p,
+html.cine-fallback .nj .ivory .sh p,
+html.cine-on .nj .ivory p,
+html.cine-fallback .nj .ivory p,
+html.cine-on .nj .ivory li,
+html.cine-fallback .nj .ivory li {
+  color: var(--cine-muted);
+}
+html.cine-on .nj .ivory h2,
+html.cine-fallback .nj .ivory h2,
+html.cine-on .nj .ivory h3,
+html.cine-fallback .nj .ivory h3,
+html.cine-on .nj .ivory .sh h2,
+html.cine-fallback .nj .ivory .sh h2 {
+  color: var(--cine-ivory);
+}
+
+html.cine-on .nj .ctas,
+html.cine-fallback .nj .ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  align-items: center;
+}
+html.cine-on .nj .ctas #heroWhatsapp,
+html.cine-fallback .nj .ctas #heroWhatsapp {
+  width: auto;
+  flex: 0 1 auto;
+}
