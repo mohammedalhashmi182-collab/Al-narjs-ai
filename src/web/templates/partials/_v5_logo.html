@@ -1,0 +1,40 @@
+{#
+  Al-Narjis v5 wordmark. The letters are outlines from Noto Kufi Arabic Black
+  (SIL Open Font License, see /static/fonts/OFL-NotoKufiArabic.txt), set as
+  «النرجس» with the dot of the nūn redrawn as one orange diamond and the dot of
+  the jīm as an ink diamond. Pure SVG paths: crisp at any size, no font load.
+  Motion (breathing, heartbeat dot, light sweep) lives in narjis-v5.css and
+  stops under prefers-reduced-motion.
+#}
+{% macro v5_logo(href, ar, uid='h', tone='ink', sub=True) -%}
+<a class="v5-logo v5-logo--{{ tone }}" href="{{ href }}" aria-label="{% if sub %}AL-NARJIS AI · {% endif %}{% if ar %}النرجس للذكاء الاصطناعي، الصفحة الرئيسية{% else %}Al-Narjis AI, home{% endif %}">
+    <svg class="v5-mark" viewBox="40 -830 3870 1150" role="img" aria-hidden="true" focusable="false">
+        <defs>
+            <clipPath id="v5ink-{{ uid }}"><path d="M1189 0Q1149 0 1108.5 -21.0Q1068 -42 1035 -79Q1004 -37 958.5 -18.5Q913 0 854 0H734Q719 126 636.5 187.5Q554 249 410 249H388Q337 249 294.0 239.5Q251 230 216 213Q142 176 103.5 106.5Q65 37 65 -56Q65 -110 80.5 -165.5Q96 -221 123 -267H287Q272 -207 262.5 -153.5Q253 -100 253 -59Q253 5 288.0 48.5Q323 92 393 92H406Q477 92 510.5 49.0Q544 6 544 -67V-424H735V-148H805Q857 -148 877.0 -173.5Q897 -199 897 -264V-424H1089V-247Q1089 -234 1088.0 -221.0Q1087 -208 1084 -194Q1110 -169 1130.5 -158.5Q1151 -148 1184 -148H1247V-502H1439V-148H1566Q1571 -148 1571 -144V-5Q1571 0 1566 0Z M1556 0Q1551 0 1551 -5V-144Q1551 -148 1556 -148H1935Q1918 -166 1906.5 -195.5Q1895 -225 1887 -258Q1878 -300 1860.5 -323.0Q1843 -346 1819.5 -355.0Q1796 -364 1768 -364Q1738 -364 1706.0 -354.5Q1674 -345 1643 -327L1591 -467Q1637 -488 1695.5 -507.0Q1754 -526 1824 -526Q1843 -526 1861.5 -524.0Q1880 -522 1902 -517Q1967 -501 2008.0 -450.5Q2049 -400 2066 -317Q2074 -281 2084.0 -248.0Q2094 -215 2106.0 -189.5Q2118 -164 2131 -149V0Z M2624 0V11Q2624 83 2591.5 139.5Q2559 196 2500.5 228.5Q2442 261 2364 261Q2318 261 2269.5 247.0Q2221 233 2164 195L2231 53Q2260 69 2287.0 78.0Q2314 87 2336 87Q2378 87 2405.0 60.0Q2432 33 2432 -4V-502H2624V-148H2758Q2763 -148 2763 -144V-5Q2763 0 2758 0Z M2748 0Q2743 0 2743 -5V-144Q2743 -148 2748 -148H2868V-502H3057V-148H3187Q3192 -148 3192 -144V-5Q3192 0 3187 0Z M3177 0Q3172 0 3172 -5V-144Q3172 -148 3177 -148H3297V-760H3486V0Z M3686 -760H3875V0H3686Z M1804 107L1900 203L1804 299L1708 203Z"/></clipPath>
+            <linearGradient id="v5sweep-{{ uid }}" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="var(--v5-sweep, #fff)" stop-opacity="0"/>
+                <stop offset=".5" stop-color="var(--v5-sweep, #fff)" stop-opacity=".75"/>
+                <stop offset="1" stop-color="var(--v5-sweep, #fff)" stop-opacity="0"/>
+            </linearGradient>
+            <radialGradient id="v5glow-{{ uid }}">
+                <stop offset="0" stop-color="#ff6a1f" stop-opacity=".55"/>
+                <stop offset=".45" stop-color="#ff3d1f" stop-opacity=".18"/>
+                <stop offset="1" stop-color="#ff3d1f" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="v5dot-{{ uid }}" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ffab3d"/>
+                <stop offset=".5" stop-color="#ff5a1f"/>
+                <stop offset="1" stop-color="#e5262b"/>
+            </linearGradient>
+        </defs>
+        <g class="v5-breath">
+            <path class="v5-ink" d="M1189 0Q1149 0 1108.5 -21.0Q1068 -42 1035 -79Q1004 -37 958.5 -18.5Q913 0 854 0H734Q719 126 636.5 187.5Q554 249 410 249H388Q337 249 294.0 239.5Q251 230 216 213Q142 176 103.5 106.5Q65 37 65 -56Q65 -110 80.5 -165.5Q96 -221 123 -267H287Q272 -207 262.5 -153.5Q253 -100 253 -59Q253 5 288.0 48.5Q323 92 393 92H406Q477 92 510.5 49.0Q544 6 544 -67V-424H735V-148H805Q857 -148 877.0 -173.5Q897 -199 897 -264V-424H1089V-247Q1089 -234 1088.0 -221.0Q1087 -208 1084 -194Q1110 -169 1130.5 -158.5Q1151 -148 1184 -148H1247V-502H1439V-148H1566Q1571 -148 1571 -144V-5Q1571 0 1566 0Z M1556 0Q1551 0 1551 -5V-144Q1551 -148 1556 -148H1935Q1918 -166 1906.5 -195.5Q1895 -225 1887 -258Q1878 -300 1860.5 -323.0Q1843 -346 1819.5 -355.0Q1796 -364 1768 -364Q1738 -364 1706.0 -354.5Q1674 -345 1643 -327L1591 -467Q1637 -488 1695.5 -507.0Q1754 -526 1824 -526Q1843 -526 1861.5 -524.0Q1880 -522 1902 -517Q1967 -501 2008.0 -450.5Q2049 -400 2066 -317Q2074 -281 2084.0 -248.0Q2094 -215 2106.0 -189.5Q2118 -164 2131 -149V0Z M2624 0V11Q2624 83 2591.5 139.5Q2559 196 2500.5 228.5Q2442 261 2364 261Q2318 261 2269.5 247.0Q2221 233 2164 195L2231 53Q2260 69 2287.0 78.0Q2314 87 2336 87Q2378 87 2405.0 60.0Q2432 33 2432 -4V-502H2624V-148H2758Q2763 -148 2763 -144V-5Q2763 0 2758 0Z M2748 0Q2743 0 2743 -5V-144Q2743 -148 2748 -148H2868V-502H3057V-148H3187Q3192 -148 3192 -144V-5Q3192 0 3187 0Z M3177 0Q3172 0 3172 -5V-144Q3172 -148 3177 -148H3297V-760H3486V0Z M3686 -760H3875V0H3686Z M1804 107L1900 203L1804 299L1708 203Z"/>
+            <g clip-path="url(#v5ink-{{ uid }})"><rect class="v5-sweep" x="-900" y="-900" width="700" height="1300" fill="url(#v5sweep-{{ uid }})"/></g>
+            <circle class="v5-glow" cx="2960" cy="-682" r="430" fill="url(#v5glow-{{ uid }})"/>
+            <path class="v5-dot" d="M2960 -804L3082 -682L2960 -560L2838 -682Z" fill="url(#v5dot-{{ uid }})"/>
+        </g>
+    </svg>
+    {% if sub %}<span class="v5-logo-sub" lang="en" dir="ltr">AL-NARJIS AI</span>{% endif %}
+    <span class="v5-sr">{% if ar %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</span>
+</a>
+{%- endmacro %}
