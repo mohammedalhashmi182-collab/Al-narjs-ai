@@ -88,7 +88,7 @@ def test_risk_reversal_matches_the_refund_terms(page: str) -> None:
 def test_trust_badges_and_vision_disclaimer(page: str) -> None:
     assert "FL-272182297" in page
     assert "بتحويل بنكي مقابل فاتورة من صفحة الدفع" not in page
-    assert "الدفع الإلكتروني قيد التفعيل حالياً" in page
+    assert "قيد التفعيل" not in page and "paymentsClosedBanner" not in page
     assert "Moyasar" not in page
     assert 'id="vision"' in page
     assert "لسنا جهة حكومية" in page

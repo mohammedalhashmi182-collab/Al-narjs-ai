@@ -1,4 +1,4 @@
-"""The site assistant's instructions and KB say payment is not open yet while it is closed."""
+"""While checkout is off the assistant points to the plan request path and never states a payment status."""
 
 from pathlib import Path
 
@@ -22,7 +22,8 @@ def test_consult_instructions_name_bank_transfer_when_the_account_is_published()
     for locale in ("ar", "en"):
         prompt = _prompt(locale)
         assert "bank transfer against the invoice" not in prompt
-        assert "قيد التفعيل" in prompt
+        assert "قيد التفعيل" not in prompt
+        assert "/portal" in prompt and "never describe a payment status" in prompt
 
 
 def test_consult_instructions_say_payment_closed_without_an_account(monkeypatch):
@@ -30,8 +31,8 @@ def test_consult_instructions_say_payment_closed_without_an_account(monkeypatch)
     monkeypatch.setattr(pm, "paypal_checkout_open", lambda: False)
     assert not pm.payments_open()
     prompt = _prompt("en")
-    assert "الدفع الإلكتروني قيد التفعيل حالياً" in prompt
-    assert "register their interest" in prompt
+    assert "قيد التفعيل" not in prompt and "not open yet" not in prompt
+    assert "send their plan request at /portal" in prompt
 
 
 def test_consult_instructions_switch_when_payment_opens(monkeypatch):
