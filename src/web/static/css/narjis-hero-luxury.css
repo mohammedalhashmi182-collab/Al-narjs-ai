@@ -1,0 +1,137 @@
+/* Homepage hero: high-contrast, luxury RTL/LTR layout on top of the white-glass base.
+   Scoped to the landing page. Typography, spacing and contrast only; no markup or JS changes.
+   Palette: ink #12100d on ivory #fafaf9, accent #FF5A36 (never as text on light surfaces at small sizes). */
+
+.nj main .hero{
+  --hl-ink:#12100d;
+  --hl-ink-2:#3d3731;
+  --hl-muted:#5b544c;
+  --hl-accent:#FF5A36;
+  --hl-accent-deep:#c2410c;
+  --hl-line:rgba(18,16,13,.12);
+  --hl-glass:rgba(255,255,255,.78);
+  background:#fafaf9;
+  color:var(--hl-ink);
+}
+.nj main .hero>.wrap{
+  min-height:0;
+  align-items:center;
+  gap:clamp(40px,6vw,104px);
+  padding-block:clamp(120px,14vw,168px) clamp(72px,9vw,128px);
+}
+
+/* Eyebrow: a quiet hairline chip, not a shout */
+.nj main .hero .eyebrow{
+  display:inline-flex;align-items:center;gap:12px;margin:0 0 28px;
+  font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--hl-accent-deep);
+}
+.nj main .hero .eyebrow::after{content:"";width:32px;height:1px;background:var(--hl-accent);opacity:.7}
+[dir=ltr] .nj main .hero .eyebrow::after{display:none}
+
+/* Headline: confident weight, tight leading, one accent phrase */
+.nj main .hero h1.display{
+  margin:0 0 24px;
+  font-size:clamp(44px,6.2vw,92px);
+  font-weight:800;
+  line-height:1.08;
+  letter-spacing:0;
+  color:var(--hl-ink);
+  text-wrap:balance;
+}
+.nj main .hero h1.display em{
+  font-style:normal;
+  color:var(--hl-accent);
+  display:inline-block;
+}
+
+/* Lead: readable measure and generous line height */
+.nj main .hero .lead{
+  margin:0 0 40px;
+  max-width:34em;
+  font-size:clamp(17px,1.5vw,20px);
+  line-height:1.9;
+  font-weight:400;
+  color:var(--hl-ink-2);
+  text-wrap:pretty;
+}
+
+/* Action row */
+.nj main .hero .ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.nj main .hero .btn,
+.nj main .hero .btn-sec{
+  min-height:52px;padding:0 26px;border-radius:14px;
+  font-size:15.5px;font-weight:700;letter-spacing:0;
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .2s ease;
+}
+.nj main .hero .btn{
+  background:var(--hl-accent);color:var(--hl-ink);border:1px solid var(--hl-accent);
+  box-shadow:0 10px 28px rgba(255,90,54,.28);
+}
+.nj main .hero .btn:hover{background:#ff7050;border-color:#ff7050;transform:translateY(-1px)}
+.nj main .hero .btn-sec{
+  background:rgba(255,255,255,.7);color:var(--hl-ink);border:1px solid rgba(18,16,13,.18);
+}
+.nj main .hero .btn-sec:hover{border-color:var(--hl-ink);background:#ffffff}
+
+/* Voice chip above the copy */
+.nj main .hero .nj-brand-row{margin-bottom:8px}
+.nj main .hero .nj-voice-inline{
+  min-height:40px;padding:0 16px;border-radius:999px;font-size:14px;font-weight:600;
+  color:var(--hl-ink);
+}
+
+/* Concierge panel: luxury glass card with a crisp hairline and deep shadow */
+.nj main .hero .ng-ceo-portal{
+  border-radius:28px;
+  background:var(--hl-glass);
+  border:1px solid var(--hl-line);
+  box-shadow:0 1px 0 rgba(255,255,255,.95) inset,0 40px 90px rgba(18,16,13,.12);
+  overflow:hidden;
+}
+.nj main .hero .ng-ceo-portal .ng-app-top{
+  padding:16px 22px;background:rgba(255,255,255,.6);
+}
+.nj main .hero .ng-ceo-portal .ng-app-top b{
+  font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--hl-ink);
+}
+.nj main .hero .ng-ceo-portal .ng-app-top span{font-size:13px;font-weight:600;color:var(--hl-muted)}
+.nj main .hero .ngc-who b{font-size:16px;font-weight:800;color:var(--hl-ink)}
+.nj main .hero .ngc-who span{font-size:13px;color:var(--hl-muted)}
+.nj main .hero .ngc-msg.ceo p{
+  font-size:15px;line-height:1.95;color:var(--hl-ink);
+  background:#ffffff;border:1px solid var(--hl-line);
+}
+.nj main .hero .ngc-msg.me p{background:var(--hl-ink);color:#fafaf9;font-weight:600}
+.nj main .hero .ngc-chip{
+  min-height:40px;padding:0 16px;font-size:14px;font-weight:600;color:var(--hl-ink);
+  border:1px solid rgba(18,16,13,.18);
+}
+.nj main .hero .ngc-chip:hover,
+.nj main .hero .ngc-chip:focus-visible{border-color:var(--hl-accent);color:var(--hl-accent-deep);background:rgba(255,90,54,.08)}
+.nj main .hero .ngc-composer{
+  border:1px solid rgba(18,16,13,.16);background:#ffffff;border-radius:18px;
+}
+.nj main .hero .ngc-composer:focus-within{border-color:var(--hl-ink);box-shadow:0 0 0 3px rgba(255,90,54,.22)}
+
+/* Focus states: visible on every interactive element */
+.nj main .hero a:focus-visible,
+.nj main .hero button:focus-visible,
+.nj main .hero textarea:focus-visible,
+.nj main .hero input:focus-visible{
+  outline:3px solid var(--hl-accent);outline-offset:3px;border-radius:12px;
+}
+
+/* Mobile */
+@media (max-width:900px){
+  .nj main .hero>.wrap{padding-block:112px 64px}
+  .nj main .hero .lead{margin-bottom:28px}
+  .nj main .hero .ctas{flex-direction:column;align-items:stretch}
+  .nj main .hero .btn,.nj main .hero .btn-sec{width:100%}
+  .nj main .hero .ng-ceo-portal{border-radius:22px}
+}
+
+/* Reduced motion: no hover lift or colour transitions */
+@media (prefers-reduced-motion:reduce){
+  .nj main .hero .btn,.nj main .hero .btn-sec{transition:none;transform:none}
+}
