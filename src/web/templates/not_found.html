@@ -1,0 +1,15 @@
+{% extends "partials/_simple_page.html" %}
+{#- Branded 404 for browser requests. Links only to pages that exist. -#}
+{% set _p = '/ar' if ar else '/en' %}
+{% block title %}{% if ar %}الصفحة غير موجودة | النرجس للذكاء الاصطناعي{% else %}Page not found | Al-Narjis AI{% endif %}{% endblock %}
+{% block description %}{% if ar %}الصفحة التي تبحث عنها غير موجودة. تصفح الرئيسية أو الباقات أو تواصل معنا.{% else %}The page you are looking for does not exist. Browse the home page, the plans, or contact us.{% endif %}{% endblock %}
+{% block h1 %}{% if ar %}الصفحة غير موجودة{% else %}Page not found{% endif %}{% endblock %}
+{% block body %}
+<p>{% if ar %}ربما تغيّر الرابط، أو كتبته بشكل غير صحيح. هذه الروابط تأخذك لأهم الصفحات:{% else %}The link may have changed, or it was mistyped. These links take you to the main pages:{% endif %}</p>
+<ul>
+    <li><a href="{{ _p }}/home">{% if ar %}الصفحة الرئيسية{% else %}Home{% endif %}</a></li>
+    <li><a href="{{ _p }}/pricing">{% if ar %}الباقات والأسعار{% else %}Plans and pricing{% endif %}</a></li>
+    <li><a href="{{ _p }}/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a></li>
+    <li><a href="{{ _p }}/contact">{% if ar %}تواصل معنا{% else %}Contact us{% endif %}</a></li>
+</ul>
+{% endblock %}

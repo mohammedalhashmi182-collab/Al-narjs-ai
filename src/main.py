@@ -20,6 +20,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import MutableHeaders
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.exception_handlers import http_exception_handler
 
 from src.config.settings import get_settings, settings
 from src.version import __version__ as APP_VERSION
@@ -901,6 +903,15 @@ def _page_lang(request: Request) -> str:
 
 
 templates.env.globals["page_lang"] = _page_lang
+
+
+@app.exception_handler(StarletteHTTPException)
+async def _branded_http_error(request: Request, exc: StarletteHTTPException):
+    path = request.url.path
+    wants_html = "text/html" in request.headers.get("accept", "")
+    if exc.status_code == 404 and wants_html and not path.startswith(("/api/", "/webhooks/", "/static/")):
+        return templates.TemplateResponse(request, "not_found.html", status_code=404)
+    return await http_exception_handler(request, exc)
 from src.services.support import support_contact as _support_contact  # noqa: E402
 
 templates.env.globals["support_contact"] = _support_contact

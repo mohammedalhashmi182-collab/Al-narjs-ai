@@ -61,7 +61,7 @@ def test_template_keeps_the_consult_contract_without_a_foreign_brand() -> None:
     assert "innerHTML" not in body
     assert "منصة النرجس" in body
     assert "وثيقة عمل حر رقم FL-272182297" in body
-    assert "Operated by Al-Narjs" in body
+    assert "Operated by Al-Narjis" in body
     assert "تحدث بحرية عن عملك" in body
     assert "Talk freely about your business" in body
 

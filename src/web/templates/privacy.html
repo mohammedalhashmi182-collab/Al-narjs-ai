@@ -13,6 +13,9 @@
     <title>{% if _lang == 'ar' %}سياسة الخصوصية | النرجس للذكاء الاصطناعي{% else %}Privacy Policy | Al-Narjis AI{% endif %}</title>
     <meta name="description" content="{% if _lang == 'ar' %}سياسة خصوصية النرجس للذكاء الاصطناعي: كيف نجمع بياناتك ونستخدمها ونحميها.{% else %}Al-Narjis AI privacy policy: how we collect, use and protect your data.{% endif %}">
     <link rel="canonical" href="https://alnarjisai.com/{{ _lang }}/privacy">
+    <link rel="alternate" hreflang="ar" href="https://alnarjisai.com/ar/privacy">
+    <link rel="alternate" hreflang="en" href="https://alnarjisai.com/en/privacy">
+    <link rel="alternate" hreflang="x-default" href="https://alnarjisai.com/ar/privacy">
     <meta property="og:title" content="{% if _lang == 'ar' %}سياسة الخصوصية | النرجس للذكاء الاصطناعي{% else %}Privacy Policy | Al-Narjis AI{% endif %}">
     <meta property="og:description" content="{% if _lang == 'ar' %}سياسة خصوصية النرجس للذكاء الاصطناعي: كيف نجمع بياناتك ونستخدمها ونحميها.{% else %}Al-Narjis AI privacy policy: how we collect, use and protect your data.{% endif %}">
     <meta property="og:url" content="https://alnarjisai.com/{{ _lang }}/privacy">
@@ -26,6 +29,7 @@
     </style>
 </head>
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen">
+<p class="lang-switch" style="text-align:center;padding:12px 16px;margin:0"><a href="/{{ 'en' if _lang == 'ar' else 'ar' }}/privacy" style="color:#c2410c;font-weight:700">{{ 'English' if _lang == 'ar' else 'العربية' }}</a></p>
     <div class="n-hero" style="padding:56px 20px 40px;">
         <div class="max-w-3xl mx-auto">
             <a href="/home" style="color:var(--n-brown-2);font-size:0.9rem;text-decoration:none;">&larr; {% if _lang == 'ar' %}<span>العودة للرئيسية</span>{% else %}<span data-inline>Back to home</span>{% endif %}</a>
@@ -63,7 +67,7 @@
                 {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">يحق لك طلب الوصول إلى بياناتك أو تصحيحها أو حذفها، أو سحب موافقتك، بمراسلتنا على البريد الإلكتروني المبين أدناه. لمعرفة آلية حذف البيانات راجع <a href="/data-deletion" style="color:var(--n-gold);">تعليمات حذف البيانات</a>. نعالج الطلب بحسب الأنظمة المنطبقة على بياناتك.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>You may request access to, correction or deletion of your personal data, or withdraw consent, by emailing us at the address below. For the deletion process, see our <a href="/data-deletion" style="color:var(--n-gold);">Data Deletion Instructions</a>. We handle requests under the data protection laws applicable to your data.</p>{% endif %}
 
                 {% if _lang == 'ar' %}<h2 class="n-title text-lg mt-5">6. تواصل معنا</h2>{% else %}<h2 class="n-title text-lg mt-5" data-inline>6. Contact</h2>{% endif %}
-                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">منصة النرجس (وثيقة عمل حر FL-272182297) — الرياض، المملكة العربية السعودية. التواصل عبر البريد: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>Al-Narjs (Freelance document No. FL-272182297) — Riyadh, Saudi Arabia. Contact us by email: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>{% endif %}
+                {% if _lang == 'ar' %}<p class="n-sub" style="font-size:0.95rem;">منصة النرجس (وثيقة عمل حر FL-272182297) — الرياض، المملكة العربية السعودية. التواصل عبر البريد: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>{% else %}<p class="n-sub" style="font-size:0.95rem;" data-inline>Al-Narjis (Freelance document No. FL-272182297) — Riyadh, Saudi Arabia. Contact us by email: <a href="mailto:AlNarjisai@gmail.com" dir="ltr" style="color:#ff5a36;font-weight:600;unicode-bidi:isolate">AlNarjisai@gmail.com</a>.</p>{% endif %}
             </div>
         </div>
     </div>

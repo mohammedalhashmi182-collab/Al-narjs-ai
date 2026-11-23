@@ -356,7 +356,7 @@ def build_llms(employees: list[tuple[str, dict]]) -> str:
         "",
         "## Plans",
         "",
-        "Monthly prices in SAR, before VAT. Names and amounts come from the live catalog.",
+        "Monthly prices in SAR. Al-Narjis is not VAT-registered, so no VAT is added to the prices shown. Names and amounts come from the live catalog.",
         "There is no plan called Basic or Business.",
         *plans,
         f"- Extra agent ({ADDON_AGENT['name_en']} / {ADDON_AGENT['name']}): "

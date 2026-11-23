@@ -162,4 +162,4 @@ def test_single_how_section_and_explicit_sample_disclosure() -> None:
     for name in ['landing.html', 'consult.html', 'portal.html']:
         assert 'منصة النرجس' in _read(name)
         assert 'وثيقة عمل حر رقم FL-272182297' in _read(name)
-        assert 'Operated by Al-Narjs' in _read(name)
+        assert 'Operated by Al-Narjis' in _read(name)
