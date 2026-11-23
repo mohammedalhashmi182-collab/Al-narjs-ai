@@ -47,8 +47,10 @@
     dockClose: 'إخفاء',
     waText: function (r) {
       var p = r.plan || {};
-      return 'السلام عليكم، جهّز لي الرئيس التنفيذي في النرجس عرضاً مبدئياً: باقة ' + (p.name || '') +
-        ' (' + num(p.monthly_price || p.price) + ' ر.س شهرياً). أبغى أكمل.';
+      // Name the add-on agents, or the total looks like a wrong plan price.
+      var extra = p.addons ? ' (' + num(p.price) + ' ر.س) + ' + p.addons + ' وكيل إضافي (' + num(p.addon_price) + ' ر.س لكل وكيل)' : '';
+      return 'السلام عليكم، جهّز لي الرئيس التنفيذي في النرجس عرضاً مبدئياً: باقة ' + (p.name || '') + extra +
+        ' — الإجمالي ' + num(p.monthly_price || p.price) + ' ر.س شهرياً. أبغى أكمل.';
     },
     compose: function (a) {
       var s = a.biz || '';
@@ -77,8 +79,9 @@
     dockClose: 'Hide',
     waText: function (r) {
       var p = r.plan || {};
-      return 'Hello, the Al-Narjis AI CEO prepared an initial offer for me: the ' + (p.name_en || '') +
-        ' plan (SAR ' + num(p.monthly_price || p.price) + '/month). I would like to continue.';
+      var extra = p.addons ? ' (SAR ' + num(p.price) + ') + ' + p.addons + ' add-on agent' + (p.addons === 1 ? '' : 's') + ' (SAR ' + num(p.addon_price) + ' each)' : '';
+      return 'Hello, the Al-Narjis AI CEO prepared an initial offer for me: the ' + (p.name_en || '') + ' plan' + extra +
+        ', total SAR ' + num(p.monthly_price || p.price) + '/month. I would like to continue.';
     },
     compose: function (a) {
       var s = a.biz || '';

@@ -37,3 +37,18 @@
 /* Mobile action bar: light glass instead of the dark bar */
 .nj .mbar{background:rgba(255,255,255,.82);border-top:1px solid rgba(41,37,36,.1);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
 .nj .mbar .btn-sec{color:var(--n-brown,#292524);border-color:rgba(41,37,36,.18);background:#ffffff}
+
+/* The cinematic layer (html.cine-on / html.cine-fallback) set a transparent hero,
+   a dark overlay and a 62% night photo with higher specificity, so the white glass
+   never showed on desktop and the dark headline sat on a dark photo. Same
+   specificity, loaded later: the white glass wins in every mode. */
+html.cine-on .nj main .hero,
+html.cine-fallback .nj main .hero { background: #fafaf9; }
+html.cine-on .nj .hero-bg,
+html.cine-fallback .nj .hero-bg { opacity: .1; filter: grayscale(1); }
+html.cine-on .nj .hero::after,
+html.cine-fallback .nj .hero::after {
+  background:
+    linear-gradient(0deg, rgba(250,250,249,1) 0%, rgba(250,250,249,0) 22%),
+    linear-gradient(180deg, rgba(250,250,249,.9), rgba(250,250,249,0) 18%);
+}

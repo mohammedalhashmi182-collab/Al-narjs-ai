@@ -1,5 +1,5 @@
 /**
- * Homepage cinematic layer: optional Three.js flower, scroll colour shift,
+ * Homepage cinematic layer: optional Three.js mirror (the ن and its reflection), scroll colour shift,
  * pin/parallax on capable desktops. Never required for first paint.
  */
 (function () {
@@ -67,7 +67,8 @@
 
   afterPaint(function () {
     // Owner decision (Nov 2026): the brand is about reflection, not the flower.
-    // The 3D flower stays in the file but is no longer started on the homepage.
+    // The scene is the letter nun and its reflection in still water.
+    startMirror();
     if (enhancePins) startPins();
     else {
       window.addEventListener("scroll", onScrollLite, { passive: true });
@@ -118,18 +119,19 @@
     });
   }
 
-  var flowerApi = null;
-  function startFlower() {
+  // The Narcissus myth, not the flower: the letter ن (Al-Narjis) leans over
+  // still water and meets its own reflection. Reflection = mirrored clone.
+  function startMirror() {
     if (!stage) return;
     import("/static/vendor/three.module.min.js").then(function (THREE) {
-      buildFlower(THREE, stage);
+      buildMirror(THREE, stage);
     }).catch(function () {
       html.classList.remove("cine-on");
       html.classList.add("cine-fallback");
     });
   }
 
-  function buildFlower(THREE, host) {
+  function buildMirror(THREE, host) {
     var w = host.clientWidth || window.innerWidth;
     var h = host.clientHeight || window.innerHeight;
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
@@ -137,170 +139,110 @@
     renderer.setSize(w, h, false);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.1;
     host.appendChild(renderer.domElement);
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(32, w / Math.max(1, h), 0.1, 40);
-    camera.position.set(-0.35, 0.42, 7.0);
-    camera.lookAt(-1.02, 0.28, 0);
+    camera.position.set(-0.4, 0.9, 7.2);
+    camera.lookAt(-1.05, 0.0, 0);
 
-    renderer.toneMappingExposure = 1.05;
-    scene.add(new THREE.AmbientLight(0xffffff, 0.32));
-    var key = new THREE.DirectionalLight(0xffffff, 1.35);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    var key = new THREE.DirectionalLight(0xffffff, 1.4);
     key.position.set(-2.4, 4.2, 5.2);
     scene.add(key);
-    var fill = new THREE.DirectionalLight(0xf0f0f0, 0.4);
-    fill.position.set(3.2, 0.8, 3.4);
-    scene.add(fill);
-    var rim = new THREE.DirectionalLight(0xffffff, 1.85);
+    var rim = new THREE.DirectionalLight(0xffffff, 1.2);
     rim.position.set(3.0, 2.6, -4.4);
     scene.add(rim);
 
     var root = new THREE.Group();
-    root.rotation.z = -0.1;
-    root.position.set(-1.08, -1.28, 0);
-    var baseScale = 0.66;
-    root.scale.setScalar(baseScale);
+    root.position.set(-0.68, 0.3, 0);
+    root.scale.setScalar(0.5);
     scene.add(root);
 
-    var stemMat = new THREE.MeshStandardMaterial({
-      color: 0x152a18, roughness: 0.72, metalness: 0.04
-    });
-    var stem = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.036, 3.15, 20), stemMat);
-    stem.position.y = 0.15;
-    root.add(stem);
-
-    function makeBladeShape(len, half) {
-      var s = new THREE.Shape();
-      s.moveTo(0, 0);
-      s.bezierCurveTo(-half, len * 0.18, -half * 0.85, len * 0.62, 0, len);
-      s.bezierCurveTo(half * 0.85, len * 0.62, half, len * 0.18, 0, 0);
-      return s;
-    }
-    var leafMat = new THREE.MeshStandardMaterial({
-      color: 0x1a2618, roughness: 0.7, metalness: 0.03, side: THREE.DoubleSide
-    });
-    function leaf(x, rotZ, rotY, len, half) {
-      var g = new THREE.ExtrudeGeometry(makeBladeShape(len, half), {
-        depth: 0.018, bevelEnabled: false, curveSegments: 10
+    function letterNun(opacity) {
+      var g = new THREE.Group();
+      // Ink on the white-glass hero (owner decision, 23 Nov 2026).
+      var bodyMat = new THREE.MeshStandardMaterial({
+        color: 0x1c1917, roughness: 0.32, metalness: 0.2,
+        transparent: opacity < 1, opacity: opacity
       });
-      var m = new THREE.Mesh(g, leafMat);
-      m.position.set(x, -0.35, 0.02);
-      m.rotation.set(0.15, rotY, rotZ);
-      root.add(m);
-    }
-    leaf(-0.08, 0.62, 0.35, 1.85, 0.055);
-    leaf(0.1, -0.52, -0.4, 1.55, 0.048);
-
-    var head = new THREE.Group();
-    head.position.y = 1.78;
-    head.rotation.x = -0.26;
-    root.add(head);
-
-    var glow = new THREE.PointLight(0xff5a36, 1.6, 3.2);
-    glow.position.set(0, 0.22, 0.35);
-    head.add(glow);
-
-    var petalMat = new THREE.MeshStandardMaterial({
-      color: 0xf6f5f4,
-      roughness: 0.36,
-      metalness: 0.03,
-      side: THREE.DoubleSide
-    });
-    var petalShape = new THREE.Shape();
-    petalShape.moveTo(0, 0);
-    petalShape.bezierCurveTo(-0.05, 0.1, -0.2, 0.3, -0.22, 0.55);
-    petalShape.bezierCurveTo(-0.2, 0.78, -0.08, 0.96, 0, 1.12);
-    petalShape.bezierCurveTo(0.08, 0.96, 0.2, 0.78, 0.22, 0.55);
-    petalShape.bezierCurveTo(0.2, 0.3, 0.05, 0.1, 0, 0);
-    var petalGeom = new THREE.ExtrudeGeometry(petalShape, {
-      depth: 0.022,
-      bevelEnabled: true,
-      bevelThickness: 0.012,
-      bevelSize: 0.016,
-      bevelSegments: 2,
-      curveSegments: 18
-    });
-    petalGeom.translate(0, 0, -0.011);
-    for (var i = 0; i < 6; i++) {
-      var wrap = new THREE.Group();
-      wrap.rotation.z = (i / 6) * Math.PI * 2;
-      var petal = new THREE.Mesh(petalGeom, petalMat);
-      petal.rotation.x = 0.16;
-      petal.position.y = 0.08;
-      wrap.add(petal);
-      head.add(wrap);
-    }
-
-    var coronaPts = [];
-    var cProfile = [
-      [0.12, 0], [0.17, 0.04], [0.2, 0.1], [0.22, 0.18],
-      [0.26, 0.26], [0.33, 0.32], [0.36, 0.36], [0.33, 0.38]
-    ];
-    for (var k = 0; k < cProfile.length; k++) {
-      coronaPts.push(new THREE.Vector2(cProfile[k][0], cProfile[k][1]));
-    }
-    var corona = new THREE.Mesh(
-      new THREE.LatheGeometry(coronaPts, 48),
-      new THREE.MeshStandardMaterial({
-        color: 0xff5a36,
-        roughness: 0.3,
-        metalness: 0.12,
-        emissive: 0x5a1208,
-        emissiveIntensity: 0.28,
-        side: THREE.DoubleSide
-      })
-    );
-    corona.position.z = 0.02;
-    head.add(corona);
-    var lip = new THREE.Mesh(
-      new THREE.TorusGeometry(0.345, 0.016, 10, 48),
-      new THREE.MeshStandardMaterial({
-        color: 0xff7a55, roughness: 0.28, metalness: 0.14,
-        emissive: 0x5a1208, emissiveIntensity: 0.2
-      })
-    );
-    lip.position.z = 0.02;
-    lip.position.y = 0.365;
-    lip.rotation.x = Math.PI / 2;
-    head.add(lip);
-
-    var filamentMat = new THREE.MeshStandardMaterial({ color: 0xf6f5f4, roughness: 0.5 });
-    var antherMat = new THREE.MeshStandardMaterial({ color: 0xff5a36, roughness: 0.4, metalness: 0.12 });
-    for (var s = 0; s < 6; s++) {
-      var a = (s / 6) * Math.PI * 2;
-      var fx = Math.cos(a) * 0.07;
-      var fy = Math.sin(a) * 0.07;
-      var fil = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.01, 0.22, 6), filamentMat);
-      fil.position.set(fx, 0.18, 0.06 + fy * 0.12);
-      head.add(fil);
-      var an = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), antherMat);
-      an.position.set(fx, 0.3, 0.08 + fy * 0.12);
-      head.add(an);
-    }
-
-    var targetRot = 0, targetScale = 1;
-    flowerApi = {
-      setScroll: function (p) {
-        targetRot = p * Math.PI * 1.25;
-        targetScale = 1 + p * 0.16;
+      var dotMat = new THREE.MeshStandardMaterial({
+        color: 0xff5a36, roughness: 0.25, metalness: 0.15,
+        emissive: 0xff5a36, emissiveIntensity: 0.55,
+        transparent: opacity < 1, opacity: opacity
+      });
+      var pts = [];
+      pts.push(new THREE.Vector3(-0.9, 0.55, 0));
+      for (var i = 0; i <= 24; i++) {
+        var a = Math.PI + (i / 24) * Math.PI;
+        pts.push(new THREE.Vector3(Math.cos(a) * 0.9, 0.2 + Math.sin(a) * 0.9 * 0.85, 0));
       }
-    };
+      pts.push(new THREE.Vector3(0.9, 0.55, 0));
+      var curve = new THREE.CatmullRomCurve3(pts);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 80, 0.12, 20, false), bodyMat));
+      [-0.9, 0.9].forEach(function (x) {
+        var cap = new THREE.Mesh(new THREE.SphereGeometry(0.12, 20, 20), bodyMat);
+        cap.position.set(x, 0.55, 0);
+        g.add(cap);
+      });
+      var dot = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 32), dotMat);
+      dot.position.set(0, 1.05, 0);
+      g.add(dot);
+      return g;
+    }
+
+    var WATER = -0.55;
+    var figure = letterNun(1);
+    figure.position.y = WATER + 0.95;
+    root.add(figure);
+    var mirror = letterNun(0.16);
+    mirror.scale.y = -1;
+    mirror.position.y = WATER - 0.95;
+    root.add(mirror);
+
+    var glow = new THREE.PointLight(0xff5a36, 1.4, 3.5);
+    glow.position.set(0, figure.position.y + 1.1, 0.5);
+    root.add(glow);
+
+    var ripples = [];
+    for (var r = 0; r < 4; r++) {
+      var ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.98, 1.0, 96),
+        new THREE.MeshBasicMaterial({ color: 0xff5a36, transparent: true, opacity: 0.0, side: THREE.DoubleSide })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = WATER;
+      ring.userData.phase = r / 4;
+      root.add(ring);
+      ripples.push(ring);
+    }
+    var line = new THREE.Mesh(
+      new THREE.PlaneGeometry(6, 0.012),
+      new THREE.MeshBasicMaterial({ color: 0xff5a36, transparent: true, opacity: 0.55 })
+    );
+    line.position.y = WATER;
+    root.add(line);
 
     var running = true;
-    var rot = 0, sc = 1;
+    var rot = 0;
+    var t0 = performance.now();
     function tick() {
       if (!running) return;
       requestAnimationFrame(tick);
       var p = progress();
-      flowerApi.setScroll(p);
       setShift(p);
-      rot += (targetRot - rot) * 0.08;
-      sc += (targetScale - sc) * 0.08;
-      root.rotation.y = rot;
-      root.scale.setScalar(baseScale * sc);
-      head.rotation.y += 0.0025;
+      var t = (performance.now() - t0) / 1000;
+      rot += (p * Math.PI * 0.9 - rot) * 0.06;
+      var bob = Math.sin(t * 0.9) * 0.06;
+      figure.position.y = WATER + 0.95 + bob;
+      mirror.position.y = WATER - 0.95 - bob;
+      figure.rotation.y = mirror.rotation.y = rot + Math.sin(t * 0.35) * 0.25;
+      ripples.forEach(function (ring) {
+        var k = (t * 0.18 + ring.userData.phase) % 1;
+        ring.scale.setScalar(0.4 + k * 2.4);
+        ring.material.opacity = 0.35 * (1 - k);
+      });
       renderer.render(scene, camera);
     }
     tick();

@@ -1,0 +1,21 @@
+/* CEO desk: the AI CEO stays with the visitor under the preliminary offer. */
+.nj .ceo-desk{margin-top:20px;border-top:1px solid var(--nj-line);padding-top:18px;display:grid;gap:12px}
+.nj .ceo-thread{display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;padding:4px 2px;scroll-behavior:smooth}
+.nj .ceo-bubble{max-width:86%;padding:10px 14px;border-radius:20px;line-height:1.7;font-size:15px}
+.nj .ceo-bubble p{margin:0;white-space:pre-line}
+.nj .ceo-bubble.ceo{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid var(--nj-line);border-start-start-radius:8px}
+.nj .ceo-bubble.me{align-self:flex-end;background:var(--nj-accent);color:#12100d;border-start-end-radius:8px}
+.nj .ceo-bubble.typing{opacity:.6}
+.nj .ceo-who{display:block;font-size:12px;font-weight:600;color:var(--nj-accent);margin-bottom:2px}
+.nj .ceo-quick{display:flex;flex-wrap:wrap;gap:8px}
+.nj .ceo-quick button{font:inherit;font-size:14px;color:var(--nj-ivory);background:transparent;border:1px solid var(--nj-line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.nj .ceo-quick button:hover{border-color:var(--nj-accent)}
+.nj .ceo-compose{display:flex;gap:8px}
+.nj .ceo-compose input,.nj .ceo-close input[type=text]{flex:1;min-width:0;font:inherit;font-size:15px;color:var(--nj-ivory);background:rgba(255,255,255,.04);border:1px solid var(--nj-line);border-radius:12px;padding:12px 14px}
+.nj .ceo-compose input:focus,.nj .ceo-close input[type=text]:focus{outline:2px solid var(--nj-accent);outline-offset:1px}
+.nj .ceo-close{display:grid;gap:10px;border:1px solid var(--nj-accent);border-radius:16px;padding:16px;background:rgba(255,90,54,.06)}
+.nj .ceo-close[hidden]{display:none}
+.nj .ceo-close-row{display:flex;gap:8px;flex-wrap:wrap}
+.nj .ceo-consent{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--nj-ivory2)}
+@media (max-width:560px){.nj .ceo-bubble{max-width:94%}.nj .ceo-close-row{flex-direction:column}}
+@media (prefers-reduced-motion: reduce){.nj .ceo-thread{scroll-behavior:auto}}

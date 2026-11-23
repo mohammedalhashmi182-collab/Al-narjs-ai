@@ -166,6 +166,8 @@ def spoken_system_prompt(lang: str = "ar") -> str:
         "The caller hears this answer. Use at most three short sentences. "
         "No markdown, no lists, and no emojis.\n"
         "Do not mention VAT, tax, or ضريبة. Say only the monthly price in SAR.\n"
+        "Write every number and price with digits (790, 1,490, 2,990), never spelled out in words: "
+        "the same text is shown in the text chat, and the browser reads digits aloud correctly.\n"
         "Do not say Salla or Zid is connected, included, or available.\n"
         "Do not invent clients, results, logos, or testimonials.\n"
     )
