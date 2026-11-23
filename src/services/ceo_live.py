@@ -32,9 +32,11 @@ def select_agents(problem: str) -> list[str]:
     return chosen
 
 
-def _agent_name(slug: str) -> str:
+def _agent_name(slug: str, lang: str = "ar") -> str:
+    """Display title from the catalog. Catalog agents carry title_ar/title_en, not name."""
     info = catalog.EMPLOYEES.get(slug, {}) or {}
-    return str(info.get("name") or slug)
+    key = "title_en" if lang == "en" else "title_ar"
+    return str(info.get(key) or info.get("title_ar") or slug)
 
 
 def _model_ready(provider: Any) -> bool:
@@ -93,11 +95,11 @@ async def run_team(problem: str, *, provider: Any, lang: str = "ar") -> AsyncIte
         yield {"type": "no_agents"}
         return
 
-    yield {"type": "team", "agents": [{"slug": s, "name": _agent_name(s)} for s in slugs]}
+    yield {"type": "team", "agents": [{"slug": s, "name": _agent_name(s, lang)} for s in slugs]}
 
     outputs: list[tuple[str, str]] = []
     for slug in slugs:
-        name = _agent_name(slug)
+        name = _agent_name(slug, lang)
         yield {"type": "agent_start", "slug": slug, "name": name}
         try:
             answer = await _ask(provider, _agent_system(name, lang), text, AGENT_TOKENS)
