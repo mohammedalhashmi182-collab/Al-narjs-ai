@@ -49,7 +49,7 @@
       "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
       "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
       "url": "https://alnarjisai.com",
-      "legalName": {{ ("النرجس" if ar else "Al-Narjs") | tojson }},
+      "legalName": {{ ("النرجس" if ar else "Al-Narjis") | tojson }},
       "foundingLocation": "Riyadh, Saudi Arabia",
       "address": {"@type": "PostalAddress", "addressLocality": {{ _city | tojson }}, "addressRegion": {{ _city | tojson }}, "addressCountry": "SA"}
     }
@@ -67,7 +67,7 @@
       "@id": "https://alnarjisai.com/#business",
       "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
       "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
-      "legalName": {{ ("النرجس" if ar else "Al-Narjs") | tojson }},
+      "legalName": {{ ("النرجس" if ar else "Al-Narjis") | tojson }},
       "url": "https://alnarjisai.com",
       "description": {% if ar %}"منظومة من {{ agent_count }} وكيلاً بمن فيهم الرئيس التنفيذي الذكي، الذي يقترح فريقك من {{ division_count }} أقسام متخصصة."{% else %}"The AI CEO diagnoses your business problem and proposes a team. The platform has {{ agent_count }} agents including the AI CEO, across {{ division_count }} departments."{% endif %},
       "inLanguage": "{{ _lang }}",
@@ -546,7 +546,7 @@
             <a href="/blog">{% if ar %}المدوّنة{% else %}Blog{% endif %}</a>
             {% for svc in services %}<a href="/services/{{ svc.slug }}">{{ svc.name_ar if ar else svc.name_en }}</a>{% endfor %}
         </nav>
-        <p>{% if ar %}منصة النرجس · وثيقة عمل حر رقم FL-272182297 · الرياض{% else %}Operated by Al-Narjs · Freelance document No. FL-272182297 · Riyadh{% endif %}</p>
+        <p>{% if ar %}منصة النرجس · وثيقة عمل حر رقم FL-272182297 · الرياض{% else %}Operated by Al-Narjis · Freelance document No. FL-272182297 · Riyadh{% endif %}</p>
         <nav class="fl" aria-label="{% if ar %}روابط قانونية{% else %}Legal links{% endif %}">
             <a href="/privacy">{% if ar %}الخصوصية{% else %}Privacy{% endif %}</a><a href="/terms">{% if ar %}الشروط{% else %}Terms{% endif %}</a><a href="/refund-policy">{% if ar %}سياسة الاسترداد{% else %}Refund policy{% endif %}</a><a href="/about">{% if ar %}من نحن{% else %}About{% endif %}</a><a href="/pricing">{% if ar %}الباقات والأسعار{% else %}Pricing{% endif %}</a><a href="/data-deletion">{% if ar %}حذف البيانات{% else %}Data deletion{% endif %}</a><a href="/dpa">{% if ar %}اتفاقية معالجة البيانات{% else %}DPA{% endif %}</a><a href="/subprocessors">{% if ar %}المعالجون الفرعيون{% else %}Subprocessors{% endif %}</a><a href="/contact">{% if ar %}تواصل معنا{% else %}Contact{% endif %}</a><a href="/status">{% if ar %}الحالة{% else %}Status{% endif %}</a><a href="/changelog">{% if ar %}ما الجديد{% else %}What's new{% endif %}</a><a href="/sla">{% if ar %}مستوى الخدمة{% else %}Service level{% endif %}</a><a href="/partnerships">{% if ar %}الشراكات{% else %}Partnerships{% endif %}</a><a href="/compare/tidio">{% if ar %}مقارنة مع Tidio{% else %}Compare with Tidio{% endif %}</a><a href="/compare/manychat">{% if ar %}مقارنة مع ManyChat{% else %}Compare with ManyChat{% endif %}</a><a href="/compare/intercom-fin">{% if ar %}مقارنة مع Intercom Fin{% else %}Compare with Intercom Fin{% endif %}</a>
         </nav>

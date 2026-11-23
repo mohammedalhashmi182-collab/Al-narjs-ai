@@ -44,7 +44,7 @@ async def test_terms_state_final_prices_without_vat(monkeypatch, lang, vat_rate)
         assert "نصدر فاتورة أو إيصال دفع بالمبلغ النهائي" in html
     else:
         assert "Prices are final and no VAT is added" in html
-        assert "Al-Narjs is not VAT-registered" in html
+        assert "Al-Narjis is not VAT-registered" in html
         assert "we do not issue tax invoices" in html
         assert "we issue an invoice or payment receipt for the final amount" in html
 
