@@ -27,6 +27,7 @@ from src.config.settings import get_settings, settings
 from src.version import __version__ as APP_VERSION
 from src.utils.logger import configure_logging, get_logger
 from src.utils.rate_limit import (
+    rate_limit_team_run,
     rate_limit_consult,
     rate_limit_ticket,
     rate_limit_login,
@@ -2848,6 +2849,27 @@ async def demo_generate(body: DemoGenerateRequest, http_request: Request):
     provider = getattr(app.state, "model_provider", None)
     result = await saas_offer.generate_demo(mode, name, details, lang=lang, provider=provider)
     return result
+
+
+class CeoTeamRunRequest(BaseModel):
+    problem: str = ""
+    lang: Optional[str] = None
+
+
+@app.post("/api/ceo/team-run", dependencies=[Depends(rate_limit_consult), Depends(rate_limit_team_run)])
+async def ceo_team_run(body: CeoTeamRunRequest, http_request: Request):
+    """Public live run: the AI CEO assigns real agents, streamed as server-sent events."""
+    from fastapi.responses import StreamingResponse
+    from src.services import ceo_live
+
+    lang = body.lang or http_request.cookies.get(_LOCALE_COOKIE, "ar")
+    provider = getattr(app.state, "model_provider", None)
+
+    async def events():
+        async for event in ceo_live.run_team(body.problem, provider=provider, lang=lang):
+            yield ceo_live.sse_line(event)
+
+    return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-store"})
 
 
 class SupportTicketRequest(BaseModel):

@@ -82,6 +82,21 @@ def rate_limit_consult(request: Request) -> None:
         )
 
 
+# One free live team run per visitor per day. Keyed by client IP, like the other
+# limiters in this module (in-process; each worker keeps its own count).
+team_run_limiter = SlidingWindowLimiter(max_requests=1, window_seconds=86400)
+
+
+def rate_limit_team_run(request: Request) -> None:
+    ok, retry_after = team_run_limiter.check(f"{client_ip(request)}:/api/ceo/team-run")
+    if not ok:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "Daily free run used", "retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
 login_limiter = SlidingWindowLimiter(max_requests=10, window_seconds=300)
 
 
