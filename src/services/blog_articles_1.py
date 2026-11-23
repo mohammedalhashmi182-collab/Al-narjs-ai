@@ -392,4 +392,7 @@ for _article in ARTICLES:
     _article["body_en"] = _EN[_article["slug"]]["body"]
     _article["faq_en"] = _EN[_article["slug"]]["faq"]
 
+from src.services.store_growth_articles import ARTICLES as STORE_GUIDES  # noqa: E402
+
+ARTICLES.extend(STORE_GUIDES)
 ARTICLES.sort(key=lambda a: a["date"], reverse=True)
