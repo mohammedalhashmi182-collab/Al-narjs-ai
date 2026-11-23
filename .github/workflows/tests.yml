@@ -97,7 +97,10 @@ jobs:
           src/services/sla.py
           src/services/partnerships.py
           src/services/case_studies.py
+          src/services/voice_compare.py
+          scripts/voice_compare.py
           tests/test_platform_pages.py
+          tests/test_voice_compare.py
 
   # Advisory. A finding is printed and the job still succeeds, so a
   # pre-existing advisory cannot turn the pull request red. The required
