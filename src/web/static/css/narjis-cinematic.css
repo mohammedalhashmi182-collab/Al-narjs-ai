@@ -78,6 +78,13 @@ html.cine-fallback .nj .hero {
   min-height: 100svh;
   background: transparent;
 }
+/* #cineBg is position:fixed inside the hero. With the hero's isolation it
+   painted in the hero's stacking context, above every later section, and hid
+   the CEO desk and pricing. Without it the backdrop sits behind the page. */
+html.cine-on .nj main .hero,
+html.cine-fallback .nj main .hero {
+  isolation: auto;
+}
 html.cine-on .nj .hero > .wrap,
 html.cine-fallback .nj .hero > .wrap {
   position: relative;
