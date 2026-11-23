@@ -162,8 +162,9 @@
 
     function letterNun(opacity) {
       var g = new THREE.Group();
+      // Ink on the white-glass hero (owner decision, 23 Nov 2026).
       var bodyMat = new THREE.MeshStandardMaterial({
-        color: 0xf6f5f4, roughness: 0.3, metalness: 0.25,
+        color: 0x1c1917, roughness: 0.32, metalness: 0.2,
         transparent: opacity < 1, opacity: opacity
       });
       var dotMat = new THREE.MeshStandardMaterial({
@@ -195,7 +196,7 @@
     var figure = letterNun(1);
     figure.position.y = WATER + 0.95;
     root.add(figure);
-    var mirror = letterNun(0.28);
+    var mirror = letterNun(0.16);
     mirror.scale.y = -1;
     mirror.position.y = WATER - 0.95;
     root.add(mirror);

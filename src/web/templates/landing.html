@@ -193,8 +193,10 @@
 
 <main id="main">
 <!-- ==================== HERO ==================== -->
+<!-- #cineBg is position:fixed. It sits outside the isolated hero so it stays behind
+     the whole page; inside the hero it painted over every later section. -->
+<div id="cineBg" aria-hidden="true"></div>
 <section class="hero" id="top" aria-labelledby="hero-h">
-    <div id="cineBg" aria-hidden="true"></div>
     <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" decoding="async">
     <div class="cine-stage" id="cineStage" aria-hidden="true"></div>
     <img class="cine-fallback-art" src="/static/img/narcissus-fallback.svg" width="400" height="520" alt="" decoding="async">
