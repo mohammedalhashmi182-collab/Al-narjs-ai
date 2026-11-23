@@ -27,7 +27,7 @@ FORBIDDEN_CLAIMS = [
     "24/7",
 ]
 
-EXPECTED_ARTICLES = 10
+EXPECTED_ARTICLES = 14
 
 CJK = re.compile(r"[\u3000-\u9fff\uff00-\uffef]")
 ARABIC = re.compile(r"[\u0600-\u06ff]")
