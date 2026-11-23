@@ -1,0 +1,39 @@
+/* Homepage: white glass with warm colour (owner decision). Loaded last on the landing page only.
+   Overrides the dark night hero; the concierge becomes a light glass panel. No violet. */
+.nj main .hero{background:var(--n-sand,#fafaf9);color:var(--n-brown,#292524)}
+.nj main .hero::before{content:"";position:absolute;inset:0;z-index:-3;pointer-events:none;background:
+  radial-gradient(60% 55% at 85% 8%,rgba(255,90,54,.16),rgba(255,90,54,0) 70%),
+  radial-gradient(50% 50% at 8% 92%,rgba(255,90,54,.08),rgba(255,90,54,0) 70%),
+  linear-gradient(180deg,#ffffff 0%,#fafaf9 100%)}
+.nj .hero-bg{opacity:.1;filter:grayscale(1)}
+.nj .hero::after{background:
+  linear-gradient(0deg,rgba(250,250,249,1) 0%,rgba(250,250,249,0) 22%),
+  linear-gradient(180deg,rgba(250,250,249,.9),rgba(250,250,249,0) 18%)}
+[dir=ltr] .nj .hero::after{background:
+  linear-gradient(0deg,rgba(250,250,249,1) 0%,rgba(250,250,249,0) 22%),
+  linear-gradient(180deg,rgba(250,250,249,.9),rgba(250,250,249,0) 18%)}
+.nj .hero .display,.nj .hero h1{color:var(--n-brown,#292524)}
+.nj .hero .display em{color:#FF5A36}
+.nj .hero .lead,.nj .hero p{color:var(--n-brown-2,#57534e)}
+.nj .hero .eyebrow{color:#c2410c}
+.nj .nj-brand-row .nj-voice-inline{color:var(--n-brown,#292524);background:rgba(255,255,255,.7);border:1px solid rgba(41,37,36,.1);box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 8px 24px rgba(41,37,36,.06);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.nj .hero .btn-sec{color:var(--n-brown,#292524);border-color:rgba(41,37,36,.18);background:rgba(255,255,255,.6)}
+.nj .hero .btn{background:#FF5A36;color:#ffffff;border-color:#FF5A36}
+
+/* Concierge: white glass panel */
+.nj .ng-ceo-portal{background:rgba(255,255,255,.72);border:1px solid rgba(41,37,36,.1);border-radius:24px;box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 24px 60px rgba(41,37,36,.1);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.nj .ng-ceo-portal .ng-app-top{border-bottom:1px solid rgba(41,37,36,.08)}
+.nj .ng-ceo-portal .ng-app-top b{color:var(--n-brown,#292524)}
+.nj .ng-ceo-portal .ng-app-top span{color:var(--n-brown-2,#57534e)}
+.nj .ngc-who b{color:var(--n-brown,#292524)!important}
+.nj .ngc-who span{color:var(--n-brown-2,#57534e)!important}
+.nj .ngc-msg.ceo p{background:#ffffff;color:var(--n-brown,#292524);border:1px solid rgba(41,37,36,.08);box-shadow:0 1px 2px rgba(41,37,36,.04)}
+.nj .ngc-chip{color:var(--n-brown,#292524);background:rgba(255,255,255,.8);border-color:rgba(41,37,36,.16)}
+.nj .ngc-chip:hover,.nj .ngc-chip:focus-visible{color:#c2410c;background:rgba(255,90,54,.08)}
+.nj .ngc-composer{background:rgba(255,255,255,.85);border-color:rgba(41,37,36,.14)}
+.nj .ngc-composer #ngHeroProblem,.nj .ngc-composer textarea{color:var(--n-brown,#292524)}
+.nj .ngc-link{color:var(--n-brown-2,#57534e)}
+
+/* Mobile action bar: light glass instead of the dark bar */
+.nj .mbar{background:rgba(255,255,255,.82);border-top:1px solid rgba(41,37,36,.1);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.nj .mbar .btn-sec{color:var(--n-brown,#292524);border-color:rgba(41,37,36,.18);background:#ffffff}
