@@ -75,7 +75,8 @@ The operator replies in Arabic. Report changes in concise Arabic: what changed, 
 ## Partner & Token Rules
 
 ### Architecture Snapshot
-- Multi-agent AI agency: specialized agents orchestrated by a central CEO Agent.
+- Multi-agent AI agency: 39 specialized agents orchestrated by a central CEO Agent.
+- Production: https://alnarjisai.com
 - Integrations: Salla & Zid apps/webhooks, Moyasar payments, ZATCA Phase-1 simplified e-invoicing, PDPL privacy compliance.
 - Infra: Dockerized deployment on Render.
 
@@ -84,7 +85,7 @@ The operator replies in Arabic. Report changes in concise Arabic: what changed, 
 - Act as a senior co-founder: push back on over-engineering, flag anything that delays shipping/revenue, and propose simpler paths before coding.
 
 ### Strict Token-Saving Rules
-- NEVER scan all agent files or the whole repo. Read ONLY the exact files referenced or strictly required for the active task.
+- NEVER scan all 39 agent files or the whole repo. Read ONLY the exact files referenced or strictly required for the active task.
 - When editing one agent, read only that agent + the CEO orchestrator interface/contract.
 - Keep responses brief; output minimal targeted diffs instead of rewriting whole files.
 - Optimize runtime API tokens too: keep agent system prompts concise and structured.
