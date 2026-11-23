@@ -135,6 +135,7 @@
     <link rel="stylesheet" href="/static/css/narjis-next-review.css">
     <link rel="stylesheet" href="/static/css/narjis-cinematic.css">
     <link rel="stylesheet" href="/static/css/narjis-concierge.css">
+    <link rel="stylesheet" href="/static/css/narjis-team-run.css">
     <link rel="stylesheet" href="/static/css/narjis-white-glass.css">
     <link rel="stylesheet" href="/static/css/narjis-hero-luxury.css">
     <script>
@@ -220,6 +221,20 @@
                 <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
                 <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
             </div>
+            <section class="ntr" id="teamRun" aria-labelledby="teamRunH" hidden data-ceo-ar="{{ ceo.title_ar }}" data-ceo-en="{{ ceo.title_en }}">
+                <h2 class="ntr-title" id="teamRunH">{% if ar %}شغّل فريق النرجس على مشكلتك{% else %}Run the Al-Narjis team on your problem{% endif %}</h2>
+                <p class="ntr-lead">{% if ar %}يختار الرئيس التنفيذي الوكلاء المناسبين لطلبك، ويعرض عمل كل وكيل فور صدوره، ثم يجمع الإجابة النهائية.{% else %}The AI CEO picks the agents that fit your request, shows each agent's work as it arrives, then combines the final answer.{% endif %}</p>
+                <form class="ntr-form" id="teamRunForm" novalidate>
+                    <label class="ntr-label" for="teamRunProblem">{% if ar %}صِف مشكلتك أو هدفك{% else %}Describe your problem or goal{% endif %}</label>
+                    <textarea class="ntr-field" id="teamRunProblem" name="problem" rows="3" maxlength="600" aria-describedby="teamRunCount"></textarea>
+                    <div class="ntr-foot">
+                        <span class="ntr-count" id="teamRunCount">0 / 600</span>
+                        <button type="submit" class="ntr-submit" id="teamRunSubmit">{% if ar %}شغّل الفريق{% else %}Run the team{% endif %}</button>
+                    </div>
+                </form>
+                <p class="ntr-status" id="teamRunStatus" role="status" aria-live="polite"></p>
+                <div class="ntr-cards" id="teamRunCards" aria-label="{% if ar %}عمل الفريق{% else %}Team work{% endif %}"></div>
+            </section>
         </div>
         <div class="portal ng-ceo-portal" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
             <div class="ng-app-top">
@@ -563,6 +578,7 @@
 <script src="/static/js/narjis-client-workspace.js"></script>
 <script src="/static/js/narjis-cinematic.js" defer></script>
 <script src="/static/js/narjis-ceo-concierge.js" defer></script>
+<script src="/static/js/narjis-team-run.js" defer></script>
 
 
 <script>
