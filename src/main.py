@@ -27,6 +27,7 @@ from src.config.settings import get_settings, settings
 from src.version import __version__ as APP_VERSION
 from src.utils.logger import configure_logging, get_logger
 from src.utils.rate_limit import (
+    rate_limit_team_run,
     rate_limit_consult,
     rate_limit_ticket,
     rate_limit_login,
@@ -2855,7 +2856,7 @@ class CeoTeamRunRequest(BaseModel):
     lang: Optional[str] = None
 
 
-@app.post("/api/ceo/team-run", dependencies=[Depends(rate_limit_consult)])
+@app.post("/api/ceo/team-run", dependencies=[Depends(rate_limit_consult), Depends(rate_limit_team_run)])
 async def ceo_team_run(body: CeoTeamRunRequest, http_request: Request):
     """Public live run: the AI CEO assigns real agents, streamed as server-sent events."""
     from fastapi.responses import StreamingResponse

@@ -52,3 +52,23 @@ def test_sse_line_is_valid_event_stream():
     line = ceo_live.sse_line({"type": "final", "text": "جواب"})
     assert line.startswith("data: ") and line.endswith("\n\n")
     assert json.loads(line[len("data: "):]) == {"type": "final", "text": "جواب"}
+
+
+def test_one_free_team_run_per_visitor_per_day():
+    from starlette.requests import Request
+    from fastapi import HTTPException
+    from src.utils import rate_limit
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ceo/team-run",
+        "query_string": b"",
+        "headers": [],
+        "client": ("198.51.100.77", 4321),
+    }
+    first = Request(scope)
+    rate_limit.rate_limit_team_run(first)
+    with pytest.raises(HTTPException) as blocked:
+        rate_limit.rate_limit_team_run(Request(scope))
+    assert blocked.value.status_code == 429
