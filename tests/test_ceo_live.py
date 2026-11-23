@@ -72,3 +72,21 @@ def test_one_free_team_run_per_visitor_per_day():
     with pytest.raises(HTTPException) as blocked:
         rate_limit.rate_limit_team_run(Request(scope))
     assert blocked.value.status_code == 429
+
+
+def test_team_events_show_catalog_titles_in_the_requested_language(monkeypatch):
+    monkeypatch.setattr(ceo_live.ceo_advisor, "_has_cloud_model", lambda p: True)
+    problem = "متجري الإلكتروني يحتاج خدمة عملاء على واتساب"
+    slugs = ceo_live.select_agents(problem)
+    assert slugs, "fixture problem must select at least one agent"
+
+    ar_events = asyncio.run(_collect(problem, FakeProvider("ok"), lang="ar"))
+    en_events = asyncio.run(_collect(problem, FakeProvider("ok"), lang="en"))
+    ar_team = next(e for e in ar_events if e["type"] == "team")["agents"]
+    en_team = next(e for e in en_events if e["type"] == "team")["agents"]
+
+    for slug, ar_agent, en_agent in zip(slugs, ar_team, en_team, strict=True):
+        info = ceo_live.catalog.EMPLOYEES[slug]
+        assert ar_agent["name"] == info["title_ar"]
+        assert en_agent["name"] == info["title_en"]
+        assert ar_agent["name"] != slug and en_agent["name"] != slug
