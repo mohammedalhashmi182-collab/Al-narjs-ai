@@ -2850,6 +2850,27 @@ async def demo_generate(body: DemoGenerateRequest, http_request: Request):
     return result
 
 
+class CeoTeamRunRequest(BaseModel):
+    problem: str = ""
+    lang: Optional[str] = None
+
+
+@app.post("/api/ceo/team-run", dependencies=[Depends(rate_limit_consult)])
+async def ceo_team_run(body: CeoTeamRunRequest, http_request: Request):
+    """Public live run: the AI CEO assigns real agents, streamed as server-sent events."""
+    from fastapi.responses import StreamingResponse
+    from src.services import ceo_live
+
+    lang = body.lang or http_request.cookies.get(_LOCALE_COOKIE, "ar")
+    provider = getattr(app.state, "model_provider", None)
+
+    async def events():
+        async for event in ceo_live.run_team(body.problem, provider=provider, lang=lang):
+            yield ceo_live.sse_line(event)
+
+    return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-store"})
+
+
 class SupportTicketRequest(BaseModel):
     name: str = ""
     email: str = ""
