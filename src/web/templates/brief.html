@@ -3,6 +3,7 @@
 {% block description %}{% if ar %}يسمع الرئيس التنفيذي فكرتك، يؤكد الموجز، ثم يجهّز المختصون مسودة أولى للمراجعة.{% else %}The chief executive hears your idea, confirms the brief, then specialists prepare a first draft for review.{% endif %}{% endblock %}
 {% block h1 %}{% if ar %}ناقش فكرتك مع الرئيس التنفيذي{% else %}Discuss your idea with the chief executive{% endif %}{% endblock %}
 {% block body %}
+<style>.brief-actions{display:flex;justify-content:flex-end;margin-top:12px}.brief-voice{display:flex;justify-content:flex-start;margin-top:20px}</style>
 <p>{% if ar %}صف الفكرة. نسأل عما ينقص، ثم نعرض الموجز. بعد أن تكتب «موافق» يجهّز المختصون مسودة أولى. المسودة للمراجعة، والعمل النهائي يُسلَّم بالبريد.{% else %}Describe the idea. We ask what is missing, then show the brief. After you reply “confirm”, specialists prepare a first draft. The draft is for review, and final work is delivered by email.{% endif %}</p>
 <p>
     <a href="/voice">{% if ar %}تحدث مع المستشار الصوتي{% else %}Talk to the voice agent{% endif %}</a>
@@ -12,11 +13,11 @@
 <form id="briefForm" action="/api/engagement" method="post">
     <label for="briefMessage">{% if ar %}رسالتك{% else %}Your message{% endif %}</label>
     <textarea id="briefMessage" name="message" required maxlength="2000" rows="4" style="width:100%;margin-top:6px"></textarea>
-    <button class="btn" type="submit" id="briefSend" style="margin-top:10px">{% if ar %}إرسال{% else %}Send{% endif %}</button>
+    <div class="brief-actions"><button class="btn" type="submit" id="briefSend">{% if ar %}إرسال{% else %}Send{% endif %}</button></div>
     <p id="briefStatus" style="font-size:.9rem"></p>
 </form>
 <div id="briefOut"></div>
-<a class="btn" href="/voice" style="position:fixed;bottom:12px;inset-inline:12px;text-align:center;background:#ff5a36;color:#fff;border-radius:12px;padding:12px">{% if ar %}مكالمة صوتية{% else %}Voice call{% endif %}</a>
+<div class="brief-voice"><a class="btn btn-ghost" href="/voice">{% if ar %}مكالمة صوتية{% else %}Voice call{% endif %}</a></div>
 <script>
 (function () {
     const ar = document.documentElement.lang !== 'en';
