@@ -33,7 +33,7 @@ from .lead_normalize import normalize_mobile_e164
 
 log = logging.getLogger(__name__)
 
-API_URL = "https://graph.facebook.com/v20.0"
+API_URL = "https://graph.facebook.com/v26.0"
 DISABLED_REASON = "WHATSAPP_TOKEN و/أو WHATSAPP_PHONE_ID غير مُعدّ في ملف .env"
 CHANNEL = "whatsapp"
 
@@ -97,7 +97,7 @@ def _build_payload(record: OutboundMessage, message_type: str = "text") -> dict:
 def _gateway_endpoint() -> tuple[str, dict[str, str]]:
     """Resolve (url, headers) for the Meta Cloud API.
 
-    ``graph.facebook.com/v20.0/{phone_id}/messages`` with a Bearer token. The
+    ``graph.facebook.com/v26.0/{phone_id}/messages`` with a Bearer token. The
     returned headers carry the credential for the transport only and are never
     logged or returned to a caller.
     """
