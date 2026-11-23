@@ -1,0 +1,208 @@
+/* Al-Narjis — live team run panel on the homepage.
+   Each card is white glass with ink text (rgba(255,255,255,.78), 1px line,
+   blur 24px, radius 20px). The panel sits on the homepage hero, which the
+   cinematic layer keeps dark, so the page-level text uses the page's own
+   ivory token. The one action and every focus ring use the accent #FF5A36.
+   No gold or violet fields.
+   Every selector starts with `.nj main .ntr` so it outranks the page's
+   `html.cine-* .nj h2/h3`, `.nj .hero p` and `.nj main section` rules. */
+
+.nj main .ntr {
+  display: block;
+  max-width: 640px;
+  margin: 24px 0 0;
+  padding: 0;
+}
+.nj main .ntr[hidden] { display: none; }
+
+.nj main .ntr .ntr-title {
+  margin: 0 0 6px;
+  font-size: clamp(18px, 2.2vw, 22px);
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--cine-ivory, #f5f5f5);
+}
+.nj main .ntr .ntr-lead {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #bfc6cb;
+}
+
+.nj main .ntr .ntr-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(18, 16, 13, .12);
+  background: rgba(255, 255, 255, .78);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 12px 32px rgba(18, 16, 13, .08);
+}
+.nj main .ntr .ntr-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5b544c;
+}
+.nj main .ntr .ntr-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 92px;
+  max-height: 240px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(18, 16, 13, .12);
+  background: #ffffff;
+  color: #12100d;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.8;
+  resize: vertical;
+}
+.nj main .ntr .ntr-field::placeholder { color: #7a7268; }
+.nj main .ntr .ntr-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.nj main .ntr .ntr-count {
+  font-size: 12px;
+  color: #5b544c;
+  font-variant-numeric: tabular-nums;
+}
+.nj main .ntr .ntr-submit {
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #FF5A36;
+  color: #12100d;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.nj main .ntr .ntr-submit:hover:not(:disabled) { transform: translateY(-1px); }
+.nj main .ntr .ntr-submit:disabled { opacity: .55; cursor: progress; }
+
+.nj main .ntr :focus-visible {
+  outline: 3px solid #FF5A36;
+  outline-offset: 3px;
+}
+
+.nj main .ntr .ntr-status {
+  margin: 12px 0 0;
+  min-height: 1.8em;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--cine-ivory, #f5f5f5);
+}
+.nj main .ntr .ntr-status:empty { min-height: 0; margin: 0; }
+
+.nj main .ntr .ntr-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.nj main .ntr .ntr-cards:empty { display: none; }
+
+.nj main .ntr .ntr-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(18, 16, 13, .12);
+  background: rgba(255, 255, 255, .78);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 12px 32px rgba(18, 16, 13, .08);
+  color: #12100d;
+  animation: ntr-in .35s ease-out both;
+}
+.nj main .ntr .ntr-card.is-final { border-color: rgba(255, 90, 54, .55); }
+.nj main .ntr .ntr-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nj main .ntr .ntr-card-name {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #12100d;
+}
+.nj main .ntr .ntr-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid #5b544c;
+  background: transparent;
+}
+.nj main .ntr .ntr-card.is-working .ntr-dot {
+  background: #FF5A36;
+  border-color: #FF5A36;
+  animation: ntr-pulse 1.4s ease-in-out infinite;
+}
+.nj main .ntr .ntr-card.is-done .ntr-dot {
+  background: #12100d;
+  border-color: #12100d;
+}
+.nj main .ntr .ntr-card.is-ended .ntr-dot {
+  background: #bdb5aa;
+  border-color: #bdb5aa;
+}
+.nj main .ntr .ntr-badge {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 16, 13, .12);
+  font-size: 12px;
+  font-weight: 600;
+  color: #5b544c;
+  white-space: nowrap;
+}
+.nj main .ntr .ntr-card.is-working .ntr-badge {
+  color: #12100d;
+  border-color: #FF5A36;
+}
+.nj main .ntr .ntr-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.85;
+  color: #12100d;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.nj main .ntr .ntr-card.is-queued .ntr-text,
+.nj main .ntr .ntr-card.is-working .ntr-text,
+.nj main .ntr .ntr-card.is-ended .ntr-text { color: #5b544c; }
+
+@keyframes ntr-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.45); opacity: .45; }
+}
+@keyframes ntr-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nj main .ntr *,
+  .nj main .ntr *::before,
+  .nj main .ntr *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
