@@ -2361,7 +2361,9 @@ async def voice_reply(body: VoiceReplyRequest, request: Request):
         prompt=reply_prompt(body.text, history),
         system_prompt=spoken_system_prompt(lang),
         temperature=0.2,
-        max_tokens=220,
+        # Thinking models spend part of the budget before the answer; 220 cut
+        # replies mid-sentence ("أسعار باقات"). Three short sentences still apply.
+        max_tokens=800,
         metadata=_consult_model_metadata(),
     )
     try:

@@ -176,7 +176,7 @@
   function add(text, cls) {
     const row = document.createElement("div");
     row.className = "row" + (cls ? " " + cls : "");
-    row.innerHTML = '<div class="av" aria-hidden="true">' + (cls === "u" ? "👤" : "") + '</div><div class="m"></div>';
+    row.innerHTML = '<div class="av" aria-hidden="true"></div><div class="m"></div>';
     row.lastChild.textContent = text;
     log.append(row);
     log.scrollTop = 1e5;

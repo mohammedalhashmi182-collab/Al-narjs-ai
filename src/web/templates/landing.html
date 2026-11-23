@@ -791,9 +791,11 @@
     function offerLine(r) {
         var p = r.plan || {};
         var price = Number(p.monthly_price || p.price || 0).toLocaleString('en');
+        var extraAr = p.addons ? ' + ' + p.addons + ' وكيل إضافي (' + p.addon_price + ' ر.س لكل وكيل)' : '';
+        var extraEn = p.addons ? ' + ' + p.addons + ' add-on agent' + (p.addons === 1 ? '' : 's') + ' (SAR ' + p.addon_price + ' each)' : '';
         return AR
-            ? 'عرضي المبدئي لك: باقة ' + p.name + ' بـ ' + price + ' ر.س شهرياً، مع فريق من ' + r.agent_count + ' وكلاء. أنا معك هنا لين نقفل التفاصيل — اسألني أي شي عن العرض.'
-            : 'My preliminary offer: the ' + p.name_en + ' plan at SAR ' + price + '/month, with a team of ' + r.agent_count + ' agents. I stay with you here until the details are settled — ask me anything about it.';
+            ? 'عرضي المبدئي لك: باقة ' + p.name + extraAr + '، الإجمالي ' + price + ' ر.س شهرياً، مع فريق من ' + r.agent_count + ' وكلاء. أنا معك هنا لين نقفل التفاصيل — اسألني أي شي عن العرض.'
+            : 'My preliminary offer: the ' + p.name_en + ' plan' + extraEn + ', total SAR ' + price + '/month, with a team of ' + r.agent_count + ' agents. I stay with you here until the details are settled — ask me anything about it.';
     }
     function openDesk(r, offer) {
         desk.offer = offer ? r : null;
