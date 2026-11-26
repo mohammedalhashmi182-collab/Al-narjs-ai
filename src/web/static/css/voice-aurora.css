@@ -1,21 +1,21 @@
 :root {
-  color-scheme: dark;
-  --voice-ink: #100e0c;
-  --voice-surface: var(--narjis-surface);
-  --voice-ivory: var(--narjis-ivory);
-  --voice-stone: var(--narjis-stone);
-  --voice-line: #5a5145;
-  --voice-gold: var(--narjis-gold);
-  --voice-accent: var(--narjis-action);
+  color-scheme: light;
+  --voice-ink: #1a1a1a;
+  --voice-surface: rgba(255, 255, 255, .78);
+  --voice-ivory: #1a1a1a;
+  --voice-stone: #6d657c;
+  --voice-line: rgba(26, 26, 26, .16);
+  --voice-gold: #8a78c8;
+  --voice-accent: #6d5cae;
 }
 * { box-sizing: border-box; }
 html[lang="en"] body { font-family: var(--narjis-font); }
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--voice-ink);
-  color: var(--voice-ivory);
-  font: 400 16px/1.6 var(--narjis-font-ar);
+  background: #f6eefb;
+  color: #1a1a1a;
+  font: 300 16px/1.6 "IBM Plex Sans Arabic", var(--narjis-font-ar), sans-serif;
 }
 [hidden] { display: none !important; }
 a { color: inherit; }
@@ -43,7 +43,7 @@ nav a { text-decoration: none; }
 .cta { flex: none; border: 1px solid var(--voice-line); border-radius: 8px; padding: 7px 12px; min-height: 44px; }
 main { width: min(640px, calc(100% - 32px)); margin: 0 auto; padding-block-start: clamp(28px, 6vw, 72px); }
 .hero { text-align: center; }
-h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 650; line-height: 1.3; }
+h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 300; line-height: 1.3; }
 .sub { margin: 8px 0 24px; color: var(--voice-stone); }
 .card {
   padding: clamp(14px, 4vw, 32px);
@@ -60,14 +60,14 @@ h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 650; line-height
   overflow: hidden;
   height: clamp(76px, 17vw, 124px);
   margin-block-end: 12px;
-  background: #0c0a09;
+  background: rgba(255, 255, 255, .55);
   border-radius: 9px;
 }
 .wave i {
   flex: 0 1 4px;
   height: 8px;
   border-radius: 8px;
-  background: var(--voice-gold);
+  background: #8a78c8;
   transform: scaleY(var(--amplitude, 1));
   transition: transform 90ms linear, background-color 150ms ease;
 }
@@ -83,7 +83,7 @@ h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 650; line-height
   padding: 8px 15px;
   font-weight: 650;
 }
-.startbtn { display: none; color: #100e0c; background: var(--voice-gold); border: 1px solid var(--voice-gold); }
+.startbtn { display: none; color: #1a1a1a; background: rgba(255, 255, 255, .8); border: 1px solid rgba(26, 26, 26, .22); }
 .idle .startbtn, .ended .startbtn { display: block; }
 .chat-open .startbtn, .chat-open .chatbtn { display: none; }
 .chatbtn { display: block; color: var(--voice-ivory); background: transparent; border: 1px solid var(--voice-line); }
@@ -119,10 +119,10 @@ h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 650; line-height
 .row.u { flex-direction: row-reverse; }
 .av { width: 25px; flex: none; }
 .m { border: 1px solid var(--voice-line); border-radius: 9px; padding: 8px 12px; overflow-wrap: anywhere; flex: 1; }
-.row.u .m { background: #302920; }
+.row.u .m { background: rgba(255, 255, 255, .72); }
 #composer { display: flex; gap: 8px; margin-top: 14px; }
-#say { flex: 1; min-width: 0; border: 1px solid var(--voice-line); border-radius: 8px; background: var(--voice-ink); color: var(--voice-ivory); padding: 9px 11px; min-height: 44px; }
-.send { border: 0; border-radius: 8px; background: var(--voice-ivory); color: var(--voice-ink); padding: 7px 15px; min-height: 44px; font-weight: 600; }
+#say { flex: 1; min-width: 0; border: 1px solid var(--voice-line); border-radius: 8px; background: rgba(255, 255, 255, .9); color: #1a1a1a; padding: 9px 11px; min-height: 44px; }
+.send { border: 1px solid rgba(26, 26, 26, .22); border-radius: 8px; background: rgba(255, 255, 255, .9); color: #1a1a1a; padding: 7px 15px; min-height: 44px; font-weight: 500; }
 .back { display: block; margin: 10px auto 0; min-height: 44px; padding-inline: 12px; color: var(--voice-ivory); background: transparent; border: 1px solid var(--voice-line); border-radius: 8px; }
 .mic-note, .fallback { margin-top: 12px; padding: 8px 12px; border: 1px solid var(--voice-line); border-radius: 8px; font-size: 14px; }
 .fallback-links { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }

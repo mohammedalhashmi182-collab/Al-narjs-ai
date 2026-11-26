@@ -88,7 +88,7 @@ def test_vnext_mark_is_a_self_contained_vector(client: TestClient, asset: str) -
     assert response.status_code == HTTPStatus.OK
     svg = ElementTree.fromstring(response.content)
     assert svg.tag == "{http://www.w3.org/2000/svg}svg" and svg.get("viewBox")
-    assert {el.tag.rsplit("}", 1)[-1] for el in svg.iter()} <= {"svg", "g", "rect", "path"}
+    assert {el.tag.rsplit("}", 1)[-1] for el in svg.iter()} <= {"svg", "g", "rect", "path", "image"}
 
 
 @pytest.mark.parametrize(("lang", "direction"), [("ar", "rtl"), ("en", "ltr")])

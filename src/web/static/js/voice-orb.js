@@ -165,7 +165,7 @@
     "}",
   ].join("\n");
 
-  // Brand orange #FF5A36: hot core, orange body, so the points glow.
+  // Glass violet points, matching the lilac prism.
   const FRAG = [
     "precision mediump float;",
     "varying float vBright;",
@@ -176,10 +176,10 @@
     "  float core=exp(-r2*3.4);",
     "  float halo=exp(-r2*1.05)*0.45;",
     "  float intensity=(core*0.85+halo)*vBright;",
-    "  vec3 deep=vec3(0.72,0.12,0.04);",
-    "  vec3 orange=vec3(1.0,0.353,0.212);",
+    "  vec3 deep=vec3(0.55,0.42,0.86);",
+    "  vec3 glass=vec3(0.78,0.86,1.0);",
     "  vec3 hot=vec3(1.0,1.0,1.0);",
-    "  vec3 color=mix(deep,orange,clamp(core*1.35,0.0,1.0));",
+    "  vec3 color=mix(deep,glass,clamp(core*1.35,0.0,1.0));",
     "  color=mix(color,hot,pow(core,2.2)*0.85);",
     "  float shine=pow(max(0.0,1.0-r2),4.2);",
     "  color+=hot*shine*0.5;",
@@ -232,7 +232,7 @@
     gl.disable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(0.965, 0.933, 0.984, 1);
     setupBloom();
     window.__orbMode = "webgl";
     return true;
@@ -468,7 +468,7 @@
     if (bloom) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, bloom.scene.fb);
       gl.viewport(0, 0, bloom.scene.w, bloom.scene.h);
-      gl.clearColor(0, 0, 0, 1);
+      gl.clearColor(0.965, 0.933, 0.984, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       paintPoints(pose, bloom.scene.w, bloom.scene.h);
       gl.disable(gl.BLEND);
@@ -557,7 +557,7 @@
     order.sort((a, b) => depthBuf[b] - depthBuf[a]);
     ctx2d.setTransform(1, 0, 0, 1, 0, 0);
     ctx2d.globalCompositeOperation = "source-over";
-    ctx2d.fillStyle = "#000";
+    ctx2d.fillStyle = "#f6eefb";
     ctx2d.fillRect(0, 0, w, h);
     ctx2d.globalCompositeOperation = "lighter";
     const px = sphere._x;
