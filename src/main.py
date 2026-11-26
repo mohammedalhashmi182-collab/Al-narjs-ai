@@ -1309,8 +1309,18 @@ _WASHOUT_DEMO_HEADERS = {
 }
 
 
-@app.get("/demo/washout", response_class=HTMLResponse, include_in_schema=False)
-@app.get("/demo/washout/", response_class=HTMLResponse, include_in_schema=False)
+@app.api_route(
+    "/demo/washout",
+    methods=["GET", "HEAD"],
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+@app.api_route(
+    "/demo/washout/",
+    methods=["GET", "HEAD"],
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
 async def washout_demo_page():
     """Pre-written Wash Out example conversation. Not a live bot. Noindex."""
     if not _WASHOUT_DEMO_PAGE.is_file():
