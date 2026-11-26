@@ -316,17 +316,31 @@
 <!-- ==================== HOW IT WORKS ==================== -->
 <section class="ivory" id="how" aria-labelledby="how-h">
     <div class="wrap">
-        <div class="sh rv"><h2 id="how-h">{% if ar %}من هدفك إلى نتيجة تراجعها{% else %}From your goal to work you can review{% endif %}</h2></div>
-        <ol class="steps">
+        <div class="sh rv"><h2 id="how-h">{% if ar %}أربع خطوات مع النرجس للذكاء الاصطناعي{% else %}Four steps with Al Narjis AI{% endif %}</h2></div>
+        <ol class="steps flow">
             {% if ar %}
-            <li class="step rv"><span class="n num">01</span><h3>تشرح هدفك</h3><p>تتحدث مع الرئيس التنفيذي الذكي بكلماتك، بدون نماذج طويلة.</p></li>
-            <li class="step rv"><span class="n num">02</span><h3>يختار فريقك</h3><p>يرشّح وكلاء بأدوار محددة ويشرح سبب كل اختيار.</p></li>
-            <li class="step rv"><span class="n num">03</span><h3>تراجع المخرج</h3><p>تستلم عملًا جاهزًا للمراجعة، وتعتمده أو تطلب تعديله.</p></li>
+            {% set _flow = [
+                ('01', 'flow-kingdom.webp', 'برج المملكة من زجاج شفاف بحواف قوس قزح', 'التشخيص', 'نفهم نشاطك وأسئلتك وهدفك مع الرئيس التنفيذي الذكي، قبل أن يُبنى شيء.'),
+                ('02', 'flow-faisaliah.webp', 'برج الفيصلية من زجاج شفاف بحواف قوس قزح', 'البناء', 'نبني موظفك الذكي ووكلاءه على معلوماتك، ويرد بالعربية وباللهجة السعودية.'),
+                ('03', 'flow-tv.webp', 'برج التلفزيون في الرياض من زجاج شفاف بحواف قوس قزح', 'التجربة', 'تجرّبه على أسئلة عملائك، وتراجع الردود قبل الإطلاق.'),
+                ('04', 'flow-clock.webp', 'برج الساعة في مكة من زجاج شفاف بحواف قوس قزح', 'التشغيل', 'ينطلق على واتساب وعلى موقعك، مع متابعة وتقارير تراجعها أنت.'),
+            ] %}
             {% else %}
-            <li class="step rv"><span class="n num">01</span><h3>You explain your goal</h3><p>Talk to the AI CEO in your own words, with no long forms.</p></li>
-            <li class="step rv"><span class="n num">02</span><h3>It picks your team</h3><p>It proposes agents with clear roles and explains every choice.</p></li>
-            <li class="step rv"><span class="n num">03</span><h3>You review the output</h3><p>You receive work ready for review, then approve it or ask for changes.</p></li>
+            {% set _flow = [
+                ('01', 'flow-kingdom.webp', 'The Kingdom Centre as clear glass with rainbow edges', 'Diagnosis', 'We learn your business, your questions and your goal with the AI CEO, before anything is built.'),
+                ('02', 'flow-faisaliah.webp', 'Al Faisaliah Tower as clear glass with rainbow edges', 'Build', 'We build your AI employee and its agents on your own information. It answers in Arabic and the Saudi dialect.'),
+                ('03', 'flow-tv.webp', 'The Riyadh TV Tower as clear glass with rainbow edges', 'Trial', 'You try it on your customers’ questions and review the replies before launch.'),
+                ('04', 'flow-clock.webp', 'The Makkah clock tower as clear glass with rainbow edges', 'Go live', 'It goes live on WhatsApp and on your website, with follow-up and reports you review.'),
+            ] %}
             {% endif %}
+            {% for num, file, alt, title, body in _flow %}
+            <li class="step rv">
+                <span class="n num">{{ num }}</span>
+                <div class="shot"><img src="/static/img/{{ file }}" alt="{{ alt }}" width="720" height="720" loading="lazy" decoding="async"></div>
+                <h3>{{ title }}</h3>
+                <p>{{ body }}</p>
+            </li>
+            {% endfor %}
         </ol>
     </div>
 </section>

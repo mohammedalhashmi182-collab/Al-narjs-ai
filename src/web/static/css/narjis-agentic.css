@@ -360,6 +360,87 @@ html.cine-fallback .nj .steps {
   border: 0;
   gap: 18px;
 }
+html.cine-on .nj #how,
+html.cine-fallback .nj #how {
+  background: #f6eefb;
+}
+html.cine-on .nj #how .sh h2,
+html.cine-fallback .nj #how .sh h2 {
+  color: #1a1a1a;
+  font-weight: 300;
+  font-size: clamp(32px, 3.6vw, 48px);
+}
+html.cine-on .nj .steps.flow,
+html.cine-fallback .nj .steps.flow {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  border: 0;
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+}
+html.cine-on .nj .steps.flow .step,
+html.cine-fallback .nj .steps.flow .step {
+  position: relative;
+  min-width: 0;
+  background: #fff;
+  border: 0;
+  border-inline-start: 0;
+  border-radius: 28px;
+  box-shadow: 0 14px 36px rgba(80, 60, 120, .07);
+  padding: 18px 18px 22px;
+}
+html.cine-on .nj .steps.flow .n,
+html.cine-fallback .nj .steps.flow .n {
+  position: absolute;
+  top: 16px;
+  inset-inline-start: 18px;
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  color: #a39bb0;
+  line-height: 1;
+}
+html.cine-on .nj .steps.flow .shot,
+html.cine-fallback .nj .steps.flow .shot {
+  height: 188px;
+  display: grid;
+  place-items: end center;
+  margin: 10px 0 6px;
+}
+html.cine-on .nj .steps.flow .shot img,
+html.cine-fallback .nj .steps.flow .shot img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  -webkit-mask-image: linear-gradient(#000 58%, transparent 96%);
+  mask-image: linear-gradient(#000 58%, transparent 96%);
+}
+html.cine-on .nj .steps.flow h3,
+html.cine-fallback .nj .steps.flow h3 {
+  margin: 2px 0 8px;
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0;
+  color: #1a1a1a;
+}
+html.cine-on .nj .steps.flow p,
+html.cine-fallback .nj .steps.flow p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #5e5870;
+}
+@media (max-width: 680px) {
+  html.cine-on .nj .steps,
+  html.cine-fallback .nj .steps,
+  html.cine-on .nj .steps.flow,
+  html.cine-fallback .nj .steps.flow {
+    grid-template-columns: 1fr;
+  }
+}
 html.cine-on .nj .step,
 html.cine-fallback .nj .step {
   border: 1px solid rgba(255, 255, 255, .88);
@@ -522,9 +603,9 @@ html.cine-fallback .nj .vision p {
   }
   html.cine-on .nj .ag-grid,
   html.cine-fallback .nj .ag-grid,
-  html.cine-on .nj .steps,
-  html.cine-fallback .nj .steps {
-    grid-template-columns: 1fr;
+  html.cine-on .nj .steps.flow,
+  html.cine-fallback .nj .steps.flow {
+    grid-template-columns: 1fr 1fr;
   }
   html.cine-on .nj .ag-stats,
   html.cine-fallback .nj .ag-stats {
@@ -1070,5 +1151,11 @@ body.nj #cookieConsent button.pri {
     border-color: rgba(26, 26, 26, .22);
     background: rgba(255, 255, 255, .92);
     font-weight: 500;
+  }
+}
+@media (max-width: 680px) {
+  html.cine-on .nj .steps.flow,
+  html.cine-fallback .nj .steps.flow {
+    grid-template-columns: 1fr;
   }
 }
