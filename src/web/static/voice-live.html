@@ -12,7 +12,7 @@
 <link rel="icon" href="/static/brand/alnarjis-favicon-48.png" type="image/png" sizes="48x48">
 <link rel="apple-touch-icon" href="/static/brand/alnarjis-apple-touch.png">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Al-Narjis AI">
+<meta property="og:site_name" content="Al Narjis AI">
 <meta property="og:title" content="تحدّث مع مستشار النرجس الذكي">
 <meta property="og:description" content="مكالمة صوتية حية مع مستشار النرجس. ثلاث دقائق كحد أقصى.">
 <meta property="og:url" content="https://alnarjisai.com/ar/voice">
@@ -22,15 +22,15 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400&amp;family=Amiri&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
 <link rel="stylesheet" href="/static/css/voice-aurora.css">
 <link rel="stylesheet" href="/static/css/voice-narjis-wave.css">
 </head>
 <body>
 <nav>
-<a class="logo ar-only" href="/ar/home"><img class="logo-mark" src="/static/logo.svg" alt="" width="38" height="38">النرجس <b>AI</b></a>
-<a class="logo en-only" href="/en/home"><img class="logo-mark" src="/static/logo.svg" alt="" width="38" height="38">Al-Narjis <b>AI</b></a>
+<a class="logo ar-only" href="/ar/home"><span class="gem" data-narjis-gem><img class="logo-mark" src="/static/logo.svg" alt="" width="36" height="36"></span><span class="logo-txt"><span class="logo-name">النرجس</span><span class="logo-sub">للذكاء الاصطناعي</span></span></a>
+<a class="logo en-only" href="/en/home"><span class="gem" data-narjis-gem><img class="logo-mark" src="/static/logo.svg" alt="" width="36" height="36"></span><span class="logo-txt"><span class="logo-name">Al Narjis</span><span class="logo-sub">AI</span></span></a>
  <div class="links">
   <a class="ar-only" href="/ar/home">الرئيسية</a><a class="en-only" href="/en/home">Home</a>
   <a class="ar-only" href="/ar/pricing">الباقات</a><a class="en-only" href="/en/pricing">Plans</a>
@@ -41,9 +41,7 @@
 </nav>
 <main>
  <div class="video voice-stage" id="vid" role="img" aria-label="موجات تفاعل مستشار النرجس الصوتي">
-  <img class="voice-diamond" src="/static/logo-512.webp" alt="" width="148" height="148">
-  <span class="voice-stage-eyebrow" aria-hidden="true">NARJIS VOICE</span>
-  <div class="voice-stage-wordmark" aria-hidden="true">النرجس</div>
+  <div class="voice-orb gem" data-narjis-gem><img class="voice-diamond" src="/static/logo-512.webp" alt="" width="148" height="148"></div>
   <div class="voice-stage-ribbon" aria-hidden="true">
    <i style="--ng-wave-index:0;--ng-wave-height:12px" aria-hidden="true"></i>
    <i style="--ng-wave-index:1;--ng-wave-height:14px" aria-hidden="true"></i>
@@ -82,11 +80,11 @@
    <i style="--ng-wave-index:34;--ng-wave-height:14px" aria-hidden="true"></i>
    <i style="--ng-wave-index:35;--ng-wave-height:12px" aria-hidden="true"></i>
   </div>
-  <span class="voice-stage-sub" aria-hidden="true">INTELLIGENCE IN MOTION</span>
+  <p class="voice-stage-caption"><span class="ar-only">مستشار صوتي</span><span class="en-only">Voice advisor</span></p>
  </div>
  <section class="hero">
   <h1 class="ar-only">مستشار النرجس الذكي</h1>
-  <h1 class="en-only">Al-Narjis AI advisor</h1>
+  <h1 class="en-only">Al Narjis AI advisor</h1>
   <p class="sub ar-only">أخبرنا بما تحتاجه، وابدأ بتشخيص أولي.</p>
   <p class="sub en-only">Tell us what you need and start with an initial assessment.</p>
   <div class="card idle" id="p" aria-label="مكالمة حية مع مستشار النرجس">
@@ -131,5 +129,6 @@
  <span class="ar-only">إذا تعذّرت المكالمة: <a href="/ar/consult">تابع بالمحادثة</a> · <a href="/ar/privacy">الخصوصية</a></span>
  <span class="en-only">If the call cannot start: <a href="/en/consult">Continue by chat</a> · <a href="/en/privacy">Privacy</a></span>
 </p>
+<script src="/static/js/narjis-diamond.js" defer></script>
 <script src="/static/js/voice-live-app.js"></script>
 </body></html>

@@ -559,9 +559,41 @@ html.cine-fallback .nj .nj-nav .wrap {
 }
 html.cine-on .nj .logo-txt,
 html.cine-fallback .nj .logo-txt {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: .22em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+}
+html.cine-on .nj .logo-name,
+html.cine-fallback .nj .logo-name {
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: .01em;
+  line-height: 1;
+}
+html.cine-on .nj[dir="rtl"] .logo-name,
+html.cine-fallback .nj[dir="rtl"] .logo-name,
+[dir="rtl"] html.cine-on .nj .logo-name,
+[dir="rtl"] html.cine-fallback .nj .logo-name {
+  font-family: "Amiri", "Alexandria", serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+html.cine-on .nj .logo-sub,
+html.cine-fallback .nj .logo-sub {
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 300;
+  font-size: 9px;
+  letter-spacing: .08em;
+  color: #6a6278;
+  line-height: 1.2;
 }
 html.cine-on .nj .links,
 html.cine-fallback .nj .links {
@@ -646,15 +678,98 @@ html.cine-fallback .nj .nj-nav .logo img {
   height: 28px;
 }
 html.cine-on .nj main .hero h1.display,
+html.cine-fallback .nj main .hero h1.display,
+html.cine-on .nj h2,
+html.cine-fallback .nj h2 {
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+}
+html.cine-on .nj main .hero h1.display,
 html.cine-fallback .nj main .hero h1.display {
   order: 1;
   font-weight: 300;
-  font-size: clamp(52px, 6.6vw, 92px);
-  line-height: .96;
-  letter-spacing: -.04em;
-  max-width: 10.5em;
+  font-size: clamp(48px, 6.2vw, 84px);
+  line-height: 1.12;
+  letter-spacing: -.03em;
+  max-width: 11em;
   margin: 0;
   color: #141414;
+}
+html.cine-on .nj .hero-gem,
+html.cine-fallback .nj .hero-gem {
+  position: absolute;
+  z-index: 2;
+  width: min(220px, 26vw);
+  aspect-ratio: 1;
+  inset-inline-end: 7%;
+  top: 24%;
+  pointer-events: none;
+}
+html.cine-on .nj .gem,
+html.cine-fallback .nj .gem,
+html.cine-on .nj .hero-gem,
+html.cine-fallback .nj .hero-gem {
+  display: inline-grid;
+  place-items: center;
+}
+html.cine-on .nj .nj-nav .gem,
+html.cine-fallback .nj .nj-nav .gem {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+html.cine-on .nj .gem img,
+html.cine-fallback .nj .gem img,
+html.cine-on .nj .gem canvas,
+html.cine-fallback .nj .gem canvas,
+html.cine-on .nj .hero-gem img,
+html.cine-fallback .nj .hero-gem img,
+html.cine-on .nj .hero-gem canvas,
+html.cine-fallback .nj .hero-gem canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+html.cine-on .nj .gem,
+html.cine-fallback .nj .gem,
+html.cine-on .nj .hero-gem,
+html.cine-fallback .nj .hero-gem {
+  perspective: 800px;
+}
+html.cine-on .nj .gem-sweep,
+html.cine-fallback .nj .gem-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, .82) 48%, rgba(210, 190, 255, .35) 54%, transparent 68%);
+  mix-blend-mode: screen;
+  -webkit-mask-image: url("/static/logo-512.webp");
+  mask-image: url("/static/logo-512.webp");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.cine-on .nj .gem.is-live > img,
+  html.cine-fallback .nj .gem.is-live > img,
+  html.cine-on .nj .hero-gem.is-live > img,
+  html.cine-fallback .nj .hero-gem.is-live > img {
+    animation: narjis-gem-turn 8s ease-in-out infinite;
+    filter: drop-shadow(0 12px 18px rgba(120, 90, 170, .28));
+    transform-style: preserve-3d;
+  }
+  html.cine-on .nj .gem.is-live .gem-sweep,
+  html.cine-fallback .nj .gem.is-live .gem-sweep {
+    animation: narjis-gem-sweep 3.8s ease-in-out infinite;
+  }
+}
+@keyframes narjis-gem-turn {
+  0%, 100% { transform: translateY(0) rotateY(-16deg) rotateX(7deg); }
+  50% { transform: translateY(-7px) rotateY(18deg) rotateX(-5deg); }
+}
+@keyframes narjis-gem-sweep {
+  0%, 100% { transform: translateX(-36%); opacity: .35; }
+  45% { opacity: .95; }
+  70% { transform: translateX(36%); opacity: .4; }
 }
 html.cine-on .nj .hero .ag-stats,
 html.cine-fallback .nj .hero .ag-stats {
@@ -755,6 +870,13 @@ html.cine-fallback #mbarWhatsapp {
   html.cine-on .nj .hero .copy,
   html.cine-fallback .nj .hero .copy {
     max-width: 100%;
+  }
+  html.cine-on .nj .hero-gem,
+  html.cine-fallback .nj .hero-gem {
+    width: 84px;
+    top: auto;
+    bottom: 22%;
+    inset-inline-end: 14px;
   }
   html.cine-on .nj main .hero h1.display,
   html.cine-fallback .nj main .hero h1.display {
@@ -910,13 +1032,18 @@ html.cine-on body.nj .foot-brand,
 html.cine-fallback body.nj .foot-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 18px;
   color: #1a1a1a;
   font-weight: 400;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 15px;
+}
+html.cine-on body.nj .foot-brand .gem,
+html.cine-fallback body.nj .foot-brand .gem {
+  width: 42px;
+  height: 42px;
 }
 html.cine-on body.nj .foot-brand img,
 html.cine-fallback body.nj .foot-brand img {

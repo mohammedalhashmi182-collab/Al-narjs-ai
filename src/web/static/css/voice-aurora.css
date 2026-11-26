@@ -43,7 +43,38 @@ nav a { text-decoration: none; }
 .cta { flex: none; border: 1px solid var(--voice-line); border-radius: 8px; padding: 7px 12px; min-height: 44px; }
 main { width: min(640px, calc(100% - 32px)); margin: 0 auto; padding-block-start: clamp(28px, 6vw, 72px); }
 .hero { text-align: center; }
-h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); font-weight: 300; line-height: 1.3; }
+h1 { margin: 0; font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 300; line-height: 1.25; }
+.logo { align-items: center; }
+.logo-txt { display: flex; flex-direction: column; line-height: 1; gap: 1px; }
+.logo-name { font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif; font-weight: 400; font-size: 16px; }
+html[lang="ar"] .logo-name { font-family: "Amiri", "Alexandria", serif; font-size: 22px; }
+.logo-sub { font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif; font-weight: 300; font-size: 11px; letter-spacing: .04em; color: #6a6278; }
+.logo b { color: inherit; font-weight: 400; }
+.gem { display: inline-grid; place-items: center; width: 36px; height: 36px; position: relative; flex: none; }
+.gem img, .gem canvas { width: 100%; height: 100%; display: block; }
+.voice-orb { width: min(156px, 42vw); height: auto; aspect-ratio: 1; margin: 0 auto 4px; }
+.gem { perspective: 800px; }
+.gem-sweep {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.82) 48%, rgba(210,190,255,.35) 54%, transparent 68%);
+  mix-blend-mode: screen;
+  -webkit-mask-image: url("/static/logo-512.webp");
+  mask-image: url("/static/logo-512.webp");
+  mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .gem.is-live > img { animation: narjis-gem-turn 8s ease-in-out infinite; filter: drop-shadow(0 12px 18px rgba(120, 90, 170, .28)); }
+  .gem.is-live .gem-sweep { animation: narjis-gem-sweep 3.8s ease-in-out infinite; }
+}
+@keyframes narjis-gem-turn {
+  0%, 100% { transform: translateY(0) rotateY(-16deg) rotateX(7deg); }
+  50% { transform: translateY(-7px) rotateY(18deg) rotateX(-5deg); }
+}
+@keyframes narjis-gem-sweep {
+  0%, 100% { transform: translateX(-36%); opacity: .35; }
+  45% { opacity: .95; }
+  70% { transform: translateX(36%); opacity: .4; }
+}
 .sub { margin: 8px 0 24px; color: var(--voice-stone); }
 .card {
   padding: clamp(14px, 4vw, 32px);

@@ -13,8 +13,8 @@
     <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
-    {% set _title = "النرجس للذكاء الاصطناعي | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات" if ar else "Al-Narjis AI | AI CEO and Agent Team for Business Automation" %}
-    {% set _desc = "النرجس للذكاء الاصطناعي من الرياض: اشرح احتياج شركتك لرئيس تنفيذي ذكي، واكتشف فريق الوكلاء المناسب وخطة لأتمتة المبيعات وخدمة العملاء والتسويق." if ar else "Al-Narjis AI in Riyadh: describe your business need to an AI CEO, discover a specialist agent team, and explore a plan for sales, customer service and marketing automation." %}
+    {% set _title = "النرجس للذكاء الاصطناعي | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات" if ar else "Al Narjis AI | AI CEO and Agent Team for Business Automation" %}
+    {% set _desc = "النرجس للذكاء الاصطناعي من الرياض: اشرح احتياج شركتك لرئيس تنفيذي ذكي، واكتشف فريق الوكلاء المناسب وخطة لأتمتة المبيعات وخدمة العملاء والتسويق." if ar else "Al Narjis AI in Riyadh: describe your business need to an AI CEO, discover a specialist agent team, and explore a plan for sales, customer service and marketing automation." %}
     {% set _img_alt = "شعار النرجس — حلول الذكاء الاصطناعي من الرياض" if ar else "Al-Narjis logo — AI solutions from Riyadh" %}
     <title>{{ _title }}</title>
     <meta name="description" content="{{ _desc }}">
@@ -29,7 +29,7 @@
     <link rel="alternate" hreflang="en" href="https://alnarjisai.com/en{{ _base_path }}">
     <link rel="alternate" hreflang="x-default" href="https://alnarjisai.com/ar{{ _base_path }}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Al-Narjis AI">
+    <meta property="og:site_name" content="Al Narjis AI">
     <meta property="og:title" content="{{ _title }}">
     <meta property="og:description" content="{{ _desc }}">
     <meta property="og:url" content="https://alnarjisai.com{{ _canon_path }}">
@@ -46,8 +46,8 @@
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
-      "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
+      "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al Narjis AI") | tojson }},
+      "alternateName": {{ ("Al Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
       "url": "https://alnarjisai.com",
       "legalName": {{ ("النرجس" if ar else "Al-Narjis") | tojson }},
       "foundingLocation": "Riyadh, Saudi Arabia",
@@ -65,8 +65,8 @@
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
       "@id": "https://alnarjisai.com/#business",
-      "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al-Narjis AI") | tojson }},
-      "alternateName": {{ ("Al-Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
+      "name": {{ ("النرجس للذكاء الاصطناعي" if ar else "Al Narjis AI") | tojson }},
+      "alternateName": {{ ("Al Narjis AI" if ar else "النرجس للذكاء الاصطناعي") | tojson }},
       "legalName": {{ ("النرجس" if ar else "Al-Narjis") | tojson }},
       "url": "https://alnarjisai.com",
       "description": {% if ar %}"منظومة من {{ agent_count }} وكيلاً بمن فيهم الرئيس التنفيذي الذكي، الذي يقترح فريقك من {{ division_count }} أقسام متخصصة."{% else %}"The AI CEO diagnoses your business problem and proposes a team. The platform has {{ agent_count }} agents including the AI CEO, across {{ division_count }} departments."{% endif %},
@@ -92,7 +92,7 @@
     }
     </script>
     <script type="application/ld+json">
-    {"@context": "https://schema.org", "@type": "WebSite", "name": "Al-Narjis AI", "url": "https://alnarjisai.com", "inLanguage": "{{ _lang }}"}
+    {"@context": "https://schema.org", "@type": "WebSite", "name": "Al Narjis AI", "url": "https://alnarjisai.com", "inLanguage": "{{ _lang }}"}
     </script>
     <script type="application/ld+json">
     {#
@@ -116,7 +116,7 @@
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        {"@type": "Question", "name": "What is Al-Narjis AI?", "acceptedAnswer": {"@type": "Answer", "text": "Al-Narjis AI is a Riyadh-based platform. Its AI CEO helps diagnose your business problem and proposes a team from a roster of {{ agent_count }} agents including the AI CEO, across {{ division_count }} departments."}},
+        {"@type": "Question", "name": "What is Al Narjis AI?", "acceptedAnswer": {"@type": "Answer", "text": "Al Narjis AI is a Riyadh-based platform. Its AI CEO helps diagnose your business problem and proposes a team from a roster of {{ agent_count }} agents including the AI CEO, across {{ division_count }} departments."}},
         {"@type": "Question", "name": "How much do the plans cost?", "acceptedAnswer": {"@type": "Answer", "text": "{% for plan in plans %}{{ plan.name_en }}: SAR {{ '{:,}'.format(plan.price|int) }}/month{% if not loop.last %}; {% endif %}{% endfor %}. Annual billing is available. Extra agents: SAR {{ addon.price }} per agent per month.{% if vat_enabled() %} {{ vat_percent() }}% VAT is added at checkout.{% else %}{% endif %}"}},
         {"@type": "Question", "name": "How does the CEO choose my agents?", "acceptedAnswer": {"@type": "Answer", "text": "You describe the problem; the CEO maps it to the departments involved, picks the agents from the live roster and recommends the smallest plan that covers that team."}},
         {"@type": "Question", "name": "Can I cancel?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Subscriptions are monthly or annual and can be cancelled at any time before renewal. A renewal invoice is issued a few days before the period ends; unpaid subscriptions pause 3 days after it ends. We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com."}},
@@ -127,9 +127,9 @@
     {% include "partials/_analytics.html" %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap"></noscript>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400&family=Amiri&family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400&family=Amiri&family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400&family=Amiri&family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap"></noscript>
     <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
     <link rel="stylesheet" href="/static/css/narjis-next-review.css">
@@ -166,7 +166,7 @@
 
 <header class="nj-nav" id="nav">
     <div class="wrap">
-        {{ lockup(locale_path ~ '/home', 'النرجس AI' if ar else 'AL-NARJIS', '/static/logo.svg', '') }}
+        {{ lockup(locale_path ~ '/home', 'النرجس' if ar else 'Al Narjis', '/static/logo.svg', 'للذكاء الاصطناعي' if ar else 'AI') }}
         <nav class="links" aria-label="{% if ar %}القائمة الرئيسية{% else %}Main navigation{% endif %}">
             <a href="#services">{% if ar %}المنصة{% else %}Platform{% endif %}</a>
             <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
@@ -199,6 +199,7 @@
 <section class="hero" id="top" aria-labelledby="hero-h">
     <div id="cineBg" aria-hidden="true"></div>
     <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="{% if ar %}زجاج شفاف على خلفية ليلكية فاتحة: مكعبات بوهج بنفسجي، أهرام بلورية وحواف قوس قزح{% else %}Clear glass on a pale lilac ground: cubes with a violet glow, crystal pyramids and rainbow edges{% endif %}" fetchpriority="high" decoding="async">
+    <div class="hero-gem" data-narjis-gem aria-hidden="true"><img src="/static/logo-512.webp" alt="" width="220" height="220"></div>
     <div class="cine-stage" id="cineStage" aria-hidden="true"></div>
     <img class="cine-fallback-art" src="/static/img/narcissus-fallback.svg" width="400" height="520" alt="" decoding="async">
     <div class="wrap">
@@ -582,8 +583,8 @@
 <footer class="nj-footer" id="site-footer">
     <div class="wrap">
         <a class="foot-brand" href="{{ locale_path }}/home">
-            <img src="/static/logo.svg" alt="" width="36" height="36">
-            <span>{% if ar %}النرجس AI{% else %}AL-NARJIS{% endif %}</span>
+            <span class="gem" data-narjis-gem><img src="/static/logo.svg" alt="" width="36" height="36"></span>
+            <span class="logo-txt"><span class="logo-name">{% if ar %}النرجس{% else %}Al Narjis{% endif %}</span><span class="logo-sub">{% if ar %}للذكاء الاصطناعي{% else %}AI{% endif %}</span></span>
         </a>
         <nav class="svc-links" aria-label="{% if ar %}روابط المنصة{% else %}Platform links{% endif %}">
             <a href="/portal">{% if ar %}بوابة العميل{% else %}Client portal{% endif %}</a>
@@ -812,5 +813,6 @@
 </script>
 {% include "partials/_voice_launcher.html" %}
 <link rel="stylesheet" href="/static/css/narjis-agentic.css">
+<script src="/static/js/narjis-diamond.js" defer></script>
 </body>
 </html>

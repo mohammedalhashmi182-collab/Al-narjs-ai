@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Proposal - Al-Narjis AI{% endblock %}
+{% block title %}Proposal - Al Narjis AI{% endblock %}
 {% block page_title %}{% if _lang == 'ar' %}<span>عرض سعر مخصّص</span>{% else %}<span data-inline>Personalized proposal</span>{% endif %}{% endblock %}
 
 {% block content %}
@@ -23,7 +23,7 @@
                 <div class="text-xs text-gray-400 mt-1">ref: {{ reference_id }}</div>
             </div>
             <div class="text-end">
-                <div class="text-xs text-gray-500">من / From Al-Narjis AI · Riyadh</div>
+                <div class="text-xs text-gray-500">من / From Al Narjis AI · Riyadh</div>
                 <div class="text-2xl font-bold" style="color:#00AD92;">{{ detail.name }}</div>
                 <div class="text-xs text-gray-500">{{ price }} SAR / شهر{% if vat_enabled() %} + VAT</div>{% else %}</div>{% endif %}
             </div>

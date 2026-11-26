@@ -6,12 +6,21 @@ body {background:#f6eefb}
 .logo-mark {object-fit:contain;border-radius:6px}
 main {padding-top:28px}
 .video.voice-stage {
-  width:min(90vw,750px); height:clamp(210px,34vw,330px);order:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
-  padding:27px 22px 17px; margin:0 auto 18px;
-  border:1px solid rgba(255,255,255,.9);border-radius:24px;
+  width:min(90vw,640px); height:auto; min-height:0; order:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:22px 18px 16px; margin:0 auto 18px;
+  border:1px solid rgba(255,255,255,.9); border-radius:24px;
   background:rgba(255,255,255,.62);
   box-shadow:0 18px 50px rgba(70,50,110,.08);
+  overflow:hidden;
+}
+.voice-stage-caption {
+  margin: 0;
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: .08em;
+  color: #6a6278;
 }
 .voice-stage-eyebrow,.voice-stage-sub {
   font-family:"IBM Plex Sans",system-ui,sans-serif;
@@ -52,11 +61,10 @@ main {padding-top:28px}
   65%{transform:scaleY(.53)}
 }
 @media(max-width:720px) {
-  .video.voice-stage {width:calc(100vw - 28px);height:245px;gap:0;padding:22px 14px;margin-bottom:10px}
-  .voice-stage-wordmark {font-size:clamp(52px,13vw,73px)}
-  .voice-stage-ribbon {height:55px;margin-bottom:5px}
+  .video.voice-stage {width:calc(100vw - 28px);height:auto;gap:4px;padding:16px 14px 12px;margin-bottom:12px}
+  .voice-stage-ribbon {height:48px;margin-bottom:0}
   .voice-stage-ribbon i {width:3px}
-  .voice-stage-eyebrow,.voice-stage-sub {font-size:9px}
+  .voice-orb {width:min(132px,40vw)}
 }
 @media(prefers-reduced-motion:reduce) {
   .voice-stage-ribbon i {animation:none!important;transform:scaleY(.7)!important}

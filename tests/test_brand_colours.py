@@ -130,6 +130,7 @@ def test_public_surfaces_have_no_green_purple_gold_or_beige():
                 # accents, no orange fills. Other public CSS stays on the old check.
                 if path.name in {
                     "narjis-agentic.css",
+                    "narjis-diamond.js",
                     "voice-aurora.css",
                     "voice-narjis-wave.css",
                     "narjis-voice.css",

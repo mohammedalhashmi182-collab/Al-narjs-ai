@@ -29,7 +29,7 @@ async def test_en_guide_is_english_ltr():
         for inner in re.findall(rf"<{tag}[^>]*>(.*?)</{tag}>", page, flags=re.S):
             assert not _AR.search(inner), (tag, inner[:80])
     assert 'A <span class="grad">30-day</span>' in html
-    assert "<title>30-Day Plan — Guide | Al-Narjis AI</title>" in html
+    assert "<title>30-Day Plan — Guide | Al Narjis AI</title>" in html
     assert 'rel="canonical" href="https://alnarjisai.com/en/guide"' in html
     assert 'hreflang="ar" href="https://alnarjisai.com/ar/guide"' in html
     assert 'property="og:url" content="https://alnarjisai.com/en/guide"' in html

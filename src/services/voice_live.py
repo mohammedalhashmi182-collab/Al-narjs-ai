@@ -462,7 +462,7 @@ def render_page(lang: str) -> str:
         html = html.replace('<html lang="ar" dir="rtl">', '<html lang="en" dir="ltr">', 1)
         html = html.replace(
             "<title>تحدّث مع مستشار النرجس الذكي</title>",
-            "<title>Talk to the Al-Narjis AI advisor</title>",
+            "<title>Talk to the Al Narjis AI advisor</title>",
             1,
         )
         html = html.replace(
@@ -471,7 +471,7 @@ def render_page(lang: str) -> str:
         )
         html = html.replace(
             'property="og:title" content="تحدّث مع مستشار النرجس الذكي"',
-            'property="og:title" content="Talk to the Al-Narjis AI advisor"',
+            'property="og:title" content="Talk to the Al Narjis AI advisor"',
             1,
         )
         html = html.replace(

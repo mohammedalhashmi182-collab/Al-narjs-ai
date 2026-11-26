@@ -15,7 +15,7 @@ browser_required = pytest.mark.skipif(
 )
 
 
-@pytest.mark.parametrize("lang,name", [("ar", "مستشار النرجس الذكي"), ("en", "Al-Narjis AI advisor")])
+@pytest.mark.parametrize("lang,name", [("ar", "مستشار النرجس الذكي"), ("en", "Al Narjis AI advisor")])
 def test_voice_page_renders_the_advisor_and_waveform(lang, name):
     with TestClient(app) as client:
         page = client.get(f"/{lang}/voice")

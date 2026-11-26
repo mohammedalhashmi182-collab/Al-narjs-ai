@@ -8,10 +8,10 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if _lang == 'ar' %}{{ detail.name }} | النرجس للذكاء الاصطناعي{% else %}{{ detail.name_en }} | Al-Narjis AI{% endif %}</title>
+    <title>{% if _lang == 'ar' %}{{ detail.name }} | النرجس للذكاء الاصطناعي{% else %}{{ detail.name_en }} | Al Narjis AI{% endif %}</title>
     <meta name="description" content="{% if _lang == 'ar' %}{{ detail.tagline }}{% else %}{{ detail.tagline_en }}{% endif %}">
     <link rel="canonical" href="https://alnarjisai.com/{% if _lang == 'en' %}en{% else %}ar{% endif %}/packages/{{ detail.key }}">
-    <meta property="og:title" content="{% if _lang == 'ar' %}{{ detail.name }} | النرجس للذكاء الاصطناعي{% else %}{{ detail.name_en }} | Al-Narjis AI{% endif %}">
+    <meta property="og:title" content="{% if _lang == 'ar' %}{{ detail.name }} | النرجس للذكاء الاصطناعي{% else %}{{ detail.name_en }} | Al Narjis AI{% endif %}">
     <meta property="og:description" content="{% if _lang == 'ar' %}{{ detail.tagline }}{% else %}{{ detail.tagline_en }}{% endif %}">
     <meta property="og:url" content="https://alnarjisai.com/{% if _lang == 'en' %}en{% else %}ar{% endif %}/packages/{{ detail.key }}">
     <meta property="og:image" content="https://alnarjisai.com/brand/og-image.jpg">
@@ -56,8 +56,8 @@
 
     <footer class="n-footer py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="text-lg mb-2" style="color:var(--n-gold-2);">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
-            <p class="text-xs" style="opacity:0.7;">Al-Narjis AI · Riyadh · © 2026</p>
+            <div class="text-lg mb-2" style="color:var(--n-gold-2);">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al Narjis AI ✺</span>{% endif %}</div>
+            <p class="text-xs" style="opacity:0.7;">Al Narjis AI · Riyadh · © 2026</p>
             <p class="text-xs mt-3" style="opacity:0.6;">
                 {% if _lang == 'ar' %}<span>منصة النرجس · وثيقة عمل حر رقم FL-272182297 ·</span>{% else %}<span data-inline>Al-Narjis · Freelance document No. FL-272182297 ·</span>{% endif %}
                 <a href="/privacy" style="color:var(--n-gold);">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>

@@ -41,7 +41,7 @@ _NARJIS_AR = (
     "خدمة عملاء واتساب، ومتابعة المبيعات، والتسويق."
 )
 _NARJIS_EN = (
-    "Al-Narjis AI is an Arabic-first AI platform from Riyadh. An AI chief executive "
+    "Al Narjis AI is an Arabic-first AI platform from Riyadh. An AI chief executive "
     "takes the owner's goal and turns it into a team of AI agents. The roles include "
     "WhatsApp customer service, sales follow-up, and marketing."
 )
@@ -72,7 +72,7 @@ COMPARISONS: list[dict] = [
         "slug": "tidio",
         "name": "Tidio",
         "title_ar": "النرجس وTidio — مقارنة وصفية | النرجس للذكاء الاصطناعي",
-        "title_en": "Al-Narjis and Tidio — a factual comparison | Al-Narjis AI",
+        "title_en": "Al-Narjis and Tidio — a factual comparison | Al Narjis AI",
         "desc_ar": "مقارنة وصفية بين منصة النرجس من الرياض وTidio: اللغة، وشكل المنتج، والأسعار الشهرية بالريال. بلا عملاء مخترعين وبلا أرقام نتائج.",
         "desc_en": "A factual comparison of Al-Narjis, from Riyadh, and Tidio: language, product shape, and monthly prices in SAR. No invented clients and no result figures.",
         "h1_ar": "النرجس مقارنةً بـ Tidio",
@@ -116,7 +116,7 @@ COMPARISONS: list[dict] = [
         "slug": "manychat",
         "name": "ManyChat",
         "title_ar": "النرجس وManyChat — مقارنة وصفية | النرجس للذكاء الاصطناعي",
-        "title_en": "Al-Narjis and ManyChat — a factual comparison | Al-Narjis AI",
+        "title_en": "Al-Narjis and ManyChat — a factual comparison | Al Narjis AI",
         "desc_ar": "مقارنة وصفية بين منصة النرجس من الرياض وManyChat: مسارات الرسائل مقابل فريق يُبنى من هدف المالك. بلا عملاء مخترعين وبلا أرقام نتائج.",
         "desc_en": "A factual comparison of Al-Narjis, from Riyadh, and ManyChat: messaging flows against a team built from the owner's goal. No invented clients and no result figures.",
         "h1_ar": "النرجس مقارنةً بـ ManyChat",
@@ -160,7 +160,7 @@ COMPARISONS: list[dict] = [
         "slug": "intercom-fin",
         "name": "Intercom Fin",
         "title_ar": "النرجس وIntercom Fin — مقارنة وصفية | النرجس للذكاء الاصطناعي",
-        "title_en": "Al-Narjis and Intercom Fin — a factual comparison | Al-Narjis AI",
+        "title_en": "Al-Narjis and Intercom Fin — a factual comparison | Al Narjis AI",
         "desc_ar": "مقارنة وصفية بين منصة النرجس من الرياض وFin من Intercom: وكيل دعم مقابل فريق يُبنى من هدف المالك. بلا عملاء مخترعين وبلا أرقام نتائج.",
         "desc_en": "A factual comparison of Al-Narjis, from Riyadh, and Intercom's Fin: a support agent against a team built from the owner's goal. No invented clients and no result figures.",
         "h1_ar": "النرجس مقارنةً بـ Intercom Fin",

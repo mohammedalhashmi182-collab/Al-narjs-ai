@@ -2,7 +2,7 @@
 {% set _lang = page_lang(request) %}
 {% set _path = request.url.path %}
 {% if _path.startswith('/ar/') or _path.startswith('/en/') %}{% set _base_path = _path[3:] %}{% else %}{% set _base_path = _path %}{% endif %}
-{% set _title = "المستشار الذكي | النرجس للذكاء الاصطناعي" if _lang == 'ar' else "Smart Consultant | Al-Narjis AI" %}
+{% set _title = "المستشار الذكي | النرجس للذكاء الاصطناعي" if _lang == 'ar' else "Smart Consultant | Al Narjis AI" %}
 {% set _desc = "تحدث بحرية عن عملك وأسلوبك وبيئتك، ويرشدك المستشار الذكي للنرجس لأفضل الحلول والوكلاء المناسبين." if _lang == 'ar' else "Talk freely about your business, style and environment. The Al-Narjis Smart Consultant guides you to the right solutions and agents." %}
 {% set _img_alt = "شعار النرجس — حلول الذكاء الاصطناعي من الرياض" if _lang == 'ar' else "Al-Narjis logo — AI solutions from Riyadh" %}
 <html lang="{{ _lang }}" dir="{{ 'rtl' if _lang == 'ar' else 'ltr' }}">
@@ -21,7 +21,7 @@
     <link rel="alternate" hreflang="en" href="https://alnarjisai.com/en{{ _base_path }}">
     <link rel="alternate" hreflang="x-default" href="https://alnarjisai.com/ar{{ _base_path }}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Al-Narjis AI">
+    <meta property="og:site_name" content="Al Narjis AI">
     <meta property="og:title" content="{{ _title }}">
     <meta property="og:description" content="{{ _desc }}">
     <meta property="og:url" content="https://alnarjisai.com/{{ _lang }}{{ _base_path }}">
