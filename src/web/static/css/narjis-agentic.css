@@ -3,13 +3,13 @@
 
 html.cine-on,
 html.cine-fallback {
-  background: #f3f2f0;
+  background: #f6eefb;
 }
 html.cine-on body.nj,
 html.cine-fallback body.nj {
   background:
     radial-gradient(1200px 700px at 80% -10%, rgba(232, 228, 238, .9), transparent 60%),
-    linear-gradient(180deg, #f7f6f4 0%, #f3f2f0 38%, #eceaf1 100%);
+    linear-gradient(180deg, #f8f2fc 0%, #f6eefb 38%, #f3eaf8 100%);
   color: #161412;
 }
 html.cine-on #cineBg,
@@ -147,16 +147,16 @@ html.cine-fallback .nj .mobile-nav nav a:hover {
 html.cine-on .nj main .hero,
 html.cine-fallback .nj main .hero {
   min-height: 100svh;
-  background: #f3f2f0;
+  background: #f6eefb;
   color: #161412;
 }
 html.cine-on .nj .hero::after,
 html.cine-fallback .nj .hero::after {
-  background: linear-gradient(to left, rgba(243, 242, 240, .78) 0%, rgba(243, 242, 240, .35) 46%, rgba(243, 242, 240, 0) 72%);
+  background: linear-gradient(to left, rgba(246, 238, 251, .2) 0%, rgba(246, 238, 251, 0) 42%);
 }
 [dir="ltr"] html.cine-on .nj .hero::after,
 [dir="ltr"] html.cine-fallback .nj .hero::after {
-  background: linear-gradient(to right, rgba(243, 242, 240, .78) 0%, rgba(243, 242, 240, .35) 46%, rgba(243, 242, 240, 0) 72%);
+  background: linear-gradient(to right, rgba(246, 238, 251, .2) 0%, rgba(246, 238, 251, 0) 42%);
 }
 html.cine-on .nj main .hero h1.display,
 html.cine-fallback .nj main .hero h1.display {
@@ -513,7 +513,7 @@ html.cine-fallback .nj .vision p {
   html.cine-fallback .nj .hero::after,
   [dir="ltr"] html.cine-on .nj .hero::after,
   [dir="ltr"] html.cine-fallback .nj .hero::after {
-    background: linear-gradient(180deg, rgba(243, 242, 240, .25) 0%, rgba(243, 242, 240, .82) 48%, #f3f2f0 100%);
+    background: linear-gradient(180deg, rgba(246, 238, 251, .08) 0%, rgba(246, 238, 251, .4) 70%, #f6eefb 100%);
   }
   html.cine-on .nj main .hero h1.display,
   html.cine-fallback .nj main .hero h1.display {
@@ -544,7 +544,7 @@ html.cine-on,
 html.cine-fallback,
 html.cine-on body.nj,
 html.cine-fallback body.nj {
-  background: #f4f2f7;
+  background: #f6eefb;
   color: #1a1a1a;
 }
 html.cine-on .nj .nj-nav .wrap,
@@ -593,12 +593,14 @@ html.cine-fallback .nj .nj-nav .nav-cta {
 html.cine-on .nj main .hero,
 html.cine-fallback .nj main .hero {
   min-height: 100svh;
-  background: #f4f2f7;
+  background: #f6eefb;
 }
 html.cine-on .nj .hero-bg,
 html.cine-fallback .nj .hero-bg {
   transform: scaleX(-1);
-  object-position: center;
+  object-position: center 72%;
+  filter: none;
+  opacity: 1;
 }
 [dir="ltr"] html.cine-on .nj .hero-bg,
 [dir="ltr"] html.cine-fallback .nj .hero-bg {
@@ -606,11 +608,11 @@ html.cine-fallback .nj .hero-bg {
 }
 html.cine-on .nj .hero::after,
 html.cine-fallback .nj .hero::after {
-  background: linear-gradient(to left, rgba(244, 242, 247, .42) 0%, rgba(244, 242, 247, 0) 46%);
+  background: linear-gradient(to left, rgba(246, 238, 251, .16) 0%, rgba(246, 238, 251, 0) 40%);
 }
 [dir="ltr"] html.cine-on .nj .hero::after,
 [dir="ltr"] html.cine-fallback .nj .hero::after {
-  background: linear-gradient(to right, rgba(244, 242, 247, .42) 0%, rgba(244, 242, 247, 0) 46%);
+  background: linear-gradient(to right, rgba(246, 238, 251, .16) 0%, rgba(246, 238, 251, 0) 40%);
 }
 html.cine-on .nj main .hero > .wrap,
 html.cine-fallback .nj main .hero > .wrap {
@@ -745,7 +747,7 @@ html.cine-fallback #mbarWhatsapp {
   html.cine-fallback .nj .hero::after,
   [dir="ltr"] html.cine-on .nj .hero::after,
   [dir="ltr"] html.cine-fallback .nj .hero::after {
-    background: linear-gradient(180deg, rgba(244, 242, 247, .08) 0%, rgba(244, 242, 247, .55) 62%, #f4f2f7 100%);
+    background: linear-gradient(180deg, rgba(246, 238, 251, .06) 0%, rgba(246, 238, 251, .32) 68%, #f6eefb 100%);
   }
   html.cine-on .nj .hero .copy,
   html.cine-fallback .nj .hero .copy {

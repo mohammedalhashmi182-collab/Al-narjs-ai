@@ -461,7 +461,7 @@ def _najdi() -> str:
 
 
 def test_landing_declares_the_agentic_theme_colour() -> None:
-    assert '<meta name="theme-color" content="#f3f2f0">' in read("landing.html")
+    assert '<meta name="theme-color" content="#f6eefb">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
