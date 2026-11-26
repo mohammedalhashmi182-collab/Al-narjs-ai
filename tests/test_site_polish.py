@@ -88,7 +88,7 @@ def test_english_home_is_english(client):
     headings = re.findall(r"<h1\b[^>]*>(.*?)</h1>", html, re.S)
     assert len(headings) == 1
     h1 = re.sub(r"<[^>]+>", "", headings[0]).strip()
-    assert h1 == "An AI team for your business goal."
+    assert h1 == "Your AI employee answers customers while you sleep."
     assert "Tell the AI CEO what you need." in html
     for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S):
         assert not re.search(r"[\u0600-\u06FF]", block), block[:120]

@@ -460,8 +460,8 @@ def _najdi() -> str:
     return NAJDI_CSS.read_text(encoding="utf-8").lower()
 
 
-def test_landing_declares_the_najdi_theme_colour() -> None:
-    assert f'<meta name="theme-color" content="{NAJDI_TOKENS["--narjis-ink"]}">' in read("landing.html")
+def test_landing_declares_the_agentic_theme_colour() -> None:
+    assert '<meta name="theme-color" content="#f3f2f0">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
@@ -498,8 +498,8 @@ def test_najdi_text_meets_wcag_aa() -> None:
 
 def test_najdi_hero_has_a_bilingual_product_heading_and_a_real_image() -> None:
     body = read("landing.html")
-    assert '<h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>' in body
-    assert '<h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>' in body
+    assert '<h1 class="display" id="hero-h">موظفك الذكي يرد على عملائك وانت نايم.</h1>' in body
+    assert '<h1 class="display" id="hero-h">Your AI employee answers customers while you sleep.</h1>' in body
     assert "ناقش هدفك مع الرئيس التنفيذي" in body and "شاهد نموذج تسليم" in body
     assert "base64" not in body
     for img in ("hero-najdi.webp", "hero-najdi-800.webp"):

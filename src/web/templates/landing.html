@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#12100d">
+    <meta name="theme-color" content="#f3f2f0">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/brand/favicon.png" type="image/png" sizes="48x48">
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
@@ -127,9 +127,9 @@
     {% include "partials/_analytics.html" %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;600&display=swap"></noscript>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap"></noscript>
     <link rel="stylesheet" href="/static/brand/vnext/tokens.css">
     <link rel="stylesheet" href="/static/css/narjis-najdi.css">
     <link rel="stylesheet" href="/static/css/narjis-next-review.css">
@@ -137,6 +137,7 @@
     <link rel="stylesheet" href="/static/css/narjis-concierge.css">
     <link rel="stylesheet" href="/static/css/narjis-white-glass.css">
     <link rel="stylesheet" href="/static/css/narjis-hero-luxury.css">
+    <link rel="stylesheet" href="/static/css/narjis-agentic.css">
     <script>
     (function () {
       var on = false;
@@ -165,24 +166,27 @@
 
 <header class="nj-nav" id="nav">
     <div class="wrap">
-        {{ lockup(locale_path ~ '/home', 'النرجس' if ar else 'Al-Narjis', '/static/logo.svg', 'للذكاء الاصطناعي' if ar else 'AI') }}
+        {{ lockup(locale_path ~ '/home', 'النرجس AI' if ar else 'AL-NARJIS', '/static/logo.svg', '') }}
         <nav class="links" aria-label="{% if ar %}القائمة الرئيسية{% else %}Main navigation{% endif %}">
-            <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+            <a href="#services">{% if ar %}المنصة{% else %}Platform{% endif %}</a>
             <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
-            <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
-            <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
+            <a href="#how">{% if ar %}كيف يشتغل{% else %}How it works{% endif %}</a>
+            <a href="#integrations">{% if ar %}الربط{% else %}Integrations{% endif %}</a>
+            <a href="#pricing">{% if ar %}الأسعار{% else %}Pricing{% endif %}</a>
         </nav>
         <div class="navr">
             <a class="lang" data-lang-btn="ar" lang="ar" hreflang="ar" href="/ar{{ _base_path }}"{% if ar %} aria-current="true" hidden{% endif %}>العربية</a><a class="lang" data-lang-btn="en" lang="en" hreflang="en" href="/en{{ _base_path }}"{% if not ar %} aria-current="true" hidden{% endif %}>English</a>
             <a class="btn-login" href="/portal"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="5" r="3"/><path d="M2 15c1-3.5 11-3.5 12 0"/></svg>{% if ar %}دخول العملاء{% else %}Client login{% endif %}</a>
-            <a class="btn nav-cta" href="/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a>
+            <a class="btn nav-cta" href="/consult">{% if ar %}ابدأ التجربة{% else %}Start building{% endif %}</a>
             <details class="mobile-nav">
                 <summary>{% if ar %}القائمة{% else %}Menu{% endif %}</summary>
                 <nav aria-label="{% if ar %}أقسام الصفحة{% else %}Page sections{% endif %}">
-                    <a href="#how">{% if ar %}كيف يعمل{% else %}How it works{% endif %}</a>
+                    <a href="#services">{% if ar %}المنصة{% else %}Platform{% endif %}</a>
                     <a href="#team">{% if ar %}الوكلاء{% else %}Agents{% endif %}</a>
-                    <a href="#results">{% if ar %}نموذج عمل{% else %}Sample delivery{% endif %}</a>
-                    <a href="#pricing">{% if ar %}الباقات{% else %}Plans{% endif %}</a>
+                    <a href="#how">{% if ar %}كيف يشتغل{% else %}How it works{% endif %}</a>
+                    <a href="#integrations">{% if ar %}الربط{% else %}Integrations{% endif %}</a>
+                    <a href="#pricing">{% if ar %}الأسعار{% else %}Pricing{% endif %}</a>
+                    <a href="/consult">{% if ar %}ابدأ التجربة{% else %}Start building{% endif %}</a>
                     <a href="/portal">{% if ar %}دخول العملاء{% else %}Client login{% endif %}</a>
                 </nav>
             </details>
@@ -194,7 +198,7 @@
 <!-- ==================== HERO ==================== -->
 <section class="hero" id="top" aria-labelledby="hero-h">
     <div id="cineBg" aria-hidden="true"></div>
-    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="" decoding="async">
+    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="{% if ar %}أشكال زجاج بلوري وهرم بلوري على خلفية لؤلؤية{% else %}Frosted glass blocks and a crystal pyramid on a pearl background{% endif %}" fetchpriority="high" decoding="async">
     <div class="cine-stage" id="cineStage" aria-hidden="true"></div>
     <img class="cine-fallback-art" src="/static/img/narcissus-fallback.svg" width="400" height="520" alt="" decoding="async">
     <div class="wrap">
@@ -209,10 +213,20 @@
             </div>
             <p class="eyebrow">{% if ar %}ذكاء اصطناعي لأعمالك، من الرياض{% else %}Business AI from Riyadh{% endif %}</p>
             {% if ar %}
-            <h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>
+            <h1 class="display" id="hero-h">موظفك الذكي يرد على عملائك وانت نايم.</h1>
+            <ul class="ag-stats">
+                <li><b>24/7</b><span>رد على مدار الساعة</span></li>
+                <li><b>عربي</b><span>باللهجة السعودية</span></li>
+                <li><b>{{ plans|length }}</b><span>باقات تبدأ من {{ plans[0].price }} ر.س</span></li>
+            </ul>
             <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
             {% else %}
-            <h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>
+            <h1 class="display" id="hero-h">Your AI employee answers customers while you sleep.</h1>
+            <ul class="ag-stats">
+                <li><b>24/7</b><span>Replies around the clock</span></li>
+                <li><b>Arabic</b><span>Saudi dialect</span></li>
+                <li><b>{{ plans|length }}</b><span>Plans from SAR {{ plans[0].price }}</span></li>
+            </ul>
             <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
             {% endif %}
             <div class="ctas">
@@ -431,6 +445,33 @@
     </div>
 </section>
 
+<!-- ==================== INTEGRATIONS (channels we actually run) ==================== -->
+<section id="integrations" aria-labelledby="int-h">
+    <div class="wrap">
+        <div class="sh rv">
+            <div>
+                <p class="eyebrow">{% if ar %}الربط{% else %}Integrations{% endif %}</p>
+                <h2 id="int-h">{% if ar %}القنوات التي نربطها فعلًا{% else %}Channels we actually connect{% endif %}</h2>
+            </div>
+            <p>{% if ar %}واتساب لمراسلات عملائك، وبوت للموقع من معلوماتكم المعتمدة، والدفع بالبطاقة لاشتراكك. لا نعرض ربط متاجر كخدمة متاحة.{% else %}WhatsApp for your customers, a site bot built from your approved information, and card checkout for your subscription.{% endif %}</p>
+        </div>
+        <div class="ag-grid">
+            <div class="ag-card rv">
+                <h3>{% if ar %}واتساب{% else %}WhatsApp{% endif %}</h3>
+                <p>{% if ar %}قناة الباقات للرد على عملاء منشأتك. تُضبط اللهجة — منها اللهجة السعودية — عند الإعداد، ويراجع فريقك ما يُرسل.{% else %}The plan channel for replies to your customers. Dialect, including Saudi dialect, is set during setup, and your team reviews what goes out.{% endif %}</p>
+            </div>
+            <div class="ag-card rv">
+                <h3>{% if ar %}الموقع{% else %}Your website{% endif %}</h3>
+                <p>{% if ar %}بوت محادثة يفهم العربية واللهجة السعودية، ويجيب من معلوماتكم المعتمدة، ويحيل ما لا يعرفه. <a href="/services/chatbots">بوتات المحادثة</a>{% else %}A chatbot that understands Arabic and the Saudi dialect, answers from your approved information, and hands over what it does not know. <a href="/services/chatbots">Chatbots</a>{% endif %}</p>
+            </div>
+            <div class="ag-card rv">
+                <h3>Moyasar</h3>
+                <p>{% if ar %}اشتراكك يُدفع بالبطاقة — مدى أو فيزا أو ماستركارد — من صفحة الدفع الآمنة.{% if vat_enabled() %} الأسعار قبل الضريبة، وتُضاف عند الدفع.{% endif %}{% else %}Your subscription is paid by card — mada, Visa, or Mastercard — on the secure checkout page.{% if vat_enabled() %} Prices are before VAT.{% endif %}{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ==================== START: real CEO diagnosis ==================== -->
 <section class="final" id="consult" aria-labelledby="final-h">
     <div class="wrap">
@@ -555,7 +596,7 @@
 
 <!-- Mobile actions -->
 <div class="mbar">
-    <a class="btn" href="/consult">{% if ar %}ابدأ التشخيص{% else %}Start a diagnosis{% endif %}</a>
+    <a class="btn" href="/consult">{% if ar %}ابدأ التجربة{% else %}Start building{% endif %}</a>
     <a class="btn-sec" id="mbarWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer" aria-label="{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}">{% if ar %}واتساب{% else %}WhatsApp{% endif %}</a>
 </div>
 

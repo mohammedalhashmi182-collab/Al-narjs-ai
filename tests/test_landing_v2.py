@@ -89,7 +89,9 @@ def test_trust_badges_and_vision_disclaimer(page: str) -> None:
     assert "FL-272182297" in page
     assert "بتحويل بنكي مقابل فاتورة من صفحة الدفع" not in page
     assert "قيد التفعيل" not in page and "paymentsClosedBanner" not in page
-    assert "Moyasar" not in page
+    # Named once, as the card processor in the integrations section — not a trust badge.
+    assert page.count("Moyasar") == 1
+    assert 'id="integrations"' in page
     assert 'id="vision"' in page
     assert "لسنا جهة حكومية" in page
 
