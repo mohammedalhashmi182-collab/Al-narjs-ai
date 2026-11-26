@@ -98,6 +98,28 @@ def test_redirect_waits_until_domain_setting_moves(monkeypatch):
         assert render.headers["location"] == "https://alnarjisai.com/ar/home"
 
 
+def test_disable_legacy_redirect_serves_the_render_preview(monkeypatch):
+    monkeypatch.setattr(settings, "domain", "alnarjisai.com")
+    host = {"Host": "alnarjis-preview-pr200.onrender.com"}
+    for value in ("1", "true", "TRUE"):
+        monkeypatch.setenv("DISABLE_LEGACY_REDIRECT", value)
+        with TestClient(app, follow_redirects=False) as client:
+            page = client.get("/ar/home", headers=host)
+            assert page.status_code == 200, value
+            assert page.headers.get("location") is None
+
+
+def test_disable_legacy_redirect_ignores_other_values(monkeypatch):
+    monkeypatch.setattr(settings, "domain", "alnarjisai.com")
+    host = {"Host": "alnarjis-preview-pr200.onrender.com"}
+    for value in ("", "0", "false", "yes"):
+        monkeypatch.setenv("DISABLE_LEGACY_REDIRECT", value)
+        with TestClient(app, follow_redirects=False) as client:
+            page = client.get("/ar/home", headers=host)
+            assert page.status_code == 301, value
+            assert page.headers["location"] == "https://alnarjisai.com/ar/home"
+
+
 def test_both_status_hosts_open_the_status_page():
     assert status_host_home("status.alnarjisai.com", "/") == "/ar/status"
     assert status_host_home("status.karmaai.online", "/en") == "/en/status"

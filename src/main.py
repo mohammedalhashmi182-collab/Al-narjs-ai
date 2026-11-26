@@ -830,8 +830,18 @@ def _is_render_fallback_host(hostname: str) -> bool:
     return hostname == "onrender.com" or hostname.endswith(".onrender.com")
 
 
+def _legacy_redirect_disabled() -> bool:
+    """Preview hosts set DISABLE_LEGACY_REDIRECT=1 so *.onrender.com is served.
+
+    Production leaves the variable unset, so the 301 stays.
+    """
+    return os.getenv("DISABLE_LEGACY_REDIRECT", "").strip().lower() in {"1", "true"}
+
+
 def _should_canonical_host_redirect(hostname: str, method: str, path: str) -> bool:
     """GET/HEAD on a leftover host, except health checks and webhooks."""
+    if _legacy_redirect_disabled():
+        return False
     if method not in {"GET", "HEAD"}:
         return False
     if path == "/health" or path.startswith("/webhooks/"):
