@@ -404,18 +404,23 @@ html.cine-fallback .nj .steps.flow .n {
 }
 html.cine-on .nj .steps.flow .shot,
 html.cine-fallback .nj .steps.flow .shot {
-  height: 188px;
-  display: grid;
-  place-items: end center;
-  margin: 10px 0 6px;
+  height: 268px;
+  margin: 4px -4px 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f4eefb 0%, #fbf8fe 46%, #ffffff 100%);
 }
 html.cine-on .nj .steps.flow .shot img,
 html.cine-fallback .nj .steps.flow .shot img {
+  display: block;
   width: 100%;
-  height: 180px;
-  object-fit: contain;
-  -webkit-mask-image: linear-gradient(#000 58%, transparent 96%);
-  mask-image: linear-gradient(#000 58%, transparent 96%);
+  max-width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;
+  transform: scale(1.55);
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 html.cine-on .nj .steps.flow h3,
 html.cine-fallback .nj .steps.flow h3 {
