@@ -640,7 +640,10 @@ html.cine-fallback .nj .logo {
 }
 html.cine-on .nj .nj-nav .logo img,
 html.cine-fallback .nj .nj-nav .logo img {
-  display: none;
+  display: block;
+  position: static;
+  width: 28px;
+  height: 28px;
 }
 html.cine-on .nj main .hero h1.display,
 html.cine-fallback .nj main .hero h1.display {
@@ -729,9 +732,9 @@ html.cine-on .nj .btn:hover,
 html.cine-fallback .nj .btn:hover,
 html.cine-on .nj main .hero .btn:hover,
 html.cine-fallback .nj main .hero .btn:hover {
-  background: #161616;
-  color: #f7f6f4;
-  border-color: #161616;
+  background: rgba(255, 255, 255, .9);
+  color: #1a1a1a;
+  border-color: rgba(90, 70, 130, .35);
 }
 html.cine-on #heroWhatsapp,
 html.cine-fallback #heroWhatsapp,
@@ -768,5 +771,177 @@ html.cine-fallback #mbarWhatsapp {
   html.cine-on .nj main .hero .btn-sec,
   html.cine-fallback .nj main .hero .btn-sec {
     width: auto;
+  }
+}
+
+/* Reference palette only: pale lilac field, glass cards, dark type, no orange fills and no black sections. */
+html.cine-on body.nj,
+html.cine-fallback body.nj,
+html.cine-on body.nj main,
+html.cine-fallback body.nj main,
+html.cine-on body.nj .scene,
+html.cine-fallback body.nj .scene,
+html.cine-on body.nj .ivory,
+html.cine-fallback body.nj .ivory,
+html.cine-on body.nj .sec,
+html.cine-fallback body.nj .sec,
+html.cine-on body.nj .final,
+html.cine-fallback body.nj .final,
+html.cine-on body.nj .cine-chapter,
+html.cine-fallback body.nj .cine-chapter {
+  background: transparent;
+  color: #1a1a1a;
+}
+html.cine-on body.nj a,
+html.cine-fallback body.nj a {
+  color: #2c2636;
+}
+html.cine-on body.nj .num,
+html.cine-fallback body.nj .num,
+html.cine-on body.nj .eyebrow,
+html.cine-fallback body.nj .eyebrow,
+html.cine-on body.nj .eyebrow::before,
+html.cine-fallback body.nj .eyebrow::before,
+html.cine-on body.nj .feat-h,
+html.cine-fallback body.nj .feat-h,
+html.cine-on body.nj .plan.is-rec .feat-h,
+html.cine-fallback body.nj .plan.is-rec .feat-h,
+html.cine-on body.nj .lbl,
+html.cine-fallback body.nj .lbl,
+html.cine-on body.nj .tk[aria-selected=true] .num,
+html.cine-fallback body.nj .tk[aria-selected=true] .num,
+html.cine-on body.nj .dv summary .num,
+html.cine-fallback body.nj .dv summary .num,
+html.cine-on body.nj .vision .big,
+html.cine-fallback body.nj .vision .big {
+  color: #5c5370;
+  border-color: rgba(92, 83, 112, .28);
+}
+html.cine-on body.nj .eyebrow::before,
+html.cine-fallback body.nj .eyebrow::before {
+  background: #8a78c8;
+}
+html.cine-on body.nj .skip,
+html.cine-fallback body.nj .skip,
+html.cine-on body.nj .badge,
+html.cine-fallback body.nj .badge,
+html.cine-on body.nj .simtag,
+html.cine-fallback body.nj .simtag,
+html.cine-on body.nj .plan .ribbon,
+html.cine-fallback body.nj .plan .ribbon,
+html.cine-on body.nj .ceo-avatar,
+html.cine-fallback body.nj .ceo-avatar,
+html.cine-on body.nj .founder-disc,
+html.cine-fallback body.nj .founder-disc,
+html.cine-on body.nj .ctrl .nx,
+html.cine-fallback body.nj .ctrl .nx,
+html.cine-on body.nj #pricing .btn-primary,
+html.cine-fallback body.nj #pricing .btn-primary,
+html.cine-on body.nj .btn,
+html.cine-fallback body.nj .btn,
+html.cine-on body.nj .btn-primary,
+html.cine-fallback body.nj .btn-primary,
+html.cine-on body.nj .nav-cta,
+html.cine-fallback body.nj .nav-cta {
+  background: rgba(255, 255, 255, .72);
+  color: #1a1a1a;
+  border: 1px solid rgba(26, 26, 26, .22);
+  box-shadow: none;
+}
+html.cine-on body.nj .ngc-online,
+html.cine-fallback body.nj .ngc-online,
+html.cine-on body.nj .ceo-online,
+html.cine-fallback body.nj .ceo-online {
+  background: #8a78c8;
+  box-shadow: none;
+}
+html.cine-on body.nj .cine-phone,
+html.cine-fallback body.nj .cine-phone,
+html.cine-on body.nj .cine-bubble,
+html.cine-fallback body.nj .cine-bubble,
+html.cine-on body.nj .cine-bubble.in,
+html.cine-fallback body.nj .cine-bubble.in,
+html.cine-on body.nj .cine-bubble.out,
+html.cine-fallback body.nj .cine-bubble.out,
+html.cine-on body.nj .cine-bubble.missed,
+html.cine-fallback body.nj .cine-bubble.missed {
+  background: rgba(255, 255, 255, .78);
+  color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, .95);
+}
+html.cine-on body.nj .cine-unread,
+html.cine-fallback body.nj .cine-unread {
+  background: rgba(138, 120, 200, .16);
+  color: #4c3d78;
+}
+html.cine-on body.nj .ceo-box,
+html.cine-fallback body.nj .ceo-box,
+html.cine-on body.nj #ceoBusiness,
+html.cine-fallback body.nj #ceoBusiness,
+html.cine-on body.nj #ceoForm textarea,
+html.cine-fallback body.nj #ceoForm textarea {
+  background: rgba(255, 255, 255, .82);
+  color: #1a1a1a;
+  border: 1px solid rgba(90, 70, 130, .2);
+}
+html.cine-on body.nj #ceoForm textarea::placeholder,
+html.cine-fallback body.nj #ceoForm textarea::placeholder,
+html.cine-on body.nj #ceoBusiness::placeholder,
+html.cine-fallback body.nj #ceoBusiness::placeholder {
+  color: #7a7388;
+}
+html.cine-on body.nj .compare,
+html.cine-fallback body.nj .compare,
+html.cine-on body.nj .compare thead th,
+html.cine-fallback body.nj .compare thead th,
+html.cine-on body.nj .compare td,
+html.cine-fallback body.nj .compare td,
+html.cine-on body.nj .compare .is-rec,
+html.cine-fallback body.nj .compare .is-rec {
+  background: rgba(255, 255, 255, .55);
+  color: #1a1a1a;
+}
+html.cine-on body.nj .mbar,
+html.cine-fallback body.nj .mbar {
+  background: rgba(246, 238, 251, .92);
+  border-top: 1px solid rgba(90, 70, 130, .16);
+}
+html.cine-on body.nj .foot-brand,
+html.cine-fallback body.nj .foot-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  color: #1a1a1a;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+html.cine-on body.nj .foot-brand img,
+html.cine-fallback body.nj .foot-brand img {
+  width: 36px;
+  height: 36px;
+}
+body.nj #cookieConsent {
+  background: rgba(255, 255, 255, .9);
+  color: #1a1a1a;
+  border: 1px solid rgba(90, 70, 130, .18);
+  box-shadow: 0 12px 30px rgba(40, 30, 70, .08);
+}
+body.nj #cookieConsent a { color: #5c4d86; }
+body.nj #cookieConsent button,
+body.nj #cookieConsent button.pri {
+  background: rgba(255, 255, 255, .9);
+  color: #1a1a1a;
+  border: 1px solid rgba(26, 26, 26, .22);
+}
+@media (max-width: 980px) {
+  html.cine-on .nj .mbar #mbarWhatsapp,
+  html.cine-fallback .nj .mbar #mbarWhatsapp {
+    color: #1a1a1a;
+    border-color: rgba(26, 26, 26, .22);
+    background: rgba(255, 255, 255, .92);
+    font-weight: 500;
   }
 }

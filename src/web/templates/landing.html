@@ -527,7 +527,7 @@
 
 <!-- ==================== PLANS (shared partial: prices and plan content from src/services/catalog.py) ==================== -->
 {% include "partials/_pricing_section.html" %}
-<div class="wrap"><p class="ceo-pick">{% if ar %}يرشّح لك الرئيس التنفيذي الباقة المناسبة بعد النقاش. <a href="/consult" style="color:var(--nj-accent)">ناقش هدفك مع الرئيس التنفيذي</a>{% else %}The CEO recommends the right plan after your conversation. <a href="/consult" style="color:var(--nj-accent)">Discuss your goal with the CEO</a>{% endif %}</p></div>
+<div class="wrap"><p class="ceo-pick">{% if ar %}يرشّح لك الرئيس التنفيذي الباقة المناسبة بعد النقاش. <a href="/consult">ناقش هدفك مع الرئيس التنفيذي</a>{% else %}The CEO recommends the right plan after your conversation. <a href="/consult">Discuss your goal with the CEO</a>{% endif %}</p></div>
 <div class="wrap"><p class="guar">{% if ar %}ابدأ تشخيصاً، وترى الفريق والسعر كاملاً قبل أي التزام. شهري وبلا عقد طويل: ألغِ في أي وقت قبل التجديد، كما في <a href="/terms">الشروط</a>. تبقى الخدمة حتى نهاية الفترة المدفوعة. لا نعد هنا بنتيجة استرداد، وأسئلة الاسترداد تُراجع عبر البريد AlNarjisai@gmail.com.{% else %}Start a diagnosis, and you see the team and the full price before any commitment. Monthly with no long contract: cancel any time before renewal, per the <a href="/terms">terms</a>. The service continues until the end of the paid period. We do not promise a refund outcome here. Refund questions are reviewed by email at AlNarjisai@gmail.com.{% endif %}</p></div>
 
 <section class="white-label" id="white-label" aria-labelledby="white-label-h">
@@ -581,6 +581,10 @@
 
 <footer class="nj-footer" id="site-footer">
     <div class="wrap">
+        <a class="foot-brand" href="{{ locale_path }}/home">
+            <img src="/static/logo.svg" alt="" width="36" height="36">
+            <span>{% if ar %}النرجس AI{% else %}AL-NARJIS{% endif %}</span>
+        </a>
         <nav class="svc-links" aria-label="{% if ar %}روابط المنصة{% else %}Platform links{% endif %}">
             <a href="/portal">{% if ar %}بوابة العميل{% else %}Client portal{% endif %}</a>
             <a href="/ai-agents-saudi-businesses">{% if ar %}وكلاء الذكاء الاصطناعي في السعودية{% else %}AI agents in KSA{% endif %}</a>
@@ -807,5 +811,6 @@
 })();
 </script>
 {% include "partials/_voice_launcher.html" %}
+<link rel="stylesheet" href="/static/css/narjis-agentic.css">
 </body>
 </html>
