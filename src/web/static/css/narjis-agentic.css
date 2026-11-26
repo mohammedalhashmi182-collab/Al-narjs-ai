@@ -393,17 +393,22 @@ html.cine-fallback .nj .steps.flow .step {
 html.cine-on .nj .steps.flow .n,
 html.cine-fallback .nj .steps.flow .n {
   position: absolute;
-  top: 16px;
-  inset-inline-start: 18px;
+  z-index: 3;
+  top: 14px;
+  inset-inline-start: 16px;
   font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: .06em;
-  color: #a39bb0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  color: #5c5670;
   line-height: 1;
+  text-shadow: 0 0 8px #fff, 0 0 2px #fff;
+  pointer-events: none;
 }
 html.cine-on .nj .steps.flow .shot,
 html.cine-fallback .nj .steps.flow .shot {
+  position: relative;
+  z-index: 0;
   height: 268px;
   margin: 4px -4px 0;
   overflow: hidden;
@@ -416,9 +421,9 @@ html.cine-fallback .nj .steps.flow .shot img {
   width: 100%;
   max-width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 46%;
-  transform: scale(1.55);
+  object-fit: contain;
+  object-position: center center;
+  transform: none;
   -webkit-mask-image: none;
   mask-image: none;
 }
