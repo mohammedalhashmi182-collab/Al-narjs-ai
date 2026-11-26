@@ -538,3 +538,230 @@ html.cine-fallback .nj .vision p {
     transition: none;
   }
 }
+
+/* Reference match: pale field, pill nav, type over the glass, no filled accent buttons. */
+html.cine-on,
+html.cine-fallback,
+html.cine-on body.nj,
+html.cine-fallback body.nj {
+  background: #f4f2f7;
+  color: #1a1a1a;
+}
+html.cine-on .nj .nj-nav .wrap,
+html.cine-fallback .nj .nj-nav .wrap {
+  width: min(820px, calc(100% - 28px));
+  min-height: 52px;
+  padding: 6px 8px 6px 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(255, 255, 255, .95);
+  box-shadow: 0 10px 28px rgba(22, 20, 18, .06);
+}
+html.cine-on .nj .logo-txt,
+html.cine-fallback .nj .logo-txt {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .22em;
+}
+html.cine-on .nj .links,
+html.cine-fallback .nj .links {
+  font-size: 14px;
+  font-weight: 400;
+  color: #3c3c3c;
+}
+html.cine-on .nj .links a,
+html.cine-fallback .nj .links a {
+  color: #3c3c3c;
+}
+html.cine-on .nj .btn-login,
+html.cine-fallback .nj .btn-login {
+  display: none;
+}
+html.cine-on .nj .nj-nav .nav-cta,
+html.cine-fallback .nj .nj-nav .nav-cta {
+  border-radius: 999px;
+  border: 1px solid rgba(22, 22, 22, .28);
+  background: transparent;
+  color: #1a1a1a;
+  min-height: 34px;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  box-shadow: none;
+}
+html.cine-on .nj main .hero,
+html.cine-fallback .nj main .hero {
+  min-height: 100svh;
+  background: #f4f2f7;
+}
+html.cine-on .nj .hero-bg,
+html.cine-fallback .nj .hero-bg {
+  transform: scaleX(-1);
+  object-position: center;
+}
+[dir="ltr"] html.cine-on .nj .hero-bg,
+[dir="ltr"] html.cine-fallback .nj .hero-bg {
+  transform: none;
+}
+html.cine-on .nj .hero::after,
+html.cine-fallback .nj .hero::after {
+  background: linear-gradient(to left, rgba(244, 242, 247, .42) 0%, rgba(244, 242, 247, 0) 46%);
+}
+[dir="ltr"] html.cine-on .nj .hero::after,
+[dir="ltr"] html.cine-fallback .nj .hero::after {
+  background: linear-gradient(to right, rgba(244, 242, 247, .42) 0%, rgba(244, 242, 247, 0) 46%);
+}
+html.cine-on .nj main .hero > .wrap,
+html.cine-fallback .nj main .hero > .wrap {
+  display: block;
+  max-width: 1180px;
+  min-height: calc(100svh - 24px);
+  padding-top: 128px;
+  padding-bottom: 56px;
+}
+html.cine-on .nj .hero .copy,
+html.cine-fallback .nj .hero .copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: min(640px, 56%);
+}
+html.cine-on .nj .hero .eyebrow,
+html.cine-fallback .nj .hero .eyebrow {
+  display: none;
+}
+html.cine-on .nj .logo,
+html.cine-fallback .nj .logo {
+  position: relative;
+}
+html.cine-on .nj .nj-nav .logo img,
+html.cine-fallback .nj .nj-nav .logo img {
+  display: none;
+}
+html.cine-on .nj main .hero h1.display,
+html.cine-fallback .nj main .hero h1.display {
+  order: 1;
+  font-weight: 300;
+  font-size: clamp(52px, 6.6vw, 92px);
+  line-height: .96;
+  letter-spacing: -.04em;
+  max-width: 10.5em;
+  margin: 0;
+  color: #141414;
+}
+html.cine-on .nj .hero .ag-stats,
+html.cine-fallback .nj .hero .ag-stats {
+  order: 2;
+  gap: 48px;
+  margin: 42px 0 0;
+}
+html.cine-on .nj .ag-stats b,
+html.cine-fallback .nj .ag-stats b {
+  font-weight: 400;
+  font-size: clamp(34px, 3.2vw, 46px);
+  letter-spacing: -.03em;
+  color: #1a1a1a;
+}
+html.cine-on .nj .ag-stats span,
+html.cine-fallback .nj .ag-stats span {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+html.cine-on .nj .hero .lead,
+html.cine-fallback .nj .hero .lead {
+  order: 4;
+  font-weight: 400;
+  font-size: 16px;
+  color: #4a4a4a;
+  margin: 22px 0 0;
+}
+html.cine-on .nj .hero .ctas,
+html.cine-fallback .nj .hero .ctas {
+  order: 5;
+  margin-top: 18px;
+}
+html.cine-on .nj .hero .nj-brand-row,
+html.cine-fallback .nj .hero .nj-brand-row {
+  order: 6;
+  margin: 18px 0 0;
+}
+html.cine-on .nj main .hero .nj-voice-inline,
+html.cine-fallback .nj main .hero .nj-voice-inline {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #4a4a4a;
+  font-weight: 400;
+  font-size: 14px;
+  min-height: 0;
+  padding: 0;
+}
+html.cine-on .nj .hero .portal,
+html.cine-fallback .nj .hero .portal {
+  display: none;
+}
+html.cine-on .nj .btn,
+html.cine-fallback .nj .btn,
+html.cine-on .nj .btn-primary,
+html.cine-fallback .nj .btn-primary,
+html.cine-on .nj main .hero .btn,
+html.cine-fallback .nj main .hero .btn,
+html.cine-on .nj main .hero .btn-sec,
+html.cine-fallback .nj main .hero .btn-sec {
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid rgba(22, 22, 22, .28);
+  box-shadow: none;
+  border-radius: 999px;
+  font-weight: 500;
+}
+html.cine-on .nj .btn:hover,
+html.cine-fallback .nj .btn:hover,
+html.cine-on .nj main .hero .btn:hover,
+html.cine-fallback .nj main .hero .btn:hover {
+  background: #161616;
+  color: #f7f6f4;
+  border-color: #161616;
+}
+html.cine-on #heroWhatsapp,
+html.cine-fallback #heroWhatsapp,
+html.cine-on #mbarWhatsapp,
+html.cine-fallback #mbarWhatsapp {
+  background: transparent;
+  color: #1a1a1a;
+  border-color: rgba(22, 22, 22, .28);
+}
+
+@media (max-width: 980px) {
+  html.cine-on .nj .hero::after,
+  html.cine-fallback .nj .hero::after,
+  [dir="ltr"] html.cine-on .nj .hero::after,
+  [dir="ltr"] html.cine-fallback .nj .hero::after {
+    background: linear-gradient(180deg, rgba(244, 242, 247, .08) 0%, rgba(244, 242, 247, .55) 62%, #f4f2f7 100%);
+  }
+  html.cine-on .nj .hero .copy,
+  html.cine-fallback .nj .hero .copy {
+    max-width: 100%;
+  }
+  html.cine-on .nj main .hero h1.display,
+  html.cine-fallback .nj main .hero h1.display {
+    font-size: clamp(40px, 11vw, 58px);
+    max-width: 100%;
+  }
+  html.cine-on .nj main .hero .ctas,
+  html.cine-fallback .nj main .hero .ctas {
+    flex-direction: row;
+    align-items: center;
+  }
+  html.cine-on .nj main .hero .btn,
+  html.cine-fallback .nj main .hero .btn,
+  html.cine-on .nj main .hero .btn-sec,
+  html.cine-fallback .nj main .hero .btn-sec {
+    width: auto;
+  }
+}

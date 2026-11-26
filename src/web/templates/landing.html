@@ -198,7 +198,7 @@
 <!-- ==================== HERO ==================== -->
 <section class="hero" id="top" aria-labelledby="hero-h">
     <div id="cineBg" aria-hidden="true"></div>
-    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="{% if ar %}أشكال زجاج بلوري وهرم بلوري على خلفية لؤلؤية{% else %}Frosted glass blocks and a crystal pyramid on a pearl background{% endif %}" fetchpriority="high" decoding="async">
+    <img class="hero-bg" src="/static/img/hero-najdi.webp" srcset="/static/img/hero-najdi-800.webp 800w, /static/img/hero-najdi.webp 1280w" sizes="100vw" width="1280" height="720" alt="{% if ar %}مكعبات زجاج بلوري وهرم بلوري وكرات زجاجية على خلفية بيضاء فاتحة{% else %}Frosted glass cubes, a crystal pyramid and glass spheres on a pale background{% endif %}" fetchpriority="high" decoding="async">
     <div class="cine-stage" id="cineStage" aria-hidden="true"></div>
     <img class="cine-fallback-art" src="/static/img/narcissus-fallback.svg" width="400" height="520" alt="" decoding="async">
     <div class="wrap">
@@ -217,7 +217,7 @@
             <ul class="ag-stats">
                 <li><b>24/7</b><span>رد على مدار الساعة</span></li>
                 <li><b>عربي</b><span>باللهجة السعودية</span></li>
-                <li><b>{{ plans|length }}</b><span>باقات تبدأ من {{ plans[0].price }} ر.س</span></li>
+                <li><b>{{ plans[0].price }}</b><span>ر.س</span></li>
             </ul>
             <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
             {% else %}
@@ -225,7 +225,7 @@
             <ul class="ag-stats">
                 <li><b>24/7</b><span>Replies around the clock</span></li>
                 <li><b>Arabic</b><span>Saudi dialect</span></li>
-                <li><b>{{ plans|length }}</b><span>Plans from SAR {{ plans[0].price }}</span></li>
+                <li><b>{{ plans[0].price }}</b><span>SAR</span></li>
             </ul>
             <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
             {% endif %}
@@ -466,7 +466,7 @@
             </div>
             <div class="ag-card rv">
                 <h3>Moyasar</h3>
-                <p>{% if ar %}اشتراكك يُدفع بالبطاقة — مدى أو فيزا أو ماستركارد — من صفحة الدفع الآمنة.{% if vat_enabled() %} الأسعار قبل الضريبة، وتُضاف عند الدفع.{% endif %}{% else %}Your subscription is paid by card — mada, Visa, or Mastercard — on the secure checkout page.{% if vat_enabled() %} Prices are before VAT.{% endif %}{% endif %}</p>
+                <p>{% if ar %}اشتراكك يُدفع بالبطاقة — مدى أو فيزا أو ماستركارد — من صفحة الدفع الآمنة. السعر الظاهر هو سعر الباقة.{% else %}Your subscription is paid by card — mada, Visa, or Mastercard — on the secure checkout page. The price shown is the plan price.{% endif %}</p>
             </div>
         </div>
     </div>
