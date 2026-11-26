@@ -627,6 +627,7 @@ html.cine-on body.nj,
 html.cine-fallback body.nj {
   background: #f6eefb;
   color: #1a1a1a;
+  overflow-x: clip;
 }
 html.cine-on .nj .nj-nav .wrap,
 html.cine-fallback .nj .nj-nav .wrap {
@@ -707,6 +708,7 @@ html.cine-on .nj main .hero,
 html.cine-fallback .nj main .hero {
   min-height: 100svh;
   background: #f6eefb;
+  overflow-x: clip;
 }
 html.cine-on .nj .hero-bg,
 html.cine-fallback .nj .hero-bg {
@@ -1136,6 +1138,7 @@ body.nj #cookieConsent {
   color: #1a1a1a;
   border: 1px solid rgba(90, 70, 130, .18);
   box-shadow: 0 12px 30px rgba(40, 30, 70, .08);
+  z-index: 80;
 }
 body.nj #cookieConsent a { color: #5c4d86; }
 body.nj #cookieConsent button,
@@ -1157,5 +1160,21 @@ body.nj #cookieConsent button.pri {
   html.cine-on .nj .steps.flow,
   html.cine-fallback .nj .steps.flow {
     grid-template-columns: 1fr;
+  }
+  html.cine-on .nj .compare,
+  html.cine-fallback .nj .compare {
+    min-width: 0;
+    width: 100%;
+  }
+  html.cine-on .nj .compare th,
+  html.cine-fallback .nj .compare th,
+  html.cine-on .nj .compare td,
+  html.cine-fallback .nj .compare td {
+    overflow-wrap: anywhere;
+  }
+  html.cine-on .nj .hero-gem,
+  html.cine-fallback .nj .hero-gem {
+    width: 72px;
+    inset-inline-end: 8px;
   }
 }
