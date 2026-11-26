@@ -420,11 +420,23 @@ html.cine-fallback .nj .plan .ribbon {
   background: #161412;
   color: #f7f6f4;
 }
+html.cine-on .nj .track,
+html.cine-fallback .nj .track {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
+}
 html.cine-on .nj .tk,
 html.cine-fallback .nj .tk {
   border-top: 0;
   padding: 16px;
   text-align: start;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html.cine-on .nj .tk b,
+html.cine-fallback .nj .tk b {
+  overflow-wrap: anywhere;
 }
 html.cine-on .nj .tk b,
 html.cine-fallback .nj .tk b,
