@@ -1302,6 +1302,25 @@ async def google_site_verification():
     )
 
 
+_WASHOUT_DEMO_PAGE = Path(__file__).resolve().parent / "web" / "static" / "demo" / "washout.html"
+_WASHOUT_DEMO_HEADERS = {
+    "Cache-Control": "public, max-age=300",
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+}
+
+
+@app.get("/demo/washout", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/demo/washout/", response_class=HTMLResponse, include_in_schema=False)
+async def washout_demo_page():
+    """Pre-written Wash Out example conversation. Not a live bot. Noindex."""
+    if not _WASHOUT_DEMO_PAGE.is_file():
+        raise HTTPException(404, "Not Found")
+    return HTMLResponse(
+        _WASHOUT_DEMO_PAGE.read_text(encoding="utf-8"),
+        headers=_WASHOUT_DEMO_HEADERS,
+    )
+
+
 @app.get("/robots.txt", response_class=HTMLResponse)
 async def robots_txt():
     from fastapi.responses import PlainTextResponse
