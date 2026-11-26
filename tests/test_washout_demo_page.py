@@ -30,6 +30,10 @@ def test_washout_demo_page_renders_arabic_example(client: TestClient, path: str)
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     assert "noindex" in response.headers.get("x-robots-tag", "").lower()
+    # curl -sI sends HEAD. The route must answer 200 with the same noindex tag.
+    head = client.head(path, follow_redirects=False)
+    assert head.status_code == 200
+    assert "noindex" in head.headers.get("x-robots-tag", "").lower()
     html = response.text
     assert 'lang="ar"' in html
     assert 'dir="rtl"' in html
