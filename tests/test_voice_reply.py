@@ -32,6 +32,8 @@ def test_spoken_prompt_keeps_prices_and_drops_vat_and_store_claims() -> None:
     assert "Do not say Salla or Zid" in prompt
     assert "Do not invent clients" in prompt
     assert "Saudi-friendly Arabic" in prompt
+    assert "clear, neutral conversational Arabic" in prompt
+    assert "at most two short sentences" in prompt
 
 
 def test_store_claim_is_not_spoken() -> None:

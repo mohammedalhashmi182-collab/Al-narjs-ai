@@ -56,8 +56,8 @@
         title: "تحدّث مع مستشار النرجس الذكي",
         textChat: "دردشة نصية",
         noSpeech: "ما قدرنا نسمعك. جرّب مكالمة جديدة أو استخدم الدردشة النصية.",
-        noAudio: "ما قدرنا نشغّل الصوت على جهازك. تقدر تكمّل كتابة.",
-        hello: "حياك الله في النرجس. معك مستشار النرجس الذكي. كيف أقدر أساعدك؟",
+        noAudio: "ما قدرنا نشغّل صوتًا عربيًا على جهازك. يمكنك المتابعة كتابةً.",
+        hello: "أهلًا، أنا مستشار النرجس الذكي. كيف أساعدك؟",
         placeholder: "اكتب لمستشار النرجس",
       };
 
@@ -808,31 +808,77 @@
   function pickVoice() {
     if (!window.speechSynthesis || !window.speechSynthesis.getVoices) return null;
     const voices = window.speechSynthesis.getVoices() || [];
-    if (EN) return voices.find((voice) => /en[-_]US/i.test(voice.lang)) || voices.find((voice) => /^en/i.test(voice.lang)) || null;
-    return voices.find((voice) => /^ar/i.test(voice.lang)) || voices.find((voice) => /ar/i.test(voice.lang)) || null;
+    let best = null;
+    let bestScore = -1;
+    for (const voice of voices) {
+      const lang = String(voice.lang || "").toLowerCase().replaceAll("_", "-");
+      if (EN ? !/^en(?:-|$)/.test(lang) : !/^ar(?:-|$)/.test(lang)) continue;
+      // Prefer installed voices, then the requested locale and enhanced variants.
+      const localeScore = EN ? Number(lang === "en-us") * 10
+        : lang === "ar-sa" ? 10 : (lang === "ar" || lang === "ar-001") ? 8 : 0;
+      const qualityScore = /enhanced|premium|natural|neural/i.test(voice.name || "") ? 6 : 0;
+      const score = (voice.localService === true ? 20 : 0) + localeScore + qualityScore;
+      if (score > bestScore) {
+        best = voice;
+        bestScore = score;
+      }
+    }
+    return best;
   }
 
-  function speakAloud(text) {
+  function waitForVoice() {
+    const synth = window.speechSynthesis;
+    const current = pickVoice();
+    if (current || EN || !synth || !synth.addEventListener) return Promise.resolve(current);
+    // Mobile Safari and Chrome can populate getVoices() after initial page load.
     return new Promise((resolve) => {
-      if (!text || !window.speechSynthesis || !window.SpeechSynthesisUtterance) {
-        resolve(false);
-        return;
-      }
-      window.speechSynthesis.cancel();
+      const finish = (voice) => {
+        clearTimeout(timeout);
+        synth.removeEventListener("voiceschanged", changed);
+        resolve(voice);
+      };
+      const changed = () => {
+        const voice = pickVoice();
+        if (voice) finish(voice);
+      };
+      const timeout = setTimeout(() => finish(pickVoice()), 550);
+      synth.addEventListener("voiceschanged", changed);
+      changed();
+    });
+  }
+
+  async function speakAloud(text) {
+    const synth = window.speechSynthesis;
+    if (!text || !synth || !window.SpeechSynthesisUtterance) return false;
+    const version = callVersion;
+    const voice = await waitForVoice();
+    if (version !== callVersion || ending || (!EN && !voice)) return false;
+    return new Promise((resolve) => {
+      synth.cancel();
       const utterance = new window.SpeechSynthesisUtterance(text);
-      utterance.lang = EN ? "en-US" : "ar-SA";
-      const voice = pickVoice();
+      utterance.lang = voice?.lang || (EN ? "en-US" : "ar-SA");
       if (voice) utterance.voice = voice;
+      // Browser/device speech engines differ. Keep delivery close to natural.
+      utterance.rate = EN ? 1 : 1.04;
+      let settled = false;
       const done = (played) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
         utterance.onend = utterance.onerror = null;
-        cancelSpeech = null;
+        if (cancelSpeech === cancel) cancelSpeech = null;
         resolve(played);
       };
-      cancelSpeech = () => done(false);
+      const cancel = () => done(false);
+      const timeout = setTimeout(() => {
+        done(false);
+        synth.cancel();
+      }, Math.min(35000, Math.max(8000, 3500 + text.length * 105)));
+      cancelSpeech = cancel;
       utterance.onend = () => done(true);
       utterance.onerror = () => done(false);
       setMode("speaking");
-      try { window.speechSynthesis.speak(utterance); } catch (error) { done(false); }
+      try { synth.speak(utterance); } catch (error) { done(false); }
     });
   }
 
@@ -898,7 +944,7 @@
     ending = false;
     speechActive = true;
     start.disabled = true;
-    const hello = sessionGreeting || T.hello;
+    const hello = EN ? (sessionGreeting || T.hello) : T.hello;
     startTimer();
     add(hello, "");
     if (!await speakAloud(hello) && version === callVersion) {
@@ -1012,6 +1058,9 @@
   };
 
   window.addEventListener("pagehide", () => endCall());
+
+  // Warm the device voice list without starting the microphone or playback.
+  if (window.speechSynthesis?.getVoices) window.speechSynthesis.getVoices();
 
   fetch("/api/voice/status", { headers: { Accept: "application/json" } })
     .then((response) => response.json())
