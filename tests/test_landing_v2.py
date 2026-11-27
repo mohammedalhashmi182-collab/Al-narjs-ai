@@ -38,10 +38,9 @@ def page_en() -> str:
 
 
 def test_ceo_consultation_is_reachable_and_posts_to_the_endpoint(page: str) -> None:
-    # The hero CTA is a normal link to /consult. The diagnosis form still
-    # lives in the "start with one goal" section.
+    # The hero CTA stays on this page and opens the diagnosis already on it.
     hero = page[page.index('id="top"'):page.index('id="how"')]
-    assert 'id="heroCeo"' in hero and 'href="/consult"' in hero and "ناقش هدفك مع الرئيس التنفيذي" in hero
+    assert 'id="heroCeo"' in hero and 'href="#start-ceo"' in hero and "ناقش هدفك مع الرئيس التنفيذي" in hero
     assert "data-open-assistant" not in hero
     consult = page[page.index('id="consult"'):]
     assert 'id="ceo"' in consult and 'id="ceoForm"' in consult
@@ -97,8 +96,8 @@ def test_trust_badges_and_vision_disclaimer(page: str) -> None:
 
 
 def test_contact_links_are_real_or_absent(page: str) -> None:
-    # The floating assistant is gone. CEO calls to action are real /consult
-    # links, and the published contact is the company email.
+    # The floating assistant is gone. The CEO call to action stays on this
+    # page, and the published contact is the company email.
     assert "https://wa.me/966552978753" in page
     assert "0540799266" not in page
     assert "t.me/" not in page
@@ -108,7 +107,8 @@ def test_contact_links_are_real_or_absent(page: str) -> None:
     assert "mailto:AlNarjisai@gmail.com" not in page
     assert "mailto:" not in page.replace("mailto:AlNarjisai@gmail.com", "")
     assert "data-open-assistant" not in page
-    assert 'href="/consult"' in page
+    assert 'href="#start-ceo"' in page
+    assert 'href="/consult"' not in page
     assert 'href="#"' not in page
 
 

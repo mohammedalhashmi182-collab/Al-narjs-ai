@@ -119,16 +119,13 @@ def test_mobile_pages_and_language_switch(context, width, path):
         # bottom of the viewport; answer it the way a visitor would first
         if page.locator('#cookieReject').count():
             page.locator('#cookieReject').click()
-        # the hero CEO control is a normal link to the consult page
+        # the hero CEO control stays on this page and opens the diagnosis there
         failed = []
         page.on('requestfailed', lambda req: failed.append(req.url) if 'testserver' in req.url else None)
         page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' and 'net::ERR_FAILED' not in msg.text else None)
-        with page.expect_navigation(wait_until='load') as navigation:
-            page.locator('#heroCeo').click()
-        response = navigation.value
-        assert response is not None and response.ok
-        assert urlsplit(page.url).path.rstrip('/').endswith('/consult')
-        wait_for_preloader(page)
+        page.locator('#heroCeo').click()
+        expect(page.locator('#start-ceo')).to_be_visible()
+        assert urlsplit(page.url).fragment == 'start-ceo'
         expect(page.locator('body')).to_be_visible()
         assert page.locator('body').get_attribute('data-lang') in ('ar', 'en')
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')

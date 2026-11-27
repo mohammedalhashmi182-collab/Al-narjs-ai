@@ -36,4 +36,4 @@ def test_home_has_no_hero_wordmark_on_both_languages(lang):
     assert 'class="nj-voice-inline"' in response.text
     assert 'id="njIntro"' not in response.text
     assert "nj-intro-on" not in response.text
-    assert 'href="/consult" id="heroCeo"' in response.text
+    assert 'href="#start-ceo" id="heroCeo"' in response.text
