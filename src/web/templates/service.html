@@ -2,11 +2,12 @@
 {% block title %}{{ service.title_ar if ar else service.title_en }}{% endblock %}
 {% block description %}{{ service.desc_ar if ar else service.desc_en }}{% endblock %}
 {% block extra_head %}
+<link rel="stylesheet" href="/static/css/narjis-workshop-detail-page.css?v=1">
 <script type="application/ld+json">{{ service_jsonld | tojson }}</script>
 {% endblock %}
 {% block h1 %}{{ service.h1_ar if ar else service.h1_en }}{% endblock %}
 {% block body %}
-<p class="n-sub"><a href="/home#services">{% if ar %}خدماتنا{% else %}Our services{% endif %}</a></p>
+<p class="n-sub"><a href="/{{ 'ar' if ar else 'en' }}/home#services">{% if ar %}خدماتنا{% else %}Our services{% endif %}</a></p>
 {% set sections = service.sections_ar if ar else service.sections_en %}
 {% set faqs = service.faq_ar if ar else service.faq_en %}
 {% for sec in sections %}

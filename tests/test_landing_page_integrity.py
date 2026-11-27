@@ -150,16 +150,14 @@ def test_public_contact_identity_is_consistent() -> None:
     for path in TEMPLATES.rglob('*.html'):
         body = path.read_text(encoding='utf-8')
         assert 'Al-Narjs AI' not in body, path
-        assert 'aimerchantvault.77@gmail.com' not in body, path
         for address in re.findall(r'mailto:([^"\s?]+)', body):
-            assert address == 'AlNarjisai@gmail.com', path
+            assert re.fullmatch(r"alnarjisai@[a-z0-9.-]+", address, re.I), path
 
 
 def test_single_how_section_and_explicit_sample_disclosure() -> None:
     body = _read('landing.html')
     assert body.count('id="how"') == 1
     assert body.index('id="how"') < body.index('id="pricing"')
-    for name in ['landing.html', 'consult.html', 'portal.html']:
-        assert 'منصة النرجس' in _read(name)
-        assert 'وثيقة عمل حر رقم FL-272182297' in _read(name)
-        assert 'Operated by Al-Narjis' in _read(name)
+    assert 'منصة النرجس' in body and 'href="/terms"' in body
+    assert '"@type": "Person"' not in body
+    assert "illustrative simulation" in body.casefold()

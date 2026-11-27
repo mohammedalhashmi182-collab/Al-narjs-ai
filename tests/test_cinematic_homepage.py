@@ -26,7 +26,7 @@ def test_cinematic_boot_has_fallback_and_reduced_motion_gates():
     assert "cine-fallback" in html and "cine-on" in html
     assert "prefers-reduced-motion" in html
     assert "saveData" in html
-    assert "webgl" in html
+    assert "getContext(" not in html.split("</head>", 1)[0]
     js = JS.read_text(encoding="utf-8")
     assert "prefers-reduced-motion" in js
     assert CSS.read_text(encoding="utf-8").count("prefers-reduced-motion") >= 1

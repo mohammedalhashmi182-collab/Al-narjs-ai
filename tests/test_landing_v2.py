@@ -71,10 +71,10 @@ def test_no_invented_social_proof(page: str) -> None:
         assert word not in low
     assert 'data-placeholder="testimonials"' not in page
     assert "فارغة عمداً" not in page
-    # live counters start empty and are only filled from /api/pulse
-    # (hidden until a real positive count arrives; never "—" or 0)
-    assert 'data-pulse="leads_received" hidden><b class="num" id="pulseLeads"></b>' in page
-    assert 'data-pulse="projects" hidden><b class="num" id="pulseProjects"></b>' in page
+    # Visitor-facing totals omit customer leads/projects. Catalog facts remain.
+    assert 'data-pulse="leads_received"' not in page
+    assert 'data-pulse="projects"' not in page
+    assert "/api/pulse" not in page
 
 
 def test_risk_reversal_matches_the_refund_terms(page: str) -> None:
@@ -85,11 +85,12 @@ def test_risk_reversal_matches_the_refund_terms(page: str) -> None:
 
 
 def test_trust_badges_and_vision_disclaimer(page: str) -> None:
-    assert "FL-272182297" in page
+    assert not re.search(r"\bFL-\d{5,}\b", page)
+    assert '"@type": "Person"' not in page and 'href="/terms"' in page
     assert "بتحويل بنكي مقابل فاتورة من صفحة الدفع" not in page
     assert "قيد التفعيل" not in page and "paymentsClosedBanner" not in page
-    # Named once, as the card processor in the integrations section — not a trust badge.
-    assert page.count("Moyasar") == 1
+    # Payment processors belong to checkout, not the homepage integration grid.
+    assert "Moyasar" not in page
     assert 'id="integrations"' in page
     assert 'id="vision"' in page
     assert "لسنا جهة حكومية" in page
@@ -104,8 +105,6 @@ def test_contact_links_are_real_or_absent(page: str) -> None:
     assert "m.me/" not in page
     assert 'id="siteAssistant"' not in page
     assert "tel:" not in page
-    assert "mailto:AlNarjisai@gmail.com" not in page
-    assert "mailto:" not in page.replace("mailto:AlNarjisai@gmail.com", "")
     assert "data-open-assistant" not in page
     assert 'href="#start-ceo"' in page
     assert 'href="/consult"' not in page

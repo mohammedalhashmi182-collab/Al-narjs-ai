@@ -4,10 +4,6 @@
 <!-- ==================== PRICING ==================== -->
 <style>
 .plan .feat-h{font-size:.78rem;font-weight:700;margin:12px 0 4px;color:var(--v2-ink,#000000)}
-.plan .feat-coming{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(0,0,0,.12);opacity:.62}
-.plan .feat-coming .feat-h{color:inherit;font-weight:600}
-.plan .feat-coming ul li{font-size:.82rem}
-.plan .feat-coming ul li::before{content:"◦ "}
 </style>
 <section class="sec" id="pricing">
     <div class="wrap">
@@ -38,13 +34,6 @@
                 <ul class="feat-now">
                     {% for line in (plan.scope if ar else plan.scope_en) %}<li>{{ line }}</li>{% endfor %}
                 </ul>
-                {% set _coming = plan.coming if ar else plan.coming_en %}
-                {% if _coming %}
-                <div class="feat-coming">
-                    <p class="feat-h">{% if ar %}قادم قريباً — غير مشمول حالياً{% else %}Coming soon — not included yet{% endif %}</p>
-                    <ul>{% for line in _coming %}<li>{{ line }}</li>{% endfor %}</ul>
-                </div>
-                {% endif %}
                 <a class="btn {% if plan.recommended %}btn-primary{% else %}btn-ghost{% endif %} btn-block" href="{{ subscribe_path(plan.key) }}" data-href-monthly="{{ subscribe_path(plan.key) }}" data-href-annual="{{ subscribe_path(plan.key, billing='annual') }}">{% if not payments_open() %}{% if ar %}اطلب باقة {{ plan.name }}{% else %}Request {{ plan.name_en }}{% endif %}{% elif ar %}اشترك في {{ plan.name }}{% else %}Get {{ plan.name_en }}{% endif %}</a>
             </article>
             {% endfor %}

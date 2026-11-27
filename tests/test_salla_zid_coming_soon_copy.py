@@ -42,7 +42,11 @@ def test_every_store_connection_mention_says_coming_soon():
     for name, text in _sources().items():
         for sent in _store_sentences(text):
             seen += 1
-            assert _SOON.search(sent), (name, sent[:140])
+            if name == "guide":
+                assert "غير مشمول" in sent or "not included" in sent
+                assert not _SOON.search(sent)
+            else:
+                assert _SOON.search(sent), (name, sent[:140])
     assert seen >= 7
 
 

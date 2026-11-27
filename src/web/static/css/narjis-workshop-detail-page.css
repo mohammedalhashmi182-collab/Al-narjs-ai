@@ -1,0 +1,34 @@
+/* Match the public service and role pages to the light Agentic landing.
+   Policy, checkout, customer workspace and voice pages are intentionally out of scope. */
+html body.luxury {
+  --gd-ink:#242633;
+  --gd-muted:#494f62;
+  --gd-accent:#483e72;
+  --gd-line:#c4c8d8;
+  --gd-paper:#f6f7fa;
+  color-scheme:light;
+  color:var(--gd-ink);
+  background:radial-gradient(ellipse at 66% -10%,#e7e7f6,transparent 66%),var(--gd-paper);
+}
+html body.luxury :is(.n-hero,.luxury-bg) {background:none;color:var(--gd-ink)}
+html body.luxury :is(.n-card.sp,.card,.grid a) {
+  background:#fcfcfe;
+  color:var(--gd-ink);
+  border:1px solid var(--gd-line);
+  border-radius:20px;
+  box-shadow:0 14px 44px #2429390e;
+}
+html body.luxury :is(.n-title,h1,h2,h3,h4,b,strong) {color:var(--gd-ink)}
+html body.luxury :is(.n-sub,.muted,.back,.note,.dept,.grid small,footer) {color:var(--gd-muted)}
+html body.luxury :is(.topbar,footer) {border-color:var(--gd-line)}
+html body.luxury a,
+html body.luxury a.brand span {color:var(--gd-accent) !important}
+html body.luxury a:is(.btn,.btn-gold,.btn-ghost),html body.luxury .no {
+  background:#eeedf8;
+  border:1px solid var(--gd-line);
+  color:var(--gd-accent);
+  box-shadow:none;
+}
+html body.luxury a:focus-visible {
+  outline:2px solid var(--gd-accent);outline-offset:3px;
+}

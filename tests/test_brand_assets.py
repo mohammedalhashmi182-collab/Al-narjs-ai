@@ -129,3 +129,27 @@ def test_glass_home_keeps_reference_sections_and_ceo_on_one_page(client, locale)
     assert home.text.count('id="start-ceo"') == 1
     assert home.text.count('href="#start-ceo"') >= 6
     assert 'href="/consult"' not in home.text
+
+
+@pytest.mark.parametrize("locale", ["ar", "en"])
+def test_workshop_home_shows_only_shipped_marketing_channels(client, locale):
+    html = client.get(f"/{locale}/home").text
+    for hidden in ("Moyasar", "feat-coming", "Salla or Zid connection", "ربط سلة أو زد",
+                   "لا نعرض ربط متاجر كخدمة متاحة"):
+        # The shared pricing stylesheet may still define feat-coming, but no badge renders.
+        assert (f'class="{hidden}"' if hidden == "feat-coming" else hidden) not in html
+    assert 'class="ag-grid ag-channel-grid"' in html
+    assert 'href="/portal?pkg=' in html
+    assert "<h3>WhatsApp</h3>" in html or "<h3>واتساب</h3>" in html
+    for tower in ("kingdom", "faisaliah", "tv", "majdoul"):
+        assert f'/static/img/narjis-glass-towers.svg#tower-{tower}' in html
+    assert '<script src="/static/js/narjis-client-workspace.js" defer>' in html
+    sprite = client.get("/static/img/narjis-glass-towers.svg")
+    assert sprite.status_code == 200 and len(sprite.content) < 6_000
+    assert sprite.headers["content-type"] == "image/svg+xml"
+
+
+def test_workshop_keeps_only_released_items_on_dedicated_pricing(client):
+    page = client.get("/ar/pricing")
+    assert page.status_code == 200
+    assert 'class="feat-coming"' not in page.text and "ربط سلة أو زد" not in page.text

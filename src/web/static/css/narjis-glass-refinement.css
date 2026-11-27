@@ -144,3 +144,49 @@ html body.nj.ag-glass-refined main .hero .ng-hero-submit {min-width:44px;min-hei
 /* Keep in-page landing targets below the floating glass navigation. */
 html body.nj.ag-glass-refined main > section[id],
 html body.nj.ag-glass-refined #start-ceo {scroll-margin-block-start:100px}
+
+/* Workshop: four matching, responsive glass landmarks; the image window has a shared baseline. */
+html body.nj.ag-glass-refined #how .steps.flow .step {
+  padding:14px 14px 19px;
+  border:1px solid rgba(82, 100, 125, .14);
+  border-radius:21px;
+  background:linear-gradient(150deg, #fff 0%, #f7f8fc 100%);
+  box-shadow:0 10px 22px rgba(58, 74, 96, .08);
+}
+html body.nj.ag-glass-refined #how .steps.flow .n {
+  top:23px;
+  inset-inline-start:23px;
+  display:grid;
+  place-items:center;
+  min-width:28px;
+  min-height:26px;
+  border-radius:7px;
+  border:1px solid rgba(74, 94, 120, .22);
+  background:#f8fafc;
+  color:#384354;
+  text-shadow:none;
+}
+html body.nj.ag-glass-refined #how .steps.flow .shot {
+  display:grid;
+  place-items:center;
+  height:clamp(176px, 16vw, 224px);
+  margin:0;
+  border:1px solid rgba(101, 117, 141, .14);
+  border-radius:15px;
+  background:radial-gradient(ellipse at 46% 85%, #e1e7f3, transparent 74%),
+             linear-gradient(153deg, #edf0f7 0%, #f6f8fb 54%, #e9eef5 100%);
+}
+html body.nj.ag-glass-refined #how .steps.flow .shot svg {
+  display:block;
+  width:min(100%, 190px);
+  height:100%;
+  max-height:210px;
+}
+html body.nj.ag-glass-refined #how .steps.flow h3 {margin:13px 0 5px}
+html body.nj.ag-glass-refined #how .steps.flow p {color:#475365}
+html body.nj.ag-glass-refined #integrations .ag-channel-grid {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+@media (max-width:640px) {
+  html body.nj.ag-glass-refined #integrations .ag-channel-grid {grid-template-columns:minmax(0,1fr)}
+}
