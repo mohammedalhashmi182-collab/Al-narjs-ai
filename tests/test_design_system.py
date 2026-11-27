@@ -461,14 +461,14 @@ def _najdi() -> str:
 
 
 def test_landing_declares_the_agentic_theme_colour() -> None:
-    assert '<meta name="theme-color" content="#f6eefb">' in read("landing.html")
+    assert '<meta name="theme-color" content="#f2f3f5">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
     body = read("landing.html")
     assert "/static/css/narjis-najdi.css" in body
     assert "/static/brand/vnext/tokens.css" in body
-    assert '<body class="nj"' in body
+    assert '<body class="nj ag-glass-refined"' in body
     assert "family=IBM+Plex+Sans+Arabic" in body
     assert 'rel="preload" as="style"' in body
     assert 'rel="preconnect" href="https://fonts.gstatic.com"' in body

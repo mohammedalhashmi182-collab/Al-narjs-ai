@@ -253,7 +253,7 @@
     if (!d) {
       d = el('div', 'ngc-dock'); d.id = 'ngcDock'; d.hidden = true;
       var open = el('button', 'ngc-dock-open'); open.type = 'button';
-      var img = document.createElement('img'); img.src = '/static/logo.svg'; img.alt = ''; img.width = 28; img.height = 28;
+      var img = document.createElement('img'); img.src = root.dataset.brandMark || '/static/logo.svg'; img.alt = ''; img.width = 28; img.height = 28;
       open.appendChild(img); open.appendChild(el('span', null, T.dock));
       open.addEventListener('click', function () { root.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }); });
       var x = el('button', 'ngc-dock-x', '×'); x.type = 'button'; x.setAttribute('aria-label', T.dockClose);

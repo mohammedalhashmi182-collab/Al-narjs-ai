@@ -71,10 +71,11 @@ def test_favicon_ico_route(client):
 
 def test_landing_uses_new_logo(client):
     html = client.get("/ar/home").text
-    assert "/static/logo.svg" in html
+    assert "/static/brand/approved-2026-11-27/mark.webp" in html
+    assert "/static/logo.svg" not in html
     assert 'rel="manifest"' in html
-    assert "/static/favicon.svg" in html
-    assert "/brand/og-image.jpg" in html
+    assert "/static/brand/approved-2026-11-27/favicon.png" in html
+    assert "/static/brand/approved-2026-11-27/og-image.jpg" in html
     assert "/static/logo.png" not in html
 
 
@@ -101,3 +102,30 @@ def test_landing_links_to_localized_license_options(
     details = client.get(f"/{lang}/partnerships")
     assert details.status_code == HTTPStatus.OK
     assert 'id="white-label-offer"' in details.text
+
+
+def test_render_glass_preview_does_not_index_or_track_but_keeps_canonical(client, monkeypatch):
+    monkeypatch.setenv("DISABLE_LEGACY_REDIRECT", "1")
+    preview = client.get("https://alnarjis-preview-pr200.onrender.com/ar/home", follow_redirects=False)
+    primary = client.get("https://alnarjisai.com/ar/home", follow_redirects=False)
+    assert preview.status_code == primary.status_code == 200
+    assert 'name="robots" content="noindex,nofollow"' in preview.text
+    assert 'name="robots" content="index,follow"' in primary.text
+    for page in (preview, primary):
+        assert 'rel="canonical" href="https://alnarjisai.com/ar/home"' in page.text
+    for marker in ("google-site-verification", "cookieConsent", "sendBeacon('/api/events'"):
+        assert marker not in preview.text
+        assert marker in primary.text
+
+
+@pytest.mark.parametrize("locale", ["ar", "en"])
+def test_glass_home_keeps_reference_sections_and_ceo_on_one_page(client, locale):
+    home = client.get(f"/{locale}/home")
+    assert home.status_code == 200
+    order = ("top", "services", "team", "how", "integrations", "pricing")
+    positions = [home.text.index(f'id="{target}"') for target in order]
+    assert positions == sorted(positions)
+    assert home.text.index('id="results"') > positions[-1]
+    assert home.text.count('id="start-ceo"') == 1
+    assert home.text.count('href="#start-ceo"') >= 6
+    assert 'href="/consult"' not in home.text
