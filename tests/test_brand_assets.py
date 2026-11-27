@@ -142,11 +142,11 @@ def test_workshop_home_shows_only_shipped_marketing_channels(client, locale):
     assert 'href="/portal?pkg=' in html
     assert "<h3>WhatsApp</h3>" in html or "<h3>واتساب</h3>" in html
     for tower in ("kingdom", "faisaliah", "tv", "majdoul"):
-        assert f'/static/img/narjis-glass-towers.svg#tower-{tower}' in html
+        assert f'/static/img/flow-{tower}.webp' in html
+        photo = client.get(f'/static/img/flow-{tower}.webp')
+        assert photo.status_code == 200 and photo.headers['content-type'] == 'image/webp'
     assert '<script src="/static/js/narjis-client-workspace.js" defer>' in html
-    sprite = client.get("/static/img/narjis-glass-towers.svg")
-    assert sprite.status_code == 200 and len(sprite.content) < 6_000
-    assert sprite.headers["content-type"] == "image/svg+xml"
+    assert "narjis-glass-towers.svg" not in html
 
 
 def test_workshop_keeps_only_released_items_on_dedicated_pricing(client):

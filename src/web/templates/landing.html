@@ -123,7 +123,7 @@
     <link rel="stylesheet" href="/static/css/narjis-white-glass.css">
     <link rel="stylesheet" href="/static/css/narjis-hero-luxury.css">
     <link rel="stylesheet" href="/static/css/narjis-agentic.css">
-    <link rel="stylesheet" href="/static/css/narjis-glass-refinement.css">
+    <link rel="stylesheet" href="/static/css/narjis-glass-refinement.css?v=original-towers-20261127">
     <link rel="stylesheet" href="/static/css/narjis-workshop-contrast.css?v=1">
     <script>
     (function () {
@@ -333,7 +333,7 @@
             {% for num, tower, alt, title, body in _flow %}
             <li class="step rv">
                 <span class="n num">{{ num }}</span>
-                <div class="shot"><svg viewBox="0 0 190 210" role="img" aria-label="{{ alt }}" focusable="false"><use href="/static/img/narjis-glass-towers.svg#tower-{{ tower }}"></use></svg></div>
+                <div class="shot"><img src="/static/img/flow-{{ tower }}.webp" alt="{{ alt }}" width="900" height="900" loading="lazy" decoding="async"></div>
                 <h3>{{ title }}</h3>
                 <p>{{ body }}</p>
             </li>

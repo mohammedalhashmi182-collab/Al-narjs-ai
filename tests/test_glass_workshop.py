@@ -17,7 +17,8 @@ def test_glass_preview_home_has_inline_details_and_only_market_ready_channels(mo
             assert f'{lang}/services/chatbots' in page
             assert 'narjis-workshop-detail.js?v=1' in page
             assert 'narjis-workshop-contrast.css?v=1' in page
-            assert 'narjis-glass-towers.svg' in page and 'flow-kingdom.webp' not in page
+            assert 'narjis-glass-towers.svg' not in page
+            assert all(f'flow-{tower}.webp' in page for tower in ('kingdom', 'faisaliah', 'tv', 'majdoul'))
             assert "Moyasar" not in page and "ميسر" not in page
             assert "/api/pulse" not in page and "pulseLeads" not in page
             assert hidden not in page and "feat-coming" not in page.split("<body", 1)[1]
