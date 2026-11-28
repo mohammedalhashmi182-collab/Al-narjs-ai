@@ -4,7 +4,7 @@
 {% set _agent_jsonld = agent_jsonld %}
 {% set _head = seo.head(
   (agent.title_ar ~ ' — ' ~ agent.no ~ ' | النرجس للذكاء الاصطناعي'),
-  (agent.title_en ~ ' — ' ~ agent.no ~ ' | Al-Narjis AI'),
+  (agent.title_en ~ ' — ' ~ agent.no ~ ' | Al Narjis AI'),
   (agent.intro_ar[:150]),
   (agent.intro_en[:150]),
   request.url.path,
@@ -52,12 +52,13 @@
         footer { border-top: 1px solid rgba(246,245,244,.09); margin-top: 40px; padding: 22px 0 40px; color: #B9B8C0; font-size: .86rem; }
         footer a { color: #B9B8C0; }
     </style>
+    <link rel="stylesheet" href="/static/css/narjis-workshop-detail-page.css?v=1">
 </head>
-<body class="luxury">
+<body class="luxury glass-detail-page">
 <div class="wrap">
     <div class="topbar">
-        <a class="brand" href="/home">النرجس <span style="color:#F6F5F4">للذكاء الاصطناعي</span></a>
-        <a class="back" href="/home#agents">&larr; {% if _lang == 'ar' %}كل الوكلاء{% else %}All agents{% endif %}</a>
+        <a class="brand" href="/{{ _lang }}/home">النرجس <span style="color:#F6F5F4">للذكاء الاصطناعي</span></a>
+        <a class="back" href="/{{ _lang }}/home#team">&larr; {% if _lang == 'ar' %}كل الوكلاء{% else %}All agents{% endif %}</a>
     </div>
 
     <div class="card">

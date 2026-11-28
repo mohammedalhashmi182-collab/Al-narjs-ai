@@ -71,10 +71,11 @@ def test_favicon_ico_route(client):
 
 def test_landing_uses_new_logo(client):
     html = client.get("/ar/home").text
-    assert "/static/logo.svg" in html
+    assert "/static/brand/approved-2026-11-27/mark.webp" in html
+    assert "/static/logo.svg" not in html
     assert 'rel="manifest"' in html
-    assert "/static/favicon.svg" in html
-    assert "/brand/og-image.jpg" in html
+    assert "/static/brand/approved-2026-11-27/favicon.png" in html
+    assert "/static/brand/approved-2026-11-27/og-image.jpg" in html
     assert "/static/logo.png" not in html
 
 
@@ -88,7 +89,7 @@ def test_vnext_mark_is_a_self_contained_vector(client: TestClient, asset: str) -
     assert response.status_code == HTTPStatus.OK
     svg = ElementTree.fromstring(response.content)
     assert svg.tag == "{http://www.w3.org/2000/svg}svg" and svg.get("viewBox")
-    assert {el.tag.rsplit("}", 1)[-1] for el in svg.iter()} <= {"svg", "g", "rect", "path"}
+    assert {el.tag.rsplit("}", 1)[-1] for el in svg.iter()} <= {"svg", "g", "rect", "path", "image"}
 
 
 @pytest.mark.parametrize(("lang", "direction"), [("ar", "rtl"), ("en", "ltr")])
@@ -101,3 +102,54 @@ def test_landing_links_to_localized_license_options(
     details = client.get(f"/{lang}/partnerships")
     assert details.status_code == HTTPStatus.OK
     assert 'id="white-label-offer"' in details.text
+
+
+def test_render_glass_preview_does_not_index_or_track_but_keeps_canonical(client, monkeypatch):
+    monkeypatch.setenv("DISABLE_LEGACY_REDIRECT", "1")
+    preview = client.get("https://alnarjis-preview-pr200.onrender.com/ar/home", follow_redirects=False)
+    primary = client.get("https://alnarjisai.com/ar/home", follow_redirects=False)
+    assert preview.status_code == primary.status_code == 200
+    assert 'name="robots" content="noindex,nofollow"' in preview.text
+    assert 'name="robots" content="index,follow"' in primary.text
+    for page in (preview, primary):
+        assert 'rel="canonical" href="https://alnarjisai.com/ar/home"' in page.text
+    for marker in ("google-site-verification", "cookieConsent", "sendBeacon('/api/events'"):
+        assert marker not in preview.text
+        assert marker in primary.text
+
+
+@pytest.mark.parametrize("locale", ["ar", "en"])
+def test_glass_home_keeps_reference_sections_and_ceo_on_one_page(client, locale):
+    home = client.get(f"/{locale}/home")
+    assert home.status_code == 200
+    order = ("top", "services", "team", "how", "integrations", "pricing")
+    positions = [home.text.index(f'id="{target}"') for target in order]
+    assert positions == sorted(positions)
+    assert home.text.index('id="results"') > positions[-1]
+    assert home.text.count('id="start-ceo"') == 1
+    assert home.text.count('href="#start-ceo"') >= 6
+    assert 'href="/consult"' not in home.text
+
+
+@pytest.mark.parametrize("locale", ["ar", "en"])
+def test_workshop_home_shows_only_shipped_marketing_channels(client, locale):
+    html = client.get(f"/{locale}/home").text
+    for hidden in ("Moyasar", "feat-coming", "Salla or Zid connection", "ربط سلة أو زد",
+                   "لا نعرض ربط متاجر كخدمة متاحة"):
+        # The shared pricing stylesheet may still define feat-coming, but no badge renders.
+        assert (f'class="{hidden}"' if hidden == "feat-coming" else hidden) not in html
+    assert 'class="ag-grid ag-channel-grid"' in html
+    assert 'href="/portal?pkg=' in html
+    assert "<h3>WhatsApp</h3>" in html or "<h3>واتساب</h3>" in html
+    for tower in ("kingdom", "faisaliah", "tv", "majdoul"):
+        assert f'/static/img/flow-{tower}.webp' in html
+        photo = client.get(f'/static/img/flow-{tower}.webp')
+        assert photo.status_code == 200 and photo.headers['content-type'] == 'image/webp'
+    assert '<script src="/static/js/narjis-client-workspace.js" defer>' in html
+    assert "narjis-glass-towers.svg" not in html
+
+
+def test_workshop_keeps_only_released_items_on_dedicated_pricing(client):
+    page = client.get("/ar/pricing")
+    assert page.status_code == 200
+    assert 'class="feat-coming"' not in page.text and "ربط سلة أو زد" not in page.text

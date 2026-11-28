@@ -15,12 +15,16 @@ browser_required = pytest.mark.skipif(
 )
 
 
-@pytest.mark.parametrize("lang,name", [("ar", "مستشار النرجس الذكي"), ("en", "Al-Narjis AI advisor")])
+@pytest.mark.parametrize("lang,name", [("ar", "مستشار النرجس الذكي"), ("en", "Al Narjis AI advisor")])
 def test_voice_page_renders_the_advisor_and_waveform(lang, name):
     with TestClient(app) as client:
         page = client.get(f"/{lang}/voice")
         css = client.get("/static/css/voice-aurora.css")
-    assert page.status_code == css.status_code == 200
+        script = client.get("/static/js/voice-live-app.js?v=neutral-20261127")
+    assert page.status_code == css.status_code == script.status_code == 200
+    assert 'src="/static/js/voice-live-app.js?v=neutral-20261127"' in page.text
+    disclosure = "يحوّل الرد إلى صوت عبر الإنترنت" if lang == "ar" else "read replies aloud using an online service"
+    assert disclosure in page.text
     assert name in page.text
     assert 'id="wave" aria-hidden="true"' in page.text
     assert 'aria-controls="chatPanel" aria-expanded="false"' in page.text
@@ -29,7 +33,7 @@ def test_voice_page_renders_the_advisor_and_waveform(lang, name):
     assert "/static/js/voice-orb.js" not in page.text
     assert "/static/brand/vnext/tokens.css" in page.text
     assert "prefers-reduced-motion" in css.text
-    assert "brand-narjis-gate.svg" in page.text
+    assert "/static/logo.svg" in page.text
 
 
 def test_voice_published_agent_override_is_honest_and_intake_oriented():
@@ -107,7 +111,7 @@ def test_voice_denied_microphone_opens_silent_text_fallback(lang, width, directi
           };
           window.SpeechSynthesisUtterance = class {};
           Object.defineProperty(window, 'speechSynthesis', { value: {
-            getVoices: () => [],
+            getVoices: () => [{ lang: 'ar-SA', name: 'Arabic (Enhanced)', localService: true }],
             cancel() {},
             speak(utterance) { window.voiceOutputs++; queueMicrotask(() => utterance.onend?.()); }
           }});
@@ -137,6 +141,76 @@ def test_voice_denied_microphone_opens_silent_text_fallback(lang, width, directi
         page.locator("#voiceBack").click()
         expect(page.locator("#start")).to_be_focused()
         assert page.evaluate("window.voiceStarts") == 1
+        assert not errors
+        browser.close()
+
+
+@browser_required
+@pytest.mark.parametrize("voice_catalog", ["local", "remote", "missing"])
+def test_arabic_voice_prefers_local_then_remote_then_silent_text(voice_catalog):
+    from playwright.sync_api import expect, sync_playwright
+
+    with TestClient(app) as client, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(executable_path=os.environ.get("BROWSER_EXECUTABLE_PATH"))
+        context = browser.new_context(viewport={"width": 393, "height": 852}, reduced_motion="reduce")
+        _local_routes(context, client)
+        context.route("**/api/voice/status", lambda route: route.fulfill(json={"mode": "speech", "ok": True}))
+        context.route("**/api/voice/reply", lambda route: route.fulfill(json={"ok": True, "reply": "أقدر أساعدك في متابعة الطلبات."}))
+        context.add_init_script("""
+          window.spoken = [];
+          window.recStarts = 0;
+          window.SpeechRecognition = window.webkitSpeechRecognition = class {
+            start() {
+              window.recStarts++;
+              if (window.recStarts === 1) queueMicrotask(() => {
+                this.onresult?.({results: [[{transcript: 'أحتاج متابعة الطلبات'}]]});
+                this.onend?.();
+              });
+            }
+            abort() {}
+          };
+          window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; }};
+          const synth = new EventTarget();
+          let voices = [{lang:'en-US', name:'Default', localService:true}];
+          synth.getVoices = () => voices;
+          synth.cancel = () => {};
+          synth.speak = (u) => {
+            window.spoken.push({text:u.text, lang:u.lang, name:u.voice?.name, rate:u.rate});
+            document.documentElement.dataset.spoken = String(window.spoken.length);
+            queueMicrotask(() => u.onend?.());
+          };
+          Object.defineProperty(window,'speechSynthesis',{value:synth});
+          window.loadMockVoices = (catalog) => setTimeout(() => {
+            voices = [{lang:'ar-SA', name:'Arabic Natural Remote', localService:false}];
+            if (catalog === 'local') voices.push(
+              {lang:'ar-EG', name:'Arabic old', localService:true},
+              {lang:'ar-SA', name:'Arabic Enhanced', localService:true}
+            );
+            synth.dispatchEvent(new Event('voiceschanged'));
+          }, 170);
+        """)
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(error))
+        with page.expect_response("**/static/js/voice-live-app.js?v=neutral-20261127") as asset:
+            page.goto("http://testserver/ar/voice")
+        assert asset.value.ok
+        assert page.evaluate("window.spoken.length === 0 && window.recStarts === 0")
+
+        page.locator("#start").click()
+        if voice_catalog != "missing":
+            page.evaluate("window.loadMockVoices", voice_catalog)
+            expect(page.locator("html")).to_have_attribute("data-spoken", "2")
+            spoken = page.evaluate("window.spoken")
+            expected = "Arabic Enhanced" if voice_catalog == "local" else "Arabic Natural Remote"
+            assert [u["name"] for u in spoken] == [expected, expected]
+            assert all(u["lang"] == "ar-SA" and u["rate"] == 1.04 for u in spoken)
+            assert spoken[0]["text"] == "أهلًا، أنا مستشار النرجس الذكي. كيف أساعدك؟"
+            assert spoken[1]["text"] == "أقدر أساعدك في متابعة الطلبات."
+        else:
+            expect(page.locator("#chatPanel")).to_be_visible()
+            expect(page.locator("#micNote")).to_contain_text("صوتًا عربيًا")
+            assert page.evaluate("window.spoken.length === 0 && window.recStarts === 0")
         assert not errors
         browser.close()
 

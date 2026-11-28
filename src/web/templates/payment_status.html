@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if _lang == 'ar' %}حالة الدفع | النرجس للذكاء الاصطناعي{% else %}Payment Status | Al-Narjis AI{% endif %}</title>
+    <title>{% if _lang == 'ar' %}حالة الدفع | النرجس للذكاء الاصطناعي{% else %}Payment Status | Al Narjis AI{% endif %}</title>
     <link rel="stylesheet" href="/static/css/app-tw.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,8 +28,8 @@
 </head>
 <body data-lang="{{ _lang }}" class="luxury bg-sand min-h-screen flex items-center justify-center p-6 n-geo">
     <div class="n-card w-full max-w-md text-center">
-        <img src="/static/logo.svg" alt="Al-Narjis AI" class="mx-auto mb-3" style="height:40px;width:auto;object-fit:contain;border-radius:8px;">
-        <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al-Narjis AI{% endif %}</div>
+        <img src="/static/logo.svg" alt="Al Narjis AI" class="mx-auto mb-3" style="height:40px;width:auto;object-fit:contain;border-radius:8px;">
+        <div class="text-xs mb-5 tracking-widest" style="color:var(--n-gold);">{% if _lang == 'ar' %}النرجس للذكاء الاصطناعي{% else %}Al Narjis AI{% endif %}</div>
         <div class="text-5xl mb-5">
             {% if result == "success" %}
             <i id="payIcon" class="fas fa-check-circle" style="color:#FF5A36;"></i>

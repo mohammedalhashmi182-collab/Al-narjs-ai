@@ -1,0 +1,1190 @@
+/* Agentic homepage layer. Loaded last so it wins over the cinematic dark canvas.
+   Pearl field, thin type, glass cards. Motion is decorative only. */
+
+html.cine-on,
+html.cine-fallback {
+  background: #f6eefb;
+}
+html.cine-on body.nj,
+html.cine-fallback body.nj {
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(232, 228, 238, .9), transparent 60%),
+    linear-gradient(180deg, #f8f2fc 0%, #f6eefb 38%, #f3eaf8 100%);
+  color: #161412;
+}
+html.cine-on #cineBg,
+html.cine-fallback #cineBg,
+html.cine-on .cine-stage,
+html.cine-fallback .cine-stage,
+html.cine-on .cine-fallback-art,
+html.cine-fallback .cine-fallback-art {
+  display: none !important;
+}
+html.cine-on .hero-bg,
+html.cine-fallback .hero-bg {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Floating glass pill */
+html.cine-on .nj .nj-nav,
+html.cine-fallback .nj .nj-nav {
+  top: 16px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+html.cine-on .nj .nj-nav.solid,
+html.cine-fallback .nj .nj-nav.solid {
+  background: transparent;
+  border: 0;
+}
+html.cine-on .nj .nj-nav .wrap,
+html.cine-fallback .nj .nj-nav .wrap {
+  pointer-events: auto;
+  width: min(1080px, calc(100% - 28px));
+  height: auto;
+  min-height: 54px;
+  margin-inline: auto;
+  padding: 6px 8px 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, .72);
+  border: 1px solid rgba(255, 255, 255, .9);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(22, 20, 18, .08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+html.cine-on .nj .logo,
+html.cine-fallback .nj .logo {
+  color: #161412;
+  gap: 8px;
+}
+html.cine-on .nj .logo img,
+html.cine-fallback .nj .logo img {
+  width: 22px;
+  height: 22px;
+}
+html.cine-on .nj .logo-txt,
+html.cine-fallback .nj .logo-txt {
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+html.cine-on .nj .links,
+html.cine-fallback .nj .links {
+  flex: 1;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 22px);
+  font-size: 14px;
+  font-weight: 300;
+  color: #3a3632;
+}
+html.cine-on .nj .links a,
+html.cine-fallback .nj .links a {
+  color: #3a3632;
+}
+html.cine-on .nj .links a:hover,
+html.cine-fallback .nj .links a:hover,
+html.cine-on .nj .links a[aria-current],
+html.cine-fallback .nj .links a[aria-current] {
+  color: #161412;
+  box-shadow: none;
+}
+html.cine-on .nj .navr .lang,
+html.cine-fallback .nj .navr .lang,
+html.cine-on .nj .btn-login,
+html.cine-fallback .nj .btn-login {
+  color: #3a3632;
+  font-weight: 300;
+}
+html.cine-on .nj .nj-nav .nav-cta,
+html.cine-fallback .nj .nj-nav .nav-cta {
+  background: transparent;
+  color: #161412;
+  border: 1px solid rgba(22, 20, 18, .38);
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+html.cine-on .nj .nj-nav .nav-cta:hover,
+html.cine-fallback .nj .nj-nav .nav-cta:hover {
+  background: #161412;
+  color: #f7f6f4;
+  border-color: #161412;
+}
+html.cine-on .nj .mobile-nav summary,
+html.cine-fallback .nj .mobile-nav summary {
+  color: #161412;
+  background: transparent;
+}
+html.cine-on .nj .mobile-nav nav,
+html.cine-fallback .nj .mobile-nav nav {
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid rgba(22, 20, 18, .08);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(22, 20, 18, .1);
+}
+html.cine-on .nj .mobile-nav nav a,
+html.cine-fallback .nj .mobile-nav nav a {
+  color: #161412;
+}
+html.cine-on .nj .mobile-nav nav a:hover,
+html.cine-fallback .nj .mobile-nav nav a:hover {
+  background: rgba(22, 20, 18, .04);
+}
+
+/* Hero */
+html.cine-on .nj main .hero,
+html.cine-fallback .nj main .hero {
+  min-height: 100svh;
+  background: #f6eefb;
+  color: #161412;
+}
+html.cine-on .nj .hero::after,
+html.cine-fallback .nj .hero::after {
+  background: linear-gradient(to left, rgba(246, 238, 251, .2) 0%, rgba(246, 238, 251, 0) 42%);
+}
+[dir="ltr"] html.cine-on .nj .hero::after,
+[dir="ltr"] html.cine-fallback .nj .hero::after {
+  background: linear-gradient(to right, rgba(246, 238, 251, .2) 0%, rgba(246, 238, 251, 0) 42%);
+}
+html.cine-on .nj main .hero h1.display,
+html.cine-fallback .nj main .hero h1.display {
+  font-weight: 200;
+  font-size: clamp(48px, 6.8vw, 104px);
+  line-height: .98;
+  letter-spacing: -.035em;
+  max-width: 4.7em;
+  margin: 0 0 28px;
+  color: #141311;
+  text-shadow: none;
+}
+html.cine-on .nj main .hero .lead,
+html.cine-fallback .nj main .hero .lead {
+  font-weight: 300;
+  color: #3f3a36;
+  max-width: 28em;
+}
+html.cine-on .nj main .hero .eyebrow,
+html.cine-fallback .nj main .hero .eyebrow {
+  color: #6b6560;
+  font-weight: 400;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+html.cine-on .nj .ag-stats,
+html.cine-fallback .nj .ag-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 36px;
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+}
+html.cine-on .nj .ag-stats b,
+html.cine-fallback .nj .ag-stats b {
+  display: block;
+  font-weight: 300;
+  font-size: clamp(32px, 3.4vw, 48px);
+  line-height: 1;
+  letter-spacing: -.03em;
+  color: #161412;
+}
+html.cine-on .nj .ag-stats span,
+html.cine-fallback .nj .ag-stats span {
+  display: block;
+  margin-top: 8px;
+  max-width: 12em;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #6d675f;
+}
+
+/* Every section below the hero sits on the pearl field */
+html.cine-on .nj .ivory,
+html.cine-fallback .nj .ivory,
+html.cine-on .nj .scene,
+html.cine-fallback .nj .scene,
+html.cine-on .nj .sec,
+html.cine-fallback .nj .sec,
+html.cine-on .nj #team,
+html.cine-fallback .nj #team,
+html.cine-on .nj #services,
+html.cine-fallback .nj #services,
+html.cine-on .nj #consult,
+html.cine-fallback .nj #consult,
+html.cine-on .nj #about,
+html.cine-fallback .nj #about,
+html.cine-on .nj #vision,
+html.cine-fallback .nj #vision,
+html.cine-on .nj #faq,
+html.cine-fallback .nj #faq,
+html.cine-on .nj #white-label,
+html.cine-fallback .nj #white-label,
+html.cine-on .nj #integrations,
+html.cine-fallback .nj #integrations,
+html.cine-on .nj #results,
+html.cine-fallback .nj #results,
+html.cine-on .cine-chapter,
+html.cine-fallback .cine-chapter {
+  background: transparent;
+  color: #161412;
+}
+html.cine-on .nj h2,
+html.cine-fallback .nj h2,
+html.cine-on .nj h3,
+html.cine-fallback .nj h3,
+html.cine-on .cine-display,
+html.cine-fallback .cine-display {
+  color: #161412;
+  font-weight: 300;
+  letter-spacing: -.03em;
+}
+html.cine-on .nj h2,
+html.cine-fallback .nj h2,
+html.cine-on .cine-display,
+html.cine-fallback .cine-display {
+  font-size: clamp(34px, 4.4vw, 64px);
+  line-height: 1.12;
+}
+html.cine-on .nj .sh h2::after,
+html.cine-fallback .nj .sh h2::after {
+  display: none;
+}
+html.cine-on .nj .sh p,
+html.cine-fallback .nj .sh p,
+html.cine-on .nj .ivory p,
+html.cine-fallback .nj .ivory p,
+html.cine-on .nj .ivory li,
+html.cine-fallback .nj .ivory li,
+html.cine-on .cine-copy,
+html.cine-fallback .cine-copy,
+html.cine-on .cine-note,
+html.cine-fallback .cine-note,
+html.cine-on .cine-kicker,
+html.cine-fallback .cine-kicker {
+  color: #5c564e;
+}
+html.cine-on .nj main section,
+html.cine-fallback .nj main section {
+  padding: clamp(88px, 12vw, 140px) 0;
+}
+html.cine-on .cine-display em,
+html.cine-fallback .cine-display em {
+  color: #161412;
+  font-style: normal;
+  font-weight: 300;
+}
+html.cine-on .cine-chapter,
+html.cine-fallback .cine-chapter {
+  min-height: 0;
+  display: block;
+}
+html.cine-on .cine-rise,
+html.cine-fallback .cine-rise {
+  opacity: 1 !important;
+  transform: none !important;
+}
+html.cine-on .nj .facts,
+html.cine-fallback .nj .facts {
+  background: transparent;
+  border: 0;
+  gap: 16px;
+}
+html.cine-on .nj .facts > div,
+html.cine-fallback .nj .facts > div {
+  background: rgba(255, 255, 255, .62);
+  border: 1px solid rgba(255, 255, 255, .88);
+  border-radius: 22px;
+  box-shadow: 0 18px 50px rgba(22, 20, 18, .06);
+}
+html.cine-on .nj .facts span,
+html.cine-fallback .nj .facts span {
+  color: #5c564e;
+}
+
+/* Glass cards */
+html.cine-on .nj .step,
+html.cine-fallback .nj .step,
+html.cine-on .nj .dv,
+html.cine-fallback .nj .dv,
+html.cine-on .nj .s,
+html.cine-fallback .nj .s,
+html.cine-on .nj .plan,
+html.cine-fallback .nj .plan,
+html.cine-on .nj .faq details,
+html.cine-fallback .nj .faq details,
+html.cine-on .nj .box,
+html.cine-fallback .nj .box,
+html.cine-on .nj .ceo-box,
+html.cine-fallback .nj .ceo-box,
+html.cine-on .nj .license-panel,
+html.cine-fallback .nj .license-panel,
+html.cine-on .nj .founder-card,
+html.cine-fallback .nj .founder-card,
+html.cine-on .nj .vision,
+html.cine-fallback .nj .vision,
+html.cine-on .nj .tk,
+html.cine-fallback .nj .tk,
+html.cine-on .cine-phone,
+html.cine-fallback .cine-phone,
+html.cine-on .nj .ag-card,
+html.cine-fallback .nj .ag-card,
+html.cine-on .nj .agent,
+html.cine-fallback .nj .agent,
+html.cine-on .nj .dcard,
+html.cine-fallback .nj .dcard {
+  background: rgba(255, 255, 255, .58);
+  border: 1px solid rgba(255, 255, 255, .88);
+  border-radius: 22px;
+  box-shadow: 0 18px 50px rgba(22, 20, 18, .06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #161412;
+}
+html.cine-on .nj .steps,
+html.cine-fallback .nj .steps {
+  border: 0;
+  gap: 18px;
+}
+html.cine-on .nj #how,
+html.cine-fallback .nj #how {
+  background: #f6eefb;
+}
+html.cine-on .nj #how .sh h2,
+html.cine-fallback .nj #how .sh h2 {
+  color: #1a1a1a;
+  font-weight: 300;
+  font-size: clamp(32px, 3.6vw, 48px);
+}
+html.cine-on .nj .steps.flow,
+html.cine-fallback .nj .steps.flow {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  border: 0;
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+}
+html.cine-on .nj .steps.flow .step,
+html.cine-fallback .nj .steps.flow .step {
+  position: relative;
+  min-width: 0;
+  background: #fff;
+  border: 0;
+  border-inline-start: 0;
+  border-radius: 28px;
+  box-shadow: 0 14px 36px rgba(80, 60, 120, .07);
+  padding: 18px 18px 22px;
+}
+html.cine-on .nj .steps.flow .n,
+html.cine-fallback .nj .steps.flow .n {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  inset-inline-start: 16px;
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  color: #5c5670;
+  line-height: 1;
+  text-shadow: 0 0 8px #fff, 0 0 2px #fff;
+  pointer-events: none;
+}
+html.cine-on .nj .steps.flow .shot,
+html.cine-fallback .nj .steps.flow .shot {
+  position: relative;
+  z-index: 0;
+  height: 268px;
+  margin: 4px -4px 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f4eefb 0%, #fbf8fe 46%, #ffffff 100%);
+}
+html.cine-on .nj .steps.flow .shot img,
+html.cine-fallback .nj .steps.flow .shot img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  transform: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+html.cine-on .nj .steps.flow h3,
+html.cine-fallback .nj .steps.flow h3 {
+  margin: 2px 0 8px;
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0;
+  color: #1a1a1a;
+}
+html.cine-on .nj .steps.flow p,
+html.cine-fallback .nj .steps.flow p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #5e5870;
+}
+@media (max-width: 680px) {
+  html.cine-on .nj .steps,
+  html.cine-fallback .nj .steps,
+  html.cine-on .nj .steps.flow,
+  html.cine-fallback .nj .steps.flow {
+    grid-template-columns: 1fr;
+  }
+}
+html.cine-on .nj .step,
+html.cine-fallback .nj .step {
+  border: 1px solid rgba(255, 255, 255, .88);
+  padding: 28px 24px 32px;
+}
+html.cine-on .nj .step .n,
+html.cine-fallback .nj .step .n,
+html.cine-on .nj .facts b,
+html.cine-fallback .nj .facts b,
+html.cine-on .nj .plan .price .amt,
+html.cine-fallback .nj .plan .price .amt {
+  font-weight: 300;
+  color: #161412;
+}
+html.cine-on .nj .step p,
+html.cine-fallback .nj .step p,
+html.cine-on .nj .s p,
+html.cine-fallback .nj .s p,
+html.cine-on .nj .dv p,
+html.cine-fallback .nj .dv p,
+html.cine-on .nj .plan .tag,
+html.cine-fallback .nj .plan .tag,
+html.cine-on .nj .plan .vat,
+html.cine-fallback .nj .plan .vat,
+html.cine-on .nj .plan li,
+html.cine-fallback .nj .plan li {
+  color: #5c564e;
+}
+html.cine-on .nj .s,
+html.cine-fallback .nj .s,
+html.cine-on .nj .dv,
+html.cine-fallback .nj .dv {
+  padding: 22px 22px 26px;
+}
+html.cine-on .nj .s h3,
+html.cine-fallback .nj .s h3,
+html.cine-on .nj .dv b,
+html.cine-fallback .nj .dv b {
+  color: #161412;
+  font-weight: 400;
+}
+html.cine-on .nj .plan.is-rec,
+html.cine-fallback .nj .plan.is-rec {
+  background: rgba(255, 255, 255, .82);
+  color: #161412;
+  border-color: rgba(22, 20, 18, .18);
+}
+html.cine-on .nj .plan.is-rec .tag,
+html.cine-fallback .nj .plan.is-rec .tag,
+html.cine-on .nj .plan.is-rec .vat,
+html.cine-fallback .nj .plan.is-rec .vat,
+html.cine-on .nj .plan.is-rec li,
+html.cine-fallback .nj .plan.is-rec li {
+  color: #3f3a36;
+}
+html.cine-on .nj .plan .ribbon,
+html.cine-fallback .nj .plan .ribbon {
+  background: #161412;
+  color: #f7f6f4;
+}
+html.cine-on .nj .track,
+html.cine-fallback .nj .track {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
+}
+html.cine-on .nj .tk,
+html.cine-fallback .nj .tk {
+  border-top: 0;
+  padding: 16px;
+  text-align: start;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html.cine-on .nj .tk b,
+html.cine-fallback .nj .tk b {
+  overflow-wrap: anywhere;
+}
+html.cine-on .nj .tk b,
+html.cine-fallback .nj .tk b,
+html.cine-on .nj .box,
+html.cine-fallback .nj .box,
+html.cine-on .nj .say,
+html.cine-fallback .nj .say {
+  color: #161412;
+}
+html.cine-on .nj .faq summary,
+html.cine-fallback .nj .faq summary {
+  color: #161412;
+  font-weight: 400;
+}
+html.cine-on .nj .ag-grid,
+html.cine-fallback .nj .ag-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+html.cine-on .nj .ag-card,
+html.cine-fallback .nj .ag-card {
+  padding: 28px 24px 32px;
+}
+html.cine-on .nj .ag-card h3,
+html.cine-fallback .nj .ag-card h3 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+html.cine-on .nj .ag-card p,
+html.cine-fallback .nj .ag-card p,
+html.cine-on .nj .ag-card a,
+html.cine-fallback .nj .ag-card a {
+  color: #5c564e;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+html.cine-on .nj .nj-footer,
+html.cine-fallback .nj .nj-footer {
+  background: transparent;
+  color: #5c564e;
+  border-top: 1px solid rgba(22, 20, 18, .08);
+}
+html.cine-on .nj .nj-footer a,
+html.cine-fallback .nj .nj-footer a {
+  color: #3a3632;
+}
+html.cine-on .nj .mbar,
+html.cine-fallback .nj .mbar {
+  background: rgba(255, 255, 255, .82);
+  border-top: 1px solid rgba(22, 20, 18, .08);
+  backdrop-filter: blur(16px);
+}
+html.cine-on .nj .guar,
+html.cine-fallback .nj .guar,
+html.cine-on .nj .ceo-pick,
+html.cine-fallback .nj .ceo-pick,
+html.cine-on .nj .founder-story,
+html.cine-fallback .nj .founder-story,
+html.cine-on .nj .vision p,
+html.cine-fallback .nj .vision p {
+  color: #5c564e;
+}
+
+@media (max-width: 980px) {
+  html.cine-on .nj .hero-bg,
+  html.cine-fallback .nj .hero-bg,
+  .nj .hero-bg {
+    height: 100%;
+    opacity: 1;
+  }
+  html.cine-on .nj .hero::after,
+  html.cine-fallback .nj .hero::after,
+  [dir="ltr"] html.cine-on .nj .hero::after,
+  [dir="ltr"] html.cine-fallback .nj .hero::after {
+    background: linear-gradient(180deg, rgba(246, 238, 251, .08) 0%, rgba(246, 238, 251, .4) 70%, #f6eefb 100%);
+  }
+  html.cine-on .nj main .hero h1.display,
+  html.cine-fallback .nj main .hero h1.display {
+    font-size: clamp(40px, 12vw, 64px);
+    max-width: 8em;
+  }
+  html.cine-on .nj .ag-grid,
+  html.cine-fallback .nj .ag-grid,
+  html.cine-on .nj .steps.flow,
+  html.cine-fallback .nj .steps.flow {
+    grid-template-columns: 1fr 1fr;
+  }
+  html.cine-on .nj .ag-stats,
+  html.cine-fallback .nj .ag-stats {
+    gap: 20px 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.cine-on .nj .nj-nav .nav-cta,
+  html.cine-fallback .nj .nj-nav .nav-cta {
+    transition: none;
+  }
+}
+
+/* Reference match: pale field, pill nav, type over the glass, no filled accent buttons. */
+html.cine-on,
+html.cine-fallback,
+html.cine-on body.nj,
+html.cine-fallback body.nj {
+  background: #f6eefb;
+  color: #1a1a1a;
+  overflow-x: clip;
+}
+html.cine-on .nj .nj-nav .wrap,
+html.cine-fallback .nj .nj-nav .wrap {
+  width: min(820px, calc(100% - 28px));
+  min-height: 52px;
+  padding: 6px 8px 6px 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(255, 255, 255, .95);
+  box-shadow: 0 10px 28px rgba(22, 20, 18, .06);
+}
+html.cine-on .nj .logo-txt,
+html.cine-fallback .nj .logo-txt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+}
+html.cine-on .nj .logo-name,
+html.cine-fallback .nj .logo-name {
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: .01em;
+  line-height: 1;
+}
+html.cine-on .nj[dir="rtl"] .logo-name,
+html.cine-fallback .nj[dir="rtl"] .logo-name,
+[dir="rtl"] html.cine-on .nj .logo-name,
+[dir="rtl"] html.cine-fallback .nj .logo-name {
+  font-family: "Amiri", "Alexandria", serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+html.cine-on .nj .logo-sub,
+html.cine-fallback .nj .logo-sub {
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 300;
+  font-size: 9px;
+  letter-spacing: .08em;
+  color: #6a6278;
+  line-height: 1.2;
+}
+html.cine-on .nj .links,
+html.cine-fallback .nj .links {
+  font-size: 14px;
+  font-weight: 400;
+  color: #3c3c3c;
+}
+html.cine-on .nj .links a,
+html.cine-fallback .nj .links a {
+  color: #3c3c3c;
+}
+html.cine-on .nj .btn-login,
+html.cine-fallback .nj .btn-login {
+  display: none;
+}
+html.cine-on .nj .nj-nav .nav-cta,
+html.cine-fallback .nj .nj-nav .nav-cta {
+  border-radius: 999px;
+  border: 1px solid rgba(22, 22, 22, .28);
+  background: transparent;
+  color: #1a1a1a;
+  min-height: 34px;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  box-shadow: none;
+}
+html.cine-on .nj main .hero,
+html.cine-fallback .nj main .hero {
+  min-height: 100svh;
+  background: #f6eefb;
+  overflow-x: clip;
+}
+html.cine-on .nj .hero-bg,
+html.cine-fallback .nj .hero-bg {
+  transform: scaleX(-1);
+  object-position: center 72%;
+  filter: none;
+  opacity: 1;
+}
+[dir="ltr"] html.cine-on .nj .hero-bg,
+[dir="ltr"] html.cine-fallback .nj .hero-bg {
+  transform: none;
+}
+html.cine-on .nj .hero::after,
+html.cine-fallback .nj .hero::after {
+  background: linear-gradient(to left, rgba(246, 238, 251, .16) 0%, rgba(246, 238, 251, 0) 40%);
+}
+[dir="ltr"] html.cine-on .nj .hero::after,
+[dir="ltr"] html.cine-fallback .nj .hero::after {
+  background: linear-gradient(to right, rgba(246, 238, 251, .16) 0%, rgba(246, 238, 251, 0) 40%);
+}
+html.cine-on .nj main .hero > .wrap,
+html.cine-fallback .nj main .hero > .wrap {
+  display: block;
+  max-width: 1180px;
+  min-height: calc(100svh - 24px);
+  padding-top: 128px;
+  padding-bottom: 56px;
+}
+html.cine-on .nj .hero .copy,
+html.cine-fallback .nj .hero .copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: min(640px, 56%);
+  min-height: calc(100svh - 150px);
+}
+html.cine-on .nj .hero .eyebrow,
+html.cine-fallback .nj .hero .eyebrow {
+  display: none;
+}
+html.cine-on .nj .logo,
+html.cine-fallback .nj .logo {
+  position: relative;
+}
+html.cine-on .nj .nj-nav .logo img,
+html.cine-fallback .nj .nj-nav .logo img {
+  display: block;
+  position: static;
+  width: 28px;
+  height: 28px;
+}
+html.cine-on .nj main .hero h1.display,
+html.cine-fallback .nj main .hero h1.display,
+html.cine-on .nj h2,
+html.cine-fallback .nj h2 {
+  font-family: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
+}
+html.cine-on .nj main .hero h1.display,
+html.cine-fallback .nj main .hero h1.display {
+  order: 1;
+  font-weight: 300;
+  font-size: clamp(48px, 6.2vw, 84px);
+  line-height: 1.12;
+  letter-spacing: -.03em;
+  max-width: 11em;
+  margin: 0;
+  color: #141414;
+}
+html.cine-on .nj .hero-gem,
+html.cine-fallback .nj .hero-gem {
+  position: absolute;
+  z-index: 2;
+  width: min(220px, 26vw);
+  aspect-ratio: 1;
+  inset-inline-end: 7%;
+  top: 24%;
+  pointer-events: none;
+}
+html.cine-on .nj .gem,
+html.cine-fallback .nj .gem,
+html.cine-on .nj .hero-gem,
+html.cine-fallback .nj .hero-gem {
+  display: inline-grid;
+  place-items: center;
+}
+html.cine-on .nj .nj-nav .gem,
+html.cine-fallback .nj .nj-nav .gem {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+html.cine-on .nj .gem img,
+html.cine-fallback .nj .gem img,
+html.cine-on .nj .gem canvas,
+html.cine-fallback .nj .gem canvas,
+html.cine-on .nj .hero-gem img,
+html.cine-fallback .nj .hero-gem img,
+html.cine-on .nj .hero-gem canvas,
+html.cine-fallback .nj .hero-gem canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+html.cine-on .nj .gem,
+html.cine-fallback .nj .gem,
+html.cine-on .nj .hero-gem,
+html.cine-fallback .nj .hero-gem {
+  perspective: 800px;
+}
+html.cine-on .nj .gem-sweep,
+html.cine-fallback .nj .gem-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, .82) 48%, rgba(210, 190, 255, .35) 54%, transparent 68%);
+  mix-blend-mode: screen;
+  -webkit-mask-image: url("/static/logo-512.webp");
+  mask-image: url("/static/logo-512.webp");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.cine-on .nj .gem.is-live > img,
+  html.cine-fallback .nj .gem.is-live > img,
+  html.cine-on .nj .hero-gem.is-live > img,
+  html.cine-fallback .nj .hero-gem.is-live > img {
+    animation: narjis-gem-turn 8s ease-in-out infinite;
+    filter: drop-shadow(0 12px 18px rgba(120, 90, 170, .28));
+    transform-style: preserve-3d;
+  }
+  html.cine-on .nj .gem.is-live .gem-sweep,
+  html.cine-fallback .nj .gem.is-live .gem-sweep {
+    animation: narjis-gem-sweep 3.8s ease-in-out infinite;
+  }
+}
+@keyframes narjis-gem-turn {
+  0%, 100% { transform: translateY(0) rotateY(-16deg) rotateX(7deg); }
+  50% { transform: translateY(-7px) rotateY(18deg) rotateX(-5deg); }
+}
+@keyframes narjis-gem-sweep {
+  0%, 100% { transform: translateX(-36%); opacity: .35; }
+  45% { opacity: .95; }
+  70% { transform: translateX(36%); opacity: .4; }
+}
+html.cine-on .nj .hero .ag-stats,
+html.cine-fallback .nj .hero .ag-stats {
+  order: 2;
+  gap: 48px;
+  margin: 42px 0 0;
+}
+html.cine-on .nj .ag-stats b,
+html.cine-fallback .nj .ag-stats b {
+  font-weight: 400;
+  font-size: clamp(34px, 3.2vw, 46px);
+  letter-spacing: -.03em;
+  color: #1a1a1a;
+}
+html.cine-on .nj .ag-stats span,
+html.cine-fallback .nj .ag-stats span {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+html.cine-on .nj .hero .lead,
+html.cine-fallback .nj .hero .lead {
+  order: 4;
+  font-weight: 400;
+  font-size: 16px;
+  color: #4a4a4a;
+  margin: 22px 0 0;
+}
+html.cine-on .nj .hero .ctas,
+html.cine-fallback .nj .hero .ctas {
+  order: 5;
+  margin-top: 18px;
+}
+html.cine-on .nj .hero .nj-brand-row,
+html.cine-fallback .nj .hero .nj-brand-row {
+  order: 6;
+  margin: 18px 0 0;
+}
+html.cine-on .nj main .hero .nj-voice-inline,
+html.cine-fallback .nj main .hero .nj-voice-inline {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #4a4a4a;
+  font-weight: 400;
+  font-size: 14px;
+  min-height: 0;
+  padding: 0;
+}
+html.cine-on .nj .hero .portal,
+html.cine-fallback .nj .hero .portal {
+  display: block;
+  width: min(100%, 440px);
+  margin: 28px 0 0;
+}
+html.cine-on .nj .btn,
+html.cine-fallback .nj .btn,
+html.cine-on .nj .btn-primary,
+html.cine-fallback .nj .btn-primary,
+html.cine-on .nj main .hero .btn,
+html.cine-fallback .nj main .hero .btn,
+html.cine-on .nj main .hero .btn-sec,
+html.cine-fallback .nj main .hero .btn-sec {
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid rgba(22, 22, 22, .28);
+  box-shadow: none;
+  border-radius: 999px;
+  font-weight: 500;
+}
+html.cine-on .nj .btn:hover,
+html.cine-fallback .nj .btn:hover,
+html.cine-on .nj main .hero .btn:hover,
+html.cine-fallback .nj main .hero .btn:hover {
+  background: rgba(255, 255, 255, .9);
+  color: #1a1a1a;
+  border-color: rgba(90, 70, 130, .35);
+}
+html.cine-on #heroWhatsapp,
+html.cine-fallback #heroWhatsapp,
+html.cine-on #mbarWhatsapp,
+html.cine-fallback #mbarWhatsapp {
+  background: transparent;
+  color: #1a1a1a;
+  border-color: rgba(22, 22, 22, .28);
+}
+
+@media (max-width: 980px) {
+  html.cine-on .nj .hero::after,
+  html.cine-fallback .nj .hero::after,
+  [dir="ltr"] html.cine-on .nj .hero::after,
+  [dir="ltr"] html.cine-fallback .nj .hero::after {
+    background: linear-gradient(180deg, rgba(246, 238, 251, .06) 0%, rgba(246, 238, 251, .32) 68%, #f6eefb 100%);
+  }
+  html.cine-on .nj .hero .copy,
+  html.cine-fallback .nj .hero .copy {
+    max-width: 100%;
+  }
+  html.cine-on .nj .hero-gem,
+  html.cine-fallback .nj .hero-gem {
+    width: 84px;
+    top: auto;
+    bottom: 22%;
+    inset-inline-end: 14px;
+  }
+  html.cine-on .nj main .hero h1.display,
+  html.cine-fallback .nj main .hero h1.display {
+    font-size: clamp(40px, 11vw, 58px);
+    max-width: 100%;
+  }
+  html.cine-on .nj main .hero .ctas,
+  html.cine-fallback .nj main .hero .ctas {
+    flex-direction: row;
+    align-items: center;
+  }
+  html.cine-on .nj main .hero .btn,
+  html.cine-fallback .nj main .hero .btn,
+  html.cine-on .nj main .hero .btn-sec,
+  html.cine-fallback .nj main .hero .btn-sec {
+    width: auto;
+  }
+}
+
+/* Reference palette only: pale lilac field, glass cards, dark type, no orange fills and no black sections. */
+html.cine-on body.nj,
+html.cine-fallback body.nj,
+html.cine-on body.nj main,
+html.cine-fallback body.nj main,
+html.cine-on body.nj .scene,
+html.cine-fallback body.nj .scene,
+html.cine-on body.nj .ivory,
+html.cine-fallback body.nj .ivory,
+html.cine-on body.nj .sec,
+html.cine-fallback body.nj .sec,
+html.cine-on body.nj .final,
+html.cine-fallback body.nj .final,
+html.cine-on body.nj .cine-chapter,
+html.cine-fallback body.nj .cine-chapter {
+  background: transparent;
+  color: #1a1a1a;
+}
+html.cine-on body.nj a,
+html.cine-fallback body.nj a {
+  color: #2c2636;
+}
+html.cine-on body.nj .num,
+html.cine-fallback body.nj .num,
+html.cine-on body.nj .eyebrow,
+html.cine-fallback body.nj .eyebrow,
+html.cine-on body.nj .eyebrow::before,
+html.cine-fallback body.nj .eyebrow::before,
+html.cine-on body.nj .feat-h,
+html.cine-fallback body.nj .feat-h,
+html.cine-on body.nj .plan.is-rec .feat-h,
+html.cine-fallback body.nj .plan.is-rec .feat-h,
+html.cine-on body.nj .lbl,
+html.cine-fallback body.nj .lbl,
+html.cine-on body.nj .tk[aria-selected=true] .num,
+html.cine-fallback body.nj .tk[aria-selected=true] .num,
+html.cine-on body.nj .dv summary .num,
+html.cine-fallback body.nj .dv summary .num,
+html.cine-on body.nj .vision .big,
+html.cine-fallback body.nj .vision .big {
+  color: #5c5370;
+  border-color: rgba(92, 83, 112, .28);
+}
+html.cine-on body.nj .eyebrow::before,
+html.cine-fallback body.nj .eyebrow::before {
+  background: #8a78c8;
+}
+html.cine-on body.nj .skip,
+html.cine-fallback body.nj .skip,
+html.cine-on body.nj .badge,
+html.cine-fallback body.nj .badge,
+html.cine-on body.nj .simtag,
+html.cine-fallback body.nj .simtag,
+html.cine-on body.nj .plan .ribbon,
+html.cine-fallback body.nj .plan .ribbon,
+html.cine-on body.nj .ceo-avatar,
+html.cine-fallback body.nj .ceo-avatar,
+html.cine-on body.nj .founder-disc,
+html.cine-fallback body.nj .founder-disc,
+html.cine-on body.nj .ctrl .nx,
+html.cine-fallback body.nj .ctrl .nx,
+html.cine-on body.nj #pricing .btn-primary,
+html.cine-fallback body.nj #pricing .btn-primary,
+html.cine-on body.nj .btn,
+html.cine-fallback body.nj .btn,
+html.cine-on body.nj .btn-primary,
+html.cine-fallback body.nj .btn-primary,
+html.cine-on body.nj .nav-cta,
+html.cine-fallback body.nj .nav-cta {
+  background: rgba(255, 255, 255, .72);
+  color: #1a1a1a;
+  border: 1px solid rgba(26, 26, 26, .22);
+  box-shadow: none;
+}
+html.cine-on body.nj .ngc-online,
+html.cine-fallback body.nj .ngc-online,
+html.cine-on body.nj .ceo-online,
+html.cine-fallback body.nj .ceo-online {
+  background: #8a78c8;
+  box-shadow: none;
+}
+html.cine-on body.nj .cine-phone,
+html.cine-fallback body.nj .cine-phone,
+html.cine-on body.nj .cine-bubble,
+html.cine-fallback body.nj .cine-bubble,
+html.cine-on body.nj .cine-bubble.in,
+html.cine-fallback body.nj .cine-bubble.in,
+html.cine-on body.nj .cine-bubble.out,
+html.cine-fallback body.nj .cine-bubble.out,
+html.cine-on body.nj .cine-bubble.missed,
+html.cine-fallback body.nj .cine-bubble.missed {
+  background: rgba(255, 255, 255, .78);
+  color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, .95);
+}
+html.cine-on body.nj .cine-unread,
+html.cine-fallback body.nj .cine-unread {
+  background: rgba(138, 120, 200, .16);
+  color: #4c3d78;
+}
+html.cine-on body.nj .ceo-box,
+html.cine-fallback body.nj .ceo-box,
+html.cine-on body.nj #ceoBusiness,
+html.cine-fallback body.nj #ceoBusiness,
+html.cine-on body.nj #ceoForm textarea,
+html.cine-fallback body.nj #ceoForm textarea {
+  background: rgba(255, 255, 255, .82);
+  color: #1a1a1a;
+  border: 1px solid rgba(90, 70, 130, .2);
+}
+html.cine-on body.nj #ceoForm textarea::placeholder,
+html.cine-fallback body.nj #ceoForm textarea::placeholder,
+html.cine-on body.nj #ceoBusiness::placeholder,
+html.cine-fallback body.nj #ceoBusiness::placeholder {
+  color: #7a7388;
+}
+html.cine-on body.nj .compare,
+html.cine-fallback body.nj .compare,
+html.cine-on body.nj .compare thead th,
+html.cine-fallback body.nj .compare thead th,
+html.cine-on body.nj .compare td,
+html.cine-fallback body.nj .compare td,
+html.cine-on body.nj .compare .is-rec,
+html.cine-fallback body.nj .compare .is-rec {
+  background: rgba(255, 255, 255, .55);
+  color: #1a1a1a;
+}
+html.cine-on body.nj .mbar,
+html.cine-fallback body.nj .mbar {
+  background: rgba(246, 238, 251, .92);
+  border-top: 1px solid rgba(90, 70, 130, .16);
+}
+html.cine-on body.nj .foot-brand,
+html.cine-fallback body.nj .foot-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  color: #1a1a1a;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 15px;
+}
+html.cine-on body.nj .foot-brand .gem,
+html.cine-fallback body.nj .foot-brand .gem {
+  width: 42px;
+  height: 42px;
+}
+html.cine-on body.nj .foot-brand img,
+html.cine-fallback body.nj .foot-brand img {
+  width: 36px;
+  height: 36px;
+}
+body.nj #cookieConsent {
+  background: rgba(255, 255, 255, .9);
+  color: #1a1a1a;
+  border: 1px solid rgba(90, 70, 130, .18);
+  box-shadow: 0 12px 30px rgba(40, 30, 70, .08);
+  z-index: 80;
+}
+body.nj #cookieConsent a { color: #5c4d86; }
+body.nj #cookieConsent button,
+body.nj #cookieConsent button.pri {
+  background: rgba(255, 255, 255, .9);
+  color: #1a1a1a;
+  border: 1px solid rgba(26, 26, 26, .22);
+}
+@media (max-width: 980px) {
+  html.cine-on .nj .mbar #mbarWhatsapp,
+  html.cine-fallback .nj .mbar #mbarWhatsapp {
+    color: #1a1a1a;
+    border-color: rgba(26, 26, 26, .22);
+    background: rgba(255, 255, 255, .92);
+    font-weight: 500;
+  }
+}
+@media (max-width: 680px) {
+  html.cine-on .nj .steps.flow,
+  html.cine-fallback .nj .steps.flow {
+    grid-template-columns: 1fr;
+  }
+  html.cine-on .nj .compare,
+  html.cine-fallback .nj .compare {
+    min-width: 0;
+    width: 100%;
+  }
+  html.cine-on .nj .compare th,
+  html.cine-fallback .nj .compare th,
+  html.cine-on .nj .compare td,
+  html.cine-fallback .nj .compare td {
+    overflow-wrap: anywhere;
+  }
+  html.cine-on .nj .hero-gem,
+  html.cine-fallback .nj .hero-gem {
+    width: 72px;
+    inset-inline-end: 8px;
+  }
+}

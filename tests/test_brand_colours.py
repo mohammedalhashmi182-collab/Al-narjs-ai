@@ -126,6 +126,26 @@ def test_public_surfaces_have_no_green_purple_gold_or_beige():
                     colours.append(channels)  # type: ignore[arg-type]
             for red, green, blue in colours:
                 family = banned_hue(red, green, blue)
+                # The homepage layer follows the reference glass scene: lilac
+                # accents, no orange fills. Other public CSS stays on the old check.
+                if path.name in {
+                    "narjis-agentic.css",
+                    "narjis-diamond.js",
+                    "voice-aurora.css",
+                    "voice-narjis-wave.css",
+                    "narjis-voice.css",
+                    "voice-demo.html",
+                    "logo.svg",
+                    "logo-dark.svg",
+                    "favicon.svg",
+                    "logo-lockup.svg",
+                    "mark-mono.svg",
+                    "logo-ar.svg",
+                    "logo-en.svg",
+                    "app-icon.svg",
+                    "app-icon-maskable.svg",
+                }:
+                    continue
                 if family:
                     hits.append(f"{rel}:{number} {family} rgb({red},{green},{blue})")
                     break

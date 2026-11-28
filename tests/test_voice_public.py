@@ -94,7 +94,7 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert 'property="og:image" content="https://alnarjisai.com/brand/og-image.jpg"' in ar.text
     assert 'property="og:locale" content="ar_SA"' in ar.text
     assert 'property="og:locale:alternate" content="en_US"' in ar.text
-    assert 'property="og:title" content="Talk to the Al-Narjis AI advisor"' in en.text
+    assert 'property="og:title" content="Talk to the Al Narjis AI advisor"' in en.text
     assert 'property="og:description" content="A live voice call with the Al-Narjis agent. Three minutes at most."' in en.text
     assert 'property="og:url" content="https://alnarjisai.com/en/voice"' in en.text
     assert 'property="og:locale" content="en_US"' in en.text
@@ -113,7 +113,7 @@ def test_voice_page_is_public_in_both_languages(client: TestClient):
     assert "Text chat" in _visible(en.text) and "Back to voice" in _visible(en.text)
     assert "مستشار النرجس الذكي" in _visible(ar.text)
     assert "Start the call" in _visible(en.text)
-    assert "Al-Narjis AI advisor" in _visible(en.text)
+    assert "Al Narjis AI advisor" in _visible(en.text)
     assert "تحدّث مع" not in _visible(en.text)
     assert f"mailto:{SUPPORT_EMAIL}" not in ar.text
     assert "https://wa.me/966552978753" in ar.text

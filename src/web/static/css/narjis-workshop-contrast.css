@@ -1,0 +1,94 @@
+/* Light Agentic landing: never inherit old charcoal/ivory defaults for light UI. */
+html body.nj.ag-glass-refined {
+  --work-ink: #222331;
+  --work-muted: #42495d;
+  --work-border: #9399ae;
+  --work-accent: #473b73;
+  --work-tinted: #eeedf8;
+  --work-paper: #fcfcfe;
+}
+html body.nj.ag-glass-refined #services .svc .s:is(:hover,:focus-visible) {
+  background: var(--work-tinted);
+  color: var(--work-ink);
+}
+html body.nj.ag-glass-refined #services .svc .s,
+html body.nj.ag-glass-refined #services .svc .s h3 {color:var(--work-ink)}
+html body.nj.ag-glass-refined #services .svc .s p {color:var(--work-muted)}
+html body.nj.ag-glass-refined #results .agent span,
+html body.nj.ag-glass-refined #results .diag li,
+html body.nj.ag-glass-refined #results .why,
+html body.nj.ag-glass-refined #results .dcard ol,
+html body.nj.ag-glass-refined #results .bub small,
+html body.nj.ag-glass-refined #results .ctrl,
+html body.nj.ag-glass-refined #results .tk .sub {
+  color: var(--work-muted);
+}
+html body.nj.ag-glass-refined #results .agent .task,
+html body.nj.ag-glass-refined #results .agent svg,
+html body.nj.ag-glass-refined #results .diag .num,
+html body.nj.ag-glass-refined #results .ctrl .num {
+  color: var(--work-accent);
+}
+html body.nj.ag-glass-refined #results .why b,
+html body.nj.ag-glass-refined #results .dcard h4 {color:var(--work-ink)}
+html body.nj.ag-glass-refined #results .ctrl button {
+  min-height:44px;
+  background:var(--work-paper);
+  color:var(--work-ink);
+  border:1px solid var(--work-border);
+}
+html body.nj.ag-glass-refined #results .ctrl .nx {background:var(--work-tinted)}
+html body.nj.ag-glass-refined #results .ctrl button:disabled {
+  opacity: 1;
+  background: #eceef2;
+  color: #51576b;
+  border-color: #adb2c0;
+}
+html body.nj.ag-glass-refined #ngConcierge .ngc-chip {
+  padding-block:9px;
+  min-height:44px;
+  background: var(--work-paper);
+  color:var(--work-ink);
+  border:1px solid var(--work-border);
+}
+html body.nj.ag-glass-refined #ngConcierge .ngc-chip:is(:hover,:focus-visible,:active) {
+  background:var(--work-tinted);
+  color:var(--work-accent);
+  border-color:var(--work-accent);
+}
+html body.nj.ag-glass-refined #ngHeroProblem::placeholder {color:#535b71;opacity:1}
+html body.nj.ag-glass-refined :is(#services,#results,#ngConcierge,.nj-inline-detail)
+:is(a,button,textarea):focus-visible {
+  outline: 2px solid var(--work-accent);
+  outline-offset: 3px;
+}
+html body.nj .nj-inline-detail {
+  position:fixed;
+  inset:0;
+  width:min(540px,calc(100% - 28px));
+  max-height:calc(100dvh - 40px);
+  margin:auto;
+  padding:0;
+  border:1px solid #aeb4c8;
+  border-radius:22px;
+  background:#f8f8fc;
+  color:var(--work-ink);
+  box-shadow:0 24px 80px #24293940;
+  overflow:auto;
+}
+.nj-inline-detail::backdrop {background:#171a2a65}
+.nj-inline-detail section {padding:clamp(20px,5vw,32px)}
+.nj-inline-detail .nj-detail-kicker {font-size:.85rem;color:var(--work-accent);margin:0 0 12px}
+html body.nj .nj-inline-detail h2 {font-size:clamp(1.4rem,4vw,2rem);color:var(--work-ink);margin:0 0 10px}
+.nj-inline-detail #njInlineDetailDescription {color:var(--work-muted);line-height:1.75;margin:0}
+.nj-inline-detail .nj-detail-close {
+  float:inline-end;
+  width:44px;height:44px;border:1px solid var(--work-border);border-radius:50%;
+  background:var(--work-paper);color:var(--work-ink);font-size:1.4rem;cursor:pointer;
+}
+.nj-inline-detail .nj-detail-actions {display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.nj-inline-detail .nj-detail-actions button,.nj-inline-detail .nj-detail-actions a {
+  display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:6px 14px;
+  border:1px solid var(--work-border);border-radius:999px;
+  color:var(--work-accent);background:var(--work-paper);font:inherit;cursor:pointer;
+}

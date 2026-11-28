@@ -14,10 +14,10 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
     <link rel="manifest" href="/static/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% if _lang == 'ar' %}بوابة العميل في النرجس للذكاء الاصطناعي: متابعة الاشتراك والمشاريع والطلبات.{% else %}Al-Narjis AI client portal: track your subscription, projects and requests.{% endif %}">
+    <meta name="description" content="{% if _lang == 'ar' %}بوابة العميل في النرجس للذكاء الاصطناعي: متابعة الاشتراك والمشاريع والطلبات.{% else %}Al Narjis AI client portal: track your subscription, projects and requests.{% endif %}">
     <link rel="canonical" href="https://alnarjisai.com/{{ _lang }}/portal">
     <meta name="robots" content="noindex,nofollow">
-    <title>{% if _lang == 'ar' %}بوابة العميل | النرجس للذكاء الاصطناعي{% else %}Client Portal | Al-Narjis AI{% endif %}</title>
+    <title>{% if _lang == 'ar' %}بوابة العميل | النرجس للذكاء الاصطناعي{% else %}Client Portal | Al Narjis AI{% endif %}</title>
     <link rel="stylesheet" href="/static/css/app-tw.css">
     <link rel="stylesheet" href="/static/css/narjis.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
     <nav class="n-nav portal-nav">
         <div class="portal-shell portal-nav-inner">
             <a href="/home" class="portal-brand">
-                <img src="/static/logo.svg" alt="Al-Narjis AI" class="portal-brand-logo">
+                <img src="/static/logo.svg" alt="Al Narjis AI" class="portal-brand-logo">
                 <div>
                     <div class="n-title portal-brand-name">النرجس <span class="gold">للذكاء الاصطناعي</span></div>
                     {{ badge("بوابة العميل" if _lang == "ar" else "Client Portal", class_name="portal-brand-caption") }}
@@ -250,8 +250,8 @@
 
     <footer class="n-footer portal-footer">
         <div class="portal-shell text-center">
-            <div class="text-lg mb-2">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al-Narjis AI ✺</span>{% endif %}</div>
-            <p class="text-xs">Al-Narjis AI · Riyadh · © 2026</p>
+            <div class="text-lg mb-2">{% if _lang == 'ar' %}<span>✺ النرجس للذكاء الاصطناعي ✺</span>{% else %}<span data-inline>✺ Al Narjis AI ✺</span>{% endif %}</div>
+            <p class="text-xs">Al Narjis AI · Riyadh · © 2026</p>
             <p class="portal-footer-links text-xs mt-3">
                 {% if _lang == 'ar' %}<span>منصة النرجس · وثيقة عمل حر رقم FL-272182297 ·</span>{% else %}<span data-inline>Operated by Al-Narjis · Freelance document No. FL-272182297 ·</span>{% endif %}
                 <a href="/privacy">{% if _lang == 'ar' %}<span>الخصوصية</span>{% else %}<span data-inline>Privacy</span>{% endif %}</a>

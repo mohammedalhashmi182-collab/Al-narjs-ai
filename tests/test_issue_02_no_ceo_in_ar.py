@@ -20,7 +20,7 @@ def test_arabic_cta_has_no_ceo() -> None:
         response = client.get("/ar/home")
     assert response.status_code == HTTPStatus.OK
     html = response.text
-    actions = re.findall(r'<a\b[^>]*href="(?:/ar)?/consult"[^>]*>(.*?)</a>', html, re.S)
+    actions = re.findall(r'<a\b[^>]*href="#start-ceo"[^>]*>(.*?)</a>', html, re.S)
     assert actions
     assert any("الرئيس التنفيذي" in action for action in actions)
     assert all(not re.search(r"\bCEO\b", action) for action in actions)
@@ -37,9 +37,10 @@ def test_stage_label_arabic():
     assert "تشخيص الرئيس التنفيذي" in l and "تشخيص CEO" not in l
 
 
-def test_avatar_uses_arabic_letter():
+def test_avatar_uses_the_glass_mark():
     l = _find('class="ceo-avatar"')[0]
-    assert "{% if ar %}ر{% else %}CEO{% endif %}" in l
+    assert "glass_mark" in l
+    assert ">CEO<" not in l
 
 
 def test_diagnosis_line():

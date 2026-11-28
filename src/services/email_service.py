@@ -33,7 +33,7 @@ def _build_message(
     attachments: Optional[list[tuple[str, bytes, str]]] = None,
 ) -> EmailMessage:
     msg = EmailMessage()
-    from_name = "النرجس للذكاء الاصطناعي | Al-Narjis AI"
+    from_name = "النرجس للذكاء الاصطناعي | Al Narjis AI"
     from_addr = settings.smtp_from or settings.smtp_username
     msg["From"] = formataddr((from_name, from_addr))
     msg["To"] = to
@@ -56,7 +56,7 @@ def _send_http_sync(
     html: Optional[str],
     attachments: Optional[list[tuple[str, bytes, str]]] = None,
 ) -> None:
-    from_name = "النرجس للذكاء الاصطناعي | Al-Narjis AI"
+    from_name = "النرجس للذكاء الاصطناعي | Al Narjis AI"
     payload = {
         "sender": {"email": settings.smtp_from or settings.smtp_username, "name": from_name},
         "to": [{"email": to}],
@@ -176,7 +176,7 @@ async def send_welcome(to: str, name: str) -> bool:
 شكراً لاختيارك النرجس للذكاء الاصطناعي. الدعم عبر البريد AlNarjisai@gmail.com، وتسليم العمل يتم بالبريد.
 
 — فريق النرجس
-Al-Narjis AI · Riyadh""",
+Al Narjis AI · Riyadh""",
         html=_welcome_html(name),
     )
 
@@ -238,7 +238,7 @@ async def send_followup(step: int, to: str, name: str) -> bool:
 اطلع عليها الآن: https://alnarjisai.com/pricing
 
 — فريق النرجس
-Al-Narjis AI · Riyadh""",
+Al Narjis AI · Riyadh""",
         html=_followup_html(step, name),
     )
 
@@ -297,7 +297,7 @@ def _invoice_html(payment, base_halalas: int, vat_halalas: int, total_halalas: i
           </tr>
         </table>
         <p style="color:#6b7280;font-size:12px;margin-top:16px;">
-          {'شكراً لثقتك بالنرجس للذكاء الاصطناعي.' if ar else 'Thank you for choosing Al-Narjis AI.'}
+          {'شكراً لثقتك بالنرجس للذكاء الاصطناعي.' if ar else 'Thank you for choosing Al Narjis AI.'}
           {' 🧾' if not ar else ''}
         </p>
       </div>
@@ -309,10 +309,10 @@ async def send_invoice(payment, base_halalas: int, total_halalas: int, locale: s
     if not payment.customer_email and not to:
         return False
     vat = total_halalas - base_halalas
-    subject = "فاتورتك من النرجس للذكاء الاصطناعي" if locale == "ar" else "Your invoice from Al-Narjis AI"
+    subject = "فاتورتك من النرجس للذكاء الاصطناعي" if locale == "ar" else "Your invoice from Al Narjis AI"
     return await send_email(
         to=to or payment.customer_email,
         subject=subject,
-        body=f"Al-Narjis AI · Invoice {str(payment.id)[:8].upper()} · {total_halalas / 100:,.2f} SAR",
+        body=f"Al Narjis AI · Invoice {str(payment.id)[:8].upper()} · {total_halalas / 100:,.2f} SAR",
         html=_invoice_html(payment, base_halalas, vat, total_halalas, locale),
     )

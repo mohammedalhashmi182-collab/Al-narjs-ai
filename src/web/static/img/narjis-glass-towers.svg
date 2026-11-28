@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 210">
+  <!-- Original line and facet studies of four Riyadh landmarks. -->
+  <defs>
+    <linearGradient id="front" x2="1" y2="1">
+      <stop stop-color="#f8fbff"/><stop offset=".36" stop-color="#d9e8f6"/><stop offset=".69" stop-color="#b1c2d7"/><stop offset="1" stop-color="#f5f7fc"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" x2=".9" y1="0" y2="1">
+      <stop stop-color="#87aecb"/><stop offset=".33" stop-color="#f5f7ff"/><stop offset=".66" stop-color="#9aafca"/><stop offset="1" stop-color="#687a99"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" x2=".22" y2="1">
+      <stop stop-color="#fdfdff"/><stop offset=".31" stop-color="#80abc7"/><stop offset=".52" stop-color="#d6d2e0"/><stop offset=".75" stop-color="#8a9bb6"/><stop offset="1" stop-color="#f8fbff"/>
+    </linearGradient>
+    <linearGradient id="prism" x1="0" x2="1" y2="1">
+      <stop stop-color="#94c0de"/><stop offset=".33" stop-color="#fbfcfe"/><stop offset=".56" stop-color="#ddd7e6"/><stop offset=".8" stop-color="#b0c4de"/><stop offset="1" stop-color="#fcfbff"/>
+    </linearGradient>
+    <radialGradient id="foot">
+      <stop stop-color="#788aa8" stop-opacity=".48"/><stop offset=".63" stop-color="#9aabbe" stop-opacity=".22"/><stop offset="1" stop-color="#9aabbe" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sphere" cx=".34" cy=".28" r=".72">
+      <stop stop-color="#fff"/><stop offset=".5" stop-color="#e4ebf8"/><stop offset=".82" stop-color="#a3b9d0"/><stop offset="1" stop-color="#728ca8"/>
+    </radialGradient>
+  </defs>
+  <symbol id="tower-kingdom" viewBox="0 0 190 210">
+    <ellipse cx="96" cy="192" rx="65" ry="12" fill="url(#foot)"/>
+    <path fill="url(#side)" stroke="#8296ac" stroke-width=".8" d="M107 22 127 28Q136 31 136 46L132 184l-18 7L112 92l15-54z"/>
+    <path fill="url(#front)" stroke="url(#edge)" stroke-width="2" fill-rule="evenodd" d="M57 187 54 42q0-22 17-23h40q17 0 17 23l-3 145-11 6H65zm5-154q7 26 32 53 22-26 26-53z"/>
+    <path fill="none" stroke="#627a98" stroke-opacity=".53" d="M62 33h58q-5 30-26 53Q69 60 62 33zm32 53v104M68 189 67 53m53 0-3 135"/>
+    <path fill="url(#prism)" fill-opacity=".66" d="M58 124 95 87l27 104H66z"/>
+    <path fill="none" stroke="#f8fcff" stroke-width="1.3" opacity=".86" d="m64 188-6-75 38-28 25 26m-51-84 42 1"/>
+  </symbol>
+  <symbol id="tower-faisaliah" viewBox="0 0 190 210">
+    <ellipse cx="96" cy="192" rx="64" ry="12" fill="url(#foot)"/>
+    <path fill="url(#side)" stroke="#8094ad" stroke-width=".8" d="m96 20 40 168-18 5-24-14z"/>
+    <path fill="url(#front)" stroke="url(#edge)" stroke-width="1.7" d="M55 189 94 20l25 173-26 4z"/>
+    <path fill="url(#prism)" fill-opacity=".76" d="m96 55 16 88-48 17L82 74zm-35 115 54-10 4 33-28 4-35-8z"/>
+    <path fill="none" stroke="#8192aa" stroke-width=".65" opacity=".84" d="M95 48 93 195M76 96l31 2 13 6m-51 21 43 4 16 7m-67 20 55 7 17 10"/>
+    <path fill="none" stroke="#f8fbff" stroke-width="1.1" d="m85 62-14 59m30-49 12 66"/>
+    <circle cx="96" cy="54" r="10" fill="url(#sphere)" stroke="#8192aa" stroke-width=".55"/>
+    <path fill="none" stroke="#697b96" stroke-width="1.1" d="M95 19 94 10"/>
+  </symbol>
+  <symbol id="tower-tv" viewBox="0 0 190 210">
+    <ellipse cx="96" cy="191" rx="55" ry="10" fill="url(#foot)"/>
+    <path fill="url(#side)" stroke="url(#edge)" stroke-width="1.2" d="m91 60 13 1 1 109 9 17-11 4-24-2 7-18z"/>
+    <path fill="url(#front)" opacity=".9" d="m93 63 7 3v104l5 19-25-1 8-15z"/>
+    <path fill="url(#front)" stroke="url(#edge)" stroke-width="1.2" d="m73 184 11-8 24 1 12 8-3 5H76z"/>
+    <path fill="url(#side)" stroke="#879eb9" stroke-width=".6" d="m79 59 5-12 14-8 15 8 7 12-10 12-12 4-13-5z"/>
+    <path fill="url(#sphere)" stroke="#8197b1" stroke-width=".7" d="M81 57q0-15 17-17 16 3 17 17 0 14-17 18-16-3-17-18z"/>
+    <path fill="url(#prism)" d="m84 50 14-8 9 14-9 17-13-7z"/>
+    <path fill="none" stroke="#f8fbff" stroke-width="1" d="m81 57 17 2 16-3m-16-14v31m-7 8-1 91"/>
+    <path fill="none" stroke="#748aa6" stroke-width="1.4" d="M98 40V17m-4 0h8m-4-5v7"/>
+  </symbol>
+  <symbol id="tower-majdoul" viewBox="0 0 190 210">
+    <ellipse cx="94" cy="191" rx="60" ry="12" fill="url(#foot)"/>
+    <path fill="url(#front)" stroke="url(#edge)" stroke-width="1.5" d="M64 189c8-15 2-25 3-41 1-19 15-30 14-48-1-23-18-32-12-54 3-12 11-21 16-28l30 4c10 9 15 23 12 38-3 18-15 29-13 47 1 16 10 29 9 46 0 14-5 27-10 40-16 3-34 1-49-4z"/>
+    <path fill="url(#side)" stroke="#859bb7" stroke-width=".65" d="M115 22c16 8 19 19 17 35-2 22-12 30-13 51 0 15 12 28 12 44 1 14-5 28-18 41 5-17 10-28 10-40 1-17-8-30-9-46-2-18 10-29 13-47 3-15-2-29-12-38z"/>
+    <path fill="url(#prism)" fill-opacity=".83" d="M85 18c-3 17-7 22-2 39 4 13 14 25 12 45-1 18-10 25-14 43s6 37-1 47l15 3c4-17 1-33 2-47 3-19 12-29 14-46 0-19-8-27-13-43-7-24 0-34 6-39z"/>
+    <path fill="none" stroke="#6e86a8" stroke-width=".7" opacity=".76" d="M71 42q25 11 56 1m-56 16q25 11 56 1m-49 18q22 5 43 6m-40 17q10 10 34 10m-41 12q13 12 45 10m-51 14q23 9 55 7m-55 14q24 12 52 6m-55 9q24 12 50 8"/>
+    <path fill="none" stroke="#f7faff" stroke-width="1.25" opacity=".88" d="M85 23c-15 29 15 53 13 77-1 18-9 25-13 45s3 35-1 46m25-164c-11 18 5 44 4 61"/>
+    <path fill="url(#prism)" stroke="#abc0d5" stroke-width=".65" d="m85 18 15-3 26 7-11 5z"/>
+  </symbol>
+</svg>

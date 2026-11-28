@@ -85,7 +85,7 @@ def test_rendered_thread_switches_direction_and_copy_label() -> None:
     assert "goLang" in ar
     for page, lang, title, desc in (
         (ar, "ar", "المستشار الذكي | النرجس للذكاء الاصطناعي", "تحدث بحرية عن عملك وأسلوبك وبيئتك"),
-        (en, "en", "Smart Consultant | Al-Narjis AI", "Talk freely about your business, style and environment."),
+        (en, "en", "Smart Consultant | Al Narjis AI", "Talk freely about your business, style and environment."),
     ):
         assert f"<title>{title}</title>" in page
         assert f'<meta name="description" content="{desc}' in page

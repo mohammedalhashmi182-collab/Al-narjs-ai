@@ -73,12 +73,12 @@ def test_home_links_to_services_and_uses_the_supplied_meta(client: TestClient) -
     assert 'id="services"' in html
     assert "خدماتنا" in html
     for slug in seo.SERVICE_SLUGS:
-        assert f'href="/services/{slug}"' in html
+        assert f'href="/ar/services/{slug}"' in html
     assert "<title>النرجس للذكاء الاصطناعي | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات</title>" in html
     assert 'property="og:title" content="النرجس للذكاء الاصطناعي | رئيس تنفيذي ذكي وفريق وكلاء لأتمتة أعمال الشركات"' in html
     assert 'name="twitter:description" content="النرجس للذكاء الاصطناعي من الرياض:' in html
     assert 'property="og:image:alt" content="شعار النرجس — حلول الذكاء الاصطناعي من الرياض"' in html
-    assert '<h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>' in html
+    assert '<h1 class="display" id="hero-h">الرئيس التنفيذي الذكي يقترح فريقك وخطتك.</h1>' in html
     assert 'hreflang="x-default" href="https://alnarjisai.com/ar/home"' in html
 
 

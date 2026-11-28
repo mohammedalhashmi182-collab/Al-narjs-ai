@@ -460,15 +460,15 @@ def _najdi() -> str:
     return NAJDI_CSS.read_text(encoding="utf-8").lower()
 
 
-def test_landing_declares_the_najdi_theme_colour() -> None:
-    assert f'<meta name="theme-color" content="{NAJDI_TOKENS["--narjis-ink"]}">' in read("landing.html")
+def test_landing_declares_the_agentic_theme_colour() -> None:
+    assert '<meta name="theme-color" content="#f2f3f5">' in read("landing.html")
 
 
 def test_najdi_landing_loads_only_its_layer_and_fonts() -> None:
     body = read("landing.html")
     assert "/static/css/narjis-najdi.css" in body
     assert "/static/brand/vnext/tokens.css" in body
-    assert '<body class="nj"' in body
+    assert '<body class="nj ag-glass-refined"' in body
     assert "family=IBM+Plex+Sans+Arabic" in body
     assert 'rel="preload" as="style"' in body
     assert 'rel="preconnect" href="https://fonts.gstatic.com"' in body
@@ -498,8 +498,8 @@ def test_najdi_text_meets_wcag_aa() -> None:
 
 def test_najdi_hero_has_a_bilingual_product_heading_and_a_real_image() -> None:
     body = read("landing.html")
-    assert '<h1 class="display" id="hero-h">فريق ذكاء اصطناعي <em>لهدف عملك.</em></h1>' in body
-    assert '<h1 class="display" id="hero-h">An AI team for <em>your business goal.</em></h1>' in body
+    assert 'id="hero-h"' in body and "الرئيس التنفيذي الذكي يقترح فريقك وخطتك." in body
+    assert "Your AI CEO proposes a team and a plan." in body
     assert "ناقش هدفك مع الرئيس التنفيذي" in body and "شاهد نموذج تسليم" in body
     assert "base64" not in body
     for img in ("hero-najdi.webp", "hero-najdi-800.webp"):

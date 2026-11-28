@@ -161,9 +161,17 @@ def spoken_system_prompt(lang: str = "ar") -> str:
         "The published monthly base prices, before any applicable VAT, are:",
         "The published monthly prices in SAR, with nothing added, are:",
     )
-    return base + (
-        "\n## Spoken reply\n"
-        "The caller hears this answer. Use at most three short sentences. "
+    arabic_delivery = (
+        "Use clear, neutral conversational Arabic with familiar words, not formal or archaic phrasing. "
+        "Keep one idea per sentence. When you must say a price or name, say it exactly. "
+        if page_lang(lang) == "ar" else ""
+    )
+    return (
+        base
+        + "\n## Spoken reply\n"
+        + "The caller hears this answer. Use at most two short sentences. "
+        + arabic_delivery
+        + "Do not use filler introductions or repeat the question. "
         "No markdown, no lists, and no emojis.\n"
         "Do not mention VAT, tax, or ضريبة. Say only the monthly price in SAR.\n"
         "Do not say Salla or Zid is connected, included, or available.\n"
@@ -462,7 +470,7 @@ def render_page(lang: str) -> str:
         html = html.replace('<html lang="ar" dir="rtl">', '<html lang="en" dir="ltr">', 1)
         html = html.replace(
             "<title>تحدّث مع مستشار النرجس الذكي</title>",
-            "<title>Talk to the Al-Narjis AI advisor</title>",
+            "<title>Talk to the Al Narjis AI advisor</title>",
             1,
         )
         html = html.replace(
@@ -471,7 +479,7 @@ def render_page(lang: str) -> str:
         )
         html = html.replace(
             'property="og:title" content="تحدّث مع مستشار النرجس الذكي"',
-            'property="og:title" content="Talk to the Al-Narjis AI advisor"',
+            'property="og:title" content="Talk to the Al Narjis AI advisor"',
             1,
         )
         html = html.replace(
