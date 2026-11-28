@@ -498,8 +498,8 @@ def test_najdi_text_meets_wcag_aa() -> None:
 
 def test_najdi_hero_has_a_bilingual_product_heading_and_a_real_image() -> None:
     body = read("landing.html")
-    assert '<h1 class="display" id="hero-h">موظفك الذكي يرد على عملائك وانت نايم.</h1>' in body
-    assert '<h1 class="display" id="hero-h">Your AI employee answers customers while you sleep.</h1>' in body
+    assert 'id="hero-h"' in body and "الرئيس التنفيذي الذكي يقترح فريقك وخطتك." in body
+    assert "Your AI CEO proposes a team and a plan." in body
     assert "ناقش هدفك مع الرئيس التنفيذي" in body and "شاهد نموذج تسليم" in body
     assert "base64" not in body
     for img in ("hero-najdi.webp", "hero-najdi-800.webp"):

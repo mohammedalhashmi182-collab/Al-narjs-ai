@@ -123,7 +123,7 @@
     <link rel="stylesheet" href="/static/css/narjis-white-glass.css">
     <link rel="stylesheet" href="/static/css/narjis-hero-luxury.css">
     <link rel="stylesheet" href="/static/css/narjis-agentic.css">
-    <link rel="stylesheet" href="/static/css/narjis-glass-refinement.css?v=original-towers-20261127">
+    <link rel="stylesheet" href="/static/css/narjis-glass-refinement.css?v=crystal-hero-20261128">
     <link rel="stylesheet" href="/static/css/narjis-workshop-contrast.css?v=1">
     <script>
     (function () {
@@ -192,36 +192,11 @@
     </div>
     <div class="wrap">
         <div class="copy">
-            <div class="nj-brand-row">
-                <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
-                        <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
-                    </svg>
-                    {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
-                </a>
-            </div>
             <p class="eyebrow">{% if ar %}ذكاء اصطناعي لأعمالك، من الرياض{% else %}Business AI from Riyadh{% endif %}</p>
-            {% if ar %}
-            <h1 class="display" id="hero-h">موظفك الذكي يرد على عملائك وانت نايم.</h1>
-            <ul class="ag-stats">
-                <li><b>24/7</b><span>رد على مدار الساعة</span></li>
-                <li><b>عربي</b><span>باللهجة السعودية</span></li>
-                <li><b>{{ plans[0].price }}</b><span>ر.س</span></li>
-            </ul>
-            <p class="lead">اشرح هدفك للرئيس التنفيذي الذكي. يقترح فريق الوكلاء وخطة العمل، وتراجع أنت ما ينجزه الفريق.</p>
-            {% else %}
-            <h1 class="display" id="hero-h">Your AI employee answers customers while you sleep.</h1>
-            <ul class="ag-stats">
-                <li><b>24/7</b><span>Replies around the clock</span></li>
-                <li><b>Arabic</b><span>Saudi dialect</span></li>
-                <li><b>{{ plans[0].price }}</b><span>SAR</span></li>
-            </ul>
-            <p class="lead">Tell the AI CEO what you need. It proposes the right specialists and a plan, then puts the team’s work in your hands for review.</p>
-            {% endif %}
+            <h1 class="display" id="hero-h">{% if ar %}الرئيس التنفيذي الذكي يقترح فريقك وخطتك.{% else %}Your AI CEO proposes a team and a plan.{% endif %}</h1>
+            <p class="lead">{% if ar %}اشرح احتياجك وشوف الفريق والخطة المقترحين هنا، قبل أي التزام.{% else %}Describe what you need and review the proposed team and plan here, before you commit.{% endif %}</p>
             <div class="ctas">
                 <a class="btn" href="#start-ceo" id="heroCeo">{% if ar %}ناقش هدفك مع الرئيس التنفيذي <span aria-hidden="true">←</span>{% else %}Discuss your goal with the CEO <span aria-hidden="true">→</span>{% endif %}</a>
-                <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
-                <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
             </div>
         </div>
         <div class="portal ng-ceo-portal" id="start-ceo" tabindex="-1" role="region" aria-label="{% if ar %}تحدث مع الرئيس التنفيذي الآن{% else %}Consult the AI CEO now{% endif %}">
@@ -233,12 +208,16 @@
             <div class="ng-app-body ngc" id="ngConcierge" data-brand-mark="{{ glass_mark }}" data-wa-href="https://wa.me/966552978753">
                 <div class="ngc-who">
                     <img src="{{ glass_mark }}" alt="" width="40" height="40">
-                    <div><b>{% if ar %}{{ ceo.title_ar }}{% else %}{{ ceo.title_en }}{% endif %}</b><span><i class="ngc-online" aria-hidden="true"></i>{% if ar %}متصل الآن · يستقبلك ويجهّز عرضك{% else %}Online · greets you and prepares your offer{% endif %}</span></div>
+                    <div><b>{% if ar %}{{ ceo.title_ar }}{% else %}{{ ceo.title_en }}{% endif %}</b><span><i class="ngc-online" aria-hidden="true"></i>{% if ar %}تشخيص احتياجك واقتراح خطة{% else %}Diagnoses your needs and proposes a plan{% endif %}</span></div>
                 </div>
                 <div class="ngc-thread" id="ngcThread" aria-live="polite">
-                    <div class="ngc-msg ceo" data-static><p>{% if ar %}أهلاً بك في النرجس. أنا الرئيس التنفيذي الذكي: أفهم نشاطك في ثلاث أسئلة، وأجهّز لك عرضاً مبدئياً هنا بنفس الصفحة، بدون تسجيل.{% else %}Welcome to Al-Narjis. I am the AI CEO: three quick questions, and I prepare an initial offer for you right here, no sign-up.{% endif %}</p></div>
-                    <div class="ngc-msg ceo" data-static><p>{% if ar %}وش نوع نشاطك؟ اختر، أو اكتب وصف مشكلتك كاملة.{% else %}What kind of business do you run? Pick one, or describe your problem in full.{% endif %}</p></div>
+                    <div class="ngc-msg ceo" data-static><p>{% if ar %}أهلًا، أنا الرئيس التنفيذي الذكي. اختر نشاطك أو اشرح احتياجك لنبدأ.{% else %}Hello, I am the AI CEO. Choose your business type or describe what you need.{% endif %}</p></div>
                 </div>
+                <form class="ngc-composer" id="ngHeroForm" action="/api/ceo/consult" method="post">
+                    <label class="ngc-sr" for="ngHeroProblem">{% if ar %}ما أول مشكلة تريد حلّها؟{% else %}What's the first problem you want solved?{% endif %}</label>
+                    <textarea id="ngHeroProblem" name="problem" rows="1" maxlength="2000" placeholder="{% if ar %}اكتب للرئيس التنفيذي…{% else %}Write to the CEO…{% endif %}"></textarea>
+                    <button type="submit" class="btn ng-hero-submit" aria-label="{% if ar %}أرسل{% else %}Send{% endif %}"><span aria-hidden="true">{% if ar %}←{% else %}→{% endif %}</span></button>
+                </form>
                 <div class="ngc-quick ng-hero-choices" id="ngcQuick" aria-label="{% if ar %}إجابات سريعة{% else %}Quick answers{% endif %}">
                     {% if ar %}
                     <button type="button" class="ngc-chip ng-hero-choice" data-ng-example="أدير عيادة">عيادة</button>
@@ -254,11 +233,6 @@
                     <button type="button" class="ngc-chip ng-hero-choice" data-ng-example="I run a restaurant or cafe">Restaurant</button>
                     {% endif %}
                 </div>
-                <form class="ngc-composer" id="ngHeroForm" action="/api/ceo/consult" method="post">
-                    <label class="ngc-sr" for="ngHeroProblem">{% if ar %}ما أول مشكلة تريد حلّها؟{% else %}What's the first problem you want solved?{% endif %}</label>
-                    <textarea id="ngHeroProblem" name="problem" rows="1" maxlength="2000" placeholder="{% if ar %}اكتب للرئيس التنفيذي…{% else %}Write to the CEO…{% endif %}"></textarea>
-                    <button type="submit" class="btn ng-hero-submit" aria-label="{% if ar %}أرسل{% else %}Send{% endif %}"><span aria-hidden="true">{% if ar %}←{% else %}→{% endif %}</span></button>
-                </form>
                 <p class="ng-app-proof">{% if ar %}عرض مبدئي غير ملزم. لا تنفيذ ولا إرسال رسائل قبل موافقتك والربط.{% else %}A non-binding initial offer. No integrations or messages until you approve.{% endif %}</p>
             </div>
             <div class="ng-app-bottom">
@@ -266,6 +240,25 @@
                 <span><strong>{% if ar %}02 / تخصيص{% else %}02 / Match{% endif %}</strong>{% if ar %}نرشح فريقك{% else %}Your agents{% endif %}</span>
                 <span><strong>{% if ar %}03 / تصور{% else %}03 / Blueprint{% endif %}</strong>{% if ar %}تشاهد النتيجة{% else %}Your visual plan{% endif %}</span>
             </div>
+        </div>
+        <div class="ag-hero-secondary">
+            <div class="ctas">
+                <button class="btn-sec" type="button" data-open-sample>{% if ar %}شاهد نموذج تسليم{% else %}See a sample delivery{% endif %}</button>
+                <a class="btn-sec" id="heroWhatsapp" href="https://wa.me/966552978753" target="_blank" rel="noopener noreferrer">{% if ar %}تواصل معنا عبر واتساب{% else %}Chat with us on WhatsApp{% endif %}</a>
+            </div>
+            <div class="nj-brand-row">
+                <a class="nj-voice-inline" href="/{{ 'ar' if ar else 'en' }}/voice" aria-label="{% if ar %}تحدث بالصوت مع مستشار النرجس{% else %}Talk to the Al-Narjis voice advisor{% endif %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                        <path d="M3 12v0M7 8v8M11 4v16M15 7v10M19 10v4M23 12v0"/>
+                    </svg>
+                    {% if ar %}تحدث مع النرجس{% else %}Talk to Al-Narjis{% endif %}
+                </a>
+            </div>
+            <ul class="ag-stats">
+                <li><b>{% if ar %}واتساب{% else %}WhatsApp{% endif %}</b><span>{% if ar %}قناة خدمة العملاء{% else %}Customer service channel{% endif %}</span></li>
+                <li><b>{% if ar %}عربي{% else %}Arabic{% endif %}</b><span>{% if ar %}باللهجة السعودية{% else %}Saudi dialect{% endif %}</span></li>
+                <li><b>{{ plans[0].price }}</b><span>{% if ar %}ر.س / بداية الباقات{% else %}SAR / starting plan{% endif %}</span></li>
+            </ul>
         </div>
     </div>
 </section>

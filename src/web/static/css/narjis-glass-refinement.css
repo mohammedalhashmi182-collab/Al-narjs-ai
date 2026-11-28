@@ -206,3 +206,89 @@ html body.nj.ag-glass-refined #integrations .ag-channel-grid {
 @media (max-width:640px) {
   html body.nj.ag-glass-refined #integrations .ag-channel-grid {grid-template-columns:minmax(0,1fr)}
 }
+
+/* Opening view: the existing consultation sits alongside the promise, not a screen below it. */
+html body.nj.ag-glass-refined main .hero > .wrap {
+  display:grid;
+  grid-template-columns:minmax(0,1.04fr) minmax(0,1fr);
+  grid-template-areas:"copy desk" "extras desk";
+  gap:14px clamp(26px,5vw,84px);
+  align-content:center;
+  align-items:center;
+  width:min(100%,1320px);
+  min-height:100svh;
+  padding:108px clamp(22px,3.34vw,64px) 48px;
+}
+html body.nj.ag-glass-refined main .hero .copy {
+  grid-area:copy;
+  min-height:0;
+  width:100%;
+  align-self:end;
+  justify-content:flex-start;
+  padding:0;
+}
+html body.nj.ag-glass-refined main .hero .eyebrow {
+  display:block;
+  order:0;
+  margin:0 0 12px;
+  color:var(--ag-muted);
+  letter-spacing:0;
+}
+html[lang] body.nj.ag-glass-refined main .hero h1.display {
+  font-size:clamp(38px,4.3vw,64px);
+  max-width:13em;
+  line-height:1.15;
+}
+html body.nj.ag-glass-refined main .hero .ag-hero-secondary {grid-area:extras;align-self:start}
+html body.nj.ag-glass-refined main .hero .ag-hero-secondary .ctas {margin:0;flex-wrap:wrap}
+html body.nj.ag-glass-refined main .hero .ag-hero-secondary .ag-stats {margin:9px 0 0;gap:14px 25px;flex-wrap:wrap}
+html body.nj.ag-glass-refined main .hero .ag-hero-secondary .ag-stats b {font-size:clamp(19px,2.1vw,28px)}
+html body.nj.ag-glass-refined main .hero .portal {
+  grid-area:desk;
+  min-width:0;
+  align-self:center;
+  margin:0;
+}
+html body.nj.ag-glass-refined main .hero #heroCeo {
+  border-color:var(--ag-ink);
+  background:var(--ag-ink);
+  color:#fff;
+  font-weight:600;
+}
+html body.nj.ag-glass-refined main .hero #heroCeo:hover {background:#30343a;color:#fff}
+html body.nj.ag-glass-refined main .hero .ng-app-bottom span {color:var(--ag-muted)}
+html body.nj.ag-glass-refined main .hero .ng-app-bottom strong {color:var(--ag-ink)}
+html body.nj.ag-glass-refined main .hero #heroCeo:focus-visible {
+  outline:2px solid var(--ag-ink);
+  outline-offset:4px;
+}
+@media (max-width:900px) {
+  html body.nj.ag-glass-refined main .hero > .wrap {
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"copy" "desk" "extras";
+    width:min(100%,660px);
+    gap:19px;
+    min-height:auto;
+    padding:98px clamp(16px,4.1vw,27px) 40px;
+  }
+  html[lang] body.nj.ag-glass-refined main .hero h1.display {
+    font-size:clamp(30px,7.9vw,49px);
+    line-height:1.14;
+  }
+  html body.nj.ag-glass-refined main .hero .copy .lead {margin:9px 0 0}
+  html body.nj.ag-glass-refined main .hero .copy .ctas {margin-top:9px}
+  html body.nj.ag-glass-refined main .hero .ng-app-body {padding:13px}
+  html body.nj.ag-glass-refined main .hero .ngc-who {margin-block-end:7px}
+  html body.nj.ag-glass-refined main .hero .ngc-msg {padding:7px 12px}
+  html body.nj.ag-glass-refined main .hero .ngc-chip {padding:7px 10px}
+  html body.nj.ag-glass-refined main .hero .ngc-quick {gap:5px;margin-block-start:8px}
+  html body.nj.ag-glass-refined main .hero #heroCeo,
+  html body.nj.ag-glass-refined main .hero .ng-hero-submit {min-height:48px}
+  html body.nj.ag-glass-refined main .hero .ng-hero-submit {min-width:48px}
+  html body.nj.ag-glass-refined main .hero .ng-app-proof {margin-block-start:7px}
+}
+@media (max-width:360px) {
+  html body.nj.ag-glass-refined main .hero > .wrap {padding-block-start:84px;gap:14px}
+  html[lang] body.nj.ag-glass-refined main .hero h1.display {font-size:27px}
+  html body.nj.ag-glass-refined main .hero .ng-app-top {min-height:40px;padding:8px 12px}
+}

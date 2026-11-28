@@ -41,3 +41,18 @@ def test_public_details_match_glass_but_do_not_restyle_legal(monkeypatch):
             response = client.get(f"/{lang}/terms")
             assert response.status_code == 200
             assert "narjis-workshop-detail-page.css" not in response.text
+
+
+def test_crystal_opening_preserves_the_original_art_and_one_quote_form(monkeypatch):
+    monkeypatch.setenv("DISABLE_LEGACY_REDIRECT", "1")
+    with TestClient(app, base_url="https://narjis-workshop-preview.onrender.com") as client:
+        for lang in ("ar", "en"):
+            html = client.get(f"/{lang}/home").text
+            hero = html.split('<section class="hero"', 1)[1].split("</section>", 1)[0]
+            assert 'src="/static/img/hero-najdi.webp"' in hero
+            assert 'srcset="/static/img/hero-najdi-800.webp"' in hero
+            assert hero.count('id="ngHeroForm"') == html.count('id="ngHeroForm"') == 1
+            assert hero.count('name="problem"') == 1
+            assert 'id="ngHeroForm" action="/api/ceo/consult" method="post"' in hero
+            assert hero.index('id="heroCeo"') < hero.index('id="ngHeroForm"') < hero.index('id="heroWhatsapp"')
+            assert 'data-open-sample' in hero and 'id="start-ceo"' in hero
